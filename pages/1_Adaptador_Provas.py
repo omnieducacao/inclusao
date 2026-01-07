@@ -1,192 +1,186 @@
 import streamlit as st
-from openai import OpenAI
+import google.generativeai as genai
+import os
+from io import BytesIO
+from pypdf import PdfReader
+from docx import Document
+from PIL import Image
 
 st.set_page_config(page_title="Adaptador de Avaliações", page_icon="📝", layout="wide")
 
 # --- ESTILO VISUAL ---
 st.markdown("""
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-    html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color: #2D3748; }
-    
     .stTextArea textarea { border-radius: 12px; border: 1px solid #CBD5E0; }
-    .stTextInput input { border-radius: 12px; border: 1px solid #CBD5E0; }
     .stSelectbox div[data-baseweb="select"] { border-radius: 12px; }
-    
-    .result-card { 
-        background: #FFFFFF; padding: 30px; border-radius: 16px; 
-        border: 1px solid #E2E8F0; border-left: 6px solid #FF6B6B; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-top: 20px;
-    }
-    
-    .student-info-box {
-        background-color: #E3F2FD; padding: 15px; border-radius: 12px;
-        border: 1px solid #90CDF4; color: #004E92; margin-bottom: 20px;
-    }
-    
-    .delete-btn { color: #E53E3E; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
+    div[data-testid="stFileUploader"] section { background-color: #F0F4F8; border: 2px dashed #004E92; border-radius: 15px; }
+    .result-card { background: #FFFFFF; padding: 30px; border-radius: 16px; border: 1px solid #E2E8F0; border-left: 6px solid #FF6B6B; margin-top: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     </style>
 """, unsafe_allow_html=True)
+
+# --- CONFIGURAÇÃO GEMINI ---
+def configurar_gemini(api_key):
+    try:
+        genai.configure(api_key=api_key)
+        return True
+    except: return False
+
+# --- LEITURA DE ARQUIVOS (TEXTO E IMAGEM) ---
+def processar_arquivo(uploaded_file):
+    # Retorna (Texto, Objeto_Imagem, Tipo)
+    try:
+        # IMAGEM (JPG/PNG)
+        if uploaded_file.type in ["image/png", "image/jpeg"]:
+            image = Image.open(uploaded_file)
+            return None, image, "imagem"
+        
+        # PDF
+        elif uploaded_file.type == "application/pdf":
+            reader = PdfReader(uploaded_file)
+            texto = ""
+            for page in reader.pages: texto += page.extract_text() + "\n"
+            return texto, None, "texto"
+        
+        # WORD
+        elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            doc = Document(uploaded_file)
+            texto = "\n".join([p.text for p in doc.paragraphs])
+            return texto, None, "texto"
+            
+    except Exception as e: return f"Erro: {e}", None, "erro"
+    return "", None, "vazio"
 
 # --- CABEÇALHO ---
 c1, c2 = st.columns([1, 6])
 with c1: st.markdown("<div style='text-align:center; font-size: 3.5rem;'>📝</div>", unsafe_allow_html=True)
 with c2: 
-    st.markdown("<h1 style='color:#004E92; margin-bottom:5px; margin-top:10px;'>Adaptador de Provas</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#718096; font-size:1.1rem;'>Transforme avaliações inteiras em formatos acessíveis e inclusivos.</p>", unsafe_allow_html=True)
+    st.markdown("<h1 style='color:#004E92; margin-bottom:5px; margin-top:10px;'>Adaptador de Provas (Gemini AI)</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#718096; font-size:1.1rem;'>Adaptação Multimodal: Envie textos, PDFs ou <b>Prints das Questões</b>.</p>", unsafe_allow_html=True)
 
-st.write("")
-
-# --- SIDEBAR (CONFIG E GESTÃO) ---
+# --- SIDEBAR ---
 with st.sidebar:
-    st.header("⚙️ Configurações")
-    if 'DEEPSEEK_API_KEY' in st.secrets: api_key = st.secrets['DEEPSEEK_API_KEY']
-    else: api_key = st.text_input("Chave API:", type="password")
+    st.header("⚙️ Configuração")
+    if 'GOOGLE_API_KEY' in st.secrets: 
+        api_key = st.secrets['GOOGLE_API_KEY']
+        st.success("✅ Gemini Ativado")
+    else: 
+        api_key = st.text_input("Chave Google API:", type="password")
     
     st.markdown("---")
-    
-    # --- GESTÃO DE ALUNOS (EXCLUIR) ---
-    st.subheader("🗑️ Gerenciar Banco")
-    if 'banco_estudantes' in st.session_state and st.session_state.banco_estudantes:
-        qtd = len(st.session_state.banco_estudantes)
-        st.caption(f"Total de alunos salvos: {qtd}")
-        
-        # Botão para limpar tudo
-        if st.button("Limpar Lista Completa", type="secondary"):
-            st.session_state.banco_estudantes = []
-            st.rerun()
-    else:
-        st.caption("Nenhum aluno no banco de dados.")
+    if st.button("Limpar Lista de Alunos"):
+        st.session_state.banco_estudantes = []
+        st.rerun()
 
-# --- LÓGICA DE SELEÇÃO ---
+# --- SELEÇÃO DE ALUNO ---
 aluno_selecionado = None
 if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estudantes:
-    st.warning("⚠️ O banco de alunos está vazio. Vá no módulo 'Gestão de PEI', crie um perfil e clique em 'Salvar'.")
+    st.warning("⚠️ Banco vazio. Cadastre um aluno no módulo 'Gestão de PEI' primeiro.")
 else:
-    # Cria lista de nomes (adiciona índice para diferenciar nomes iguais)
     lista_nomes = [f"{i} - {a['nome']}" for i, a in enumerate(st.session_state.banco_estudantes)]
-    escolha = st.selectbox("📂 Selecione o Estudante:", lista_nomes, index=len(lista_nomes)-1) # Seleciona o último por padrão
-    
+    escolha = st.selectbox("📂 Selecione o Estudante:", lista_nomes, index=len(lista_nomes)-1)
     if escolha:
         index = int(escolha.split(" - ")[0])
         aluno_selecionado = st.session_state.banco_estudantes[index]
-        
-        # Botão para excluir APENAS este aluno
-        if st.button(f"❌ Excluir {aluno_selecionado['nome']} da lista"):
-            st.session_state.banco_estudantes.pop(index)
-            st.rerun()
 
-# --- ÁREA DE TRABALHO ---
+# --- ÁREA PRINCIPAL ---
 if aluno_selecionado:
-    # Resumo do Perfil (Dossiê)
-    with st.expander(f"👤 Perfil Ativo: {aluno_selecionado['nome']} (Clique para ver detalhes)", expanded=True):
-        c_perfil1, c_perfil2 = st.columns(2)
-        
-        idade = aluno_selecionado.get('idade_calculada', 'Não calc.')
-        serie = aluno_selecionado.get('serie', '-')
-        diag = aluno_selecionado.get('diagnostico', '-')
-        
-        c_perfil1.markdown(f"**Idade:** {idade} anos | **Série:** {serie}")
-        c_perfil1.markdown(f"**Diagnóstico:** {diag}")
-        c_perfil1.markdown(f"**Hiperfoco:** {aluno_selecionado.get('hiperfoco', 'Não informado')}")
-        
-        # Tenta pegar as diretrizes da IA (se existirem)
-        ia_sugestao = aluno_selecionado.get('ia_sugestao', '')
-        diretrizes = "Consulte o PEI para detalhes."
-        if "DIRETRIZES PARA O ADAPTADOR" in ia_sugestao:
-            try:
-                diretrizes = ia_sugestao.split("DIRETRIZES PARA O ADAPTADOR DE PROVAS")[1].split("\n")[1] # Pega o trecho
+    with st.expander(f"👤 Perfil Ativo: {aluno_selecionado['nome']}", expanded=True):
+        c_p1, c_p2 = st.columns(2)
+        c_p1.markdown(f"**Diag:** {aluno_selecionado.get('diagnostico', '-')}")
+        # Recupera diretrizes do PEI
+        diretrizes = "Consulte o PEI."
+        if 'ia_sugestao' in aluno_selecionado and "DIRETRIZES" in aluno_selecionado['ia_sugestao']:
+            try: diretrizes = aluno_selecionado['ia_sugestao'].split("DIRETRIZES PARA O ADAPTADOR")[1][:400] + "..."
             except: pass
-        
-        c_perfil2.info(f"💡 **Diretriz do PEI:** {diretrizes[:300]}...")
+        c_p2.info(f"💡 **Diretriz:** {diretrizes}")
 
     st.markdown("---")
-
-    col_input, col_output = st.columns([1, 1])
-
+    
+    col_input, col_result = st.columns([1, 1])
+    
     with col_input:
-        st.subheader("1. Configuração da Prova")
+        st.subheader("1. Prova Original")
         
-        # NOVO: COMPONENTE CURRICULAR
-        materia = st.text_input("📚 Componente Curricular / Matéria:", placeholder="Ex: História, Matemática, Ciências...")
+        materias_bncc = ["Língua Portuguesa", "Matemática", "História", "Geografia", "Ciências", "Arte", "Inglês"]
+        materia = st.selectbox("📚 Componente:", materias_bncc)
         
-        prova_original = st.text_area(
-            "Cole a Prova Completa aqui:", 
-            height=350,
-            placeholder="Questão 1: ...\nQuestão 2: ...\n(Certifique-se de numerar as questões)"
-        )
+        # UPLOAD AGORA ACEITA IMAGENS
+        uploaded_file = st.file_uploader("Arquivo (PDF, Word ou Imagem/Foto)", type=["docx", "pdf", "png", "jpg", "jpeg"])
         
-        tipo_adaptacao = st.selectbox("Nível de Adaptação:", [
-            "Moderada (Simplificar Enunciados e Vocabulário)",
-            "Intensa (Transformar Dissertativa em Múltipla Escolha)",
-            "Visual (Sugerir Apoio Visual e Mapas Mentais)",
-            "Gamificada (Inserir Hiperfoco no Contexto)"
-        ])
+        conteudo_texto = ""
+        conteudo_imagem = None
+        tipo_arquivo = ""
 
-        if st.button("✨ Adaptar Avaliação", type="primary", use_container_width=True):
+        if uploaded_file:
+            texto, imagem, tipo = processar_arquivo(uploaded_file)
+            tipo_arquivo = tipo
+            
+            if tipo == "texto":
+                conteudo_texto = texto
+                st.success("✅ Texto extraído!")
+                with st.expander("Ver conteúdo"): st.text(conteudo_texto[:500] + "...")
+            elif tipo == "imagem":
+                conteudo_imagem = imagem
+                st.success("✅ Imagem carregada! O Gemini vai analisar.")
+                st.image(imagem, caption="Prova Original", use_column_width=True)
+        
+        # Opção de digitar se não tiver arquivo
+        if not uploaded_file:
+            conteudo_texto = st.text_area("Ou cole o texto aqui:", height=150)
+
+        tipo_adaptacao = st.selectbox("Nível:", ["Moderada (Simplificar)", "Intensa (Múltipla Escolha)", "Visual (Descrição)", "Gamificada"])
+
+        if st.button("✨ Adaptar com Gemini", type="primary", use_container_width=True):
             if not api_key: st.error("Chave API faltando.")
-            elif not materia: st.warning("Por favor, informe a Matéria da prova.")
-            elif not prova_original: st.warning("Cole o texto da prova.")
+            elif not uploaded_file and not conteudo_texto: st.warning("Envie um arquivo ou texto.")
             else:
-                with st.spinner(f"A IA está adaptando a prova de {materia} para {aluno_selecionado['nome']}..."):
+                with st.spinner(f"Gemini analisando prova de {materia}..."):
                     try:
-                        client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+                        configurar_gemini(api_key)
+                        model = genai.GenerativeModel('gemini-1.5-flash')
                         
-                        prompt_sistema = """
-                        Você é um Especialista em Adaptação Curricular e Desenho Universal para Aprendizagem (DUA).
-                        Sua tarefa é reescrever uma prova escolar para torná-la acessível.
-                        Mantenha o rigor pedagógico, mas remova barreiras de acesso.
-                        """
+                        prompt = f"""
+                        ATUE COMO: Especialista em Inclusão e DUA.
                         
-                        prompt_user = f"""
-                        ALUNO: {aluno_selecionado['nome']} ({idade} anos, {serie})
-                        DIAGNÓSTICO: {diag}
-                        HIPERFOCO: {aluno_selecionado.get('hiperfoco', 'Nenhum')}
+                        PERFIL DO ALUNO:
+                        Nome: {aluno_selecionado['nome']}
+                        Diagnóstico: {aluno_selecionado.get('diagnostico', '-')}
+                        Hiperfoco: {aluno_selecionado.get('hiperfoco', '-')}
+                        Diretrizes do PEI: {diretrizes}
                         
-                        CONTEXTO DA PROVA:
-                        Matéria: {materia}
-                        Nível de Adaptação Solicitado: {tipo_adaptacao}
+                        TAREFA:
+                        Adapte a prova de {materia} anexada (texto ou imagem).
+                        Nível de Adaptação: {tipo_adaptacao}
                         
-                        DIRETRIZES DO PEI (Se houver):
-                        {diretrizes}
+                        REGRAS:
+                        1. Mantenha a numeração original.
+                        2. Se for imagem, descreva a questão e depois adapte.
+                        3. Simplifique vocabulário e enunciados.
+                        4. Destaque palavras-chave.
                         
-                        PROVA ORIGINAL:
-                        {prova_original}
-                        
-                        AÇÃO:
-                        Adapte a prova questão por questão.
-                        1. Mantenha a numeração.
-                        2. Se for Matemática, simplifique o enunciado mas mantenha o cálculo (se possível).
-                        3. Se for Humanas, destaque palavras-chave em negrito.
-                        4. Sempre inclua uma "Nota de Adaptação" explicando o que mudou.
-                        
-                        FORMATO DE SAÍDA:
-                        **Questão X**
-                        (Enunciado Adaptado)
-                        [Opções se houver]
-                        *Nota: [Explicação]*
+                        SAÍDA:
+                        **Questão X (Adaptada)**
+                        [Enunciado]
+                        *Nota Pedagógica: O que mudou.*
                         ---
                         """
                         
-                        response = client.chat.completions.create(
-                            model="deepseek-chat",
-                            messages=[{"role": "system", "content": prompt_sistema}, {"role": "user", "content": prompt_user}],
-                            temperature=0.3
-                        )
-                        st.session_state['resultado_prova'] = response.choices[0].message.content
+                        # Envia para o Gemini (Texto ou Texto + Imagem)
+                        inputs = [prompt]
+                        if tipo_arquivo == "imagem" and conteudo_imagem:
+                            inputs.append(conteudo_imagem)
+                        else:
+                            inputs.append(f"CONTEÚDO DA PROVA:\n{conteudo_texto}")
+                            
+                        response = model.generate_content(inputs)
+                        st.session_state['resultado_prova'] = response.text
+                        
                     except Exception as e:
-                        st.error(f"Erro: {e}")
+                        st.error(f"Erro Gemini: {e}")
 
-    with col_output:
-        st.subheader("2. Resultado Adaptado")
+    with col_result:
+        st.subheader("2. Resultado")
         if 'resultado_prova' in st.session_state:
-            st.markdown(f"""
-            <div class="result-card">
-                {st.session_state['resultado_prova']}
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.download_button("📥 Baixar Prova (.txt)", st.session_state['resultado_prova'], f"prova_{materia}_{aluno_selecionado['nome']}.txt")
-        else:
-            st.info("O resultado aparecerá aqui.")
+            st.markdown(f"<div class='result-card'>{st.session_state['resultado_prova']}</div>", unsafe_allow_html=True)
+            st.download_button("📥 Baixar (.txt)", st.session_state['resultado_prova'], "prova_adaptada.txt")
