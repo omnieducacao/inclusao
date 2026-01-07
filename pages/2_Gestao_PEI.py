@@ -70,13 +70,18 @@ def calcular_idade(data_nasc):
     hoje = date.today()
     return str(hoje.year - data_nasc.year - ((hoje.month, hoje.day) < (data_nasc.month, data_nasc.day)))
 
-# --- INTEGRAÇÃO IA (GEMINI 1.5 FLASH - VALIDADO PELO SEU TESTE) ---
-def consultar_ia_final(api_key, dados, contexto_pdf=""):
-    if not api_key: return None, "⚠️ Chave API faltando. Verifique o Secrets."
+# --- INTELIGÊNCIA "FORÇA BRUTA" (Tenta todos os modelos até acertar) ---
+def consultar_ia_blindada(api_key, dados, contexto_pdf=""):
+    if not api_key: return None, "⚠️ Chave API faltando no Secrets."
     
-    # URL do modelo que apareceu na sua lista de sucesso
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-    headers = {'Content-Type': 'application/json'}
+    # Lista de modelos para testar em ordem de prioridade
+    modelos_para_testar = [
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-001",
+        "gemini-1.5-pro",
+        "gemini-pro",
+        "gemini-1.0-pro"
+    ]
     
     serie = dados['serie'] if dados['serie'] else ""
     idade = calcular_idade(dados.get('nasc'))
@@ -89,29 +94,41 @@ def consultar_ia_final(api_key, dados, contexto_pdf=""):
     ESTRATÉGIAS: {', '.join(dados['estrategias_acesso'] + dados['estrategias_ensino'])}
     LAUDO: {contexto_pdf[:4000]}
     
-    GERE UM RELATÓRIO TÉCNICO ESTRUTURADO (Use Markdown):
+    GERE UM RELATÓRIO TÉCNICO ESTRUTURADO:
     1. SÍNTESE DO CONTEXTO
     2. ANÁLISE NEUROFUNCIONAL
     3. ESTRATÉGIA BNCC
     4. ROTINA
-    5. DIRETRIZES PARA O ADAPTADOR DE PROVAS (Instruções técnicas claras: tamanho de fonte, tipo de enunciado, suporte visual).
+    5. DIRETRIZES PARA O ADAPTADOR DE PROVAS (Instruções técnicas para adaptar avaliações deste aluno).
     """
     
+    headers = {'Content-Type': 'application/json'}
     payload = {"contents": [{"parts": [{"text": prompt_text}]}]}
     
-    try:
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
-        
-        if response.status_code == 200:
-            try:
-                return response.json()['candidates'][0]['content']['parts'][0]['text'], None
-            except:
-                return None, "O Google respondeu, mas o formato estava vazio. Tente novamente."
-        else:
-            return None, f"Erro Google ({response.status_code}): {response.text}"
+    erros_acumulados = []
+
+    # Loop de Tentativas
+    for modelo in modelos_para_testar:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent?key={api_key}"
+        try:
+            # Tenta conectar
+            response = requests.post(url, headers=headers, data=json.dumps(payload))
             
-    except Exception as e:
-        return None, f"Erro de Conexão: {str(e)}"
+            if response.status_code == 200:
+                # SUCESSO!
+                try:
+                    texto = response.json()['candidates'][0]['content']['parts'][0]['text']
+                    return texto, None # Retorna o texto e nenhum erro
+                except:
+                    erros_acumulados.append(f"{modelo}: Resposta vazia")
+            else:
+                erros_acumulados.append(f"{modelo}: Erro {response.status_code}")
+                
+        except Exception as e:
+            erros_acumulados.append(f"{modelo}: Erro de conexão")
+    
+    # Se sair do loop, nada funcionou
+    return None, f"Falha em todos os modelos. Detalhes: {'; '.join(erros_acumulados)}"
 
 # --- PDF & DOCX ---
 class PDF(FPDF):
@@ -190,12 +207,13 @@ with tab4:
     st.session_state.dados['estrategias_acesso'] = st.multiselect("Acesso", ["Tempo estendido", "Ledor", "Sala Silenciosa"])
 
 with tab5:
-    st.markdown("### <i class='ri-robot-line'></i> Consultor Inteligente (Gemini Flash)", unsafe_allow_html=True)
+    st.markdown("### <i class='ri-robot-line'></i> Consultor Inteligente (Multi-Model)", unsafe_allow_html=True)
     if st.button("✨ Gerar Parecer IA", type="primary"):
-        # CHAMA A FUNÇÃO FINAL (GEMINI FLASH)
-        res, err = consultar_ia_final(api_key, st.session_state.dados, st.session_state.pdf_text)
-        if err: st.error(err)
-        else: st.session_state.dados['ia_sugestao'] = res; st.success("Gerado com Sucesso!")
+        # CHAMA A FUNÇÃO DE FORÇA BRUTA
+        with st.spinner("Testando modelos do Google..."):
+            res, err = consultar_ia_blindada(api_key, st.session_state.dados, st.session_state.pdf_text)
+            if err: st.error(err)
+            else: st.session_state.dados['ia_sugestao'] = res; st.success("Gerado com Sucesso!")
     
     if st.session_state.dados['ia_sugestao']:
         st.markdown(f"<div style='background:white; padding:20px; border-radius:10px;'>{st.session_state.dados['ia_sugestao'].replace(chr(10), '<br>')}</div>", unsafe_allow_html=True)
@@ -217,4 +235,4 @@ with tab7:
             st.success("Salvo!")
         else: st.warning("Preencha o nome.")
 
-st.markdown("""<div style="text-align: center; margin-top: 50px; color: #A0AEC0; font-size: 0.85rem; border-top: 1px solid #E2E8F0; padding-top: 20px;">V2.26 Final (Gemini Flash)</div>""", unsafe_allow_html=True)
+st.markdown("""<div style="text-align: center; margin-top: 50px; color: #A0AEC0; font-size: 0.85rem; border-top: 1px solid #E2E8F0; padding-top: 20px;">V2.27 Multi-Model (Brute Force)</div>""", unsafe_allow_html=True)
