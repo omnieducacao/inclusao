@@ -1,16 +1,3 @@
-Rodrigo, entendi perfeitamente. O problema é que a IA, no afã de "ajudar", está se empolgando: ela vê 5 questões e decide criar mais 5 para "completar" o assunto, e nesse processo se perde na numeração das imagens.
-
-**A Solução V8.6 (Protocolo Espelho & Trava de Criatividade):**
-
-1. **Trava de "Espelho":** Mudei o prompt da **Adaptação**. Agora a ordem é estrita: *"Você é um ADAPTADOR, não um criador. Se o original tem 5 questões, entregue EXATAMENTE 5 questões. É PROIBIDO criar novos exercícios."*
-2. **Sincronia Forçada de Imagens:** O código agora pega a lista de questões que VOCÊ marcou (ex: 1, 3 e 5) e diz para a IA: *"Existem imagens OBRIGATÓRIAS nas questões 1, 3 e 5. Se você não colocar a tag `[[IMG_Q1]]` na questão 1, a tarefa falhou."*
-3. **Regex Mais Inteligente:** Melhorei o código que encontra a tag no texto final, para aceitar variações (ex: se a IA escrever `[[IMG_Q 1]]` com espaço, ele aceita).
-
-Isso resolve o bug de criar questões extras e garante que a imagem marcada apareça.
-
-### 📋 Substitua o arquivo `pages/1_Adaptador_Atividades.py`
-
-```python
 import streamlit as st
 from openai import OpenAI
 from io import BytesIO
@@ -28,7 +15,7 @@ import zipfile
 import json
 
 # --- 1. CONFIGURAÇÃO ---
-st.set_page_config(page_title="Adaptador 360º | V8.6", page_icon="🧩", layout="wide")
+st.set_page_config(page_title="Adaptador 360º | V8.7", page_icon="🧩", layout="wide")
 
 # --- 2. BANCO DE DADOS ---
 ARQUIVO_DB = "banco_alunos.json"
@@ -48,12 +35,17 @@ if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estu
 st.markdown("""
     <style>
     html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color: #2D3748; }
+    
     .header-clean { background: white; padding: 25px; border-radius: 16px; border: 1px solid #EDF2F7; margin-bottom: 20px; display: flex; gap: 20px; align-items: center; }
+    
     .student-header { background-color: #EBF8FF; border: 1px solid #BEE3F8; border-radius: 12px; padding: 15px 25px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
     .student-label { font-size: 0.85rem; color: #718096; font-weight: 700; text-transform: uppercase; }
     .student-value { font-size: 1.1rem; color: #2C5282; font-weight: 800; }
+    
     .crop-instruction { background: #EBF8FF; border-left: 4px solid #3182CE; padding: 15px; color: #2C5282; border-radius: 4px; margin-bottom: 10px; }
     .racional-box { background-color: #F0FFF4; border-left: 4px solid #48BB78; padding: 15px; border-radius: 4px; margin-bottom: 20px; color: #2F855A; font-size: 0.95rem; }
+    .map-status { background-color: #FEFCBF; border: 1px solid #F6E05E; color: #744210; padding: 10px; border-radius: 8px; font-weight: bold; margin-bottom: 10px; }
+
     div[data-testid="column"] .stButton button[kind="primary"] { border-radius: 12px !important; height: 50px; width: 100%; background-color: #FF6B6B !important; color: white !important; font-weight: 800 !important; }
     div[data-testid="column"] .stButton button[kind="secondary"] { border-radius: 12px !important; height: 50px; width: 100%; background-color: white !important; color: #718096 !important; border: 2px solid #CBD5E0 !important; }
     .stTextArea textarea { border: 1px solid #CBD5E0; border-radius: 8px; font-family: monospace; font-size: 14px; }
@@ -96,23 +88,24 @@ def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, img_dalle_url, tip
 
     doc.add_heading('Atividades', level=2)
     
-    # REGEX MAIS TOLERANTE: Aceita [[IMG_Q1]] ou [[IMG_Q 1]] ou [[IMG_Q:1]]
+    # REGEX UNIVERSAL: Aceita [[IMG_Q1]], [[IMG_Q: 1]], [[IMG_Q-01]]
     partes = re.split(r'(\[\[IMG_[Q|G][\s:_-]*\d+\]\])', texto_ia)
     
     for parte in partes:
-        # Tenta capturar o tipo (Q/G) e o número
         tag_match = re.search(r'\[\[IMG_(Q|G)[\s:_-]*(\d+)\]\]', parte)
         
         if tag_match:
-            tipo = tag_match.group(1) # Q ou G
-            id_img = int(tag_match.group(2)) # Número
-            
+            tipo, id_str = tag_match.groups()
             img_bytes = None
+            
             if tipo == "Q": 
-                # Tenta pegar pelo número exato, senão pega a primeira (fallback para crop)
-                img_bytes = mapa_imgs.get(id_img, mapa_imgs.get(0))
+                try: 
+                    # Força conversão para inteiro para bater com a chave do dicionário
+                    num = int(id_str)
+                    img_bytes = mapa_imgs.get(num, mapa_imgs.get(0)) # Tenta achar o nº, senão pega o 0 (crop)
+                except: pass
             elif tipo == "G": 
-                img_bytes = mapa_imgs.get(f"G{id_img}")
+                img_bytes = mapa_imgs.get(f"G{id_str}")
 
             if img_bytes:
                 try:
@@ -120,8 +113,11 @@ def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, img_dalle_url, tip
                     doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
                     doc.add_paragraph("") 
                 except: pass
+        
         elif parte.strip():
-            doc.add_paragraph(parte.strip())
+            # Limpa qualquer tag residual que tenha sobrado
+            clean = re.sub(r'\[\[IMG_[^\]]+\]\]', '', parte).strip()
+            if clean: doc.add_paragraph(clean)
             
     buffer = BytesIO(); doc.save(buffer); buffer.seek(0)
     return buffer
@@ -141,47 +137,41 @@ def get_hiperfoco_instruction(aluno):
     - Nas outras, use contextos neutros.
     """
 
-# MÓDULO ADAPTAR (TRAVA DE CRIAÇÃO)
 def adaptar_conteudo(api_key, aluno, conteudo, tipo, materia, tema, tipo_atv, remover_resp, questoes_mapeadas, temperatura=0.3):
     client = OpenAI(api_key=api_key)
     
     instrucao_imgs = ""
     if tipo == "docx":
-        # Instrução Hardcore para mapeamento
+        # Instrução explícita sobre quais imagens existem
         lista_q = ", ".join([str(n) for n in questoes_mapeadas])
         instrucao_imgs = f"""
-        ATENÇÃO MÁXIMA ÀS IMAGENS:
-        Eu (Professor) mapeei imagens para as seguintes questões: {lista_q}.
-        VOCÊ É OBRIGADO A INSERIR A TAG [[IMG_Qx]] NESSAS QUESTÕES.
-        Exemplo: Se a questão 2 está na lista, escreva o enunciado e logo abaixo coloque [[IMG_Q2]].
+        DIAGRAMAÇÃO OBRIGATÓRIA (DOCX):
+        O professor mapeou imagens para as questões: {lista_q}.
+        VOCÊ DEVE INSERIR A TAG [[IMG_QX]] NA QUESTÃO X.
+        Exemplo: Se a Questão 2 está na lista, escreva o enunciado e logo abaixo coloque [[IMG_Q2]].
         """
     else:
-        instrucao_imgs = "FOTO: Use [[IMG_Q1]] para a imagem recortada logo após o enunciado."
+        instrucao_imgs = "FOTO ÚNICA: Use [[IMG_Q1]] para a imagem recortada logo após o enunciado."
 
     prompt = f"""
     VOCÊ É UM ADAPTADOR DE CONTEÚDO (NÃO É UM CRIADOR).
     
-    SUA MISSÃO:
-    Reescrever as questões originais para torná-las mais acessíveis, usando DUA e o PEI do aluno.
-    
-    REGRA DE OURO (PROIBIDO CRIAR):
-    - Se o texto original tem 5 questões, sua saída DEVE TER 5 questões.
-    - NÃO invente novas perguntas. NÃO adicione "bônus".
-    - Apenas adapte o que está no texto.
-    
     ESTRUTURA DE SAÍDA:
-    [RACIONAL PEDAGÓGICO] (Resumo do que foi feito)
+    [RACIONAL PEDAGÓGICO] (Explique brevemente)
     ---DIVISOR---
-    [ATIVIDADE] (Conteúdo limpo para o aluno)
+    [ATIVIDADE] (Conteúdo limpo)
     
     DIRETRIZES:
-    1. {instrucao_imgs}
-    2. {"REMOVA TODAS AS RESPOSTAS." if remover_resp else ""}
-    3. {get_hiperfoco_instruction(aluno)}
+    1. A parte [ATIVIDADE] não deve ter conversas, apenas as questões.
+    2. SE O ORIGINAL TEM 5 QUESTÕES, GERE APENAS 5 QUESTÕES. NÃO CRIE EXTRAS.
+    3. {"REMOVA TODAS AS RESPOSTAS." if remover_resp else ""}
+    4. {instrucao_imgs}
+    5. {get_hiperfoco_instruction(aluno)}
     
     PEI DO ALUNO: {aluno.get('ia_sugestao', '')[:1000]}
     
-    CONTEÚDO ORIGINAL PARA ADAPTAR:
+    CONTEXTO: {materia} | {tema} | {tipo_atv}
+    CONTEÚDO ORIGINAL:
     """
     
     msgs = [{"role": "user", "content": []}]
@@ -193,7 +183,6 @@ def adaptar_conteudo(api_key, aluno, conteudo, tipo, materia, tema, tipo_atv, re
         msgs[0]["content"].append({"type": "text", "text": prompt + "\n" + str(conteudo)})
 
     try:
-        # Temperatura baixa (0.3) para ser fiel ao original e não alucinar questões
         resp = client.chat.completions.create(model="gpt-4o-mini", messages=msgs, temperature=temperatura, max_tokens=4000)
         content = resp.choices[0].message.content
         if "---DIVISOR---" in content:
@@ -202,7 +191,6 @@ def adaptar_conteudo(api_key, aluno, conteudo, tipo, materia, tema, tipo_atv, re
         return "Adaptação realizada.", content, None
     except Exception as e: return None, None, str(e)
 
-# MÓDULO CRIAR
 def criar_do_zero(api_key, aluno, materia, objeto, qtd, tipo_q, temperatura=0.7):
     client = OpenAI(api_key=api_key)
     prompt = f"""
@@ -211,10 +199,11 @@ def criar_do_zero(api_key, aluno, materia, objeto, qtd, tipo_q, temperatura=0.7)
     SAÍDA: [RACIONAL] ---DIVISOR--- [ATIVIDADE]
     
     REGRAS:
-    1. RIGOR BNCC.
-    2. A cada 5 questões, 1 deve ter imagem gerada: [[GEN_IMG: descrição]].
-    3. QUANTIDADE EXATA: {qtd} questões ({tipo_q}).
-    4. {get_hiperfoco_instruction(aluno)}
+    1. A parte [ATIVIDADE] deve ser LIMPA. Sem introduções.
+    2. RIGOR BNCC.
+    3. A cada 5 questões, 1 deve ter imagem gerada: [[GEN_IMG: descrição visual]].
+    4. QUANTIDADE EXATA: {qtd} questões ({tipo_q}).
+    5. {get_hiperfoco_instruction(aluno)}
     
     PEI: {aluno.get('ia_sugestao', '')[:1000]}
     """
@@ -243,14 +232,17 @@ with st.sidebar:
     st.markdown("---")
     
     if st.button("🗑️ Nova Atividade (Reset Total)"):
-        # Limpa TUDO do session state
-        for key in list(st.session_state.keys()):
-            # Preserva apenas o banco de alunos e a chave da API se estiver salva
-            if key not in ['banco_estudantes', 'OPENAI_API_KEY']:
-                del st.session_state[key]
+        # Limpa TUDO do session state para evitar conflitos
+        keys_to_clear = [
+            'result_adapt', 'result_create', 
+            'adapt_imgs', 'adapt_txt', 'adapt_type', 'a_last_id', 
+            'imgs_extraidas', 'txt_orig'
+        ]
+        for k in keys_to_clear:
+            if k in st.session_state: del st.session_state[k]
         st.rerun()
 
-st.markdown("""<div class="header-clean"><div style="font-size:3rem;">🧩</div><div><p style="margin:0;color:#004E92;font-size:1.5rem;font-weight:800;">Adaptador V8.6: Espelho Fiel</p></div></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="header-clean"><div style="font-size:3rem;">🧩</div><div><p style="margin:0;color:#004E92;font-size:1.5rem;font-weight:800;">Adaptador V8.7: Blindado</p></div></div>""", unsafe_allow_html=True)
 
 if not st.session_state.banco_estudantes:
     st.warning("⚠️ Cadastre um aluno no PEI 360º primeiro.")
@@ -306,15 +298,24 @@ with tab_adapt:
 
     adapt_map = {}
     adapt_qs = []
+    
     if st.session_state.adapt_imgs and st.session_state.adapt_type == "docx":
-        st.subheader("🖼️ Mapear Imagens (Essencial)")
-        st.info("Para cada imagem, diga a qual questão ela pertence. Se for apenas decorativa, deixe 0.")
+        st.subheader("🖼️ Mapear Imagens")
+        st.info("Indique a qual questão cada imagem pertence. Use '0' para ignorar.")
+        
         cols = st.columns(3)
         for i, img in enumerate(st.session_state.adapt_imgs):
             with cols[i % 3]:
                 st.image(img, width=100)
-                q = st.number_input(f"Pertence à Questão nº:", 0, 50, key=f"qmap_{i}")
-                if q > 0: adapt_map[q] = img; adapt_qs.append(q)
+                # FORCE STEP=1 para garantir inteiros
+                q = st.number_input(f"Questão:", min_value=0, max_value=50, step=1, key=f"qmap_{i}")
+                if q > 0:
+                    adapt_map[int(q)] = img # Força chave inteira
+                    adapt_qs.append(int(q))
+        
+        if adapt_qs:
+            st.markdown(f"<div class='map-status'>✅ Imagens vinculadas às Questões: {sorted(list(set(adapt_qs)))}</div>", unsafe_allow_html=True)
+            
     elif st.session_state.adapt_imgs and st.session_state.adapt_type == "imagem":
         adapt_map[0] = st.session_state.adapt_imgs[0]
 
@@ -325,7 +326,7 @@ with tab_adapt:
     with c_act:
         c_a, c_b = st.columns([2, 1])
         if c_a.button("🚀 GERAR ADAPTAÇÃO", type="primary", key="btn_adapt"):
-            with st.spinner("Adaptando sem criar extras..."):
+            with st.spinner("Adaptando..."):
                 rac, txt, err = adaptar_conteudo(api_key, aluno, st.session_state.adapt_txt, st.session_state.adapt_type, materia, tema, tipo_atv, modo_prof, adapt_qs)
                 st.session_state['result_adapt'] = {'rac': rac, 'txt': txt, 'map': adapt_map, 'dalle': None}
                 st.rerun()
@@ -351,15 +352,17 @@ with tab_adapt:
         with col_vi:
             st.subheader("👁️ Visualização")
             with st.container(border=True):
-                # Regex flexível para [[IMG_Q1]] ou [[IMG_Q 1]]
+                # REGEX UNIVERSAL: [[IMG_Q1]] ou [[IMG_Q: 1]]
                 partes = re.split(r'(\[\[IMG_[Q|G][\s:_-]*\d+\]\])', res['txt'])
                 for p in partes:
                     tag = re.search(r'\[\[IMG_(Q|G)[\s:_-]*(\d+)\]\]', p)
                     if tag:
-                        t, i = tag.group(1), int(tag.group(2))
+                        t, i_str = tag.groups()
+                        i = int(i_str)
+                        # Busca no mapa pela chave inteira
                         im = res['map'].get(i, res['map'].get(0)) if t=="Q" else None
                         if im: st.image(im, width=300)
-                        else: st.warning(f"[Imagem da Questão {i} não encontrada]")
+                        else: st.warning(f"⚠️ [Imagem Q{i} não encontrada. Verifique o mapeamento]")
                     elif p.strip(): st.markdown(p.strip())
         
         docx = construir_docx_final(res['txt'], aluno, materia, res['map'], None, tipo_atv)
@@ -416,7 +419,7 @@ with tab_create:
                 for p in partes:
                     tag = re.search(r'\[\[IMG_(Q|G)[\s:_-]*(\d+)\]\]', p)
                     if tag:
-                        t, i = tag.group(1), int(tag.group(2))
+                        t, i = tag.groups()
                         im = res['map'].get(f"G{i}")
                         if im: st.image(im, width=300)
                     elif p.strip(): st.markdown(p.strip())
@@ -440,5 +443,3 @@ with tab_ctx:
     if st.button("💡 EXPLICAR", type="primary", key="cx_btn"):
         with st.spinner("Pensando..."):
             st.write(gerar_contextualizacao(api_key, aluno, ass))
-
-```
