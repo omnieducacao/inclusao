@@ -6,7 +6,7 @@ from docx.shared import Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from pypdf import PdfReader
 from fpdf import FPDF
-from PIL import Image
+from PIL import Image # Essencial para a compressão
 import base64
 import os
 import re
@@ -14,7 +14,7 @@ import requests
 import zipfile
 
 # --- 1. CONFIGURAÇÃO ---
-st.set_page_config(page_title="Adaptador 360º V5.3", page_icon="🧩", layout="wide")
+st.set_page_config(page_title="Adaptador 360º V5.4", page_icon="🧩", layout="wide")
 
 if 'banco_estudantes' not in st.session_state:
     st.session_state.banco_estudantes = []
@@ -35,49 +35,47 @@ st.markdown("""
         border: 1px solid #E2E8F0; margin-top: 20px; margin-bottom: 20px;
     }
     
-    /* Botão Principal - Vermelho Coral */
     div[data-testid="column"] .stButton button[kind="primary"] {
         border-radius: 12px !important; font-weight: 800 !important; height: 55px !important; width: 100%;
         background-color: #FF6B6B !important; border: none !important; color: white !important;
         font-size: 1.1rem !important; transition: 0.3s;
     }
-    div[data-testid="column"] .stButton button[kind="primary"]:hover {
-        background-color: #E53E3E !important; transform: scale(1.02);
-    }
     
-    /* Botão Secundário - Cinza Limpo */
     div[data-testid="column"] .stButton button[kind="secondary"] {
         border-radius: 12px !important; height: 55px !important; width: 100%;
         border: 2px solid #CBD5E0 !important; color: #718096 !important; background-color: white !important;
     }
-    div[data-testid="column"] .stButton button[kind="secondary"]:hover {
-        background-color: #EDF2F7 !important; color: #2D3748 !important; border-color: #A0AEC0 !important;
-    }
     </style>
 """, unsafe_allow_html=True)
 
-# --- 3. OTIMIZAÇÃO DE IMAGENS (A CURA DO ERRO 400) ---
-def otimizar_imagem_para_ia(image_bytes):
-    """Redimensiona a imagem para economizar tokens da OpenAI"""
+# --- 3. OTIMIZAÇÃO OBRIGATÓRIA (O SEGREDO) ---
+def forcar_compressao_imagem(image_bytes):
+    """
+    Reduz drasticamente o tamanho da imagem (pixels) para não estourar a memória da IA.
+    Não afeta a legibilidade do texto.
+    """
     try:
         img = Image.open(BytesIO(image_bytes))
         
-        # Converte para RGB se necessário
-        if img.mode in ("RGBA", "P"): img = img.convert("RGB")
+        # 1. Converter para RGB (remove transparências pesadas)
+        if img.mode in ("RGBA", "P"): 
+            img = img.convert("RGB")
         
-        # Redimensiona para max 1024px (suficiente para ler texto)
-        max_dimension = 1024
-        if max(img.size) > max_dimension:
-            ratio = max_dimension / max(img.size)
+        # 2. Redimensionar (Max 1024px no maior lado)
+        # O GPT-4 Vision funciona melhor com 512x512 ou 1024x1024. Mais que isso é desperdício.
+        max_size = 1024 
+        if max(img.size) > max_size:
+            ratio = max_size / max(img.size)
             new_size = (int(img.width * ratio), int(img.height * ratio))
             img = img.resize(new_size, Image.Resampling.LANCZOS)
             
-        # Comprime
+        # 3. Comprimir qualidade JPEG
         buffer = BytesIO()
-        img.save(buffer, format="JPEG", quality=85)
+        img.save(buffer, format="JPEG", quality=85, optimize=True)
         return buffer.getvalue()
+        
     except Exception as e:
-        st.warning(f"Não foi possível otimizar a imagem: {e}. Usando original.")
+        st.warning(f"Aviso de Imagem: {e}. Tentando processar original...")
         return image_bytes
 
 # --- 4. FUNÇÕES DE ARQUIVO ---
@@ -93,8 +91,12 @@ def extrair_dados_docx(uploaded_file):
             all_files = z.namelist()
             media_files = [f for f in all_files if f.startswith('word/media/') and f.endswith(('.png', '.jpg', '.jpeg'))]
             media_files.sort(key=lambda f: int(re.search(r'image(\d+)', f).group(1)) if re.search(r'image(\d+)', f) else 0)
+            
             for media in media_files:
-                imagens.append(z.read(media))
+                raw_img = z.read(media)
+                # Otimiza também as imagens de dentro do Word
+                opt_img = forcar_compressao_imagem(raw_img)
+                imagens.append(opt_img)
     except: pass
     return texto, imagens
 
@@ -111,8 +113,8 @@ def ler_arquivo(uploaded_file):
             tipo = "docx"
         elif "image" in uploaded_file.type:
             raw_bytes = uploaded_file.getvalue()
-            # APLICA A OTIMIZAÇÃO AQUI
-            opt_bytes = otimizar_imagem_para_ia(raw_bytes)
+            # OTIMIZAÇÃO CRÍTICA AQUI
+            opt_bytes = forcar_compressao_imagem(raw_bytes)
             imgs = [opt_bytes]
             texto = "Conteúdo visual (foto)."
             tipo = "imagem"
@@ -172,7 +174,7 @@ def construir_docx_final(texto_ia, aluno, materia, lista_imgs, img_dalle_url, ti
                 texto_limpo = re.sub(r'\n{3,}', '\n\n', parte.strip())
                 doc.add_paragraph(texto_limpo)
 
-    # 3. Anexos (Só se tiver mais de 1 imagem e sobrar)
+    # 3. Anexos
     sobras = [i for i in range(len(lista_imgs)) if i not in imagens_usadas]
     if sobras and len(lista_imgs) > 1:
         doc.add_page_break()
@@ -197,13 +199,13 @@ def gerar_dalle(api_key, tema, aluno_dados):
         return resp.data[0].url, None
     except Exception as e: return None, str(e)
 
-def adaptar_atividade_v53(api_key, aluno, conteudo, tipo, materia, tema, tipo_atv, total_imagens, remover_respostas):
+def adaptar_atividade_v54(api_key, aluno, conteudo, tipo, materia, tema, tipo_atv, total_imagens, remover_respostas):
     if not api_key: return None, "Sem chave."
     client = OpenAI(api_key=api_key)
     
     instrucao_imgs = ""
     if total_imagens > 0:
-        instrucao_imgs = f"O arquivo tem {total_imagens} imagens. Insira a tag [[IMG_1]] onde a imagem deve aparecer."
+        instrucao_imgs = f"O arquivo tem imagens. Insira a tag [[IMG_1]] onde a primeira imagem deve aparecer."
     elif tipo == "imagem":
         instrucao_imgs = "O conteúdo é uma foto. Insira a tag [[IMG_1]] no início."
 
@@ -217,28 +219,21 @@ def adaptar_atividade_v53(api_key, aluno, conteudo, tipo, materia, tema, tipo_at
         """
 
     prompt_sys = f"Você é um Especialista em Adaptação Escolar. {instrucao_professor}"
-    
-    prompt_user = f"""
-    ALUNO: {aluno['nome']} | DIAG: {aluno.get('diagnostico')}
-    CONTEXTO: {materia} | {tema} | TIPO: {tipo_atv}
-    
-    {instrucao_imgs}
-    
-    CONTEÚDO PARA ADAPTAR:
-    {conteudo}
-    """
+    prompt_user = f"ALUNO: {aluno['nome']} | DIAG: {aluno.get('diagnostico')}\nCONTEXTO: {materia} | {tema}\n{instrucao_imgs}\nCONTEÚDO:"
     
     msgs = [{"role": "system", "content": prompt_sys}, {"role": "user", "content": []}]
     
     if tipo == "imagem":
-        # Imagem já otimizada e leve
+        # Aqui enviamos a imagem JÁ OTIMIZADA
+        base64_image = base64.b64encode(conteudo[0]).decode('utf-8')
         msgs[1]["content"].append({"type": "text", "text": prompt_user})
-        msgs[1]["content"].append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64.b64encode(conteudo[0]).decode('utf-8')}"}})
+        msgs[1]["content"].append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}})
     else:
         msgs[1]["content"].append({"type": "text", "text": prompt_user})
 
     try:
-        resp = client.chat.completions.create(model="gpt-4o-mini", messages=msgs, temperature=0.3, max_tokens=3000)
+        # Aumentamos o limite para garantir resposta completa
+        resp = client.chat.completions.create(model="gpt-4o-mini", messages=msgs, temperature=0.3, max_tokens=4000)
         return resp.choices[0].message.content, None
     except Exception as e: return None, str(e)
 
@@ -252,14 +247,14 @@ with st.sidebar:
         api_key = st.text_input("Chave OpenAI:", type="password")
     
     st.markdown("---")
-    st.info("Para remover respostas em azul, ative o 'Modo Livro do Professor' abaixo.")
+    st.info("Sistema de compressão automática ativo: Prints de alta resolução são ajustados para não travar a IA.")
 
 st.markdown("""
     <div class="header-clean">
         <div style="font-size: 3rem;">🧩</div>
         <div>
-            <p style="margin: 0; color: #004E92; font-size: 1.5rem; font-weight: 800;">Adaptador V5.3: Otimizado</p>
-            <p style="margin: 0; color: #718096;">Remove respostas automáticas de fotos de livros didáticos.</p>
+            <p style="margin: 0; color: #004E92; font-size: 1.5rem; font-weight: 800;">Adaptador V5.4: Alta Performance</p>
+            <p style="margin: 0; color: #718096;">Otimização automática para leitura de livros do professor.</p>
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -286,7 +281,7 @@ texto_orig, tipo_arq, lista_imgs = ler_arquivo(arquivo)
 
 if tipo_arq: st.success(f"Arquivo carregado ({tipo_arq}).")
 
-# --- BARRA DE AÇÃO (INTERFACE CORRIGIDA) ---
+# --- BARRA DE AÇÃO ---
 st.markdown("<div class='action-bar'>", unsafe_allow_html=True)
 
 c_prof, c_img = st.columns(2)
@@ -300,11 +295,9 @@ st.markdown("---")
 col_gerar, col_reset = st.columns([3, 1])
 
 with col_gerar:
-    # BOTÃO CLARO E AFIRMATIVO
     btn_gerar = st.button("✨ GERAR ATIVIDADE", type="primary", use_container_width=True)
 
 with col_reset:
-    # BOTÃO DE LIMPEZA CLARO
     if st.button("🗑️ Nova Atividade", type="secondary", use_container_width=True):
         st.session_state.pop('res_texto', None)
         st.rerun()
@@ -315,34 +308,38 @@ st.markdown("</div>", unsafe_allow_html=True)
 if btn_gerar:
     if not materia or not tema or not texto_orig: st.warning("Preencha todos os campos.")
     else:
-        with st.spinner(f"Processando imagem (Otimizando para IA)..."):
-            qtd = len(lista_imgs) if tipo_arq == "docx" else len(lista_imgs)
-            
-            texto_adaptado, err = adaptar_atividade_v53(
-                api_key, 
-                aluno, 
-                texto_orig if tipo_arq!="imagem" else lista_imgs, 
-                tipo_arq, 
-                materia, 
-                tema, 
-                tipo_atv, 
-                qtd,
-                modo_professor
-            )
-            
-            img_dalle = None
-            if usar_dalle and not err:
-                with st.spinner("Gerando capa visual..."):
-                    img_dalle, _ = gerar_dalle(api_key, tema, aluno)
-            
-            if not err:
-                st.session_state['res_texto'] = texto_adaptado
-                st.session_state['res_imgs'] = lista_imgs
-                st.session_state['res_dalle'] = img_dalle
-                st.session_state['tipo_selecionado'] = tipo_atv
-                st.rerun()
-            elif err:
-                st.error(f"Erro na IA: {err}")
+        try:
+            with st.spinner(f"Otimizando imagem e processando IA..."):
+                qtd = len(lista_imgs) if tipo_arq == "docx" else len(lista_imgs)
+                
+                texto_adaptado, err = adaptar_atividade_v54(
+                    api_key, 
+                    aluno, 
+                    texto_orig if tipo_arq!="imagem" else lista_imgs, 
+                    tipo_arq, 
+                    materia, 
+                    tema, 
+                    tipo_atv, 
+                    qtd,
+                    modo_professor
+                )
+                
+                img_dalle = None
+                if usar_dalle and not err:
+                    with st.spinner("Gerando capa visual..."):
+                        img_dalle, _ = gerar_dalle(api_key, tema, aluno)
+                
+                if not err:
+                    st.session_state['res_texto'] = texto_adaptado
+                    st.session_state['res_imgs'] = lista_imgs
+                    st.session_state['res_dalle'] = img_dalle
+                    st.session_state['tipo_selecionado'] = tipo_atv
+                    st.rerun()
+                else:
+                    st.error(f"Erro na IA: {err}")
+                    
+        except Exception as e:
+            st.error(f"Erro no processamento: {e}")
 
 # --- RESULTADOS ---
 if 'res_texto' in st.session_state:
@@ -358,7 +355,6 @@ if 'res_texto' in st.session_state:
         for parte in partes:
             if "[[IMG_" in parte:
                 try:
-                    # Para foto única, sempre mostra a primeira imagem da lista
                     idx = 0 if len(st.session_state['res_imgs']) == 1 else int(re.search(r'\d+', parte).group()) - 1
                     imgs = st.session_state['res_imgs']
                     if 0 <= idx < len(imgs): 
@@ -376,11 +372,14 @@ if 'res_texto' in st.session_state:
         st.session_state.get('tipo_selecionado', 'Atividade')
     )
     
-    st.download_button(
-        label="📥 BAIXAR ATIVIDADE (WORD)",
-        data=docx,
-        file_name=f"Atividade_{aluno['nome']}.docx",
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        type="primary",
-        use_container_width=True
-    )
+    if docx:
+        st.download_button(
+            label="📥 BAIXAR ATIVIDADE (WORD)",
+            data=docx,
+            file_name=f"Atividade_{aluno['nome']}.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            type="primary",
+            use_container_width=True
+        )
+    else:
+        st.error("Erro ao gerar Word.")
