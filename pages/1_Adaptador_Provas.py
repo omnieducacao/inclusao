@@ -15,7 +15,7 @@ import zipfile
 import json
 
 # --- 1. CONFIGURAÇÃO ---
-st.set_page_config(page_title="Adaptador 360º | V8.8", page_icon="🧩", layout="wide")
+st.set_page_config(page_title="Adaptador 360º | V8.9", page_icon="🧩", layout="wide")
 
 # --- 2. BANCO DE DADOS ---
 ARQUIVO_DB = "banco_alunos.json"
@@ -48,7 +48,7 @@ st.markdown("""
     div[data-testid="column"] .stButton button[kind="primary"] { border-radius: 12px !important; height: 50px; width: 100%; background-color: #FF6B6B !important; color: white !important; font-weight: 800 !important; }
     div[data-testid="column"] .stButton button[kind="secondary"] { border-radius: 12px !important; height: 50px; width: 100%; background-color: white !important; color: #718096 !important; border: 2px solid #CBD5E0 !important; }
     
-    /* Área de Visualização Limpa */
+    /* Área de Visualização */
     .visual-container { border: 1px solid #E2E8F0; border-radius: 12px; padding: 25px; background: white; min-height: 400px; }
     </style>
 """, unsafe_allow_html=True)
@@ -89,7 +89,7 @@ def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, img_dalle_url, tip
 
     doc.add_heading('Atividades', level=2)
     
-    # REGEX ROBUSTO: Pega [[IMG_Q1]], [[IMG_Q: 1]], [[IMG_Q-1]]
+    # Regex robusto para tags [[IMG_Q1]], [[IMG_Q:1]], [[IMG_Q-1]]
     partes = re.split(r'(\[\[IMG_[Q|G][\s:_-]*\d+\]\])', texto_ia)
     
     for parte in partes:
@@ -115,7 +115,7 @@ def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, img_dalle_url, tip
                 except: pass
         
         elif parte.strip():
-            clean = re.sub(r'\[\[IMG_[^\]]+\]\]', '', parte).strip() # Limpa tags quebradas
+            clean = re.sub(r'\[\[IMG_[^\]]+\]\]', '', parte).strip()
             if clean: doc.add_paragraph(clean)
             
     buffer = BytesIO(); doc.save(buffer); buffer.seek(0)
@@ -157,7 +157,7 @@ def adaptar_conteudo(api_key, aluno, conteudo, tipo, materia, tema, tipo_atv, re
     ESTRUTURA DE SAÍDA:
     [RACIONAL PEDAGÓGICO] (Breve explicação)
     ---DIVISOR---
-    [ATIVIDADE] (Conteúdo limpo)
+    [ATIVIDADE] (Conteúdo limpo para impressão)
     
     DIRETRIZES:
     1. A parte [ATIVIDADE] não deve ter conversas, apenas as questões.
@@ -234,7 +234,7 @@ with st.sidebar:
             if key not in ['banco_estudantes', 'OPENAI_API_KEY']: del st.session_state[key]
         st.rerun()
 
-st.markdown("""<div class="header-clean"><div style="font-size:3rem;">🧩</div><div><p style="margin:0;color:#004E92;font-size:1.5rem;font-weight:800;">Adaptador V8.8: Simplificado</p></div></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="header-clean"><div style="font-size:3rem;">🧩</div><div><p style="margin:0;color:#004E92;font-size:1.5rem;font-weight:800;">Adaptador V8.9: Recorte Preciso</p></div></div>""", unsafe_allow_html=True)
 
 if not st.session_state.banco_estudantes:
     st.warning("⚠️ Cadastre um aluno no PEI 360º primeiro.")
@@ -255,7 +255,7 @@ st.markdown(f"""
 
 tab_adapt, tab_create, tab_visual, tab_ctx = st.tabs(["📂 Adaptar Arquivo", "✨ Criar Atividade", "🎨 Estúdio Visual", "💡 Contextualizador"])
 
-# 1. ADAPTAR (Simplificado)
+# 1. ADAPTAR
 with tab_adapt:
     c1, c2, c3 = st.columns(3)
     materia = c1.selectbox("Matéria", ["Matemática", "Português", "Ciências", "História", "Geografia"], key="am")
@@ -269,40 +269,70 @@ with tab_adapt:
     if 'adapt_type' not in st.session_state: st.session_state.adapt_type = None
 
     if arquivo:
+        # Se mudou o arquivo, reseta
         if arquivo.file_id != st.session_state.get('a_last_id'):
             st.session_state.a_last_id = arquivo.file_id
             st.session_state.adapt_imgs = []
+            st.session_state.adapt_type = None
+            
             if "image" in arquivo.type:
                 st.session_state.adapt_type = "imagem"
-                st.markdown("<div class='crop-instruction'>✂️ <b>TESOURA DIGITAL:</b> Recorte a figura.</div>", unsafe_allow_html=True)
                 img = Image.open(arquivo).convert("RGB")
                 buf = BytesIO(); img.save(buf, format="JPEG"); st.session_state.adapt_txt = buf.getvalue()
-                img.thumbnail((1000, 1000))
-                cropped = st_cropper(img, realtime_update=False, box_color='#FF0000', aspect_ratio=None, key="crop1")
-                buf_c = BytesIO(); cropped.save(buf_c, format="JPEG")
-                st.session_state.adapt_imgs = [buf_c.getvalue()]
             elif "word" in arquivo.type:
                 st.session_state.adapt_type = "docx"
                 txt, imgs = extrair_dados_docx(arquivo)
                 st.session_state.adapt_txt = txt
-                st.session_state.adapt_imgs = imgs
-                st.success(f"DOCX: {len(imgs)} imagens encontradas.")
+                st.session_state.adapt_imgs = imgs # DOCX já extrai direto
+
+        # LÓGICA DE RECORTE (IMAGEM)
+        if st.session_state.adapt_type == "imagem":
+            st.markdown("<div class='crop-instruction'>✂️ <b>TESOURA DIGITAL:</b> 1. Ajuste a caixa vermelha na figura. 2. Clique em 'Confirmar Recorte'.</div>", unsafe_allow_html=True)
+            
+            # Recupera a imagem original do buffer
+            img_pil = Image.open(BytesIO(st.session_state.adapt_txt))
+            img_pil.thumbnail((1000, 1000)) # Otimização de visualização
+            
+            # Tesoura sem update em tempo real (Estabilidade)
+            cropped_preview = st_cropper(img_pil, realtime_update=True, box_color='#FF0000', aspect_ratio=None, key="cropper_widget")
+            
+            st.caption("Prévia do Recorte:")
+            st.image(cropped_preview, width=200)
+            
+            # BOTÃO DE TRAVA: Só salva quando clica aqui
+            if st.button("✂️ CONFIRMAR RECORTE", key="btn_confirm_crop"):
+                buf_c = BytesIO()
+                cropped_preview.save(buf_c, format="JPEG")
+                st.session_state.adapt_imgs = [buf_c.getvalue()]
+                st.success("✅ Recorte salvo com sucesso!")
+                st.rerun()
+
+        elif st.session_state.adapt_type == "docx":
+            if not st.session_state.adapt_imgs:
+                st.success(f"DOCX lido com sucesso (0 imagens encontradas).")
+            else:
+                st.success(f"DOCX: {len(st.session_state.adapt_imgs)} imagens encontradas.")
 
     adapt_map = {}
     adapt_qs = []
-    if st.session_state.adapt_imgs and st.session_state.adapt_type == "docx":
-        st.subheader("🖼️ Mapear Imagens")
-        st.info("Para cada imagem, indique o número da questão. Use 0 para ignorar.")
-        cols = st.columns(3)
-        for i, img in enumerate(st.session_state.adapt_imgs):
-            with cols[i % 3]:
-                st.image(img, width=100)
-                q = st.number_input(f"Questão nº:", min_value=0, max_value=50, step=1, key=f"qmap_{i}")
-                if q > 0:
-                    adapt_map[int(q)] = img # Garante chave inteira
-                    adapt_qs.append(int(q))
-    elif st.session_state.adapt_imgs and st.session_state.adapt_type == "imagem":
-        adapt_map[0] = st.session_state.adapt_imgs[0]
+    
+    # SE JÁ TIVER IMAGENS (Do DOCX ou do Recorte Confirmado)
+    if st.session_state.adapt_imgs:
+        if st.session_state.adapt_type == "docx":
+            st.subheader("🖼️ Mapear Imagens")
+            st.info("Para cada imagem, indique o número da questão. Use 0 para ignorar.")
+            cols = st.columns(3)
+            for i, img in enumerate(st.session_state.adapt_imgs):
+                with cols[i % 3]:
+                    st.image(img, width=100)
+                    q = st.number_input(f"Questão nº:", min_value=0, max_value=50, step=1, key=f"qmap_{i}")
+                    if q > 0:
+                        adapt_map[int(q)] = img 
+                        adapt_qs.append(int(q))
+        elif st.session_state.adapt_type == "imagem":
+            # Para foto única recortada, assumimos que é a imagem principal (Q1)
+            adapt_map[1] = st.session_state.adapt_imgs[0]
+            adapt_qs = [1] 
 
     c_opt, c_act = st.columns([1, 1])
     with c_opt:
@@ -310,10 +340,13 @@ with tab_adapt:
     
     with c_act:
         if st.button("🚀 GERAR ADAPTAÇÃO", type="primary", key="btn_adapt"):
-            with st.spinner("Adaptando com precisão..."):
-                rac, txt, err = adaptar_conteudo(api_key, aluno, st.session_state.adapt_txt, st.session_state.adapt_type, materia, tema, tipo_atv, modo_prof, adapt_qs)
-                st.session_state['result_adapt'] = {'rac': rac, 'txt': txt, 'map': adapt_map}
-                st.rerun()
+            if not st.session_state.adapt_txt:
+                st.warning("Carregue e (se for imagem) recorte primeiro.")
+            else:
+                with st.spinner("Adaptando com precisão..."):
+                    rac, txt, err = adaptar_conteudo(api_key, aluno, st.session_state.adapt_txt, st.session_state.adapt_type, materia, tema, tipo_atv, modo_prof, adapt_qs)
+                    st.session_state['result_adapt'] = {'rac': rac, 'txt': txt, 'map': adapt_map}
+                    st.rerun()
 
     # RESULTADO ADAPTAR (SEM EDITOR)
     if 'result_adapt' in st.session_state:
@@ -329,7 +362,8 @@ with tab_adapt:
                 if tag:
                     t, i_str = tag.groups()
                     i = int(i_str)
-                    im = res['map'].get(i, res['map'].get(0)) if t=="Q" else None
+                    # No caso de imagem única (recorte), usamos a chave 1 por padrão
+                    im = res['map'].get(i, res['map'].get(1, None)) if t=="Q" else None
                     if im: st.image(im, width=350)
                     else: st.warning(f"⚠️ Imagem da Questão {i} não encontrada.")
                 elif p.strip(): st.markdown(p.strip())
@@ -375,7 +409,7 @@ with tab_create:
         st.markdown("---")
         with st.expander("🧠 Racional Pedagógico", expanded=False): st.info(res['rac'])
         
-        # MANTIVE O EDITOR APENAS NO MODO CRIAR (Pois aqui o prof pode querer ajustar o texto inventado pela IA)
+        # EDITOR MANTIDO APENAS NA CRIAÇÃO
         col_ed, col_vi = st.columns([1, 1])
         with col_ed:
             st.subheader("✏️ Editor (Criação)")
