@@ -12,7 +12,7 @@ import json
 import base64
 
 # --- 1. CONFIGURAÇÃO ---
-st.set_page_config(page_title="Adaptador 360º | V9.2", page_icon="🧩", layout="wide")
+st.set_page_config(page_title="Adaptador 360º | V9.3", page_icon="🧩", layout="wide")
 
 # --- 2. BANCO DE DADOS ---
 ARQUIVO_DB = "banco_alunos.json"
@@ -121,7 +121,6 @@ def gerar_dalle_prompt(api_key, prompt_text):
 def adaptar_conteudo(api_key, aluno, conteudo, tipo, materia, tema, tipo_atv, remover_resp, questoes_mapeadas):
     client = OpenAI(api_key=api_key)
     
-    # Validação de Segurança
     if conteudo is None: return "Erro: Conteúdo vazio.", ""
 
     lista_q = ", ".join([str(n) for n in questoes_mapeadas])
@@ -229,7 +228,7 @@ with st.sidebar:
             if k not in ['banco_estudantes', 'OPENAI_API_KEY']: del st.session_state[k]
         st.rerun()
 
-st.markdown("""<div class="header-clean"><div style="font-size:3rem;">🧩</div><div><p style="margin:0;color:#004E92;font-size:1.5rem;font-weight:800;">Adaptador V9.2: Blindado</p></div></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="header-clean"><div style="font-size:3rem;">🧩</div><div><p style="margin:0;color:#004E92;font-size:1.5rem;font-weight:800;">Adaptador V9.3: Fluxo Direto</p></div></div>""", unsafe_allow_html=True)
 
 if not st.session_state.banco_estudantes:
     st.warning("⚠️ Cadastre um aluno no PEI 360º primeiro.")
@@ -258,10 +257,12 @@ with tab_adapt:
 
     arquivo = st.file_uploader("Arquivo (FOTO ou DOCX)", type=["png","jpg","jpeg","docx"], key="af")
     
-    if 'adapt_content' not in st.session_state: st.session_state.adapt_content = None # Renomeado para evitar confusão
+    # Variáveis de Estado da Aba
+    if 'adapt_content' not in st.session_state: st.session_state.adapt_content = None 
     if 'adapt_type' not in st.session_state: st.session_state.adapt_type = None
     if 'adapt_imgs' not in st.session_state: st.session_state.adapt_imgs = []
-
+    
+    # Processamento do Arquivo
     if arquivo:
         if arquivo.file_id != st.session_state.get('a_last_id'):
             st.session_state.a_last_id = arquivo.file_id
@@ -269,43 +270,41 @@ with tab_adapt:
             
             if "image" in arquivo.type:
                 st.session_state.adapt_type = "imagem"
-                st.markdown("<div class='crop-instruction'>✂️ <b>TESOURA DIGITAL:</b> Recorte e confirme.</div>", unsafe_allow_html=True)
+                # Carrega a imagem original na memória
                 img = Image.open(arquivo).convert("RGB")
-                buf = BytesIO(); img.save(buf, format="JPEG"); st.session_state.adapt_content = buf.getvalue()
-                
-                img.thumbnail((1000, 1000))
-                cropped = st_cropper(img, realtime_update=False, box_color='#FF0000', aspect_ratio=None, key="crop1")
-                if st.button("✂️ CONFIRMAR RECORTE", key="cut_btn"):
-                    buf_c = BytesIO(); cropped.save(buf_c, format="JPEG")
-                    # Na imagem recortada, o 'conteúdo' para a IA é a própria imagem recortada
-                    st.session_state.adapt_content = buf_c.getvalue() 
-                    st.session_state.adapt_imgs = [buf_c.getvalue()]
-                    st.success("✅ Imagem recortada pronta!")
-                    st.rerun()
+                buf = BytesIO(); img.save(buf, format="JPEG"); 
+                st.session_state.adapt_content = buf.getvalue() # Salva a ORIGINAL por segurança
+            
             elif "word" in arquivo.type:
                 st.session_state.adapt_type = "docx"
                 txt, imgs = extrair_dados_docx(arquivo)
                 st.session_state.adapt_content = txt
-                st.session_state.adapt_imgs = imgs
+                st.session_state.adapt_imgs = imgs # DOCX já extrai as imagens na hora
                 st.success(f"DOCX: {len(imgs)} imagens encontradas.")
 
+    # WIDGET DE RECORTE (Só aparece se for imagem)
+    cropped_pil = None
+    if st.session_state.adapt_type == "imagem" and st.session_state.adapt_content:
+        st.markdown("<div class='crop-instruction'>✂️ <b>TESOURA DIGITAL:</b> Selecione a área. O recorte será feito automaticamente ao clicar em GERAR.</div>", unsafe_allow_html=True)
+        img_original = Image.open(BytesIO(st.session_state.adapt_content))
+        img_original.thumbnail((1000, 1000))
+        # realtime_update=False é o segredo para não travar
+        cropped_pil = st_cropper(img_original, realtime_update=False, box_color='#FF0000', aspect_ratio=None, key="cropper_widget")
+        
+        st.caption("Prévia do que será enviado:")
+        st.image(cropped_pil, width=200)
+
+    # MAPEAMENTO (Se tiver imagens do DOCX)
     adapt_map = {}
     adapt_qs = []
-    
-    # Configuração de Imagens (DOCX ou Foto)
-    if st.session_state.adapt_imgs:
-        if st.session_state.adapt_type == "docx":
-            st.info("Mapeamento: Digite o número da questão para cada imagem (0 para ignorar).")
-            cols = st.columns(3)
-            for i, img in enumerate(st.session_state.adapt_imgs):
-                with cols[i % 3]:
-                    st.image(img, width=80)
-                    q = st.number_input(f"Q:", 0, 50, key=f"qmap_{i}")
-                    if q > 0: adapt_map[int(q)] = img; adapt_qs.append(int(q))
-        else:
-            # Foto única = Questão 1
-            adapt_map[1] = st.session_state.adapt_imgs[0]
-            adapt_qs = [1]
+    if st.session_state.adapt_imgs and st.session_state.adapt_type == "docx":
+        st.info("Mapeamento: Digite o número da questão para cada imagem (0 para ignorar).")
+        cols = st.columns(3)
+        for i, img in enumerate(st.session_state.adapt_imgs):
+            with cols[i % 3]:
+                st.image(img, width=80)
+                q = st.number_input(f"Q:", 0, 50, key=f"qmap_{i}")
+                if q > 0: adapt_map[int(q)] = img; adapt_qs.append(int(q))
 
     c_opt, c_act = st.columns([1, 1])
     with c_opt:
@@ -313,11 +312,25 @@ with tab_adapt:
     
     with c_act:
         if st.button("🚀 GERAR ADAPTAÇÃO", type="primary", key="btn_adapt"):
-            if not st.session_state.adapt_content:
-                st.warning("⚠️ Aguardando conteúdo (Faça upload e, se for foto, confirme o recorte).")
+            # LÓGICA DE CAPTURA DO RECORTE NO MOMENTO DO CLIQUE
+            content_final = st.session_state.adapt_content # Padrão (Texto DOCX ou Imagem Full)
+            
+            if st.session_state.adapt_type == "imagem":
+                if cropped_pil:
+                    buf_crop = BytesIO()
+                    cropped_pil.save(buf_crop, format="JPEG")
+                    content_final = buf_crop.getvalue() # Substitui pela imagem recortada
+                    # Atualiza o mapa para imagem única
+                    adapt_map = {1: content_final}
+                    adapt_qs = [1]
+                else:
+                    st.warning("Erro no recorte. Usando imagem original.")
+
+            if not content_final:
+                st.warning("⚠️ Nenhum conteúdo detectado.")
             else:
                 with st.spinner("Adaptando com regra 'sanduíche' de imagens..."):
-                    rac, txt = adaptar_conteudo(api_key, aluno, st.session_state.adapt_content, st.session_state.adapt_type, materia, tema, tipo_atv, modo_prof, adapt_qs)
+                    rac, txt = adaptar_conteudo(api_key, aluno, content_final, st.session_state.adapt_type, materia, tema, tipo_atv, modo_prof, adapt_qs)
                     st.session_state['res_adapt'] = {'rac': rac, 'txt': txt, 'map': adapt_map}
                     st.rerun()
 
@@ -332,7 +345,6 @@ with tab_adapt:
                 tag = re.search(r'\[\[IMG_(\d+)\]\]', p)
                 if tag:
                     i = int(tag.group(1))
-                    # Fallback para imagem única se não achar index
                     im = res['map'].get(i)
                     if not im and len(res['map']) == 1: im = list(res['map'].values())[0]
                     if im: st.image(im, width=300)
