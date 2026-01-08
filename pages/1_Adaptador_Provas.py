@@ -15,7 +15,7 @@ import zipfile
 import json
 
 # --- 1. CONFIGURAÇÃO ---
-st.set_page_config(page_title="Adaptador 360º | V8.7", page_icon="🧩", layout="wide")
+st.set_page_config(page_title="Adaptador 360º | V8.8", page_icon="🧩", layout="wide")
 
 # --- 2. BANCO DE DADOS ---
 ARQUIVO_DB = "banco_alunos.json"
@@ -44,11 +44,12 @@ st.markdown("""
     
     .crop-instruction { background: #EBF8FF; border-left: 4px solid #3182CE; padding: 15px; color: #2C5282; border-radius: 4px; margin-bottom: 10px; }
     .racional-box { background-color: #F0FFF4; border-left: 4px solid #48BB78; padding: 15px; border-radius: 4px; margin-bottom: 20px; color: #2F855A; font-size: 0.95rem; }
-    .map-status { background-color: #FEFCBF; border: 1px solid #F6E05E; color: #744210; padding: 10px; border-radius: 8px; font-weight: bold; margin-bottom: 10px; }
-
+    
     div[data-testid="column"] .stButton button[kind="primary"] { border-radius: 12px !important; height: 50px; width: 100%; background-color: #FF6B6B !important; color: white !important; font-weight: 800 !important; }
     div[data-testid="column"] .stButton button[kind="secondary"] { border-radius: 12px !important; height: 50px; width: 100%; background-color: white !important; color: #718096 !important; border: 2px solid #CBD5E0 !important; }
-    .stTextArea textarea { border: 1px solid #CBD5E0; border-radius: 8px; font-family: monospace; font-size: 14px; }
+    
+    /* Área de Visualização Limpa */
+    .visual-container { border: 1px solid #E2E8F0; border-radius: 12px; padding: 25px; background: white; min-height: 400px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -88,7 +89,7 @@ def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, img_dalle_url, tip
 
     doc.add_heading('Atividades', level=2)
     
-    # REGEX UNIVERSAL: Aceita [[IMG_Q1]], [[IMG_Q: 1]], [[IMG_Q-01]]
+    # REGEX ROBUSTO: Pega [[IMG_Q1]], [[IMG_Q: 1]], [[IMG_Q-1]]
     partes = re.split(r'(\[\[IMG_[Q|G][\s:_-]*\d+\]\])', texto_ia)
     
     for parte in partes:
@@ -100,9 +101,8 @@ def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, img_dalle_url, tip
             
             if tipo == "Q": 
                 try: 
-                    # Força conversão para inteiro para bater com a chave do dicionário
                     num = int(id_str)
-                    img_bytes = mapa_imgs.get(num, mapa_imgs.get(0)) # Tenta achar o nº, senão pega o 0 (crop)
+                    img_bytes = mapa_imgs.get(num, mapa_imgs.get(0))
                 except: pass
             elif tipo == "G": 
                 img_bytes = mapa_imgs.get(f"G{id_str}")
@@ -115,8 +115,7 @@ def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, img_dalle_url, tip
                 except: pass
         
         elif parte.strip():
-            # Limpa qualquer tag residual que tenha sobrado
-            clean = re.sub(r'\[\[IMG_[^\]]+\]\]', '', parte).strip()
+            clean = re.sub(r'\[\[IMG_[^\]]+\]\]', '', parte).strip() # Limpa tags quebradas
             if clean: doc.add_paragraph(clean)
             
     buffer = BytesIO(); doc.save(buffer); buffer.seek(0)
@@ -126,7 +125,7 @@ def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, img_dalle_url, tip
 def gerar_dalle_prompt(api_key, prompt_text):
     client = OpenAI(api_key=api_key)
     try:
-        resp = client.images.generate(model="dall-e-3", prompt=prompt_text + " Educational style, clear, autism-friendly, white background, no text.", size="1024x1024", quality="standard", n=1)
+        resp = client.images.generate(model="dall-e-3", prompt=prompt_text + " Educational style, clear, white background, no text.", size="1024x1024", quality="standard", n=1)
         return resp.data[0].url
     except: return None
 
@@ -142,28 +141,27 @@ def adaptar_conteudo(api_key, aluno, conteudo, tipo, materia, tema, tipo_atv, re
     
     instrucao_imgs = ""
     if tipo == "docx":
-        # Instrução explícita sobre quais imagens existem
         lista_q = ", ".join([str(n) for n in questoes_mapeadas])
         instrucao_imgs = f"""
-        DIAGRAMAÇÃO OBRIGATÓRIA (DOCX):
+        DIAGRAMAÇÃO OBRIGATÓRIA:
         O professor mapeou imagens para as questões: {lista_q}.
         VOCÊ DEVE INSERIR A TAG [[IMG_QX]] NA QUESTÃO X.
         Exemplo: Se a Questão 2 está na lista, escreva o enunciado e logo abaixo coloque [[IMG_Q2]].
         """
     else:
-        instrucao_imgs = "FOTO ÚNICA: Use [[IMG_Q1]] para a imagem recortada logo após o enunciado."
+        instrucao_imgs = "Use [[IMG_Q1]] para a imagem recortada logo após o enunciado."
 
     prompt = f"""
     VOCÊ É UM ADAPTADOR DE CONTEÚDO (NÃO É UM CRIADOR).
     
     ESTRUTURA DE SAÍDA:
-    [RACIONAL PEDAGÓGICO] (Explique brevemente)
+    [RACIONAL PEDAGÓGICO] (Breve explicação)
     ---DIVISOR---
     [ATIVIDADE] (Conteúdo limpo)
     
     DIRETRIZES:
     1. A parte [ATIVIDADE] não deve ter conversas, apenas as questões.
-    2. SE O ORIGINAL TEM 5 QUESTÕES, GERE APENAS 5 QUESTÕES. NÃO CRIE EXTRAS.
+    2. SE O ORIGINAL TEM 5 QUESTÕES, GERE APENAS 5 QUESTÕES.
     3. {"REMOVA TODAS AS RESPOSTAS." if remover_resp else ""}
     4. {instrucao_imgs}
     5. {get_hiperfoco_instruction(aluno)}
@@ -199,7 +197,7 @@ def criar_do_zero(api_key, aluno, materia, objeto, qtd, tipo_q, temperatura=0.7)
     SAÍDA: [RACIONAL] ---DIVISOR--- [ATIVIDADE]
     
     REGRAS:
-    1. A parte [ATIVIDADE] deve ser LIMPA. Sem introduções.
+    1. A parte [ATIVIDADE] deve ser LIMPA.
     2. RIGOR BNCC.
     3. A cada 5 questões, 1 deve ter imagem gerada: [[GEN_IMG: descrição visual]].
     4. QUANTIDADE EXATA: {qtd} questões ({tipo_q}).
@@ -231,18 +229,12 @@ with st.sidebar:
     else: api_key = st.text_input("Chave OpenAI:", type="password")
     st.markdown("---")
     
-    if st.button("🗑️ Nova Atividade (Reset Total)"):
-        # Limpa TUDO do session state para evitar conflitos
-        keys_to_clear = [
-            'result_adapt', 'result_create', 
-            'adapt_imgs', 'adapt_txt', 'adapt_type', 'a_last_id', 
-            'imgs_extraidas', 'txt_orig'
-        ]
-        for k in keys_to_clear:
-            if k in st.session_state: del st.session_state[k]
+    if st.button("🗑️ Nova Atividade (Reset)"):
+        for key in list(st.session_state.keys()):
+            if key not in ['banco_estudantes', 'OPENAI_API_KEY']: del st.session_state[key]
         st.rerun()
 
-st.markdown("""<div class="header-clean"><div style="font-size:3rem;">🧩</div><div><p style="margin:0;color:#004E92;font-size:1.5rem;font-weight:800;">Adaptador V8.7: Blindado</p></div></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="header-clean"><div style="font-size:3rem;">🧩</div><div><p style="margin:0;color:#004E92;font-size:1.5rem;font-weight:800;">Adaptador V8.8: Simplificado</p></div></div>""", unsafe_allow_html=True)
 
 if not st.session_state.banco_estudantes:
     st.warning("⚠️ Cadastre um aluno no PEI 360º primeiro.")
@@ -263,7 +255,7 @@ st.markdown(f"""
 
 tab_adapt, tab_create, tab_visual, tab_ctx = st.tabs(["📂 Adaptar Arquivo", "✨ Criar Atividade", "🎨 Estúdio Visual", "💡 Contextualizador"])
 
-# 1. ADAPTAR
+# 1. ADAPTAR (Simplificado)
 with tab_adapt:
     c1, c2, c3 = st.columns(3)
     materia = c1.selectbox("Matéria", ["Matemática", "Português", "Ciências", "História", "Geografia"], key="am")
@@ -298,24 +290,17 @@ with tab_adapt:
 
     adapt_map = {}
     adapt_qs = []
-    
     if st.session_state.adapt_imgs and st.session_state.adapt_type == "docx":
         st.subheader("🖼️ Mapear Imagens")
-        st.info("Indique a qual questão cada imagem pertence. Use '0' para ignorar.")
-        
+        st.info("Para cada imagem, indique o número da questão. Use 0 para ignorar.")
         cols = st.columns(3)
         for i, img in enumerate(st.session_state.adapt_imgs):
             with cols[i % 3]:
                 st.image(img, width=100)
-                # FORCE STEP=1 para garantir inteiros
-                q = st.number_input(f"Questão:", min_value=0, max_value=50, step=1, key=f"qmap_{i}")
+                q = st.number_input(f"Questão nº:", min_value=0, max_value=50, step=1, key=f"qmap_{i}")
                 if q > 0:
-                    adapt_map[int(q)] = img # Força chave inteira
+                    adapt_map[int(q)] = img # Garante chave inteira
                     adapt_qs.append(int(q))
-        
-        if adapt_qs:
-            st.markdown(f"<div class='map-status'>✅ Imagens vinculadas às Questões: {sorted(list(set(adapt_qs)))}</div>", unsafe_allow_html=True)
-            
     elif st.session_state.adapt_imgs and st.session_state.adapt_type == "imagem":
         adapt_map[0] = st.session_state.adapt_imgs[0]
 
@@ -324,49 +309,39 @@ with tab_adapt:
         modo_prof = st.checkbox("Remover Respostas", value=True, key="mprof") if st.session_state.adapt_type == "imagem" else False
     
     with c_act:
-        c_a, c_b = st.columns([2, 1])
-        if c_a.button("🚀 GERAR ADAPTAÇÃO", type="primary", key="btn_adapt"):
-            with st.spinner("Adaptando..."):
+        if st.button("🚀 GERAR ADAPTAÇÃO", type="primary", key="btn_adapt"):
+            with st.spinner("Adaptando com precisão..."):
                 rac, txt, err = adaptar_conteudo(api_key, aluno, st.session_state.adapt_txt, st.session_state.adapt_type, materia, tema, tipo_atv, modo_prof, adapt_qs)
-                st.session_state['result_adapt'] = {'rac': rac, 'txt': txt, 'map': adapt_map, 'dalle': None}
+                st.session_state['result_adapt'] = {'rac': rac, 'txt': txt, 'map': adapt_map}
                 st.rerun()
-        if c_b.button("🗑️ Limpar Aba", key="clean_adapt"):
-            st.session_state.pop('result_adapt', None)
-            st.rerun()
 
+    # RESULTADO ADAPTAR (SEM EDITOR)
     if 'result_adapt' in st.session_state:
         res = st.session_state['result_adapt']
         st.markdown("---")
-        with st.expander("🧠 Racional Pedagógico (O que foi feito)", expanded=False): st.info(res['rac'])
+        with st.expander("🧠 Ver Racional Pedagógico (Oculto no Download)", expanded=False): st.info(res['rac'])
         
-        col_ed, col_vi = st.columns([1, 1])
-        with col_ed:
-            st.subheader("✏️ Editor")
-            res['txt'] = st.text_area("Texto:", value=res['txt'], height=600, key="txt_adapt")
-            if st.button("🔄 Refazer Adaptação", key="retry_adapt"):
-                rac, txt, err = adaptar_conteudo(api_key, aluno, st.session_state.adapt_txt, st.session_state.adapt_type, materia, tema, tipo_atv, modo_prof, adapt_qs, temperatura=0.5)
-                st.session_state['result_adapt']['rac'] = rac
-                st.session_state['result_adapt']['txt'] = txt
-                st.rerun()
+        st.subheader("👁️ Visualização Final")
+        with st.container(border=True):
+            partes = re.split(r'(\[\[IMG_[Q|G][\s:_-]*\d+\]\])', res['txt'])
+            for p in partes:
+                tag = re.search(r'\[\[IMG_(Q|G)[\s:_-]*(\d+)\]\]', p)
+                if tag:
+                    t, i_str = tag.groups()
+                    i = int(i_str)
+                    im = res['map'].get(i, res['map'].get(0)) if t=="Q" else None
+                    if im: st.image(im, width=350)
+                    else: st.warning(f"⚠️ Imagem da Questão {i} não encontrada.")
+                elif p.strip(): st.markdown(p.strip())
         
-        with col_vi:
-            st.subheader("👁️ Visualização")
-            with st.container(border=True):
-                # REGEX UNIVERSAL: [[IMG_Q1]] ou [[IMG_Q: 1]]
-                partes = re.split(r'(\[\[IMG_[Q|G][\s:_-]*\d+\]\])', res['txt'])
-                for p in partes:
-                    tag = re.search(r'\[\[IMG_(Q|G)[\s:_-]*(\d+)\]\]', p)
-                    if tag:
-                        t, i_str = tag.groups()
-                        i = int(i_str)
-                        # Busca no mapa pela chave inteira
-                        im = res['map'].get(i, res['map'].get(0)) if t=="Q" else None
-                        if im: st.image(im, width=300)
-                        else: st.warning(f"⚠️ [Imagem Q{i} não encontrada. Verifique o mapeamento]")
-                    elif p.strip(): st.markdown(p.strip())
-        
+        c_down, c_re = st.columns([2, 1])
         docx = construir_docx_final(res['txt'], aluno, materia, res['map'], None, tipo_atv)
-        st.download_button("📥 BAIXAR DOCX", docx, "Atividade_Adaptada.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", type="primary", use_container_width=True)
+        c_down.download_button("📥 BAIXAR DOCX PRONTO", docx, "Atividade_Adaptada.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", type="primary", use_container_width=True)
+        if c_re.button("🔄 Não gostei, Refazer", key="retry_adapt"):
+            rac, txt, err = adaptar_conteudo(api_key, aluno, st.session_state.adapt_txt, st.session_state.adapt_type, materia, tema, tipo_atv, modo_prof, adapt_qs, temperatura=0.6)
+            st.session_state['result_adapt']['rac'] = rac
+            st.session_state['result_adapt']['txt'] = txt
+            st.rerun()
 
 # 2. CRIAR
 with tab_create:
@@ -377,8 +352,7 @@ with tab_create:
     qtd_c = cc3.slider("Quantidade", 1, 10, 5, key="cq")
     tipo_c = cc4.selectbox("Formato", ["Múltipla Escolha", "Discursiva", "Mista"], key="ct")
     
-    col_go, col_cl = st.columns([2, 1])
-    if col_go.button("✨ CRIAR ATIVIDADE", type="primary", key="btn_create"):
+    if st.button("✨ CRIAR ATIVIDADE", type="primary", key="btn_create"):
         with st.spinner(f"Criando..."):
             rac, txt, err = criar_do_zero(api_key, aluno, mat_c, obj_c, qtd_c, tipo_c)
             novo_map = {}; count = 0
@@ -393,24 +367,21 @@ with tab_create:
             txt_fin = txt
             for i in range(count): txt_fin = re.sub(r'\[\[GEN_IMG: .*?\]\]', f"[[IMG_G{i+1}]]", txt_fin, count=1)
             
-            st.session_state['result_create'] = {'rac': rac, 'txt': txt_fin, 'map': novo_map, 'dalle': None}
+            st.session_state['result_create'] = {'rac': rac, 'txt': txt_fin, 'map': novo_map}
             st.rerun()
-            
-    if col_cl.button("🗑️ Limpar Aba", key="clean_create"):
-        st.session_state.pop('result_create', None)
-        st.rerun()
 
     if 'result_create' in st.session_state:
         res = st.session_state['result_create']
         st.markdown("---")
         with st.expander("🧠 Racional Pedagógico", expanded=False): st.info(res['rac'])
         
+        # MANTIVE O EDITOR APENAS NO MODO CRIAR (Pois aqui o prof pode querer ajustar o texto inventado pela IA)
         col_ed, col_vi = st.columns([1, 1])
         with col_ed:
-            st.subheader("✏️ Editor")
-            res['txt'] = st.text_area("Texto:", value=res['txt'], height=600, key="txt_create")
-            if st.button("🔄 Refazer", key="retry_create"):
-                pass
+            st.subheader("✏️ Editor (Criação)")
+            res['txt'] = st.text_area("Texto Criado:", value=res['txt'], height=600, key="txt_create")
+            if st.button("🔄 Refazer Criação", key="retry_create"):
+                pass 
         
         with col_vi:
             st.subheader("👁️ Visualização")
@@ -419,8 +390,8 @@ with tab_create:
                 for p in partes:
                     tag = re.search(r'\[\[IMG_(Q|G)[\s:_-]*(\d+)\]\]', p)
                     if tag:
-                        t, i = tag.groups()
-                        im = res['map'].get(f"G{i}")
+                        t, i_str = tag.groups()
+                        im = res['map'].get(f"G{i_str}")
                         if im: st.image(im, width=300)
                     elif p.strip(): st.markdown(p.strip())
 
