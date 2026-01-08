@@ -381,5 +381,3 @@ with tab_ctx:
     if st.button("💡 GERAR IDEIAS", type="primary", key="cx_btn"):
         with st.spinner("Pensando..."):
             st.write(gerar_contextualizacao(api_key, aluno, assunto))
-
-```
