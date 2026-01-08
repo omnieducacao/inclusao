@@ -10,9 +10,10 @@ import base64
 import os
 import re
 import requests
+import zipfile # Biblioteca essencial para abrir o Word
 
 # --- 1. CONFIGURAÇÃO ---
-st.set_page_config(page_title="Adaptador 360º V4.1", page_icon="🧩", layout="wide")
+st.set_page_config(page_title="Adaptador 360º V4.2", page_icon="🧩", layout="wide")
 
 if 'banco_estudantes' not in st.session_state:
     st.session_state.banco_estudantes = []
@@ -41,34 +42,68 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 3. FUNÇÕES AUXILIARES ---
+# --- 3. FUNÇÕES DE EXTRAÇÃO (O PULO DO GATO) ---
+
+def extrair_imagens_do_word(docx_file):
+    """Abre o arquivo DOCX como ZIP e extrai todas as imagens da pasta media"""
+    imagens_extraidas = []
+    try:
+        with zipfile.ZipFile(docx_file) as z:
+            # Lista todos os arquivos dentro do DOCX
+            all_files = z.namelist()
+            # Filtra apenas imagens na pasta media
+            media_files = [f for f in all_files if f.startswith('word/media/') and f.endswith(('.png', '.jpg', '.jpeg'))]
+            
+            for media in media_files:
+                img_data = z.read(media)
+                imagens_extraidas.append(img_data)
+    except Exception as e:
+        st.error(f"Erro ao extrair imagens do Word: {e}")
+    return imagens_extraidas
+
 def ler_arquivo(uploaded_file):
-    if uploaded_file is None: return None, None, None
+    """
+    Retorna: 
+    1. Texto completo (str)
+    2. Tipo ('pdf', 'docx', 'imagem')
+    3. Lista de imagens extras (list de bytes) - Para DOCX
+    4. Imagem principal (bytes) - Se o upload for apenas uma foto
+    """
+    if uploaded_file is None: return None, None, [], None
     
-    # Retorna: texto_extraido, tipo, bytes_originais
-    file_bytes = uploaded_file.getvalue()
+    # Reinicia o ponteiro do arquivo
+    uploaded_file.seek(0)
     
+    # PDF
     if uploaded_file.type == "application/pdf":
         try:
             reader = PdfReader(uploaded_file)
             texto = ""
             for page in reader.pages: texto += page.extract_text() + "\n"
-            return texto, "pdf", file_bytes
-        except: return "", "erro", None
+            return texto, "pdf", [], None
+        except: return "", "erro", [], None
         
+    # DOCX (COM EXTRAÇÃO DE IMAGENS)
     elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
         try:
+            # 1. Lê o texto
             doc = Document(uploaded_file)
             texto = "\n".join([p.text for p in doc.paragraphs])
-            return texto, "docx", file_bytes
-        except: return "", "erro", None
+            
+            # 2. Extrai as imagens internas (resetando ponteiro para ler como zip)
+            uploaded_file.seek(0) # Importante!
+            lista_imagens = extrair_imagens_do_word(uploaded_file)
+            
+            return texto, "docx", lista_imagens, None
+        except Exception as e: return f"Erro: {e}", "erro", [], None
         
+    # IMAGEM ÚNICA (FOTO DA PROVA)
     elif uploaded_file.type in ["image/png", "image/jpeg", "image/jpg"]:
-        # Para imagem, o "texto" é base64 para o GPT ler
+        file_bytes = uploaded_file.getvalue()
         base64_img = base64.b64encode(file_bytes).decode('utf-8')
-        return base64_img, "imagem", file_bytes
+        return base64_img, "imagem", [], file_bytes
         
-    return None, None, None
+    return None, None, [], None
 
 def baixar_imagem_url(url):
     try:
@@ -78,8 +113,8 @@ def baixar_imagem_url(url):
     except: pass
     return None
 
-# --- GERADOR DE DOCX (COM IMAGENS) ---
-def gerar_docx_completo(conteudo_texto, aluno, materia, img_original_bytes, img_dalle_url, tipo_orig):
+# --- GERADOR DE DOCX (ESTRUTURA FINAL) ---
+def gerar_docx_completo(conteudo_texto, aluno, materia, lista_imagens_originais, img_unica_original, img_dalle_url):
     doc = Document()
     style = doc.styles['Normal']; style.font.name = 'Arial'; style.font.size = Pt(12)
     
@@ -94,19 +129,35 @@ def gerar_docx_completo(conteudo_texto, aluno, materia, img_original_bytes, img_
         doc.add_heading('1. Apoio Visual (Contexto)', level=2)
         img_io = baixar_imagem_url(img_dalle_url)
         if img_io:
-            doc.add_picture(img_io, width=Inches(4.0))
-            doc.add_paragraph("Figura 1: Apoio visual para o tema.")
-            doc.add_paragraph("")
+            try:
+                doc.add_picture(img_io, width=Inches(4.0))
+                doc.add_paragraph("Figura 1: Apoio visual para o tema.")
+                doc.add_paragraph("")
+            except: pass
 
-    # 2. Imagem Original (Se houver) - A "Prova"
-    if tipo_orig == "imagem" and img_original_bytes:
-        doc.add_heading('2. Material de Referência', level=2)
-        doc.add_picture(BytesIO(img_original_bytes), width=Inches(5.0))
-        doc.add_paragraph("Figura 2: Material original da questão.")
-        doc.add_paragraph("")
+    # 2. Material Original (Imagens extraídas do Word ou Foto Única)
+    # Aqui a mágica acontece: Se o Word tinha 5 imagens, as 5 aparecem aqui.
+    if lista_imagens_originais or img_unica_original:
+        doc.add_heading('2. Material de Referência (Original)', level=2)
+        doc.add_paragraph("Consulte as imagens abaixo para responder às questões.")
+        
+        # Caso 1: Imagens extraídas de dentro do DOCX
+        for i, img_bytes in enumerate(lista_imagens_originais):
+            try:
+                doc.add_picture(BytesIO(img_bytes), width=Inches(4.5))
+                doc.add_paragraph(f"Imagem {i+1} do material original.")
+                doc.add_paragraph("")
+            except: pass
+            
+        # Caso 2: Upload foi uma foto única
+        if img_unica_original:
+            try:
+                doc.add_picture(BytesIO(img_unica_original), width=Inches(5.0))
+                doc.add_paragraph("Imagem original da atividade.")
+            except: pass
 
     # 3. Texto Adaptado
-    doc.add_heading('3. Atividade', level=2)
+    doc.add_heading('3. Atividade Adaptada', level=2)
     doc.add_paragraph(conteudo_texto)
     
     buffer = BytesIO(); doc.save(buffer); buffer.seek(0)
@@ -147,7 +198,7 @@ def adaptar_atividade_v4(api_key, aluno_dados, conteudo_orig, tipo_arquivo, mate
     (Explique o que mudou e por que)
     ---DIVISOR---
     [ATIVIDADE ALUNO]
-    (A atividade adaptada. SE a atividade original tinha uma imagem que não posso ver agora, escreva: '[VER IMAGEM ORIGINAL ACIMA]' no lugar dela).
+    (A atividade adaptada. SE a atividade original tinha imagens, escreva na questão: '[VER IMAGEM X NO MATERIAL DE REFERÊNCIA ACIMA]').
     """
     
     texto_user = f"""
@@ -155,7 +206,8 @@ def adaptar_atividade_v4(api_key, aluno_dados, conteudo_orig, tipo_arquivo, mate
     DIRETRIZES PEI: {diretrizes}
     MATÉRIA: {materia} | TEMA: {tema}
     
-    Adapte o conteúdo abaixo. Se houver referência a uma imagem (ex: "veja o mapa"), mantenha a referência no texto adaptado pois a imagem original será anexada no documento final.
+    Adapte o conteúdo abaixo. IMPORTANTE: Eu extraí as imagens do arquivo original e vou colocá-las antes do seu texto. 
+    Portanto, se o texto original disser "Veja a figura", mantenha a referência indicando para olhar as imagens anexas.
     """
 
     msgs = [{"role": "system", "content": prompt_sistema}, {"role": "user", "content": []}]
@@ -164,7 +216,7 @@ def adaptar_atividade_v4(api_key, aluno_dados, conteudo_orig, tipo_arquivo, mate
     if tipo_arquivo == "imagem":
         msgs[1]["content"].append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{conteudo_orig}"}})
     else:
-        msgs[1]["content"].append({"type": "text", "text": f"\nORIGINAL:\n{conteudo_orig}"})
+        msgs[1]["content"].append({"type": "text", "text": f"\nORIGINAL (Texto Extraído):\n{conteudo_orig}"})
 
     try:
         resp = client.chat.completions.create(model="gpt-4o-mini", messages=msgs, temperature=0.5)
@@ -188,8 +240,8 @@ st.markdown("""
     <div class="header-clean">
         <div style="font-size: 3rem;">🧩</div>
         <div>
-            <p style="margin: 0; color: #004E92; font-size: 1.5rem; font-weight: 800;">Adaptador V4.1: Integração Visual Completa</p>
-            <p style="margin: 0; color: #718096;">Preserva a imagem original e cria novas imagens de apoio pedagógico.</p>
+            <p style="margin: 0; color: #004E92; font-size: 1.5rem; font-weight: 800;">Adaptador V4.2: Minerador de Imagens</p>
+            <p style="margin: 0; color: #718096;">Extrai imagens de dentro do Word e cria novos apoios visuais.</p>
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -211,12 +263,19 @@ with c1:
     tema = st.text_input("Tema:", placeholder="Ex: Frações")
     tipo_atv = st.selectbox("Tipo:", ["Prova", "Tarefa", "Trabalho"])
 with c2:
-    arquivo = st.file_uploader("Original (Foto/PDF/Word)", type=["png","jpg","jpeg","pdf","docx"])
-    conteudo_orig, tipo_arq, bytes_orig = ler_arquivo(arquivo)
-    if tipo_arq == "imagem": st.image(arquivo, width=150, caption="Original")
-    elif tipo_arq: st.success(f"{tipo_arq} lido.")
+    arquivo = st.file_uploader("Original (Word/PDF/Foto)", type=["docx","pdf","png","jpg"])
+    
+    # Chama a função de leitura poderosa
+    conteudo_orig, tipo_arq, lista_imgs_word, img_unica = ler_arquivo(arquivo)
+    
+    if tipo_arq == "docx":
+        st.success(f"DOCX lido. {len(lista_imgs_word)} imagens encontradas dentro do arquivo.")
+    elif tipo_arq == "imagem":
+        st.image(arquivo, width=150, caption="Original")
+    elif tipo_arq:
+        st.success(f"{tipo_arq} lido.")
     elif not arquivo: 
-        conteudo_orig = st.text_area("Ou cole texto:"); tipo_arq="texto"; bytes_orig=None
+        conteudo_orig = st.text_area("Ou cole texto:"); tipo_arq="texto"
 
 if st.button("✨ ADAPTAR ATIVIDADE", type="primary"):
     if not materia or not tema or not conteudo_orig: st.warning("Preencha tudo.")
@@ -233,7 +292,8 @@ if st.button("✨ ADAPTAR ATIVIDADE", type="primary"):
             st.session_state['resultado_racional'] = racional
             st.session_state['resultado_atividade'] = atividade
             st.session_state['resultado_img_dalle'] = img_dalle
-            st.session_state['bytes_originais'] = bytes_orig
+            st.session_state['lista_imgs_word'] = lista_imgs_word # Salva as imagens do Word
+            st.session_state['img_unica'] = img_unica
             st.session_state['tipo_original'] = tipo_arq
             st.success("Pronto!")
 
@@ -245,18 +305,22 @@ if 'resultado_atividade' in st.session_state:
     with st.expander("🧠 Explicação para o Professor (O que mudou?)", expanded=False):
         st.markdown(f"<div class='rationale-box'>{st.session_state['resultado_racional']}</div>", unsafe_allow_html=True)
     
-    # 2. Visual
+    # 2. Visual (Review na Tela)
     c_vis1, c_vis2 = st.columns(2)
     with c_vis1:
         if st.session_state.get('resultado_img_dalle'):
             st.markdown("###### 1. Apoio Visual (IA - Scaffolding)")
             st.image(st.session_state['resultado_img_dalle'], use_column_width=True)
-            st.caption("Objetivo: Contextualizar o tema antes da leitura.")
     with c_vis2:
-        if st.session_state['tipo_original'] == "imagem" and st.session_state['bytes_originais']:
-            st.markdown("###### 2. Material Original (Referência)")
-            st.image(st.session_state['bytes_originais'], use_column_width=True)
-            st.caption("A imagem da questão original foi mantida.")
+        # Mostra as imagens extraídas do Word na tela para conferência
+        imgs_word = st.session_state.get('lista_imgs_word', [])
+        if imgs_word:
+            st.markdown(f"###### 2. Imagens Recuperadas do Word ({len(imgs_word)})")
+            # Mostra a primeira imagem como exemplo
+            st.image(imgs_word[0], caption="Exemplo de imagem extraída", width=200)
+        elif st.session_state.get('img_unica'):
+            st.markdown("###### 2. Material Original")
+            st.image(st.session_state['img_unica'], width=200)
 
     # 3. Texto
     st.markdown("###### 3. Atividade Adaptada")
@@ -267,8 +331,8 @@ if 'resultado_atividade' in st.session_state:
         st.session_state['resultado_atividade'], 
         aluno['nome'], 
         materia, 
-        st.session_state.get('bytes_originais'), 
-        st.session_state.get('resultado_img_dalle'),
-        st.session_state['tipo_original']
+        st.session_state.get('lista_imgs_word'), # Passa a lista de imagens do Word
+        st.session_state.get('img_unica'),
+        st.session_state.get('resultado_img_dalle')
     )
     st.download_button("📥 Baixar Documento Completo (Word)", docx, "atividade_adaptada.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", type="primary")
