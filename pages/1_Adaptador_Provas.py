@@ -13,7 +13,7 @@ import requests
 import zipfile
 
 # --- 1. CONFIGURAÇÃO ---
-st.set_page_config(page_title="Adaptador 360º V5.0", page_icon="🧩", layout="wide")
+st.set_page_config(page_title="Adaptador 360º V5.1", page_icon="🧩", layout="wide")
 
 if 'banco_estudantes' not in st.session_state:
     st.session_state.banco_estudantes = []
@@ -34,13 +34,17 @@ st.markdown("""
         border: 1px solid #E2E8F0; margin-top: 20px; margin-bottom: 20px;
     }
     
-    /* Destaque para o Modo Professor */
-    .teacher-mode-box {
-        border: 2px solid #FFD700; background-color: #FFFFF0; padding: 10px; border-radius: 10px; margin-bottom: 15px;
+    /* Botão Principal (Gerar) */
+    div[data-testid="column"] .stButton button[kind="primary"] {
+        border-radius: 12px !important; font-weight: 800 !important; height: 55px !important; width: 100%;
+        background-color: #FF6B6B !important; border: none !important;
+        font-size: 1.1rem !important;
     }
-
-    div[data-testid="column"] .stButton button {
-        border-radius: 12px !important; font-weight: 800 !important; height: 50px !important; width: 100%;
+    
+    /* Botão Secundário (Limpar) */
+    div[data-testid="column"] .stButton button[kind="secondary"] {
+        border-radius: 12px !important; height: 55px !important; width: 100%;
+        border: 2px solid #CBD5E0 !important; color: #718096 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -93,7 +97,6 @@ def construir_docx_final(texto_ia, aluno, materia, lista_imgs, img_dalle_url, ti
     doc = Document()
     style = doc.styles['Normal']; style.font.name = 'Arial'; style.font.size = Pt(12)
     
-    # Cabeçalho
     head = doc.add_heading(f'{tipo_atv.upper()} ADAPTADA - {materia.upper()}', 0)
     head.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p = doc.add_paragraph(f"Estudante: {aluno}")
@@ -163,24 +166,22 @@ def adaptar_atividade_v5(api_key, aluno, conteudo, tipo, materia, tema, tipo_atv
     if not api_key: return None, "Sem chave."
     client = OpenAI(api_key=api_key)
     
-    # 1. Instrução de Imagens
     instrucao_imgs = ""
     if total_imagens > 0:
         instrucao_imgs = f"O arquivo original tem {total_imagens} imagens sequenciais. Insira a tag [[IMG_1]], [[IMG_2]] onde a imagem deve aparecer."
     elif tipo == "imagem":
         instrucao_imgs = "O conteúdo é uma foto. Insira a tag [[IMG_1]] no início para mostrar a foto original."
 
-    # 2. Instrução de "Limpeza" (O Segredo)
     instrucao_professor = ""
     if remover_respostas:
         instrucao_professor = """
         🚨 MODO LIVRO DO PROFESSOR ATIVADO 🚨
-        A imagem ou texto fornecido contém RESPOSTAS ou GABARITOS (geralmente em azul, rosa, itálico ou entre parênteses).
-        SUA MISSÃO CRÍTICA:
+        A imagem contém RESPOSTAS ou GABARITOS (geralmente em azul, rosa ou itálico).
+        SUA MISSÃO:
         1. Identificar e REMOVER todas as respostas.
-        2. Manter apenas os enunciados, textos de apoio e as perguntas.
-        3. Se houver lacunas preenchidas, substitua o texto da resposta por "__________".
-        4. O aluno NÃO pode ver a resposta em hipótese alguma.
+        2. Manter apenas os enunciados.
+        3. Se houver lacunas, deixe "__________".
+        4. O aluno NÃO pode ver a resposta.
         """
 
     prompt_sys = f"Você é um Especialista em Adaptação Escolar. {instrucao_professor}"
@@ -198,7 +199,6 @@ def adaptar_atividade_v5(api_key, aluno, conteudo, tipo, materia, tema, tipo_atv
     msgs = [{"role": "system", "content": prompt_sys}, {"role": "user", "content": []}]
     
     if tipo == "imagem":
-        # Se for imagem, mandamos a foto para a IA analisar visualmente
         msgs[1]["content"].append({"type": "text", "text": prompt_user})
         msgs[1]["content"].append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64.b64encode(conteudo[0]).decode('utf-8')}"}})
     else:
@@ -225,7 +225,7 @@ st.markdown("""
     <div class="header-clean">
         <div style="font-size: 3rem;">🧩</div>
         <div>
-            <p style="margin: 0; color: #004E92; font-size: 1.5rem; font-weight: 800;">Adaptador V5.0: Modo Professor</p>
+            <p style="margin: 0; color: #004E92; font-size: 1.5rem; font-weight: 800;">Adaptador V5.1: Modo Professor</p>
             <p style="margin: 0; color: #718096;">Remove respostas automáticas de fotos de livros didáticos.</p>
         </div>
     </div>
@@ -253,32 +253,39 @@ texto_orig, tipo_arq, lista_imgs = ler_arquivo(arquivo)
 
 if tipo_arq: st.success(f"Arquivo carregado ({tipo_arq}).")
 
-# --- BARRA DE AÇÃO V5 ---
+# --- BARRA DE AÇÃO (CORRIGIDA) ---
 st.markdown("<div class='action-bar'>", unsafe_allow_html=True)
 
-# Checkbox Mágico
+# Opções Avançadas
 c_prof, c_img = st.columns(2)
 with c_prof:
-    modo_professor = st.checkbox("🕵️ Modo Livro do Professor (Remover Respostas)", value=False, help="Se ativado, a IA tentará identificar e remover respostas escritas em azul/rosa na imagem.")
+    modo_professor = st.checkbox("🕵️ Modo Livro do Professor (Remover Respostas)", value=False, help="Remove respostas em azul/rosa.")
 with c_img:
     usar_dalle = st.toggle("🎨 Criar Capa Visual (IA)", value=True)
 
 st.markdown("---")
-c_btn, c_cls = st.columns([3, 1])
-with c_btn:
-    btn_gerar = st.button("✨ ADAPTAR E LIMPAR", type="primary")
-with c_cls:
-    if st.button("🗑️ Limpar"):
+
+# BOTÕES CLAROS E DISTINTOS
+col_gerar, col_reset = st.columns([3, 1])
+
+with col_gerar:
+    # Botão Vermelho/Coral Grande
+    btn_gerar = st.button("✨ GERAR ATIVIDADE ADAPTADA", type="primary", use_container_width=True)
+
+with col_reset:
+    # Botão Cinza Menor
+    if st.button("🗑️ Nova Atividade", type="secondary", use_container_width=True):
         st.session_state.pop('res_texto', None)
         st.rerun()
+
 st.markdown("</div>", unsafe_allow_html=True)
 
 # --- LÓGICA ---
 if btn_gerar:
     if not materia or not tema or not texto_orig: st.warning("Preencha todos os campos.")
     else:
-        with st.spinner(f"Lendo imagem e removendo respostas (Modo Professor: {'ON' if modo_professor else 'OFF'})..."):
-            qtd = len(lista_imgs) if tipo_arq == "docx" else len(lista_imgs) # Para foto é 1
+        with st.spinner(f"Processando imagem e removendo gabarito (Modo Professor: {'ON' if modo_professor else 'OFF'})..."):
+            qtd = len(lista_imgs) if tipo_arq == "docx" else len(lista_imgs)
             
             texto_adaptado, err = adaptar_atividade_v5(
                 api_key, 
@@ -289,7 +296,7 @@ if btn_gerar:
                 tema, 
                 tipo_atv, 
                 qtd,
-                modo_professor # Passa a flag
+                modo_professor
             )
             
             img_dalle = None
@@ -306,8 +313,8 @@ if btn_gerar:
 # --- RESULTADOS ---
 if 'res_texto' in st.session_state:
     st.markdown("---")
-    
     st.subheader("👁️ Resultado Final")
+    
     with st.container(border=True):
         if st.session_state.get('res_dalle'):
             st.image(st.session_state['res_dalle'], width=250, caption="Capa Visual")
@@ -317,15 +324,14 @@ if 'res_texto' in st.session_state:
         for parte in partes:
             if "[[IMG_" in parte:
                 try:
-                    # Para foto única, é sempre a primeira
                     idx = 0 if len(st.session_state['res_imgs']) == 1 else int(re.search(r'\d+', parte).group()) - 1
                     imgs = st.session_state['res_imgs']
-                    if 0 <= idx < len(imgs): st.image(imgs[idx], width=400, caption="Imagem Original (Verifique se a resposta saiu)")
+                    if 0 <= idx < len(imgs): 
+                        st.image(imgs[idx], width=400, caption="Imagem Original (Sem Respostas)")
                 except: pass
             else:
                 if parte.strip(): st.markdown(parte)
 
-    # Download
     docx = construir_docx_final(
         st.session_state['res_texto'], 
         aluno['nome'], 
