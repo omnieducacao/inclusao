@@ -392,5 +392,3 @@ with tab_visual:
         with st.spinner("Desenhando..."):
             url = gerar_dalle_prompt(api_key, f"{desc} with {aluno.get('hiperfoco')} theme")
             if url: st.image(url)
-
-```
