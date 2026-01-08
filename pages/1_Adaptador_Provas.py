@@ -7,6 +7,7 @@ from pypdf import PdfReader
 from fpdf import FPDF
 import base64
 import os
+import re
 
 # --- 1. CONFIGURAÇÃO ---
 st.set_page_config(page_title="Adaptador 360º", page_icon="🧩", layout="wide")
@@ -15,7 +16,7 @@ st.set_page_config(page_title="Adaptador 360º", page_icon="🧩", layout="wide"
 if 'banco_estudantes' not in st.session_state:
     st.session_state.banco_estudantes = []
 
-# --- 2. ESTILO VISUAL (MESMO PADRÃO DO PEI V4.0) ---
+# --- 2. ESTILO VISUAL (MESMO PADRÃO DO PEI V3.8) ---
 st.markdown("""
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -113,7 +114,7 @@ def adaptar_atividade(api_key, aluno_dados, conteudo_orig, tipo_arquivo, materia
     client = OpenAI(api_key=api_key)
     
     # Recupera diretrizes do PEI se existirem
-    diretrizes_pei = "Adapte focando na redução de barreiras."
+    diretrizes_pei = "Adapte focando na redução de barreiras e linguagem clara."
     if 'ia_sugestao' in aluno_dados and "DIRETRIZES" in aluno_dados['ia_sugestao']:
         try:
             # Tenta extrair só a parte das diretrizes do texto grande
@@ -136,9 +137,9 @@ def adaptar_atividade(api_key, aluno_dados, conteudo_orig, tipo_arquivo, materia
     {diretrizes_pei}
     
     CONTEXTO DA ATIVIDADE:
-    - Componente: {materia}
-    - Tema/Conteúdo: {tema}
-    - Tipo: {tipo_atv} (Ex: Prova, Tarefa, Trabalho)
+    - Componente Curricular: {materia}
+    - Tema/Objeto de Conhecimento: {tema}
+    - Tipo: {tipo_atv}
     
     INSTRUÇÕES DE ADAPTAÇÃO:
     1. Identifique a Habilidade BNCC provável deste conteúdo para esta série.
@@ -148,7 +149,7 @@ def adaptar_atividade(api_key, aluno_dados, conteudo_orig, tipo_arquivo, materia
     5. Se possível, use o HIPERFOCO ({aluno_dados.get('hiperfoco')}) para contextualizar uma questão e engajar.
     
     GERE A ATIVIDADE PRONTA PARA IMPRESSÃO:
-    (Inclua cabeçalho, enunciado claro e questões adaptadas).
+    (Inclua cabeçalho, enunciado claro e as questões/atividades adaptadas).
     """
 
     mensagens = [
@@ -165,11 +166,11 @@ def adaptar_atividade(api_key, aluno_dados, conteudo_orig, tipo_arquivo, materia
             "image_url": {"url": f"data:image/jpeg;base64,{conteudo_orig}"}
         })
     else:
-        mensagens[1]["content"].append({"type": "text", "text": f"\n--- ATIVIDADE ORIGINAL ---\n{conteudo_orig}"})
+        mensagens[1]["content"].append({"type": "text", "text": f"\n--- CONTEÚDO ORIGINAL ---\n{conteudo_orig}"})
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini", # Barato e Multimodal
+            model="gpt-4o-mini", # Barato, Rápido e Lê Imagens
             messages=mensagens,
             temperature=0.5
         )
@@ -199,7 +200,7 @@ st.markdown("""
         <div style="font-size: 3rem;">🧩</div>
         <div>
             <p style="margin: 0; color: #004E92; font-size: 1.5rem; font-weight: 800;">Adaptador de Atividades Inclusivas</p>
-            <p style="margin: 0; color: #718096;">Transforme qualquer material (PDF, Word ou Foto) em atividade acessível.</p>
+            <p style="margin: 0; color: #718096;">Transforme qualquer material (PDF, Word ou Foto) em atividade acessível e alinhada à BNCC.</p>
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -222,10 +223,8 @@ if aluno_selecionado:
         c3.markdown(f"**Hiperfoco:** {aluno_selecionado.get('hiperfoco', '-')}")
         
         # Pega as diretrizes salvas no PEI
-        diretrizes = "Gere adaptações baseadas no DUA."
-        if 'ia_sugestao' in aluno_selecionado:
-             if "DIRETRIZES" in aluno_selecionado['ia_sugestao']:
-                 st.info("💡 **Diretrizes do PEI detectadas!** A adaptação seguirá as regras definidas no Plano.")
+        if 'ia_sugestao' in aluno_selecionado and "DIRETRIZES" in aluno_selecionado['ia_sugestao']:
+             st.info("💡 **Diretrizes do PEI detectadas!** A adaptação seguirá as regras de acessibilidade definidas no Plano.")
 
     st.markdown("---")
 
