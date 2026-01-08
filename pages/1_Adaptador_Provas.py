@@ -15,7 +15,7 @@ import zipfile
 import json
 
 # --- 1. CONFIGURAÇÃO ---
-st.set_page_config(page_title="Adaptador 360º | Híbrido", page_icon="🧩", layout="wide")
+st.set_page_config(page_title="Adaptador 360º | Final", page_icon="🧩", layout="wide")
 
 # --- 2. BANCO DE DADOS ---
 ARQUIVO_DB = "banco_alunos.json"
@@ -77,14 +77,10 @@ def construir_docx_final(texto_ia, aluno, materia, lista_imgs, img_dalle_url, ti
             doc.add_paragraph("")
 
     doc.add_heading('Questões', level=2)
-    
-    # Processamento do texto da IA
     partes = re.split(r'(\[\[IMG_\d+\]\])', texto_ia)
     for parte in partes:
         if "[[IMG_" in parte:
             try:
-                # Se usou tesoura digital, a lista_imgs tem 1 item (o recorte)
-                # O índice será sempre 0
                 idx = 0 
                 if 0 <= idx < len(lista_imgs):
                     doc.add_picture(BytesIO(lista_imgs[idx]), width=Inches(5.5))
@@ -98,7 +94,7 @@ def construir_docx_final(texto_ia, aluno, materia, lista_imgs, img_dalle_url, ti
     buffer = BytesIO(); doc.save(buffer); buffer.seek(0)
     return buffer
 
-# --- 5. IA (LÓGICA HÍBRIDA) ---
+# --- 5. IA (HÍBRIDA) ---
 def gerar_dalle(api_key, tema, aluno):
     client = OpenAI(api_key=api_key)
     prompt = f"Educational illustration about '{tema}'. Simple, clear, white background. {aluno.get('hiperfoco','')} style. No text."
@@ -108,10 +104,6 @@ def gerar_dalle(api_key, tema, aluno):
     except Exception as e: return None, str(e)
 
 def adaptar_hibrido(api_key, aluno, conteudo_visual_completo, tipo, materia, tema, tipo_atv, remover_respostas):
-    """
-    Recebe a imagem COMPLETA (conteudo_visual_completo) para ler o texto,
-    mas sabe que no Word final usaremos o recorte.
-    """
     client = OpenAI(api_key=api_key)
     
     instrucao_imgs = """
@@ -121,6 +113,7 @@ def adaptar_hibrido(api_key, aluno, conteudo_visual_completo, tipo, materia, tem
     1. Leia o texto da imagem completa.
     2. Adapte as questões.
     3. Insira a tag [[IMG_1]] no lugar onde a figura (que eu recortei) deve entrar.
+    4. NÃO escreva instruções como "Aqui está a imagem".
     """
     
     instrucao_prof = "REMOVA TODAS AS RESPOSTAS (azul/rosa/itálico). Mantenha apenas perguntas." if remover_respostas else ""
@@ -135,7 +128,6 @@ def adaptar_hibrido(api_key, aluno, conteudo_visual_completo, tipo, materia, tem
     msgs = [{"role": "system", "content": prompt_sys}, {"role": "user", "content": []}]
     
     if tipo == "imagem":
-        # Envia a IMAGEM ORIGINAL COMPLETA para leitura do texto
         b64 = base64.b64encode(conteudo_visual_completo).decode('utf-8')
         msgs[1]["content"].append({"type": "text", "text": prompt_user})
         msgs[1]["content"].append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}})
@@ -154,7 +146,7 @@ with st.sidebar:
     st.markdown("---")
     st.info("✂️ Recorte a imagem para limpar. O texto original será lido automaticamente.")
 
-st.markdown("""<div class="header-clean"><div style="font-size:3rem;">🧩</div><div><p style="margin:0;color:#004E92;font-size:1.5rem;font-weight:800;">Adaptador V6.4: Híbrido</p></div></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="header-clean"><div style="font-size:3rem;">🧩</div><div><p style="margin:0;color:#004E92;font-size:1.5rem;font-weight:800;">Adaptador V6.5: Final Blindado</p></div></div>""", unsafe_allow_html=True)
 
 if not st.session_state.banco_estudantes:
     st.warning("⚠️ Nenhum aluno no banco. Vá em 'PEI 360º' e salve um aluno primeiro.")
@@ -164,16 +156,27 @@ lista = [a['nome'] for a in st.session_state.banco_estudantes]
 nome_aluno = st.selectbox("📂 Selecione o Estudante:", lista)
 aluno = next(a for a in st.session_state.banco_estudantes if a['nome'] == nome_aluno)
 
+with st.expander(f"ℹ️ Perfil de {aluno['nome']}"):
+    st.write(f"**Hiperfoco:** {aluno.get('hiperfoco', 'Não informado')}")
+    st.write(f"**Diagnóstico:** {aluno.get('diagnostico', 'Não informado')}")
+
 c1, c2, c3 = st.columns(3)
 materia = c1.selectbox("Matéria", ["Matemática", "Português", "Ciências", "História", "Geografia", "Inglês", "Artes"])
 tema = c2.text_input("Tema", placeholder="Ex: Frações")
-tipo_atv = c3.selectbox("Tipo", ["Prova / Avaliação", "Tarefa de Casa", "Atividade de Sala", "Trabalho em Grupo", "Atividade Lúdica", "Resumo"])
+tipo_atv = c3.selectbox("Tipo de Atividade", [
+    "Prova / Avaliação", 
+    "Tarefa de Casa", 
+    "Atividade de Sala", 
+    "Trabalho em Grupo", 
+    "Atividade Lúdica",
+    "Resumo / Esquema"
+])
 
 # UPLOAD
 arquivo = st.file_uploader("Arquivo (FOTO ou DOCX)", type=["png","jpg","jpeg","docx"])
 
-img_original_bytes = None # Imagem cheia para a IA ler
-lista_recortes_final = [] # Recorte limpo para o Word
+img_original_bytes = None 
+lista_recortes_final = [] 
 tipo_arq = None
 
 if arquivo:
@@ -182,7 +185,14 @@ if arquivo:
         st.markdown("<div class='crop-instruction'>✂️ <b>TESOURA DIGITAL:</b> Recorte APENAS a figura/mapa. O sistema lerá o texto da página inteira automaticamente.</div>", unsafe_allow_html=True)
         
         img_pil = Image.open(arquivo)
-        # Salva a original completa em bytes para mandar pra IA ler o texto
+        
+        # --- AQUI ESTÁ A CORREÇÃO CRÍTICA (V6.5) ---
+        # Converte a imagem ORIGINAL para RGB antes de qualquer coisa
+        # Isso evita o erro ao salvar no buffer 'buf_full'
+        if img_pil.mode in ("RGBA", "P"): 
+            img_pil = img_pil.convert("RGB")
+            
+        # Salva a original completa (agora segura em RGB) para mandar pra IA
         buf_full = BytesIO(); img_pil.save(buf_full, format="JPEG"); 
         img_original_bytes = buf_full.getvalue()
         
@@ -192,8 +202,7 @@ if arquivo:
         st.caption("Este recorte será usado no Word final:")
         st.image(cropped_img, width=250)
         
-        # Salva o recorte limpo
-        if cropped_img.mode in ("RGBA", "P"): cropped_img = cropped_img.convert("RGB")
+        # O recorte herda o RGB, então pode salvar direto
         buf_crop = BytesIO(); cropped_img.save(buf_crop, format="JPEG"); 
         lista_recortes_final = [buf_crop.getvalue()]
         
