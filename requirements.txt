@@ -5,3 +5,4 @@ pypdf
 fpdf
 Pillow
 streamlit-cropper
+requests
