@@ -10,9 +10,10 @@ import re
 import requests
 import json
 import base64
+import os  # <--- CORREÇÃO: Faltava este import essencial!
 
 # --- 1. CONFIGURAÇÃO ---
-st.set_page_config(page_title="Adaptador 360º | V12.0", page_icon="🧩", layout="wide")
+st.set_page_config(page_title="Adaptador 360º | V12.1", page_icon="🧩", layout="wide")
 
 # --- 2. BANCO DE DADOS ---
 ARQUIVO_DB = "banco_alunos.json"
@@ -248,7 +249,7 @@ with st.sidebar:
             if k not in ['banco_estudantes', 'OPENAI_API_KEY']: del st.session_state[k]
         st.rerun()
 
-st.markdown("""<div class="header-clean"><div style="font-size:3rem;">🧩</div><div><p style="margin:0;color:#004E92;font-size:1.5rem;font-weight:800;">Adaptador V12.0: Suíte Completa</p></div></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="header-clean"><div style="font-size:3rem;">🧩</div><div><p style="margin:0;color:#004E92;font-size:1.5rem;font-weight:800;">Adaptador V12.1: Estável</p></div></div>""", unsafe_allow_html=True)
 
 if not st.session_state.banco_estudantes:
     st.warning("⚠️ Cadastre um aluno no PEI 360º primeiro.")
@@ -387,13 +388,14 @@ with tabs[1]:
 
 # 3. CRIAR DO ZERO
 with tabs[2]:
+    st.info("Criação Profissional.")
     cc1, cc2 = st.columns(2)
     mat_c = cc1.selectbox("Componente", discip, key="cm")
     obj_c = cc2.text_input("Assunto", key="co")
     
     cc3, cc4 = st.columns(2)
     qtd_c = cc3.slider("Qtd", 1, 10, 5, key="cq")
-    tipo_quest = cc4.selectbox("Tipo", ["Objetiva", "Discursiva", "Mista"], key="ctq")
+    tipo_quest = cc4.selectbox("Tipo de Questão", ["Objetiva", "Discursiva", "Mista"], key="ctq")
     
     c_go_c, c_redo_c = st.columns([3, 1])
     if c_go_c.button("✨ CRIAR ATIVIDADE", type="primary", key="btn_c"):
@@ -447,7 +449,7 @@ with tabs[3]:
         url = gerar_dalle_prompt(api_key, f"{desc} style {aluno.get('hiperfoco')}")
         if url: st.image(url)
 
-# 5. ROTEIRO DE AULA (ANTIGO CONTEXTUALIZAR)
+# 5. ROTEIRO DE AULA
 with tabs[4]:
     st.info("Planejamento da Explicação.")
     ass = st.text_input("O que você vai ensinar?", key="rot_ass")
@@ -455,13 +457,12 @@ with tabs[4]:
         with st.spinner("Planejando..."):
             st.markdown(gerar_roteiro_aula(api_key, aluno, ass))
 
-# 6. PAPO DE MESTRE (QUEBRA-GELO PROFUNDO)
+# 6. PAPO DE MESTRE
 with tabs[5]:
     st.info(f"Conectando com o universo: {aluno.get('hiperfoco')}")
     c1, c2 = st.columns(2)
     ass_q = c1.text_input("Assunto da Aula:", key="qg_ass")
     tema_q = c2.text_input("Tema (Hiperfoco):", value=aluno.get('hiperfoco'), key="qg_tema")
-    
     if st.button("🗣️ GERAR CONVERSA", type="primary"):
         with st.spinner("Consultando a Lore..."):
             st.markdown(gerar_quebra_gelo_profundo(api_key, aluno, ass_q, tema_q))
