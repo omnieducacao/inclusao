@@ -53,7 +53,8 @@ def sistema_seguranca():
         with c_login:
             st.markdown("<div class='login-container'>", unsafe_allow_html=True)
             try:
-                st.image("ominisfera.png", width=300) # Seu logo aqui
+                # Certifique-se que o arquivo oministra.png está na mesma pasta
+                st.image("ominisfera.png", width=300) 
             except:
                 st.markdown("# 🌐 OMNISFERA")
             
@@ -80,6 +81,7 @@ def sistema_seguranca():
             
             if st.button("🚀 ENTRAR NO SISTEMA", type="primary", use_container_width=True):
                 hoje = date.today()
+                # Senha válida até 19/01/2026, depois muda automático
                 senha_correta = "PEI_START_2026" if hoje <= date(2026, 1, 19) else "OMNI_PRO"
                 
                 if not concordo:
@@ -184,8 +186,10 @@ with col1:
         </div>
     </div>
     """, unsafe_allow_html=True)
-    st.info("💡 *Dica: Comece cadastrando o aluno aqui.*")
-    # Futuro: st.page_link("pages/1_PEI.py", label="Acessar PEI", icon="📘")
+    
+    # Botão para o PEI (Certifique-se de criar o arquivo pages/1_PEI.py)
+    if st.button("Acessar PEI ➡️", key="btn_pei", use_container_width=True):
+        st.switch_page("pages/1_PEI.py")
 
 # --- PILAR 2: PAE (O Especialista) ---
 with col2:
@@ -199,8 +203,10 @@ with col2:
         </div>
     </div>
     """, unsafe_allow_html=True)
-    st.warning("🚧 *Em desenvolvimento...*")
-    # Futuro: st.page_link("pages/2_PAE.py", label="Acessar PAE", icon="🧩")
+    
+    # Botão para o PAE (Certifique-se de criar o arquivo pages/2_PAE.py)
+    if st.button("Acessar PAE ➡️", key="btn_pae", use_container_width=True):
+        st.switch_page("pages/2_PAE.py")
 
 # --- PILAR 3: HUB DE INCLUSÃO (A Ação) ---
 with col3:
@@ -215,9 +221,9 @@ with col3:
     </div>
     """, unsafe_allow_html=True)
     
-    # Botão que leva para o arquivo que já temos pronto
-    if st.button("Acessar Hub de Inclusão ➡️", type="primary", use_container_width=True):
-        st.switch_page("pages/1_Adaptador_Atividades.py")
+    # Botão para o Hub (Aqui está a correção!)
+    if st.button("Acessar Hub de Inclusão ➡️", key="btn_hub", type="primary", use_container_width=True):
+        st.switch_page("pages/3_Hub_Inclusao.py")
 
 st.markdown("---")
 st.markdown("<div style='text-align: center; color: #A0AEC0; font-size: 0.8rem;'>Omnisfera © 2026 - Todos os direitos reservados.</div>", unsafe_allow_html=True)
