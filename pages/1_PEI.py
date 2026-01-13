@@ -25,30 +25,45 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 1. VERIFICAÇÃO DE SEGURANÇA (INTEGRAÇÃO OMNISFERA)
+# 1. VERIFICAÇÃO DE SEGURANÇA & CORREÇÃO VISUAL
 # ==============================================================================
 def verificar_acesso():
-    # Verifica se o usuário passou pelo login da Home
+    # Verifica se veio da Home (Integração)
     if "autenticado" not in st.session_state or not st.session_state["autenticado"]:
         st.error("🔒 Acesso Negado. Por favor, faça login na Página Inicial.")
-        st.stop() # Para o carregamento aqui
+        st.stop()
     
-    # Limpa o cabeçalho padrão para visual limpo
+    # CSS: Limpa o cabeçalho MAS FORÇA O BOTÃO LATERAL A APARECER
     st.markdown("""
         <style>
-            [data-testid="stHeader"] {visibility: hidden !important; height: 0px !important;}
+            /* Esconde a barra colorida do topo e o menu de opções */
+            [data-testid="stHeader"] {
+                background-color: rgba(0,0,0,0);
+                visibility: hidden;
+            }
+            
+            /* TRUQUE: Força o botão de abrir/fechar sidebar a ficar visível */
+            [data-testid="stSidebarCollapsedControl"] {
+                visibility: visible !important;
+                display: block !important;
+                z-index: 9999999;
+                color: #3182CE !important; /* Deixa azul para destacar */
+                background-color: white; /* Fundo branco para não sumir */
+                border-radius: 50%;
+                padding: 5px;
+            }
+
             .block-container {padding-top: 1rem !important;}
         </style>
     """, unsafe_allow_html=True)
 
-# Executa a verificação (Substitui o antigo sistema_seguranca bloqueante)
 verificar_acesso()
 
 # ==============================================================================
 # 2. LÓGICA DO BANCO DE DADOS (INTEGRAÇÃO CENTRAL)
 # ==============================================================================
 ARQUIVO_DB_CENTRAL = "banco_alunos.json"
-PASTA_BANCO = "banco_alunos_backup" # Pasta para backups individuais
+PASTA_BANCO = "banco_alunos_backup" # Pasta local
 
 if not os.path.exists(PASTA_BANCO): os.makedirs(PASTA_BANCO)
 
@@ -60,41 +75,40 @@ def carregar_banco():
         except: return []
     return []
 
-# Inicializa o banco na sessão
+# Inicializa banco na memória
 if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estudantes:
     st.session_state.banco_estudantes = carregar_banco()
 
 def salvar_aluno_integrado(dados):
-    """Salva o backup local E atualiza o banco central da Omnisfera"""
+    """Salva backup local E atualiza a Omnisfera"""
     if not dados['nome']: return False, "Nome é obrigatório."
     
-    # 1. Salva Backup Completo Local (.json individual)
+    # 1. Backup Local (.json completo)
     nome_arq = re.sub(r'[^a-zA-Z0-9]', '_', dados['nome'].lower()) + ".json"
     try:
         with open(os.path.join(PASTA_BANCO, nome_arq), 'w', encoding='utf-8') as f:
             json.dump(dados, f, default=str, ensure_ascii=False, indent=4)
     except Exception as e: return False, f"Erro backup: {str(e)}"
 
-    # 2. Atualiza o Banco Central (Omnisfera)
-    # Remove versão antiga se existir para não duplicar
+    # 2. Integração Omnisfera (Banco Central)
+    # Remove anterior se houver
     st.session_state.banco_estudantes = [a for a in st.session_state.banco_estudantes if a['nome'] != dados['nome']]
     
-    # Prepara o objeto essencial para o Hub/PAE
+    # Cria registro otimizado para o Hub/PAE
     novo_registro = {
         "nome": dados['nome'],
         "serie": dados.get('serie', ''),
         "hiperfoco": dados.get('hiperfoco', ''),
-        "ia_sugestao": dados.get('ia_sugestao', ''), # O texto do PEI vira o cérebro
+        "ia_sugestao": dados.get('ia_sugestao', ''), # Cérebro do aluno
         "diagnostico": dados.get('diagnostico', '')
     }
-    
     st.session_state.banco_estudantes.append(novo_registro)
     
-    # Persiste no arquivo central
+    # Salva no arquivo central
     try:
         with open(ARQUIVO_DB_CENTRAL, "w", encoding="utf-8") as f:
             json.dump(st.session_state.banco_estudantes, f, default=str, ensure_ascii=False, indent=4)
-        return True, f"Aluno {dados['nome']} integrado à Omnisfera com sucesso!"
+        return True, f"Aluno {dados['nome']} integrado à Omnisfera!"
     except Exception as e:
         return False, f"Erro integração: {str(e)}"
 
