@@ -66,19 +66,25 @@ if not sistema_seguranca(): st.stop()
 # ==============================================================================
 # 🧠 GERAÇÃO DE CONTEÚDO (IA)
 # ==============================================================================
-# 1. Mensagem do Banner (Saudação + Manifesto)
-mensagem_banner = "Que bom ter você aqui! Na Omnisfera, unimos ciência e afeto para revelar o potencial de cada estudante."
+# Mensagem do Banner (Saudação + Manifesto Fusionados)
+mensagem_banner = "Seja bem-vindo, professor! Juntos, vamos explorar a neurociência da inclusão e desbloquear o potencial único de cada aluno, construindo um futuro brilhante e acolhedor."
+
 if 'OPENAI_API_KEY' in st.secrets:
     try:
         if 'banner_msg' not in st.session_state:
             client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
-            prompt_banner = "Crie uma frase de boas-vindas calorosa para um professor, unindo o conceito de neurociência/inclusão com o potencial do aluno. Máximo 25 palavras."
+            prompt_banner = """
+            Escreva uma mensagem única (máximo 30 palavras) para um banner de home page.
+            Comece com uma saudação calorosa ao educador e conecte imediatamente com o propósito da plataforma 'Omnisfera': 
+            unir neurociência, legislação e estratégia para tornar a inclusão uma realidade potente. 
+            Seja poético e inspirador.
+            """
             res = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": prompt_banner}])
             st.session_state['banner_msg'] = res.choices[0].message.content
         mensagem_banner = st.session_state['banner_msg']
     except: pass
 
-# 2. Curiosidade do Insight (Para o final da página)
+# Curiosidade do Insight (Final)
 noticia_insight = "A neuroplasticidade permite que o cérebro crie novos caminhos de aprendizado durante toda a vida."
 if 'OPENAI_API_KEY' in st.secrets:
     try:
@@ -90,18 +96,36 @@ if 'OPENAI_API_KEY' in st.secrets:
     except: pass
 
 # ==============================================================================
-# 🏠 HOME - DASHBOARD OMNISFERA (V20 - FINE TUNED)
+# 🏠 HOME - DASHBOARD OMNISFERA (V22 - STICKY HEADER FINAL)
 # ==============================================================================
 
 # CSS GERAL
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Nunito:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color: #2D3748; }
+    html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color: #2D3748; background-color: #F7FAFC; }
     
-    /* 1. ESPAÇAMENTO DO TOPO */
+    /* 1. CONFIGURAÇÃO DE HEADER CONGELADO (STICKY) */
+    .logo-container {
+        display: flex; align-items: center; justify-content: center;
+        gap: 20px; 
+        
+        /* Fixando no topo */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: #F7FAFC; /* Mesma cor do fundo para não ficar transparente */
+        z-index: 9999; /* Garante que fique acima de tudo */
+        
+        padding-top: 15px;
+        padding-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Sombra suave para separar do conteúdo */
+    }
+
+    /* 2. COMPENSAÇÃO DE ESPAÇO NO CORPO (Para não esconder atrás da logo) */
     .block-container { 
-        padding-top: 1rem !important; 
+        padding-top: 180px !important; /* Altura da logo + margem */
         padding-bottom: 3rem !important; 
         margin-top: 0rem !important;
     }
@@ -109,18 +133,15 @@ st.markdown("""
     /* --- LOGO GIGANTE ANIMADA --- */
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     
-    .logo-container {
-        display: flex; align-items: center; justify-content: center;
-        gap: 20px; margin-bottom: 10px; padding-top: 10px;
-    }
     .logo-icon-spin {
-        height: 130px; width: auto;
+        height: 120px; /* Levemente ajustado para o header fixo */
+        width: auto;
         animation: spin 45s linear infinite; 
         filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
     }
-    .logo-text-static { height: 85px; width: auto; }
+    .logo-text-static { height: 80px; width: auto; }
 
-    /* --- HERO BANNER (MAIS ESTREITO) --- */
+    /* --- HERO BANNER --- */
     .dash-hero { 
         background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%); 
         border-radius: 16px;
@@ -129,21 +150,21 @@ st.markdown("""
         color: white;
         position: relative;
         overflow: hidden;
-        padding: 30px 50px; /* REDUZIDO AQUI (era 50px 60px) */
+        padding: 50px 60px;
         display: flex; align-items: center; justify-content: flex-start;
     }
     
-    .hero-text-block { z-index: 2; text-align: left; max-width: 85%; }
+    .hero-text-block { z-index: 2; text-align: left; max-width: 90%; }
 
     .hero-title {
         color: white; font-family: 'Inter', sans-serif; font-weight: 700; 
         font-size: 2.2rem; margin: 0; line-height: 1.1; letter-spacing: -0.5px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
     .hero-subtitle {
         color: rgba(255,255,255,0.95);
         font-family: 'Inter', sans-serif;
-        font-size: 1.1rem; 
+        font-size: 1.15rem; 
         font-weight: 400; 
         line-height: 1.5;
         font-style: italic;
@@ -151,12 +172,12 @@ st.markdown("""
     
     .hero-bg-icon {
         position: absolute; right: 40px; font-size: 6rem;
-        opacity: 0.1; color: white; transform: rotate(-15deg); top: 20px;
+        opacity: 0.1; color: white; transform: rotate(-15deg); top: 30px;
     }
 
-    /* --- CARDS DE FERRAMENTA (COM TEXTO CURTO) --- */
+    /* --- CARDS DE FERRAMENTA --- */
     .tool-card { 
-        background: white; border-radius: 20px; padding: 30px 20px; 
+        background: white; border-radius: 20px; padding: 25px; 
         box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; 
         height: 100%; display: flex; flex-direction: column; justify-content: space-between; 
         transition: all 0.3s ease; text-align: center;
@@ -169,42 +190,35 @@ st.markdown("""
     .card-logo-box {
         height: 110px; 
         display: flex; align-items: center; justify-content: center;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
     }
     .card-logo-img {
-        max-height: 95px; 
-        width: auto; object-fit: contain;
+        max-height: 95px; width: auto; object-fit: contain;
         filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
     }
     
-    /* Texto curto no card */
     .tool-desc-short {
-        font-size: 0.9rem;
-        color: #4A5568;
-        font-weight: 600;
-        margin-bottom: 20px;
-        min-height: 40px; /* Garante alinhamento */
+        font-size: 0.9rem; color: #4A5568; font-weight: 500;
+        margin-bottom: 15px; min-height: 45px;
         display: flex; align-items: center; justify-content: center;
+        line-height: 1.3;
     }
     
-    /* Botão Acessar */
     div[data-testid="column"] .stButton button {
-        width: 100%; border-radius: 12px; border: 1px solid #3182CE;
-        background-color: white; color: #3182CE;
+        width: 100%; border-radius: 12px; border: 1px solid #E2E8F0;
+        background-color: #F8F9FA; color: #2D3748;
         font-family: 'Inter', sans-serif; font-weight: 700; 
-        font-size: 1rem; padding: 10px 0;
-        transition: all 0.2s;
+        font-size: 1rem; padding: 12px 0; transition: all 0.2s;
     }
     div[data-testid="column"] .stButton button:hover {
-        background-color: #3182CE; color: white;
+        background-color: #3182CE; color: white; border-color: #3182CE;
     }
     
-    /* Bordas de cor */
-    .border-blue { border-bottom: 8px solid #3182CE; } 
-    .border-purple { border-bottom: 8px solid #805AD5; } 
-    .border-teal { border-bottom: 8px solid #38B2AC; }
+    .border-blue { border-bottom: 6px solid #3182CE; } 
+    .border-purple { border-bottom: 6px solid #805AD5; } 
+    .border-teal { border-bottom: 6px solid #38B2AC; }
 
-    /* --- RODAPÉ E INSIGHT FINAL --- */
+    /* --- RODAPÉ E INSIGHT --- */
     .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
     .rich-card { background: white; border-radius: 12px; padding: 20px; border: 1px solid #E2E8F0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; height: 100%; }
     .rich-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); border-color: #CBD5E0; }
@@ -213,24 +227,33 @@ st.markdown("""
     .rc-title { font-weight: 700; font-size: 1rem; color: #2D3748; margin-bottom: 5px; }
     .rc-desc { font-size: 0.8rem; color: #718096; line-height: 1.3; }
 
-    /* Insight Card Final */
+    /* Insight Final */
     .insight-card-end {
-        background-color: #FFFFF0;
-        border-radius: 12px;
-        padding: 20px 25px;
-        color: #2D3748;
-        display: flex; align-items: center; gap: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        border-left: 5px solid #F6E05E; 
+        background-color: #FFFFF0; border-radius: 12px; padding: 20px 25px;
+        color: #2D3748; display: flex; align-items: center; gap: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #F6E05E; 
         margin-bottom: 20px;
     }
     .insight-icon-end { font-size: 1.8rem; color: #D69E2E; }
+
+    /* Ajuste de Títulos com Ícones */
+    .section-title {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 1.4rem;
+        color: #2D3748;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .section-title i { color: #3182CE; }
 
 </style>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
 """, unsafe_allow_html=True)
 
-# --- 1. CABEÇALHO LOGO GIGANTE ANIMADA ---
+# --- 1. CABEÇALHO LOGO CONGELADA (STICKY) ---
 icone_b64 = get_base64_image("omni_icone.png")
 texto_b64 = get_base64_image("omni_texto.png")
 
@@ -242,10 +265,10 @@ if icone_b64 and texto_b64:
     </div>
     """, unsafe_allow_html=True)
 else:
-    st.markdown("<h1 style='text-align: center; color: #0F52BA; font-size: 3rem; margin-bottom:10px;'>🌐 OMNISFERA</h1>", unsafe_allow_html=True)
+    st.markdown("<div class='logo-container'><h1 style='color: #0F52BA; margin:0;'>🌐 OMNISFERA</h1></div>", unsafe_allow_html=True)
 
 
-# --- 2. HERO BANNER (MAIS ESTREITO + TEXTO IA) ---
+# --- 2. HERO BANNER (CONTEÚDO ROLÁVEL ABAIXO) ---
 st.markdown(f"""
 <div class="dash-hero">
     <div class="hero-text-block">
@@ -256,27 +279,23 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- 3. FERRAMENTAS DE ACESSO (LOGOS + TEXTO CURTO) ---
-st.markdown("### 🎯 Acesso Rápido")
+# --- 3. FERRAMENTAS DE ACESSO (ÍCONES NOS TÍTULOS) ---
+st.markdown("<div class='section-title'><i class='ri-cursor-fill'></i> Acesso Rápido</div>", unsafe_allow_html=True)
 
 # Preparar logos
 logo_pei = get_base64_image("360.png")
 logo_pae = get_base64_image("pae.png")
 logo_hub = get_base64_image("hub.png")
 
-# Fallback icons
-icon_pei = f'<img src="data:image/png;base64,{logo_pei}" class="card-logo-img">' if logo_pei else '<i class="ri-book-read-line" style="font-size:4rem; color:#3182CE;"></i>'
-icon_pae = f'<img src="data:image/png;base64,{logo_pae}" class="card-logo-img">' if logo_pae else '<i class="ri-puzzle-line" style="font-size:4rem; color:#805AD5;"></i>'
-icon_hub = f'<img src="data:image/png;base64,{logo_hub}" class="card-logo-img">' if logo_hub else '<i class="ri-rocket-line" style="font-size:4rem; color:#38B2AC;"></i>'
-
 col1, col2, col3 = st.columns(3)
 
 # PEI
 with col1:
+    icon_pei = f'<img src="data:image/png;base64,{logo_pei}" class="card-logo-img">' if logo_pei else '<i class="ri-book-read-line" style="font-size:4rem; color:#3182CE;"></i>'
     st.markdown(f"""
     <div class="tool-card border-blue">
         <div class="card-logo-box">{icon_pei}</div>
-        <div class="tool-desc-short">Avaliação e plano oficial do aluno.</div>
+        <div class="tool-desc-short">Avaliação, anamnese e geração do plano oficial do aluno.</div>
     </div>
     """, unsafe_allow_html=True)
     if st.button("Acessar", key="btn_pei", use_container_width=True):
@@ -284,10 +303,11 @@ with col1:
 
 # PAE
 with col2:
+    icon_pae = f'<img src="data:image/png;base64,{logo_pae}" class="card-logo-img">' if logo_pae else '<i class="ri-puzzle-line" style="font-size:4rem; color:#805AD5;"></i>'
     st.markdown(f"""
     <div class="tool-card border-purple">
         <div class="card-logo-box">{icon_pae}</div>
-        <div class="tool-desc-short">Mapeamento de barreiras e recursos.</div>
+        <div class="tool-desc-short">Inteligência da Sala de Recursos e Tecnologias Assistivas.</div>
     </div>
     """, unsafe_allow_html=True)
     if st.button("Acessar", key="btn_pae", use_container_width=True):
@@ -295,19 +315,24 @@ with col2:
 
 # HUB
 with col3:
+    icon_hub = f'<img src="data:image/png;base64,{logo_hub}" class="card-logo-img">' if logo_hub else '<i class="ri-rocket-line" style="font-size:4rem; color:#38B2AC;"></i>'
     st.markdown(f"""
     <div class="tool-card border-teal">
         <div class="card-logo-box">{icon_hub}</div>
-        <div class="tool-desc-short">Adaptação de atividades e provas.</div>
+        <div class="tool-desc-short">Adaptação automática de provas e criação de roteiros.</div>
     </div>
     """, unsafe_allow_html=True)
     if st.button("Acessar", key="btn_hub", use_container_width=True):
         st.switch_page("pages/3_Hub_Inclusao.py")
 
-st.markdown("---")
+st.markdown("---") # Removido conforme solicitado? Ah, o prompt pediu para remover a linha.
+# Corrigindo: Removendo a linha abaixo.
+# st.markdown("---")  <-- REMOVIDO
 
-# --- 4. RECURSOS EDUCATIVOS (RODAPÉ) ---
-st.markdown("### 📚 Base de Conhecimento")
+# --- 4. RECURSOS EDUCATIVOS (ÍCONES NOS TÍTULOS) ---
+st.markdown("<div style='margin-top:40px;'></div>", unsafe_allow_html=True) # Espaço extra
+st.markdown("<div class='section-title'><i class='ri-book-mark-fill'></i> Base de Conhecimento</div>", unsafe_allow_html=True)
+
 st.markdown("""
 <div class="home-grid">
     <a href="#" class="rich-card">
@@ -348,5 +373,4 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("---")
-st.markdown("<div style='text-align: center; color: #A0AEC0; font-size: 0.8rem;'>Omnisfera © 2026 - Todos os direitos reservados.</div>", unsafe_allow_html=True)
+st.markdown("<div style='text-align: center; color: #A0AEC0; font-size: 0.8rem; margin-top: 40px;'>Omnisfera © 2026 - Todos os direitos reservados.</div>", unsafe_allow_html=True)
