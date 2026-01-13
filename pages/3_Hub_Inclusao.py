@@ -26,11 +26,15 @@ def verificar_acesso():
         st.error("🔒 Acesso Negado. Por favor, faça login na Página Inicial.")
         st.stop() # Para o carregamento aqui
     
-    # Se estiver logado, limpa o cabeçalho padrão do Streamlit
+    # CSS CORRIGIDO: Mantém o botão do menu lateral visível
     st.markdown("""
         <style>
-            [data-testid="stHeader"] {visibility: hidden !important; height: 0px !important;}
-            .block-container {padding-top: 1rem !important;}
+            /* Esconde apenas o menu "hambúrguer" (opções do canto direito) e o rodapé */
+            [data-testid="stToolbar"] {visibility: hidden !important;}
+            footer {visibility: hidden !important;}
+            
+            /* Ajusta o espaçamento do topo para não ficar buraco, mas sem esconder o header */
+            .block-container {padding-top: 2rem !important;}
         </style>
     """, unsafe_allow_html=True)
 
@@ -75,7 +79,7 @@ st.markdown("""
     /* HEADER PERSONALIZADO (Estilo Banner com Logo) */
     .header-hub { 
         background: white; 
-        padding: 20px 30px; /* Aumentei um pouco o padding para a logo maior */
+        padding: 20px 30px;
         border-radius: 12px; 
         border-left: 6px solid #3182CE; /* Azul do Hub */
         box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
@@ -84,7 +88,7 @@ st.markdown("""
         display: flex;             
         flex-direction: row;       
         align-items: center;       
-        gap: 25px;                 /* Mais espaço entre logo e texto */
+        gap: 25px;                 
     }
     
     .student-header { background-color: #EBF8FF; border: 1px solid #BEE3F8; border-radius: 12px; padding: 15px 25px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
@@ -357,9 +361,8 @@ with st.sidebar:
         st.rerun()
 
 # --- HEADER COM LOGO HUB E APENAS SUBTÍTULO ---
-# Logo aumentada e Título removido.
 
-img_hub_html = get_img_tag("hub.png", "220") # Logo aumentada para 220px
+img_hub_html = get_img_tag("hub.png", "220") # Logo mantida grande
 
 st.markdown(f"""
     <div class="header-hub">
