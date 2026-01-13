@@ -64,15 +64,34 @@ def sistema_seguranca():
 if not sistema_seguranca(): st.stop()
 
 # ==============================================================================
-# 🏠 HOME - DASHBOARD OMNISFERA (ECOSYSTEM FUSION)
+# 🧠 GERAÇÃO DE CONTEÚDO (IA) - ANTES DO CSS PARA INJETAR NO BANNER
+# ==============================================================================
+mensagem_hibrida = "A Omnisfera conecta neurociência e pedagogia para transformar a inclusão em potência."
+
+if 'OPENAI_API_KEY' in st.secrets:
+    try:
+        if 'manifesto_insight' not in st.session_state:
+            client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
+            # Prompt calibrado para ser curto e inspirador (Manifesto + Boas Vindas)
+            prompt = """
+            Gere uma frase de boas-vindas para um professor (máximo 20 palavras).
+            A frase deve unir o conceito técnico (Neurociência/Dados) com o emocional (Potencial do aluno).
+            Exemplo: "Onde a ciência encontra o afeto para revelar o potencial de cada estudante."
+            Não use aspas na resposta.
+            """
+            res = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": prompt}])
+            st.session_state['manifesto_insight'] = res.choices[0].message.content
+        mensagem_hibrida = st.session_state['manifesto_insight']
+    except: pass
+
+# ==============================================================================
+# 🏠 HOME - DASHBOARD OMNISFERA (V17 - INTEGRATED)
 # ==============================================================================
 
 # CSS GERAL
 st.markdown("""
 <style>
-    /* Importando Inter para títulos sóbrios e Nunito para corpo */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Nunito:wght@400;600;700&display=swap');
-    
     html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color: #2D3748; }
     
     /* 1. ESPAÇAMENTO DO TOPO */
@@ -86,133 +105,94 @@ st.markdown("""
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     
     .logo-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 20px; 
-        margin-bottom: 10px; 
-        padding-top: 10px;
+        display: flex; align-items: center; justify-content: center;
+        gap: 20px; margin-bottom: 10px; padding-top: 10px;
     }
     .logo-icon-spin {
-        height: 130px; 
-        width: auto;
+        height: 130px; width: auto;
         animation: spin 45s linear infinite; 
         filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
     }
-    .logo-text-static {
-        height: 85px; 
-        width: auto;
-    }
+    .logo-text-static { height: 85px; width: auto; }
 
-    /* --- HERO BANNER (FONTE SÓBRIA) --- */
+    /* --- HERO BANNER (COM TEXTO IA INTEGRADO) --- */
     .dash-hero { 
         background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%); 
         border-radius: 16px;
-        margin-bottom: 25px; 
+        margin-bottom: 40px; 
         box-shadow: 0 10px 25px rgba(15, 82, 186, 0.25);
         color: white;
         position: relative;
         overflow: hidden;
         padding: 30px 50px; 
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
+        display: flex; align-items: center; justify-content: flex-start;
     }
     
+    .hero-text-block { z-index: 2; text-align: left; max-width: 80%; }
+
     .hero-title {
-        color: white; 
-        font-family: 'Inter', sans-serif; /* Fonte Sóbria */
-        font-weight: 700; 
-        font-size: 2rem; 
-        margin: 0; 
-        line-height: 1.1;
-        letter-spacing: -0.5px;
+        color: white; font-family: 'Inter', sans-serif; font-weight: 700; 
+        font-size: 2rem; margin: 0; line-height: 1.1; letter-spacing: -0.5px;
     }
     .hero-subtitle {
         color: rgba(255,255,255,0.9);
         font-family: 'Inter', sans-serif;
-        font-size: 1rem;
-        margin-top: 8px; 
+        font-size: 1.1rem; /* Aumentei um pouco para destaque */
+        margin-top: 10px; 
         font-weight: 400; 
+        line-height: 1.5;
+        font-style: italic;
     }
     
     .hero-bg-icon {
-        position: absolute; 
-        right: 30px; 
-        font-size: 5rem;
-        opacity: 0.1; 
-        color: white; 
-        transform: rotate(-15deg);
-        top: 20px;
+        position: absolute; right: 30px; font-size: 5rem;
+        opacity: 0.1; color: white; transform: rotate(-15deg); top: 20px;
     }
 
-    /* --- MANIFESTO + INSIGHT CARD (FUSION) --- */
-    .manifesto-card {
-        background-color: #F7FAFC; /* Cinza muito suave e elegante */
-        border-radius: 12px;
-        padding: 25px 40px;
-        color: #2D3748;
-        display: flex; 
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.03);
-        border: 1px solid #E2E8F0;
-        margin-bottom: 40px;
-        margin-top: 10px;
+    /* --- CARDS DE FERRAMENTA (CLEAN: LOGO + DESCRIÇÃO) --- */
+    .tool-card { 
+        background: white; border-radius: 20px; padding: 30px 20px; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; 
+        height: 100%; display: flex; flex-direction: column; justify-content: flex-start; 
+        transition: all 0.3s ease; text-align: center;
     }
-    .manifesto-text {
-        font-family: 'Inter', sans-serif;
-        font-size: 1.05rem;
-        color: #4A5568;
-        line-height: 1.6;
-        font-style: italic;
-    }
-    .manifesto-highlight {
-        color: #0F52BA;
-        font-weight: 600;
-        font-style: normal;
-    }
-    .manifesto-icon { font-size: 2rem; color: #D69E2E; margin-bottom: 5px; }
-
-    /* --- ESTILO DOS BOTÕES PRINCIPAIS (BIG BUTTONS) --- */
-    /* Personaliza o botão do Streamlit para parecer o corpo do card */
-    div[data-testid="column"] .stButton button {
-        width: 100%;
-        height: 60px;
-        border-radius: 12px;
-        border: 1px solid #E2E8F0;
-        background-color: white;
-        color: #1A365D;
-        font-family: 'Inter', sans-serif;
-        font-weight: 800;
-        font-size: 1.2rem;
-        transition: all 0.3s;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    div[data-testid="column"] .stButton button:hover {
-        border-color: #3182CE;
-        color: #3182CE;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        background-color: #F7FAFC;
+    .tool-card:hover { 
+        transform: translateY(-8px); border-color: #3182CE; 
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1); 
     }
     
-    /* Container da Logo nos Cards */
-    .card-logo-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 120px; /* Altura generosa para a logo */
-        margin-bottom: 10px;
+    .card-logo-box {
+        height: 100px; /* Espaço generoso para a logo */
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 15px;
     }
     .card-logo-img {
-        max-height: 100px; /* Logo GRANDE */
-        width: auto;
-        object-fit: contain;
+        max-height: 90px; /* Logo BEM GRANDE */
+        width: auto; object-fit: contain;
         filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
     }
+    
+    /* Descrição limpa */
+    .tool-desc { 
+        font-size: 0.95rem; color: #4A5568; 
+        margin-bottom: 20px; line-height: 1.5; font-weight: 500;
+        min-height: 45px; /* Alinha os botões */
+    }
+    
+    /* Botão Acessar Clean */
+    div[data-testid="column"] .stButton button {
+        width: 100%; border-radius: 10px; border: 1px solid #CBD5E0;
+        background-color: #F7FAFC; color: #2D3748;
+        font-weight: 700; transition: all 0.2s;
+    }
+    div[data-testid="column"] .stButton button:hover {
+        background-color: #3182CE; color: white; border-color: #3182CE;
+    }
+    
+    /* Bordas de cor */
+    .border-blue { border-bottom: 6px solid #3182CE; } 
+    .border-purple { border-bottom: 6px solid #805AD5; } 
+    .border-teal { border-bottom: 6px solid #38B2AC; }
 
     /* --- RODAPÉ --- */
     .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
@@ -223,126 +203,4 @@ st.markdown("""
     .rc-title { font-weight: 700; font-size: 1rem; color: #2D3748; margin-bottom: 5px; }
     .rc-desc { font-size: 0.8rem; color: #718096; line-height: 1.3; }
 </style>
-<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
-""", unsafe_allow_html=True)
-
-# GERAÇÃO DA MENSAGEM HÍBRIDA (MANIFESTO + EMPATIA)
-# Default se não tiver API
-mensagem_hibrida = "A Omnisfera conecta neurociência e pedagogia para transformar a inclusão em potência. Hoje é um ótimo dia para descobrir o talento único de cada aluno."
-
-if 'OPENAI_API_KEY' in st.secrets:
-    try:
-        if 'manifesto_insight' not in st.session_state:
-            client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
-            prompt = """
-            Você é a voz da Omnisfera (um ecossistema de inclusão escolar).
-            Gere uma mensagem curta (máximo 2 frases) que faça duas coisas ao mesmo tempo:
-            1. Reforce o conceito de que unimos Neurociência, Legislação e Estratégia.
-            2. Dê uma mensagem empática e motivadora para o professor que vai usar o sistema hoje.
-            Tom: Inspirador, profissional e acolhedor.
-            """
-            res = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": prompt}])
-            st.session_state['manifesto_insight'] = res.choices[0].message.content
-        mensagem_hibrida = st.session_state['manifesto_insight']
-    except: pass
-
-# --- 1. CABEÇALHO LOGO GIGANTE ANIMADA ---
-icone_b64 = get_base64_image("omni_icone.png")
-texto_b64 = get_base64_image("omni_texto.png")
-
-if icone_b64 and texto_b64:
-    st.markdown(f"""
-    <div class="logo-container">
-        <img src="data:image/png;base64,{icone_b64}" class="logo-icon-spin">
-        <img src="data:image/png;base64,{texto_b64}" class="logo-text-static">
-    </div>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown("<h1 style='text-align: center; color: #0F52BA; font-size: 3rem; margin-bottom:10px;'>🌐 OMNISFERA</h1>", unsafe_allow_html=True)
-
-
-# --- 2. HERO BANNER (SÓBRIO & ESQUERDA) ---
-st.markdown("""
-<div class="dash-hero">
-    <div class="hero-text-block">
-        <div class="hero-title">Olá, Educador(a)!</div>
-        <div class="hero-subtitle">"Cada criança é única; seu potencial, ilimitado!"</div>
-    </div>
-    <i class="ri-heart-pulse-fill hero-bg-icon"></i>
-</div>
-""", unsafe_allow_html=True)
-
-# --- 3. MANIFESTO & INSIGHT (FUSIONADO) ---
-st.markdown(f"""
-<div class="manifesto-card">
-    <div class="insight-icon"><i class="ri-lightbulb-flash-line"></i></div>
-    <div class="manifesto-text">"{mensagem_hibrida}"</div>
-</div>
-""", unsafe_allow_html=True)
-
-# --- 4. FERRAMENTAS (LOGOS GIGANTES + BOTÃO TÍTULO) ---
-# Preparar logos
-logo_pei = get_base64_image("360.png")
-logo_pae = get_base64_image("pae.png")
-logo_hub = get_base64_image("hub.png")
-
-# Fallback icons
-icon_pei = f'<img src="data:image/png;base64,{logo_pei}" class="card-logo-img">' if logo_pei else '<i class="ri-book-read-line" style="font-size:5rem; color:#3182CE;"></i>'
-icon_pae = f'<img src="data:image/png;base64,{logo_pae}" class="card-logo-img">' if logo_pae else '<i class="ri-puzzle-line" style="font-size:5rem; color:#805AD5;"></i>'
-icon_hub = f'<img src="data:image/png;base64,{logo_hub}" class="card-logo-img">' if logo_hub else '<i class="ri-rocket-line" style="font-size:5rem; color:#38B2AC;"></i>'
-
-col1, col2, col3 = st.columns(3)
-
-# PEI CARD
-with col1:
-    st.markdown(f"<div class='card-logo-container'>{icon_pei}</div>", unsafe_allow_html=True)
-    if st.button("PEI 360º", key="btn_pei"):
-        st.switch_page("pages/1_PEI.py")
-
-# PAE CARD
-with col2:
-    st.markdown(f"<div class='card-logo-container'>{icon_pae}</div>", unsafe_allow_html=True)
-    if st.button("PAE CLÍNICO", key="btn_pae"):
-        st.switch_page("pages/2_PAE.py")
-
-# HUB CARD
-with col3:
-    st.markdown(f"<div class='card-logo-container'>{icon_hub}</div>", unsafe_allow_html=True)
-    if st.button("HUB CRIATIVO", key="btn_hub"):
-        st.switch_page("pages/3_Hub_Inclusao.py")
-
-st.markdown("---")
-
-# --- 5. RECURSOS EDUCATIVOS (RODAPÉ) ---
-st.markdown("### 📚 Base de Conhecimento")
-st.markdown("""
-<div class="home-grid">
-    <a href="#" class="rich-card">
-        <div class="rich-card-top" style="background-color: #3182CE;"></div>
-        <div class="rc-icon" style="background-color:#EBF8FF; color:#3182CE;"><i class="ri-question-answer-line"></i></div>
-        <div class="rc-title">PEI vs PAE</div>
-        <div class="rc-desc">Entenda as diferenças fundamentais.</div>
-    </a>
-    <a href="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm" target="_blank" class="rich-card">
-        <div class="rich-card-top" style="background-color: #D69E2E;"></div>
-        <div class="rc-icon" style="background-color:#FFFFF0; color:#D69E2E;"><i class="ri-scales-3-line"></i></div>
-        <div class="rc-title">Legislação</div>
-        <div class="rc-desc">Lei Brasileira de Inclusão (2025).</div>
-    </a>
-    <a href="https://institutoneurosaber.com.br/" target="_blank" class="rich-card">
-        <div class="rich-card-top" style="background-color: #D53F8C;"></div>
-        <div class="rc-icon" style="background-color:#FFF5F7; color:#D53F8C;"><i class="ri-brain-line"></i></div>
-        <div class="rc-title">Neurociência</div>
-        <div class="rc-desc">Desenvolvimento atípico.</div>
-    </a>
-    <a href="http://basenacionalcomum.mec.gov.br/" target="_blank" class="rich-card">
-        <div class="rich-card-top" style="background-color: #38A169;"></div>
-        <div class="rc-icon" style="background-color:#F0FFF4; color:#38A169;"><i class="ri-compass-3-line"></i></div>
-        <div class="rc-title">BNCC</div>
-        <div class="rc-desc">Currículo oficial.</div>
-    </a>
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown("---")
-st.markdown("<div style='text-align: center; color: #A0AEC0; font-size: 0.8rem;'>Omnisfera © 2026 - Todos os direitos reservados.</div>", unsafe_allow_html=True)
+<link href="https://cdn
