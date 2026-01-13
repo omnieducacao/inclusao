@@ -27,10 +27,16 @@ def sistema_seguranca():
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap');
             
+            /* Remove cabeçalho padrão do Streamlit */
             [data-testid="stHeader"] {visibility: hidden !important; height: 0px !important;}
             footer {visibility: hidden !important;}
             
-            /* Container Centralizado - Limpo */
+            /* Ajuste global do topo para Login */
+            .block-container {
+                padding-top: 1rem !important;
+            }
+            
+            /* Container Centralizado - Limpo e Compacto */
             .login-container { 
                 background-color: white; 
                 padding: 40px; 
@@ -40,6 +46,7 @@ def sistema_seguranca():
                 border: 1px solid #E2E8F0;
                 max-width: 550px;
                 margin: 0 auto;
+                margin-top: 20px; /* Espaço suave do topo */
             }
 
             /* Animação da Logo */
@@ -50,15 +57,19 @@ def sistema_seguranca():
                 filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
             }
             .login-logo-static { height: 75px; width: auto; margin-left: 10px; }
+            
+            /* Wrapper da Logo - SEM MARGEM SUPERIOR EXTRA */
             .logo-wrapper { 
                 display: flex; justify-content: center; align-items: center; 
-                margin-bottom: 25px; margin-top: 0px; /* Garante topo limpo */
+                margin-bottom: 25px; 
+                margin-top: 0px; 
+                padding-top: 0px;
             }
 
             /* Manifesto */
             .manifesto-login {
                 font-family: 'Nunito', sans-serif;
-                font-size: 0.9rem;
+                font-size: 0.95rem;
                 color: #4A5568;
                 font-style: italic;
                 line-height: 1.5;
@@ -116,7 +127,7 @@ def sistema_seguranca():
             # Abre o container visualmente (HTML)
             st.markdown("<div class='login-container'>", unsafe_allow_html=True)
             
-            # 1. LOGO (PRIMEIRO ELEMENTO ABSOLUTO)
+            # 1. LOGO (PRIMEIRO ELEMENTO ABSOLUTO - SEM ESPAÇO ACIMA)
             icone_b64 = get_base64_image("omni_icone.png")
             texto_b64 = get_base64_image("omni_texto.png")
             
