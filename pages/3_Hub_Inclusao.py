@@ -26,14 +26,14 @@ def verificar_acesso():
         st.error("🔒 Acesso Negado. Por favor, faça login na Página Inicial.")
         st.stop() # Para o carregamento aqui
     
-    # CSS CORRIGIDO: Mantém o botão do menu lateral visível
+    # CSS LIMPO: Removemos qualquer regra que oculte o header ou toolbar
+    # Mantivemos apenas o ajuste de padding do corpo da página e ocultamos o rodapé padrão "Made with Streamlit"
     st.markdown("""
         <style>
-            /* Esconde apenas o menu "hambúrguer" (opções do canto direito) e o rodapé */
-            [data-testid="stToolbar"] {visibility: hidden !important;}
+            /* Oculta apenas o rodapé padrão */
             footer {visibility: hidden !important;}
             
-            /* Ajusta o espaçamento do topo para não ficar buraco, mas sem esconder o header */
+            /* Ajuste fino do espaçamento superior */
             .block-container {padding-top: 2rem !important;}
         </style>
     """, unsafe_allow_html=True)
@@ -362,7 +362,7 @@ with st.sidebar:
 
 # --- HEADER COM LOGO HUB E APENAS SUBTÍTULO ---
 
-img_hub_html = get_img_tag("hub.png", "220") # Logo mantida grande
+img_hub_html = get_img_tag("hub.png", "220") 
 
 st.markdown(f"""
     <div class="header-hub">
