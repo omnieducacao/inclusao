@@ -389,7 +389,7 @@ st.markdown(f"""
 st.markdown("<div class='section-title'><i class='ri-cursor-fill'></i> Acesso Rápido</div>", unsafe_allow_html=True)
 
 logo_pei = get_base64_image("360.png")
-logo_pae = get_base64_image("pae.png")
+logo_paee = get_base64_image("pae.png") # Nome do arquivo mantido para não quebrar
 logo_hub = get_base64_image("hub.png")
 
 col1, col2, col3 = st.columns(3)
@@ -406,16 +406,17 @@ with col1:
     if st.button("➜ Acessar PEI", key="btn_pei", use_container_width=True):
         st.switch_page("pages/1_PEI.py")
 
-# PAE
+# PAEE
 with col2:
-    icon_pae = f'<img src="data:image/png;base64,{logo_pae}" class="card-logo-img">' if logo_pae else '<i class="ri-puzzle-line" style="font-size:4rem; color:#805AD5;"></i>'
+    icon_paee = f'<img src="data:image/png;base64,{logo_paee}" class="card-logo-img">' if logo_paee else '<i class="ri-puzzle-line" style="font-size:4rem; color:#805AD5;"></i>'
     st.markdown(f"""
     <div class="tool-card border-purple">
-        <div class="card-logo-box">{icon_pae}</div>
+        <div class="card-logo-box">{icon_paee}</div>
         <div class="tool-desc-short">Inteligência da Sala de Recursos e Tecnologias Assistivas.</div>
     </div>
     """, unsafe_allow_html=True)
-    if st.button("➜ Acessar PAE", key="btn_pae", use_container_width=True):
+    # Botão atualizado para PAEE
+    if st.button("➜ Acessar PAEE", key="btn_paee", use_container_width=True):
         st.switch_page("pages/2_PAE.py")
 
 # HUB
@@ -439,7 +440,7 @@ st.markdown("""
     <a href="#" class="rich-card">
         <div class="rich-card-top" style="background-color: #3182CE;"></div>
         <div class="rc-icon" style="background-color:#EBF8FF; color:#3182CE;"><i class="ri-question-answer-line"></i></div>
-        <div class="rc-title">PEI vs PAE</div>
+        <div class="rc-title">PEI vs PAEE</div>
         <div class="rc-desc">Diferenças fundamentais.</div>
     </a>
     <a href="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm" target="_blank" class="rich-card">
