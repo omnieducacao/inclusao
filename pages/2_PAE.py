@@ -240,3 +240,4 @@ with tab_ponte:
             st.markdown("### 📄 Documento Gerado")
             st.markdown(carta)
             st.download_button("📥 Baixar Carta", carta, "Carta_Articulacao.txt")
+            
