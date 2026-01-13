@@ -57,19 +57,19 @@ if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estu
 # --- CSS PERSONALIZADO ---
 st.markdown("""
     <style>
-    /* LAYOUT DO BANNER: Flexbox Horizontal */
+    /* LAYOUT DO BANNER - AJUSTADO PARA FICAR COMPACTO */
     .header-pae { 
         background: white; 
-        padding: 10px 30px; /* Mais espaço lateral */
+        padding: 15px 25px;       /* Padding reduzido para ficar mais fino como na foto */
         border-radius: 12px; 
         border-left: 6px solid #805AD5; 
         box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
         margin-bottom: 20px; 
         
-        display: flex;             /* Habilita Flexbox */
-        flex-direction: row;       /* Itens lado a lado */
-        align-items: center;       /* Centraliza verticalmente */
-        gap: 20px;                 /* Espaço entre logo e texto */
+        display: flex;             
+        flex-direction: row;       
+        align-items: center;       
+        gap: 20px;                
     }
     
     .student-header { background-color: #F3E8FF; border: 1px solid #D6BCFA; border-radius: 10px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; }
@@ -90,13 +90,17 @@ def get_img_tag(file_path, width):
         return f'<img src="data:image/png;base64,{data}" width="{width}">'
     return "🧩"
 
-img_html = get_img_tag("pae.png", "350") # Logo grande
+# Reduzi o tamanho da imagem de 350 para 160.
+# Isso garante que a altura do banner diminua e fique parecido com o exemplo "Hub de Inclusão".
+img_html = get_img_tag("pae.png", "160") 
 
 st.markdown(f"""
     <div class="header-pae">
-        <div style="flex-shrink: 0;"> {img_html}
+        <div style="flex-shrink: 0;"> 
+            {img_html}
         </div>
-        <div style="flex-grow: 1; text-align: center;"> <p style="margin:0; color:#666; font-size: 1.5rem; font-weight: 500;">
+        <div style="flex-grow: 1; text-align: center;"> 
+            <p style="margin:0; color:#44337A; font-size: 1.4rem; font-weight: 600;">
                 Sala de Recursos & Eliminação de Barreiras
             </p>
         </div>
@@ -240,4 +244,3 @@ with tab_ponte:
             st.markdown("### 📄 Documento Gerado")
             st.markdown(carta)
             st.download_button("📥 Baixar Carta", carta, "Carta_Articulacao.txt")
-            
