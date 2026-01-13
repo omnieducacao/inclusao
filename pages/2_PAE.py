@@ -10,7 +10,7 @@ import base64
 # 1. CONFIGURAÇÃO E SEGURANÇA
 # ==============================================================================
 st.set_page_config(
-    page_title="Omnisfera | PAE", 
+    page_title="Omnisfera | PAEE", 
     page_icon="🧩", 
     layout="wide",
     initial_sidebar_state="expanded" # Garante que a barra lateral inicie aberta
@@ -50,7 +50,7 @@ with st.sidebar:
     st.markdown("---")
 
 # ==============================================================================
-# 2. SISTEMA PAE (Plano de Atendimento Educacional Especializado)
+# 2. SISTEMA PAEE (Plano de Atendimento Educacional Especializado)
 # ==============================================================================
 
 # --- BANCO DE DADOS (Leitura do PEI) ---
@@ -71,7 +71,7 @@ if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estu
 st.markdown("""
     <style>
     /* LAYOUT DO BANNER - AJUSTADO PARA FICAR COMPACTO */
-    .header-pae { 
+    .header-paee { 
         background: white; 
         padding: 15px 25px;       /* Padding reduzido */
         border-radius: 12px; 
@@ -80,7 +80,7 @@ st.markdown("""
         margin-bottom: 20px; 
         margin-top: 10px;         /* Espaço para não colar no header */
         
-        display: flex;             
+        display: flex;            
         flex-direction: row;       
         align-items: center;       
         gap: 20px;                
@@ -89,8 +89,8 @@ st.markdown("""
     .student-header { background-color: #F3E8FF; border: 1px solid #D6BCFA; border-radius: 10px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; }
     .student-label { font-size: 0.8rem; color: #553C9A; font-weight: 700; text-transform: uppercase; }
     .student-value { font-size: 1.1rem; color: #44337A; font-weight: 800; }
-    .pae-card { background-color: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 15px; margin-bottom: 10px; }
-    .pae-title { color: #805AD5; font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+    .paee-card { background-color: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 15px; margin-bottom: 10px; }
+    .paee-title { color: #805AD5; font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
     
     div[data-testid="column"] .stButton button[kind="primary"] { background-color: #805AD5 !important; border: none !important; color: white !important; font-weight: bold; }
     </style>
@@ -105,10 +105,11 @@ def get_img_tag(file_path, width):
     return "🧩"
 
 # Mantendo o tamanho reduzido (160) conforme solicitado anteriormente
+# Nota: Mantive o nome do arquivo 'pae.png' para não quebrar caso o arquivo não tenha sido renomeado
 img_html = get_img_tag("pae.png", "160") 
 
 st.markdown(f"""
-    <div class="header-pae">
+    <div class="header-paee">
         <div style="flex-shrink: 0;"> 
             {img_html}
         </div>
@@ -142,14 +143,14 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-with st.expander("📄 Ver Resumo do PEI (Base para o PAE)", expanded=False):
+with st.expander("📄 Ver Resumo do PEI (Base para o PAEE)", expanded=False):
     st.info(aluno.get('ia_sugestao', 'Nenhum dado de PEI processado ainda.'))
 
 # --- GESTÃO DE CHAVES ---
 if 'OPENAI_API_KEY' in st.secrets: api_key = st.secrets['OPENAI_API_KEY']
 else: api_key = st.sidebar.text_input("Chave OpenAI:", type="password")
 
-# --- FUNÇÕES DE IA DO PAE ---
+# --- FUNÇÕES DE IA DO PAEE ---
 def gerar_diagnostico_barreiras(api_key, aluno, obs_prof):
     client = OpenAI(api_key=api_key)
     prompt = f"""
@@ -209,7 +210,7 @@ def gerar_documento_articulacao(api_key, aluno, frequencia, acoes):
         return resp.choices[0].message.content
     except Exception as e: return str(e)
 
-# --- ABAS DO PAE ---
+# --- ABAS DO PAEE ---
 tab_barreiras, tab_plano, tab_tec, tab_ponte = st.tabs([
     "🔍 Mapear Barreiras", 
     "🎯 Plano de Habilidades", 
@@ -220,7 +221,7 @@ tab_barreiras, tab_plano, tab_tec, tab_ponte = st.tabs([
 # 1. BARREIRAS
 with tab_barreiras:
     st.write("### 🔍 Diagnóstico de Acessibilidade")
-    st.info("O PAE começa identificando o que impede o aluno de participar, não a doença dele.")
+    st.info("O PAEE começa identificando o que impede o aluno de participar, não a doença dele.")
     obs_aee = st.text_area("Observações Iniciais do AEE (Opcional):", placeholder="Ex: O aluno se recusa a escrever...", height=100)
     if st.button("Analisar Barreiras via IA", type="primary"):
         if not api_key: st.error("Insira a chave OpenAI."); st.stop()
