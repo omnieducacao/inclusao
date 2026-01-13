@@ -64,13 +64,13 @@ def sistema_seguranca():
 if not sistema_seguranca(): st.stop()
 
 # ==============================================================================
-# 🏠 HOME - DASHBOARD OMNISFERA (CLEAN & SOBER)
+# 🏠 HOME - DASHBOARD OMNISFERA (ECOSYSTEM FUSION)
 # ==============================================================================
 
 # CSS GERAL
 st.markdown("""
 <style>
-    /* Importando Inter para títulos mais sóbrios e Nunito para corpo */
+    /* Importando Inter para títulos sóbrios e Nunito para corpo */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Nunito:wght@400;600;700&display=swap');
     
     html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color: #2D3748; }
@@ -108,7 +108,7 @@ st.markdown("""
     .dash-hero { 
         background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%); 
         border-radius: 16px;
-        margin-bottom: 40px; /* Mais espaço abaixo do banner já que removemos o texto */
+        margin-bottom: 25px; 
         box-shadow: 0 10px 25px rgba(15, 82, 186, 0.25);
         color: white;
         position: relative;
@@ -119,11 +119,9 @@ st.markdown("""
         justify-content: flex-start;
     }
     
-    .hero-text-block { z-index: 2; text-align: left; }
-
     .hero-title {
         color: white; 
-        font-family: 'Inter', sans-serif; /* Fonte mais séria/sóbria */
+        font-family: 'Inter', sans-serif; /* Fonte Sóbria */
         font-weight: 700; 
         font-size: 2rem; 
         margin: 0; 
@@ -148,64 +146,73 @@ st.markdown("""
         top: 20px;
     }
 
-    /* --- CARDS DE FERRAMENTA (SEM TÍTULO TEXTO) --- */
-    .tool-card { 
-        background: white; 
-        border-radius: 20px; 
-        padding: 30px 20px; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.03); 
-        border: 1px solid #E2E8F0; 
-        height: 100%; 
-        display: flex; flex-direction: column; justify-content: flex-start; 
-        transition: all 0.3s ease; 
-        text-align: center;
-    }
-    .tool-card:hover { 
-        transform: translateY(-8px); 
-        border-color: #3182CE; 
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1); 
-    }
-    
-    .card-logo-box {
-        height: 80px; /* Aumentei para a logo reinar */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 20px;
-    }
-    .card-logo-img {
-        max-height: 75px; /* Logo maior */
-        width: auto;
-        object-fit: contain;
-    }
-    
-    /* Sem tool-title, a logo é o título */
-    .tool-desc { 
-        font-size: 0.95rem; 
-        color: #4A5568; 
-        margin-bottom: 25px; 
-        line-height: 1.5; 
-        font-weight: 500;
-    }
-    
-    /* Bordas de cor */
-    .border-blue { border-bottom: 6px solid #3182CE; } 
-    .border-purple { border-bottom: 6px solid #805AD5; } 
-    .border-teal { border-bottom: 6px solid #38B2AC; }
-
-    /* --- INSIGHT CARD --- */
-    .insight-card {
-        background-color: #FFFFF0;
+    /* --- MANIFESTO + INSIGHT CARD (FUSION) --- */
+    .manifesto-card {
+        background-color: #F7FAFC; /* Cinza muito suave e elegante */
         border-radius: 12px;
-        padding: 20px 25px;
+        padding: 25px 40px;
         color: #2D3748;
-        display: flex; align-items: center; gap: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        border-left: 5px solid #F6E05E; 
+        display: flex; 
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+        border: 1px solid #E2E8F0;
         margin-bottom: 40px;
         margin-top: 10px;
     }
-    .insight-icon { font-size: 1.8rem; color: #D69E2E; }
+    .manifesto-text {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.05rem;
+        color: #4A5568;
+        line-height: 1.6;
+        font-style: italic;
+    }
+    .manifesto-highlight {
+        color: #0F52BA;
+        font-weight: 600;
+        font-style: normal;
+    }
+    .manifesto-icon { font-size: 2rem; color: #D69E2E; margin-bottom: 5px; }
+
+    /* --- ESTILO DOS BOTÕES PRINCIPAIS (BIG BUTTONS) --- */
+    /* Personaliza o botão do Streamlit para parecer o corpo do card */
+    div[data-testid="column"] .stButton button {
+        width: 100%;
+        height: 60px;
+        border-radius: 12px;
+        border: 1px solid #E2E8F0;
+        background-color: white;
+        color: #1A365D;
+        font-family: 'Inter', sans-serif;
+        font-weight: 800;
+        font-size: 1.2rem;
+        transition: all 0.3s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    div[data-testid="column"] .stButton button:hover {
+        border-color: #3182CE;
+        color: #3182CE;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        background-color: #F7FAFC;
+    }
+    
+    /* Container da Logo nos Cards */
+    .card-logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 120px; /* Altura generosa para a logo */
+        margin-bottom: 10px;
+    }
+    .card-logo-img {
+        max-height: 100px; /* Logo GRANDE */
+        width: auto;
+        object-fit: contain;
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+    }
 
     /* --- RODAPÉ --- */
     .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
@@ -219,15 +226,24 @@ st.markdown("""
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
 """, unsafe_allow_html=True)
 
-# FRASE DO DIA (IA)
-noticia = "A neurociência na escola revela como o aprendizado é moldado pelo cérebro, otimizando o ensino para cada aluno."
+# GERAÇÃO DA MENSAGEM HÍBRIDA (MANIFESTO + EMPATIA)
+# Default se não tiver API
+mensagem_hibrida = "A Omnisfera conecta neurociência e pedagogia para transformar a inclusão em potência. Hoje é um ótimo dia para descobrir o talento único de cada aluno."
+
 if 'OPENAI_API_KEY' in st.secrets:
     try:
-        if 'home_insight' not in st.session_state:
+        if 'manifesto_insight' not in st.session_state:
             client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
-            res = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": "Curiosidade curtíssima sobre neurociência na educação."}])
-            st.session_state['home_insight'] = res.choices[0].message.content
-        noticia = st.session_state['home_insight']
+            prompt = """
+            Você é a voz da Omnisfera (um ecossistema de inclusão escolar).
+            Gere uma mensagem curta (máximo 2 frases) que faça duas coisas ao mesmo tempo:
+            1. Reforce o conceito de que unimos Neurociência, Legislação e Estratégia.
+            2. Dê uma mensagem empática e motivadora para o professor que vai usar o sistema hoje.
+            Tom: Inspirador, profissional e acolhedor.
+            """
+            res = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": prompt}])
+            st.session_state['manifesto_insight'] = res.choices[0].message.content
+        mensagem_hibrida = st.session_state['manifesto_insight']
     except: pass
 
 # --- 1. CABEÇALHO LOGO GIGANTE ANIMADA ---
@@ -245,7 +261,7 @@ else:
     st.markdown("<h1 style='text-align: center; color: #0F52BA; font-size: 3rem; margin-bottom:10px;'>🌐 OMNISFERA</h1>", unsafe_allow_html=True)
 
 
-# --- 2. HERO BANNER (SÓBRIO) ---
+# --- 2. HERO BANNER (SÓBRIO & ESQUERDA) ---
 st.markdown("""
 <div class="dash-hero">
     <div class="hero-text-block">
@@ -256,72 +272,46 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# (TEXTO MANIFESTO REMOVIDO PARA LIMPEZA VISUAL)
+# --- 3. MANIFESTO & INSIGHT (FUSIONADO) ---
+st.markdown(f"""
+<div class="manifesto-card">
+    <div class="insight-icon"><i class="ri-lightbulb-flash-line"></i></div>
+    <div class="manifesto-text">"{mensagem_hibrida}"</div>
+</div>
+""", unsafe_allow_html=True)
 
-# --- 3. FERRAMENTAS DE ACESSO (SEM TÍTULO TEXTO, SÓ LOGO) ---
-st.markdown("### 🎯 Acesso Rápido")
-
+# --- 4. FERRAMENTAS (LOGOS GIGANTES + BOTÃO TÍTULO) ---
 # Preparar logos
 logo_pei = get_base64_image("360.png")
 logo_pae = get_base64_image("pae.png")
 logo_hub = get_base64_image("hub.png")
 
 # Fallback icons
-icon_pei = f'<img src="data:image/png;base64,{logo_pei}" class="card-logo-img">' if logo_pei else '<i class="ri-book-read-line" style="font-size:3rem; color:#3182CE;"></i>'
-icon_pae = f'<img src="data:image/png;base64,{logo_pae}" class="card-logo-img">' if logo_pae else '<i class="ri-puzzle-line" style="font-size:3rem; color:#805AD5;"></i>'
-icon_hub = f'<img src="data:image/png;base64,{logo_hub}" class="card-logo-img">' if logo_hub else '<i class="ri-rocket-line" style="font-size:3rem; color:#38B2AC;"></i>'
+icon_pei = f'<img src="data:image/png;base64,{logo_pei}" class="card-logo-img">' if logo_pei else '<i class="ri-book-read-line" style="font-size:5rem; color:#3182CE;"></i>'
+icon_pae = f'<img src="data:image/png;base64,{logo_pae}" class="card-logo-img">' if logo_pae else '<i class="ri-puzzle-line" style="font-size:5rem; color:#805AD5;"></i>'
+icon_hub = f'<img src="data:image/png;base64,{logo_hub}" class="card-logo-img">' if logo_hub else '<i class="ri-rocket-line" style="font-size:5rem; color:#38B2AC;"></i>'
 
 col1, col2, col3 = st.columns(3)
 
-# PEI
+# PEI CARD
 with col1:
-    st.markdown(f"""
-    <div class="tool-card border-blue">
-        <div class="card-logo-box">{icon_pei}</div>
-        <div class="tool-desc">
-            O coração da inclusão escolar. Avalie, planeje e gere o documento oficial do aluno.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    if st.button("Acessar PEI ➡️", key="btn_pei", use_container_width=True):
+    st.markdown(f"<div class='card-logo-container'>{icon_pei}</div>", unsafe_allow_html=True)
+    if st.button("PEI 360º", key="btn_pei"):
         st.switch_page("pages/1_PEI.py")
 
-# PAE
+# PAE CARD
 with col2:
-    st.markdown(f"""
-    <div class="tool-card border-purple">
-        <div class="card-logo-box">{icon_pae}</div>
-        <div class="tool-desc">
-            A inteligência da Sala de Recursos. Mapeie barreiras e tecnologias assistivas.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    if st.button("Acessar PAE ➡️", key="btn_pae", use_container_width=True):
+    st.markdown(f"<div class='card-logo-container'>{icon_pae}</div>", unsafe_allow_html=True)
+    if st.button("PAE CLÍNICO", key="btn_pae"):
         st.switch_page("pages/2_PAE.py")
 
-# HUB
+# HUB CARD
 with col3:
-    st.markdown(f"""
-    <div class="tool-card border-teal">
-        <div class="card-logo-box">{icon_hub}</div>
-        <div class="tool-desc">
-            Adaptação em segundos. Provas, atividades e roteiros gerados por IA.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    if st.button("Acessar Hub ➡️", key="btn_hub", type="primary", use_container_width=True):
+    st.markdown(f"<div class='card-logo-container'>{icon_hub}</div>", unsafe_allow_html=True)
+    if st.button("HUB CRIATIVO", key="btn_hub"):
         st.switch_page("pages/3_Hub_Inclusao.py")
 
-# --- 4. INSIGHT DO DIA ---
-st.markdown(f"""
-<div class="insight-card">
-    <div class="insight-icon"><i class="ri-lightbulb-flash-line"></i></div>
-    <div>
-        <div style="font-weight: 700; font-size: 0.9rem; color: #D69E2E;">Insight do Dia (IA):</div>
-        <p style="margin:2px 0 0 0; font-size:0.95rem; opacity:0.9; color:#4A5568;">"{noticia}"</p>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown("---")
 
 # --- 5. RECURSOS EDUCATIVOS (RODAPÉ) ---
 st.markdown("### 📚 Base de Conhecimento")
