@@ -25,38 +25,18 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 1. VERIFICAÇÃO DE SEGURANÇA & CORREÇÃO VISUAL
+# 1. VERIFICAÇÃO DE SEGURANÇA (SIMPLIFICADA)
 # ==============================================================================
 def verificar_acesso():
-    # Verifica se veio da Home (Integração)
+    # Verifica se o usuário passou pelo login da Home
     if "autenticado" not in st.session_state or not st.session_state["autenticado"]:
         st.error("🔒 Acesso Negado. Por favor, faça login na Página Inicial.")
-        st.stop()
+        st.stop() # Para o carregamento aqui
     
-    # CSS: Limpa o cabeçalho MAS FORÇA O BOTÃO LATERAL A APARECER
-    st.markdown("""
-        <style>
-            /* Esconde a barra colorida do topo e o menu de opções */
-            [data-testid="stHeader"] {
-                background-color: rgba(0,0,0,0);
-                visibility: hidden;
-            }
-            
-            /* TRUQUE: Força o botão de abrir/fechar sidebar a ficar visível */
-            [data-testid="stSidebarCollapsedControl"] {
-                visibility: visible !important;
-                display: block !important;
-                z-index: 9999999;
-                color: #3182CE !important; /* Deixa azul para destacar */
-                background-color: white; /* Fundo branco para não sumir */
-                border-radius: 50%;
-                padding: 5px;
-            }
+    # NÃO ESCONDEMOS MAIS O CABEÇALHO.
+    # Isso garante que o botão da sidebar (setinha) funcione nativamente.
 
-            .block-container {padding-top: 1rem !important;}
-        </style>
-    """, unsafe_allow_html=True)
-
+# Executa a verificação
 verificar_acesso()
 
 # ==============================================================================
@@ -91,7 +71,7 @@ def salvar_aluno_integrado(dados):
     except Exception as e: return False, f"Erro backup: {str(e)}"
 
     # 2. Integração Omnisfera (Banco Central)
-    # Remove anterior se houver
+    # Remove versão antiga se existir
     st.session_state.banco_estudantes = [a for a in st.session_state.banco_estudantes if a['nome'] != dados['nome']]
     
     # Cria registro otimizado para o Hub/PAE
