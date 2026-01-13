@@ -21,7 +21,6 @@ def get_base64_image(image_path):
         return base64.b64encode(img_file.read()).decode()
 
 def sistema_seguranca():
-    # CSS para esconder elementos padrão e estilizar login
     st.markdown("""
         <style>
             [data-testid="stHeader"] {visibility: hidden !important; height: 0px !important;}
@@ -63,7 +62,7 @@ def sistema_seguranca():
 if not sistema_seguranca(): st.stop()
 
 # ==============================================================================
-# 🏠 HOME - DASHBOARD OMNISFERA (BIG LOGO / TINY BANNER)
+# 🏠 HOME - DASHBOARD OMNISFERA (DYNAMIC TEXT BANNER)
 # ==============================================================================
 
 # CSS GERAL E CARDS
@@ -75,7 +74,7 @@ st.markdown("""
     /* REMOVENDO ESPAÇO VAZIO DO TOPO */
     .block-container { padding-top: 0rem !important; padding-bottom: 2rem !important; margin-top: 1rem !important; }
 
-    /* --- ANIMAÇÃO E LOGO GIGANTE --- */
+    /* --- ANIMAÇÃO LOGO --- */
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     
     .logo-container {
@@ -83,78 +82,99 @@ st.markdown("""
         align-items: center;
         justify-content: center;
         gap: 20px; 
-        margin-bottom: 20px;
+        margin-bottom: 10px; /* Bem colado no banner */
         padding-top: 15px;
     }
-    /* AUMENTEI SIGNIFICATIVAMENTE OS TAMANHOS AQUI */
     .logo-icon-spin {
-        height: 130px; /* Bem grande */
+        height: 140px; /* Aumentei ainda mais */
         width: auto;
-        animation: spin 25s linear infinite; /* Rotação mais lenta e elegante */
+        animation: spin 30s linear infinite;
         filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
     }
     .logo-text-static {
-        height: 90px; /* Proporcionalmente grande */
+        height: 95px; 
         width: auto;
     }
 
-    /* --- HERO BANNER (SUPER SLIM) --- */
+    /* --- ANIMAÇÃO TEXTO BANNER (FADE CYCLE) --- */
+    @keyframes textCycle1 {
+        0%, 45% { opacity: 1; transform: translateY(0); }
+        50%, 95% { opacity: 0; transform: translateY(-10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes textCycle2 {
+        0%, 45% { opacity: 0; transform: translateY(10px); }
+        50%, 95% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(10px); }
+    }
+
+    /* --- HERO BANNER (DINÂMICO) --- */
     .dash-hero { 
         background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%); 
-        border-radius: 10px;
-        padding: 10px 25px; /* Padding vertical muito reduzido */
+        border-radius: 12px;
+        padding: 0; /* Padding controlado internamente */
         margin-bottom: 25px; 
-        box-shadow: 0 2px 5px rgba(15, 82, 186, 0.15);
+        box-shadow: 0 4px 10px rgba(15, 82, 186, 0.2);
         color: white;
         position: relative;
         overflow: hidden;
+        min-height: 90px; /* Altura fixa para evitar pulos */
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        min-height: 60px; /* Altura mínima reduzida */
     }
+    
+    .hero-content-wrapper {
+        position: relative;
+        width: 100%;
+        height: 90px;
+        display: flex;
+        align-items: center;
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+
+    /* ESTADOS DO TEXTO */
+    .hero-text-block {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 90%;
+    }
+    
+    .state-1 { animation: textCycle1 50s infinite ease-in-out; } /* Ciclo de 50s (25s cada) */
+    .state-2 { animation: textCycle2 50s infinite ease-in-out; opacity: 0; }
+
     .hero-title {
         color: white; font-weight: 700; 
-        font-size: 1.4rem; /* Fonte menor */
-        margin: 0; line-height: 1;
+        font-size: 1.6rem; /* Reduzi o tamanho (antes era 2.5) */
+        margin: 0; line-height: 1.1;
     }
     .hero-subtitle {
-        color: rgba(255,255,255,0.85);
-        font-size: 0.85rem; /* Subtítulo menor e mais discreto */
-        margin-top: 2px; font-weight: 300; font-style: italic;
+        color: rgba(255,255,255,0.9);
+        font-size: 0.9rem;
+        margin-top: 3px; font-weight: 300; font-style: italic;
     }
+    
     .hero-bg-icon {
-        position: absolute; right: 20px; font-size: 2.5rem; /* Ícone de fundo menor */
-        opacity: 0.1; color: white; transform: rotate(-10deg);
+        position: absolute; right: 20px; font-size: 3rem;
+        opacity: 0.1; color: white; transform: rotate(-10deg); top: 20px;
     }
 
-    /* --- NOVAS SEÇÕES: CONCEITO E INSIGHT --- */
-    .concept-section {
-        background-color: white;
-        border-radius: 12px;
-        padding: 20px;
-        border: 1px solid #E2E8F0;
-        border-left: 4px solid #0F52BA; /* Azul Omnisfera */
-        margin-top: 25px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-    }
-    .concept-title { font-size: 1.1rem; font-weight: 700; color: #0F52BA; margin-bottom: 8px; }
-    .concept-text { font-size: 0.95rem; color: #4A5568; line-height: 1.5; }
-
+    /* --- INSIGHT CARD --- */
     .insight-card {
-        background-color: #FFFFF0; /* Amarelo muito suave */
+        background-color: #FFFFF0;
         border-radius: 12px;
         padding: 15px 20px;
         color: #2D3748;
         display: flex; align-items: center; gap: 15px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        border: 1px solid #F6E05E; /* Borda sutil amarela */
+        border: 1px solid #F6E05E; 
         margin-bottom: 30px;
+        margin-top: 10px;
     }
     .insight-icon { font-size: 1.4rem; color: #D69E2E; }
 
-    /* --- BOTÕES E CARDS RODAPÉ (Mantidos da V6) --- */
+    /* --- BOTÕES E CARDS --- */
     .tool-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); border: 1px solid #E2E8F0; height: 100%; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s; }
     .tool-card:hover { transform: translateY(-3px); border-color: #3182CE; box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
     .tool-title { font-size: 1.2rem; font-weight: 800; color: #2D3748; margin-bottom: 5px; }
@@ -198,14 +218,23 @@ else:
     st.markdown("<h1 style='text-align: center; color: #0F52BA; font-size: 3rem; margin-bottom:10px;'>🌐 OMNISFERA</h1>", unsafe_allow_html=True)
 
 
-# --- 2. HERO BANNER (SUPER SLIM) ---
+# --- 2. HERO BANNER "VIVO" (TEXTO ALTERNADO) ---
+# Texto 1: Boas vindas
+# Texto 2: Conceito Omnisfera
 st.markdown(f"""
 <div class="dash-hero">
-    <div style="z-index: 2;">
-        <h1 class="hero-title">Olá, Educador(a)!</h1>
-        <p class="hero-subtitle">"Cada criança é única; seu potencial, ilimitado!"</p>
+    <div class="hero-content-wrapper">
+        <div class="hero-text-block state-1">
+            <h1 class="hero-title">Olá, Educador(a)!</h1>
+            <p class="hero-subtitle">"Cada criança é única; seu potencial, ilimitado!"</p>
+        </div>
+        
+        <div class="hero-text-block state-2">
+            <h1 class="hero-title">O Ecossistema Omnisfera</h1>
+            <p class="hero-subtitle">Unindo neurociência, legislação e estratégia pedagógica em um só lugar.</p>
+        </div>
     </div>
-    <i class="ri-heart-pulse-fill hero-bg-icon"></i>
+    <i class="ri-global-line hero-bg-icon"></i>
 </div>
 """, unsafe_allow_html=True)
 
@@ -261,17 +290,7 @@ with col3:
     if st.button("Acessar Hub ➡️", key="btn_hub", type="primary", use_container_width=True):
         st.switch_page("pages/3_Hub_Inclusao.py")
 
-# --- 4. NOVO: SEÇÃO DE CONCEITO OMNISFERA ---
-st.markdown("""
-<div class="concept-section">
-    <div class="concept-title"><i class="ri-global-line"></i> O Ecossistema Omnisfera</div>
-    <div class="concept-text">
-        Mais do que ferramentas, a Omnisfera é um ambiente integrado que conecta o <strong>PEI</strong> (sala regular), o <strong>PAE</strong> (sala de recursos) e um <strong>Hub Criativo</strong> impulsionado por IA. Nossa missão é unir neurociência, legislação e estratégia pedagógica para transformar a inclusão em uma prática simples, eficiente e potente para cada estudante.
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# --- 5. INSIGHT DO DIA (AGORA ABAIXO DO CONCEITO) ---
+# --- 4. INSIGHT DO DIA (SEPARADO) ---
 st.markdown(f"""
 <div class="insight-card">
     <div class="insight-icon"><i class="ri-lightbulb-flash-line"></i></div>
@@ -282,7 +301,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- 6. RECURSOS EDUCATIVOS (RODAPÉ) ---
+# --- 5. RECURSOS EDUCATIVOS (RODAPÉ) ---
 st.markdown("### 📚 Base de Conhecimento")
 st.markdown("""
 <div class="home-grid">
