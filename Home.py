@@ -61,7 +61,7 @@ def sistema_seguranca():
 if not sistema_seguranca(): st.stop()
 
 # ==============================================================================
-# 🏠 HOME - DASHBOARD OMNISFERA (LAYOUT OTIMIZADO)
+# 🏠 HOME - DASHBOARD OMNISFERA (DESIGN GELO/CLEAN)
 # ==============================================================================
 
 # CSS GERAL E CARDS
@@ -70,20 +70,37 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
     html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color: #2D3748; }
     
-    /* HERO BANNER */
+    /* HERO BANNER - ESTILO NEUTRO/GELO */
     .dash-hero { 
-        background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%); 
-        border-radius: 16px; 
+        background: linear-gradient(135deg, #FFFFFF 0%, #F0F8FF 100%); /* Branco para Azul Gelo Suave */
+        border-radius: 20px; 
         padding: 30px; 
-        color: white; 
         margin-bottom: 30px; 
-        box-shadow: 0 4px 12px rgba(15, 82, 186, 0.15); 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05); /* Sombra suave */
+        border: 1px solid #E2E8F0;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        position: relative;
+        overflow: hidden;
     }
     
-    /* BOTÕES DE FERRAMENTA (AGORA NO TOPO) */
+    /* Título no Banner */
+    .hero-title {
+        color: #1A365D; /* Azul Marinho Profundo */
+        font-weight: 800;
+        font-size: 2.5rem;
+        margin: 0;
+        line-height: 1.2;
+    }
+    .hero-subtitle {
+        color: #4A5568;
+        font-size: 1.1rem;
+        margin-top: 10px;
+        font-weight: 600;
+    }
+
+    /* BOTÕES DE FERRAMENTA */
     .tool-card {
         background-color: white;
         border-radius: 15px;
@@ -94,11 +111,16 @@ st.markdown("""
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: transform 0.2s;
+        transition: transform 0.2s, box-shadow 0.2s;
     }
-    .tool-card:hover { transform: translateY(-5px); border-color: #3182CE; box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+    .tool-card:hover { 
+        transform: translateY(-5px); 
+        border-color: #3182CE; 
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
     .tool-title { font-size: 1.4rem; font-weight: 800; color: #2D3748; margin-bottom: 5px; }
     .tool-desc { font-size: 0.9rem; color: #718096; margin-bottom: 20px; line-height: 1.4; }
+    
     .border-blue { border-top: 6px solid #3182CE; }
     .border-purple { border-top: 6px solid #805AD5; }
     .border-teal { border-top: 6px solid #38B2AC; }
@@ -114,8 +136,8 @@ st.markdown("""
         gap: 15px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         border-left: 5px solid #D69E2E;
-        margin-top: 10px;
-        margin-bottom: 30px;
+        margin-top: 20px;
+        margin-bottom: 40px;
     }
     .insight-icon {
         font-size: 1.5rem;
@@ -169,23 +191,28 @@ if 'OPENAI_API_KEY' in st.secrets:
         noticia = st.session_state['home_insight']
     except: pass
 
-# --- 1. HERO BANNER (COM LOGO INTEGRADA) ---
+# --- 1. HERO BANNER (NEUTRO COM LOGO GIGANTE) ---
 logo_b64 = get_base64_image("ominisfera.png")
-img_tag = f'<img src="data:image/png;base64,{logo_b64}" style="max-height: 80px; width: auto;">' if logo_b64 else '<i class="ri-heart-pulse-fill" style="font-size: 3rem; opacity: 0.3;"></i>'
+# Logo gigante e alinhada à direita
+img_tag = f'<img src="data:image/png;base64,{logo_b64}" style="max-height: 220px; width: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">' if logo_b64 else '<i class="ri-heart-pulse-fill" style="font-size: 5rem; color: #E2E8F0;"></i>'
 
 st.markdown(f"""
 <div class="dash-hero">
-    <div>
-        <h1 style="color:white; margin:0; font-size: 2.2rem;">Olá, Educador(a)!</h1>
-        <p style="margin:5px 0 0 0; opacity:0.9; font-size: 1.1rem;">"Cada criança é única; seu potencial, ilimitado!"</p>
+    <div style="flex: 1; padding-right: 20px;">
+        <h1 class="hero-title">Olá, Educador(a)!</h1>
+        <p class="hero-subtitle">"Cada criança é única; seu potencial, ilimitado!"</p>
+        <div style="margin-top: 20px; display: inline-block; padding: 8px 16px; background: #EBF8FF; border-radius: 20px; color: #2C5282; font-weight: 700; font-size: 0.9rem;">
+            🚀 Sistema Operacional Omnisfera V2.0
+        </div>
     </div>
-    <div>
+    <div style="flex-shrink: 0;">
         {img_tag}
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# --- 2. FERRAMENTAS DE ACESSO (SUBIRAM PARA CIMA) ---
+# --- 2. FERRAMENTAS DE ACESSO (INTEGRADO AO TOPO) ---
+st.markdown("### 🎯 Acesso Rápido")
 col1, col2, col3 = st.columns(3)
 
 # PEI
@@ -248,32 +275,32 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- 4. RECURSOS EDUCATIVOS (CARDS INFORMATIVOS) ---
-st.markdown("### 📚 Recursos Educativos")
+st.markdown("### 📚 Base de Conhecimento")
 st.markdown("""
 <div class="home-grid">
     <a href="#" class="rich-card">
         <div class="rich-card-top" style="background-color: #3182CE;"></div>
-        <div class="rc-icon" style="background-color:#EBF8FF; color:#3182CE;"><i class="ri-book-open-line"></i></div>
+        <div class="rc-icon" style="background-color:#EBF8FF; color:#3182CE;"><i class="ri-question-answer-line"></i></div>
         <div class="rc-title">O que é PEI e PAE?</div>
-        <div class="rc-desc">Diferenças fundamentais e aplicação prática.</div>
+        <div class="rc-desc">Entenda as diferenças fundamentais e como cada um apoia o aluno.</div>
     </a>
     <a href="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm" target="_blank" class="rich-card">
         <div class="rich-card-top" style="background-color: #D69E2E;"></div>
         <div class="rc-icon" style="background-color:#FFFFF0; color:#D69E2E;"><i class="ri-scales-3-line"></i></div>
         <div class="rc-title">Legislação</div>
-        <div class="rc-desc">LBI e Decretos sobre inclusão.</div>
+        <div class="rc-desc">Lei Brasileira de Inclusão e Decretos atualizados (2025).</div>
     </a>
     <a href="https://institutoneurosaber.com.br/" target="_blank" class="rich-card">
         <div class="rich-card-top" style="background-color: #D53F8C;"></div>
         <div class="rc-icon" style="background-color:#FFF5F7; color:#D53F8C;"><i class="ri-brain-line"></i></div>
         <div class="rc-title">Neurociência</div>
-        <div class="rc-desc">Desenvolvimento atípico e aprendizagem.</div>
+        <div class="rc-desc">Como o cérebro atípico aprende? Artigos e estudos.</div>
     </a>
     <a href="http://basenacionalcomum.mec.gov.br/" target="_blank" class="rich-card">
         <div class="rich-card-top" style="background-color: #38A169;"></div>
         <div class="rc-icon" style="background-color:#F0FFF4; color:#38A169;"><i class="ri-compass-3-line"></i></div>
         <div class="rc-title">BNCC</div>
-        <div class="rc-desc">Currículo oficial e competências.</div>
+        <div class="rc-desc">Currículo oficial, competências e habilidades.</div>
     </a>
 </div>
 """, unsafe_allow_html=True)
