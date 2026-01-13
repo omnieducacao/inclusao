@@ -21,6 +21,7 @@ def get_base64_image(image_path):
         return base64.b64encode(img_file.read()).decode()
 
 def sistema_seguranca():
+    # CSS para esconder elementos padrão e estilizar login
     st.markdown("""
         <style>
             [data-testid="stHeader"] {visibility: hidden !important; height: 0px !important;}
@@ -37,9 +38,13 @@ def sistema_seguranca():
         c1, c2, c3 = st.columns([1, 2, 1])
         with c2:
             st.markdown("<div class='login-container'>", unsafe_allow_html=True)
-            # Tenta carregar a logo completa ou o ícone para o login
-            if os.path.exists("omni_icone.png"):
-                st.image("omni_icone.png", width=100)
+            try: 
+                # Tenta carregar ícone se existir
+                if os.path.exists("omni_icone.png"):
+                    st.image("omni_icone.png", width=100)
+                else:
+                    st.image("ominisfera.png", width=250)
+            except: st.markdown("# 🌐 OMNISFERA")
             st.markdown("### Acesso Restrito")
             st.markdown("---")
             st.markdown("##### 🛡️ Termo de Confidencialidade")
@@ -61,87 +66,99 @@ def sistema_seguranca():
 if not sistema_seguranca(): st.stop()
 
 # ==============================================================================
-# 🏠 HOME - DASHBOARD OMNISFERA (ANIMATED HEADER)
+# 🏠 HOME - DASHBOARD OMNISFERA (DESIGN ULTRA SLIM)
 # ==============================================================================
 
-# CSS GERAL, CARDS E ANIMAÇÃO
+# CSS GERAL E CARDS
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap');
     html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color: #2D3748; }
     
+    /* 1. REMOVENDO ESPAÇO VAZIO DO TOPO */
+    .block-container {
+        padding-top: 0rem !important; /* Cola no teto */
+        padding-bottom: 2rem !important;
+        margin-top: 1rem !important;
+    }
+
     /* --- ANIMAÇÃO DE ROTAÇÃO --- */
     @keyframes spin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
     }
     
+    /* HEADER LOGO: Margens reduzidas */
     .logo-container {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 15px; /* Espaço entre o círculo e o texto */
-        margin-bottom: 25px;
-        padding: 10px;
+        gap: 15px; 
+        margin-bottom: 10px; /* Reduzido de 25px */
+        padding-top: 10px;
     }
     
     .logo-icon-spin {
-        height: 90px; /* Tamanho do círculo */
+        height: 70px; /* Levemente menor para elegância */
         width: auto;
-        animation: spin 20s linear infinite; /* Gira devagar e infinito */
+        animation: spin 20s linear infinite; 
         filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
     }
     
     .logo-text-static {
-        height: 60px; /* Tamanho do texto (ajuste proporcional) */
+        height: 45px; /* Proporcional */
         width: auto;
     }
 
-    /* --- HERO BANNER (MAIS ESTREITO/SLIM) --- */
+    /* --- HERO BANNER (SLIM & ELEGANTE) --- */
     .dash-hero { 
         background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%); 
-        border-radius: 16px; 
-        padding: 15px 30px; /* Padding reduzido na vertical (15px) */
-        margin-bottom: 30px; 
-        box-shadow: 0 4px 12px rgba(15, 82, 186, 0.2);
+        border-radius: 12px; /* Bordas um pouco menos arredondadas */
+        padding: 20px 30px; /* Mais fino verticalmente */
+        margin-bottom: 20px; 
+        box-shadow: 0 4px 10px rgba(15, 82, 186, 0.15);
         color: white;
         position: relative;
         overflow: hidden;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        min-height: 100px; /* Altura mínima reduzida */
+        min-height: 80px;
     }
     
+    /* Tipografia Elegante */
     .hero-title {
         color: white;
-        font-weight: 800;
-        font-size: 1.8rem; /* Fonte um pouco menor para o banner slim */
+        font-family: 'Nunito', sans-serif;
+        font-weight: 700; 
+        font-size: 1.8rem;
         margin: 0;
-        line-height: 1.1;
+        line-height: 1;
+        letter-spacing: 0.5px;
     }
     .hero-subtitle {
         color: rgba(255,255,255,0.9);
         font-size: 0.95rem;
-        margin-top: 5px;
-        font-weight: 600;
+        margin-top: 4px;
+        font-weight: 300; /* Mais leve/fino */
+        font-style: italic; /* Toque de elegância */
     }
     
     .hero-bg-icon {
         position: absolute;
         right: 20px;
-        font-size: 4rem;
-        opacity: 0.15;
+        font-size: 3.5rem;
+        opacity: 0.12;
         color: white;
-        transform: rotate(-15deg);
+        transform: rotate(-10deg);
     }
 
     /* --- BOTÕES DE FERRAMENTA --- */
     .tool-card {
         background-color: white;
-        border-radius: 15px;
+        border-radius: 12px;
         padding: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
         border: 1px solid #E2E8F0;
         height: 100%;
         display: flex;
@@ -150,16 +167,16 @@ st.markdown("""
         transition: transform 0.2s, box-shadow 0.2s;
     }
     .tool-card:hover { 
-        transform: translateY(-5px); 
+        transform: translateY(-3px); 
         border-color: #3182CE; 
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.08);
     }
-    .tool-title { font-size: 1.3rem; font-weight: 800; color: #2D3748; margin-bottom: 5px; }
+    .tool-title { font-size: 1.2rem; font-weight: 800; color: #2D3748; margin-bottom: 5px; }
     .tool-desc { font-size: 0.85rem; color: #718096; margin-bottom: 15px; line-height: 1.4; }
     
-    .border-blue { border-top: 5px solid #3182CE; }
-    .border-purple { border-top: 5px solid #805AD5; }
-    .border-teal { border-top: 5px solid #38B2AC; }
+    .border-blue { border-top: 4px solid #3182CE; }
+    .border-purple { border-top: 4px solid #805AD5; }
+    .border-teal { border-top: 4px solid #38B2AC; }
 
     /* --- INSIGHT CARD --- */
     .insight-card {
@@ -171,15 +188,15 @@ st.markdown("""
         align-items: center;
         gap: 15px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        border-left: 5px solid #D69E2E;
+        border-left: 4px solid #D69E2E;
         margin-top: 15px;
         margin-bottom: 30px;
     }
     .insight-icon {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         color: #D69E2E;
         background: rgba(214, 158, 46, 0.15);
-        width: 40px; height: 40px;
+        width: 35px; height: 35px;
         border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
     }
@@ -188,12 +205,12 @@ st.markdown("""
     .home-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
+        gap: 15px;
     }
     .rich-card {
         background: white;
         border-radius: 12px;
-        padding: 20px;
+        padding: 15px;
         border: 1px solid #E2E8F0;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         transition: all 0.2s ease;
@@ -207,11 +224,11 @@ st.markdown("""
         overflow: hidden;
         height: 100%;
     }
-    .rich-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); }
-    .rich-card-top { width: 100%; height: 4px; position: absolute; top: 0; left: 0; }
-    .rc-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 12px; }
-    .rc-title { font-weight: 800; font-size: 1rem; color: #2D3748; margin-bottom: 5px; }
-    .rc-desc { font-size: 0.8rem; color: #718096; line-height: 1.3; }
+    .rich-card:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.05); }
+    .rich-card-top { width: 100%; height: 3px; position: absolute; top: 0; left: 0; }
+    .rc-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 10px; }
+    .rc-title { font-weight: 700; font-size: 0.95rem; color: #2D3748; margin-bottom: 4px; }
+    .rc-desc { font-size: 0.75rem; color: #718096; line-height: 1.3; }
 </style>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
 """, unsafe_allow_html=True)
@@ -227,11 +244,10 @@ if 'OPENAI_API_KEY' in st.secrets:
         noticia = st.session_state['home_insight']
     except: pass
 
-# --- 1. CABEÇALHO COM ANIMAÇÃO ---
+# --- 1. CABEÇALHO COM ANIMAÇÃO (SLIM) ---
 icone_b64 = get_base64_image("omni_icone.png")
 texto_b64 = get_base64_image("omni_texto.png")
 
-# Se os arquivos existirem, monta o header animado. Se não, fallback texto.
 if icone_b64 and texto_b64:
     st.markdown(f"""
     <div class="logo-container">
@@ -240,10 +256,10 @@ if icone_b64 and texto_b64:
     </div>
     """, unsafe_allow_html=True)
 else:
-    st.markdown("<h1 style='text-align: center; color: #0F52BA; font-size: 3rem;'>🌐 OMNISFERA</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; color: #0F52BA; font-size: 2.5rem; margin-bottom:10px;'>🌐 OMNISFERA</h1>", unsafe_allow_html=True)
 
 
-# --- 2. HERO BANNER (SLIM & AZUL) ---
+# --- 2. HERO BANNER (SLIM & ELEGANTE) ---
 st.markdown(f"""
 <div class="dash-hero">
     <div style="z-index: 2;">
@@ -266,7 +282,7 @@ with col1:
             <div class="tool-title"><i class="ri-book-read-line" style="color:#3182CE; margin-right:5px;"></i> PEI 360º</div>
             <div class="tool-desc">
                 <strong>Plano de Ensino Individualizado</strong><br>
-                A porta de entrada. Realize a anamnese e gere o documento oficial.
+                A porta de entrada. Anamnese e plano oficial.
             </div>
         </div>
     </div>
@@ -282,7 +298,7 @@ with col2:
             <div class="tool-title"><i class="ri-puzzle-line" style="color:#805AD5; margin-right:5px;"></i> PAE</div>
             <div class="tool-desc">
                 <strong>Plano de AEE</strong><br>
-                Focado na Sala de Recursos. Identifique barreiras e tecnologias assistivas.
+                Sala de Recursos, barreiras e tecnologia assistiva.
             </div>
         </div>
     </div>
@@ -298,7 +314,7 @@ with col3:
             <div class="tool-title"><i class="ri-rocket-line" style="color:#38B2AC; margin-right:5px;"></i> Hub</div>
             <div class="tool-desc">
                 <strong>Adaptação & Criação</strong><br>
-                Adapte provas, crie atividades do zero e roteiros de aula num clique.
+                Adapte provas e crie atividades em segundos.
             </div>
         </div>
     </div>
@@ -311,8 +327,8 @@ st.markdown(f"""
 <div class="insight-card">
     <div class="insight-icon"><i class="ri-lightbulb-flash-line"></i></div>
     <div>
-        <h4 style="margin:0; color:#2D3748;">Insight do Dia</h4>
-        <p style="margin:5px 0 0 0; font-size:0.95rem; opacity:0.9; color:#4A5568;">{noticia}</p>
+        <h4 style="margin:0; color:#2D3748; font-size:1rem;">Insight do Dia</h4>
+        <p style="margin:2px 0 0 0; font-size:0.85rem; opacity:0.9; color:#4A5568;">{noticia}</p>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -324,26 +340,26 @@ st.markdown("""
     <a href="#" class="rich-card">
         <div class="rich-card-top" style="background-color: #3182CE;"></div>
         <div class="rc-icon" style="background-color:#EBF8FF; color:#3182CE;"><i class="ri-question-answer-line"></i></div>
-        <div class="rc-title">O que é PEI e PAE?</div>
-        <div class="rc-desc">Entenda as diferenças fundamentais e como cada um apoia o aluno.</div>
+        <div class="rc-title">PEI vs PAE</div>
+        <div class="rc-desc">Entenda as diferenças fundamentais.</div>
     </a>
     <a href="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm" target="_blank" class="rich-card">
         <div class="rich-card-top" style="background-color: #D69E2E;"></div>
         <div class="rc-icon" style="background-color:#FFFFF0; color:#D69E2E;"><i class="ri-scales-3-line"></i></div>
         <div class="rc-title">Legislação</div>
-        <div class="rc-desc">Lei Brasileira de Inclusão e Decretos atualizados (2025).</div>
+        <div class="rc-desc">LBI e Decretos de inclusão (2025).</div>
     </a>
     <a href="https://institutoneurosaber.com.br/" target="_blank" class="rich-card">
         <div class="rich-card-top" style="background-color: #D53F8C;"></div>
         <div class="rc-icon" style="background-color:#FFF5F7; color:#D53F8C;"><i class="ri-brain-line"></i></div>
         <div class="rc-title">Neurociência</div>
-        <div class="rc-desc">Como o cérebro atípico aprende? Artigos e estudos.</div>
+        <div class="rc-desc">Desenvolvimento atípico e estudos.</div>
     </a>
     <a href="http://basenacionalcomum.mec.gov.br/" target="_blank" class="rich-card">
         <div class="rich-card-top" style="background-color: #38A169;"></div>
         <div class="rc-icon" style="background-color:#F0FFF4; color:#38A169;"><i class="ri-compass-3-line"></i></div>
         <div class="rc-title">BNCC</div>
-        <div class="rc-desc">Currículo oficial, competências e habilidades.</div>
+        <div class="rc-desc">Currículo oficial e competências.</div>
     </a>
 </div>
 """, unsafe_allow_html=True)
