@@ -75,7 +75,7 @@ st.markdown("""
     /* HEADER PERSONALIZADO (Estilo Banner com Logo) */
     .header-hub { 
         background: white; 
-        padding: 15px 25px; 
+        padding: 20px 30px; /* Aumentei um pouco o padding para a logo maior */
         border-radius: 12px; 
         border-left: 6px solid #3182CE; /* Azul do Hub */
         box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
@@ -84,7 +84,7 @@ st.markdown("""
         display: flex;             
         flex-direction: row;       
         align-items: center;       
-        gap: 20px;                
+        gap: 25px;                 /* Mais espaço entre logo e texto */
     }
     
     .student-header { background-color: #EBF8FF; border: 1px solid #BEE3F8; border-radius: 12px; padding: 15px 25px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
@@ -356,10 +356,10 @@ with st.sidebar:
             if key not in ['banco_estudantes', 'OPENAI_API_KEY', 'UNSPLASH_ACCESS_KEY', 'autenticado']: del st.session_state[key]
         st.rerun()
 
-# --- HEADER COM LOGO HUB (ESTILO BANNER) ---
-# Substituindo o título textual pela estrutura HTML com Logo (hub.png) e Subtítulo
+# --- HEADER COM LOGO HUB E APENAS SUBTÍTULO ---
+# Logo aumentada e Título removido.
 
-img_hub_html = get_img_tag("hub.png", "160") # Logo tamanho 160px
+img_hub_html = get_img_tag("hub.png", "220") # Logo aumentada para 220px
 
 st.markdown(f"""
     <div class="header-hub">
@@ -367,10 +367,7 @@ st.markdown(f"""
             {img_hub_html}
         </div>
         <div style="flex-grow: 1; text-align: center;">
-            <p style="margin:0; color:#2C5282; font-size: 1.6rem; font-weight: 800;">
-                Hub de Inclusão
-            </p>
-            <p style="margin:0; color:#4A5568; font-size: 1.0rem; font-weight: 500;">
+            <p style="margin:0; color:#2C5282; font-size: 1.3rem; font-weight: 700;">
                 Adaptação de Materiais & Criação
             </p>
         </div>
