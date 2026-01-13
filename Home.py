@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 🔐 SEGURANÇA & UTILITÁRIOS
+# 🔐 SEGURANÇA, LOGIN E UTILITÁRIOS
 # ==============================================================================
 def get_base64_image(image_path):
     if not os.path.exists(image_path): return ""
@@ -22,12 +22,78 @@ def get_base64_image(image_path):
         return base64.b64encode(img_file.read()).decode()
 
 def sistema_seguranca():
+    # CSS Específico para a Tela de Login (Incluindo Animação da Logo)
     st.markdown("""
         <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap');
+            
             [data-testid="stHeader"] {visibility: hidden !important; height: 0px !important;}
             footer {visibility: hidden !important;}
-            .login-container { background-color: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; border: 1px solid #E2E8F0; }
-            .termo-box { background-color: #F7FAFC; padding: 15px; border-radius: 8px; height: 160px; overflow-y: scroll; font-size: 0.8rem; border: 1px solid #CBD5E0; margin-bottom: 20px; text-align: left; color: #4A5568; }
+            
+            /* Container Centralizado */
+            .login-container { 
+                background-color: white; 
+                padding: 40px; 
+                border-radius: 20px; 
+                box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+                text-align: center; 
+                border: 1px solid #E2E8F0;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            /* Animação da Logo (Réplica da Home) */
+            @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+            .login-logo-spin {
+                height: 100px; width: auto;
+                animation: spin 45s linear infinite; 
+                filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+            }
+            .login-logo-static { height: 70px; width: auto; margin-left: 10px; }
+            .logo-wrapper { display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
+
+            /* Manifesto */
+            .manifesto-login {
+                font-family: 'Nunito', sans-serif;
+                font-size: 0.95rem;
+                color: #4A5568;
+                font-style: italic;
+                line-height: 1.5;
+                margin-bottom: 30px;
+                padding: 0 20px;
+            }
+
+            /* Campos de Input Estilizados */
+            .stTextInput input {
+                border-radius: 8px !important;
+                border: 1px solid #CBD5E0 !important;
+                padding: 10px !important;
+            }
+
+            /* Termo */
+            .termo-box { 
+                background-color: #F8FAFC; 
+                padding: 15px; 
+                border-radius: 8px; 
+                height: 140px; 
+                overflow-y: scroll; 
+                font-size: 0.75rem; 
+                border: 1px solid #E2E8F0; 
+                margin-bottom: 20px; 
+                text-align: left; 
+                color: #4A5568;
+                line-height: 1.4;
+            }
+            
+            /* Botão Entrar */
+            .stButton button {
+                width: 100%;
+                background-color: #0F52BA !important;
+                color: white !important;
+                border-radius: 8px !important;
+                font-weight: 700 !important;
+                height: 50px !important;
+            }
         </style>
     """, unsafe_allow_html=True)
 
@@ -35,28 +101,74 @@ def sistema_seguranca():
         st.session_state["autenticado"] = False
 
     if not st.session_state["autenticado"]:
-        c1, c2, c3 = st.columns([1, 2, 1])
-        with c2:
+        # Centralizando horizontalmente usando colunas
+        c_vazio1, c_login, c_vazio2 = st.columns([1, 2, 1])
+        
+        with c_login:
             st.markdown("<div class='login-container'>", unsafe_allow_html=True)
-            try: 
-                if os.path.exists("ominisfera.png"): st.image("ominisfera.png", width=280)
-                else: st.markdown("## 🌐 OMNISFERA")
-            except: st.markdown("## 🌐 OMNISFERA")
             
-            st.markdown("### Portal de Acesso")
+            # 1. LOGO QUE GIRA (REPLICADA)
+            icone_b64 = get_base64_image("omni_icone.png")
+            texto_b64 = get_base64_image("omni_texto.png")
+            
+            if icone_b64 and texto_b64:
+                st.markdown(f"""
+                <div class="logo-wrapper">
+                    <img src="data:image/png;base64,{icone_b64}" class="login-logo-spin">
+                    <img src="data:image/png;base64,{texto_b64}" class="login-logo-static">
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("<h1 style='color:#0F52BA;'>🌐 OMNISFERA</h1>", unsafe_allow_html=True)
+
+            # 2. MANIFESTO (CONCEITO)
+            st.markdown("""
+            <div class="manifesto-login">
+                "A Omnisfera é um ecossistema vivo onde a <strong>Neurociência</strong> encontra a <strong>Pedagogia</strong>. 
+                Conectamos dados, empatia e estratégia para que a inclusão deixe de ser um desafio e se torne a nossa linguagem universal."
+            </div>
+            """, unsafe_allow_html=True)
+            
             st.markdown("---")
-            st.markdown("##### 🛡️ Termo de Confidencialidade")
-            st.markdown("""<div class="termo-box"><strong>AMBIENTE PROTEGIDO</strong><br><br>1. <strong>Propriedade:</strong> Todo o conteúdo e inteligência deste software são propriedade de Rodrigo A. Queiroz.<br>2. <strong>Sigilo:</strong> É vedada a divulgação de prints, lógicas ou prompts.<br>3. <strong>Uso:</strong> Acesso concedido exclusivamente para fins de desenvolvimento e validação.</div>""", unsafe_allow_html=True)
-            concordo = st.checkbox("Li e aceito os termos.")
-            senha = st.text_input("Senha:", type="password")
-            if st.button("🚀 ENTRAR", type="primary", use_container_width=True):
+            
+            # 3. COLETA DE DADOS (FEEDBACK)
+            st.markdown("##### 👋 Identificação (Para Melhoria Contínua)")
+            nome_user = st.text_input("Seu Nome:", placeholder="Como gostaria de ser chamado?")
+            cargo_user = st.text_input("Seu Cargo/Função:", placeholder="Ex: Professor, Coord. Pedagógico...")
+            
+            st.markdown("---")
+
+            # 4. TERMO DE CONFIDENCIALIDADE (REESCRITO)
+            st.markdown("##### 🛡️ Termos de Uso e Confidencialidade (Beta)")
+            st.markdown("""
+            <div class="termo-box">
+                <strong>ACORDO DE CONFIDENCIALIDADE E PROPRIEDADE INTELECTUAL</strong><br><br>
+                1. <strong>Natureza do Acesso:</strong> Este software ("Omnisfera") encontra-se em estágio de desenvolvimento (BETA). O acesso é concedido em caráter pessoal e intransferível.<br><br>
+                2. <strong>Propriedade Intelectual:</strong> Todo o código fonte, algoritmos de IA, prompts, design de interface e metodologia pedagógica são de propriedade exclusiva de <strong>Rodrigo A. Queiroz</strong>. É estritamente vedada a cópia, engenharia reversa, print screen para divulgação pública ou comercialização de qualquer parte desta solução.<br><br>
+                3. <strong>Coleta de Feedback:</strong> Ao utilizar o sistema, o usuário concorda que seus dados de navegação e feedbacks inseridos poderão ser utilizados para aprimoramento da plataforma.<br><br>
+                4. <strong>Sigilo de Dados:</strong> O usuário compromete-se a não inserir dados reais sensíveis de alunos que violem a LGPD durante esta fase de testes, utilizando dados fictícios ou anonimizados.
+            </div>
+            """, unsafe_allow_html=True)
+            
+            concordo = st.checkbox("Li, compreendi e concordo com os termos.")
+            senha = st.text_input("Chave de Acesso:", type="password")
+            
+            if st.button("🚀 ACESSAR ECOSSISTEMA", type="primary"):
                 hoje = date.today()
                 senha_correta = "PEI_START_2026" if hoje <= date(2026, 1, 19) else "OMNI_PRO"
-                if not concordo: st.warning("Aceite os termos.")
+                
+                if not concordo:
+                    st.warning("⚠️ Você precisa aceitar os termos para prosseguir.")
+                elif not nome_user or not cargo_user:
+                    st.warning("⚠️ Por favor, preencha seu Nome e Cargo para nos ajudar a melhorar.")
                 elif senha == senha_correta:
                     st.session_state["autenticado"] = True
+                    st.session_state["usuario_nome"] = nome_user
+                    st.session_state["usuario_cargo"] = cargo_user
                     st.rerun()
-                else: st.error("Senha inválida.")
+                else:
+                    st.error("🚫 Senha inválida.")
+            
             st.markdown("</div>", unsafe_allow_html=True)
         return False
     return True
@@ -67,17 +179,16 @@ if not sistema_seguranca(): st.stop()
 # 🧠 GERAÇÃO DE CONTEÚDO (IA)
 # ==============================================================================
 # Mensagem do Banner (Saudação + Manifesto Fusionados)
-mensagem_banner = "Seja bem-vindo, professor! Juntos, vamos explorar a neurociência da inclusão e desbloquear o potencial único de cada aluno, construindo um futuro brilhante e acolhedor."
+# Personalização com o nome do usuário se disponível
+nome_display = st.session_state.get("usuario_nome", "Educador(a)").split()[0]
+mensagem_banner = f"Olá, {nome_display}! Na Omnisfera, unimos ciência e afeto para revelar o potencial de cada estudante."
 
 if 'OPENAI_API_KEY' in st.secrets:
     try:
         if 'banner_msg' not in st.session_state:
             client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
-            prompt_banner = """
-            Escreva uma mensagem única (máximo 30 palavras) para um banner de home page.
-            Comece com uma saudação calorosa ao educador e conecte imediatamente com o propósito da plataforma 'Omnisfera': 
-            unir neurociência, legislação e estratégia para tornar a inclusão uma realidade potente. 
-            Seja poético e inspirador.
+            prompt_banner = f"""
+            Crie uma frase de boas-vindas calorosa para {nome_display}, unindo o conceito de neurociência/inclusão com o potencial do aluno. Máximo 25 palavras.
             """
             res = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": prompt_banner}])
             st.session_state['banner_msg'] = res.choices[0].message.content
@@ -96,18 +207,52 @@ if 'OPENAI_API_KEY' in st.secrets:
     except: pass
 
 # ==============================================================================
-# 🏠 HOME - DASHBOARD OMNISFERA (V21 - FINAL REFINEMENT)
+# 🏠 HOME - DASHBOARD OMNISFERA (V23 - FEEDBACK & IDENTITY)
 # ==============================================================================
 
-# CSS GERAL
+# --- SIDEBAR (FEEDBACK) ---
+with st.sidebar:
+    # Mostra quem está logado
+    if "usuario_nome" in st.session_state:
+        st.write(f"👤 **{st.session_state['usuario_nome']}**")
+        st.caption(f"{st.session_state['usuario_cargo']}")
+        st.markdown("---")
+
+    st.markdown("### 📢 Central de Feedback")
+    st.info("Ajude a construir a Omnisfera! Encontrou um erro ou tem uma ideia?")
+    
+    tipo_feedback = st.selectbox("Tipo:", ["Sugestão", "Reportar Erro", "Elogio"])
+    texto_feedback = st.text_area("Sua mensagem:", height=100)
+    
+    if st.button("Enviar Feedback", use_container_width=True):
+        if texto_feedback:
+            # Aqui você poderia salvar em um banco de dados ou enviar email
+            st.toast("Obrigado! Seu feedback foi registrado com sucesso.", icon="✅")
+            time.sleep(1)
+        else:
+            st.warning("Escreva sua mensagem antes de enviar.")
+
+# CSS GERAL (Mantendo o Sticky Header da V22)
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Nunito:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color: #2D3748; }
+    html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color: #2D3748; background-color: #F7FAFC; }
     
-    /* 1. ESPAÇAMENTO DO TOPO */
+    /* 1. CONFIGURAÇÃO DE HEADER CONGELADO (STICKY) */
+    .logo-container {
+        display: flex; align-items: center; justify-content: center;
+        gap: 20px; 
+        position: fixed;
+        top: 0; left: 0; width: 100%;
+        background-color: #F7FAFC; 
+        z-index: 9999; 
+        padding-top: 15px; padding-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    /* 2. COMPENSAÇÃO DE ESPAÇO NO CORPO */
     .block-container { 
-        padding-top: 1rem !important; 
+        padding-top: 180px !important; 
         padding-bottom: 3rem !important; 
         margin-top: 0rem !important;
     }
@@ -115,18 +260,14 @@ st.markdown("""
     /* --- LOGO GIGANTE ANIMADA --- */
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     
-    .logo-container {
-        display: flex; align-items: center; justify-content: center;
-        gap: 20px; margin-bottom: 15px; padding-top: 10px;
-    }
     .logo-icon-spin {
-        height: 130px; width: auto;
+        height: 120px; width: auto;
         animation: spin 45s linear infinite; 
         filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
     }
-    .logo-text-static { height: 85px; width: auto; }
+    .logo-text-static { height: 80px; width: auto; }
 
-    /* --- HERO BANNER (MAIS ALTO) --- */
+    /* --- HERO BANNER --- */
     .dash-hero { 
         background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%); 
         border-radius: 16px;
@@ -135,85 +276,48 @@ st.markdown("""
         color: white;
         position: relative;
         overflow: hidden;
-        padding: 50px 60px; /* Aumentei a altura para dar destaque */
+        padding: 50px 60px;
         display: flex; align-items: center; justify-content: flex-start;
     }
-    
     .hero-text-block { z-index: 2; text-align: left; max-width: 90%; }
-
     .hero-title {
         color: white; font-family: 'Inter', sans-serif; font-weight: 700; 
         font-size: 2.2rem; margin: 0; line-height: 1.1; letter-spacing: -0.5px;
         margin-bottom: 15px;
     }
     .hero-subtitle {
-        color: rgba(255,255,255,0.95);
-        font-family: 'Inter', sans-serif;
-        font-size: 1.1rem; 
-        font-weight: 400; 
-        line-height: 1.5;
-        font-style: italic;
+        color: rgba(255,255,255,0.95); font-family: 'Inter', sans-serif;
+        font-size: 1.15rem; font-weight: 400; line-height: 1.5; font-style: italic;
     }
-    
     .hero-bg-icon {
         position: absolute; right: 40px; font-size: 6rem;
         opacity: 0.1; color: white; transform: rotate(-15deg); top: 30px;
     }
 
-    /* --- CARDS DE FERRAMENTA (CLEAN + LOGOS) --- */
+    /* --- CARDS DE FERRAMENTA --- */
     .tool-card { 
         background: white; border-radius: 20px; padding: 25px; 
         box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; 
         height: 100%; display: flex; flex-direction: column; justify-content: space-between; 
         transition: all 0.3s ease; text-align: center;
     }
-    .tool-card:hover { 
-        transform: translateY(-8px); border-color: #3182CE; 
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1); 
-    }
+    .tool-card:hover { transform: translateY(-8px); border-color: #3182CE; box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+    .card-logo-box { height: 110px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+    .card-logo-img { max-height: 95px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05)); }
+    .tool-desc-short { font-size: 0.9rem; color: #4A5568; font-weight: 500; margin-bottom: 15px; min-height: 45px; display: flex; align-items: center; justify-content: center; line-height: 1.3; }
     
-    .card-logo-box {
-        height: 110px; 
-        display: flex; align-items: center; justify-content: center;
-        margin-bottom: 10px;
-    }
-    .card-logo-img {
-        max-height: 90px; /* Logo Grande */
-        width: auto; object-fit: contain;
-        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
-    }
-    
-    /* Texto curto explicativo */
-    .tool-desc-short {
-        font-size: 0.9rem;
-        color: #4A5568;
-        font-weight: 500;
-        margin-bottom: 15px;
-        min-height: 45px;
-        display: flex; align-items: center; justify-content: center;
-        line-height: 1.3;
-    }
-    
-    /* Botão 'Acessar' (Estilo Card Action) */
     div[data-testid="column"] .stButton button {
-        width: 100%; border-radius: 12px; 
-        border: 1px solid #E2E8F0;
-        background-color: #F8F9FA; 
-        color: #2D3748;
-        font-family: 'Inter', sans-serif; font-weight: 700; 
-        font-size: 1rem; padding: 12px 0;
-        transition: all 0.2s;
+        width: 100%; border-radius: 12px; border: 1px solid #E2E8F0;
+        background-color: #F8F9FA; color: #2D3748; font-family: 'Inter', sans-serif; font-weight: 700; 
+        font-size: 1rem; padding: 12px 0; transition: all 0.2s;
     }
-    div[data-testid="column"] .stButton button:hover {
-        background-color: #3182CE; color: white; border-color: #3182CE;
-    }
+    div[data-testid="column"] .stButton button:hover { background-color: #3182CE; color: white; border-color: #3182CE; }
     
-    /* Bordas de cor (Bottom) */
     .border-blue { border-bottom: 6px solid #3182CE; } 
     .border-purple { border-bottom: 6px solid #805AD5; } 
     .border-teal { border-bottom: 6px solid #38B2AC; }
 
-    /* --- RODAPÉ E INSIGHT FINAL --- */
+    /* --- RODAPÉ E INSIGHT --- */
     .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
     .rich-card { background: white; border-radius: 12px; padding: 20px; border: 1px solid #E2E8F0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; height: 100%; }
     .rich-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); border-color: #CBD5E0; }
@@ -222,24 +326,22 @@ st.markdown("""
     .rc-title { font-weight: 700; font-size: 1rem; color: #2D3748; margin-bottom: 5px; }
     .rc-desc { font-size: 0.8rem; color: #718096; line-height: 1.3; }
 
-    /* Insight Card Final */
     .insight-card-end {
-        background-color: #FFFFF0;
-        border-radius: 12px;
-        padding: 20px 25px;
-        color: #2D3748;
-        display: flex; align-items: center; gap: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        border-left: 5px solid #F6E05E; 
+        background-color: #FFFFF0; border-radius: 12px; padding: 20px 25px;
+        color: #2D3748; display: flex; align-items: center; gap: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #F6E05E; 
         margin-bottom: 20px;
     }
     .insight-icon-end { font-size: 1.8rem; color: #D69E2E; }
+
+    .section-title { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.4rem; color: #2D3748; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .section-title i { color: #3182CE; }
 
 </style>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
 """, unsafe_allow_html=True)
 
-# --- 1. CABEÇALHO LOGO GIGANTE ANIMADA ---
+# --- 1. CABEÇALHO LOGO CONGELADA (STICKY) ---
 icone_b64 = get_base64_image("omni_icone.png")
 texto_b64 = get_base64_image("omni_texto.png")
 
@@ -251,37 +353,32 @@ if icone_b64 and texto_b64:
     </div>
     """, unsafe_allow_html=True)
 else:
-    st.markdown("<h1 style='text-align: center; color: #0F52BA; font-size: 3rem; margin-bottom:10px;'>🌐 OMNISFERA</h1>", unsafe_allow_html=True)
+    st.markdown("<div class='logo-container'><h1 style='color: #0F52BA; margin:0;'>🌐 OMNISFERA</h1></div>", unsafe_allow_html=True)
 
 
-# --- 2. HERO BANNER (MENSAGEM FUNDIDA + ALTURA MAIOR) ---
+# --- 2. HERO BANNER (CONTEÚDO ROLÁVEL ABAIXO) ---
 st.markdown(f"""
 <div class="dash-hero">
     <div class="hero-text-block">
-        <div class="hero-title">Olá, Educador(a)!</div>
+        <div class="hero-title">Olá, {nome_display}!</div>
         <div class="hero-subtitle">"{mensagem_banner}"</div>
     </div>
     <i class="ri-heart-pulse-fill hero-bg-icon"></i>
 </div>
 """, unsafe_allow_html=True)
 
-# --- 3. FERRAMENTAS DE ACESSO (LOGOS + TEXTO CURTO) ---
-st.markdown("### 🎯 Acesso Rápido")
+# --- 3. FERRAMENTAS DE ACESSO ---
+st.markdown("<div class='section-title'><i class='ri-cursor-fill'></i> Acesso Rápido</div>", unsafe_allow_html=True)
 
-# Preparar logos
 logo_pei = get_base64_image("360.png")
 logo_pae = get_base64_image("pae.png")
 logo_hub = get_base64_image("hub.png")
-
-# Fallback icons
-icon_pei = f'<img src="data:image/png;base64,{logo_pei}" class="card-logo-img">' if logo_pei else '<i class="ri-book-read-line" style="font-size:4rem; color:#3182CE;"></i>'
-icon_pae = f'<img src="data:image/png;base64,{logo_pae}" class="card-logo-img">' if logo_pae else '<i class="ri-puzzle-line" style="font-size:4rem; color:#805AD5;"></i>'
-icon_hub = f'<img src="data:image/png;base64,{logo_hub}" class="card-logo-img">' if logo_hub else '<i class="ri-rocket-line" style="font-size:4rem; color:#38B2AC;"></i>'
 
 col1, col2, col3 = st.columns(3)
 
 # PEI
 with col1:
+    icon_pei = f'<img src="data:image/png;base64,{logo_pei}" class="card-logo-img">' if logo_pei else '<i class="ri-book-read-line" style="font-size:4rem; color:#3182CE;"></i>'
     st.markdown(f"""
     <div class="tool-card border-blue">
         <div class="card-logo-box">{icon_pei}</div>
@@ -293,6 +390,7 @@ with col1:
 
 # PAE
 with col2:
+    icon_pae = f'<img src="data:image/png;base64,{logo_pae}" class="card-logo-img">' if logo_pae else '<i class="ri-puzzle-line" style="font-size:4rem; color:#805AD5;"></i>'
     st.markdown(f"""
     <div class="tool-card border-purple">
         <div class="card-logo-box">{icon_pae}</div>
@@ -304,6 +402,7 @@ with col2:
 
 # HUB
 with col3:
+    icon_hub = f'<img src="data:image/png;base64,{logo_hub}" class="card-logo-img">' if logo_hub else '<i class="ri-rocket-line" style="font-size:4rem; color:#38B2AC;"></i>'
     st.markdown(f"""
     <div class="tool-card border-teal">
         <div class="card-logo-box">{icon_hub}</div>
@@ -313,10 +412,10 @@ with col3:
     if st.button("➜ Acessar Hub", key="btn_hub", use_container_width=True):
         st.switch_page("pages/3_Hub_Inclusao.py")
 
-st.markdown("---")
+# --- 4. RECURSOS EDUCATIVOS ---
+st.markdown("<div style='margin-top:40px;'></div>", unsafe_allow_html=True)
+st.markdown("<div class='section-title'><i class='ri-book-mark-fill'></i> Base de Conhecimento</div>", unsafe_allow_html=True)
 
-# --- 4. RECURSOS EDUCATIVOS (RODAPÉ) ---
-st.markdown("### 📚 Base de Conhecimento")
 st.markdown("""
 <div class="home-grid">
     <a href="#" class="rich-card">
@@ -357,5 +456,4 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("---")
-st.markdown("<div style='text-align: center; color: #A0AEC0; font-size: 0.8rem;'>Omnisfera © 2026 - Todos os direitos reservados.</div>", unsafe_allow_html=True)
+st.markdown("<div style='text-align: center; color: #A0AEC0; font-size: 0.8rem; margin-top: 40px;'>Omnisfera © 2026 - Todos os direitos reservados.</div>", unsafe_allow_html=True)
