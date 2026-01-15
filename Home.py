@@ -10,7 +10,7 @@ import time
 # ==============================================================================
 APP_VERSION = "v116.0"
 
-# Detecção de Ambiente
+# Detecção de Ambiente (Secrets)
 try:
     IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
 except:
@@ -18,8 +18,6 @@ except:
 
 # Configurações da Página
 titulo_pag = "[TESTE] Omnisfera" if IS_TEST_ENV else "Omnisfera | Ecossistema"
-
-# Lógica para usar a logo como ícone da aba
 icone_pag = "omni_icone.png" if os.path.exists("omni_icone.png") else "🌐"
 
 st.set_page_config(
@@ -50,9 +48,8 @@ else:
     footer_visibility = "hidden"
 
 # ==============================================================================
-# 3. CSS BLINDADO (SEM F-STRING NO BLOCO GRANDE)
+# 3. CSS GLOBAL (COMPACTADO E ELEGANTE)
 # ==============================================================================
-# Este bloco não usa f""" para evitar o erro de SyntaxError com as chaves do CSS
 css_estatico = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700&display=swap');
@@ -65,142 +62,140 @@ css_estatico = """
     }
 
     /* Animações */
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    .hover-spring { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease; }
-    .hover-spring:hover { transform: translateY(-5px) scale(1.01); box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important; z-index: 10; }
+    .hover-spring { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease; }
+    .hover-spring:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 10px 20px rgba(0,0,0,0.06) !important; z-index: 10; }
 
-    /* Ajuste de Padding do Container Principal */
+    /* CONTAINER PRINCIPAL MAIS APERTADO */
     .block-container { 
-        padding-top: 130px !important; 
-        padding-bottom: 2rem !important; 
+        padding-top: 90px !important; 
+        padding-bottom: 1rem !important; 
         margin-top: 0rem !important;
-        animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        animation: fadeInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
-    /* --- HEADER (FIXED - VOLTAMOS AO PADRÃO FIXO) --- */
+    /* --- HEADER FIXO --- */
     .logo-container {
         display: flex; align-items: center; justify-content: flex-start; 
-        gap: 20px; 
-        position: fixed; /* Fixa no topo */
-        top: 0; left: 0; width: 100%; height: 110px;
-        background-color: rgba(247, 250, 252, 0.9); /* Fundo vidro */
+        gap: 15px; 
+        position: fixed; 
+        top: 0; left: 0; width: 100%; height: 80px; /* Altura reduzida */
+        background-color: rgba(247, 250, 252, 0.85); 
         backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.6);
-        z-index: 9998; 
-        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        z-index: 9999; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
         padding-left: 40px;
         padding-top: 5px;
     }
     .header-subtitle-text {
-        font-family: 'Nunito', sans-serif; font-weight: 600; font-size: 1.15rem;
-        color: #718096; border-left: 2px solid #CBD5E0; padding-left: 20px;
-        height: 50px; display: flex; align-items: center; letter-spacing: -0.3px;
+        font-family: 'Nunito', sans-serif; font-weight: 600; font-size: 1rem;
+        color: #718096; border-left: 2px solid #CBD5E0; padding-left: 15px;
+        height: 35px; display: flex; align-items: center; letter-spacing: -0.3px;
     }
-    /* AUMENTADO DE 70PX PARA 95PX */
-    .logo-icon-spin { height: 95px; width: auto; animation: spin 45s linear infinite; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); }
-    .logo-text-static { height: 50px; width: auto; }
+    .logo-icon-spin { height: 70px; width: auto; animation: spin 45s linear infinite; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+    .logo-text-static { height: 40px; width: auto; }
 
     /* Login Styles */
     .login-container { 
-        background-color: white; padding: 40px 40px 50px 40px; 
-        border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.08); 
+        background-color: white; padding: 30px; 
+        border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); 
         text-align: center; border: 1px solid #E2E8F0; 
-        max-width: 500px; margin: 0 auto; margin-top: 60px;
+        max-width: 500px; margin: 0 auto; margin-top: 40px;
         animation: fadeInUp 0.8s ease-out;
     }
-    .login-logo-spin { height: 100px; width: auto; animation: spin 45s linear infinite; margin-bottom: 10px; }
-    .login-logo-static { height: 60px; width: auto; margin-left: 10px; }
-    .logo-wrapper { display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
-    .manifesto-login { font-family: 'Nunito', sans-serif; font-size: 0.95rem; color: #64748B; font-style: italic; line-height: 1.6; margin-bottom: 30px; }
+    .login-logo-spin { height: 80px; width: auto; animation: spin 45s linear infinite; margin-bottom: 5px; }
+    .login-logo-static { height: 50px; width: auto; margin-left: 8px; }
+    .logo-wrapper { display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
+    .manifesto-login { font-family: 'Nunito', sans-serif; font-size: 0.85rem; color: #64748B; font-style: italic; line-height: 1.5; margin-bottom: 25px; }
     
     /* Inputs */
-    .stTextInput input { border-radius: 12px !important; border: 1px solid #E2E8F0 !important; padding: 12px !important; background-color: #F8FAFC !important; }
-    .stTextInput input:focus { border-color: #3182CE !important; box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1); }
-    
-    /* --- BENTO GRID & CARDS --- */
-    
+    .stTextInput input { border-radius: 10px !important; border: 1px solid #E2E8F0 !important; padding: 10px !important; background-color: #F8FAFC !important; font-size: 0.9rem !important;}
+
+    /* --- HERO COMPACTO --- */
     .dash-hero { 
         background: radial-gradient(circle at top right, #0F52BA, #062B61); 
-        border-radius: 20px; 
-        margin-bottom: 25px; 
+        border-radius: 16px; 
+        margin-bottom: 20px; /* Margem reduzida */
         margin-top: 10px;
-        box-shadow: 0 20px 40px -10px rgba(15, 82, 186, 0.4);
+        box-shadow: 0 10px 25px -5px rgba(15, 82, 186, 0.3);
         color: white; position: relative; overflow: hidden; 
-        padding: 35px 45px; 
+        padding: 25px 35px; /* Padding reduzido */
         display: flex; align-items: center; justify-content: flex-start;
         border: 1px solid rgba(255,255,255,0.1);
+        min-height: 100px;
     }
     .hero-title { 
         font-family: 'Inter', sans-serif; 
-        font-weight: 700; font-size: 1.7rem; 
-        margin: 0; line-height: 1.2; margin-bottom: 6px; 
+        font-weight: 700; font-size: 1.5rem; /* Fonte menor */
+        margin: 0; line-height: 1.1; margin-bottom: 5px; 
     }
     .hero-subtitle { 
         font-family: 'Inter', sans-serif; 
-        font-size: 0.95rem; opacity: 0.9; font-weight: 400; 
+        font-size: 0.9rem; opacity: 0.9; font-weight: 400; 
     }
-    .hero-bg-icon { position: absolute; right: 30px; font-size: 8rem; opacity: 0.05; top: 10px; transform: rotate(-10deg); }
+    .hero-bg-icon { position: absolute; right: 20px; font-size: 6rem; opacity: 0.05; top: 5px; transform: rotate(-10deg); }
 
-    /* CARDS ACESSO RÁPIDO */
+    /* --- CARDS FERRAMENTAS COMPACTOS (SEM TÍTULO) --- */
     .nav-btn-card {
         background-color: white; border-radius: 16px; padding: 15px;
         border: 1px solid #E2E8F0; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         text-align: center; transition: all 0.2s ease; cursor: pointer;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        height: 140px; position: relative; overflow: hidden;
+        height: 130px; /* Altura reduzida */
+        position: relative; overflow: hidden;
         text-decoration: none !important;
     }
-    .nav-btn-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); border-color: #CBD5E0; }
-    .nav-icon { height: 50px; width: auto; object-fit: contain; margin-bottom: 10px; }
-    .nav-desc { font-size: 0.75rem; color: #718096; line-height: 1.3; font-weight: 600; }
+    .nav-btn-card:hover {
+        transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+        border-color: #CBD5E0;
+    }
+    .nav-icon { height: 45px; width: auto; object-fit: contain; margin-bottom: 10px; } /* Ícone menor */
+    .nav-desc { font-size: 0.75rem; color: #718096; line-height: 1.3; font-weight: 500; }
     
-    .b-blue { border-bottom: 4px solid #3182CE; } 
-    .b-purple { border-bottom: 4px solid #805AD5; } 
+    .b-blue { border-bottom: 4px solid #3182CE; }
+    .b-purple { border-bottom: 4px solid #805AD5; }
     .b-teal { border-bottom: 4px solid #38B2AC; }
 
-    /* Esconde botões streamlit */
     .stButton button { display: none !important; }
 
-    /* BENTO GRID COMPACTADO */
+    /* --- BENTO GRID COMPACTO --- */
     .bento-grid { 
-        display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-        gap: 15px; margin-bottom: 30px; 
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+        gap: 12px; margin-bottom: 20px; /* Gap e margem reduzidos */
     }
     .bento-item { 
-        background: white; border-radius: 16px; padding: 20px; border: 1px solid #E2E8F0; 
-        box-shadow: 0 4px 6px rgba(0,0,0,0.01); text-decoration: none; color: inherit; 
+        background: white; border-radius: 14px; padding: 15px; border: 1px solid #E2E8F0; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.01); text-decoration: none; color: inherit; 
         display: flex; flex-direction: column; align-items: center; text-align: center; 
         position: relative; overflow: hidden; height: 100%; transition: transform 0.2s;
     }
     .bento-item:hover { transform: translateY(-2px); border-color: #CBD5E0; }
     .bento-icon { 
-        width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; 
-        font-size: 1.4rem; margin-bottom: 12px; transition: transform 0.3s ease;
+        width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; 
+        font-size: 1.2rem; margin-bottom: 8px; 
     }
-    .bento-item:hover .bento-icon { transform: scale(1.1) rotate(5deg); }
-    .bento-title { font-weight: 700; font-size: 0.95rem; color: #1A202C; margin-bottom: 4px; }
-    .bento-desc { font-size: 0.8rem; color: #718096; line-height: 1.3; }
+    .bento-title { font-weight: 700; font-size: 0.85rem; color: #1A202C; margin-bottom: 2px; }
+    .bento-desc { font-size: 0.75rem; color: #718096; line-height: 1.2; }
 
-    /* Insight Card */
+    /* --- INSIGHT CARD COMPACTO --- */
     .insight-card-end { 
         background: linear-gradient(135deg, #FFFBEB 0%, #FFFFFF 100%); 
-        border-radius: 16px; padding: 25px; 
-        color: #2D3748; display: flex; align-items: center; gap: 20px; 
-        box-shadow: 0 10px 25px rgba(214, 158, 46, 0.1); 
-        border: 1px solid rgba(214, 158, 46, 0.2); margin-bottom: 20px; 
+        border-radius: 14px; padding: 15px 20px; 
+        color: #2D3748; display: flex; align-items: center; gap: 15px; 
+        box-shadow: 0 5px 15px rgba(214, 158, 46, 0.08); 
+        border: 1px solid rgba(214, 158, 46, 0.2); margin-bottom: 15px; 
     }
     .insight-icon-end { 
-        font-size: 1.8rem; color: #D69E2E; background: rgba(214, 158, 46, 0.1); 
-        width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; color: #D69E2E; background: rgba(214, 158, 46, 0.1); 
+        width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
     }
+    
     .section-title { 
-        font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.3rem; 
-        color: #1A202C; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; margin-top: 30px; 
+        font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.1rem; 
+        color: #1A202C; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; margin-top: 25px; 
     }
 
     /* Ocultar elementos padrão */
@@ -211,36 +206,34 @@ css_estatico = """
 """
 st.markdown(css_estatico, unsafe_allow_html=True)
 
-# CSS DINÂMICO (Cores variáveis)
+# CSS DINÂMICO
 st.markdown(f"""
 <style>
     .omni-badge {{
-        position: fixed; top: 20px; right: 20px;
+        position: fixed; top: 15px; right: 15px;
         background: {card_bg}; border: 1px solid {card_border};
         backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        padding: 6px 20px; min-width: 180px; border-radius: 14px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.06); z-index: 999990;
+        padding: 5px 15px; min-width: 150px; border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06); z-index: 999990;
         display: flex; align-items: center; justify-content: center;
         pointer-events: none; transition: transform 0.3s ease;
     }}
     .omni-text {{
-        font-family: 'Inter', sans-serif; font-weight: 800; font-size: 0.65rem;
-        color: #2D3748; letter-spacing: 2px; text-transform: uppercase;
+        font-family: 'Inter', sans-serif; font-weight: 800; font-size: 0.6rem;
+        color: #2D3748; letter-spacing: 1.5px; text-transform: uppercase;
     }}
     footer {{ visibility: {footer_visibility} !important; }}
     
-    /* Botão de Login */
+    /* Botão de Login (Visível Apenas no Login) */
     .login-btn-area button {{
-        width: 100%; border-radius: 12px !important; border: none !important;
+        width: 100%; border-radius: 10px !important; border: none !important;
         font-family: 'Inter', sans-serif; font-weight: 700 !important; font-size: 0.9rem !important;
-        padding: 12px 0; transition: all 0.3s ease;
+        padding: 10px 0; transition: all 0.3s ease; height: 43px !important;
         background-color: #0F52BA !important; color: white !important;
         display: block !important; 
-        height: 50px !important;
     }}
     .login-btn-area button:hover {{ 
-        background-color: #3182CE !important; color: white !important; 
-        box-shadow: 0 8px 15px rgba(49, 130, 206, 0.25); transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(15, 82, 186, 0.3); transform: translateY(-1px);
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -258,10 +251,11 @@ def sistema_seguranca():
         <style>
             section[data-testid="stSidebar"] { display: none !important; }
             [data-testid="stSidebarCollapsedControl"] { display: none !important; }
+            .stButton button { display: block !important; }
         </style>
         """, unsafe_allow_html=True)
 
-        btn_text = "🚀 ENTRAR (TESTE)" if IS_TEST_ENV else "🔒 ACESSAR OMNISFERA"
+        btn_text = "ENTRAR" if IS_TEST_ENV else "ACESSAR OMNISFERA"
         
         c1, c_login, c2 = st.columns([1, 2, 1])
         
@@ -271,7 +265,6 @@ def sistema_seguranca():
             icone_b64_login = get_base64_image("omni_icone.png")
             texto_b64_login = get_base64_image("omni_texto.png")
             
-            # LOGO LOGIN - APENAS LOGO E TEXTO CENTRALIZADOS
             if icone_b64_login and texto_b64_login:
                 st.markdown(f"""
                 <div class="logo-wrapper">
@@ -292,6 +285,7 @@ def sistema_seguranca():
                 nome_user = st.text_input("nome_real", placeholder="Seu Nome", label_visibility="collapsed")
                 st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
                 cargo_user = st.text_input("cargo_real", placeholder="Seu Cargo", label_visibility="collapsed")
+                
                 st.markdown("---")
                 
                 # --- TERMO DE CONFIDENCIALIDADE ---
@@ -309,20 +303,31 @@ def sistema_seguranca():
                 
                 concordo = st.checkbox("Li, compreendi e concordo com os termos.")
                 
+                # Layout Senha + Botão na mesma linha (70% senha / 30% botão)
                 st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-                senha = st.text_input("senha_real", type="password", placeholder="Senha de Acesso", label_visibility="collapsed")
+                c_senha, c_btn = st.columns([2, 1])
+                
+                with c_senha:
+                    senha = st.text_input("senha_real", type="password", placeholder="Senha de Acesso", label_visibility="collapsed")
+                
+                with c_btn:
+                    st.markdown('<div class="login-btn-area">', unsafe_allow_html=True)
+                    # Variável para controlar o clique
+                    login_click = st.button(btn_text)
+                    st.markdown('</div>', unsafe_allow_html=True)
 
             st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
             
-            # Botão
-            st.markdown('<div class="login-btn-area">', unsafe_allow_html=True)
-            if st.button(btn_text):
-                if IS_TEST_ENV:
+            # Lógica de Validação (Fora das colunas para evitar erro de rerun)
+            if IS_TEST_ENV:
+                # No modo teste o botão pode estar em outro lugar, mas mantive a lógica simplificada
+                if 'login_click' in locals() and login_click:
                     st.session_state["autenticado"] = True
                     st.session_state["usuario_nome"] = nome_user if nome_user else "Visitante Teste"
                     st.session_state["usuario_cargo"] = cargo_user if cargo_user else "Dev"
                     st.rerun()
-                else:
+            else:
+                if 'login_click' in locals() and login_click:
                     hoje = date.today()
                     senha_mestra = "PEI_START_2026" if hoje <= date(2026, 1, 19) else "OMNI_PRO"
                     if not concordo: st.warning("Aceite os termos.")
@@ -333,7 +338,6 @@ def sistema_seguranca():
                         st.session_state["usuario_nome"] = nome_user
                         st.session_state["usuario_cargo"] = cargo_user
                         st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
             
             st.markdown("</div>", unsafe_allow_html=True)
         return False
@@ -371,7 +375,6 @@ if 'OPENAI_API_KEY' in st.secrets:
     try:
         if 'banner_msg' not in st.session_state:
             client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
-            # Prompt alterado para NÃO usar nomes na frase
             res = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": f"Crie uma frase curta e inspiradora sobre inclusão escolar. Não use nomes. Máximo 20 palavras."}])
             st.session_state['banner_msg'] = res.choices[0].message.content
         mensagem_banner = st.session_state['banner_msg']
