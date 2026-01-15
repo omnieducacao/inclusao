@@ -48,7 +48,7 @@ else:
     footer_visibility = "hidden"
 
 # ==============================================================================
-# 3. CSS GLOBAL (HEADER FIXO E LOGIN LIMPO)
+# 3. CSS GLOBAL (COMPACTADO E ELEGANTE)
 # ==============================================================================
 css_estatico = """
 <style>
@@ -62,136 +62,132 @@ css_estatico = """
     }
 
     /* Animações */
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    .hover-spring { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease; }
-    .hover-spring:hover { transform: translateY(-5px) scale(1.01); box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important; z-index: 10; }
+    .hover-spring { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease; }
+    .hover-spring:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 10px 20px rgba(0,0,0,0.06) !important; z-index: 10; }
 
-    /* Espaço para não esconder conteúdo atrás do header fixo */
+    /* CONTAINER PRINCIPAL MAIS APERTADO */
     .block-container { 
-        padding-top: 140px !important; 
-        padding-bottom: 2rem !important; 
+        padding-top: 85px !important; 
+        padding-bottom: 1rem !important; 
         margin-top: 0rem !important;
-        animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        animation: fadeInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
-    /* --- HEADER FIXO (GLASSMORPHISM) --- */
+    /* --- HEADER (ABSOLUTE) --- */
     .logo-container {
         display: flex; align-items: center; justify-content: flex-start; 
-        gap: 20px; 
-        position: fixed; /* VOLTOU PARA FIXED */
-        top: 0; left: 0; width: 100%; height: 100px;
-        background-color: rgba(247, 250, 252, 0.85); /* Fundo semi-transparente */
-        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); /* Efeito de vidro */
-        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-        z-index: 9999; 
-        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        gap: 15px; 
+        position: absolute; 
+        top: 0; left: 0; width: 100%; height: 80px; /* Altura reduzida */
+        background: linear-gradient(to bottom, #F7FAFC 0%, rgba(247, 250, 252, 0) 100%);
+        z-index: 9998; 
         padding-left: 40px;
+        padding-top: 10px;
     }
     .header-subtitle-text {
-        font-family: 'Nunito', sans-serif; font-weight: 600; font-size: 1.15rem;
-        color: #718096; border-left: 2px solid #CBD5E0; padding-left: 20px;
-        height: 50px; display: flex; align-items: center; letter-spacing: -0.3px;
+        font-family: 'Nunito', sans-serif; font-weight: 600; font-size: 1rem;
+        color: #718096; border-left: 2px solid #CBD5E0; padding-left: 15px;
+        height: 35px; display: flex; align-items: center; letter-spacing: -0.3px;
     }
-    .logo-icon-spin { height: 95px; width: auto; animation: spin 45s linear infinite; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); }
-    .logo-text-static { height: 50px; width: auto; }
+    /* Logo um pouco maior como pedido, mas header compacto */
+    .logo-icon-spin { height: 85px; width: auto; animation: spin 45s linear infinite; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+    .logo-text-static { height: 40px; width: auto; }
 
     /* Login Styles */
     .login-container { 
-        background-color: white; padding: 40px 40px 50px 40px; 
-        border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.08); 
+        background-color: white; padding: 30px; 
+        border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); 
         text-align: center; border: 1px solid #E2E8F0; 
-        max-width: 500px; margin: 0 auto; margin-top: 60px;
+        max-width: 450px; margin: 0 auto; margin-top: 40px;
         animation: fadeInUp 0.8s ease-out;
     }
-    .login-logo-spin { height: 100px; width: auto; animation: spin 45s linear infinite; margin-bottom: 10px; }
-    .login-logo-static { height: 60px; width: auto; margin-left: 10px; }
-    .logo-wrapper { display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
-    .manifesto-login { font-family: 'Nunito', sans-serif; font-size: 0.95rem; color: #64748B; font-style: italic; line-height: 1.6; margin-bottom: 30px; }
+    .login-logo-spin { height: 80px; width: auto; animation: spin 45s linear infinite; margin-bottom: 5px; }
+    .login-logo-static { height: 50px; width: auto; margin-left: 8px; }
+    .logo-wrapper { display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
+    .manifesto-login { font-family: 'Nunito', sans-serif; font-size: 0.85rem; color: #64748B; font-style: italic; line-height: 1.5; margin-bottom: 25px; }
     
-    /* Inputs */
-    .stTextInput input { border-radius: 12px !important; border: 1px solid #E2E8F0 !important; padding: 12px !important; background-color: #F8FAFC !important; }
-    .stTextInput input:focus { border-color: #3182CE !important; box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1); }
+    .stTextInput input { border-radius: 10px !important; border: 1px solid #E2E8F0 !important; padding: 10px !important; background-color: #F8FAFC !important; font-size: 0.9rem !important;}
     
-    /* --- BENTO GRID & CARDS --- */
-    
+    /* --- HERO COMPACTO --- */
     .dash-hero { 
         background: radial-gradient(circle at top right, #0F52BA, #062B61); 
-        border-radius: 20px; 
-        margin-bottom: 30px; 
+        border-radius: 16px; 
+        margin-bottom: 20px; /* Margem reduzida */
         margin-top: 10px;
-        box-shadow: 0 20px 40px -10px rgba(15, 82, 186, 0.4);
+        box-shadow: 0 10px 25px -5px rgba(15, 82, 186, 0.3);
         color: white; position: relative; overflow: hidden; 
-        padding: 40px 50px; 
+        padding: 25px 35px; /* Padding reduzido */
         display: flex; align-items: center; justify-content: flex-start;
         border: 1px solid rgba(255,255,255,0.1);
+        min-height: 100px;
     }
     .hero-title { 
         font-family: 'Inter', sans-serif; 
-        font-weight: 700; font-size: 1.8rem; 
-        margin: 0; line-height: 1.2; margin-bottom: 8px; 
+        font-weight: 700; font-size: 1.5rem; /* Fonte menor */
+        margin: 0; line-height: 1.1; margin-bottom: 5px; 
     }
     .hero-subtitle { 
         font-family: 'Inter', sans-serif; 
-        font-size: 1rem; opacity: 0.9; font-weight: 400; 
+        font-size: 0.9rem; opacity: 0.9; font-weight: 400; 
     }
-    .hero-bg-icon { position: absolute; right: 30px; font-size: 8rem; opacity: 0.05; top: 10px; transform: rotate(-10deg); }
+    .hero-bg-icon { position: absolute; right: 20px; font-size: 6rem; opacity: 0.05; top: 5px; transform: rotate(-10deg); }
 
+    /* --- CARDS FERRAMENTAS COMPACTOS --- */
     .tool-card { 
-        background: white; border-radius: 20px; padding: 25px 20px; 
-        box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #E2E8F0; 
+        background: white; border-radius: 16px; padding: 15px 15px; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid #E2E8F0; 
         height: 100%; display: flex; flex-direction: column; justify-content: space-between; 
         text-align: center; position: relative; overflow: hidden;
     }
-    .card-logo-box { height: 80px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
-    .card-logo-img { max-height: 75px; width: auto; object-fit: contain; }
-    .tool-desc-short { font-size: 0.9rem; color: #718096; font-weight: 500; margin-bottom: 20px; min-height: 40px; line-height: 1.4; }
+    .card-logo-box { height: 55px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+    .card-logo-img { max-height: 50px; width: auto; object-fit: contain; }
+    .tool-desc-short { font-size: 0.8rem; color: #718096; font-weight: 500; margin-bottom: 15px; min-height: 32px; line-height: 1.3; }
     
-    .border-blue { border-bottom: 5px solid #3182CE; } 
-    .border-purple { border-bottom: 5px solid #805AD5; } 
-    .border-teal { border-bottom: 5px solid #38B2AC; }
+    .border-blue { border-bottom: 4px solid #3182CE; } 
+    .border-purple { border-bottom: 4px solid #805AD5; } 
+    .border-teal { border-bottom: 4px solid #38B2AC; }
 
-    /* BENTO GRID */
+    /* --- BENTO GRID COMPACTO --- */
     .bento-grid { 
-        display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-        gap: 15px; margin-bottom: 30px; 
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+        gap: 12px; margin-bottom: 20px; /* Gap e margem reduzidos */
     }
     .bento-item { 
-        background: white; border-radius: 16px; padding: 20px; border: 1px solid #E2E8F0; 
-        box-shadow: 0 4px 6px rgba(0,0,0,0.01); text-decoration: none; color: inherit; 
+        background: white; border-radius: 14px; padding: 15px; border: 1px solid #E2E8F0; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.01); text-decoration: none; color: inherit; 
         display: flex; flex-direction: column; align-items: center; text-align: center; 
         position: relative; overflow: hidden; height: 100%; 
     }
     .bento-icon { 
-        width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; 
-        font-size: 1.4rem; margin-bottom: 12px; transition: transform 0.3s ease;
+        width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; 
+        font-size: 1.2rem; margin-bottom: 8px; transition: transform 0.3s ease;
     }
     .bento-item:hover .bento-icon { transform: scale(1.1) rotate(5deg); }
-    .bento-title { font-weight: 700; font-size: 0.95rem; color: #1A202C; margin-bottom: 4px; }
-    .bento-desc { font-size: 0.8rem; color: #718096; line-height: 1.3; }
+    .bento-title { font-weight: 700; font-size: 0.85rem; color: #1A202C; margin-bottom: 2px; }
+    .bento-desc { font-size: 0.75rem; color: #718096; line-height: 1.2; }
 
-    /* Insight Card */
+    /* --- INSIGHT CARD COMPACTO --- */
     .insight-card-end { 
         background: linear-gradient(135deg, #FFFBEB 0%, #FFFFFF 100%); 
-        border-radius: 16px; padding: 25px; 
-        color: #2D3748; display: flex; align-items: center; gap: 20px; 
-        box-shadow: 0 10px 25px rgba(214, 158, 46, 0.1); 
-        border: 1px solid rgba(214, 158, 46, 0.2); margin-bottom: 20px; 
+        border-radius: 14px; padding: 15px 20px; 
+        color: #2D3748; display: flex; align-items: center; gap: 15px; 
+        box-shadow: 0 5px 15px rgba(214, 158, 46, 0.08); 
+        border: 1px solid rgba(214, 158, 46, 0.2); margin-bottom: 15px; 
     }
     .insight-icon-end { 
-        font-size: 1.8rem; color: #D69E2E; background: rgba(214, 158, 46, 0.1); 
-        width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; color: #D69E2E; background: rgba(214, 158, 46, 0.1); 
+        width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
     }
+    
     .section-title { 
-        font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.3rem; 
-        color: #1A202C; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; margin-top: 40px; 
+        font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.1rem; 
+        color: #1A202C; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; margin-top: 25px; 
     }
 
-    /* Hide Default Streamlit Elements */
+    /* Ocultar */
     [data-testid="stHeader"] { visibility: hidden !important; height: 0px !important; }
     [data-testid="stToolbar"] { visibility: hidden !important; display: none !important; }
 </style>
@@ -203,29 +199,30 @@ st.markdown(css_estatico, unsafe_allow_html=True)
 st.markdown(f"""
 <style>
     .omni-badge {{
-        position: fixed; top: 20px; right: 20px;
+        position: fixed; top: 15px; right: 15px;
         background: {card_bg}; border: 1px solid {card_border};
         backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        padding: 6px 20px; min-width: 180px; border-radius: 14px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.06); z-index: 999990;
+        padding: 5px 15px; min-width: 150px; border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06); z-index: 999990;
         display: flex; align-items: center; justify-content: center;
         pointer-events: none; transition: transform 0.3s ease;
     }}
     .omni-text {{
-        font-family: 'Inter', sans-serif; font-weight: 800; font-size: 0.65rem;
-        color: #2D3748; letter-spacing: 2px; text-transform: uppercase;
+        font-family: 'Inter', sans-serif; font-weight: 800; font-size: 0.6rem;
+        color: #2D3748; letter-spacing: 1.5px; text-transform: uppercase;
     }}
     footer {{ visibility: {footer_visibility} !important; }}
     
+    /* Botões Pequenos e Elegantes */
     div[data-testid="column"] .stButton button {{
-        width: 100%; border-radius: 12px !important; border: none !important;
-        font-family: 'Inter', sans-serif; font-weight: 700 !important; font-size: 0.9rem !important;
-        padding: 12px 0; transition: all 0.3s ease;
+        width: 100%; border-radius: 10px !important; border: none !important;
+        font-family: 'Inter', sans-serif; font-weight: 700 !important; font-size: 0.85rem !important;
+        padding: 8px 0; transition: all 0.3s ease; height: 38px !important;
         background-color: #F1F5F9; color: #475569;
     }}
     div[data-testid="column"] .stButton button:hover {{ 
         background-color: #3182CE !important; color: white !important; 
-        box-shadow: 0 8px 15px rgba(49, 130, 206, 0.25); transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(49, 130, 206, 0.25); transform: translateY(-1px);
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -239,7 +236,6 @@ def sistema_seguranca():
 
     if not st.session_state["autenticado"]:
         
-        # Oculta sidebar no login
         st.markdown("""
         <style>
             section[data-testid="stSidebar"] { display: none !important; }
@@ -253,9 +249,9 @@ def sistema_seguranca():
         st.markdown(f"""
         <style>
             div.stButton > button {{
-                background-color: {btn_color} !important; color: white !important; height: 50px !important;
+                background-color: {btn_color} !important; color: white !important; height: 45px !important; font-size: 0.9rem !important;
             }}
-            .login-container {{ border-color: #E2E8F0 !important; }} /* Garante borda cinza limpa */
+            .login-container {{ border-color: #E2E8F0 !important; }}
         </style>
         """, unsafe_allow_html=True)
 
@@ -267,7 +263,6 @@ def sistema_seguranca():
             icone_b64_login = get_base64_image("omni_icone.png")
             texto_b64_login = get_base64_image("omni_texto.png")
             
-            # LOGO LOGIN - APENAS LOGO E TEXTO CENTRALIZADOS
             if icone_b64_login and texto_b64_login:
                 st.markdown(f"""
                 <div class="logo-wrapper">
@@ -284,14 +279,14 @@ def sistema_seguranca():
                     nome_user = st.text_input("nome_fake", placeholder="Nome", label_visibility="collapsed")
                     cargo_user = st.text_input("cargo_fake", placeholder="Cargo", label_visibility="collapsed")
             else:
-                st.markdown("<div style='text-align:left; font-weight:700; color:#475569; font-size:0.9rem; margin-bottom:5px;'>Identificação</div>", unsafe_allow_html=True)
+                st.markdown("<div style='text-align:left; font-weight:700; color:#475569; font-size:0.85rem; margin-bottom:5px;'>Identificação</div>", unsafe_allow_html=True)
                 nome_user = st.text_input("nome_real", placeholder="Seu Nome", label_visibility="collapsed")
-                st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
                 cargo_user = st.text_input("cargo_real", placeholder="Seu Cargo", label_visibility="collapsed")
                 st.markdown("---")
-                st.caption("ℹ️ Software em fase Beta. Uso restrito.")
+                st.caption("ℹ️ Software em fase Beta.")
                 concordo = st.checkbox("Concordo com os termos.")
-                st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
                 senha = st.text_input("senha_real", type="password", placeholder="Senha", label_visibility="collapsed")
 
             st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
@@ -327,7 +322,7 @@ if not sistema_seguranca(): st.stop()
 # CARD OMNISFERA (Canto Direito)
 st.markdown(f"""<div class="omni-badge hover-spring"><span class="omni-text">{display_text}</span></div>""", unsafe_allow_html=True)
 
-# HEADER LOGO (SÓ APARECE AGORA E FIXO)
+# HEADER LOGO (ABSOLUTE)
 icone_b64 = get_base64_image("omni_icone.png")
 texto_b64 = get_base64_image("omni_texto.png")
 
@@ -350,7 +345,7 @@ if 'OPENAI_API_KEY' in st.secrets:
     try:
         if 'banner_msg' not in st.session_state:
             client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
-            res = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": f"Frase inspiradora curta para {nome_display} sobre inclusão."}])
+            res = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": f"Frase inspiradora muito curta para {nome_display} sobre inclusão."}])
             st.session_state['banner_msg'] = res.choices[0].message.content
         mensagem_banner = st.session_state['banner_msg']
     except: pass
@@ -362,13 +357,13 @@ with st.sidebar:
         st.caption(f"{st.session_state['usuario_cargo']}")
         st.markdown("---")
 
-    st.markdown("### 📢 Central de Feedback")
+    st.markdown("### 📢 Feedback")
     tipo = st.selectbox("Tipo:", ["Sugestão", "Erro", "Elogio"])
-    msg = st.text_area("Mensagem:", height=100)
+    msg = st.text_area("Mensagem:", height=80)
     if st.button("Enviar"):
         if msg: st.toast("Enviado!", icon="✅"); time.sleep(1)
 
-# --- HERO SECTION ---
+# --- HERO SECTION COMPACTO ---
 st.markdown(f"""
 <div class="dash-hero hover-spring">
     <div class="hero-text-block">
@@ -379,7 +374,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# FERRAMENTAS
+# FERRAMENTAS COMPACTAS
 st.markdown("<div class='section-title'><i class='ri-cursor-fill'></i> Acesso Rápido</div>", unsafe_allow_html=True)
 
 logo_pei = get_base64_image("360.png")
@@ -389,55 +384,51 @@ logo_hub = get_base64_image("hub.png")
 c1, c2, c3 = st.columns(3)
 
 with c1:
-    img = f'<img src="data:image/png;base64,{logo_pei}" class="card-logo-img">' if logo_pei else '<i class="ri-book-read-line" style="font-size:4rem; color:#3182CE;"></i>'
-    st.markdown(f"""<div class="tool-card border-blue hover-spring"><div class="card-logo-box">{img}</div><div class="tool-desc-short">Plano de Ensino Individualizado Oficial.</div></div>""", unsafe_allow_html=True)
+    img = f'<img src="data:image/png;base64,{logo_pei}" class="card-logo-img">' if logo_pei else '<i class="ri-book-read-line" style="font-size:3rem; color:#3182CE;"></i>'
+    st.markdown(f"""<div class="tool-card border-blue hover-spring"><div class="card-logo-box">{img}</div><div class="tool-desc-short">Plano de Ensino Individualizado.</div></div>""", unsafe_allow_html=True)
     if st.button("➜ Acessar PEI", use_container_width=True): st.switch_page("pages/1_PEI.py")
 
 with c2:
-    img = f'<img src="data:image/png;base64,{logo_paee}" class="card-logo-img">' if logo_paee else '<i class="ri-puzzle-line" style="font-size:4rem; color:#805AD5;"></i>'
-    st.markdown(f"""<div class="tool-card border-purple hover-spring"><div class="card-logo-box">{img}</div><div class="tool-desc-short">Sala de Recursos e Tecnologias Assistivas.</div></div>""", unsafe_allow_html=True)
+    img = f'<img src="data:image/png;base64,{logo_paee}" class="card-logo-img">' if logo_paee else '<i class="ri-puzzle-line" style="font-size:3rem; color:#805AD5;"></i>'
+    st.markdown(f"""<div class="tool-card border-purple hover-spring"><div class="card-logo-box">{img}</div><div class="tool-desc-short">Sala de Recursos e Tecnologia.</div></div>""", unsafe_allow_html=True)
     if st.button("➜ Acessar PAEE", use_container_width=True): st.switch_page("pages/2_PAE.py")
 
 with c3:
-    img = f'<img src="data:image/png;base64,{logo_hub}" class="card-logo-img">' if logo_hub else '<i class="ri-rocket-line" style="font-size:4rem; color:#38B2AC;"></i>'
-    st.markdown(f"""<div class="tool-card border-teal hover-spring"><div class="card-logo-box">{img}</div><div class="tool-desc-short">Adaptação automática de provas e criação de roteiros.</div></div>""", unsafe_allow_html=True)
+    img = f'<img src="data:image/png;base64,{logo_hub}" class="card-logo-img">' if logo_hub else '<i class="ri-rocket-line" style="font-size:3rem; color:#38B2AC;"></i>'
+    st.markdown(f"""<div class="tool-card border-teal hover-spring"><div class="card-logo-box">{img}</div><div class="tool-desc-short">Adaptação de provas e roteiros.</div></div>""", unsafe_allow_html=True)
     if st.button("➜ Acessar Hub", use_container_width=True): st.switch_page("pages/3_Hub_Inclusao.py")
 
-# BENTO GRID (BASE DE CONHECIMENTO - RESTAURADO)
-st.markdown("<div class='section-title'><i class='ri-book-mark-fill'></i> Base de Conhecimento</div>", unsafe_allow_html=True)
+# BENTO GRID (LINKS RÁPIDOS)
+st.markdown("<div class='section-title'><i class='ri-book-mark-fill'></i> Conhecimento</div>", unsafe_allow_html=True)
 
 st.markdown("""
 <div class="bento-grid">
     <a href="#" class="bento-item hover-spring">
         <div class="bento-icon" style="background:#EBF8FF; color:#3182CE;"><i class="ri-question-answer-line"></i></div>
         <div class="bento-title">PEI vs PAEE</div>
-        <div class="bento-desc">Diferenças fundamentais.</div>
     </a>
     <a href="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm" target="_blank" class="bento-item hover-spring">
         <div class="bento-icon" style="background:#FFFFF0; color:#D69E2E;"><i class="ri-scales-3-line"></i></div>
         <div class="bento-title">Legislação</div>
-        <div class="bento-desc">LBI e Decretos.</div>
     </a>
     <a href="https://institutoneurosaber.com.br/" target="_blank" class="bento-item hover-spring">
         <div class="bento-icon" style="background:#FFF5F7; color:#D53F8C;"><i class="ri-brain-line"></i></div>
         <div class="bento-title">Neurociência</div>
-        <div class="bento-desc">Desenvolvimento atípico.</div>
     </a>
     <a href="http://basenacionalcomum.mec.gov.br/" target="_blank" class="bento-item hover-spring">
         <div class="bento-icon" style="background:#F0FFF4; color:#38A169;"><i class="ri-compass-3-line"></i></div>
         <div class="bento-title">BNCC</div>
-        <div class="bento-desc">Currículo oficial.</div>
     </a>
 </div>
 """, unsafe_allow_html=True)
 
-# INSIGHT DO DIA (RESTAURADO)
-noticia_insight = "A aprendizagem acontece quando o cérebro se emociona. Crie vínculos antes de cobrar conteúdos."
+# INSIGHT DO DIA
+noticia_insight = "A aprendizagem acontece quando o cérebro se emociona."
 if 'OPENAI_API_KEY' in st.secrets:
     try:
         if 'insight_dia' not in st.session_state:
             client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
-            res = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": "Dica de 1 frase sobre neurociência para professores."}])
+            res = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": "Dica de 1 frase curta sobre neurociência."}])
             st.session_state['insight_dia'] = res.choices[0].message.content
         noticia_insight = st.session_state['insight_dia']
     except: pass
@@ -446,10 +437,10 @@ st.markdown(f"""
 <div class="insight-card-end hover-spring">
     <div class="insight-icon-end"><i class="ri-lightbulb-flash-line"></i></div>
     <div>
-        <div style="font-weight: 800; font-size: 0.95rem; color: #D69E2E; letter-spacing: 0.5px; text-transform: uppercase;">Insight do Dia</div>
-        <p style="margin:5px 0 0 0; font-size:1.05rem; opacity:0.9; color:#4A5568; font-style: italic; font-weight: 500;">"{noticia_insight}"</p>
+        <div style="font-weight: 800; font-size: 0.8rem; color: #D69E2E; letter-spacing: 0.5px; text-transform: uppercase;">Insight do Dia</div>
+        <p style="margin:2px 0 0 0; font-size:0.9rem; opacity:0.9; color:#4A5568; font-style: italic;">"{noticia_insight}"</p>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("<div style='text-align: center; color: #CBD5E0; font-size: 0.8rem; margin-top: 60px;'>Criado e Desenvolvido por Rodrigo A. Queiroz</div>", unsafe_allow_html=True)
+st.markdown("<div style='text-align: center; color: #CBD5E0; font-size: 0.7rem; margin-top: 40px;'>Criado e Desenvolvido por Rodrigo A. Queiroz</div>", unsafe_allow_html=True)
