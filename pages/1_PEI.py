@@ -1008,6 +1008,7 @@ with tab8:
             "application/pdf",
             use_container_width=True
         )
+
         docx = gerar_docx_final(st.session_state.dados)
         st.download_button(
             "Baixar Word Editável",
@@ -1018,15 +1019,15 @@ with tab8:
         )
 
         st.markdown("#### 💾 Salvar no Supabase")
-        if st.button("Salvar agora", type="primary"):
+        if st.button("Salvar agora", type="primary", use_container_width=True):
             with st.spinner("Salvando..."):
                 supa_save_pei(student_id, st.session_state.dados, st.session_state.get("pdf_text", ""))
                 supa_sync_student_from_dados(student_id, st.session_state.dados)
             st.success("Salvo ✅")
     else:
-        st.info("Gere o Plano na aba Consultoria IA para liberar o download
+        st.info("Gere o Plano na aba Consultoria IA para liberar o download")
 
-        # ==============================================================================
+# ==============================================================================
 # 23. ABA JORNADA GAMIFICADA
 # ==============================================================================
 with tab_mapa:
@@ -1089,7 +1090,6 @@ with tab_mapa:
             st.markdown("#### 💾 Salvar Jornada no Supabase")
             if st.button("Salvar Jornada agora", type="primary", use_container_width=True):
                 with st.spinner("Salvando..."):
-                    # salva junto no mesmo payload do PEI (campo ia_mapa_texto)
                     supa_save_pei(student_id, st.session_state.dados, st.session_state.get("pdf_text", ""))
                     supa_sync_student_from_dados(student_id, st.session_state.dados)
                 st.success("Jornada salva ✅")
@@ -1103,4 +1103,3 @@ st.markdown(
     "<div class='footer-signature'>PEI 360º v116.0 Gold Edition - Desenvolvido por Rodrigo A. Queiroz</div>",
     unsafe_allow_html=True
 )
-
