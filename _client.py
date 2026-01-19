@@ -1,63 +1,67 @@
 # _client.py
+from __future__ import annotations
+
 import streamlit as st
 from supabase import create_client, Client
 
 
-def _get_supabase_url_key():
-    """
-    Lê SUPABASE_URL e SUPABASE_ANON_KEY de:
-    - st.secrets (Streamlit Cloud)
-    - ou variáveis de ambiente (local)
-    """
-    url = None
-    key = None
-
-    try:
-        url = st.secrets.get("SUPABASE_URL")
-        key = st.secrets.get("SUPABASE_ANON_KEY")
-    except Exception:
-        pass
-
+def _get_supabase_url() -> str:
+    url = st.secrets.get("SUPABASE_URL", "")
     if not url:
-        import os
-        url = os.getenv("SUPABASE_URL")
+        raise ValueError("SUPABASE_URL não está definido em st.secrets.")
+    return url
+
+
+def _get_supabase_anon_key() -> str:
+    key = st.secrets.get("SUPABASE_ANON_KEY", "")
     if not key:
-        import os
-        key = os.getenv("SUPABASE_ANON_KEY")
-
-    if not url or not key:
-        raise RuntimeError("SUPABASE_URL / SUPABASE_ANON_KEY não encontrados em secrets ou env.")
-
-    return url, key
+        raise ValueError("SUPABASE_ANON_KEY não está definido em st.secrets.")
+    return key
 
 
-@st.cache_resource
-def get_supabase_client() -> Client:
-    url, key = _get_supabase_url_key()
-    return create_client(url, key)
+def get_supabase_admin() -> Client:
+    """
+    Client SEM JWT (apenas anon). Útil para operações públicas (se houver) ou checagens.
+    """
+    return create_client(_get_supabase_url(), _get_supabase_anon_key())
 
 
 def get_supabase_user(jwt: str) -> Client:
     """
-    Retorna um client com o JWT do usuário (RLS / auth).
+    Client COM JWT do usuário.
+    Em vez de sb.auth.set_auth(jwt) (que quebra dependendo da versão),
+    criamos um client e injetamos o header Authorization: Bearer <jwt>.
+    Isso faz o PostgREST respeitar RLS com o usuário autenticado.
     """
-    sb = get_supabase_client()
-    sb.postgrest.auth(jwt)
-    sb.auth.set_auth(jwt)
-    return sb
+    if not jwt:
+        raise ValueError("JWT vazio em get_supabase_user(jwt).")
 
+    sb = create_client(_get_supabase_url(), _get_supabase_anon_key())
 
-def supabase_sign_in(email: str, password: str):
-    """
-    Login email/senha no Supabase Auth.
-    """
-    sb = get_supabase_client()
-    return sb.auth.sign_in_with_password({"email": email, "password": password})
+    # Injeta Authorization header no cliente (compatível com versões diferentes do supabase-py)
+    try:
+        # versões que expõem postgrest diretamente
+        sb.postgrest.auth(jwt)
+        return sb
+    except Exception:
+        pass
 
+    # Fallback: setar headers manualmente (depende da estrutura interna)
+    try:
+        sb.postgrest.session.headers.update({"Authorization": f"Bearer {jwt}"})
+        return sb
+    except Exception:
+        pass
 
-def supabase_sign_up(email: str, password: str):
-    """
-    Cria usuário no Supabase Auth (email/senha).
-    """
-    sb = get_supabase_client()
-    return sb.auth.sign_up({"email": email, "password": password})
+    # Último fallback: tentar options/headers globais se existirem
+    try:
+        sb.options.headers.update({"Authorization": f"Bearer {jwt}"})
+        return sb
+    except Exception:
+        pass
+
+    # Se chegou aqui, a lib mudou muito
+    raise RuntimeError(
+        "Não consegui aplicar o JWT no supabase client. "
+        "Verifique a versão do pacote supabase instalada no Streamlit Cloud."
+    )
