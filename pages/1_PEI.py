@@ -1397,67 +1397,86 @@ with tab3:
     render_progresso()
     st.markdown("### <i class='ri-team-line'></i> Rede de Apoio", unsafe_allow_html=True)
 
-    default_prof = [x for x in (st.session_state.dados.get("rede_apoio") or []) if x in LISTA_PROFISSIONAIS]
-    st.session_state.dados["rede_apoio"] = st.multiselect(
-        "Profissionais envolvidos:",
+    # Garantias (caso algo não tenha entrado no default_state)
+    st.session_state.dados.setdefault("rede_apoio", [])
+    st.session_state.dados.setdefault("orientacoes_especialistas", "")
+    st.session_state.dados.setdefault("orientacoes_por_profissional", {})
+
+    st.caption("Selecione os profissionais envolvidos e registre as orientações específicas de cada um.")
+
+    # 1) Seleção da rede
+    selecionados = st.multiselect(
+        "Profissionais:",
         LISTA_PROFISSIONAIS,
-        default=default_prof,
+        default=[p for p in st.session_state.dados.get("rede_apoio", []) if p in LISTA_PROFISSIONAIS],
+        help="Ao selecionar um profissional, um campo de observação individual aparece abaixo."
     )
+    st.session_state.dados["rede_apoio"] = selecionados
 
-    if st.session_state.dados["rede_apoio"]:
-        st.markdown("##### Visão rápida")
-        cols = st.columns(3)
-        for i, p in enumerate(st.session_state.dados["rede_apoio"]):
-            cols[i % 3].markdown(f"- {get_pro_icon(p)} **{p}**")
-
-# ==============================================================================
-# 15. ABA MAPEAMENTO (COMPLETA: hiperfoco + potências + barreiras + nível de suporte)
-# ==============================================================================
-with tab4:
-    render_progresso()
-    st.markdown("### <i class='ri-radar-line'></i> Mapeamento", unsafe_allow_html=True)
-
-    c1, c2 = st.columns(2)
-    st.session_state.dados["hiperfoco"] = c1.text_input("Hiperfoco", st.session_state.dados.get("hiperfoco", ""))
-    emoji = get_hiperfoco_emoji(st.session_state.dados.get("hiperfoco"))
-    c1.caption(f"{emoji} Use o hiperfoco como alavanca de engajamento.")
-
-    default_pot = [x for x in (st.session_state.dados.get("potencias") or []) if x in LISTA_POTENCIAS]
-    st.session_state.dados["potencias"] = c2.multiselect("Potencialidades", LISTA_POTENCIAS, default=default_pot)
+    # 2) Limpeza automática de chaves que não existem mais
+    # (se o usuário desmarcar um profissional, removemos o texto dele do dicionário)
+    orient_map = st.session_state.dados.get("orientacoes_por_profissional", {})
+    orient_map = {k: v for k, v in orient_map.items() if k in selecionados}
+    st.session_state.dados["orientacoes_por_profissional"] = orient_map
 
     st.divider()
-    st.markdown("##### Barreiras (CIF) + Nível de Suporte")
 
-    for area, itens in LISTAS_BARREIRAS.items():
-        with st.container(border=True):
-            st.markdown(f"**{area}**")
+    # 3) Campo geral (opcional) — mantém compatibilidade com o legado
+    with st.expander("🗒️ Anotações gerais (opcional)", expanded=False):
+        st.session_state.dados["orientacoes_especialistas"] = st.text_area(
+            "Orientações clínicas gerais / resumo",
+            st.session_state.dados.get("orientacoes_especialistas", ""),
+            placeholder="Use para observações gerais da equipe (ex.: acordos com a família, encaminhamentos, alinhamentos).",
+            height=140,
+            key="txt_orientacoes_gerais_rede"
+        )
 
-            selecionadas = st.multiselect(
-                "Barreiras",
-                itens,
-                default=st.session_state.dados["barreiras_selecionadas"].get(area, []),
-                key=f"bar_{area}",
-            )
-            st.session_state.dados["barreiras_selecionadas"][area] = selecionadas
+    # 4) Campos individuais por profissional
+    st.markdown("#### 📌 Orientações por profissional")
+    if not selecionados:
+        st.info("Selecione ao menos um profissional para habilitar os campos de observação.")
+    else:
+        # Layout em cards (2 colunas)
+        cols = st.columns(2)
+        for i, prof in enumerate(selecionados):
+            alvo = cols[i % 2]
+            with alvo:
+                icon = get_pro_icon(prof) if "get_pro_icon" in globals() else "👤"
+                with st.container(border=True):
+                    st.markdown(f"**{icon} {prof}**")
 
-            if selecionadas:
-                st.caption("Defina o nível de suporte para cada barreira selecionada:")
-            for b in selecionadas:
-                st.session_state.dados["niveis_suporte"][f"{area}_{b}"] = st.select_slider(
-                    f"Nível de suporte — {b}",
-                    ["Autônomo", "Monitorado", "Substancial", "Muito Substancial"],
-                    value=st.session_state.dados["niveis_suporte"].get(f"{area}_{b}", "Monitorado"),
-                    key=f"sup_{area}_{b}",
-                )
+                    st.session_state.dados["orientacoes_por_profissional"].setdefault(prof, "")
+
+                    st.session_state.dados["orientacoes_por_profissional"][prof] = st.text_area(
+                        "Observações / orientações",
+                        value=st.session_state.dados["orientacoes_por_profissional"].get(prof, ""),
+                        placeholder="Ex.: recomendações de intervenção, frequência, sinais de alerta, ajustes para sala de aula...",
+                        height=140,
+                        key=f"txt_orient_{prof}"
+                    )
+
+                    c1, c2 = st.columns([1, 1])
+                    if c1.button("🧹 Limpar", use_container_width=True, key=f"btn_limpar_{prof}"):
+                        st.session_state.dados["orientacoes_por_profissional"][prof] = ""
+                        st.rerun()
+
+                    if c2.button("🗑️ Remover profissional", use_container_width=True, key=f"btn_remove_{prof}"):
+                        # remove do multiselect
+                        st.session_state.dados["rede_apoio"] = [x for x in st.session_state.dados["rede_apoio"] if x != prof]
+                        # remove do dicionário
+                        st.session_state.dados["orientacoes_por_profissional"].pop(prof, None)
+                        st.rerun()
 
     st.divider()
-    nivel, bg, cor = calcular_complexidade_pei(st.session_state.dados)
-    st.markdown(
-        f"<div style='background:{bg}; border:1px solid #E2E8F0; padding:14px; border-radius:14px;'>"
-        f"<b>Complexidade do PEI:</b> <span style='color:{cor}; font-weight:900;'>{nivel}</span>"
-        f"</div>",
-        unsafe_allow_html=True,
-    )
+
+    # 5) Resumo visual rápido
+    if selecionados:
+        resumo = []
+        for p in selecionados:
+            txt = (st.session_state.dados["orientacoes_por_profissional"].get(p) or "").strip()
+            resumo.append(f"- **{p}**: {'✅ preenchido' if txt else '⚠️ vazio'}")
+        st.markdown("##### ✅ Checklist de preenchimento")
+        st.markdown("\n".join(resumo))
 
 
 # ==============================================================================
