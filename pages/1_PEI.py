@@ -212,6 +212,9 @@ if 'pdf_text' not in st.session_state:
 # Estado do vínculo com Supabase (só após sincronizar)
 st.session_state.setdefault("selected_student_id", None)
 st.session_state.setdefault("selected_student_name", "")
+st.session_state.dados.setdefault("meds_extraidas_tmp", [])
+st.session_state.dados.setdefault("status_meds_extraidas", "idle")
+
 
 # ==============================================================================
 # 6. SUPABASE: carregar/salvar PEI (pei_documents) - SÓ QUANDO VINCULADO
