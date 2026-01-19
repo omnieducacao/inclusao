@@ -1025,3 +1025,82 @@ with tab8:
             st.success("Salvo ✅")
     else:
         st.info("Gere o Plano na aba Consultoria IA para liberar o download
+
+        # ==============================================================================
+# 23. ABA JORNADA GAMIFICADA
+# ==============================================================================
+with tab_mapa:
+    render_progresso()
+    st.markdown("### <i class='ri-gamepad-line'></i> Jornada Gamificada", unsafe_allow_html=True)
+    st.caption("Cria um roteiro lúdico para o estudante, baseado nas potências/interesses e no PEI gerado.")
+
+    if not st.session_state.dados.get("ia_sugestao"):
+        st.info("Primeiro gere o PEI na aba **Consultoria IA** para liberar a Jornada Gamificada.")
+    else:
+        st.markdown("#### 🎯 Preferências da Jornada")
+        feedback_mapa = st.text_area(
+            "Se quiser, peça ajustes (tom, tema, formato, etc.)",
+            value=st.session_state.dados.get("feedback_ajuste_game", ""),
+            placeholder="Ex: usar metáforas de futebol, deixar mais curto, linguagem mais infantil..."
+        )
+        st.session_state.dados["feedback_ajuste_game"] = feedback_mapa
+
+        colA, colB = st.columns([1, 1])
+        with colA:
+            if st.button("🧩 Gerar Jornada", type="primary", use_container_width=True):
+                with st.spinner("Gerando Jornada Gamificada..."):
+                    roteiro, err = gerar_roteiro_gamificado(
+                        api_key=api_key,
+                        dados=st.session_state.dados,
+                        pei_texto=st.session_state.dados.get("ia_sugestao", ""),
+                        feedback=feedback_mapa or ""
+                    )
+                if roteiro:
+                    st.session_state.dados["ia_mapa_texto"] = roteiro
+                    st.session_state.dados["status_validacao_game"] = "revisao"
+                    st.success("Jornada gerada ✅")
+                    st.rerun()
+                else:
+                    st.error(f"Erro ao gerar: {err}")
+
+        with colB:
+            if st.button("🧹 Limpar Jornada", use_container_width=True):
+                st.session_state.dados["ia_mapa_texto"] = ""
+                st.session_state.dados["status_validacao_game"] = "rascunho"
+                st.rerun()
+
+        st.divider()
+
+        if st.session_state.dados.get("ia_mapa_texto"):
+            st.markdown("#### 🗺️ Roteiro Gerado")
+            st.write(st.session_state.dados["ia_mapa_texto"])
+
+            st.markdown("#### 📄 Exportar Jornada (PDF simples)")
+            pdf_mapa = gerar_pdf_tabuleiro_simples(st.session_state.dados["ia_mapa_texto"])
+            st.download_button(
+                "Baixar Jornada em PDF",
+                pdf_mapa,
+                f"Jornada_{st.session_state.dados.get('nome','Aluno')}.pdf",
+                "application/pdf",
+                use_container_width=True
+            )
+
+            st.divider()
+            st.markdown("#### 💾 Salvar Jornada no Supabase")
+            if st.button("Salvar Jornada agora", type="primary", use_container_width=True):
+                with st.spinner("Salvando..."):
+                    # salva junto no mesmo payload do PEI (campo ia_mapa_texto)
+                    supa_save_pei(student_id, st.session_state.dados, st.session_state.get("pdf_text", ""))
+                    supa_sync_student_from_dados(student_id, st.session_state.dados)
+                st.success("Jornada salva ✅")
+        else:
+            st.info("Clique em **Gerar Jornada** para criar o roteiro.")
+
+# ==============================================================================
+# 24. FOOTER
+# ==============================================================================
+st.markdown(
+    "<div class='footer-signature'>PEI 360º v116.0 Gold Edition - Desenvolvido por Rodrigo A. Queiroz</div>",
+    unsafe_allow_html=True
+)
+
