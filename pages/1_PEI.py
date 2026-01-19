@@ -1480,7 +1480,7 @@ with tab3:
 
 
 # ==============================================================================
-# 15. ABA MAPEAMENTO (Hiperfoco + Potências + Barreiras + Nível de Suporte)
+# 15. ABA MAPEAMENTO (Hiperfoco + Potências + Barreiras + Nível de Suporte | 3 colunas)
 # ==============================================================================
 with tab4:
     render_progresso()
@@ -1518,12 +1518,11 @@ with tab4:
     st.divider()
 
     # =========================
-    # 2) BARREIRAS (DIVIDIDAS POR DOMÍNIO) + NÍVEL DE SUPORTE
+    # 2) BARREIRAS + NÍVEL DE SUPORTE (3 COLUNAS)
     # =========================
     st.markdown("#### 🧩 Barreiras e Nível de Suporte (CIF)")
     st.caption("Selecione as barreiras observadas e indique o suporte necessário para cada uma.")
 
-    # Função auxiliar para renderizar um domínio inteiro (multiselect + sliders)
     def render_dominio_barreiras(dominio: str, opcoes: list[str]):
         with st.container(border=True):
             st.markdown(f"**{dominio}**")
@@ -1543,6 +1542,7 @@ with tab4:
             if selecionadas:
                 st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
                 st.markdown("**Nível de suporte por barreira**")
+
                 for b in selecionadas:
                     chave = f"{dominio}_{b}"
                     st.session_state.dados["niveis_suporte"].setdefault(chave, "Monitorado")
@@ -1554,37 +1554,32 @@ with tab4:
                         key=f"sl_{dominio}_{b}"
                     )
 
-    # Layout em 2 colunas (como ficava bonito antes)
-    colL, colR = st.columns(2)
+    # Domínios em 3 colunas (como era antes)
+    c_bar1, c_bar2, c_bar3 = st.columns(3)
 
-    # Ordem sugerida (boa leitura)
-    dominios_ordenados = [
-        "Funções Cognitivas",
-        "Comunicação e Linguagem",
-        "Socioemocional",
-        "Sensorial e Motor",
-        "Acadêmico",
-    ]
+    # Distribuição recomendada (equilibrada)
+    col_map = {
+        "Funções Cognitivas": c_bar1,
+        "Sensorial e Motor": c_bar1,
+        "Comunicação e Linguagem": c_bar2,
+        "Acadêmico": c_bar2,
+        "Socioemocional": c_bar3,
+    }
 
-    # Render em colunas alternadas
-    for idx, dom in enumerate(dominios_ordenados):
-        opcoes = LISTAS_BARREIRAS.get(dom, [])
-        alvo = colL if idx % 2 == 0 else colR
-        with alvo:
-            render_dominio_barreiras(dom, opcoes)
+    for dominio, col in col_map.items():
+        with col:
+            render_dominio_barreiras(dominio, LISTAS_BARREIRAS.get(dominio, []))
 
     # =========================
-    # 3) LIMPEZA AUTOMÁTICA (remover níveis de barreiras desmarcadas)
+    # 3) LIMPEZA AUTOMÁTICA (remove níveis de barreiras desmarcadas)
     # =========================
-    # Chaves válidas atuais
     chaves_validas = set()
     for dom, itens in st.session_state.dados["barreiras_selecionadas"].items():
         for b in itens:
             chaves_validas.add(f"{dom}_{b}")
 
     niveis = st.session_state.dados.get("niveis_suporte", {})
-    niveis_limpo = {k: v for k, v in niveis.items() if k in chaves_validas}
-    st.session_state.dados["niveis_suporte"] = niveis_limpo
+    st.session_state.dados["niveis_suporte"] = {k: v for k, v in niveis.items() if k in chaves_validas}
 
     st.divider()
 
@@ -1622,7 +1617,6 @@ with tab4:
                     chave = f"{dom}_{b}"
                     nivel = st.session_state.dados["niveis_suporte"].get(chave, "Monitorado")
                     st.markdown(f"- {b} → **{nivel}**")
-
 
 
 # ==============================================================================
