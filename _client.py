@@ -1,93 +1,51 @@
+# _client.py
+from __future__ import annotations
+
 import streamlit as st
-from functools import lru_cache
-
-# supabase-py v2+
 from supabase import create_client
-
-# Alguns ambientes têm ClientOptions; outros não.
-try:
-    from supabase import ClientOptions  # type: ignore
-except Exception:
-    ClientOptions = None
+from supabase.client import ClientOptions
 
 
-def _get_secret(key: str, default=None):
-    try:
-        return st.secrets.get(key, default)
-    except Exception:
-        return default
+def _get_env(name: str) -> str:
+    v = st.secrets.get(name)
+    if not v:
+        raise RuntimeError(f"Secret ausente: {name}")
+    return v
 
 
-@lru_cache(maxsize=4)
-def get_supabase_anon():
+def supabase_login(email: str, password: str) -> dict:
     """
-    Cliente padrão (anon). Útil para leituras/escritas quando a tabela NÃO exige auth via RLS,
-    ou quando você ainda não está passando JWT do usuário.
+    Faz login no Supabase Auth e retorna:
+      {
+        "access_token": "...",
+        "user_id": "...",
+        "email": "..."
+      }
     """
-    url = _get_secret("SUPABASE_URL")
-    anon = _get_secret("SUPABASE_ANON_KEY")
+    url = _get_env("SUPABASE_URL")
+    anon_key = _get_env("SUPABASE_ANON_KEY")
 
-    if not url or not anon:
-        raise RuntimeError(
-            "Supabase não configurado. Verifique em Secrets: SUPABASE_URL e SUPABASE_ANON_KEY"
-        )
+    sb = create_client(url, anon_key)
+    res = sb.auth.sign_in_with_password({"email": email, "password": password})
 
-    return create_client(url, anon)
+    if not res or not res.session or not res.user:
+        raise RuntimeError("Falha no login do Supabase (resposta vazia).")
+
+    return {
+        "access_token": res.session.access_token,
+        "user_id": res.user.id,
+        "email": res.user.email,
+    }
 
 
-@lru_cache(maxsize=4)
-def get_supabase_admin():
+def get_supabase_user(jwt: str):
     """
-    Cliente admin (SERVICE ROLE). Use só se você souber o que está fazendo.
-    (Ideal para rotinas internas/ETL; cuidado com segurança).
+    Cria um client Supabase autenticado como usuário (JWT).
+    Use isso no PEI para .table(...).select/insert/update.
     """
-    url = _get_secret("SUPABASE_URL")
-    service = _get_secret("SUPABASE_SERVICE_ROLE_KEY")
+    url = _get_env("SUPABASE_URL")
+    anon_key = _get_env("SUPABASE_ANON_KEY")
 
-    if not url or not service:
-        raise RuntimeError(
-            "Supabase admin não configurado. Verifique em Secrets: SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY"
-        )
-
-    return create_client(url, service)
-
-
-def get_supabase_user(jwt: str | None):
-    """
-    Cliente Supabase 'como usuário' (com JWT) para funcionar com RLS.
-
-    - Se jwt vier vazio/None: cai automaticamente no cliente anon (não quebra o app).
-    - Se jwt vier preenchido: tenta criar cliente com headers Authorization.
-    """
-    if not jwt:
-        return get_supabase_anon()
-
-    url = _get_secret("SUPABASE_URL")
-    anon = _get_secret("SUPABASE_ANON_KEY")
-    if not url or not anon:
-        raise RuntimeError(
-            "Supabase não configurado. Verifique em Secrets: SUPABASE_URL e SUPABASE_ANON_KEY"
-        )
-
-    # Tentativa 1 (supabase-py com ClientOptions)
-    if ClientOptions is not None:
-        opts = ClientOptions(
-            headers={
-                "Authorization": f"Bearer {jwt}",
-            }
-        )
-        return create_client(url, anon, options=opts)
-
-    # Tentativa 2 (fallback simples)
-    # Alguns builds aceitam options como dict com headers.
-    try:
-        return create_client(
-            url,
-            anon,
-            options={
-                "headers": {"Authorization": f"Bearer {jwt}"},
-            },
-        )
-    except Exception:
-        # Se a lib for incompatível, ainda assim não derrubamos o app:
-        return get_supabase_anon()
+    opts = ClientOptions(headers={"Authorization": f"Bearer {jwt}"})
+    sb = create_client(url, anon_key, options=opts)
+    return sb
