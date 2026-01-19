@@ -1,51 +1,63 @@
 # _client.py
-from __future__ import annotations
-
 import streamlit as st
-from supabase import create_client
-from supabase.client import ClientOptions
+from supabase import create_client, Client
 
 
-def _get_env(name: str) -> str:
-    v = st.secrets.get(name)
-    if not v:
-        raise RuntimeError(f"Secret ausente: {name}")
-    return v
-
-
-def supabase_login(email: str, password: str) -> dict:
+def _get_supabase_url_key():
     """
-    Faz login no Supabase Auth e retorna:
-      {
-        "access_token": "...",
-        "user_id": "...",
-        "email": "..."
-      }
+    Lê SUPABASE_URL e SUPABASE_ANON_KEY de:
+    - st.secrets (Streamlit Cloud)
+    - ou variáveis de ambiente (local)
     """
-    url = _get_env("SUPABASE_URL")
-    anon_key = _get_env("SUPABASE_ANON_KEY")
+    url = None
+    key = None
 
-    sb = create_client(url, anon_key)
-    res = sb.auth.sign_in_with_password({"email": email, "password": password})
+    try:
+        url = st.secrets.get("SUPABASE_URL")
+        key = st.secrets.get("SUPABASE_ANON_KEY")
+    except Exception:
+        pass
 
-    if not res or not res.session or not res.user:
-        raise RuntimeError("Falha no login do Supabase (resposta vazia).")
+    if not url:
+        import os
+        url = os.getenv("SUPABASE_URL")
+    if not key:
+        import os
+        key = os.getenv("SUPABASE_ANON_KEY")
 
-    return {
-        "access_token": res.session.access_token,
-        "user_id": res.user.id,
-        "email": res.user.email,
-    }
+    if not url or not key:
+        raise RuntimeError("SUPABASE_URL / SUPABASE_ANON_KEY não encontrados em secrets ou env.")
+
+    return url, key
 
 
-def get_supabase_user(jwt: str):
+@st.cache_resource
+def get_supabase_client() -> Client:
+    url, key = _get_supabase_url_key()
+    return create_client(url, key)
+
+
+def get_supabase_user(jwt: str) -> Client:
     """
-    Cria um client Supabase autenticado como usuário (JWT).
-    Use isso no PEI para .table(...).select/insert/update.
+    Retorna um client com o JWT do usuário (RLS / auth).
     """
-    url = _get_env("SUPABASE_URL")
-    anon_key = _get_env("SUPABASE_ANON_KEY")
-
-    opts = ClientOptions(headers={"Authorization": f"Bearer {jwt}"})
-    sb = create_client(url, anon_key, options=opts)
+    sb = get_supabase_client()
+    sb.postgrest.auth(jwt)
+    sb.auth.set_auth(jwt)
     return sb
+
+
+def supabase_sign_in(email: str, password: str):
+    """
+    Login email/senha no Supabase Auth.
+    """
+    sb = get_supabase_client()
+    return sb.auth.sign_in_with_password({"email": email, "password": password})
+
+
+def supabase_sign_up(email: str, password: str):
+    """
+    Cria usuário no Supabase Auth (email/senha).
+    """
+    sb = get_supabase_client()
+    return sb.auth.sign_up({"email": email, "password": password})
