@@ -196,8 +196,12 @@ default_state = {
     'status_validacao_pei': 'rascunho',
     'feedback_ajuste': '',
     'status_validacao_game': 'rascunho',
-    'feedback_ajuste_game': ''
+    'feedback_ajuste_game': '',
+    'matricula': '',
+    'meds_extraidas_tmp': [],
+    'status_meds_extraidas': 'idle'
 }
+ 
 
 if 'dados' not in st.session_state:
     st.session_state.dados = default_state
