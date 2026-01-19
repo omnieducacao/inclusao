@@ -10,6 +10,14 @@ import json
 import os
 import re
 
+# ==============================================================================
+# 0. PATCH IMPORT (para Streamlit Cloud achar _client.py na raiz)
+# ==============================================================================
+import sys
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 from _client import get_supabase_user
 
 # ==============================================================================
@@ -603,24 +611,10 @@ def render_progresso():
             </div>""",
         unsafe_allow_html=True
     )
+
 # ==============================================================================
 # 10. SIDEBAR (agora salva no Supabase)
-# ------------------------------------------------------------------------------
-# REQUISITO NO SUPABASE (rode no SQL Editor 1x):
-#
-# alter table public.pei_plans
-# add column if not exists pei_data jsonb,
-# add column if not exists pdf_text text,
-# add column if not exists status_validacao_pei text,
-# add column if not exists status_validacao_game text,
-# add column if not exists ia_mapa_texto text;
-#
-# (Opcional) index:
-# create index if not exists idx_pei_owner_student on public.pei_plans(owner_id, student_id);
 # ==============================================================================
-
-from _client import get_supabase_user
-
 def _require_supabase_session():
     if "supabase_jwt" not in st.session_state:
         st.error("Sessão Supabase não encontrada. Volte na Home e faça login novamente.")
@@ -633,7 +627,6 @@ def _sb_user():
     return get_supabase_user(st.session_state["supabase_jwt"])
 
 def _require_student_selected():
-    # Seleção vem da página pages/0_Alunos.py
     sid = st.session_state.get("selected_student_id")
     sname = st.session_state.get("selected_student_name")
     if not sid:
@@ -649,18 +642,16 @@ def _require_student_selected():
     return sid, sname
 
 def _default_pei_payload():
-    # Snapshot completo do seu estado atual
     d = dict(st.session_state.dados)
-    # datas -> string ISO (jsonb safe)
     for k in ["nasc", "monitoramento_data"]:
         if isinstance(d.get(k), date):
             d[k] = d[k].isoformat()
     return d
 
 def _load_pei_from_db(student_id: str):
-    sb = _sb_user()
+    sbx = _sb_user()
     res = (
-        sb.table("pei_plans")
+        sbx.table("pei_plans")
         .select("*")
         .eq("student_id", student_id)
         .order("updated_at", desc=True)
@@ -672,7 +663,7 @@ def _load_pei_from_db(student_id: str):
     return res.data[0]
 
 def _upsert_pei_in_db(student_id: str, title: str = "PEI", school_year: int | None = None):
-    sb = _sb_user()
+    sbx = _sb_user()
     payload = _default_pei_payload()
 
     up = {
@@ -682,28 +673,24 @@ def _upsert_pei_in_db(student_id: str, title: str = "PEI", school_year: int | No
         "school_year": school_year,
         "status": payload.get("status_validacao_pei", "draft") or "draft",
         "pei_data": payload,
-        "pdf_text": (st.session_state.get("pdf_text") or "")[:20000],  # evita exagero
+        "pdf_text": (st.session_state.get("pdf_text") or "")[:20000],
         "status_validacao_pei": payload.get("status_validacao_pei", "rascunho"),
         "status_validacao_game": payload.get("status_validacao_game", "rascunho"),
         "ia_mapa_texto": payload.get("ia_mapa_texto", ""),
     }
 
-    # Upsert por (owner_id, student_id) não existe como unique no seu schema base.
-    # Então fazemos: se existe registro, atualiza por id; senão, cria novo.
     current = _load_pei_from_db(student_id)
     if current:
         pid = current["id"]
-        sb.table("pei_plans").update(up).eq("id", pid).execute()
+        sbx.table("pei_plans").update(up).eq("id", pid).execute()
         return pid, "PEI atualizado no Supabase ✅"
     else:
-        res = sb.table("pei_plans").insert(up).execute()
+        res = sbx.table("pei_plans").insert(up).execute()
         pid = res.data[0]["id"] if res.data else None
         return pid, "PEI criado no Supabase ✅"
 
 def _apply_loaded_pei(row: dict):
-    # Restaura estado do PEI
     data = row.get("pei_data") or {}
-    # datas de volta
     if isinstance(data.get("nasc"), str):
         try: data["nasc"] = date.fromisoformat(data["nasc"])
         except: pass
@@ -712,15 +699,11 @@ def _apply_loaded_pei(row: dict):
         except: pass
 
     st.session_state.dados.update(data)
-
-    # pdf text
     st.session_state.pdf_text = row.get("pdf_text") or st.session_state.get("pdf_text", "")
 
-# --- garantir sessão supabase + aluno ---
 _require_supabase_session()
 student_id, student_name = _require_student_selected()
 
-# Se for a primeira vez nessa sessão, tenta carregar o último PEI do aluno
 if "pei_loaded_once" not in st.session_state:
     st.session_state["pei_loaded_once"] = True
     last = _load_pei_from_db(student_id)
@@ -738,7 +721,6 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # OpenAI
     if 'OPENAI_API_KEY' in st.secrets:
         api_key = st.secrets['OPENAI_API_KEY']
         st.success("✅ OpenAI OK")
@@ -749,7 +731,6 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Backup local (continua existindo)
     st.markdown("### 📂 Carregar Backup (JSON local)")
     uploaded_json = st.file_uploader("Arquivo .json", type="json")
     if uploaded_json:
@@ -800,7 +781,6 @@ with st.sidebar:
 # ==============================================================================
 # 11. HEADER + ABAS
 # ==============================================================================
-
 logo_path = finding_logo()
 b64_logo = get_base64_image(logo_path)
 mime = "image/png"
@@ -1171,263 +1151,9 @@ with tab7:
             st.rerun()
 
 # ==============================================================================
-# 20. ABA DASHBOARD & DOCS
-# ==============================================================================
-with tab8:
-    render_progresso()
-    st.markdown("### <i class='ri-file-pdf-line'></i> Dashboard e Exportação", unsafe_allow_html=True)
-
-    if st.session_state.dados['nome']:
-        init_avatar = st.session_state.dados['nome'][0].upper() if st.session_state.dados['nome'] else "?"
-        idade_str = calcular_idade(st.session_state.dados['nasc'])
-
-        st.markdown(
-            f"""
-            <div class="dash-hero">
-                <div style="display:flex; align-items:center; gap:20px;">
-                    <div class="apple-avatar">{init_avatar}</div>
-                    <div style="color:white;"><h1>{st.session_state.dados['nome']}</h1><p>{st.session_state.dados['serie']}</p></div>
-                </div>
-                <div><div style="text-align:right; font-size:0.8rem;">IDADE</div><div style="font-size:1.2rem; font-weight:bold;">{idade_str}</div></div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        c_kpi1, c_kpi2, c_kpi3, c_kpi4 = st.columns(4)
-        with c_kpi1:
-            n_pot = len(st.session_state.dados['potencias'])
-            color_p = "#38A169" if n_pot > 0 else "#CBD5E0"
-            st.markdown(
-                f"""<div class="metric-card"><div class="css-donut" style="--p: {n_pot*10}%; --fill: {color_p};"><div class="d-val">{n_pot}</div></div><div class="d-lbl">Potencialidades</div></div>""",
-                unsafe_allow_html=True
-            )
-
-        with c_kpi2:
-            n_bar = sum(len(v) for v in st.session_state.dados['barreiras_selecionadas'].values())
-            color_b = "#E53E3E" if n_bar > 5 else "#DD6B20"
-            st.markdown(
-                f"""<div class="metric-card"><div class="css-donut" style="--p: {n_bar*5}%; --fill: {color_b};"><div class="d-val">{n_bar}</div></div><div class="d-lbl">Barreiras</div></div>""",
-                unsafe_allow_html=True
-            )
-
-        with c_kpi3:
-            hf = st.session_state.dados['hiperfoco'] or "-"
-            hf_emoji = get_hiperfoco_emoji(hf)
-            st.markdown(
-                f"""<div class="metric-card"><div style="font-size:2.5rem;">{hf_emoji}</div><div style="font-weight:800; font-size:1.1rem; color:#2D3748; margin:10px 0;">{hf}</div><div class="d-lbl">Hiperfoco</div></div>""",
-                unsafe_allow_html=True
-            )
-
-        with c_kpi4:
-            txt_comp, bg_c, txt_c = calcular_complexidade_pei(st.session_state.dados)
-            st.markdown(
-                f"""<div class="metric-card" style="background-color:{bg_c}; border-color:{txt_c};"><div class="comp-icon-box"><i class="ri-error-warning-line" style="color:{txt_c}; font-size: 2rem;"></i></div><div style="font-weight:800; font-size:1.1rem; color:{txt_c}; margin:5px 0;">{txt_comp}</div><div class="d-lbl" style="color:{txt_c};">Nível de Atenção (Execução)</div></div>""",
-                unsafe_allow_html=True
-            )
-
-        st.write("")
-        c_r1, c_r2 = st.columns(2)
-
-        with c_r1:
-            if len(st.session_state.dados['lista_medicamentos']) > 0:
-                st.markdown(
-                    """<div class="soft-card sc-orange"><div class="sc-head"><i class="ri-medicine-bottle-fill" style="color:#DD6B20;"></i> Atenção Farmacológica</div><div class="sc-body">Aluno em uso de medicação contínua.</div><div class="bg-icon">💊</div></div>""",
-                    unsafe_allow_html=True
-                )
-            else:
-                st.markdown(
-                    """<div class="soft-card sc-green"><div class="sc-head"><i class="ri-checkbox-circle-fill" style="color:#38A169;"></i> Medicação</div><div class="sc-body">Nenhuma medicação informada.</div><div class="bg-icon">✅</div></div>""",
-                    unsafe_allow_html=True
-                )
-
-            st.write("")
-            metas = extrair_metas_estruturadas(st.session_state.dados['ia_sugestao'])
-            html_metas = (
-                f"""<div class="meta-row"><span style="font-size:1.2rem;">🏁</span> <b>Curto:</b> {metas['Curto']}</div>
-                    <div class="meta-row"><span style="font-size:1.2rem;">🧗</span> <b>Médio:</b> {metas['Medio']}</div>
-                    <div class="meta-row"><span style="font-size:1.2rem;">🏔️</span> <b>Longo:</b> {metas['Longo']}</div>"""
-                if metas else "Gere o plano na aba IA."
-            )
-            st.markdown(
-                f"""<div class="soft-card sc-yellow"><div class="sc-head"><i class="ri-flag-2-fill" style="color:#D69E2E;"></i> Cronograma de Metas</div><div class="sc-body">{html_metas}</div></div>""",
-                unsafe_allow_html=True
-            )
-
-        with c_r2:
-            n_acc = len(st.session_state.dados['estrategias_acesso'])
-            n_ens = len(st.session_state.dados['estrategias_ensino'])
-            n_ava = len(st.session_state.dados['estrategias_avaliacao'])
-
-            html_tags = f"""
-            <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:4px 0;"><span>Acesso/Recursos:</span> <b>{n_acc}</b></div>
-            <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:4px 0;"><span>Ensino/Metodologia:</span> <b>{n_ens}</b></div>
-            <div style="display:flex; justify-content:space-between; padding:4px 0;"><span>Avaliação:</span> <b>{n_ava}</b></div>
-            """
-            st.markdown(
-                f"""<div class="soft-card sc-blue"><div class="sc-head"><i class="ri-tools-fill" style="color:#3182CE;"></i> Estratégias Ativas</div><div class="sc-body">{html_tags}</div><div class="bg-icon">🛠️</div></div>""",
-                unsafe_allow_html=True
-            )
-
-            st.write("")
-            rede_html = (
-                "".join([f'<span class="rede-chip">{get_pro_icon(p)} {p}</span> ' for p in st.session_state.dados['rede_apoio']])
-                if st.session_state.dados['rede_apoio']
-                else "<span style='opacity:0.6;'>Sem rede.</span>"
-            )
-            st.markdown(
-                f"""<div class="soft-card sc-cyan"><div class="sc-head"><i class="ri-team-fill" style="color:#0BC5EA;"></i> Rede de Apoio</div><div class="sc-body">{rede_html}</div><div class="bg-icon">🤝</div></div>""",
-                unsafe_allow_html=True
-            )
-
-        st.write("")
-        st.markdown("##### 🧬 DNA de Suporte")
-        dna_c1, dna_c2 = st.columns(2)
-        for i, area in enumerate(LISTAS_BARREIRAS.keys()):
-            qtd = len(st.session_state.dados['barreiras_selecionadas'].get(area, []))
-            val = min(qtd * 20, 100)
-            target = dna_c1 if i < 3 else dna_c2
-            color = "#3182CE"
-            if val > 40: color = "#DD6B20"
-            if val > 70: color = "#E53E3E"
-            target.markdown(
-                f"""<div class="dna-bar-container"><div class="dna-bar-flex"><span>{area}</span><span>{qtd} barreiras</span></div><div class="dna-bar-bg"><div class="dna-bar-fill" style="width:{val}%; background:{color};"></div></div></div>""",
-                unsafe_allow_html=True
-            )
-
-        st.divider()
-
-        if st.session_state.dados['ia_sugestao']:
-            st.markdown("#### 📤 Exportação e Salvar")
-
-            col_docs, col_data, col_sys = st.columns(3)
-            with col_docs:
-                st.caption("📄 Documentos")
-                pdf = gerar_pdf_final(st.session_state.dados, len(st.session_state.pdf_text) > 0)
-                st.download_button(
-                    "Baixar PDF Oficial",
-                    pdf,
-                    f"PEI_{st.session_state.dados['nome']}.pdf",
-                    "application/pdf",
-                    use_container_width=True
-                )
-                docx = gerar_docx_final(st.session_state.dados)
-                st.download_button(
-                    "Baixar Word Editável",
-                    docx,
-                    f"PEI_{st.session_state.dados['nome']}.docx",
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True
-                )
-
-            with col_data:
-                st.caption("💾 Backup Local")
-                st.download_button(
-                    "Salvar Arquivo .JSON",
-                    json.dumps(st.session_state.dados, default=str),
-                    f"PEI_{st.session_state.dados['nome']}.json",
-                    "application/json",
-                    use_container_width=True,
-                    help="Salve este arquivo no seu computador para editar depois."
-                )
-
-            with col_sys:
-                st.caption("🌐 Sistema (Supabase)")
-                if st.button("Salvar no Supabase", type="primary", use_container_width=True):
-                    with st.spinner("Salvando..."):
-                        _, msg = _upsert_pei_in_db(
-                            student_id=student_id,
-                            title="PEI",
-                            school_year=date.today().year
-                        )
-                    st.success(msg)
-
-        else:
-            st.info("Gere o Plano na aba Consultoria IA para liberar o download.")
-
-# ==============================================================================
-# 21. ABA JORNADA GAMIFICADA
-# ==============================================================================
-with tab_mapa:
-    render_progresso()
-
-    st.markdown(
-        f"<div style='background: linear-gradient(90deg, #F6E05E 0%, #D69E2E 100%); padding: 25px; border-radius: 20px; color: #2D3748; margin-bottom: 20px;'>"
-        f"<h3 style='margin:0;'>🗺️ Jornada: {st.session_state.dados['nome']}</h3></div>",
-        unsafe_allow_html=True
-    )
-
-    st.info(
-        "ℹ️ **O que é isso?** Esta ferramenta gera um material **para o estudante**. "
-        "É uma tradução gamificada do PEI para que a própria criança/jovem entenda seus desafios e potências de forma lúdica. "
-        "Imprima e cole no caderno!"
-    )
-
-    if st.session_state.dados['ia_sugestao']:
-
-        if st.session_state.dados.get('status_validacao_game') == 'rascunho':
-            if st.button("🎮 Criar Roteiro Gamificado", type="primary"):
-                with st.spinner("Game Master criando..."):
-                    texto_game, err = gerar_roteiro_gamificado(api_key, st.session_state.dados, st.session_state.dados['ia_sugestao'])
-                    if texto_game:
-                        st.session_state.dados['ia_mapa_texto'] = texto_game.replace("[MAPA_TEXTO_GAMIFICADO]", "").strip()
-                        st.session_state.dados['status_validacao_game'] = 'revisao'
-                        st.rerun()
-                    else:
-                        st.error(err)
-
-        elif st.session_state.dados.get('status_validacao_game') == 'revisao':
-            st.markdown("### 📜 Roteiro Gerado")
-            st.markdown(st.session_state.dados['ia_mapa_texto'])
-            st.divider()
-            c_ok, c_refaz = st.columns(2)
-            if c_ok.button("✅ Aprovar Missão"):
-                st.session_state.dados['status_validacao_game'] = 'aprovado'
-                st.rerun()
-            if c_refaz.button("❌ Refazer"):
-                st.session_state.dados['status_validacao_game'] = 'ajustando'
-                st.rerun()
-
-        elif st.session_state.dados.get('status_validacao_game') == 'aprovado':
-            st.success("Missão Aprovada! Pronto para imprimir.")
-            st.markdown(st.session_state.dados['ia_mapa_texto'])
-            pdf_mapa = gerar_pdf_tabuleiro_simples(st.session_state.dados['ia_mapa_texto'])
-            st.download_button(
-                "📥 Baixar Missão em PDF",
-                pdf_mapa,
-                f"Missao_{st.session_state.dados['nome']}.pdf",
-                "application/pdf",
-                type="primary"
-            )
-            if st.button("Criar Nova Missão"):
-                st.session_state.dados['status_validacao_game'] = 'rascunho'
-                st.rerun()
-
-        elif st.session_state.dados.get('status_validacao_game') == 'ajustando':
-            fb_game = st.text_input("O que mudar na história?", placeholder="Ex: Use super-heróis em vez de exploração...")
-            if st.button("Regerar História"):
-                with st.spinner("Reescrevendo..."):
-                    texto_game, err = gerar_roteiro_gamificado(
-                        api_key,
-                        st.session_state.dados,
-                        st.session_state.dados['ia_sugestao'],
-                        fb_game
-                    )
-                    if texto_game:
-                        st.session_state.dados['ia_mapa_texto'] = texto_game.replace("[MAPA_TEXTO_GAMIFICADO]", "").strip()
-                        st.session_state.dados['status_validacao_game'] = 'revisao'
-                        st.rerun()
-                    else:
-                        st.error(err)
-
-    else:
-        st.warning("⚠️ Gere o PEI Técnico na aba 'Consultoria IA' primeiro.")
-
-# ==============================================================================
 # 22. FOOTER
 # ==============================================================================
 st.markdown(
     "<div class='footer-signature'>PEI 360º v116.0 Gold Edition - Desenvolvido por Rodrigo A. Queiroz</div>",
     unsafe_allow_html=True
 )
-
