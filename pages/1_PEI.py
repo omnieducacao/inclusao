@@ -1589,7 +1589,7 @@ with tab8:
     st.markdown("### <i class='ri-file-pdf-line'></i> Dashboard e Exportação", unsafe_allow_html=True)
 
     if st.session_state.dados.get("nome"):
-        init_avatar = (st.session_state.dados["nome"][0].upper() if st.session_state.dados.get("nome") else "?")
+        init_avatar = st.session_state.dados["nome"][0].upper() if st.session_state.dados.get("nome") else "?"
         idade_str = calcular_idade(st.session_state.dados.get("nasc"))
 
         st.markdown(
@@ -1618,10 +1618,14 @@ with tab8:
             n_pot = len(st.session_state.dados.get("potencias", []))
             color_p = "#38A169" if n_pot > 0 else "#CBD5E0"
             st.markdown(
-                f"""<div class="metric-card">
-                        <div class="css-donut" style="--p: {min(n_pot*10,100)}%; --fill: {color_p};"><div class="d-val">{n_pot}</div></div>
-                        <div class="d-lbl">Potencialidades</div>
-                    </div>""",
+                f"""
+                <div class="metric-card">
+                    <div class="css-donut" style="--p: {min(n_pot*10,100)}%; --fill: {color_p};">
+                        <div class="d-val">{n_pot}</div>
+                    </div>
+                    <div class="d-lbl">Potencialidades</div>
+                </div>
+                """,
                 unsafe_allow_html=True
             )
 
@@ -1629,10 +1633,14 @@ with tab8:
             n_bar = sum(len(v) for v in (st.session_state.dados.get("barreiras_selecionadas") or {}).values())
             color_b = "#E53E3E" if n_bar > 5 else "#DD6B20"
             st.markdown(
-                f"""<div class="metric-card">
-                        <div class="css-donut" style="--p: {min(n_bar*5,100)}%; --fill: {color_b};"><div class="d-val">{n_bar}</div></div>
-                        <div class="d-lbl">Barreiras</div>
-                    </div>""",
+                f"""
+                <div class="metric-card">
+                    <div class="css-donut" style="--p: {min(n_bar*5,100)}%; --fill: {color_b};">
+                        <div class="d-val">{n_bar}</div>
+                    </div>
+                    <div class="d-lbl">Barreiras</div>
+                </div>
+                """,
                 unsafe_allow_html=True
             )
 
@@ -1640,270 +1648,238 @@ with tab8:
             hf = st.session_state.dados.get("hiperfoco") or "-"
             hf_emoji = get_hiperfoco_emoji(hf)
             st.markdown(
-                f"""<div class="metric-card">
-                        <div style="font-size:2.5rem;">{hf_emoji}</div>
-                        <div style="font-weight:800; font-size:1.1rem; color:#2D3748; margin:10px 0;">{hf}</div>
-                        <div class="d-lbl">Hiperfoco</div>
-                    </div>""",
+                f"""
+                <div class="metric-card">
+                    <div style="font-size:2.5rem;">{hf_emoji}</div>
+                    <div style="font-weight:800; font-size:1.1rem; color:#2D3748; margin:10px 0;">{hf}</div>
+                    <div class="d-lbl">Hiperfoco</div>
+                </div>
+                """,
                 unsafe_allow_html=True
             )
 
         with c_kpi4:
             txt_comp, bg_c, txt_c = calcular_complexidade_pei(st.session_state.dados)
             st.markdown(
-                f"""<div class="metric-card" style="background-color:{bg_c}; border-color:{txt_c};">
-                        <div class="comp-icon-box"><i class="ri-error-warning-line" style="color:{txt_c}; font-size: 2rem;"></i></div>
-                        <div style="font-weight:800; font-size:1.1rem; color:{txt_c}; margin:5px 0;">{txt_comp}</div>
-                        <div class="d-lbl" style="color:{txt_c};">Nível de Atenção</div>
-                    </div>""",
+                f"""
+                <div class="metric-card" style="background-color:{bg_c}; border-color:{txt_c};">
+                    <div class="comp-icon-box">
+                        <i class="ri-error-warning-line" style="color:{txt_c}; font-size: 2rem;"></i>
+                    </div>
+                    <div style="font-weight:800; font-size:1.1rem; color:{txt_c}; margin:5px 0;">{txt_comp}</div>
+                    <div class="d-lbl" style="color:{txt_c};">Nível de Atenção</div>
+                </div>
+                """,
                 unsafe_allow_html=True
             )
 
         st.write("")
         c_r1, c_r2 = st.columns(2)
 
-      # ...continuação a partir de:
-# with c_r1:
-#     # Medicação
-#     lista_meds = st.session_state.dados.get("lista_medicamentos", [])
-#     if len(lista_meds) > 0:
-#         nomes_meds = ", ".join([m.get("nome","") for m in lista_meds if m.get("nome")])
-#         alerta_escola = any(m.get("escola") ...
+        with c_r1:
+            # CARD — Medicação
+            lista_meds = st.session_state.dados.get("lista_medicamentos", [])
+            if len(lista_meds) > 0:
+                nomes_meds = ", ".join([m.get("nome", "") for m in lista_meds if m.get("nome")])
+                alerta_escola = any(m.get("escola") for m in lista_meds)
 
-            # Medicação (continuação)
-            alerta_escola = any(m.get("escola") for m in lista_meds)
+                icon_alerta = (
+                    '<i class="ri-alarm-warning-fill pulse-alert" style="font-size:1.2rem; margin-left:10px;"></i>'
+                    if alerta_escola else ""
+                )
+                msg_escola = (
+                    '<div style="margin-top:5px; color:#C53030; font-weight:bold; font-size:0.8rem;">'
+                    '🚨 ATENÇÃO: ADMINISTRAÇÃO NA ESCOLA NECESSÁRIA</div>'
+                    if alerta_escola else ""
+                )
 
-            icon_alerta = (
-                '<i class="ri-alarm-warning-fill pulse-alert" style="font-size:1.2rem; margin-left:10px;"></i>'
-                if alerta_escola else ""
-            )
-            msg_escola = (
-                '<div style="margin-top:5px; color:#C53030; font-weight:bold; font-size:0.8rem;">'
-                "🚨 ATENÇÃO: ADMINISTRAÇÃO NA ESCOLA NECESSÁRIA"
-                "</div>"
-                if alerta_escola else ""
-            )
-
-            st.markdown(
-                f"""
-                <div class="soft-card sc-orange">
-                    <div class="sc-head">
-                        <i class="ri-medicine-bottle-fill" style="color:#DD6B20;"></i>
-                        Atenção Farmacológica {icon_alerta}
+                st.markdown(
+                    f"""
+                    <div class="soft-card sc-orange">
+                        <div class="sc-head">
+                            <i class="ri-medicine-bottle-fill" style="color:#DD6B20;"></i>
+                            Atenção Farmacológica {icon_alerta}
+                        </div>
+                        <div class="sc-body"><b>Uso Contínuo:</b> {nomes_meds} {msg_escola}</div>
+                        <div class="bg-icon">💊</div>
                     </div>
-                    <div class="sc-body">
-                        <b>Uso Contínuo:</b> {nomes_meds}
-                        {msg_escola}
-                    </div>
-                    <div class="bg-icon">💊</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-        else:
-            st.markdown(
-                """
-                <div class="soft-card sc-green">
-                    <div class="sc-head">
-                        <i class="ri-checkbox-circle-fill" style="color:#38A169;"></i>
-                        Medicação
-                    </div>
-                    <div class="sc-body">Nenhuma medicação informada.</div>
-                    <div class="bg-icon">✅</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-        st.write("")
-
-        # Metas (extraídas do texto IA)
-        metas = extrair_metas_estruturadas(st.session_state.dados.get("ia_sugestao", ""))
-        if metas:
-            html_metas = f"""
-            <div class="meta-row"><span style="font-size:1.2rem;">🏁</span> <b>Curto:</b> {metas.get('Curto','-')}</div>
-            <div class="meta-row"><span style="font-size:1.2rem;">🧗</span> <b>Médio:</b> {metas.get('Medio','-')}</div>
-            <div class="meta-row"><span style="font-size:1.2rem;">🏔️</span> <b>Longo:</b> {metas.get('Longo','-')}</div>
-            """
-        else:
-            html_metas = "Gere o plano na aba IA para liberar as metas automaticamente."
-
-        st.markdown(
-            f"""
-            <div class="soft-card sc-yellow">
-                <div class="sc-head">
-                    <i class="ri-flag-2-fill" style="color:#D69E2E;"></i>
-                    Cronograma de Metas
-                </div>
-                <div class="sc-body">{html_metas}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    with c_r2:
-        # Radar Curricular (automático) — baseado nas barreiras
-        comps_inferidos = inferir_componentes_impactados(st.session_state.dados)
-        n_comps = len(comps_inferidos) if comps_inferidos else 0
-
-        if n_comps > 0:
-            html_comps = "".join([
-                f'<span class="rede-chip" style="border-color:#FC8181; color:#C53030;">{c}</span> '
-                for c in comps_inferidos
-            ])
-            st.markdown(
-                f"""
-                <div class="soft-card sc-orange" style="border-left-color: #FC8181; background-color: #FFF5F5;">
-                    <div class="sc-head">
-                        <i class="ri-radar-fill" style="color:#C53030;"></i>
-                        Radar Curricular (Automático)
-                    </div>
-                    <div class="sc-body" style="margin-bottom:10px;">
-                        Componentes que exigem maior flexibilização (baseado nas barreiras):
-                    </div>
-                    <div>{html_comps}</div>
-                    <div class="bg-icon">🎯</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-        else:
-            st.markdown(
-                """
-                <div class="soft-card sc-blue">
-                    <div class="sc-head">
-                        <i class="ri-radar-line" style="color:#3182CE;"></i>
-                        Radar Curricular
-                    </div>
-                    <div class="sc-body">Nenhum componente específico marcado como crítico.</div>
-                    <div class="bg-icon">🎯</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-        st.write("")
-
-        # Rede de apoio (chips)
-        rede = st.session_state.dados.get("rede_apoio", []) or []
-        if rede:
-            rede_html = "".join([f'<span class="rede-chip">{get_pro_icon(p)} {p}</span> ' for p in rede])
-        else:
-            rede_html = "<span style='opacity:0.6;'>Sem rede cadastrada.</span>"
-
-        st.markdown(
-            f"""
-            <div class="soft-card sc-cyan">
-                <div class="sc-head">
-                    <i class="ri-team-fill" style="color:#0BC5EA;"></i>
-                    Rede de Apoio
-                </div>
-                <div class="sc-body">{rede_html}</div>
-                <div class="bg-icon">🤝</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    st.write("")
-    st.markdown("##### 🧬 DNA de Suporte")
-
-    dna_c1, dna_c2 = st.columns(2)
-    for i, area in enumerate(LISTAS_BARREIRAS.keys()):
-        qtd = len((st.session_state.dados.get("barreiras_selecionadas") or {}).get(area, []))
-        val = min(qtd * 20, 100)
-
-        target = dna_c1 if i < 3 else dna_c2
-
-        color = "#3182CE"
-        if val > 40:
-            color = "#DD6B20"
-        if val > 70:
-            color = "#E53E3E"
-
-        target.markdown(
-            f"""
-            <div class="dna-bar-container">
-                <div class="dna-bar-flex">
-                    <span>{area}</span>
-                    <span>{qtd} barreiras</span>
-                </div>
-                <div class="dna-bar-bg">
-                    <div class="dna-bar-fill" style="width:{val}%; background:{color};"></div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    st.divider()
-
-    # Exportação + Backup + Sincronizar
-    if st.session_state.dados.get("ia_sugestao"):
-        st.markdown("#### 📤 Exportação e Salvar")
-
-        col_docs, col_data, col_sys = st.columns(3)
-
-        with col_docs:
-            st.caption("📄 Documentos")
-            pdf_bytes = gerar_pdf_final(st.session_state.dados, len(st.session_state.get("pdf_text", "")) > 0)
-            st.download_button(
-                "Baixar PDF Oficial",
-                pdf_bytes,
-                f"PEI_{st.session_state.dados.get('nome','Aluno')}.pdf",
-                "application/pdf",
-                use_container_width=True
-            )
-
-            docx_bytes = gerar_docx_final(st.session_state.dados)
-            st.download_button(
-                "Baixar Word Editável",
-                docx_bytes,
-                f"PEI_{st.session_state.dados.get('nome','Aluno')}.docx",
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                use_container_width=True
-            )
-
-        with col_data:
-            st.caption("💾 Backup Local")
-            st.download_button(
-                "Salvar Arquivo .JSON",
-                json.dumps(st.session_state.dados, default=str, ensure_ascii=False),
-                f"PEI_{st.session_state.dados.get('nome','Aluno')}.json",
-                "application/json",
-                use_container_width=True,
-                help="Salve este arquivo no seu computador para editar depois."
-            )
-
-        with col_sys:
-            st.caption("🌐 Sistema")
-            # IMPORTANTE: aqui você liga na lógica NOVA do Supabase:
-            # - se ainda não sincronizou aluno/documento, o botão deve chamar seu "sync"
-            #   (criar/vincular student + liberar salvar/carregar)
-            # - se já está sincronizado, o botão pode salvar o PEI no Supabase
-            if st.session_state.get("selected_student_id"):
-                if st.button("💾 Salvar no Supabase", type="primary", use_container_width=True):
-                    with st.spinner("Salvando..."):
-                        supa_save_pei(st.session_state["selected_student_id"], st.session_state.dados, st.session_state.get("pdf_text", ""))
-                        supa_sync_student_from_dados(st.session_state["selected_student_id"], st.session_state.dados)
-                    st.toast("Salvo no Supabase ✅", icon="✅")
+                    """,
+                    unsafe_allow_html=True
+                )
             else:
-                st.info("Aluno ainda não sincronizado. Use o botão 'Sincronizar' no topo do PEI.")
+                st.markdown(
+                    """
+                    <div class="soft-card sc-green">
+                        <div class="sc-head">
+                            <i class="ri-checkbox-circle-fill" style="color:#38A169;"></i> Medicação
+                        </div>
+                        <div class="sc-body">Nenhuma medicação informada.</div>
+                        <div class="bg-icon">✅</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
+            st.write("")
+            metas = extrair_metas_estruturadas(st.session_state.dados.get("ia_sugestao", ""))
+            html_metas = (
+                f"""
+                <div class="meta-row"><span style="font-size:1.2rem;">🏁</span> <b>Curto:</b> {metas['Curto']}</div>
+                <div class="meta-row"><span style="font-size:1.2rem;">🧗</span> <b>Médio:</b> {metas['Medio']}</div>
+                <div class="meta-row"><span style="font-size:1.2rem;">🏔️</span> <b>Longo:</b> {metas['Longo']}</div>
+                """
+                if metas else "Gere o plano na aba IA."
+            )
+
+            st.markdown(
+                f"""
+                <div class="soft-card sc-yellow">
+                    <div class="sc-head">
+                        <i class="ri-flag-2-fill" style="color:#D69E2E;"></i> Cronograma de Metas
+                    </div>
+                    <div class="sc-body">{html_metas}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with c_r2:
+            # CARD — Radar Curricular (Inferido)
+            comps_inferidos = inferir_componentes_impactados(st.session_state.dados)
+            if comps_inferidos and len(comps_inferidos) > 0:
+                html_comps = "".join(
+                    [f'<span class="rede-chip" style="border-color:#FC8181; color:#C53030;">{c}</span> ' for c in comps_inferidos]
+                )
+                st.markdown(
+                    f"""
+                    <div class="soft-card sc-orange" style="border-left-color: #FC8181; background-color: #FFF5F5;">
+                        <div class="sc-head">
+                            <i class="ri-radar-fill" style="color:#C53030;"></i> Radar Curricular (Automático)
+                        </div>
+                        <div class="sc-body" style="margin-bottom:10px;">
+                            Componentes que exigem maior flexibilização (Baseado nas Barreiras):
+                        </div>
+                        <div>{html_comps}</div>
+                        <div class="bg-icon">🎯</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            else:
+                st.markdown(
+                    """
+                    <div class="soft-card sc-blue">
+                        <div class="sc-head"><i class="ri-radar-line" style="color:#3182CE;"></i> Radar Curricular</div>
+                        <div class="sc-body">Nenhum componente específico marcado como crítico.</div>
+                        <div class="bg-icon">🎯</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            st.write("")
+            rede = st.session_state.dados.get("rede_apoio", [])
+            rede_html = (
+                "".join([f'<span class="rede-chip">{get_pro_icon(p)} {p}</span> ' for p in rede])
+                if rede else "<span style='opacity:0.6;'>Sem rede.</span>"
+            )
+            st.markdown(
+                f"""
+                <div class="soft-card sc-cyan">
+                    <div class="sc-head"><i class="ri-team-fill" style="color:#0BC5EA;"></i> Rede de Apoio</div>
+                    <div class="sc-body">{rede_html}</div>
+                    <div class="bg-icon">🤝</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        st.write("")
+        st.markdown("##### 🧬 DNA de Suporte")
+        dna_c1, dna_c2 = st.columns(2)
+
+        for i, area in enumerate(LISTAS_BARREIRAS.keys()):
+            qtd = len((st.session_state.dados.get("barreiras_selecionadas") or {}).get(area, []))
+            val = min(qtd * 20, 100)
+
+            target = dna_c1 if i < 3 else dna_c2
+            color = "#3182CE"
+            if val > 40:
+                color = "#DD6B20"
+            if val > 70:
+                color = "#E53E3E"
+
+            target.markdown(
+                f"""
+                <div class="dna-bar-container">
+                    <div class="dna-bar-flex"><span>{area}</span><span>{qtd} barreiras</span></div>
+                    <div class="dna-bar-bg"><div class="dna-bar-fill" style="width:{val}%; background:{color};"></div></div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        st.divider()
+
+        # Exportações (só libera se tiver IA)
+        if st.session_state.dados.get("ia_sugestao"):
+            st.markdown("#### 📤 Exportação e Salvar")
+            col_docs, col_data, col_sys = st.columns(3)
+
+            with col_docs:
+                st.caption("📄 Documentos")
+                pdf = gerar_pdf_final(st.session_state.dados, len(st.session_state.pdf_text) > 0)
+                st.download_button(
+                    "Baixar PDF Oficial",
+                    pdf,
+                    f"PEI_{st.session_state.dados['nome']}.pdf",
+                    "application/pdf",
+                    use_container_width=True
+                )
+
+                docx = gerar_docx_final(st.session_state.dados)
+                st.download_button(
+                    "Baixar Word Editável",
+                    docx,
+                    f"PEI_{st.session_state.dados['nome']}.docx",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
+                )
+
+            with col_data:
+                st.caption("💾 Backup Local")
+                st.download_button(
+                    "Salvar Arquivo .JSON",
+                    json.dumps(st.session_state.dados, default=str, ensure_ascii=False),
+                    f"PEI_{st.session_state.dados['nome']}.json",
+                    "application/json",
+                    use_container_width=True,
+                    help="Salve este arquivo no seu computador para editar depois."
+                )
+
+            with col_sys:
+                st.caption("🌐 Sistema")
+                if st.button("Sincronizar (Omnisfera)", type="primary", use_container_width=True):
+                    ok, msg = salvar_aluno_integrado(st.session_state.dados)
+                    if ok:
+                        st.toast(msg, icon="✅")
+                    else:
+                        st.error(msg)
+        else:
+            st.info("Gere o Plano na aba Consultoria IA para liberar o download.")
     else:
-        st.info("Gere o Plano na aba Consultoria IA para liberar o download.")
+        st.info("Preencha o nome do estudante na aba 'Estudante' para ver o dashboard.")
 
 # ------------------------------------------------------------------------------
-# TAB MAPA — JORNADA GAMIFICADA
+# TAB 9 — JORNADA GAMIFICADA (Mapa/Missão)
 # ------------------------------------------------------------------------------
 with tab_mapa:
     render_progresso()
-
     st.markdown(
         f"""
-        <div style="background: linear-gradient(90deg, #F6E05E 0%, #D69E2E 100%);
-                    padding: 25px; border-radius: 20px; color: #2D3748; margin-bottom: 20px;">
-            <h3 style="margin:0;">🗺️ Jornada: {st.session_state.dados.get('nome','')}</h3>
+        <div style='background: linear-gradient(90deg, #F6E05E 0%, #D69E2E 100%);
+                    padding: 25px; border-radius: 20px; color: #2D3748; margin-bottom: 20px;'>
+            <h3 style='margin:0;'>🗺️ Jornada: {st.session_state.dados.get("nome","")}</h3>
         </div>
         """,
         unsafe_allow_html=True
@@ -1911,21 +1887,18 @@ with tab_mapa:
 
     st.info(
         "ℹ️ **O que é isso?** Esta ferramenta gera um material **para o estudante**. "
-        "É uma tradução gamificada do PEI para que a própria criança/jovem entenda "
-        "seus desafios e potências de forma lúdica. Imprima e cole no caderno!"
+        "É uma tradução gamificada do PEI para que a própria criança/jovem entenda seus desafios "
+        "e potências de forma lúdica. Imprima e cole no caderno!"
     )
 
     if st.session_state.dados.get("ia_sugestao"):
-        status_game = st.session_state.dados.get("status_validacao_game", "rascunho")
-
-        if status_game == "rascunho":
+        if st.session_state.dados.get("status_validacao_game") == "rascunho":
             if st.button("🎮 Criar Roteiro Gamificado", type="primary"):
                 with st.spinner("Game Master criando..."):
                     texto_game, err = gerar_roteiro_gamificado(
                         api_key,
                         st.session_state.dados,
-                        st.session_state.dados.get("ia_sugestao", ""),
-                        feedback_game=""
+                        st.session_state.dados.get("ia_sugestao", "")
                     )
                     if texto_game:
                         st.session_state.dados["ia_mapa_texto"] = texto_game.replace("[MAPA_TEXTO_GAMIFICADO]", "").strip()
@@ -1934,12 +1907,12 @@ with tab_mapa:
                     else:
                         st.error(err)
 
-        elif status_game == "revisao":
+        elif st.session_state.dados.get("status_validacao_game") == "revisao":
             st.markdown("### 📜 Roteiro Gerado")
             st.markdown(st.session_state.dados.get("ia_mapa_texto", ""))
             st.divider()
-
             c_ok, c_refaz = st.columns(2)
+
             if c_ok.button("✅ Aprovar Missão"):
                 st.session_state.dados["status_validacao_game"] = "aprovado"
                 st.rerun()
@@ -1948,7 +1921,7 @@ with tab_mapa:
                 st.session_state.dados["status_validacao_game"] = "ajustando"
                 st.rerun()
 
-        elif status_game == "aprovado":
+        elif st.session_state.dados.get("status_validacao_game") == "aprovado":
             st.success("Missão Aprovada! Pronto para imprimir.")
             st.markdown(st.session_state.dados.get("ia_mapa_texto", ""))
 
@@ -1956,7 +1929,7 @@ with tab_mapa:
             st.download_button(
                 "📥 Baixar Missão em PDF",
                 pdf_mapa,
-                f"Missao_{st.session_state.dados.get('nome','Aluno')}.pdf",
+                f"Missao_{st.session_state.dados.get('nome','estudante')}.pdf",
                 "application/pdf",
                 type="primary"
             )
@@ -1965,15 +1938,15 @@ with tab_mapa:
                 st.session_state.dados["status_validacao_game"] = "rascunho"
                 st.rerun()
 
-        elif status_game == "ajustando":
+        elif st.session_state.dados.get("status_validacao_game") == "ajustando":
             fb_game = st.text_input("O que mudar na história?", placeholder="Ex: Use super-heróis em vez de exploração...")
-            if st.button("Regerar História", type="primary"):
+            if st.button("Regerar História"):
                 with st.spinner("Reescrevendo..."):
                     texto_game, err = gerar_roteiro_gamificado(
                         api_key,
                         st.session_state.dados,
                         st.session_state.dados.get("ia_sugestao", ""),
-                        feedback_game=fb_game
+                        fb_game
                     )
                     if texto_game:
                         st.session_state.dados["ia_mapa_texto"] = texto_game.replace("[MAPA_TEXTO_GAMIFICADO]", "").strip()
@@ -1981,14 +1954,13 @@ with tab_mapa:
                         st.rerun()
                     else:
                         st.error(err)
-
     else:
         st.warning("⚠️ Gere o PEI Técnico na aba 'Consultoria IA' primeiro.")
 
 # ------------------------------------------------------------------------------
-# FOOTER
+# Rodapé
 # ------------------------------------------------------------------------------
 st.markdown(
-    "<div class='footer-signature'>PEI 360º v123.0 Gold Edition - Desenvolvido por Rodrigo A. Queiroz</div>",
+    "<div class='footer-signature'>PEI 360º v123.0 Gold Edition (Hybrid: Cloud + Local) - Desenvolvido por Rodrigo A. Queiroz</div>",
     unsafe_allow_html=True
 )
