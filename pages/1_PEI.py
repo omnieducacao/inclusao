@@ -1209,7 +1209,7 @@ with tab0:
 # TAB 1 — ESTUDANTE
 # ------------------------------------------------------------------------------
 with tab1:
-    render_progresso()
+    render_progresso():
     st.markdown("### <i class='ri-user-smile-line'></i> Dossiê do Estudante", unsafe_allow_html=True)
 
     c1, c2, c3, c4 = st.columns([3, 2, 2, 1])
