@@ -1,6 +1,5 @@
 # Home.py
 import streamlit as st
-from datetime import date
 import base64, os
 
 st.set_page_config(page_title="Omnisfera", page_icon="🧩", layout="wide")
@@ -17,7 +16,7 @@ if "view" not in st.session_state:
 try:
     if "view" in st.query_params:
         v = st.query_params["view"]
-        if v in ("login","home","estudantes","pei","paee","hub","diario","mon"):
+        if v in ("login","home","estudantes","pei","paee","hub","diario","mon","logout"):
             st.session_state.view = v
 except Exception:
     pass
@@ -40,8 +39,6 @@ except Exception as e:
 # -------------------------
 # UTIL
 # -------------------------
-APP_VERSION = "v116.0"
-
 def get_base64_image(image_path: str) -> str:
     if not os.path.exists(image_path):
         return ""
@@ -53,12 +50,12 @@ def go(view_name: str):
     st.rerun()
 
 # -------------------------
-# CSS HOME (inspirado no antigo)
+# CSS (COESO) — PORTAL HOME
 # -------------------------
 st.markdown("""
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800;900&display=swap');
 
 html, body, [class*="css"]{
   font-family:'Nunito', sans-serif;
@@ -69,7 +66,6 @@ header[data-testid="stHeader"]{display:none !important;}
 [data-testid="stSidebar"]{display:none !important;}
 [data-testid="stSidebarNav"]{display:none !important;}
 
-/* HOME usa header fixo próprio */
 .block-container{
   padding-top: 120px !important;
   padding-left: 2rem !important;
@@ -80,7 +76,7 @@ header[data-testid="stHeader"]{display:none !important;}
 @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 @keyframes fadeInUp{from{opacity:0; transform:translateY(10px);}to{opacity:1; transform:translateY(0);}}
 
-/* HEADER FIXO */
+/* HEADER FIXO DO PORTAL */
 .portal-header{
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -96,17 +92,6 @@ header[data-testid="stHeader"]{display:none !important;}
   border-bottom: 1px solid rgba(255,255,255,0.55);
   box-shadow: 0 4px 15px rgba(0,0,0,0.03);
 }
-.portal-subtitle{
-  font-weight: 700;
-  font-size: 0.98rem;
-  color: #718096;
-  border-left: 2px solid #CBD5E0;
-  padding-left: 14px;
-  height: 40px;
-  display:flex;
-  align-items:center;
-  letter-spacing: -0.3px;
-}
 .portal-logo-spin{
   height: 72px;
   width:auto;
@@ -117,9 +102,21 @@ header[data-testid="stHeader"]{display:none !important;}
   height: 42px;
   width:auto;
 }
+.portal-subtitle{
+  font-family:'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: #718096;
+  border-left: 2px solid #CBD5E0;
+  padding-left: 14px;
+  height: 40px;
+  display:flex;
+  align-items:center;
+  letter-spacing: -0.3px;
+}
 
 /* HERO */
-.dash-hero{
+.hero{
   background: radial-gradient(circle at top right, #0F52BA, #062B61);
   border-radius: 16px;
   box-shadow: 0 10px 25px -5px rgba(15, 82, 186, 0.30);
@@ -136,7 +133,7 @@ header[data-testid="stHeader"]{display:none !important;}
 }
 .hero-title{
   font-family:'Inter', sans-serif;
-  font-weight: 800;
+  font-weight: 900;
   font-size: 1.55rem;
   margin:0;
   line-height:1.1;
@@ -148,7 +145,7 @@ header[data-testid="stHeader"]{display:none !important;}
   font-weight: 400;
   margin-top: 6px;
 }
-.hero-bg-icon{
+.hero-bg{
   position:absolute;
   right: 22px;
   font-size: 6rem;
@@ -157,10 +154,9 @@ header[data-testid="stHeader"]{display:none !important;}
   transform: rotate(-10deg);
 }
 
-/* SECTION TITLE */
 .section-title{
   font-family:'Inter', sans-serif;
-  font-weight: 800;
+  font-weight: 900;
   font-size: 1.05rem;
   color:#1A202C;
   margin: 22px 0 12px 0;
@@ -169,7 +165,7 @@ header[data-testid="stHeader"]{display:none !important;}
   gap: 8px;
 }
 
-/* CARDS (6) */
+/* GRID 6 CARDS */
 .tools-grid{
   display:grid;
   grid-template-columns: repeat(12, 1fr);
@@ -197,9 +193,10 @@ header[data-testid="stHeader"]{display:none !important;}
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size: 1.4rem;
+  font-size: 1.35rem;
 }
 .tool-title{
+  font-family:'Inter', sans-serif;
   font-weight: 900;
   color:#1A202C;
   margin:0;
@@ -210,7 +207,7 @@ header[data-testid="stHeader"]{display:none !important;}
   margin-top: 8px;
   color:#718096;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.25;
 }
 .tool-btn button{
@@ -218,6 +215,12 @@ header[data-testid="stHeader"]{display:none !important;}
   height: 44px;
   border-radius: 12px !important;
   font-weight: 900 !important;
+}
+.tool-line{
+  height: 4px;
+  border-radius: 999px;
+  margin-top: 12px;
+  opacity: .95;
 }
 
 /* BENTO */
@@ -251,11 +254,11 @@ header[data-testid="stHeader"]{display:none !important;}
   font-size: 1.1rem;
   margin-bottom: 8px;
 }
-.bento-title{ font-weight: 800; font-size: 0.86rem; color:#1A202C; margin-bottom: 2px; }
-.bento-desc{ font-size: 0.75rem; color:#718096; font-weight:600; line-height:1.2; }
+.bento-title{ font-family:'Inter', sans-serif; font-weight: 900; font-size: 0.86rem; color:#1A202C; margin-bottom: 2px; }
+.bento-desc{ font-size: 0.75rem; color:#718096; font-weight:700; line-height:1.2; }
 
 /* INSIGHT */
-.insight-card{
+.insight{
   background: linear-gradient(135deg, #FFFBEB 0%, #FFFFFF 100%);
   border-radius: 14px;
   padding: 15px 18px;
@@ -275,6 +278,7 @@ header[data-testid="stHeader"]{display:none !important;}
   background: rgba(214,158,46,0.12);
 }
 .insight-kicker{
+  font-family:'Inter', sans-serif;
   font-weight: 900;
   font-size: 0.78rem;
   color:#D69E2E;
@@ -285,7 +289,7 @@ header[data-testid="stHeader"]{display:none !important;}
   margin-top: 2px;
   color:#4A5568;
   font-style: italic;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .footer-sign{
@@ -294,6 +298,7 @@ header[data-testid="stHeader"]{display:none !important;}
   font-size: 0.72rem;
   margin-top: 34px;
 }
+
 @media (max-width: 900px){
   .tool-card{grid-column: span 12;}
   .block-container{padding-top: 110px !important;}
@@ -302,11 +307,26 @@ header[data-testid="stHeader"]{display:none !important;}
 """, unsafe_allow_html=True)
 
 # -------------------------
-# LOGIN VIEW (mantém sua estrutura nova; aqui está simples)
+# VIEW ROUTING
 # -------------------------
 view = st.session_state.view
+
+# -------------------------
+# LOGIN
+# -------------------------
 if view == "login":
     st.markdown("## Acesso — Omnisfera")
+
+    # logo no login (se existir)
+    icone = get_base64_image("omni_icone.png")
+    texto = get_base64_image("omni_texto.png")
+    if icone and texto:
+        st.markdown(f"""
+        <div style="display:flex; align-items:center; gap:10px; justify-content:center; margin-top:10px; margin-bottom:8px;">
+          <img src="data:image/png;base64,{icone}" style="height:64px; animation: spin 45s linear infinite;">
+          <img src="data:image/png;base64,{texto}" style="height:34px;">
+        </div>
+        """, unsafe_allow_html=True)
 
     with st.container(border=True):
         st.markdown("### Termo de Confidencialidade")
@@ -324,7 +344,7 @@ if view == "login":
 
         disabled = not (aceitou and nome.strip() and cargo.strip() and usuario.strip() and senha.strip())
         if st.button("Entrar", type="primary", use_container_width=True, disabled=disabled):
-            # ✅ aqui você pluga o Supabase depois
+            # Aqui você pluga Supabase depois.
             st.session_state.autenticado = True
             st.session_state.usuario_nome = nome.strip()
             st.session_state.usuario_cargo = cargo.strip()
@@ -338,143 +358,87 @@ if view == "login":
 # HOME PORTAL
 # -------------------------
 if view == "home":
-    # =========================
-    # HEADER FIXO (antigo)
-    # =========================
     icone_b64 = get_base64_image("omni_icone.png")
     texto_b64 = get_base64_image("omni_texto.png")
 
+    # Header fixo grande do portal
     if icone_b64 and texto_b64:
         st.markdown(f"""
-        <div class="logo-container">
-            <img src="data:image/png;base64,{icone_b64}" class="logo-icon-spin">
-            <img src="data:image/png;base64,{texto_b64}" class="logo-text-static">
-            <div class="header-subtitle-text">Ecossistema de Inteligência Pedagógica e Inclusiva</div>
+        <div class="portal-header">
+          <img src="data:image/png;base64,{icone_b64}" class="portal-logo-spin" alt="Omnisfera">
+          <img src="data:image/png;base64,{texto_b64}" class="portal-logo-text" alt="Omnisfera">
+          <div class="portal-subtitle">Ecossistema de Inteligência Pedagógica e Inclusiva</div>
         </div>
         """, unsafe_allow_html=True)
     else:
         st.markdown("""
-        <div class="logo-container">
-            <h1 style="color:#0F52BA; margin:0;">🌐 OMNISFERA</h1>
-            <div class="header-subtitle-text">Ecossistema de Inteligência Pedagógica e Inclusiva</div>
+        <div class="portal-header">
+          <div style="width:72px;height:72px;border-radius:18px;background:#0F52BA;"></div>
+          <div style="font-family:Inter;font-weight:900;font-size:1.2rem;color:#111827;">OMNISFERA</div>
+          <div class="portal-subtitle">Ecossistema de Inteligência Pedagógica e Inclusiva</div>
         </div>
         """, unsafe_allow_html=True)
 
     nome_display = st.session_state.get("usuario_nome", "Educador").split()[0]
-
-    # =========================
-    # HERO
-    # =========================
     mensagem_banner = "Unindo ciência, dados e empatia para transformar a educação."
+
     st.markdown(f"""
-    <div class="dash-hero hover-spring">
-        <div class="hero-text-block">
-            <div class="hero-title">Olá, {nome_display}!</div>
-            <div class="hero-subtitle">"{mensagem_banner}"</div>
-        </div>
-        <i class="ri-heart-pulse-fill hero-bg-icon"></i>
+    <div class="hero">
+      <div>
+        <div class="hero-title">Olá, {nome_display}!</div>
+        <div class="hero-subtitle">"{mensagem_banner}"</div>
+      </div>
+      <i class="ri-heart-pulse-fill hero-bg"></i>
     </div>
     """, unsafe_allow_html=True)
 
-    # =========================
-    # MANIFESTO
-    # =========================
     st.markdown("<div class='section-title'><i class='ri-flag-2-fill'></i> Manifesto Omnisfera</div>", unsafe_allow_html=True)
-    st.info(
-        "“A Omnisfera foi desenvolvida com muito cuidado e carinho com o objetivo de auxiliar as escolas na tarefa de incluir. "
-        "Ela tem o potencial para revolucionar o cenário da inclusão no Brasil.”"
-    )
+    st.info("“A Omnisfera foi desenvolvida com muito cuidado e carinho com o objetivo de auxiliar as escolas na tarefa de incluir. Ela tem o potencial para revolucionar o cenário da inclusão no Brasil.”")
 
-    # =========================
-    # ACESSO RÁPIDO (6 CARDS BONITOS + BOTÃO OVERLAY)
-    # =========================
+    # ---------- Cards 6 ----------
     st.markdown("<div class='section-title'><i class='ri-cursor-fill'></i> Acesso Rápido</div>", unsafe_allow_html=True)
 
-    # util: cria card + botão transparente que controla SPA
-    def portal_card(col, title, desc, icon_html, key_btn, target_view, border_color):
-        with col:
-            st.markdown(f"""
-            <div class="nav-btn-card" style="border-bottom: 4px solid {border_color};">
-                {icon_html}
-                <div style="font-weight:900; font-size:0.9rem; color:#1A202C; margin-top:4px;">{title}</div>
-                <div class="nav-desc">{desc}</div>
+    def tool_card(title, desc, icon, color, btn_key, target_view):
+        st.markdown(f"""
+        <div class="tool-card">
+          <div class="tool-top">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div class="tool-ico" style="background:{color}20; color:{color};">
+                <i class="{icon}"></i>
+              </div>
+              <div>
+                <div class="tool-title">{title}</div>
+              </div>
             </div>
-            """, unsafe_allow_html=True)
+          </div>
+          <div class="tool-desc">{desc}</div>
+          <div class="tool-line" style="background:{color};"></div>
+        </div>
+        """, unsafe_allow_html=True)
 
-            st.markdown('<div class="card-overlay-btn">', unsafe_allow_html=True)
-            if st.button("Acessar", key=key_btn, use_container_width=True):
-                st.session_state.view = target_view
-                st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown('<div class="tool-btn">', unsafe_allow_html=True)
+        if st.button("Acessar", key=btn_key, use_container_width=True):
+            go(target_view)
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    # ícones (PNG se tiver, fallback se não)
-    def icon_png_or_fallback(png_name, fallback_ri):
-        b64 = get_base64_image(png_name)
-        if b64:
-            return f'<img src="data:image/png;base64,{b64}" class="nav-icon">'
-        return f'<i class="{fallback_ri}" style="font-size:2.6rem; margin-bottom:8px; color:#0F52BA;"></i>'
+    # grid com 6 cards (2 linhas)
+    colA, colB, colC = st.columns(3)
+    with colA:
+        tool_card("Estudantes", "Cadastro, histórico, evidências e rede de apoio.", "ri-group-line", "#2563EB", "go_est", "estudantes")
+    with colB:
+        tool_card("Estratégias & PEI", "Barreiras, suportes, estratégias e rubricas.", "ri-puzzle-2-line", "#3B82F6", "go_pei", "pei")
+    with colC:
+        tool_card("Plano de Ação (PAEE)", "Metas SMART, ações, responsáveis e cronograma.", "ri-map-pin-2-line", "#22C55E", "go_paee", "paee")
 
-    c1, c2, c3 = st.columns(3)
-    portal_card(
-        c1,
-        "Estudantes",
-        "Cadastro, histórico e evidências do estudante.",
-        icon_png_or_fallback("students.png", "ri-group-line"),
-        "go_estudantes",
-        "estudantes",
-        "#2563EB",
-    )
-    portal_card(
-        c2,
-        "Estratégias & PEI",
-        "Barreiras, suportes, estratégias e rubricas.",
-        icon_png_or_fallback("360.png", "ri-book-read-line"),
-        "go_pei",
-        "pei",
-        "#3B82F6",
-    )
-    portal_card(
-        c3,
-        "Plano de Ação (PAEE)",
-        "Metas SMART, ações, responsáveis e cronograma.",
-        icon_png_or_fallback("pae.png", "ri-map-pin-2-line"),
-        "go_paee",
-        "paee",
-        "#22C55E",
-    )
+    colD, colE, colF = st.columns(3)
+    with colD:
+        tool_card("Hub de Recursos", "Modelos, TA, adaptações e atividades.", "ri-lightbulb-flash-fill", "#F59E0B", "go_hub", "hub")
+    with colE:
+        tool_card("Diário de Bordo", "Registros de contexto, hipóteses e decisões.", "ri-compass-3-fill", "#F97316", "go_diario", "diario")
+    with colF:
+        tool_card("Avaliação & Acompanhamento", "Evidências, rubricas e evolução longitudinal.", "ri-line-chart-fill", "#A855F7", "go_mon", "mon")
 
-    c4, c5, c6 = st.columns(3)
-    portal_card(
-        c4,
-        "Hub de Recursos",
-        "Adaptações, TA, atividades e modelos.",
-        icon_png_or_fallback("hub.png", "ri-lightbulb-flash-line"),
-        "go_hub",
-        "hub",
-        "#F59E0B",
-    )
-    portal_card(
-        c5,
-        "Diário de Bordo",
-        "Registros de contexto, hipóteses e decisões.",
-        icon_png_or_fallback("diario.png", "ri-compass-3-line"),
-        "go_diario",
-        "diario",
-        "#F97316",
-    )
-    portal_card(
-        c6,
-        "Avaliação & Acompanhamento",
-        "Indicadores, evidências e evolução longitudinal.",
-        icon_png_or_fallback("monitoramento.png", "ri-line-chart-line"),
-        "go_mon",
-        "mon",
-        "#A855F7",
-    )
-
-    # =========================
-    # CONTEÚDO DE INCLUSÃO (forte)
-    # =========================
+    # ---------- Conteúdo de Inclusão ----------
     st.markdown("<div class='section-title'><i class='ri-timer-flash-fill'></i> Inclusão em 60 segundos</div>", unsafe_allow_html=True)
     st.markdown("""
 - **Incluir** não é “adaptar o aluno”: é **reduzir barreiras** para participação e aprendizagem.
@@ -508,9 +472,6 @@ if view == "home":
         st.write("**Sinais:** falta de recursos / inacessibilidade digital.")
         st.write("**Ações:** TA baixa/média/alta + alternativas offline + acessibilidade em materiais.")
 
-    # =========================
-    # CONHECIMENTO (BENTO)
-    # =========================
     st.markdown("<div class='section-title'><i class='ri-book-mark-fill'></i> Conhecimento</div>", unsafe_allow_html=True)
     st.markdown("""
     <div class="bento-grid">
@@ -537,24 +498,21 @@ if view == "home":
     </div>
     """, unsafe_allow_html=True)
 
-    # =========================
-    # INSIGHT
-    # =========================
     insight = "A aprendizagem acontece quando o cérebro se emociona. Crie vínculos antes de cobrar conteúdos."
     st.markdown(f"""
-    <div class="insight-card-end hover-spring">
-        <div class="insight-icon-end"><i class="ri-lightbulb-flash-line"></i></div>
-        <div>
-            <div style="font-weight: 900; font-size: 0.8rem; color: #D69E2E; letter-spacing: 0.5px; text-transform: uppercase;">Insight do Dia</div>
-            <p style="margin:2px 0 0 0; font-size:0.9rem; opacity:0.9; color:#4A5568; font-style: italic;">"{insight}"</p>
-        </div>
+    <div class="insight">
+      <div class="insight-ico"><i class="ri-lightbulb-flash-line"></i></div>
+      <div>
+        <div class="insight-kicker">Insight do Dia</div>
+        <div class="insight-text">"{insight}"</div>
+      </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("<div style='text-align:center; color:#CBD5E0; font-size:0.72rem; margin-top:34px;'>Omnisfera — Criada por Rodrigo A. Queiroz • PEI360 • PAEE360 • HUB de Inclusão</div>", unsafe_allow_html=True)
+    st.markdown("<div class='footer-sign'>Omnisfera — Criada por Rodrigo A. Queiroz • PEI360 • PAEE360 • HUB de Inclusão</div>", unsafe_allow_html=True)
 
 # -------------------------
-# OTHER VIEWS (placeholders)
+# OUTRAS VIEWS (por enquanto mantém placeholders)
 # -------------------------
 elif view == "estudantes":
     st.markdown("## Estudantes (placeholder)")
@@ -568,5 +526,9 @@ elif view == "diario":
     st.markdown("## Diário de Bordo (placeholder)")
 elif view == "mon":
     st.markdown("## Avaliação & Acompanhamento (placeholder)")
+elif view == "logout":
+    st.session_state.autenticado = False
+    st.session_state.view = "login"
+    st.rerun()
 else:
     st.warning(f"View desconhecida: {view}")
