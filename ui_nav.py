@@ -186,46 +186,70 @@ header[data-testid="stHeader"]{{display:none !important;}}
         unsafe_allow_html=True,
     )
 
-    # -------------------------
+       # -------------------------
     # BOTÕES CLICÁVEIS (reais) — multipage
+    # Estratégia: renderiza botões, mas remove do fluxo (height:0) e fixa na barra.
     # -------------------------
-    # Renderiza botões invisíveis para capturar clique, sem “caixas fora”
-    # (fica logo abaixo, mas invisível e fixado por CSS)
     st.markdown('<div id="omni-click-anchor"></div>', unsafe_allow_html=True)
 
-    cols = st.columns([1]*len(NAV_LINKS), gap="small")
+    # Renderiza botões (eles ficam no DOM, mas serão "teletransportados" e escondidos)
+    cols = st.columns([1] * len(NAV_LINKS), gap="small")
     for i, (k, label, path) in enumerate(NAV_LINKS):
         with cols[i]:
             if st.button(" ", key=f"nav_{k}", help=label):
                 _goto(path)
 
+    # CSS: remove o bloco do fluxo + fixa em cima da topbar + some com as "caixas"
     st.markdown("""
 <style>
-/* fixa o bloco de botões logo depois da âncora (sem depender de DOM frágil) */
+/* Pega o bloco logo após a âncora (às vezes o Streamlit insere um wrapper extra) */
 #omni-click-anchor + div,
-#omni-click-anchor + div + div{
+#omni-click-anchor + div + div {
   position: fixed !important;
-  top: 8px !important;
-  right: 18px !important;
+  top: 0px !important;
+  right: 0px !important;
+  height: 54px !important;
+  width: auto !important;
   z-index: 2147483647 !important;
-  opacity: 0 !important; /* invisível */
-  pointer-events: auto !important;
+
+  /* remove do layout para não criar aquelas caixas no corpo */
+  margin: 0 !important;
+  padding: 0 18px !important;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+
+  /* NÃO deixa ocupar espaço no conteúdo */
+  transform: translateY(-9999px) !important;  /* tira do viewport */
 }
-/* tamanho do clique = tamanho do ícone */
-#omni-click-anchor + div [data-testid="stButton"] button,
-#omni-click-anchor + div + div [data-testid="stButton"] button{
-  width: 36px !important;
-  height: 46px !important;   /* inclui label embaixo */
+
+/* A camada de clique real: a gente recria outra por cima, alinhada na direita */
+#omni-click-layer {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  height: 54px !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 0 18px !important;
+  background: transparent !important;
+}
+
+/* Botões: área de clique por item (ícone + label) */
+#omni-click-layer [data-testid="stButton"] button {
+  width: 48px !important;
+  height: 54px !important;
   padding: 0 !important;
   border: none !important;
   background: transparent !important;
+  box-shadow: none !important;
 }
-#omni-click-anchor + div [data-testid="stButton"] button p,
-#omni-click-anchor + div + div [data-testid="stButton"] button p{
-  display:none !important;
-}
+#omni-click-layer [data-testid="stButton"] button p { display:none !important; }
 </style>
 """, unsafe_allow_html=True)
+
+    # Cria uma camada de clique "limpa" (sem caixas) reaproveitando os botões já renderizados
+    # Truque: clonamos via CSS? Streamlit não permite clone. Então a solução prática é:
+    # manter os botões fora do viewport e criar NOVOS botões dentro de um container fixo.
