@@ -1,13 +1,13 @@
 import streamlit as st
-import os
 from ui_nav import boot_ui, ensure_auth_state
 
 ensure_auth_state()
-boot_ui(do_route=False)
+boot_ui()
 
 if not st.session_state.autenticado:
-    st.query_params["go"] = "login"
     st.stop()
+
+st.title("Título da Página")
 
 boot_ui(do_route=False)
 
