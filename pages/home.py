@@ -1,11 +1,14 @@
+import streamlit as st
 from ui_nav import boot_ui, ensure_auth_state
 
 ensure_auth_state()
 boot_ui()
 
 if not st.session_state.autenticado:
-    st.query_params["go"] = "login"
     st.stop()
+
+st.title("Home")
+st.write("Home funcionando corretamente.")
 
 user = st.session_state.user or {}
 email = user.get("email", "—")
