@@ -1,10 +1,11 @@
 import streamlit as st
-from ui_nav import boot_ui, ensure_auth_state, route_from_query
+from ui_nav import boot_ui, ensure_auth_state
+import views as V
 
 st.set_page_config(page_title="Omnisfera", layout="wide")
 
 ensure_auth_state()
-boot_ui(do_route=False)
+boot_ui()
 
 def render_login():
     st.markdown("## Entrar")
@@ -16,27 +17,36 @@ def render_login():
         ok = st.form_submit_button("Entrar")
 
     if ok:
-        # LOGIN DEMO (placeholder)
         if email.strip() and senha.strip():
             st.session_state.autenticado = True
             st.session_state.user = {"email": email.strip()}
-            st.query_params["go"] = "home"
-            st.switch_page("pages/home.py")
+            st.session_state.go = "home"
+            st.rerun()
         else:
             st.error("Preencha e-mail e senha.")
 
-go = st.query_params.get("go", "login")
-
-# NÃO autenticado -> sempre login
+# Gate
 if not st.session_state.autenticado:
-    st.query_params["go"] = "login"
     render_login()
     st.stop()
 
-# Autenticado
-if go == "login":
-    st.query_params["go"] = "home"
-    st.switch_page("pages/home.py")
+# Router SPA
+go = st.session_state.get("go", "home")
+
+if go == "home":
+    V.render_home()
+elif go == "alunos":
+    V.render_alunos()
+elif go == "pei":
+    V.render_pei()
+elif go == "pae":
+    V.render_pae()
+elif go == "hub":
+    V.render_hub()
+elif go == "diario":
+    V.render_stub("Diário", "Em breve.")
+elif go == "dados":
+    V.render_stub("Dados", "Em breve.")
 else:
-    route_from_query(default_go="home")
-    st.markdown("Redirecionando…")
+    st.session_state.go = "home"
+    st.rerun()
