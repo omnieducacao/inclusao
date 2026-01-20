@@ -6,18 +6,15 @@ from datetime import date
 import pandas as pd
 from openai import OpenAI
 from ui_nav import render_omnisfera_nav
-import streamlit as st
-from ui_nav import render_omnisfera_nav
 
-active = render_omnisfera_nav()
+active = render_omnisfera_nav(show_on_login=True)
 
-# 🔒 garante que só renderiza quando a view é PAEE
-if active != "paee":
-    st.stop()
-
-st.title("Plano de Ação – PAEE")
-
-st.write("Conteúdo do PAEE aqui")
+if active == "home":
+    ...
+elif active == "estudantes":
+    ...
+elif active == "pei":
+    ...
 
 # ==============================================================================
 # 1) CONFIG
