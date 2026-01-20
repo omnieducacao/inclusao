@@ -1,64 +1,47 @@
 import streamlit as st
-import os
 from ui_nav import boot_ui, ensure_auth_state
 
-# -----------------------------------------------------------------------------
-# BOOT
-# -----------------------------------------------------------------------------
 ensure_auth_state()
 boot_ui(do_route=False)
 
-# -----------------------------------------------------------------------------
-# BLOQUEIO SEM LOGIN
-# -----------------------------------------------------------------------------
 if not st.session_state.autenticado:
     st.query_params["go"] = "login"
     st.stop()
 
-# -----------------------------------------------------------------------------
-# ESTILO (cards + grid)
-# -----------------------------------------------------------------------------
+user = st.session_state.user or {}
+email = user.get("email", "—")
+
+# --- Estilo (mantém clean / neutro) ---
 st.markdown("""
 <style>
-.home-hero{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:16px;
-  margin: 4px 0 18px 0;
+.home-header{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:16px; margin: 8px 0 10px 0;
 }
-.home-title{
-  font-size: 44px;
-  font-weight: 850;
-  letter-spacing: -0.8px;
-  margin: 0;
+.home-header .t{
+  font-size: 20px; font-weight: 900; letter-spacing: -0.2px;
+  color: rgba(0,0,0,0.78);
 }
-.home-sub{
-  margin-top: 6px;
-  color: rgba(0,0,0,0.60);
-  font-size: 14px;
+.home-header .s{
+  margin-top: 4px;
+  color: rgba(0,0,0,0.50);
+  font-size: 13px;
 }
-.home-actions{
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-
 .kpi-row{
   display:grid;
   grid-template-columns: repeat(4, minmax(0,1fr));
   gap:12px;
-  margin: 10px 0 14px 0;
+  margin: 12px 0 14px 0;
 }
 .kpi{
   border-radius: 18px;
-  padding: 14px 14px;
+  padding: 14px;
   border: 1px solid rgba(0,0,0,0.08);
-  background: rgba(255,255,255,0.55);
+  background: rgba(255,255,255,0.70);
   backdrop-filter: blur(10px);
 }
-.kpi .label{ font-size: 12px; color: rgba(0,0,0,0.55); }
-.kpi .value{ font-size: 22px; font-weight: 800; margin-top: 6px; }
+.kpi .label{ font-size: 12px; color: rgba(0,0,0,0.50); }
+.kpi .value{ font-size: 22px; font-weight: 900; margin-top: 6px; color: rgba(0,0,0,0.78); }
 
 .cards{
   display:grid;
@@ -68,9 +51,9 @@ st.markdown("""
 }
 .card{
   border-radius: 22px;
-  padding: 16px 16px;
+  padding: 16px;
   border: 1px solid rgba(0,0,0,0.08);
-  background: rgba(255,255,255,0.62);
+  background: rgba(255,255,255,0.72);
   backdrop-filter: blur(10px);
   transition: transform .12s ease, box-shadow .12s ease;
 }
@@ -86,21 +69,17 @@ st.markdown("""
   width: 40px; height: 40px; border-radius: 14px;
   display:flex; align-items:center; justify-content:center;
   border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(255,255,255,0.70);
+  background: rgba(0,0,0,0.03);
+}
+.badge i{
   font-size: 18px;
+  color: rgba(0,0,0,0.70);
 }
-.card h3{ margin: 0; font-size: 16px; font-weight: 850; }
-.card p{ margin: 8px 0 12px 0; font-size: 13px; color: rgba(0,0,0,0.60); line-height: 1.35; }
-.card a{
-  text-decoration:none;
-  font-weight: 800;
-  font-size: 13px;
-}
-.small{
-  margin-top: 8px;
-  color: rgba(0,0,0,0.48);
-  font-size: 12px;
-}
+.card h3{ margin: 0; font-size: 16px; font-weight: 900; color: rgba(0,0,0,0.78); }
+.card p{ margin: 8px 0 12px 0; font-size: 13px; color: rgba(0,0,0,0.56); line-height: 1.35; }
+.card a{ text-decoration:none; font-weight: 900; font-size: 13px; color: rgba(0,0,0,0.70); }
+.small{ margin-top: 8px; color: rgba(0,0,0,0.42); font-size: 12px; }
+
 @media (max-width: 1000px){
   .kpi-row{ grid-template-columns: repeat(2, minmax(0,1fr)); }
   .cards{ grid-template-columns: repeat(1, minmax(0,1fr)); }
@@ -108,39 +87,24 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# -----------------------------------------------------------------------------
-# HEADER
-# -----------------------------------------------------------------------------
-user = st.session_state.user or {}
-email = user.get("email", "—")
-
+# --- Header minimal ---
 st.markdown(f"""
-<div class="home-hero">
+<div class="home-header">
   <div>
-    <div class="home-title">Home — Omnisfera</div>
-    <div class="home-sub">Logado como: <b>{email}</b> · Acesso rápido aos módulos e visão geral do dia.</div>
+    <div class="t">Central</div>
+    <div class="s">Logado como <b>{email}</b> · Acesso rápido aos módulos.</div>
   </div>
-  <div class="home-actions"></div>
 </div>
 """, unsafe_allow_html=True)
 
-# -----------------------------------------------------------------------------
-# AÇÕES (logout + “voltar pro login” sem switch_page)
-# -----------------------------------------------------------------------------
-colA, colB = st.columns([1, 5])
-with colA:
-    if st.button("Sair"):
-        st.session_state.autenticado = False
-        st.session_state.user = None
-        st.query_params["go"] = "login"
-        st.stop()
+# --- Logout simples (sem switch_page pra não dar exceção) ---
+if st.button("Sair"):
+    st.session_state.autenticado = False
+    st.session_state.user = None
+    st.query_params["go"] = "login"
+    st.stop()
 
-with colB:
-    st.caption("Dica: use o menu superior para navegação rápida. Os cards abaixo também navegam via `?go=`.")
-
-# -----------------------------------------------------------------------------
-# KPIs (placeholders — depois ligamos no Supabase)
-# -----------------------------------------------------------------------------
+# --- KPIs (placeholder por enquanto) ---
 st.markdown("""
 <div class="kpi-row">
   <div class="kpi"><div class="label">Alunos na nuvem</div><div class="value">—</div></div>
@@ -150,22 +114,13 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# -----------------------------------------------------------------------------
-# LOGO/Ícone (opcional)
-# -----------------------------------------------------------------------------
-ICON_PATH = "omni_icone.png"
-if os.path.exists(ICON_PATH):
-    st.image(ICON_PATH, width=72)
-
-# -----------------------------------------------------------------------------
-# CARDS DE NAVEGAÇÃO (já funcionam com o seu router ?go=)
-# -----------------------------------------------------------------------------
-def card(title, desc, emoji, go, link_label="Abrir"):
+# --- Cards com ícones Flaticon (sem emoji) ---
+def card(title, desc, icon_class, go, link_label="Abrir"):
     return f"""
 <div class="card">
   <div class="top">
-    <div class="badge">{emoji}</div>
-    <a href="?go={go}">{link_label} →</a>
+    <div class="badge"><i class="{icon_class}"></i></div>
+    <a href="?go={go}" target="_self">{link_label} →</a>
   </div>
   <h3>{title}</h3>
   <p>{desc}</p>
@@ -175,14 +130,11 @@ def card(title, desc, emoji, go, link_label="Abrir"):
 
 st.markdown(f"""
 <div class="cards">
-  {card("Alunos", "Gerencie alunos salvos, cadastros e sincronização com Supabase.", "👥", "alunos")}
-  {card("PEI 360°", "Monte e acompanhe o Plano Educacional Individual com evidências e rubricas.", "🧠", "pei")}
-  {card("PAE", "Plano de Apoio Educacional e estratégias com foco no acompanhamento.", "🎯", "pae")}
-  {card("Hub de Inclusão", "Banco de recursos, adaptações, trilhas e materiais por necessidade.", "📚", "hub")}
-  {card("Diário", "Registro longitudinal (em breve).", "📝", "diario", "Em breve")}
-  {card("Dados", "Dashboards e KPIs (em breve).", "📈", "dados", "Em breve")}
+  {card("Alunos", "Gerencie alunos salvos, cadastros e sincronização com Supabase.", "fi fi-sr-users", "alunos")}
+  {card("PEI 360°", "Monte e acompanhe o Plano Educacional Individual com evidências e rubricas.", "fi fi-sr-document-signed", "pei")}
+  {card("PAE", "Plano de Apoio Educacional e estratégias com foco no acompanhamento.", "fi fi-ss-bullseye-arrow", "pae")}
+  {card("Hub de Inclusão", "Recursos, adaptações e trilhas por necessidade.", "fi fi-sr-book-open-cover", "hub")}
+  {card("Diário", "Registro longitudinal (em breve).", "fi fi-br-notebook", "diario", "Em breve")}
+  {card("Dados", "Dashboards e KPIs (em preferred).", "fi fi-br-chart-histogram", "dados", "Em breve")}
 </div>
 """, unsafe_allow_html=True)
-
-st.markdown("---")
-st.caption("Próximo passo: ligar KPIs e a lista de alunos do Supabase diretamente aqui na Home.")
