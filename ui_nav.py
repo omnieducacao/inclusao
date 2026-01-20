@@ -3,24 +3,28 @@ import streamlit as st
 import os, base64
 
 def render_omnisfera_nav():
-    ROUTES = {
-        "home":   "Home.py",
-        "pei":    "pages/1_PEI.py",
-        "paee":   "pages/2_PAE.py",
-        "hub":    "pages/3_Hub_Inclusao.py",
-        "diario": "pages/4_Diario_de_Bordo.py",
-        "mon":    "pages/5_Monitoramento_Avaliacao.py",
-    }
+    """
+    SPA-like navigation:
+    - NÃO usa st.switch_page (isso troca de página e pode forçar login de novo)
+    - Usa st.session_state["view"] + st.rerun() (igual sidebar)
+    - Mantém o dock exatamente como está (HTML/CSS)
+    - A camada de clique é feita com botões invisíveis por cima dos ícones
+    """
 
-    # Navegação (?go=)
-    qp = st.query_params
-    if "go" in qp:
-        dest = qp["go"]
-        if dest in ROUTES:
-            st.query_params.clear()
-            st.switch_page(ROUTES[dest])
+    # -------------------------------
+    # 1) Estado SPA (view atual)
+    # -------------------------------
+    if "view" not in st.session_state:
+        st.session_state.view = "home"
 
-    # Logo base64
+    # função de navegação (igual sidebar)
+    def go(view_key: str):
+        st.session_state.view = view_key
+        st.rerun()
+
+    # -------------------------------
+    # 2) Logo base64
+    # -------------------------------
     def logo_src():
         for f in ["omni_icone.png", "logo.png", "iconeaba.png", "omni.png", "ominisfera.png"]:
             if os.path.exists(f):
@@ -30,7 +34,9 @@ def render_omnisfera_nav():
 
     src = logo_src()
 
-    # Posição por cima do header do Streamlit
+    # -------------------------------
+    # 3) Visual do dock (igual o seu)
+    # -------------------------------
     TOP_PX = 8
     RIGHT_PX = 14
 
@@ -58,8 +64,8 @@ header[data-testid="stHeader"] * {{
   display: flex;
   align-items: center;
 
-  gap: 10px;              /* ↓ era 12 */
-  padding: 8px 12px;      /* ↓ era 10px 14px */
+  gap: 10px;
+  padding: 8px 12px;
   border-radius: 999px;
 
   background: #FFFFFF !important;
@@ -68,7 +74,7 @@ header[data-testid="stHeader"] * {{
 
   opacity: 1 !important;
   isolation: isolate !important;
-  pointer-events: auto !important;
+  pointer-events: none !important; /* IMPORTANT: clique vai na camada de botões */
 }}
 
 /* Logo */
@@ -77,53 +83,36 @@ header[data-testid="stHeader"] * {{
   to {{ transform: rotate(360deg); }}
 }}
 .omni-logo {{
-  width: 26px;            /* ↓ era 28 */
-  height: 26px;           /* ↓ era 28 */
+  width: 26px;
+  height: 26px;
   animation: spin 10s linear infinite;
 }}
 
 /* Separador */
 .omni-sep {{
   width: 1px;
-  height: 22px;           /* ↓ era 26 */
+  height: 22px;
   background: #E5E7EB;
   margin: 0 2px;
 }}
 
 /* Botões circulares coloridos (ícone branco) */
 .omni-ico {{
-  width: 34px;            /* ↓ era 38 */
-  height: 34px;           /* ↓ era 38 */
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  text-decoration: none !important;
-
-  /* borda sutil para manter o “dock premium” */
   border: 1px solid rgba(17,24,39,0.06) !important;
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
-  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
-}}
-
-.omni-ico:hover {{
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10);
-  filter: brightness(1.02);
 }}
 
 .omni-ic {{
-  font-size: 18px;        /* ↓ era 20 */
+  font-size: 18px;
   line-height: 1;
-  color: #FFFFFF !important;  /* ícone branco */
-}}
-
-/* Acessibilidade: foco ao navegar com teclado */
-.omni-ico:focus {{
-  outline: 3px solid rgba(59,130,246,0.25);
-  outline-offset: 2px;
+  color: #FFFFFF !important;
 }}
 </style>
 
@@ -131,29 +120,120 @@ header[data-testid="stHeader"] * {{
   <img src="{src}" class="omni-logo" alt="Omnisfera" />
   <div class="omni-sep"></div>
 
-  <!-- target=_self garante abrir na mesma aba -->
-  <a class="omni-ico" href="?go=home"   target="_self" title="Home" style="background:#111827">
+  <div class="omni-ico" style="background:#111827" title="Home">
     <i class="ri-home-5-line omni-ic"></i>
-  </a>
+  </div>
 
-  <a class="omni-ico" href="?go=pei"    target="_self" title="Estratégias & PEI" style="background:#3B82F6">
+  <div class="omni-ico" style="background:#3B82F6" title="Estratégias & PEI">
     <i class="ri-puzzle-2-line omni-ic"></i>
-  </a>
+  </div>
 
-  <a class="omni-ico" href="?go=paee"   target="_self" title="Plano de Ação (PAEE)" style="background:#22C55E">
+  <div class="omni-ico" style="background:#22C55E" title="Plano de Ação (PAEE)">
     <i class="ri-map-pin-2-line omni-ic"></i>
-  </a>
+  </div>
 
-  <a class="omni-ico" href="?go=hub"    target="_self" title="Hub de Recursos" style="background:#F59E0B">
+  <div class="omni-ico" style="background:#F59E0B" title="Hub de Recursos">
     <i class="ri-lightbulb-line omni-ic"></i>
-  </a>
+  </div>
 
-  <a class="omni-ico" href="?go=diario" target="_self" title="Diário de Bordo" style="background:#F97316">
+  <div class="omni-ico" style="background:#F97316" title="Diário de Bordo">
     <i class="ri-compass-3-line omni-ic"></i>
-  </a>
+  </div>
 
-  <a class="omni-ico" href="?go=mon"    target="_self" title="Evolução & Acompanhamento" style="background:#A855F7">
+  <div class="omni-ico" style="background:#A855F7" title="Evolução & Acompanhamento">
     <i class="ri-line-chart-line omni-ic"></i>
-  </a>
+  </div>
 </div>
 """, unsafe_allow_html=True)
+
+    # -------------------------------
+    # 4) Camada clicável (SPA) por cima do dock
+    #    - Botões invisíveis alinhados com a pílula
+    #    - Ao clicar: st.session_state.view = ... e rerun (igual sidebar)
+    # -------------------------------
+    st.markdown(f"""
+<style>
+/* Camada clicável por cima do dock */
+.omni-clicklayer {{
+  position: fixed;
+  top: {TOP_PX}px;
+  right: {RIGHT_PX}px;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+}}
+
+/* Faz os st.button virarem áreas de clique sem visual */
+.omni-clicklayer [data-testid="stButton"] button {{
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 999px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}}
+.omni-clicklayer [data-testid="stButton"] button:hover {{
+  background: transparent !important;
+}}
+.omni-clicklayer [data-testid="stButton"] button p {{
+  display: none !important;
+}}
+
+/* Primeiro botão: área da logo */
+.omni-clicklayer .logo-area [data-testid="stButton"] button {{
+  width: 26px !important;
+  height: 26px !important;
+}}
+/* Área do separador (não clicável) */
+.omni-clicklayer .sep-area {{
+  width: 1px;
+  height: 22px;
+}}
+</style>
+
+<div class="omni-clicklayer"></div>
+""", unsafe_allow_html=True)
+
+    # A estrutura de colunas precisa reproduzir: logo + separador + 6 ícones
+    # Os espaços aqui precisam bater com: gap/padding/tamanhos do CSS acima.
+    with st.container():
+        st.markdown('<div class="omni-clicklayer">', unsafe_allow_html=True)
+
+        c_logo, c_sep, c1, c2, c3, c4, c5, c6 = st.columns(
+            [0.55, 0.06, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75],
+            gap="small"
+        )
+
+        with c_logo:
+            st.markdown('<div class="logo-area">', unsafe_allow_html=True)
+            if st.button(" ", key="nav_home_logo", help="Home"):
+                go("home")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        with c_sep:
+            # separador visual já existe no dock; aqui só ocupa espaço
+            st.markdown('<div class="sep-area"></div>', unsafe_allow_html=True)
+
+        with c1:
+            if st.button(" ", key="nav_home", help="Home"):
+                go("home")
+        with c2:
+            if st.button(" ", key="nav_pei", help="Estratégias & PEI"):
+                go("pei")
+        with c3:
+            if st.button(" ", key="nav_paee", help="Plano de Ação (PAEE)"):
+                go("paee")
+        with c4:
+            if st.button(" ", key="nav_hub", help="Hub de Recursos"):
+                go("hub")
+        with c5:
+            if st.button(" ", key="nav_diario", help="Diário de Bordo"):
+                go("diario")
+        with c6:
+            if st.button(" ", key="nav_mon", help="Evolução & Acompanhamento"):
+                go("mon")
+
+        st.markdown('</div>', unsafe_allow_html=True)
