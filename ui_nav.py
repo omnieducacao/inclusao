@@ -3,22 +3,18 @@ import streamlit as st
 import os, base64
 
 def render_omnisfera_nav():
-    # SPA state
     if "view" not in st.session_state:
         st.session_state.view = "home"
 
-    # lê ?view=... (SPA sem mudar de página)
+    # Lê view sem limpar query params (não destruir login)
     qp = st.query_params
     if "view" in qp:
         v = qp["view"]
         if v in {"home","pei","paee","hub","diario","mon"}:
             st.session_state.view = v
-        # limpa pra não “ficar preso” no param
-        st.query_params.clear()
 
     active = st.session_state.view
 
-    # logo
     def logo_src():
         for f in ["omni_icone.png", "logo.png", "iconeaba.png", "omni.png", "ominisfera.png"]:
             if os.path.exists(f):
@@ -31,7 +27,6 @@ def render_omnisfera_nav():
     TOP_PX = 8
     RIGHT_PX = 14
 
-    # cores (só acende quando ativo)
     COLORS = {
         "home": "#111827",
         "pei": "#3B82F6",
@@ -42,19 +37,12 @@ def render_omnisfera_nav():
     }
 
     def icon_color(key: str) -> str:
-        # inativo: cinza (minimalista)
-        # ativo: cor do módulo
         return COLORS[key] if key == active else "rgba(17,24,39,0.55)"
-
-    def icon_weight(key: str) -> str:
-        # quando ativo dá “peso”
-        return "900" if key == active else "700"
 
     st.markdown(f"""
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
 
 <style>
-/* mata o header do streamlit */
 header[data-testid="stHeader"] {{
   background: transparent !important;
   box-shadow: none !important;
@@ -64,7 +52,6 @@ header[data-testid="stHeader"] * {{
   visibility: hidden !important;
 }}
 
-/* dock */
 .omni-dock {{
   position: fixed;
   top: {TOP_PX}px;
@@ -103,7 +90,7 @@ header[data-testid="stHeader"] * {{
   justify-content: center;
   text-decoration: none !important;
 
-  width: 28px;   /* área clicável */
+  width: 28px;
   height: 28px;
   border-radius: 10px;
 
@@ -115,7 +102,7 @@ header[data-testid="stHeader"] * {{
 }}
 
 .omni-ic {{
-  font-size: 22px;     /* ícone maior e “corrido” */
+  font-size: 22px;
   line-height: 1;
 }}
 </style>
@@ -125,27 +112,22 @@ header[data-testid="stHeader"] * {{
   <div class="omni-sep"></div>
 
   <a class="omni-link" href="?view=home"   target="_self" title="Home">
-    <i class="ri-home-5-fill omni-ic" style="color:{icon_color('home')}; font-weight:{icon_weight('home')}"></i>
+    <i class="ri-home-5-fill omni-ic" style="color:{icon_color('home')}"></i>
   </a>
-
   <a class="omni-link" href="?view=pei"    target="_self" title="Estratégias & PEI">
-    <i class="ri-puzzle-2-fill omni-ic" style="color:{icon_color('pei')}; font-weight:{icon_weight('pei')}"></i>
+    <i class="ri-puzzle-2-fill omni-ic" style="color:{icon_color('pei')}"></i>
   </a>
-
   <a class="omni-link" href="?view=paee"   target="_self" title="Plano de Ação (PAEE)">
-    <i class="ri-map-pin-2-fill omni-ic" style="color:{icon_color('paee')}; font-weight:{icon_weight('paee')}"></i>
+    <i class="ri-map-pin-2-fill omni-ic" style="color:{icon_color('paee')}"></i>
   </a>
-
   <a class="omni-link" href="?view=hub"    target="_self" title="Hub de Recursos">
-    <i class="ri-lightbulb-flash-fill omni-ic" style="color:{icon_color('hub')}; font-weight:{icon_weight('hub')}"></i>
+    <i class="ri-lightbulb-flash-fill omni-ic" style="color:{icon_color('hub')}"></i>
   </a>
-
   <a class="omni-link" href="?view=diario" target="_self" title="Diário de Bordo">
-    <i class="ri-compass-3-fill omni-ic" style="color:{icon_color('diario')}; font-weight:{icon_weight('diario')}"></i>
+    <i class="ri-compass-3-fill omni-ic" style="color:{icon_color('diario')}"></i>
   </a>
-
   <a class="omni-link" href="?view=mon"    target="_self" title="Evolução & Acompanhamento">
-    <i class="ri-line-chart-fill omni-ic" style="color:{icon_color('mon')}; font-weight:{icon_weight('mon')}"></i>
+    <i class="ri-line-chart-fill omni-ic" style="color:{icon_color('mon')}"></i>
   </a>
 </div>
 """, unsafe_allow_html=True)
