@@ -2,6 +2,220 @@
 import streamlit as st
 import os, base64
 
+# caminhos das páginas (as que EXISTEM na sua versão)
+PAGES = {
+    "home":   "home_portal.py",
+    "alunos": "pages/0_Alunos.py",
+    "pei":    "pages/1_PEI.py",
+    "paee":   "pages/2_PAE.py",
+    "hub":    "pages/3_Hub_Inclusao.py",
+    # quando você criar essas páginas, descomente:
+    # "diario": "pages/4_Diario_de_Bordo.py",
+    # "dados":  "pages/5_Monitoramento_Avaliacao.py",
+}
+
+COLORS = {
+    "home":   "#111827",
+    "alunos": "#2563EB",
+    "pei":    "#3B82F6",
+    "paee":   "#10B981",
+    "hub":    "#F59E0B",
+    "diario": "#F97316",
+    "dados":  "#8B5CF6",
+}
+
+# Remix Icons (bem leve e consistente)
+ICON = {
+    "home":   "ri-home-5-line",
+    "alunos": "ri-team-line",
+    "pei":    "ri-puzzle-2-line",
+    "paee":   "ri-map-pin-2-line",
+    "hub":    "ri-lightbulb-line",
+    "diario": "ri-compass-3-line",
+    "dados":  "ri-line-chart-line",
+}
+
+def _b64(path: str) -> str:
+    if not os.path.exists(path):
+        return ""
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+def _get_qp(name: str):
+    try:
+        qp = st.query_params
+        v = qp.get(name)
+        if isinstance(v, list):
+            return v[0] if v else None
+        return v
+    except Exception:
+        return None
+
+def _clear_qp():
+    try:
+        st.query_params.clear()
+    except Exception:
+        pass
+
+def _nav_if_requested():
+    go = _get_qp("go")
+    if not go:
+        return
+    target = PAGES.get(go)
+    _clear_qp()
+    if target:
+        st.switch_page(target)
+
+def render_omnisfera_nav(active: str = "home"):
+    """
+    Dock fixo no topo direito, 100% clicável via HTML (sem botões Streamlit).
+    Navega por ?go=... e st.switch_page (super estável).
+    """
+    _nav_if_requested()
+
+    TOP_PX = 0      # cola no topo
+    RIGHT_PX = 14
+
+    logo_b64 = _b64("omni_icone.png")
+    logo_html = (
+        f"<img class='omni-logo' src='data:image/png;base64,{logo_b64}' alt='Omnisfera'/>"
+        if logo_b64
+        else "<div class='omni-logo omni-logo-fallback'></div>"
+    )
+
+    # só renderiza itens que existem no dict PAGES
+    order = ["home", "alunos", "pei", "paee", "hub", "diario", "dados"]
+    items_html = ""
+    for key in order:
+        if key not in PAGES:
+            continue
+
+        is_active = "active" if key == active else ""
+        color = COLORS.get(key, "#111827")
+        icon = ICON.get(key, "ri-checkbox-blank-circle-line")
+
+        # tooltip simples por title (nativo)
+        label = {
+            "home": "Home",
+            "alunos": "Alunos",
+            "pei": "Estratégias & PEI",
+            "paee": "Plano de Ação",
+            "hub": "Hub",
+            "diario": "Diário",
+            "dados": "Dados",
+        }.get(key, key)
+
+        items_html += f"""
+        <a class="omni-btn {is_active}" href="?go={key}" target="_self" title="{label}" aria-label="{label}">
+          <i class="{icon}" style="color:{color};"></i>
+        </a>
+        """
+
+    st.markdown(
+        f"""
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800;900&display=swap" rel="stylesheet">
+
+<style>
+/* zera qualquer “respiro” do topo */
+html, body {{ margin:0 !important; padding:0 !important; }}
+.stApp {{ margin-top:0 !important; padding-top:0 !important; }}
+header[data-testid="stHeader"]{{display:none !important;}}
+[data-testid="stSidebar"], [data-testid="stSidebarNav"], [data-testid="stToolbar"]{{display:none !important;}}
+
+/* dock fixo */
+.omni-dock {{
+  position: fixed !important;
+  top: {TOP_PX}px !important;
+  right: {RIGHT_PX}px !important;
+  z-index: 2147483647 !important;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 8px 12px;
+  border-radius: 999px;
+
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(226,232,240,0.95);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}}
+
+@keyframes spin {{ from {{ transform: rotate(0deg); }} to {{ transform: rotate(360deg); }} }}
+.omni-logo {{
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  animation: spin 18s linear infinite;
+}}
+.omni-logo-fallback {{
+  background: conic-gradient(from 0deg,#3B82F6,#22C55E,#F59E0B,#F97316,#A855F7,#3B82F6);
+}}
+
+.omni-sep {{
+  width: 1px;
+  height: 22px;
+  background: rgba(226,232,240,1);
+  margin: 0 2px;
+}}
+
+/* botões ícone */
+.omni-btn {{
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  text-decoration: none !important;
+  background: transparent;
+  border: 1px solid rgba(17,24,39,0.06);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+
+  opacity: .72;
+  transition: transform .14s ease, opacity .14s ease, box-shadow .14s ease, background .14s ease;
+}}
+
+.omni-btn i {{
+  font-size: 16px;
+  line-height: 1;
+}}
+
+.omni-btn:hover {{
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+  background: rgba(248,250,252,0.9);
+}}
+
+.omni-btn.active {{
+  opacity: 1;
+  background: rgba(248,250,252,0.95);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.98), 0 14px 30px rgba(15,23,42,0.16);
+}}
+</style>
+
+<div class="omni-dock" aria-label="Omnisfera Dock">
+  {logo_html}
+  <div class="omni-sep"></div>
+  {items_html}
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+# compat: se algum arquivo antigo estiver chamando render_topbar_nav(...)
+def render_topbar_nav(active: str = "home"):
+    render_omnisfera_nav(active=active)
+# ui_nav.py
+import streamlit as st
+import os, base64
+
 # =========================================================
 # MAPA DE PÁGINAS (multipage real)
 # =========================================================
