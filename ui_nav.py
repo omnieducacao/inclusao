@@ -9,7 +9,7 @@ import streamlit as st
 # CONFIG
 # =============================================================================
 TOPBAR_HEIGHT = 56
-TOPBAR_PADDING = 12
+TOPBAR_PADDING = 14
 
 
 # =============================================================================
@@ -23,7 +23,7 @@ def ensure_auth_state():
 
 
 # =============================================================================
-# FILE / PATH UTILS
+# PATH / QUERY UTILS
 # =============================================================================
 def _project_root() -> Path:
     return Path(__file__).resolve().parent
@@ -46,7 +46,7 @@ def _img_to_data_uri(path: Path) -> str | None:
         return None
     try:
         data = base64.b64encode(path.read_bytes()).decode("utf-8")
-        return f"data:image/png;base64,{data}"
+        return "data:image/png;base64," + data
     except Exception:
         return None
 
@@ -55,6 +55,7 @@ def _img_to_data_uri(path: Path) -> str | None:
 # ICONS (FLATICON UICONS)
 # =============================================================================
 def inject_icons_cdn():
+    # Padrão combinado (como você definiu): rounded/straight/bold
     st.markdown(
         """
 <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css">
@@ -66,13 +67,13 @@ def inject_icons_cdn():
 
 
 # =============================================================================
-# CSS SHELL (HIDE STREAMLIT UI + TOPBAR)
+# CSS SHELL (LIGHT / CLEAN)
 # =============================================================================
 def inject_shell_css():
     st.markdown(
         f"""
 <style>
-/* remove UI nativa */
+/* Remove UI nativa Streamlit */
 [data-testid="stHeader"], header,
 footer, #MainMenu,
 [data-testid="stToolbar"],
@@ -80,12 +81,12 @@ footer, #MainMenu,
   display: none !important;
 }}
 
-/* empurra conteúdo */
+/* Respiro do conteúdo abaixo da topbar */
 .main .block-container {{
   padding-top: {TOPBAR_HEIGHT + TOPBAR_PADDING}px !important;
 }}
 
-/* topbar base */
+/* TOPBAR — light glass */
 .omni-topbar {{
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -97,73 +98,56 @@ footer, #MainMenu,
   justify-content:space-between;
 
   padding: 0 14px;
-  background: rgba(12,12,14,0.78);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+
+  background: rgba(255,255,255,0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
 }}
 
-/* brand (logo + wordmark) */
+/* BRAND (icone + wordmark png) */
 .omni-brand {{
   display:flex;
   align-items:center;
   gap:10px;
-  color: rgba(255,255,255,0.95);
   user-select:none;
 }}
 
 .omni-logo-wrap {{
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 14px;
   display:flex;
   align-items:center;
   justify-content:center;
 
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.10);
-  box-shadow:
-    0 0 0 4px rgba(255,255,255,0.04),
-    0 12px 30px rgba(0,0,0,0.20),
-    0 0 26px rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.08);
 }}
 
 .omni-logo {{
   width: 22px;
   height: 22px;
   object-fit: contain;
-  filter: drop-shadow(0 0 14px rgba(255,255,255,0.25));
 }}
 
-.omni-wordmark {{
-  display:flex;
-  flex-direction:column;
-  line-height: 1.05;
+.omni-wordmark-img {{
+  height: 16px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.92;
 }}
 
-.omni-wordmark .name {{
-  font-weight: 950;
-  font-size: 14px;
+.omni-wordmark-fallback {{
+  font-weight: 900;
   letter-spacing: .2px;
+  color: rgba(0,0,0,0.82);
+  font-size: 14px;
 }}
 
-.omni-wordmark .tag {{
-  font-size: 11px;
-  opacity: .62;
-  margin-top: 2px;
-}}
-
-/* pulse “gritando” com elegância */
-@keyframes omniPulse {{
-  0%   {{ box-shadow: 0 0 0 4px rgba(255,255,255,0.04), 0 12px 30px rgba(0,0,0,0.20), 0 0 18px rgba(255,255,255,0.10); }}
-  50%  {{ box-shadow: 0 0 0 5px rgba(255,255,255,0.06), 0 14px 34px rgba(0,0,0,0.24), 0 0 30px rgba(255,255,255,0.18); }}
-  100% {{ box-shadow: 0 0 0 4px rgba(255,255,255,0.04), 0 12px 30px rgba(0,0,0,0.20), 0 0 18px rgba(255,255,255,0.10); }}
-}}
-.omni-logo-wrap {{
-  animation: omniPulse 3.2s ease-in-out infinite;
-}}
-
-/* nav */
+/* NAV */
 .omni-nav {{
   display:flex;
   align-items:center;
@@ -180,21 +164,21 @@ footer, #MainMenu,
   justify-content:center;
 
   text-decoration:none;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.08);
 
   transition: transform .12s ease, background .12s ease, border-color .12s ease, opacity .12s ease;
 }}
 
 .nav-item:hover {{
   transform: translateY(-1px);
-  background: rgba(255,255,255,0.10);
-  border-color: rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.05);
+  border-color: rgba(0,0,0,0.12);
 }}
 
 .nav-item.active {{
-  background: rgba(255,255,255,0.14);
-  border-color: rgba(255,255,255,0.18);
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.16);
 }}
 
 .nav-item.disabled {{
@@ -214,53 +198,59 @@ footer, #MainMenu,
 
 
 # =============================================================================
-# ROUTES
+# ROUTES + ÍCONES (padrão que você definiu)
 # =============================================================================
 def ROUTES():
-    # Home atual: pages/home.py (como está no seu repo)
+    # Home: bold-rounded
+    # Estratégias & PEI: solid-rounded
+    # Plano de Ação / PAEE: solid-straight
+    # Hub: solid-rounded
+    # Diário: bold-rounded
+    # Evolução & Dados: bold-rounded
+    # IA: bold-rounded (deixamos como futuro)
     return {
         "home": {
             "label": "Home",
             "page": "pages/home.py",
-            "icon": "fi fi-br-home",
-            "color": "#EDEDED",
+            "icon": "fi fi-br-home",               # bold-rounded
+            "color": "rgba(0,0,0,0.70)",
         },
         "alunos": {
             "label": "Alunos",
             "page": "pages/0_Alunos.py",
-            "icon": "fi fi-sr-users",
-            "color": "#8BE9FD",
+            "icon": "fi fi-sr-users",              # solid-rounded
+            "color": "rgba(0,0,0,0.70)",
         },
         "pei": {
-            "label": "PEI",
+            "label": "PEI 360°",
             "page": "pages/1_PEI.py",
-            "icon": "fi fi-sr-document-signed",
-            "color": "#BD93F9",
+            "icon": "fi fi-sr-document-signed",    # solid-rounded
+            "color": "rgba(0,0,0,0.70)",
         },
         "pae": {
             "label": "PAE",
             "page": "pages/2_PAE.py",
-            "icon": "fi fi-ss-bullseye-arrow",
-            "color": "#50FA7B",
+            "icon": "fi fi-ss-bullseye-arrow",     # solid-straight
+            "color": "rgba(0,0,0,0.70)",
         },
         "hub": {
             "label": "Hub",
             "page": "pages/3_Hub_Inclusao.py",
-            "icon": "fi fi-sr-book-open-cover",
-            "color": "#FFB86C",
+            "icon": "fi fi-sr-book-open-cover",    # solid-rounded
+            "color": "rgba(0,0,0,0.70)",
         },
-        # futuras (desabilita se não existir)
+        # futuros (desabilita se não existir)
         "diario": {
             "label": "Diário",
             "page": "pages/4_Diario.py",
-            "icon": "fi fi-br-notebook",
-            "color": "#F1FA8C",
+            "icon": "fi fi-br-notebook",           # bold-rounded
+            "color": "rgba(0,0,0,0.70)",
         },
         "dados": {
             "label": "Dados",
             "page": "pages/5_Dados.py",
-            "icon": "fi fi-br-chart-histogram",
-            "color": "#FF79C6",
+            "icon": "fi fi-br-chart-histogram",    # bold-rounded
+            "color": "rgba(0,0,0,0.70)",
         },
     }
 
@@ -273,18 +263,25 @@ def get_active_go(default: str = "home") -> str:
 
 
 # =============================================================================
-# TOPBAR RENDER
+# TOPBAR
 # =============================================================================
 def render_topbar(active_go: str):
     routes = ROUTES()
 
-    # logo embutida (base64) — funciona no Streamlit Cloud
-    logo_path = _project_root() / "omni_icone.png"
-    logo_uri = _img_to_data_uri(logo_path)
+    # Logo + wordmark via PNG embutido (base64) — confiável no Cloud
+    logo_uri = _img_to_data_uri(_project_root() / "omni_icone.png")
+    text_uri = _img_to_data_uri(_project_root() / "omni_texto.png")
+
     logo_html = (
         f"<img class='omni-logo' src='{logo_uri}'/>"
         if logo_uri
-        else "<span style='font-size:18px; line-height:1;'>🌿</span>"
+        else "<span style='font-size:18px;line-height:1'>🌿</span>"
+    )
+
+    wordmark_html = (
+        f"<img class='omni-wordmark-img' src='{text_uri}'/>"
+        if text_uri
+        else "<span class='omni-wordmark-fallback'>Omnisfera</span>"
     )
 
     def _item(go: str) -> str:
@@ -297,9 +294,10 @@ def render_topbar(active_go: str):
         if not exists:
             cls.append("disabled")
 
+        # GARANTIA: mesma aba (sem abrir outra)
         href = f"?go={go}" if exists else "#"
         return f"""
-<a class="{' '.join(cls)}" href="{href}" title="{r['label']}" aria-label="{r['label']}">
+<a class="{' '.join(cls)}" href="{href}" target="_self" title="{r['label']}" aria-label="{r['label']}">
   <i class="{r['icon']}" style="color:{r['color']}"></i>
 </a>
 """
@@ -311,18 +309,11 @@ def render_topbar(active_go: str):
         f"""
 <div class="omni-topbar">
   <div class="omni-brand">
-    <div class="omni-logo-wrap">
-      {logo_html}
-    </div>
-    <div class="omni-wordmark">
-      <div class="name">Omnisfera</div>
-      <div class="tag">Inclusão • PEI • Dados</div>
-    </div>
+    <div class="omni-logo-wrap">{logo_html}</div>
+    <div>{wordmark_html}</div>
   </div>
 
-  <div class="omni-nav">
-    {items_html}
-  </div>
+  <div class="omni-nav">{items_html}</div>
 </div>
         """,
         unsafe_allow_html=True,
@@ -330,10 +321,9 @@ def render_topbar(active_go: str):
 
 
 # =============================================================================
-# ROUTER
+# ROUTER (padrão do projeto)
 # =============================================================================
 def route_from_query(default_go: str = "home"):
-    # evita loop
     if st.session_state.get("_already_routed"):
         return
 
@@ -349,7 +339,7 @@ def route_from_query(default_go: str = "home"):
 
 
 # =============================================================================
-# BOOTSTRAP
+# BOOT
 # =============================================================================
 def boot_ui(do_route: bool = False):
     ensure_auth_state()
