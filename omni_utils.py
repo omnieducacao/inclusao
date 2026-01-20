@@ -1,243 +1,141 @@
-# ui_nav.py
 import streamlit as st
 import os
 import base64
+from datetime import date
 
 # ==============================================================================
-# 1. CONFIGURAÇÃO DOS ÍCONES E CORES
+# 1. CONFIGURAÇÕES E AMBIENTE
 # ==============================================================================
-# Definimos aqui os CDNs exatos que você pediu para garantir que os ícones carreguem
-FLATICON_CSS = """
-<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
-<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
-<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-straight/css/uicons-solid-straight.css'>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-"""
+APP_VERSION = "v116.0"
 
-# Configuração de cada botão (Chave, Rótulo, Ícone, Cor, Biblioteca)
-# Ajustei os nomes das classes (fi-br, fi-sr, fi-ss) para bater com as bibliotecas que você pediu.
-NAV_ITEMS = [
-    {
-        "key": "home",
-        "label": "Home",
-        "icon": "fi fi-br-home",  # Bold Rounded
-        "color": "#1F2937"        # Cinza Escuro
-    },
-    {
-        "key": "pei",
-        "label": "Estratégias & PEI",
-        "icon": "fi fi-sr-chess-piece", # Solid Rounded (Estratégia)
-        "color": "#3B82F6"              # Azul
-    },
-    {
-        "key": "paee",
-        "label": "Plano de Ação",
-        "icon": "fi fi-ss-rocket-lunch", # Solid Straight (Ação/Foguete)
-        "color": "#10B981"               # Verde
-    },
-    {
-        "key": "hub",
-        "label": "Hub de Recursos",
-        "icon": "fi fi-sr-apps",      # Solid Rounded (Hub/Recursos)
-        "color": "#F59E0B"            # Amarelo/Laranja
-    },
-    {
-        "key": "diario",
-        "label": "Diário de Bordo",
-        "icon": "fi fi-br-book-alt",  # Bold Rounded
-        "color": "#F97316"            # Laranja
-    },
-    {
-        "key": "mon",
-        "label": "Evolução & Dados",
-        "icon": "fi fi-br-chart-histogram", # Bold Rounded
-        "color": "#8B5CF6"                  # Roxo
-    }
-]
+def verificar_ambiente():
+    try: return st.secrets.get("ENV") == "TESTE"
+    except: return False
+
+IS_TEST_ENV = verificar_ambiente()
 
 # ==============================================================================
-# 2. FUNÇÕES AUXILIARES
+# 2. UTILITÁRIOS (IMAGENS)
 # ==============================================================================
-def _get_image_b64(path: str) -> str:
-    """Carrega a logo e converte para Base64 para usar no HTML."""
-    if not os.path.exists(path):
-        return ""
-    with open(path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
-
-def _get_current_view():
-    """Descobre qual aba está ativa lendo a URL (?view=...)"""
-    try:
-        qp = st.query_params
-        return qp.get("view", "home")
-    except:
-        return "home"
+def get_base64_image(image_path):
+    if not image_path or not os.path.exists(image_path): return ""
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
 
 # ==============================================================================
-# 3. RENDERIZAÇÃO DA BARRA (TOPBAR)
+# 3. ESTILO GLOBAL (CSS LIMPO)
 # ==============================================================================
-def render_topbar_nav():
+def aplicar_estilo_global(logo_pagina=None):
     """
-    Renderiza a barra de navegação superior fixa.
+    Aplica apenas:
+    1. Fontes Padrão (Nunito/Inter).
+    2. Sidebar com fundo branco.
+    3. Constrói o menu lateral personalizado.
     """
     
-    # 1. Esconde a Sidebar padrão e o Header padrão do Streamlit
+    # Define fonte e cores básicas
     st.markdown("""
-        <style>
-            [data-testid="stSidebar"] {display: none !important;}
-            [data-testid="stHeader"] {display: none !important;}
-            .block-container {
-                padding-top: 80px !important; /* Espaço para a barra não cobrir o conteúdo */
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # 2. Prepara os dados
-    active_view = _get_current_view()
-    logo_b64 = _get_image_b64("omni_icone.png") # Certifique-se que o arquivo existe
-    
-    # Logo HTML (Giratória)
-    if logo_b64:
-        logo_html = f'<img class="nav-logo-spin" src="data:image/png;base64,{logo_b64}">'
-    else:
-        logo_html = '<div class="nav-logo-fallback"></div>'
-
-    # 3. Constrói os Links (Botões)
-    links_html = ""
-    for item in NAV_ITEMS:
-        is_active = (item["key"] == active_view)
-        active_class = "active" if is_active else ""
-        
-        # A lógica de clique é via URL parameter (?view=key) que recarrega a página
-        links_html += f"""
-        <a class="nav-item {active_class}" href="?view={item['key']}" target="_self">
-            <i class="{item['icon']}" style="color: {item['color']};"></i>
-            <span class="nav-label">{item['label']}</span>
-        </a>
-        """
-
-    # 4. HTML & CSS Completo
-    st.markdown(f"""
-    {FLATICON_CSS}
     <style>
-        /* Container Principal da Barra */
-        .omni-navbar {{
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background-color: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid #E5E7EB;
-            z-index: 999999;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-            font-family: 'Inter', sans-serif;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-        }}
-
-        /* Lado Esquerdo: Logo + Texto */
-        .nav-left {{
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }}
+        /* Importação das Fontes */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700&display=swap');
         
-        .nav-logo-spin {{
-            height: 32px;
-            width: 32px;
-            animation: spin 30s linear infinite;
-        }}
+        /* Aplicação Global da Fonte */
+        html, body, [class*="css"] { 
+            font-family: 'Nunito', sans-serif; 
+        }
         
-        .nav-brand-text {{
-            font-size: 18px;
-            font-weight: 800;
-            color: #1F2937;
-            letter-spacing: -0.5px;
-            text-transform: uppercase;
-        }}
-
-        @keyframes spin {{ 100% {{ transform: rotate(360deg); }} }}
-
-        /* Lado Direito: Itens de Menu */
-        .nav-right {{
-            display: flex;
-            align-items: center;
-            gap: 20px; /* Espaço entre os ícones */
-        }}
-
-        .nav-item {{
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            padding: 4px 8px;
-            transition: all 0.2s ease;
-            opacity: 0.7; /* Leve transparência quando inativo */
-        }}
-
-        .nav-item:hover {{
-            opacity: 1;
-            transform: translateY(-2px);
-        }}
-
-        .nav-item i {{
-            font-size: 20px; /* Tamanho do ícone */
-            margin-bottom: 2px;
-        }}
-
-        .nav-label {{
-            font-size: 10px;
-            font-weight: 600;
-            color: #6B7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }}
-
-        /* Estado Ativo (Página Atual) */
-        .nav-item.active {{
-            opacity: 1;
-        }}
-        
-        .nav-item.active .nav-label {{
-            color: #111827;
-            font-weight: 800;
-        }}
-        
-        /* Pequeno indicador abaixo do item ativo */
-        .nav-item.active::after {{
-            content: '';
-            display: block;
-            width: 4px;
-            height: 4px;
-            background-color: #111827;
-            border-radius: 50%;
-            margin-top: 2px;
-        }}
-
-        /* Responsividade para telas pequenas */
-        @media (max-width: 768px) {{
-            .nav-label {{ display: none; }} /* Esconde texto no mobile */
-            .nav-right {{ gap: 15px; }}
-            .nav-brand-text {{ display: none; }} /* Esconde nome Omnisfera se ficar apertado */
-        }}
-
+        /* Forçar Sidebar Branca */
+        section[data-testid="stSidebar"] {
+            background-color: #FFFFFF !important;
+            border-right: 1px solid #E2E8F0;
+        }
     </style>
-
-    <div class="omni-navbar">
-        <div class="nav-left">
-            {logo_html}
-            <div class="nav-brand-text">Omnisfera</div>
-        </div>
-        <div class="nav-right">
-            {links_html}
-        </div>
-    </div>
     """, unsafe_allow_html=True)
 
-    return active_view
+    # Constrói a Sidebar (Logo + Navegação)
+    logo_para_usar = logo_pagina if logo_pagina else "omni_icone.png"
+    construir_sidebar_manual(get_base64_image(logo_para_usar))
+
+# ==============================================================================
+# 4. SIDEBAR E NAVEGAÇÃO
+# ==============================================================================
+def construir_sidebar_manual(img_b64):
+    with st.sidebar:
+        # Espaço no topo
+        st.write("") 
+        
+        # Logo da Página (Se houver)
+        if img_b64: 
+            st.markdown(f"""
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="data:image/png;base64,{img_b64}" width="70">
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Dados do Usuário (Se logado)
+        if st.session_state.get("autenticado"):
+            nome = st.session_state["usuario_nome"].split()[0]
+            cargo = st.session_state["usuario_cargo"]
+            st.markdown(f"""
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
+                <small style="color: #718096; font-weight: bold;">USUÁRIO</small><br>
+                <span style="color: #2D3748; font-weight: bold;">{nome}</span><br>
+                <span style="color: #718096; font-size: 0.8rem;">{cargo}</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Links de Navegação
+        st.markdown("---")
+        st.caption("NAVEGAÇÃO")
+        
+        st.page_link("Home.py", label="Dashboard", icon="🏠")
+        st.page_link("pages/1_PEI.py", label="PEI 360º", icon="📘")
+        st.page_link("pages/2_PAE.py", label="PAEE & T.A.", icon="🧩")
+        st.page_link("pages/3_Hub_Inclusao.py", label="Hub Inclusão", icon="🚀")
+        
+        # Botão Sair
+        st.markdown("---")
+        if st.button("🔒 Sair", use_container_width=True):
+            st.session_state["autenticado"] = False
+            st.rerun()
+
+# ==============================================================================
+# 5. SISTEMA DE LOGIN
+# ==============================================================================
+def verificar_acesso():
+    if st.session_state.get("autenticado", False): return True
+    
+    # Layout de Login Limpo
+    c1, c2, c3 = st.columns([1, 2, 1])
+    with c2:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="text-align: center; border: 1px solid #E2E8F0; padding: 30px; border-radius: 15px; background: white;">
+            <h2 style="color: #0F52BA;">{'🛠️ MODO TESTE' if IS_TEST_ENV else 'Bem-vindo'}</h2>
+            <p>Faça login para continuar</p>
+        </div>
+        <br>
+        """, unsafe_allow_html=True)
+
+        if IS_TEST_ENV:
+            if st.button("🚀 ENTRAR (RÁPIDO)", use_container_width=True, type="primary"):
+                st.session_state.update({"autenticado": True, "usuario_nome": "Tester", "usuario_cargo": "Dev"})
+                st.rerun()
+        else:
+            nome = st.text_input("Nome")
+            cargo = st.text_input("Cargo")
+            senha = st.text_input("Senha", type="password")
+            
+            if st.button("🔒 ACESSAR", use_container_width=True, type="primary"):
+                hoje = date.today()
+                senha_ok = "PEI_START_2026" if hoje <= date(2026, 1, 19) else "OMNI_PRO"
+                
+                if not nome or not cargo: 
+                    st.warning("Preencha todos os campos.")
+                elif senha != senha_ok: 
+                    st.error("Senha incorreta.")
+                else:
+                    st.session_state.update({"autenticado": True, "usuario_nome": nome, "usuario_cargo": cargo})
+                    st.rerun()
+    
+    return False
