@@ -1,30 +1,33 @@
-# ui_nav.py
 from __future__ import annotations
 
 import base64
 from pathlib import Path
 import streamlit as st
 
-# -----------------------------------------------------------------------------
-# CONFIG
-# -----------------------------------------------------------------------------
-TOPBAR_HEIGHT = 56
-TOPBAR_PADDING = 14
-
-
-# -----------------------------------------------------------------------------
-# AUTH STATE (simples)
-# -----------------------------------------------------------------------------
+# -----------------------------
+# PUBLIC API
+# -----------------------------
 def ensure_auth_state():
     if "autenticado" not in st.session_state:
-        st.session_state.autenticado = False
+        st.session_state.autenticado = True  # você pode voltar isso pra False quando reativar login
     if "user" not in st.session_state:
-        st.session_state.user = None
+        st.session_state.user = {"email": "demo@omnisfera.net"}
 
 
-# -----------------------------------------------------------------------------
-# ASSETS
-# -----------------------------------------------------------------------------
+def boot_ui():
+    """
+    Chame no topo do streamlit_app.py e de TODAS as páginas em /pages
+    """
+    ensure_auth_state()
+    _inject_css()
+    if st.session_state.autenticado:
+        _route_from_query()
+        _render_topbar()
+
+
+# -----------------------------
+# PATHS / ASSETS
+# -----------------------------
 def _root() -> Path:
     return Path(__file__).resolve().parent
 
@@ -39,169 +42,190 @@ def _img_data_uri(path_str: str) -> str | None:
         return None
 
 
-# -----------------------------------------------------------------------------
-# CSS — ESCONDE SIDEBAR / HEADER E CRIA TOPBAR CLEAN
-# -----------------------------------------------------------------------------
-def _inject_shell_css():
+# -----------------------------
+# NAV MAP (SEUS ARQUIVOS)
+# -----------------------------
+NAV = [
+    # key, label, page_path, flaticon_class, accent
+    ("home", "Home", "streamlit_app.py", "fi fi-br-house-chimney", "#111827"),
+    ("alunos", "Alunos", "pages/0_Alunos.py", "fi fi-br-users", "#2563EB"),
+    ("pei", "PEI", "pages/1_PEI.py", "fi fi-br-brain", "#7C3AED"),
+    ("pae", "PAE", "pages/2_PAE.py", "fi fi-br-bullseye", "#F97316"),
+    ("hub", "Hub", "pages/3_Hub_Inclusao.py", "fi fi-br-book-open-cover", "#16A34A"),
+    ("diario", "Diário", "pages/4_Diario_de_Bordo.py", "fi fi-br-notebook", "#0EA5E9"),
+    ("dados", "Dados", "pages/5_Monitoramento_Avaliacao.py", "fi fi-br-chart-histogram", "#111827"),
+]
+
+
+def _safe_get_go() -> str | None:
+    try:
+        qp = st.query_params
+        if "go" in qp:
+            return str(qp["go"]).strip()
+    except Exception:
+        pass
+    return None
+
+
+def _route_from_query():
+    """
+    Router simples: ?go=pei → st.switch_page(pages/1_PEI.py)
+    Isso mantém session_state (é o mesmo comportamento multipage do Streamlit).
+    """
+    go = _safe_get_go()
+    if not go:
+        return
+
+    go = go.lower()
+    for key, _, page_path, _, _ in NAV:
+        if key == go:
+            # evita loop: limpa query param antes de trocar
+            try:
+                st.query_params.pop("go", None)
+            except Exception:
+                pass
+            st.switch_page(page_path)
+            return
+
+
+# -----------------------------
+# CSS (CLEAN TOPBAR + FLATICON)
+# -----------------------------
+def _inject_css():
+    # tenta achar em /assets ou raiz
+    logo = _img_data_uri("assets/omni_icone.png") or _img_data_uri("omni_icone.png")
+    word = _img_data_uri("assets/omni_texto.png") or _img_data_uri("omni_texto.png")
+
     st.markdown(
         f"""
 <style>
-/* Esconde sidebar e header nativo (mantém multipage funcional por page_link) */
+/* Esconde chrome nativo */
 [data-testid="stSidebar"],
 [data-testid="stHeader"],
-header,
-#MainMenu,
-footer {{
+header, footer,
+#MainMenu {{
   display: none !important;
 }}
 
-/* Garante espaço abaixo da topbar fixa */
+/* espaço p/ topbar fixa */
 .main .block-container {{
-  padding-top: {TOPBAR_HEIGHT + TOPBAR_PADDING}px !important;
+  padding-top: 70px !important;
+  max-width: 1200px;
 }}
+
+/* Flaticon UIcons CDN v3.0.0 */
+@import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css");
+@import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css");
+@import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-straight/css/uicons-solid-straight.css");
+@import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-straight/css/uicons-bold-straight.css");
 
 /* TOPBAR */
 .omni-topbar {{
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: {TOPBAR_HEIGHT}px;
+  height: 56px;
   z-index: 9999;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  padding: 0 16px;
+  padding: 0 14px;
 
   background: rgba(255,255,255,0.88);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(0,0,0,0.08);
 }}
 
-/* BRAND (logo + wordmark) */
+/* Brand */
 .omni-brand {{
-  display: flex;
-  align-items: center;
+  display:flex;
+  align-items:center;
   gap: 10px;
+  min-width: 220px;
 }}
-
 .omni-logo {{
-  width: 28px;
-  height: 28px;
+  width: 28px; height: 28px;
   object-fit: contain;
 }}
-
-.omni-wordmark {{
+.omni-word {{
   height: 16px;
   opacity: .92;
 }}
 
-/* NAV wrapper (só pra alinhamento) */
+/* Nav icons */
 .omni-nav {{
-  display: flex;
-  align-items: center;
+  display:flex;
+  align-items:center;
   gap: 10px;
 }}
 
-/* Ajusta o estilo dos page_link (eles viram <a>) */
-.omni-nav a {{
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+.omni-ico {{
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
 
-  width: 36px !important;
-  height: 36px !important;
-  border-radius: 12px !important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 
-  background: rgba(0,0,0,0.04) !important;
-  border: 1px solid rgba(0,0,0,0.08) !important;
+  background: rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.08);
 
-  transition: background .12s ease, transform .12s ease, box-shadow .12s ease;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
   text-decoration: none !important;
 }}
-
-.omni-nav a:hover {{
-  background: rgba(0,0,0,0.06) !important;
+.omni-ico:hover {{
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.05);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.10);
 }}
 
-.omni-nav a svg {{
-  width: 18px !important;
-  height: 18px !important;
+.omni-ico i {{
+  font-size: 18px;
+  line-height: 1;
 }}
 
-/* Remove espaços extras que o Streamlit pode colocar em links/botões */
-.omni-nav [data-testid="stPageLink"] > div {{
-  margin: 0 !important;
-  padding: 0 !important;
+/* Dica: remove underline/link default */
+.omni-ico:visited, .omni-ico:active {{
+  text-decoration: none !important;
 }}
 </style>
-        """,
-        unsafe_allow_html=True,
-    )
 
-
-# -----------------------------------------------------------------------------
-# TOPBAR (VISUAL) + PAGE_LINK (FUNCIONAL)
-# -----------------------------------------------------------------------------
-def _render_topbar():
-    # tenta achar arquivos em /assets ou na raiz (se você manteve lá)
-    logo = _img_data_uri("assets/omni_icone.png") or _img_data_uri("omni_icone.png")
-    word = _img_data_uri("assets/omni_texto.png") or _img_data_uri("omni_texto.png")
-
-    _inject_shell_css()
-
-    st.markdown(
-        f"""
 <div class="omni-topbar">
   <div class="omni-brand">
     {"<img class='omni-logo' src='"+logo+"'/>" if logo else "🌿"}
-    {"<img class='omni-wordmark' src='"+word+"'/>" if word else "<b>Omnisfera</b>"}
+    {"<img class='omni-word' src='"+word+"'/>" if word else "<b>Omnisfera</b>"}
   </div>
-  <div class="omni-nav"></div>
+
+  <div class="omni-nav">
+    { _nav_html() }
+  </div>
 </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Links funcionais (igual sidebar), na mesma aba e preservando session_state
-    # IMPORTANTÍSSIMO: os caminhos precisam bater com os nomes reais em /pages
-    with st.container():
-        cols = st.columns(7, gap="small")
 
-        with cols[0]:
-            st.page_link("streamlit_app.py", icon="🏠", label="")
-
-        with cols[1]:
-            st.page_link("pages/0_Alunos.py", icon="👥", label="")
-
-        with cols[2]:
-            st.page_link("pages/1_PEI.py", icon="🧠", label="")
-
-        with cols[3]:
-            st.page_link("pages/2_PAE.py", icon="🎯", label="")
-
-        with cols[4]:
-            st.page_link("pages/3_Hub_Inclusao.py", icon="📚", label="")
-
-        with cols[5]:
-            st.page_link("pages/4_Diario_de_Bordo.py", icon="📝", label="")
-
-        with cols[6]:
-            st.page_link("pages/5_Monitoramento_Avaliacao.py", icon="📈", label="")
-
-
-# -----------------------------------------------------------------------------
-# PUBLIC BOOT
-# -----------------------------------------------------------------------------
-def boot_ui():
+def _nav_html() -> str:
     """
-    Chame isso no topo de cada página/arquivo.
-    - Garante estado de auth
-    - Renderiza topbar apenas quando autenticado
+    Gera os <a href="?go=..."> com ícones coloridos.
     """
-    ensure_auth_state()
+    parts = []
+    for key, label, _, ico, accent in NAV:
+        parts.append(
+            f"""
+<a class="omni-ico" href="?go={key}" title="{label}" aria-label="{label}">
+  <i class="{ico}" style="color:{accent}"></i>
+</a>
+"""
+        )
+    return "\n".join(parts)
 
-    if st.session_state.autenticado:
-        _render_topbar()
+
+def nav_href(key: str) -> str:
+    """
+    Use isso na HOME para links dentro dos cards:
+      st.markdown(f'<a href="{nav_href("alunos")}">Abrir</a>', unsafe_allow_html=True)
+    """
+    return f"?go={key}"
