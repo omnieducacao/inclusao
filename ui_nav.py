@@ -1,28 +1,28 @@
 # ui_nav.py
 import streamlit as st
-import os, base64
 
 def render_omnisfera_nav():
+    # Só mostra dock se autenticado
+    if not st.session_state.get("autenticado", False):
+        return
+
     if "view" not in st.session_state:
         st.session_state.view = "home"
 
-    # Lê view sem limpar query params (não destruir login)
+    # Lê view da URL sem limpar params
     qp = st.query_params
     if "view" in qp:
         v = qp["view"]
-        if v in {"home","pei","paee","hub","diario","mon"}:
+        if v in {"home","pei","paee","hub","diario","mon","logout"}:
             st.session_state.view = v
 
     active = st.session_state.view
 
-    def logo_src():
-        for f in ["omni_icone.png", "logo.png", "iconeaba.png", "omni.png", "ominisfera.png"]:
-            if os.path.exists(f):
-                with open(f, "rb") as img:
-                    return f"data:image/png;base64,{base64.b64encode(img.read()).decode()}"
-        return "https://cdn-icons-png.flaticon.com/512/1183/1183672.png"
-
-    src = logo_src()
+    # Logout via view
+    if active == "logout":
+        st.session_state.autenticado = False
+        st.session_state.view = "login"
+        st.rerun()
 
     TOP_PX = 8
     RIGHT_PX = 14
@@ -34,10 +34,11 @@ def render_omnisfera_nav():
         "hub": "#F59E0B",
         "diario": "#F97316",
         "mon": "#A855F7",
+        "logout": "#6B7280",
     }
 
     def icon_color(key: str) -> str:
-        return COLORS[key] if key == active else "rgba(17,24,39,0.55)"
+        return COLORS[key] if key == active else "rgba(17,24,39,0.48)"
 
     st.markdown(f"""
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
@@ -70,20 +71,6 @@ header[data-testid="stHeader"] * {{
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
 }}
 
-@keyframes spin {{ from {{ transform: rotate(0deg); }} to {{ transform: rotate(360deg); }} }}
-.omni-logo {{
-  width: 26px;
-  height: 26px;
-  animation: spin 10s linear infinite;
-}}
-
-.omni-sep {{
-  width: 1px;
-  height: 20px;
-  background: #E5E7EB;
-  margin: 0 2px;
-}}
-
 .omni-link {{
   display: inline-flex;
   align-items: center;
@@ -108,9 +95,6 @@ header[data-testid="stHeader"] * {{
 </style>
 
 <div class="omni-dock" aria-label="Omnisfera Dock">
-  <img src="{src}" class="omni-logo" alt="Omnisfera" />
-  <div class="omni-sep"></div>
-
   <a class="omni-link" href="?view=home"   target="_self" title="Home">
     <i class="ri-home-5-fill omni-ic" style="color:{icon_color('home')}"></i>
   </a>
@@ -128,6 +112,10 @@ header[data-testid="stHeader"] * {{
   </a>
   <a class="omni-link" href="?view=mon"    target="_self" title="Evolução & Acompanhamento">
     <i class="ri-line-chart-fill omni-ic" style="color:{icon_color('mon')}"></i>
+  </a>
+
+  <a class="omni-link" href="?view=logout" target="_self" title="Sair">
+    <i class="ri-logout-circle-r-line omni-ic" style="color:{icon_color('logout')}"></i>
   </a>
 </div>
 """, unsafe_allow_html=True)
