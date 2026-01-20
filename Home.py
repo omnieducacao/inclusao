@@ -1,11 +1,11 @@
-# Home.py — OMNISFERA (Portal + Login) | Flaticon UIcons + 6 cards
+# Home.py — OMNISFERA (Portal + Login) | Flaticon UIcons + Cards Premium
 import streamlit as st
 import base64, os
 
 # =========================================================
 # 0) CONFIG
 # =========================================================
-APP_VERSION = "v116.1"
+APP_VERSION = "v116.2"
 
 st.set_page_config(
     page_title="Omnisfera | Ecossistema",
@@ -14,9 +14,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# 🔁 Ajuste apenas se seu arquivo tiver outro nome:
+# 🔁 Ajuste só se o nome do arquivo for diferente:
 ROUTES = {
-    "estudantes": "pages/0_Alunos.py",               # <-- (Página é "aluno", exibimos "Estudantes")
+    "estudantes": "pages/0_Alunos.py",               # Página chama "aluno", mas exibimos "Estudantes"
     "pei":        "pages/1_PEI.py",
     "paee":       "pages/2_PAE.py",
     "hub":        "pages/3_Hub_Inclusao.py",
@@ -46,7 +46,7 @@ def _init_session():
 _init_session()
 
 # =========================================================
-# 2) ICON FONTS + CSS
+# 2) ICON FONTS + CSS (paleta mais “chique”)
 # =========================================================
 st.markdown("""
 <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css">
@@ -57,18 +57,35 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito:wght@400;600;700;800;900&display=swap');
 
+:root{
+  --bg: #F6F8FB;
+  --ink: #0B1220;      /* navy chique */
+  --muted: #5B677A;
+  --line: rgba(15,23,42,0.10);
+  --glass: rgba(255,255,255,0.86);
+
+  /* cores dos módulos (mais “premium”, menos neon) */
+  --c-students: #2563EB;
+  --c-pei:      #2F6FED;
+  --c-paee:     #16A34A;
+  --c-hub:      #D97706;
+  --c-diario:   #EA580C;
+  --c-mon:      #7C3AED;
+
+  --shadow: 0 14px 40px rgba(2,6,23,0.10);
+}
+
 html, body, [class*="css"]{
   font-family:'Nunito', sans-serif;
-  background:#F7FAFC;
-  color:#2D3748;
+  background: var(--bg);
+  color: var(--ink);
 }
 
 header[data-testid="stHeader"]{display:none !important;}
 [data-testid="stSidebar"], [data-testid="stSidebarNav"]{display:none !important;}
 
-/* espaço para o header fixo da Home */
 .block-container{
-  padding-top: 118px !important;
+  padding-top: 112px !important;
   padding-left: 2rem !important;
   padding-right: 2rem !important;
   padding-bottom: 2rem !important;
@@ -77,7 +94,7 @@ header[data-testid="stHeader"]{display:none !important;}
 @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 @keyframes fadeInUp{from{opacity:0; transform:translateY(10px);}to{opacity:1; transform:translateY(0);}}
 
-/* HEADER FIXO (logo grande) */
+/* HEADER FIXO */
 .portal-header{
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -86,40 +103,41 @@ header[data-testid="stHeader"]{display:none !important;}
   display:flex;
   align-items:center;
   gap: 16px;
-  padding: 10px 28px;
-  background: rgba(247,250,252,0.88);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255,255,255,0.55);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  padding: 10px 26px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 6px 22px rgba(2,6,23,0.06);
 }
 .portal-logo-spin{
-  height: 72px;
+  height: 68px;
   width:auto;
-  animation: spin 45s linear infinite;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.10));
+  animation: spin 55s linear infinite;
+  filter: drop-shadow(0 2px 6px rgba(2,6,23,0.15));
 }
 .portal-logo-text{
-  height: 42px;
+  height: 38px;
   width:auto;
 }
 .portal-subtitle{
-  font-weight: 700;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  font-weight: 650;
   font-size: 0.98rem;
-  color: #718096;
-  border-left: 2px solid #CBD5E0;
+  color: var(--muted);
+  border-left: 2px solid rgba(148,163,184,0.45);
   padding-left: 14px;
   height: 40px;
   display:flex;
   align-items:center;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
 }
 
 /* HERO */
 .dash-hero{
-  background: radial-gradient(circle at top right, #0F52BA, #062B61);
-  border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(15, 82, 186, 0.30);
+  background: radial-gradient(circle at top right, rgba(37,99,235,0.95), rgba(9,24,62,0.96));
+  border-radius: 18px;
+  box-shadow: var(--shadow);
   color: white;
   position: relative;
   overflow: hidden;
@@ -127,8 +145,8 @@ header[data-testid="stHeader"]{display:none !important;}
   display:flex;
   align-items:center;
   justify-content: space-between;
-  border: 1px solid rgba(255,255,255,0.12);
-  min-height: 105px;
+  border: 1px solid rgba(255,255,255,0.14);
+  min-height: 110px;
   animation: fadeInUp .55s ease;
 }
 .hero-title{
@@ -141,15 +159,15 @@ header[data-testid="stHeader"]{display:none !important;}
 .hero-subtitle{
   font-family:'Inter', sans-serif;
   font-size: 0.92rem;
-  opacity: 0.92;
-  font-weight: 400;
-  margin-top: 6px;
+  opacity: 0.90;
+  font-weight: 450;
+  margin-top: 7px;
 }
 .hero-bg-ic{
   position:absolute;
   right: 22px;
   font-size: 6rem;
-  opacity: 0.07;
+  opacity: 0.08;
   top: 6px;
   transform: rotate(-10deg);
 }
@@ -159,109 +177,120 @@ header[data-testid="stHeader"]{display:none !important;}
   font-family:'Inter', sans-serif;
   font-weight: 900;
   font-size: 1.05rem;
-  color:#111827;
+  color: var(--ink);
   margin: 22px 0 12px 0;
   display:flex;
   align-items:center;
   gap: 10px;
 }
 
-/* CARDS */
-.nav-card{
-  background:white;
-  border-radius: 16px;
-  padding: 16px;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-  animation: fadeInUp .55s ease;
-  position: relative;
+/* ===== CARDS PREMIUM ===== */
+.card-shell{
+  background: white;
+  border-radius: 18px;
+  border: 1px solid rgba(148,163,184,0.25);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.06);
   overflow: hidden;
+  animation: fadeInUp .55s ease;
 }
-.nav-top{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 10px;
+
+/* topo colorido */
+.card-top{
+  padding: 16px 16px 14px 16px;
+  color: white;
+  position: relative;
 }
-.nav-ico-wrap{
+.card-kicker{
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  font-weight: 900;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  font-size: 0.62rem;
+  opacity: 0.85;
+}
+.card-title{
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  font-weight: 900;
+  font-size: 1.00rem;
+  margin-top: 6px;
+}
+.card-desc{
+  margin-top: 6px;
+  font-weight: 650;
+  font-size: 0.82rem;
+  opacity: 0.90;
+  line-height: 1.25;
+}
+
+/* ícone branco em bolha sólida (mesma cor) */
+.ico-bubble{
   width: 44px;
   height: 44px;
-  border-radius: 14px;
+  border-radius: 16px;
   display:flex;
   align-items:center;
   justify-content:center;
-  background: rgba(17,24,39,0.06);
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
 }
-.omni-ic{
+.ico-bubble i{
   font-size: 1.35rem;
   line-height: 1;
+  color: white;
 }
-.nav-title{
-  font-weight: 900;
-  color:#111827;
-  margin: 0;
-  font-size: 0.95rem;
+
+/* rodapé do card com botão integrado */
+.card-bottom{
+  padding: 12px 14px 14px 14px;
+  background: rgba(2,6,23,0.02);
+  border-top: 1px solid rgba(148,163,184,0.18);
 }
-.nav-desc{
-  margin-top: 8px;
-  color:#718096;
-  font-size: 0.80rem;
-  font-weight: 700;
-  line-height: 1.25;
-}
-.nav-btn button{
+
+/* deixa TODOS os botões desses cards com cara integrada */
+div[data-testid="stButton"] > button{
   width: 100%;
   height: 44px;
-  border-radius: 12px !important;
+  border-radius: 14px !important;
   font-weight: 900 !important;
+  border: 1px solid rgba(15,23,42,0.10) !important;
+  background: rgba(255,255,255,0.92) !important;
+  color: var(--ink) !important;
 }
-
-/* borda por módulo */
-.border-students{ border-bottom: 4px solid #2563EB; }
-.border-pei{ border-bottom: 4px solid #3B82F6; }
-.border-paee{ border-bottom: 4px solid #22C55E; }
-.border-hub{ border-bottom: 4px solid #F59E0B; }
-.border-diario{ border-bottom: 4px solid #F97316; }
-.border-mon{ border-bottom: 4px solid #A855F7; }
-
-/* cores dos ícones */
-.icon-students{ color:#2563EB; }
-.icon-pei{ color:#3B82F6; }
-.icon-paee{ color:#22C55E; }
-.icon-hub{ color:#F59E0B; }
-.icon-diario{ color:#F97316; }
-.icon-mon{ color:#A855F7; }
-.icon-ia{ color:#0F52BA; }
+div[data-testid="stButton"] > button:hover{
+  filter: brightness(0.99);
+  border-color: rgba(15,23,42,0.14) !important;
+}
 
 /* LOGIN */
 .login-shell{ max-width: 520px; margin: 0 auto; }
 .login-card{
   background: white;
   border-radius: 18px;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  border: 1px solid rgba(148,163,184,0.25);
+  box-shadow: 0 12px 34px rgba(2,6,23,0.08);
   padding: 22px 22px 18px 22px;
 }
 .termo-box{
   background: #F8FAFC;
-  border: 1px solid #CBD5E0;
+  border: 1px solid rgba(148,163,184,0.45);
   border-radius: 12px;
   padding: 12px;
   font-size: 0.78rem;
-  color: #4A5568;
+  color: #334155;
   line-height: 1.35;
   max-height: 120px;
   overflow-y: auto;
 }
 .footer-sign{
   text-align:center;
-  color:#CBD5E0;
+  color: rgba(148,163,184,0.75);
   font-size: 0.72rem;
   margin-top: 34px;
 }
 
 @media (max-width: 950px){
-  .block-container{ padding-top: 110px !important; }
+  .block-container{ padding-top: 106px !important; }
   .portal-subtitle{ display:none; }
 }
 </style>
@@ -291,19 +320,14 @@ else:
     """, unsafe_allow_html=True)
 
 # =========================================================
-# 4) LOGIN (sem "dica de senha")
+# 4) LOGIN (Manifesto fica SÓ AQUI)
 # =========================================================
 def try_supabase_login(email: str, password: str) -> bool:
-    """
-    Tenta autenticar via Supabase (se secrets + lib supabase existirem).
-    Se falhar/ausente, cai no modo DEMO apenas se você quiser manter.
-    """
     try:
         url = st.secrets.get("SUPABASE_URL", "")
         key = st.secrets.get("SUPABASE_ANON_KEY", "")
         if not url or not key:
             return False
-
         from supabase import create_client  # type: ignore
         supa = create_client(url, key)
         res = supa.auth.sign_in_with_password({"email": email, "password": password})
@@ -311,8 +335,8 @@ def try_supabase_login(email: str, password: str) -> bool:
     except Exception:
         return False
 
-# ✅ Mantém demo, mas sem mostrar dica na tela.
 def demo_login(email: str, password: str) -> bool:
+    # (mantém por compatibilidade; você pode remover depois)
     return (email.strip().lower() == "demo@omnisfera.net") and (password == "OmniDemo@2026!")
 
 def render_login():
@@ -339,19 +363,16 @@ def render_login():
     with c1:
         nome = st.text_input("Nome", placeholder="Seu nome")
     with c2:
-        # ✅ garante que o campo exista SEMPRE
         cargo = st.text_input("Cargo/Função", placeholder="Seu cargo/função")
 
     st.markdown("#### Credenciais")
     usuario = st.text_input("Usuário (Email)", placeholder="seu@email.com")
     senha = st.text_input("Senha", type="password", placeholder="••••••••")
 
-    # ✅ agora o botão depende do cargo existir (como você quer)
     can = bool(aceitou and nome.strip() and cargo.strip() and usuario.strip() and senha.strip())
 
     if st.button("Entrar", type="primary", use_container_width=True, disabled=not can):
         ok = try_supabase_login(usuario.strip(), senha) or demo_login(usuario, senha)
-
         if not ok:
             st.error("Usuário ou senha inválidos.")
         else:
@@ -361,6 +382,14 @@ def render_login():
             st.session_state.usuario_email = usuario.strip()
             st.rerun()
 
+    # ✅ Manifesto fica só no login:
+    st.markdown("---")
+    st.markdown("#### Manifesto Omnisfera")
+    st.info(
+        "“A Omnisfera foi desenvolvida com muito cuidado e carinho com o objetivo de auxiliar as escolas na tarefa de incluir. "
+        "Ela tem o potencial para revolucionar o cenário da inclusão no Brasil.”"
+    )
+
     st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -369,7 +398,7 @@ if not st.session_state.autenticado:
     st.stop()
 
 # =========================================================
-# 5) HOME (PORTAL)
+# 5) HOME (PORTAL) — sem Manifesto
 # =========================================================
 nome_display = (st.session_state.usuario_nome or "Educador").split()[0]
 mensagem_banner = "Unindo ciência, dados e empatia para transformar a educação."
@@ -384,56 +413,44 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown(f"""
+st.markdown("""
 <div class="section-title">
-  <i class="fi fi-ss-chip-brain omni-ic icon-ia"></i>
-  Manifesto Omnisfera
-</div>
-""", unsafe_allow_html=True)
-
-st.info(
-    "“A Omnisfera foi desenvolvida com muito cuidado e carinho com o objetivo de auxiliar as escolas na tarefa de incluir. "
-    "Ela tem o potencial para revolucionar o cenário da inclusão no Brasil.”"
-)
-
-st.markdown(f"""
-<div class="section-title">
-  <i class="fi fi-sr-house-chimney-crack omni-ic" style="color:#111827;"></i>
+  <i class="fi fi-sr-house-chimney-crack"></i>
   Acesso Rápido
 </div>
 """, unsafe_allow_html=True)
 
-def portal_card(col, title, desc, icon_html, border_class, btn_key, route_key):
+def portal_card(col, title, desc, icon_i_html, color, btn_key, route_key):
     with col:
         st.markdown(f"""
-        <div class="nav-card {border_class}">
-          <div class="nav-top">
-            <div class="nav-ico-wrap">{icon_html}</div>
-            <div style="opacity:.6;font-weight:900;font-size:.75rem;">OMNISFERA</div>
+        <div class="card-shell">
+          <div class="card-top" style="background:{color};">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+              <div class="ico-bubble">{icon_i_html}</div>
+              <div class="card-kicker">OMNISFERA</div>
+            </div>
+            <div class="card-title">{title}</div>
+            <div class="card-desc">{desc}</div>
           </div>
-          <div style="margin-top:10px;">
-            <div class="nav-title">{title}</div>
-            <div class="nav-desc">{desc}</div>
-          </div>
-        </div>
+          <div class="card-bottom">
         """, unsafe_allow_html=True)
 
-        st.markdown('<div class="nav-btn">', unsafe_allow_html=True)
         if st.button("Acessar", key=btn_key, use_container_width=True):
             path = ROUTES.get(route_key)
             if not path:
                 st.error("Rota não configurada. Ajuste ROUTES no topo do arquivo.")
             else:
                 st.switch_page(path)
-        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
 c1, c2, c3 = st.columns(3)
 portal_card(
     c1,
     "Estudantes",
     "Cadastro, histórico, evidências e rede de apoio.",
-    '<i class="fi fi-ss-users-alt omni-ic icon-students"></i>',
-    "border-students",
+    '<i class="fi fi-ss-users-alt"></i>',
+    "var(--c-students)",
     "go_estudantes",
     "estudantes",
 )
@@ -441,8 +458,8 @@ portal_card(
     c2,
     "Estratégias & PEI",
     "Barreiras, suportes, estratégias e rubricas (PEI).",
-    '<i class="fi fi-sr-puzzle-alt omni-ic icon-pei"></i>',
-    "border-pei",
+    '<i class="fi fi-sr-puzzle-alt"></i>',
+    "var(--c-pei)",
     "go_pei",
     "pei",
 )
@@ -450,8 +467,8 @@ portal_card(
     c3,
     "Plano de Ação (PAEE)",
     "Metas SMART, ações, responsáveis e cronograma.",
-    '<i class="fi fi-rr-track omni-ic icon-paee"></i>',
-    "border-paee",
+    '<i class="fi fi-rr-track"></i>',
+    "var(--c-paee)",
     "go_paee",
     "paee",
 )
@@ -461,8 +478,8 @@ portal_card(
     c4,
     "Hub de Recursos",
     "Adaptações, TA, atividades e modelos.",
-    '<i class="fi fi-sr-lightbulb-on omni-ic icon-hub"></i>',
-    "border-hub",
+    '<i class="fi fi-sr-lightbulb-on"></i>',
+    "var(--c-hub)",
     "go_hub",
     "hub",
 )
@@ -470,8 +487,8 @@ portal_card(
     c5,
     "Diário de Bordo",
     "Registros de contexto, hipóteses e decisões (em construção).",
-    '<i class="fi fi-br-compass-alt omni-ic icon-diario"></i>',
-    "border-diario",
+    '<i class="fi fi-br-compass-alt"></i>',
+    "var(--c-diario)",
     "go_diario",
     "diario",
 )
@@ -479,16 +496,16 @@ portal_card(
     c6,
     "Evolução & Dados",
     "Indicadores, evidências e acompanhamento longitudinal.",
-    '<i class="fi fi-br-analyse omni-ic icon-mon"></i>',
-    "border-mon",
+    '<i class="fi fi-br-analyse"></i>',
+    "var(--c-mon)",
     "go_mon",
     "mon",
 )
 
-# Conteúdo inclusão
-st.markdown(f"""
+# Conteúdo de inclusão
+st.markdown("""
 <div class="section-title">
-  <i class="fi fi-ss-chip-brain omni-ic icon-ia"></i>
+  <i class="fi fi-ss-chip-brain"></i>
   Inclusão em 60 segundos
 </div>
 """, unsafe_allow_html=True)
@@ -502,7 +519,7 @@ st.markdown("""
 - **Monitoramento**: rubricas + evidências + revisão periódica = progresso real.
 """)
 
-# Sair
+# Rodapé (mantém)
 st.markdown("---")
 cL, cR = st.columns([2, 1])
 with cL:
