@@ -16,23 +16,27 @@ def render_login():
         ok = st.form_submit_button("Entrar")
 
     if ok:
+        # LOGIN DEMO (placeholder)
         if email.strip() and senha.strip():
             st.session_state.autenticado = True
             st.session_state.user = {"email": email.strip()}
             st.query_params["go"] = "home"
-            st.switch_page("home_portal.py")
+            st.switch_page("pages/home.py")
         else:
             st.error("Preencha e-mail e senha.")
 
 go = st.query_params.get("go", "login")
 
+# NÃO autenticado -> sempre login
 if not st.session_state.autenticado:
     st.query_params["go"] = "login"
     render_login()
     st.stop()
 
+# Autenticado
 if go == "login":
     st.query_params["go"] = "home"
-    st.switch_page("home_portal.py")
+    st.switch_page("pages/home.py")
 else:
     route_from_query(default_go="home")
+    st.markdown("Redirecionando…")
