@@ -1,7 +1,14 @@
 import streamlit as st
-from ui_nav import render_omnisfera_nav
+from ui_nav import render_topbar_nav
 
-render_omnisfera_nav(active="paee")
+# 1. Configuração da página DEVE ser a primeira linha do Streamlit
+st.set_page_config(layout="wide", page_title="Omnisfera")
+
+# 2. Chame a barra imediatamente
+render_topbar_nav(active_page="alunos") # Mude o nome conforme a página
+
+# 3. O resto do seu código vem aqui...
+st.title("Gestão de Alunos")
 
 st.title("PAEE — teste mínimo")
 st.success("Menu carregou aqui ✅")
