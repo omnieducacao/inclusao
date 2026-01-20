@@ -25,23 +25,53 @@ COLORS = {
     "mon": "#8B5CF6",
 }
 
-# Flaticon Solid Rounded (fi-sr-*)
+# -------------------------------------------------------------------
+# ÍCONES — padrão fixo Omnisfera (Flaticon UIcons v3.0.0)
+# Regra:
+# - Home / Diário / Evolução&Dados / IA => bold-rounded
+# - Estratégias & PEI / Hub            => solid-rounded
+# - Plano de Ação (PAEE)              => solid-straight
+#
+# Observação: as classes abaixo (fi-br-*, fi-sr-*, fi-ss-*) são exemplos
+# e podem variar conforme o nome do ícone. Se algum não renderizar,
+# troque apenas o sufixo do ícone mantendo o prefixo da família.
+# -------------------------------------------------------------------
 ICONS = {
-    "home": "fi fi-sr-house-chimney",
+    # Home (bold-rounded)
+    "home": "fi fi-br-house-chimney",
+
+    # Estudantes (você não listou família; deixei solid-rounded para ficar coerente)
     "estudantes": "fi fi-sr-users-alt",
+
+    # Estratégias & PEI (solid-rounded)
     "pei": "fi fi-sr-puzzle-alt",
-    "paee": "fi fi-sr-route",
+
+    # Plano de Ação / PAEE (solid-straight)
+    "paee": "fi fi-ss-route",
+
+    # Hub (solid-rounded)
     "hub": "fi fi-sr-lightbulb-on",
-    "diario": "fi fi-sr-compass-alt",
-    "mon": "fi fi-sr-chart-line-up",
+
+    # Diário (bold-rounded)
+    "diario": "fi fi-br-compass-alt",
+
+    # Evolução & Dados (bold-rounded)
+    "mon": "fi fi-br-chart-line-up",
+
+    # IA (bold-rounded) — se você quiser colocar no menu depois, já está pronto
+    "ia": "fi fi-br-brain",
+
+    # Logout (neutro)
     "logout": "fi fi-sr-sign-out-alt",
 }
+
 
 def _b64(path: str) -> str:
     if not os.path.exists(path):
         return ""
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
+
 
 def _goto(page_key: str):
     """Navegação multipage real (sem query params)."""
@@ -50,9 +80,11 @@ def _goto(page_key: str):
         return
     st.switch_page(target)
 
+
 def _logout():
     st.session_state.autenticado = False
     st.rerun()
+
 
 def render_topbar_nav(active: str = "home", show_on_login: bool = False):
     """
@@ -68,12 +100,16 @@ def render_topbar_nav(active: str = "home", show_on_login: bool = False):
     # assets
     icon_b64 = _b64("omni_icone.png")
 
-    # CSS + libs (Flaticon SR)
+    # CSS + libs (Flaticon: families do padrão)
     st.markdown("""
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css">
+
+<!-- Flaticon UIcons v3.0.0 — famílias padrão Omnisfera -->
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-straight/css/uicons-solid-straight.css'>
 
 <style>
 header[data-testid="stHeader"]{display:none !important;}
@@ -204,71 +240,35 @@ header[data-testid="stHeader"]{display:none !important;}
 </div>
 """, unsafe_allow_html=True)
 
-    # Botões do menu (Streamlit buttons) — overlay “invisível” com estilo
-    # Precisamos renderizar os botões reais para capturar clique.
-    # Fazemos em um container, mas visualmente eles ficam “na barra”.
-    # Truque: usar st.columns e empurrar para a direita com espaçamento.
-
-    # cria uma linha invisível abaixo (mas os botões recebem o CSS .omni-btn via seletor de data-testid)
-    # Para estilizar com precisão, usamos key e CSS por key.
-
-    # container de alinhamento
+    # Botões reais (capturam clique)
     _l, _r = st.columns([6, 4])
 
     with _r:
-        cols = st.columns([1,1,1,1,1,1,0.2,1])  # 6 ícones + separador + sair
+        cols = st.columns([1,1,1,1,1,1,0.2,1])  # 7 ícones + separador + sair
 
         items = [
             ("home","Home"),
             ("estudantes","Estudantes"),
-            ("pei","PEI"),
-            ("paee","PAEE"),
-            ("hub","Hub"),
-            ("diario","Diário"),
-            ("mon","Dados"),
+            ("pei","Estratégias & PEI"),
+            ("paee","Plano de Ação (PAEE)"),
+            ("hub","Hub de Recursos"),
+            ("diario","Diário de Bordo"),
+            ("mon","Evolução & Dados"),
         ]
 
-        # Render: cada botão com key única
         for i, (k, label) in enumerate(items):
             with cols[i]:
-                key = f"nav_{k}"
-                if st.button(" ", key=key, help=label, use_container_width=True):
+                if st.button(" ", key=f"nav_{k}", help=label, use_container_width=True):
                     _goto(k)
 
-                # CSS por botão key (Streamlit renderiza button dentro de div[data-testid="stButton"])
-                color = COLORS.get(k, "#0F172A")
-                icon = ICONS.get(k, "fi fi-sr-circle")
-                is_active = (k == active)
-
-                st.markdown(f"""
-<style>
-/* ataca o botão específico via key */
-div[data-testid="stButton"] button[kind="secondary"][data-testid="baseButton-secondary"] {{
-  /* fallback: não garante seletor por key */
-}}
-</style>
-""", unsafe_allow_html=True)
-
-                # seletor robusto: Streamlit dá um id no DOM? Não.
-                # Então aplicamos classe por "nth" é frágil. Melhor: colocar HTML do ícone dentro do botão via unsafe? Streamlit não permite.
-                # Solução estável: renderizar um HTML (ícone) clicável com st.markdown + link? (abre nova página).
-                # MAS você pediu navegação real. Então: usamos os botões, e desenhamos uma “camada visual” por cima em HTML.
-                # Isso é o mais estável e bonito.
-
-        # separador visual no meio
         with cols[6]:
             st.markdown('<div class="omni-sep"></div>', unsafe_allow_html=True)
 
-        # botão sair
         with cols[7]:
             if st.button(" ", key="nav_logout", help="Sair", use_container_width=True):
                 _logout()
 
     # Camada visual por cima (HTML) — Ícones reais, cores, estado ativo
-    # Os botões reais ficam logo abaixo; o clique funciona porque os botões ocupam a área.
-    # Precisamos alinhar. O padding-top da page já compensa.
-
-    # Monta ícones em HTML com mesmo grid e tamanhos (vai “casar” com a área dos botões)
     icons_html = ""
     for k, label in [
         ("home","Home"),
@@ -288,7 +288,6 @@ div[data-testid="stButton"] button[kind="secondary"][data-testid="baseButton-sec
 </div>
 """
 
-    # logout icon
     logout_html = f"""
 <div class="omni-btn">
   <i class="{ICONS['logout']} omni-ic" style="color:rgba(15,23,42,0.55);"></i>
