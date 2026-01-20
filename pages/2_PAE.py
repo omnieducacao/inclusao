@@ -6,15 +6,18 @@ from datetime import date
 import pandas as pd
 from openai import OpenAI
 from ui_nav import render_omnisfera_nav
+from ui_nav import render_topbar_nav
 
-active = render_omnisfera_nav(show_on_login=True)
+active = render_topbar_nav()
 
+# roteamento SPA
 if active == "home":
-    ...
-elif active == "estudantes":
-    ...
-elif active == "pei":
-    ...
+    st.write("Home")
+elif active == "paee":
+    st.write("PAEE")
+# ...
+
+
 
 # ==============================================================================
 # 1) CONFIG
