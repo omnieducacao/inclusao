@@ -1,239 +1,243 @@
 # ui_nav.py
 import streamlit as st
-import os, base64
+import os
+import base64
 
-def render_omnisfera_nav():
+# ==============================================================================
+# 1. CONFIGURAÇÃO DOS ÍCONES E CORES
+# ==============================================================================
+# Definimos aqui os CDNs exatos que você pediu para garantir que os ícones carreguem
+FLATICON_CSS = """
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-straight/css/uicons-solid-straight.css'>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+"""
+
+# Configuração de cada botão (Chave, Rótulo, Ícone, Cor, Biblioteca)
+# Ajustei os nomes das classes (fi-br, fi-sr, fi-ss) para bater com as bibliotecas que você pediu.
+NAV_ITEMS = [
+    {
+        "key": "home",
+        "label": "Home",
+        "icon": "fi fi-br-home",  # Bold Rounded
+        "color": "#1F2937"        # Cinza Escuro
+    },
+    {
+        "key": "pei",
+        "label": "Estratégias & PEI",
+        "icon": "fi fi-sr-chess-piece", # Solid Rounded (Estratégia)
+        "color": "#3B82F6"              # Azul
+    },
+    {
+        "key": "paee",
+        "label": "Plano de Ação",
+        "icon": "fi fi-ss-rocket-lunch", # Solid Straight (Ação/Foguete)
+        "color": "#10B981"               # Verde
+    },
+    {
+        "key": "hub",
+        "label": "Hub de Recursos",
+        "icon": "fi fi-sr-apps",      # Solid Rounded (Hub/Recursos)
+        "color": "#F59E0B"            # Amarelo/Laranja
+    },
+    {
+        "key": "diario",
+        "label": "Diário de Bordo",
+        "icon": "fi fi-br-book-alt",  # Bold Rounded
+        "color": "#F97316"            # Laranja
+    },
+    {
+        "key": "mon",
+        "label": "Evolução & Dados",
+        "icon": "fi fi-br-chart-histogram", # Bold Rounded
+        "color": "#8B5CF6"                  # Roxo
+    }
+]
+
+# ==============================================================================
+# 2. FUNÇÕES AUXILIARES
+# ==============================================================================
+def _get_image_b64(path: str) -> str:
+    """Carrega a logo e converte para Base64 para usar no HTML."""
+    if not os.path.exists(path):
+        return ""
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+def _get_current_view():
+    """Descobre qual aba está ativa lendo a URL (?view=...)"""
+    try:
+        qp = st.query_params
+        return qp.get("view", "home")
+    except:
+        return "home"
+
+# ==============================================================================
+# 3. RENDERIZAÇÃO DA BARRA (TOPBAR)
+# ==============================================================================
+def render_topbar_nav():
     """
-    SPA-like navigation:
-    - NÃO usa st.switch_page (isso troca de página e pode forçar login de novo)
-    - Usa st.session_state["view"] + st.rerun() (igual sidebar)
-    - Mantém o dock exatamente como está (HTML/CSS)
-    - A camada de clique é feita com botões invisíveis por cima dos ícones
+    Renderiza a barra de navegação superior fixa.
     """
+    
+    # 1. Esconde a Sidebar padrão e o Header padrão do Streamlit
+    st.markdown("""
+        <style>
+            [data-testid="stSidebar"] {display: none !important;}
+            [data-testid="stHeader"] {display: none !important;}
+            .block-container {
+                padding-top: 80px !important; /* Espaço para a barra não cobrir o conteúdo */
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
-    # -------------------------------
-    # 1) Estado SPA (view atual)
-    # -------------------------------
-    if "view" not in st.session_state:
-        st.session_state.view = "home"
+    # 2. Prepara os dados
+    active_view = _get_current_view()
+    logo_b64 = _get_image_b64("omni_icone.png") # Certifique-se que o arquivo existe
+    
+    # Logo HTML (Giratória)
+    if logo_b64:
+        logo_html = f'<img class="nav-logo-spin" src="data:image/png;base64,{logo_b64}">'
+    else:
+        logo_html = '<div class="nav-logo-fallback"></div>'
 
-    # função de navegação (igual sidebar)
-    def go(view_key: str):
-        st.session_state.view = view_key
-        st.rerun()
+    # 3. Constrói os Links (Botões)
+    links_html = ""
+    for item in NAV_ITEMS:
+        is_active = (item["key"] == active_view)
+        active_class = "active" if is_active else ""
+        
+        # A lógica de clique é via URL parameter (?view=key) que recarrega a página
+        links_html += f"""
+        <a class="nav-item {active_class}" href="?view={item['key']}" target="_self">
+            <i class="{item['icon']}" style="color: {item['color']};"></i>
+            <span class="nav-label">{item['label']}</span>
+        </a>
+        """
 
-    # -------------------------------
-    # 2) Logo base64
-    # -------------------------------
-    def logo_src():
-        for f in ["omni_icone.png", "logo.png", "iconeaba.png", "omni.png", "ominisfera.png"]:
-            if os.path.exists(f):
-                with open(f, "rb") as img:
-                    return f"data:image/png;base64,{base64.b64encode(img.read()).decode()}"
-        return "https://cdn-icons-png.flaticon.com/512/1183/1183672.png"
-
-    src = logo_src()
-
-    # -------------------------------
-    # 3) Visual do dock (igual o seu)
-    # -------------------------------
-    TOP_PX = 8
-    RIGHT_PX = 14
-
+    # 4. HTML & CSS Completo
     st.markdown(f"""
-<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+    {FLATICON_CSS}
+    <style>
+        /* Container Principal da Barra */
+        .omni-navbar {{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #E5E7EB;
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }}
 
-<style>
-/* Header do Streamlit "mutado" para não competir com o dock */
-header[data-testid="stHeader"] {{
-  background: transparent !important;
-  box-shadow: none !important;
-  z-index: 1 !important;
-}}
-header[data-testid="stHeader"] * {{
-  visibility: hidden !important;
-}}
+        /* Lado Esquerdo: Logo + Texto */
+        .nav-left {{
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }}
+        
+        .nav-logo-spin {{
+            height: 32px;
+            width: 32px;
+            animation: spin 30s linear infinite;
+        }}
+        
+        .nav-brand-text {{
+            font-size: 18px;
+            font-weight: 800;
+            color: #1F2937;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }}
 
-/* Dock (mais fino) */
-.omni-dock {{
-  position: fixed !important;
-  top: {TOP_PX}px !important;
-  right: {RIGHT_PX}px !important;
-  z-index: 2147483647 !important;
+        @keyframes spin {{ 100% {{ transform: rotate(360deg); }} }}
 
-  display: flex;
-  align-items: center;
+        /* Lado Direito: Itens de Menu */
+        .nav-right {{
+            display: flex;
+            align-items: center;
+            gap: 20px; /* Espaço entre os ícones */
+        }}
 
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: 999px;
+        .nav-item {{
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 4px 8px;
+            transition: all 0.2s ease;
+            opacity: 0.7; /* Leve transparência quando inativo */
+        }}
 
-  background: #FFFFFF !important;
-  border: 1px solid #E5E7EB !important;
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12) !important;
+        .nav-item:hover {{
+            opacity: 1;
+            transform: translateY(-2px);
+        }}
 
-  opacity: 1 !important;
-  isolation: isolate !important;
-  pointer-events: none !important; /* IMPORTANT: clique vai na camada de botões */
-}}
+        .nav-item i {{
+            font-size: 20px; /* Tamanho do ícone */
+            margin-bottom: 2px;
+        }}
 
-/* Logo */
-@keyframes spin {{
-  from {{ transform: rotate(0deg); }}
-  to {{ transform: rotate(360deg); }}
-}}
-.omni-logo {{
-  width: 26px;
-  height: 26px;
-  animation: spin 10s linear infinite;
-}}
+        .nav-label {{
+            font-size: 10px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }}
 
-/* Separador */
-.omni-sep {{
-  width: 1px;
-  height: 22px;
-  background: #E5E7EB;
-  margin: 0 2px;
-}}
+        /* Estado Ativo (Página Atual) */
+        .nav-item.active {{
+            opacity: 1;
+        }}
+        
+        .nav-item.active .nav-label {{
+            color: #111827;
+            font-weight: 800;
+        }}
+        
+        /* Pequeno indicador abaixo do item ativo */
+        .nav-item.active::after {{
+            content: '';
+            display: block;
+            width: 4px;
+            height: 4px;
+            background-color: #111827;
+            border-radius: 50%;
+            margin-top: 2px;
+        }}
 
-/* Botões circulares coloridos (ícone branco) */
-.omni-ico {{
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+        /* Responsividade para telas pequenas */
+        @media (max-width: 768px) {{
+            .nav-label {{ display: none; }} /* Esconde texto no mobile */
+            .nav-right {{ gap: 15px; }}
+            .nav-brand-text {{ display: none; }} /* Esconde nome Omnisfera se ficar apertado */
+        }}
 
-  border: 1px solid rgba(17,24,39,0.06) !important;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
-}}
+    </style>
 
-.omni-ic {{
-  font-size: 18px;
-  line-height: 1;
-  color: #FFFFFF !important;
-}}
-</style>
+    <div class="omni-navbar">
+        <div class="nav-left">
+            {logo_html}
+            <div class="nav-brand-text">Omnisfera</div>
+        </div>
+        <div class="nav-right">
+            {links_html}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-<div class="omni-dock" aria-label="Omnisfera Dock">
-  <img src="{src}" class="omni-logo" alt="Omnisfera" />
-  <div class="omni-sep"></div>
-
-  <div class="omni-ico" style="background:#111827" title="Home">
-    <i class="ri-home-5-line omni-ic"></i>
-  </div>
-
-  <div class="omni-ico" style="background:#3B82F6" title="Estratégias & PEI">
-    <i class="ri-puzzle-2-line omni-ic"></i>
-  </div>
-
-  <div class="omni-ico" style="background:#22C55E" title="Plano de Ação (PAEE)">
-    <i class="ri-map-pin-2-line omni-ic"></i>
-  </div>
-
-  <div class="omni-ico" style="background:#F59E0B" title="Hub de Recursos">
-    <i class="ri-lightbulb-line omni-ic"></i>
-  </div>
-
-  <div class="omni-ico" style="background:#F97316" title="Diário de Bordo">
-    <i class="ri-compass-3-line omni-ic"></i>
-  </div>
-
-  <div class="omni-ico" style="background:#A855F7" title="Evolução & Acompanhamento">
-    <i class="ri-line-chart-line omni-ic"></i>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-    # -------------------------------
-    # 4) Camada clicável (SPA) por cima do dock
-    #    - Botões invisíveis alinhados com a pílula
-    #    - Ao clicar: st.session_state.view = ... e rerun (igual sidebar)
-    # -------------------------------
-    st.markdown(f"""
-<style>
-/* Camada clicável por cima do dock */
-.omni-clicklayer {{
-  position: fixed;
-  top: {TOP_PX}px;
-  right: {RIGHT_PX}px;
-  z-index: 2147483647;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-}}
-
-/* Faz os st.button virarem áreas de clique sem visual */
-.omni-clicklayer [data-testid="stButton"] button {{
-  width: 34px !important;
-  height: 34px !important;
-  border-radius: 999px !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}}
-.omni-clicklayer [data-testid="stButton"] button:hover {{
-  background: transparent !important;
-}}
-.omni-clicklayer [data-testid="stButton"] button p {{
-  display: none !important;
-}}
-
-/* Primeiro botão: área da logo */
-.omni-clicklayer .logo-area [data-testid="stButton"] button {{
-  width: 26px !important;
-  height: 26px !important;
-}}
-/* Área do separador (não clicável) */
-.omni-clicklayer .sep-area {{
-  width: 1px;
-  height: 22px;
-}}
-</style>
-
-<div class="omni-clicklayer"></div>
-""", unsafe_allow_html=True)
-
-    # A estrutura de colunas precisa reproduzir: logo + separador + 6 ícones
-    # Os espaços aqui precisam bater com: gap/padding/tamanhos do CSS acima.
-    with st.container():
-        st.markdown('<div class="omni-clicklayer">', unsafe_allow_html=True)
-
-        c_logo, c_sep, c1, c2, c3, c4, c5, c6 = st.columns(
-            [0.55, 0.06, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75],
-            gap="small"
-        )
-
-        with c_logo:
-            st.markdown('<div class="logo-area">', unsafe_allow_html=True)
-            if st.button(" ", key="nav_home_logo", help="Home"):
-                go("home")
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with c_sep:
-            # separador visual já existe no dock; aqui só ocupa espaço
-            st.markdown('<div class="sep-area"></div>', unsafe_allow_html=True)
-
-        with c1:
-            if st.button(" ", key="nav_home", help="Home"):
-                go("home")
-        with c2:
-            if st.button(" ", key="nav_pei", help="Estratégias & PEI"):
-                go("pei")
-        with c3:
-            if st.button(" ", key="nav_paee", help="Plano de Ação (PAEE)"):
-                go("paee")
-        with c4:
-            if st.button(" ", key="nav_hub", help="Hub de Recursos"):
-                go("hub")
-        with c5:
-            if st.button(" ", key="nav_diario", help="Diário de Bordo"):
-                go("diario")
-        with c6:
-            if st.button(" ", key="nav_mon", help="Evolução & Acompanhamento"):
-                go("mon")
-
-        st.markdown('</div>', unsafe_allow_html=True)
+    return active_view
