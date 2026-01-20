@@ -1,22 +1,19 @@
 # ui_nav.py
 from __future__ import annotations
 
-import os
 from pathlib import Path
 import streamlit as st
 
 # =============================================================================
-# CONFIGURAÇÃO GERAL
+# CONFIG
 # =============================================================================
-
 TOPBAR_HEIGHT = 56
 TOPBAR_PADDING = 12
 
 
 # =============================================================================
-# ESTADO DE AUTENTICAÇÃO
+# AUTH STATE
 # =============================================================================
-
 def ensure_auth_state():
     if "autenticado" not in st.session_state:
         st.session_state.autenticado = False
@@ -25,9 +22,8 @@ def ensure_auth_state():
 
 
 # =============================================================================
-# UTILITÁRIOS
+# UTILS
 # =============================================================================
-
 def _project_root() -> Path:
     return Path(__file__).resolve().parent
 
@@ -37,7 +33,7 @@ def _page_exists(relative_path: str) -> bool:
     return p.exists() and p.is_file()
 
 
-def _get_query_param(key: str, default: str | None = None) -> str | None:
+def _get_qp(key: str, default: str | None = None) -> str | None:
     try:
         return st.query_params.get(key, default)
     except Exception:
@@ -45,9 +41,8 @@ def _get_query_param(key: str, default: str | None = None) -> str | None:
 
 
 # =============================================================================
-# ICONES (FLATICON)
+# ICONS
 # =============================================================================
-
 def inject_icons_cdn():
     st.markdown(
         """
@@ -60,104 +55,103 @@ def inject_icons_cdn():
 
 
 # =============================================================================
-# CSS GLOBAL (DESATIVA UI NATIVA + TOPBAR)
+# CSS SHELL
 # =============================================================================
-
 def inject_shell_css():
     st.markdown(
         f"""
 <style>
-/* --- Remove UI nativa do Streamlit --- */
-[data-testid="stHeader"],
-header,
-footer,
-#MainMenu,
+/* remove UI nativa */
+[data-testid="stHeader"], header,
+footer, #MainMenu,
 [data-testid="stToolbar"],
 [data-testid="stDecoration"] {{
-    display: none !important;
+  display: none !important;
 }}
 
-/* --- Ajuste do conteúdo --- */
+/* empurra conteúdo para não ficar atrás da topbar */
 .main .block-container {{
-    padding-top: {TOPBAR_HEIGHT + TOPBAR_PADDING}px !important;
+  padding-top: {TOPBAR_HEIGHT + TOPBAR_PADDING}px !important;
 }}
 
-/* --- TOPBAR --- */
+/* topbar */
 .omni-topbar {{
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: {TOPBAR_HEIGHT}px;
-    z-index: 999999;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: {TOPBAR_HEIGHT}px;
+  z-index: 999999;
 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 
-    padding: 0 14px;
-    background: rgba(12,12,14,0.78);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 0 14px;
+  background: rgba(12,12,14,0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }}
 
 .omni-brand {{
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-    font-size: 14px;
-    color: rgba(255,255,255,0.95);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color: rgba(255,255,255,0.95);
+  font-weight: 750;
+  font-size: 14px;
+  user-select:none;
 }}
 
 .omni-dot {{
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.8);
-    box-shadow: 0 0 12px rgba(255,255,255,0.25);
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.78);
+  box-shadow: 0 0 12px rgba(255,255,255,0.22);
 }}
 
 .omni-nav {{
-    display: flex;
-    gap: 10px;
+  display:flex;
+  align-items:center;
+  gap:10px;
 }}
 
 .nav-item {{
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
-    text-decoration: none;
+  text-decoration:none;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
 
-    transition: all 0.15s ease;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease, opacity .12s ease;
 }}
 
 .nav-item:hover {{
-    transform: translateY(-1px);
-    background: rgba(255,255,255,0.10);
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.14);
 }}
 
 .nav-item.active {{
-    background: rgba(255,255,255,0.14);
-    border-color: rgba(255,255,255,0.20);
+  background: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.18);
 }}
 
 .nav-item.disabled {{
-    opacity: 0.35;
-    pointer-events: none;
-    filter: grayscale(1);
+  opacity: 0.35;
+  pointer-events: none;
+  filter: grayscale(1);
 }}
 
 .nav-item i {{
-    font-size: 18px;
-    line-height: 1;
+  font-size: 18px;
+  line-height: 1;
 }}
 </style>
         """,
@@ -166,14 +160,14 @@ footer,
 
 
 # =============================================================================
-# ROTAS DO SISTEMA
+# ROUTES
 # =============================================================================
-
 def ROUTES():
+    # IMPORTANTE: Home agora é pages/home.py (como está no seu repo)
     return {
         "home": {
             "label": "Home",
-            "page": "home_portal.py",
+            "page": "pages/home.py",
             "icon": "fi fi-br-home",
             "color": "#EDEDED",
         },
@@ -201,7 +195,7 @@ def ROUTES():
             "icon": "fi fi-sr-book-open-cover",
             "color": "#FFB86C",
         },
-        # futuras
+        # futuras (desabilita automaticamente se não existir)
         "diario": {
             "label": "Diário",
             "page": "pages/4_Diario.py",
@@ -218,7 +212,7 @@ def ROUTES():
 
 
 def get_active_go(default: str = "home") -> str:
-    go = _get_query_param("go", default)
+    go = _get_qp("go", default) or default
     if go not in ROUTES():
         return default
     return go
@@ -227,30 +221,28 @@ def get_active_go(default: str = "home") -> str:
 # =============================================================================
 # TOPBAR
 # =============================================================================
-
 def render_topbar(active_go: str):
     routes = ROUTES()
 
-    def render_item(go: str):
+    def _item(go: str) -> str:
         r = routes[go]
         exists = _page_exists(r["page"])
 
-        classes = ["nav-item"]
+        cls = ["nav-item"]
         if go == active_go:
-            classes.append("active")
+            cls.append("active")
         if not exists:
-            classes.append("disabled")
+            cls.append("disabled")
 
         href = f"?go={go}" if exists else "#"
-
         return f"""
-<a class="{' '.join(classes)}" href="{href}" title="{r['label']}">
+<a class="{' '.join(cls)}" href="{href}" title="{r['label']}" aria-label="{r['label']}">
   <i class="{r['icon']}" style="color:{r['color']}"></i>
 </a>
 """
 
     order = ["home", "alunos", "pei", "pae", "hub", "diario", "dados"]
-    items = "\n".join(render_item(go) for go in order if go in routes)
+    items_html = "\n".join(_item(go) for go in order if go in routes)
 
     st.markdown(
         f"""
@@ -260,7 +252,7 @@ def render_topbar(active_go: str):
     <div>Omnisfera</div>
   </div>
   <div class="omni-nav">
-    {items}
+    {items_html}
   </div>
 </div>
         """,
@@ -269,10 +261,10 @@ def render_topbar(active_go: str):
 
 
 # =============================================================================
-# ROTEAMENTO
+# ROUTER
 # =============================================================================
-
 def route_from_query(default_go: str = "home"):
+    # evita loop de roteamento
     if st.session_state.get("_already_routed"):
         return
 
@@ -288,9 +280,8 @@ def route_from_query(default_go: str = "home"):
 
 
 # =============================================================================
-# BOOTSTRAP GLOBAL
+# BOOT
 # =============================================================================
-
 def boot_ui(do_route: bool = False):
     ensure_auth_state()
     inject_icons_cdn()
@@ -298,6 +289,7 @@ def boot_ui(do_route: bool = False):
 
     active = get_active_go()
 
+    # Só mostra topbar quando autenticado
     if st.session_state.autenticado:
         render_topbar(active)
 
