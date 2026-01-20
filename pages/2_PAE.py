@@ -5,10 +5,8 @@ import json
 import pandas as pd
 from datetime import date
 import base64
-from ui_nav import render_omnisfera_nav
-
-render_omnisfera_nav()
-
+from ui_nav import render_topbar_nav
+render_topbar_nav()
 
 
 # ==============================================================================
