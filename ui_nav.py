@@ -3,9 +3,6 @@ import streamlit as st
 import os, base64
 
 def render_omnisfera_nav():
-    # -------------------------------
-    # Rotas reais do seu projeto
-    # -------------------------------
     ROUTES = {
         "home":   "Home.py",
         "pei":    "pages/1_PEI.py",
@@ -15,9 +12,7 @@ def render_omnisfera_nav():
         "mon":    "pages/5_Monitoramento_Avaliacao.py",
     }
 
-    # -------------------------------
-    # Navegação: escuta ?go=
-    # -------------------------------
+    # navegação por query param
     qp = st.query_params
     if "go" in qp:
         dest = qp["go"]
@@ -25,9 +20,7 @@ def render_omnisfera_nav():
             st.query_params.clear()
             st.switch_page(ROUTES[dest])
 
-    # -------------------------------
-    # Logo (base64)
-    # -------------------------------
+    # logo base64
     def logo_src():
         for f in ["omni_icone.png", "logo.png", "iconeaba.png", "omni.png", "ominisfera.png"]:
             if os.path.exists(f):
@@ -37,23 +30,35 @@ def render_omnisfera_nav():
 
     src = logo_src()
 
-    # -------------------------------
-    # Dock (HTML/CSS)
-    # -------------------------------
-    # Ajuste o TOP aqui se estiver encostando no “Share”/header do Streamlit:
-    TOP_PX = 18  # tente 18, 28, 40... conforme seu layout
+    # Ajuste fino: se o Share/header estiver “encostando”, aumente TOP_PX.
+    TOP_PX = 54
     RIGHT_PX = 14
 
     st.markdown(f"""
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
 
 <style>
-/* Dock/pílula */
+/* --- Opcional: esconder o header do Streamlit (descomente se quiser) --- */
+/*
+header[data-testid="stHeader"] {{
+  display: none !important;
+}}
+*/
+
+/* Em alguns temas o header tem “camada” que fica por cima — isso reduz interferência */
+header[data-testid="stHeader"] {{
+  background: transparent !important;
+  box-shadow: none !important;
+}}
+
+/* Dock totalmente opaco (sem blur, sem alpha) */
 .omni-dock {{
-  position: fixed;
-  top: {TOP_PX}px;
-  right: {RIGHT_PX}px;
-  z-index: 99999;
+  position: fixed !important;
+  top: {TOP_PX}px !important;
+  right: {RIGHT_PX}px !important;
+
+  z-index: 2147483647 !important; /* máximo “prático” */
+  opacity: 1 !important;
 
   display: flex;
   align-items: center;
@@ -62,9 +67,14 @@ def render_omnisfera_nav():
   padding: 10px 14px;
   border-radius: 999px;
 
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.10);
+  background-color: #FFFFFF !important; /* branco sólido */
+  border: 1px solid #E5E7EB !important;
+
+  /* impede “vazar” visual por composição */
+  background-clip: padding-box !important;
+  isolation: isolate !important;
+
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12) !important;
 }}
 
 /* Logo */
@@ -86,7 +96,7 @@ def render_omnisfera_nav():
   margin: 0 2px;
 }}
 
-/* Botões circulares (cada ícone dentro de um círculo) */
+/* Ícone em círculo */
 .omni-ico {{
   width: 38px;
   height: 38px;
@@ -96,8 +106,8 @@ def render_omnisfera_nav():
   align-items: center;
   justify-content: center;
 
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background-color: #FFFFFF !important;
+  border: 1px solid #E5E7EB !important;
 
   text-decoration: none !important;
 
@@ -114,10 +124,11 @@ def render_omnisfera_nav():
 .omni-ic {{
   font-size: 20px;
   line-height: 1;
-  color: #111827; /* preto minimalista */
+  color: #111827;
 }}
 
-/* Opcional: “bolinha” de cor (marca da página) — bem sutil */
+.omni-rel {{ position: relative; }}
+
 .omni-dot {{
   position: absolute;
   width: 7px;
@@ -127,10 +138,6 @@ def render_omnisfera_nav():
   right: 7px;
   border: 1px solid rgba(17,24,39,0.10);
 }}
-
-/* Para o dot funcionar */
-.omni-rel {{ position: relative; }}
-
 </style>
 
 <div class="omni-dock" aria-label="Omnisfera Dock">
