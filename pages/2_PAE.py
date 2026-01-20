@@ -1,5 +1,7 @@
 import streamlit as st
-from ui_nav import render_topbar_nav
+from ui_nav import boot_ui
+
+boot_ui(do_route=False)
 
 # 1. Configuração da página DEVE ser a primeira linha do Streamlit
 st.set_page_config(layout="wide", page_title="Omnisfera")
