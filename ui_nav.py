@@ -3,6 +3,10 @@ import streamlit as st
 import os, base64
 
 def render_omnisfera_nav():
+
+    # -------------------------------
+    # 1. Logo
+    # -------------------------------
     def get_logo_base64():
         caminhos = ["omni_icone.png", "logo.png", "iconeaba.png", "omni.png", "ominisfera.png"]
         for c in caminhos:
@@ -13,19 +17,36 @@ def render_omnisfera_nav():
 
     src_logo = get_logo_base64()
 
-    NAV = [
-        {"key":"home",  "label":"Home",                     "icon":"ri-home-5-fill",          "color":"#111827", "target":"Home.py"},
-        {"key":"pei",   "label":"Estratégias & PEI",        "icon":"ri-puzzle-2-fill",        "color":"#3B82F6", "target":"pages/1_PEI.py"},
-        {"key":"paee",  "label":"Plano de Ação (PAEE)",     "icon":"ri-map-pin-2-fill",       "color":"#22C55E", "target":"pages/2_PAE.py"},
-        {"key":"hub",   "label":"Hub de Recursos",          "icon":"ri-lightbulb-flash-fill", "color":"#F59E0B", "target":"pages/3_Hub_Inclusao.py"},
-        {"key":"diario","label":"Diário de Bordo",          "icon":"ri-compass-3-fill",       "color":"#F97316", "target":"pages/4_Diario_de_Bordo.py"},
-        {"key":"mon",   "label":"Evolução & Acompanhamento","icon":"ri-line-chart-fill",      "color":"#A855F7", "target":"pages/5_Monitoramento_Avaliacao.py"},
-    ]
+    # -------------------------------
+    # 2. Rotas (mapa real)
+    # -------------------------------
+    ROUTES = {
+        "home":   "Home.py",
+        "pei":    "pages/1_PEI.py",
+        "paee":   "pages/2_PAE.py",
+        "hub":    "pages/3_Hub_Inclusao.py",
+        "diario": "pages/4_Diario_de_Bordo.py",
+        "mon":    "pages/5_Monitoramento_Avaliacao.py",
+    }
 
-    st.markdown("""
+    # -------------------------------
+    # 3. Escuta navegação (?go=)
+    # -------------------------------
+    params = st.query_params
+    if "go" in params:
+        destino = params["go"]
+        if destino in ROUTES:
+            st.query_params.clear()
+            st.switch_page(ROUTES[destino])
+
+    # -------------------------------
+    # 4. UI (HTML REAL)
+    # -------------------------------
+    st.markdown(f"""
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+
     <style>
-    .omni-pill {
+    .omni-pill {{
       position: fixed;
       top: 14px;
       right: 14px;
@@ -33,77 +54,86 @@ def render_omnisfera_nav():
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 8px 10px;
+      padding: 8px 12px;
       border-radius: 999px;
       background: rgba(255,255,255,0.82);
       border: 1px solid rgba(255,255,255,0.55);
       backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
       box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-    }
-    @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    .omni-logo { width: 28px; height: 28px; animation: spin-slow 10s linear infinite; }
-    .omni-sep { width: 1px; height: 22px; background: rgba(148,163,184,0.55); margin: 0 2px; }
-    .omni-nav { display: flex; align-items: center; gap: 8px; }
+    }}
 
-    .omni-icon-btn {
-      width: 34px; height: 34px;
+    @keyframes spin-slow {{
+      from {{ transform: rotate(0deg); }}
+      to {{ transform: rotate(360deg); }}
+    }}
+
+    .omni-logo {{
+      width: 28px;
+      height: 28px;
+      animation: spin-slow 10s linear infinite;
+    }}
+
+    .omni-sep {{
+      width: 1px;
+      height: 22px;
+      background: rgba(148,163,184,0.55);
+      margin: 0 4px;
+    }}
+
+    .omni-nav {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }}
+
+    .omni-btn {{
+      width: 34px;
+      height: 34px;
       border-radius: 999px;
-      display: inline-flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      background: rgba(255,255,255,0.9);
       border: 1px solid rgba(226,232,240,0.9);
-      background: rgba(255,255,255,0.92);
       box-shadow: 0 2px 10px rgba(0,0,0,0.06);
       transition: transform .12s ease, box-shadow .12s ease;
-    }
-    .omni-icon-btn:hover {
+    }}
+
+    .omni-btn:hover {{
       transform: translateY(-1px);
       box-shadow: 0 10px 22px rgba(0,0,0,0.12);
-    }
-    .omni-ic { font-size: 18px; line-height: 1; }
+    }}
 
-    .omni-tip { position: relative; }
-    .omni-tip:hover::after {
-      content: attr(data-tip);
-      position: absolute; right: 0; top: 44px;
-      white-space: nowrap; font-size: 12px; font-weight: 800;
-      background: rgba(255,255,255,0.92);
-      border: 1px solid rgba(226,232,240,0.9);
-      border-radius: 999px; padding: 6px 10px;
-      box-shadow: 0 12px 24px rgba(0,0,0,0.12);
-    }
-
-    .omni-btn-row [data-testid="stButton"] button {
-      width: 34px !important;
-      height: 34px !important;
-      border-radius: 999px !important;
-      padding: 0 !important;
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
-    }
-    .omni-btn-row [data-testid="stButton"] button p { display:none !important; }
+    .omni-ic {{
+      font-size: 18px;
+    }}
     </style>
-    """, unsafe_allow_html=True)
 
-    st.markdown(f"""
     <div class="omni-pill">
-      <img src="{src_logo}" class="omni-logo" />
-      <div class="omni-sep"></div>
-      <div class="omni-nav"></div>
+        <img src="{src_logo}" class="omni-logo" />
+
+        <div class="omni-sep"></div>
+
+        <div class="omni-nav">
+            <a class="omni-btn" href="?go=home"   title="Home">
+                <i class="ri-home-5-fill omni-ic" style="color:#111827"></i>
+            </a>
+            <a class="omni-btn" href="?go=pei"    title="Estratégias & PEI">
+                <i class="ri-puzzle-2-fill omni-ic" style="color:#3B82F6"></i>
+            </a>
+            <a class="omni-btn" href="?go=paee"   title="Plano de Ação (PAEE)">
+                <i class="ri-map-pin-2-fill omni-ic" style="color:#22C55E"></i>
+            </a>
+            <a class="omni-btn" href="?go=hub"    title="Hub de Recursos">
+                <i class="ri-lightbulb-flash-fill omni-ic" style="color:#F59E0B"></i>
+            </a>
+            <a class="omni-btn" href="?go=diario" title="Diário de Bordo">
+                <i class="ri-compass-3-fill omni-ic" style="color:#F97316"></i>
+            </a>
+            <a class="omni-btn" href="?go=mon"    title="Evolução & Acompanhamento">
+                <i class="ri-line-chart-fill omni-ic" style="color:#A855F7"></i>
+            </a>
+        </div>
     </div>
     """, unsafe_allow_html=True)
-
-    with st.container():
-        st.markdown('<div class="omni-btn-row">', unsafe_allow_html=True)
-        cols = st.columns(len(NAV), gap="small")
-        for i, item in enumerate(NAV):
-            with cols[i]:
-                if st.button(" ", key=f"nav_{item['key']}", help=item["label"]):
-                    st.switch_page(item["target"])
-                st.markdown(
-                    f"<div class='omni-tip omni-icon-btn' data-tip='{item['label']}' style='margin-top:-34px;'>"
-                    f"<i class='ri {item['icon']} omni-ic' style='color:{item['color']}'></i>"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-        st.markdown('</div>', unsafe_allow_html=True)
