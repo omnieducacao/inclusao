@@ -1,4 +1,9 @@
 # ui_nav.py
+
+# não mostrar menu minimal na Home (portal)
+if st.session_state.get("view") == "home":
+    return
+
 import streamlit as st
 
 def _safe_get_query_view():
