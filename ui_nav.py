@@ -1,3 +1,9 @@
+# ui_nav.py
+import streamlit as st
+import os, base64
+
+
+
 def render_topbar_nav(
     active: str | None = None,
     show_on_login: bool = True,
