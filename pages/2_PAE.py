@@ -5,7 +5,6 @@ import base64
 from datetime import date
 import pandas as pd
 from openai import OpenAI
-from ui_nav import render_omnisfera_nav
 
 # ==============================================================================
 # 1) CONFIG
