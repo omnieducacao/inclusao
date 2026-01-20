@@ -1,12 +1,11 @@
-# Home.py — OMNISFERA (Portal + Login) | versão com ícones Flaticon (UIcons)
+# Home.py — OMNISFERA (Portal + Login) | Flaticon UIcons + 6 cards
 import streamlit as st
-from datetime import date
-import base64, os, time
+import base64, os
 
 # =========================================================
 # 0) CONFIG
 # =========================================================
-APP_VERSION = "v116.0"
+APP_VERSION = "v116.1"
 
 st.set_page_config(
     page_title="Omnisfera | Ecossistema",
@@ -15,9 +14,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Ajuste os caminhos das páginas aqui (se o seu arquivo de estudantes tiver outro nome, troque)
+# 🔁 Ajuste apenas se seu arquivo tiver outro nome:
 ROUTES = {
-    "estudantes": "pages/0_Estudantes.py",            # <-- ajuste se necessário
+    "estudantes": "pages/0_Alunos.py",               # <-- (Página é "aluno", exibimos "Estudantes")
     "pei":        "pages/1_PEI.py",
     "paee":       "pages/2_PAE.py",
     "hub":        "pages/3_Hub_Inclusao.py",
@@ -47,7 +46,7 @@ def _init_session():
 _init_session()
 
 # =========================================================
-# 2) CSS + ICON FONTS (Flaticon)
+# 2) ICON FONTS + CSS
 # =========================================================
 st.markdown("""
 <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css">
@@ -168,13 +167,7 @@ header[data-testid="stHeader"]{display:none !important;}
 }
 
 /* CARDS */
-.nav-grid{
-  display:grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 12px;
-}
 .nav-card{
-  grid-column: span 4;
   background:white;
   border-radius: 16px;
   padding: 16px;
@@ -223,8 +216,7 @@ header[data-testid="stHeader"]{display:none !important;}
   font-weight: 900 !important;
 }
 
-/* Cores por módulo (borda inferior) */
-.border-home{ border-bottom: 4px solid #111827; }
+/* borda por módulo */
 .border-students{ border-bottom: 4px solid #2563EB; }
 .border-pei{ border-bottom: 4px solid #3B82F6; }
 .border-paee{ border-bottom: 4px solid #22C55E; }
@@ -233,7 +225,6 @@ header[data-testid="stHeader"]{display:none !important;}
 .border-mon{ border-bottom: 4px solid #A855F7; }
 
 /* cores dos ícones */
-.icon-home{ color:#111827; }
 .icon-students{ color:#2563EB; }
 .icon-pei{ color:#3B82F6; }
 .icon-paee{ color:#22C55E; }
@@ -243,10 +234,7 @@ header[data-testid="stHeader"]{display:none !important;}
 .icon-ia{ color:#0F52BA; }
 
 /* LOGIN */
-.login-shell{
-  max-width: 520px;
-  margin: 0 auto;
-}
+.login-shell{ max-width: 520px; margin: 0 auto; }
 .login-card{
   background: white;
   border-radius: 18px;
@@ -265,10 +253,6 @@ header[data-testid="stHeader"]{display:none !important;}
   max-height: 120px;
   overflow-y: auto;
 }
-.small-muted{
-  font-size: 0.82rem;
-  color: #64748B;
-}
 .footer-sign{
   text-align:center;
   color:#CBD5E0;
@@ -276,9 +260,7 @@ header[data-testid="stHeader"]{display:none !important;}
   margin-top: 34px;
 }
 
-/* RESPONSIVO */
 @media (max-width: 950px){
-  .nav-card{ grid-column: span 12; }
   .block-container{ padding-top: 110px !important; }
   .portal-subtitle{ display:none; }
 }
@@ -286,7 +268,7 @@ header[data-testid="stHeader"]{display:none !important;}
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 3) HEADER FIXO (logo grande) — SEM MENU AQUI
+# 3) HEADER FIXO (logo grande)
 # =========================================================
 icone_b64 = get_base64_image("omni_icone.png")
 texto_b64 = get_base64_image("omni_texto.png")
@@ -309,12 +291,12 @@ else:
     """, unsafe_allow_html=True)
 
 # =========================================================
-# 4) LOGIN (Supabase email/senha — fallback demo)
+# 4) LOGIN (sem "dica de senha")
 # =========================================================
 def try_supabase_login(email: str, password: str) -> bool:
     """
-    Se você tiver Supabase configurado e a lib disponível, tenta autenticar.
-    Caso contrário, retorna False para cair no modo demo.
+    Tenta autenticar via Supabase (se secrets + lib supabase existirem).
+    Se falhar/ausente, cai no modo DEMO apenas se você quiser manter.
     """
     try:
         url = st.secrets.get("SUPABASE_URL", "")
@@ -322,18 +304,15 @@ def try_supabase_login(email: str, password: str) -> bool:
         if not url or not key:
             return False
 
-        # supabase-py pode não estar instalado — por isso o try/except
         from supabase import create_client  # type: ignore
         supa = create_client(url, key)
-
-        # auth via Supabase
         res = supa.auth.sign_in_with_password({"email": email, "password": password})
         return bool(res and getattr(res, "session", None))
     except Exception:
         return False
 
+# ✅ Mantém demo, mas sem mostrar dica na tela.
 def demo_login(email: str, password: str) -> bool:
-    # credencial demo que você definiu
     return (email.strip().lower() == "demo@omnisfera.net") and (password == "OmniDemo@2026!")
 
 def render_login():
@@ -360,13 +339,16 @@ def render_login():
     with c1:
         nome = st.text_input("Nome", placeholder="Seu nome")
     with c2:
-        cargo = st.text_input("Cargo", placeholder="Seu cargo/função")
+        # ✅ garante que o campo exista SEMPRE
+        cargo = st.text_input("Cargo/Função", placeholder="Seu cargo/função")
 
     st.markdown("#### Credenciais")
     usuario = st.text_input("Usuário (Email)", placeholder="seu@email.com")
     senha = st.text_input("Senha", type="password", placeholder="••••••••")
 
+    # ✅ agora o botão depende do cargo existir (como você quer)
     can = bool(aceitou and nome.strip() and cargo.strip() and usuario.strip() and senha.strip())
+
     if st.button("Entrar", type="primary", use_container_width=True, disabled=not can):
         ok = try_supabase_login(usuario.strip(), senha) or demo_login(usuario, senha)
 
@@ -379,20 +361,15 @@ def render_login():
             st.session_state.usuario_email = usuario.strip()
             st.rerun()
 
-    st.markdown('<div class="small-muted" style="margin-top:10px;">', unsafe_allow_html=True)
-    st.markdown("Dica: no modo demo use `demo@omnisfera.net` / `OmniDemo@2026!`.")
+    st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)  # login-card
-    st.markdown("</div>", unsafe_allow_html=True)  # login-shell
-
-# Se não autenticado, mostra login e para
 if not st.session_state.autenticado:
     render_login()
     st.stop()
 
 # =========================================================
-# 5) HOME (PORTAL) — CARDS + CONTEÚDO DE INCLUSÃO
+# 5) HOME (PORTAL)
 # =========================================================
 nome_display = (st.session_state.usuario_nome or "Educador").split()[0]
 mensagem_banner = "Unindo ciência, dados e empatia para transformar a educação."
@@ -407,7 +384,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Manifesto
 st.markdown(f"""
 <div class="section-title">
   <i class="fi fi-ss-chip-brain omni-ic icon-ia"></i>
@@ -420,10 +396,9 @@ st.info(
     "Ela tem o potencial para revolucionar o cenário da inclusão no Brasil.”"
 )
 
-# Acesso rápido (6 cards)
 st.markdown(f"""
 <div class="section-title">
-  <i class="fi fi-sr-house-chimney-crack omni-ic icon-home"></i>
+  <i class="fi fi-sr-house-chimney-crack omni-ic" style="color:#111827;"></i>
   Acesso Rápido
 </div>
 """, unsafe_allow_html=True)
@@ -447,7 +422,7 @@ def portal_card(col, title, desc, icon_html, border_class, btn_key, route_key):
         if st.button("Acessar", key=btn_key, use_container_width=True):
             path = ROUTES.get(route_key)
             if not path:
-                st.error("Rota não configurada. Ajuste o dicionário ROUTES no topo do arquivo.")
+                st.error("Rota não configurada. Ajuste ROUTES no topo do arquivo.")
             else:
                 st.switch_page(path)
         st.markdown("</div>", unsafe_allow_html=True)
@@ -510,7 +485,7 @@ portal_card(
     "mon",
 )
 
-# Conteúdo forte de inclusão
+# Conteúdo inclusão
 st.markdown(f"""
 <div class="section-title">
   <i class="fi fi-ss-chip-brain omni-ic icon-ia"></i>
@@ -527,49 +502,11 @@ st.markdown("""
 - **Monitoramento**: rubricas + evidências + revisão periódica = progresso real.
 """)
 
-st.markdown(f"""
-<div class="section-title">
-  <i class="fi fi-sr-lightbulb-on omni-ic icon-hub"></i>
-  DUA na prática
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-| Princípio | O que garantir | Exemplos rápidos |
-|---|---|---|
-| **Engajamento** | motivação e vínculo | escolhas, metas curtas, hiperfoco, gamificação |
-| **Representação** | diferentes formas de apresentar | áudio, visual, concreto, exemplo guiado |
-| **Ação/Expressão** | diferentes formas de responder | oral, desenho, teclado, CAA, checklist |
-""")
-
-st.markdown(f"""
-<div class="section-title">
-  <i class="fi fi-ss-chip-brain omni-ic icon-ia"></i>
-  Barreiras (LBI) — exemplos e ações
-</div>
-""", unsafe_allow_html=True)
-
-with st.expander("🗣️ Comunicacionais"):
-    st.write("**Sinais:** não compreende instruções / dificuldade de expressar / ruído na interação.")
-    st.write("**Ações:** instrução em passos + apoios visuais + checagem de compreensão + CAA quando necessário.")
-
-with st.expander("📚 Metodológicas"):
-    st.write("**Sinais:** caminho único / tempo rígido / avaliação única.")
-    st.write("**Ações:** flexibilizar produto + scaffolding + rubricas + tempo extra + modelos.")
-
-with st.expander("🤝 Atitudinais"):
-    st.write("**Sinais:** rótulos, isolamento, baixas expectativas.")
-    st.write("**Ações:** linguagem inclusiva + altas expectativas realistas + pares tutores + pertencimento.")
-
-with st.expander("🛠️ Tecnológicas/Instrumentais"):
-    st.write("**Sinais:** falta de recursos / inacessibilidade digital.")
-    st.write("**Ações:** TA baixa/média/alta + alternativas offline + acessibilidade em materiais.")
-
-# Sair (sem sidebar)
+# Sair
 st.markdown("---")
-cL, cR = st.columns([1, 1])
+cL, cR = st.columns([2, 1])
 with cL:
-    st.caption(f"Logado como: **{st.session_state.usuario_email}**")
+    st.caption(f"Logado como: **{st.session_state.usuario_email}**  •  {st.session_state.usuario_cargo}")
 with cR:
     if st.button("Sair", use_container_width=True):
         st.session_state.autenticado = False
