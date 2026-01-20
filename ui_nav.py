@@ -1,5 +1,6 @@
 # ui_nav.py
 import streamlit as st
+import streamlit.components.v1 as components
 import os, base64
 
 PAGES = {
@@ -8,14 +9,14 @@ PAGES = {
     "pei":    "pages/1_PEI.py",
     "paee":   "pages/2_PAE.py",
     "hub":    "pages/3_Hub_Inclusao.py",
-    # opcional:
+    # se você tiver estes arquivos, pode descomentar:
     # "diario": "pages/4_Diario_de_Bordo.py",
     # "dados":  "pages/5_Monitoramento_Avaliacao.py",
 }
 
 COLORS = {
     "home":   "#111827",
-    "alunos": "#2563EB +",
+    "alunos": "#2563EB",
     "pei":    "#3B82F6",
     "paee":   "#10B981",
     "hub":    "#F59E0B",
@@ -71,15 +72,77 @@ def _nav_if_requested():
         if target:
             st.switch_page(target)
 
+def _js_fix_top_and_cleanup():
+    """
+    1) Força topo colado (remove offsets que o Streamlit injeta)
+    2) Remove “HTML vazando” como texto no canto (quando alguém fez st.write('<div ...>'))
+    """
+    components.html(
+        """
+<script>
+(function(){
+  function fixTop(){
+    try{
+      document.documentElement.style.margin = '0';
+      document.documentElement.style.padding = '0';
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+
+      // streamlit wrappers comuns
+      const app = document.querySelector('.stApp');
+      if(app){
+        app.style.marginTop = '0';
+        app.style.paddingTop = '0';
+      }
+    }catch(e){}
+  }
+
+  function cleanupLeaks(){
+    try{
+      // Remove blocos de texto que contêm tags HTML típicas do vazamento
+      const needles = ['<div class="omni-', '<i class="fi', '</a>', 'omni-underline', 'omni-label', 'fi fi-'];
+      const containers = document.querySelectorAll('[data-testid="stMarkdownContainer"], .stMarkdown, .element-container');
+      containers.forEach(c => {
+        // remove nós simples que viraram "texto" (p/div/span) contendo esses padrões
+        const nodes = c.querySelectorAll('p, div, span');
+        nodes.forEach(n => {
+          const t = (n.innerText || '').trim();
+          if(!t) return;
+          // se o nó for basicamente aquele HTML “escrito”
+          if(t.startsWith('<') && needles.some(x => t.includes(x))){
+            n.remove();
+          }
+        });
+      });
+    }catch(e){}
+  }
+
+  function run(){
+    fixTop();
+    cleanupLeaks();
+  }
+
+  run();
+  setTimeout(run, 150);
+  setTimeout(run, 500);
+  setTimeout(run, 1200);
+})();
+</script>
+""",
+        height=0,
+    )
+
 def render_topbar_nav(active: str):
+    # 1) navegação por query param (?go=...)
     _nav_if_requested()
 
-    # logo
+    # 2) CSS/HTML do menu (um único bloco)
     logo_b64 = _b64("omni_icone.png")
-    if logo_b64:
-        logo_html = f"<img class='omni-mark' src='data:image/png;base64,{logo_b64}' alt='Omnisfera'/>"
-    else:
-        logo_html = "<div class='omni-mark omni-mark-fallback'></div>"
+    logo_html = (
+        f"<img class='omni-mark' src='data:image/png;base64,{logo_b64}' alt='Omnisfera'/>"
+        if logo_b64
+        else "<div class='omni-mark omni-mark-fallback'></div>"
+    )
 
     items = [
         ("home", "Home"),
@@ -107,29 +170,21 @@ def render_topbar_nav(active: str):
 </a>
 """
 
-    # ✅ RENDER ÚNICO (evita HTML "vazando")
     st.markdown(
         f"""
 {FLATICON_CSS}
 <style>
-/* ✅ ZERAR QUALQUER ESPAÇO NO TOPO */
-html, body {{
-  margin: 0 !important;
-  padding: 0 !important;
-}}
-.stApp {{
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-}}
-/* ✅ remove header/sidebar padrão */
+/* mata qualquer topo/offset do streamlit */
+html, body {{ margin:0 !important; padding:0 !important; }}
+.stApp {{ margin-top:0 !important; padding-top:0 !important; }}
 header[data-testid="stHeader"]{{display:none !important;}}
 [data-testid="stSidebar"]{{display:none !important;}}
 [data-testid="stSidebarNav"]{{display:none !important;}}
 [data-testid="stToolbar"]{{display:none !important;}}
 
-/* ✅ empurra conteúdo para baixo da barra */
-.block-container{{
-  padding-top: 84px !important;
+/* deixa espaço para a barra */
+.block-container {{
+  padding-top: 86px !important;
   padding-left: 2rem !important;
   padding-right: 2rem !important;
   padding-bottom: 2rem !important;
@@ -137,13 +192,10 @@ header[data-testid="stHeader"]{{display:none !important;}}
 
 @keyframes spin{{from{{transform:rotate(0deg);}}to{{transform:rotate(360deg);}}}}
 
-/* ✅ TOPBAR grudada no topo */
-.omni-topbar{{
+.omni-topbar {{
   position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  height: 62px !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  height: 64px !important;
   z-index: 2147483647 !important;
 
   display:flex !important;
@@ -162,7 +214,7 @@ header[data-testid="stHeader"]{{display:none !important;}}
 }}
 
 .omni-left{{display:flex; align-items:center; gap:12px;}}
-.omni-mark{{
+.omni-mark {{
   width: 32px; height: 32px;
   border-radius: 999px;
   animation: spin 45s linear infinite;
@@ -170,7 +222,7 @@ header[data-testid="stHeader"]{{display:none !important;}}
 .omni-mark-fallback{{
   background: conic-gradient(from 0deg,#3B82F6,#22C55E,#F59E0B,#F97316,#A855F7,#3B82F6);
 }}
-.omni-title{{
+.omni-title {{
   font-weight: 900;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -178,28 +230,25 @@ header[data-testid="stHeader"]{{display:none !important;}}
   color:#0F172A;
 }}
 
-.omni-right{{
+.omni-right {{
   display:flex;
   align-items:flex-end;
   gap: 18px;
 }}
 
-/* ✅ neutraliza comportamento de link */
 .omni-link, .omni-link:visited, .omni-link:hover, .omni-link:active {{
   text-decoration: none !important;
   color: inherit !important;
 }}
 
-.omni-link{{
+.omni-link {{
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-
   gap: 4px;
   padding: 2px 6px;
   border-radius: 10px;
-
   opacity: .74;
   transition: opacity .16s ease, transform .16s ease;
 }}
@@ -207,33 +256,31 @@ header[data-testid="stHeader"]{{display:none !important;}}
 
 .omni-ic{{ font-size: 20px; line-height: 1; }}
 
-.omni-label{{
+.omni-label {{
   font-size: 11px;
   font-weight: 700;
   color: rgba(15,23,42,0.55);
-  letter-spacing: .02em;
-  text-transform: none !important;
 }}
 
-.omni-underline{{
+.omni-underline {{
   width: 18px;
   height: 2px;
   border-radius: 999px;
   background: transparent;
 }}
 
-.omni-link.active{{ opacity: 1; }}
+.omni-link.active {{ opacity: 1; }}
 .omni-link.active .omni-label{{ color: rgba(15,23,42,0.82); font-weight: 800; }}
 .omni-link.active .omni-underline{{ background: rgba(15,23,42,0.18); }}
 
-.omni-divider{{
+.omni-divider {{
   width: 1px;
   height: 22px;
   background: rgba(226,232,240,1);
   margin: 0 2px;
 }}
 
-@media (max-width: 980px){{
+@media (max-width: 980px) {{
   .omni-label{{display:none;}}
 }}
 </style>
@@ -249,7 +296,7 @@ header[data-testid="stHeader"]{{display:none !important;}}
     <div class="omni-divider"></div>
 
     <a class="omni-link" href="?go=home" target="_self" aria-label="Sair">
-      <i class="{ICONS['sair']} omni-ic" style="color:rgba(15,23,42,0.55);"></i>
+      <i class="{ICONS["sair"]} omni-ic" style="color:rgba(15,23,42,0.55);"></i>
       <div class="omni-label">Sair</div>
       <div class="omni-underline"></div>
     </a>
@@ -258,3 +305,6 @@ header[data-testid="stHeader"]{{display:none !important;}}
 """,
         unsafe_allow_html=True,
     )
+
+    # 3) conserta topo + remove o “HTML vazando” (mesmo se alguém printou sem querer)
+    _js_fix_top_and_cleanup()
