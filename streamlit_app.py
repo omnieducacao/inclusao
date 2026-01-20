@@ -1,5 +1,6 @@
 import streamlit as st
 from ui_nav import boot_ui, ensure_auth_state
+st.write("### BUILD HOME NOVA — v999")
 
 # -----------------------------------------------------------------------------
 # PAGE CONFIG
