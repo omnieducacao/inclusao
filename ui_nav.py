@@ -1,7 +1,7 @@
 import streamlit as st
 
 # -----------------------------------------------------------------------------
-# UI NAV — Topbar fina, ícones Flaticon UIcons (solid), cores por módulo
+# UI NAV — Topbar fina, ícones Flaticon UIcons (solid-rounded), cores por módulo
 # -----------------------------------------------------------------------------
 
 def _safe_get_query_view():
@@ -19,19 +19,21 @@ def _ensure_state():
     if "view" not in st.session_state:
         st.session_state.view = "login" if not st.session_state.autenticado else "home"
 
-def render_topbar_nav(active: str | None = None, hide_on_views: tuple = ("login",)):
+def render_topbar_nav(active=None, hide_on_views=("login",)):
     """
     Topbar fina (fixed) + SPA view control.
-    - Usa Flaticon UIcons (via CDN)
+    - Usa Flaticon UIcons (CDN)
     - Ícones sólidos com cor por módulo
     - Sem sidebar
+    - Compatível com Python 3.9+ (sem typing 3.10)
     """
 
     _ensure_state()
 
+    allowed = ("login","home","estudantes","pei","paee","hub","diario","mon","logout")
+
     # lê view do query param (se existir)
     v = _safe_get_query_view()
-    allowed = ("login","home","estudantes","pei","paee","hub","diario","mon","logout")
     if v in allowed:
         st.session_state.view = v
 
@@ -49,29 +51,57 @@ def render_topbar_nav(active: str | None = None, hide_on_views: tuple = ("login"
         return
 
     # se caller passar "active", força o estado visual (bom em multipage)
-    if active in allowed:
-        view_active = active
-    else:
-        view_active = view
+    view_active = active if (active in allowed) else view
 
-    # cores por módulo (mais chique / menos saturado)
+    # cores por módulo (menos saturado, mais premium)
     COLORS = {
-        "home":      "#111827",
-        "estudantes":"#2563EB",
-        "pei":       "#3B82F6",
-        "paee":      "#22A765",
-        "hub":       "#B45309",  # âmbar mais sóbrio
-        "diario":    "#C2410C",  # laranja queimado
-        "mon":       "#7C3AED",
-        "ia":        "#0F172A",
+        "home":       "#111827",
+        "estudantes": "#2563EB",
+        "pei":        "#3B82F6",
+        "paee":       "#22A765",
+        "hub":        "#B45309",
+        "diario":     "#C2410C",
+        "mon":        "#7C3AED",
     }
 
-    def icon_color(key: str):
+    def icon_color(key):
         if key == view_active:
             return COLORS.get(key, "#111827")
         return "rgba(15,23,42,0.38)"
 
-    # CSS + Flaticon pack (solid-rounded é o que encaixa melhor com “high design”)
+    # --- ÍCONES (garantir nomes válidos; fallback se algum sumir) ---
+    ICON = {
+        "home": '<i class="fi fi-sr-house-chimney-crack"></i>',
+        "estudantes": '<i class="fi fi-sr-users-alt"></i>',
+        "pei": '<i class="fi fi-sr-puzzle-alt"></i>',
+        "paee": '<i class="fi fi-sr-track"></i>',
+        "hub": '<i class="fi fi-sr-lightbulb-on"></i>',
+        "diario": '<i class="fi fi-sr-compass-alt"></i>',
+        "mon": '<i class="fi fi-sr-analyse"></i>',
+        # logout: esse às vezes varia por pack, então deixo 2 opções com fallback
+        "logout": '<i class="fi fi-sr-sign-out-alt"></i>',
+    }
+    # fallback simples se algum ícone não renderizar
+    FALLBACK = {
+        "home": "⌂",
+        "estudantes": "👥",
+        "pei": "🧩",
+        "paee": "📍",
+        "hub": "💡",
+        "diario": "🧭",
+        "mon": "📈",
+        "logout": "⎋",
+    }
+
+    def icon_html(key):
+        # retorna HTML do icon + fallback inline (o fallback só aparece se o font falhar)
+        # técnica: coloca um <span class="fallback"> oculto, e ativa via CSS se a fonte falhar
+        return f"""
+<span class="fiwrap">{ICON.get(key, "")}</span>
+<span class="fallback">{FALLBACK.get(key, "")}</span>
+"""
+
+    # CSS + pack
     st.markdown("""
 <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css">
 <style>
@@ -81,7 +111,12 @@ header[data-testid="stHeader"]{display:none !important;}
 [data-testid="stToolbar"]{display:none !important;}
 
 /* espaço para a topbar */
-.block-container{padding-top:64px !important; padding-left:2rem !important; padding-right:2rem !important; padding-bottom:2rem !important;}
+.block-container{
+  padding-top:64px !important;
+  padding-left:2rem !important;
+  padding-right:2rem !important;
+  padding-bottom:2rem !important;
+}
 
 .omni-topbar{
   position:fixed; top:0; left:0; right:0; height:52px;
@@ -142,6 +177,16 @@ header[data-testid="stHeader"]{display:none !important;}
   display:flex; align-items:center; justify-content:center;
 }
 
+/* fallback: fica escondido por padrão */
+.fallback{display:none; font-size:18px; line-height:1;}
+
+/* se o font não carregar, o <i> fica “sem largura”/invisível em alguns browsers.
+   então mostramos o fallback sempre como segurança via :empty */
+.fiwrap:empty + .fallback{display:inline-block;}
+/* também se o <i> existir mas der bug, mantém fallback escondido */
+.fiwrap{display:inline-flex; align-items:center; justify-content:center;}
+.fiwrap i{display:inline-flex; align-items:center; justify-content:center;}
+
 .omni-sep{
   width:1px; height:20px;
   background: rgba(226,232,240,0.9);
@@ -150,7 +195,6 @@ header[data-testid="stHeader"]{display:none !important;}
 </style>
 """, unsafe_allow_html=True)
 
-    # HTML do menu
     if authed:
         st.markdown(
             f"""
@@ -162,37 +206,37 @@ header[data-testid="stHeader"]{display:none !important;}
 
   <div class="omni-right">
     <a class="omni-link" href="?view=home" target="_self" title="Home">
-      <span class="omni-ic" style="color:{icon_color('home')}"><i class="fi fi-sr-house-chimney-crack"></i></span>
+      <span class="omni-ic" style="color:{icon_color('home')}">{icon_html('home')}</span>
     </a>
 
     <a class="omni-link" href="?view=estudantes" target="_self" title="Estudantes">
-      <span class="omni-ic" style="color:{icon_color('estudantes')}"><i class="fi fi-sr-users-alt"></i></span>
+      <span class="omni-ic" style="color:{icon_color('estudantes')}">{icon_html('estudantes')}</span>
     </a>
 
     <a class="omni-link" href="?view=pei" target="_self" title="Estratégias & PEI">
-      <span class="omni-ic" style="color:{icon_color('pei')}"><i class="fi fi-sr-puzzle-alt"></i></span>
+      <span class="omni-ic" style="color:{icon_color('pei')}">{icon_html('pei')}</span>
     </a>
 
     <a class="omni-link" href="?view=paee" target="_self" title="Plano de Ação (PAEE)">
-      <span class="omni-ic" style="color:{icon_color('paee')}"><i class="fi fi-sr-track"></i></span>
+      <span class="omni-ic" style="color:{icon_color('paee')}">{icon_html('paee')}</span>
     </a>
 
     <a class="omni-link" href="?view=hub" target="_self" title="Hub de Recursos">
-      <span class="omni-ic" style="color:{icon_color('hub')}"><i class="fi fi-sr-lightbulb-on"></i></span>
+      <span class="omni-ic" style="color:{icon_color('hub')}">{icon_html('hub')}</span>
     </a>
 
     <a class="omni-link" href="?view=diario" target="_self" title="Diário de Bordo">
-      <span class="omni-ic" style="color:{icon_color('diario')}"><i class="fi fi-sr-compass-alt"></i></span>
+      <span class="omni-ic" style="color:{icon_color('diario')}">{icon_html('diario')}</span>
     </a>
 
     <a class="omni-link" href="?view=mon" target="_self" title="Evolução & Dados">
-      <span class="omni-ic" style="color:{icon_color('mon')}"><i class="fi fi-sr-analyse"></i></span>
+      <span class="omni-ic" style="color:{icon_color('mon')}">{icon_html('mon')}</span>
     </a>
 
     <span class="omni-sep"></span>
 
     <a class="omni-link" href="?view=logout" target="_self" title="Sair">
-      <span class="omni-ic" style="color:rgba(15,23,42,0.55)"><i class="fi fi-sr-exit"></i></span>
+      <span class="omni-ic" style="color:rgba(15,23,42,0.55)">{icon_html('logout')}</span>
     </a>
   </div>
 </div>
@@ -200,7 +244,6 @@ header[data-testid="stHeader"]{display:none !important;}
             unsafe_allow_html=True,
         )
     else:
-        # sem itens quando não autenticado
         st.markdown(
             """
 <div class="omni-topbar">
