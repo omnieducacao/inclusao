@@ -76,7 +76,7 @@ def _safe_get_go() -> str | None:
 def _route_from_query():
     """
     Router simples: ?go=pei → st.switch_page(pages/1_PEI.py)
-    Mantém session_state (comportamento multipage do Streamlit).
+    Isso mantém session_state (é o mesmo comportamento multipage do Streamlit).
     """
     go = _safe_get_go()
     if not go:
@@ -98,6 +98,7 @@ def _route_from_query():
 # CSS (CLEAN TOPBAR + FLATICON)
 # -----------------------------
 def _inject_css():
+    # tenta achar em /assets ou raiz
     logo = _img_data_uri("assets/omni_icone.png") or _img_data_uri("omni_icone.png")
     word = _img_data_uri("assets/omni_texto.png") or _img_data_uri("omni_texto.png")
 
@@ -112,14 +113,11 @@ header, footer,
   display: none !important;
 }}
 
-/* espaço p/ topbar fixa (altura real da barra + respiro) */
+/* espaço p/ topbar fixa */
 .main .block-container {{
-  padding-top: 78px !important;
+  padding-top: 70px !important;
   max-width: 1200px;
 }}
-
-/* Consistência de box model */
-* {{ box-sizing: border-box; }}
 
 /* Flaticon UIcons CDN v3.0.0 */
 @import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css");
@@ -127,29 +125,22 @@ header, footer,
 @import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-straight/css/uicons-solid-straight.css");
 @import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-straight/css/uicons-bold-straight.css");
 
-/* TOPBAR (full-width) */
+/* TOPBAR */
 .omni-topbar {{
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: 60px;
+  height: 56px;
   z-index: 9999;
-
-  background: rgba(255,255,255,0.88);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(0,0,0,0.08);
-}}
-
-/* CONTEÚDO da barra (alinhado ao container do app) */
-.omni-topbar-inner {{
-  height: 60px;
-  max-width: 1200px;
-  margin: 0 auto;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
   padding: 0 14px;
+
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
 }}
 
 /* Brand */
@@ -199,25 +190,22 @@ header, footer,
 .omni-ico i {{
   font-size: 18px;
   line-height: 1;
-  display:block;
 }}
 
-/* remove underline/link default */
+/* Dica: remove underline/link default */
 .omni-ico:visited, .omni-ico:active {{
   text-decoration: none !important;
 }}
 </style>
 
 <div class="omni-topbar">
-  <div class="omni-topbar-inner">
-    <div class="omni-brand">
-      {"<img class='omni-logo' src='"+logo+"'/>" if logo else "🌿"}
-      {"<img class='omni-word' src='"+word+"'/>" if word else "<b>Omnisfera</b>"}
-    </div>
+  <div class="omni-brand">
+    {"<img class='omni-logo' src='"+logo+"'/>" if logo else "🌿"}
+    {"<img class='omni-word' src='"+word+"'/>" if word else "<b>Omnisfera</b>"}
+  </div>
 
-    <div class="omni-nav">
-      { _nav_html() }
-    </div>
+  <div class="omni-nav">
+    { _nav_html() }
   </div>
 </div>
         """,
