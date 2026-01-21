@@ -1,35 +1,36 @@
-# _client.py
-from __future__ import annotations
-
 import streamlit as st
-from supabase import create_client, Client
+from supabase import create_client
 
+# -----------------------------------------------------------------------------
+# Supabase Client Factory (Singleton com cache)
+# -----------------------------------------------------------------------------
 
-def _get_supabase_url() -> str:
-    url = st.secrets.get("SUPABASE_URL", "")
-    if not url:
-        raise ValueError("SUPABASE_URL não está definido em st.secrets.")
-    return url
+@st.cache_resource(show_spinner=False)
+def get_supabase():
+    """
+    Retorna um client Supabase único e reutilizável.
+    Prioridade de chave:
+    1. SERVICE_KEY / SERVICE_ROLE_KEY (backend seguro, RPC, inserts)
+    2. ANON_KEY (fallback)
+    """
 
+    # URL obrigatória
+    if "SUPABASE_URL" not in st.secrets:
+        raise RuntimeError("SUPABASE_URL não encontrado em st.secrets")
 
-def _get_supabase_anon_key() -> str:
-    key = st.secrets.get("SUPABASE_ANON_KEY", "")
+    url = st.secrets["SUPABASE_URL"]
+
+    # Prioridade de chaves
+    key = (
+        st.secrets.get("SUPABASE_SERVICE_KEY")
+        or st.secrets.get("SUPABASE_SERVICE_ROLE_KEY")
+        or st.secrets.get("SUPABASE_ANON_KEY")
+    )
+
     if not key:
-        raise ValueError("SUPABASE_ANON_KEY não está definido em st.secrets.")
-    return key
+        raise RuntimeError(
+            "Nenhuma chave Supabase encontrada. "
+            "Defina SUPABASE_SERVICE_KEY ou SUPABASE_ANON_KEY em secrets."
+        )
 
-
-def get_supabase_admin() -> Client:
-    """Client sem JWT (anon)."""
-    return create_client(_get_supabase_url(), _get_supabase_anon_key())
-
-
-def get_supabase_user(access_token: str | None) -> Client:
-    """
-    Client 'logado' com JWT (access_token).
-    - Se access_token vier None, cai para anon.
-    """
-    sb = create_client(_get_supabase_url(), _get_supabase_anon_key())
-    if access_token:
-        sb.auth.set_session(access_token, "")
-    return sb
+    return create_client(url, key)
