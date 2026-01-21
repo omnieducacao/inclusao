@@ -35,6 +35,10 @@ def inject_base_css():
 <style>
 /* Layout geral */
 .block-container { padding-top: 2rem !important; padding-bottom: 3rem !important; max-width: 1200px; }
+/* Esconder sidebar (mesmo com pages/) */
+section[data-testid="stSidebar"] { display: none !important; }
+button[data-testid="collapsedControl"] { display: none !important; }
+
 
 /* LOGIN */
 .login-box {
