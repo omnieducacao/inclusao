@@ -79,10 +79,15 @@ with st.form("pin_form", clear_on_submit=False):
 
     if entrar:
         ws = workspace_from_pin(pin)
-        if ws:
-            st.session_state.workspace = {"id": ws["id"], "name": ws["name"]}
-            st.success(f"✅ Escola validada: {ws['name']}")
-            st.rerun()
+
+if not ws:
+    st.error("PIN inválido ou escola não encontrada.")
+else:
+    st.session_state["workspace_id"] = ws["id"]
+    st.session_state["workspace_name"] = ws["name"]
+    st.success(f"Bem-vindo: {ws['name']}")
+    st.rerun()
+    
         else:
             st.error("PIN inválido. Verifique e tente novamente.")
 
