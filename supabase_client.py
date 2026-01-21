@@ -1,55 +1,53 @@
-# supabase_client.py
-import os
 import streamlit as st
-from supabase import create_client
+from supabase import create_client, Client
+from datetime import datetime
 
-# 🔒 Nome da função RPC (controle central)
-RPC_NAME = "workspace_from_pin"
-
-
+# Conexão Única com Supabase
 @st.cache_resource(show_spinner=False)
-def get_supabase():
-    """
-    Cria e mantém UM cliente Supabase para o app inteiro.
-    Não faz login, não navega, não valida UI.
-    """
-    url = None
-    key = None
-
+def get_supabase() -> Client:
     try:
-        url = st.secrets.get("SUPABASE_URL")
-        key = st.secrets.get("SUPABASE_ANON_KEY")
-    except Exception:
-        pass
-
-    url = url or os.getenv("SUPABASE_URL")
-    key = key or os.getenv("SUPABASE_ANON_KEY")
-
-    if not url or not key:
-        raise RuntimeError(
-            "SUPABASE_URL ou SUPABASE_ANON_KEY não encontrados nos Secrets."
-        )
-
-    return create_client(url, key)
-
-
-def rpc_workspace_from_pin(pin: str) -> dict | None:
-    """
-    Chama a função:
-    public.workspace_from_pin(p_pin text)
-    Retorna: { id, name } ou None
-    """
-    sb = get_supabase()
-    res = sb.rpc(RPC_NAME, {"p_pin": pin}).execute()
-
-    data = res.data
-    if not data:
+        url = st.secrets["SUPABASE_URL"]
+        key = st.secrets["SUPABASE_ANON_KEY"]
+        return create_client(url, key)
+    except Exception as e:
+        st.error(f"Erro de configuração do Supabase: {e}")
         return None
 
-    if isinstance(data, list):
-        return data[0] if data else None
+def validar_acesso_pin(pin_code, nome_usuario, funcao_usuario):
+    """
+    1. Verifica se o PIN existe na tabela 'app_pins'.
+    2. Se existir, registra o acesso na tabela 'access_logs'.
+    3. Retorna os dados do workspace (owner_id) para filtrar os dados.
+    """
+    sb = get_supabase()
+    if not sb: return False, None, "Erro de conexão."
 
-    if isinstance(data, dict):
-        return data
+    # 1. Busca o PIN e o Workspace atrelado
+    try:
+        # Busca na tabela de PINs
+        res = sb.table("app_pins").select("*").eq("pin_code", pin_code).execute()
+        
+        if res.data and len(res.data) > 0:
+            workspace_data = res.data[0]
+            owner_id = workspace_data.get("owner_id")
+            workspace_name = workspace_data.get("descricao", "Workspace Padrão")
 
-    return None
+            # 2. Registra quem entrou (Log de Auditoria)
+            # Isso é crucial para o seu controle
+            try:
+                log_data = {
+                    "pin_used": pin_code,
+                    "user_name": nome_usuario,
+                    "user_role": funcao_usuario,
+                    "created_at": datetime.now().isoformat()
+                }
+                sb.table("access_logs").insert(log_data).execute()
+            except Exception as e:
+                print(f"Alerta: Não foi possível salvar log de acesso: {e}")
+
+            return True, {"owner_id": owner_id, "workspace_name": workspace_name}, None
+        else:
+            return False, None, "PIN não encontrado."
+
+    except Exception as e:
+        return False, None, f"Erro ao validar PIN: {str(e)}"
