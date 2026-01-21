@@ -80,7 +80,6 @@ def inject_css():
           @keyframes spin{ 0%{transform: rotate(0deg);} 100%{transform: rotate(360deg);} }
           .title{ font-size: 58px; line-height: 1.02; letter-spacing: -0.04em; margin: 0; color: var(--text); }
           .subtitle{ margin-top: 10px; color: var(--muted); font-size: 16px; }
-
           .card{
             margin-top: 18px;
             background: #fff;
@@ -93,6 +92,15 @@ def inject_css():
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
           }
           .hint{ color: var(--muted); font-size: 13px; }
+          .err{
+            margin-top: 12px;
+            background: rgba(239,68,68,.10);
+            border:1px solid rgba(239,68,68,.22);
+            color: #b91c1c;
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-weight: 700;
+          }
         </style>
         """,
         unsafe_allow_html=True,
@@ -100,16 +108,12 @@ def inject_css():
 
 
 def ensure_auth_state():
-    # ✅ estado oficial do app
     if "autenticado" not in st.session_state:
         st.session_state.autenticado = False
-
     if "workspace_id" not in st.session_state:
         st.session_state.workspace_id = None
     if "workspace_name" not in st.session_state:
         st.session_state.workspace_name = None
-
-    # opcionais
     if "pin_debug" not in st.session_state:
         st.session_state.pin_debug = None
     if "connected" not in st.session_state:
@@ -118,11 +122,6 @@ def ensure_auth_state():
         st.session_state.last_auth_ts = None
     if "rpc_used" not in st.session_state:
         st.session_state.rpc_used = RPC_NAME
-
-    if "usuario_nome" not in st.session_state:
-        st.session_state.usuario_nome = "Visitante"
-    if "usuario_cargo" not in st.session_state:
-        st.session_state.usuario_cargo = ""
 
 
 def clear_session():
@@ -156,7 +155,7 @@ def render_login():
           </div>
 
           <div class="card">
-            <div style="font-weight:700; font-size:16px; margin-bottom:6px;">Validar PIN</div>
+            <div style="font-weight:800; font-size:16px; margin-bottom:6px;">Validar PIN</div>
             <div class="hint">Função (RPC) usada: <span class="mono">{RPC_NAME}(p_pin text)</span></div>
           </div>
         </div>
@@ -185,23 +184,28 @@ def render_login():
 
     if do:
         if not pin_norm or len(pin_norm) < 6:
-            st.error("Digite um PIN válido.")
+            st.markdown("<div class='err'>Digite um PIN válido.</div>", unsafe_allow_html=True)
         else:
-            with st.spinner("Validando PIN..."):
-                ws = rpc_workspace_from_pin(pin_norm)
+            try:
+                with st.spinner("Validando PIN..."):
+                    ws = rpc_workspace_from_pin(pin_norm)
+            except Exception as e:
+                st.markdown(
+                    f"<div class='err'>Falha ao conectar no Supabase.<br><span class='mono'>{str(e)}</span></div>",
+                    unsafe_allow_html=True,
+                )
+                st.stop()
 
             if not ws:
-                st.error("PIN não encontrado ou inválido.")
+                st.markdown("<div class='err'>PIN não encontrado ou inválido.</div>", unsafe_allow_html=True)
             else:
                 st.session_state.autenticado = True
                 st.session_state.workspace_id = ws.get("id")
                 st.session_state.workspace_name = ws.get("name")
-
                 st.session_state.pin_debug = pin_norm
                 st.session_state.connected = True
                 st.session_state.last_auth_ts = datetime.now().strftime("%d/%m/%Y %H:%M")
                 st.session_state.rpc_used = RPC_NAME
-
                 st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
