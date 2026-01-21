@@ -15,14 +15,10 @@ def ensure_auth_state():
 
 
 def boot_ui():
-    """
-    Chame no topo do streamlit_app.py e de TODAS as páginas em /pages
-    """
     ensure_auth_state()
     _inject_css()
-    if st.session_state.autenticado:
+    if st.session_state.get("autenticado"):
         _route_from_query()
-        _render_topbar()
 
 
 # -----------------------------
