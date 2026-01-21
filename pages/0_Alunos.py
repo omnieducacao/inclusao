@@ -1,231 +1,243 @@
 import streamlit as st
+from _client import get_supabase
 from datetime import date
 
-# Ajuste o import conforme seu projeto:
-# - se o seu _client.py tem get_supabase(), ótimo.
-# - se tiver outro nome, me diga que eu adapto.
-from _client import get_supabase
+st.set_page_config(page_title="Alunos • Omnisfera", layout="wide")
 
+sb = get_supabase()
 
-st.set_page_config(page_title="Omnisfera • Alunos", layout="wide")
-
-
-# -----------------------------
+# -----------------------------------------------------------------------------
 # Helpers
-# -----------------------------
+# -----------------------------------------------------------------------------
 def _require_workspace():
     ws_id = st.session_state.get("workspace_id")
-    ws_name = st.session_state.get("workspace_name")
-
+    ws_name = st.session_state.get("workspace_name") or st.session_state.get("workspace") or "—"
     if not ws_id:
         st.error("Workspace não definido. Volte ao Início e valide o PIN novamente.")
         st.stop()
-
     return ws_id, ws_name
 
-
-def _fetch_students(sb, workspace_id: str):
-    res = (
-        sb.table("students")
-        .select("id, name, birth_date, grade, class_group, diagnosis, created_at, updated_at")
-        .eq("workspace_id", workspace_id)
-        .order("name", desc=False)
-        .execute()
-    )
+def _fetch_students(workspace_id: str):
+    # RPC (bypassa RLS) — mais estável pro seu login por PIN
+    res = sb.rpc("students_by_workspace", {"p_workspace_id": workspace_id}).execute()
     return res.data or []
 
-
-def _insert_student(sb, workspace_id: str, payload: dict):
-    payload = {k: v for k, v in payload.items() if v is not None}
+def _insert_student(workspace_id: str, payload: dict):
     payload["workspace_id"] = workspace_id
-    res = sb.table("students").insert(payload).execute()
-    return res.data
+    sb.table("students").insert(payload).execute()
 
+def _update_student(student_id: str, workspace_id: str, payload: dict):
+    # garante que só altera dentro do workspace atual
+    sb.table("students").update(payload).eq("id", student_id).eq("workspace_id", workspace_id).execute()
 
-def _update_student(sb, student_id: str, workspace_id: str, payload: dict):
-    payload = {k: v for k, v in payload.items() if v is not None}
-    res = (
-        sb.table("students")
-        .update(payload)
-        .eq("id", student_id)
-        .eq("workspace_id", workspace_id)  # proteção extra no app
-        .execute()
-    )
-    return res.data
+def _delete_student(student_id: str, workspace_id: str):
+    # via RPC (bypassa RLS e protege por workspace)
+    sb.rpc("student_delete", {"p_id": student_id, "p_workspace_id": workspace_id}).execute()
 
+def _fmt_date(d):
+    if not d:
+        return "—"
+    return str(d)
 
-def _delete_student(sb, student_id: str, workspace_id: str):
-    res = (
-        sb.table("students")
-        .delete()
-        .eq("id", student_id)
-        .eq("workspace_id", workspace_id)  # proteção extra no app
-        .execute()
-    )
-    return res.data
+# -----------------------------------------------------------------------------
+# Sidebar (com botão Sair)
+# -----------------------------------------------------------------------------
+with st.sidebar:
+    st.markdown("### Omnisfera")
+    st.caption("Ambiente por PIN")
 
+    ws_id, ws_name = _require_workspace()
+    st.markdown("**Escola**")
+    st.write(ws_name)
+    st.markdown("**Workspace ID**")
+    st.code(ws_id, language="")
 
-# -----------------------------
-# UI
-# -----------------------------
+    st.divider()
+
+    # Navegação simples (mantém o que você já tem no projeto)
+    # Se você já usa st.switch_page noutro lugar, pode manter igual.
+    if st.button("Início", use_container_width=True):
+        st.switch_page("pages/home.py")
+    if st.button("Alunos", use_container_width=True, disabled=True):
+        pass
+    if st.button("PEI", use_container_width=True):
+        st.switch_page("pages/1_PEI.py")
+    if st.button("PAE", use_container_width=True):
+        st.switch_page("pages/2_PAE.py")
+    if st.button("Hub Inclusão", use_container_width=True):
+        st.switch_page("pages/3_Hub_Inclusao.py")
+    if st.button("Diário de Bordo", use_container_width=True):
+        st.switch_page("pages/4_Diario_de_Bordo.py")
+    if st.button("Monitoramento & Avaliação", use_container_width=True):
+        st.switch_page("pages/5_Monitoramento_Avaliacao.py")
+
+    st.divider()
+
+    # ✅ Botão Sair (zera sessão)
+    if st.button("Sair", use_container_width=True):
+        for k in ["workspace_id", "workspace_name", "workspace", "view", "autenticado"]:
+            if k in st.session_state:
+                del st.session_state[k]
+        st.switch_page("pages/home.py")
+
+# -----------------------------------------------------------------------------
+# Topo
+# -----------------------------------------------------------------------------
 st.title("Alunos")
 
-workspace_id, workspace_name = _require_workspace()
-sb = get_supabase()
+ws_id, ws_name = _require_workspace()
 
-with st.container():
-    cols = st.columns([2, 2, 2, 2])
-    with cols[0]:
-        st.caption("Workspace")
-        st.write(workspace_name or "—")
-    with cols[1]:
-        st.caption("Workspace ID")
-        st.code(workspace_id)
-    with cols[2]:
-        st.caption("Supabase")
-        # ping simples
-        ok = sb is not None
-        st.success("Conectado" if ok else "Desconectado")
-    with cols[3]:
-        if st.button("🔄 Atualizar lista", use_container_width=True):
-            st.rerun()
+c1, c2, c3, c4 = st.columns([2.2, 2.2, 2.2, 2.0])
+with c1:
+    st.caption("Workspace")
+    st.write(ws_name)
+
+with c2:
+    st.caption("Workspace ID")
+    st.code(ws_id, language="")
+
+with c3:
+    st.caption("Supabase")
+    st.success("Conectado")
+
+with c4:
+    if st.button("🔄 Atualizar lista", use_container_width=True):
+        st.session_state["_refresh_students"] = str(date.today())
+        st.rerun()
 
 st.divider()
 
+# -----------------------------------------------------------------------------
 # Carrega lista
-students = _fetch_students(sb, workspace_id)
+# -----------------------------------------------------------------------------
+try:
+    students = _fetch_students(ws_id)
+except Exception as e:
+    st.error("Falha ao carregar alunos. (Provável RLS/Policy ou RPC não criada.)")
+    st.code(str(e))
+    st.stop()
 
-left, right = st.columns([1.05, 1.35], gap="large")
+# -----------------------------------------------------------------------------
+# Cadastro rápido
+# -----------------------------------------------------------------------------
+st.subheader("Cadastrar aluno")
 
-# -----------------------------
-# Left: lista + seleção
-# -----------------------------
-with left:
-    st.subheader("Lista de alunos")
+with st.form("form_add_student", clear_on_submit=True):
+    colA, colB, colC = st.columns([2.5, 1.5, 1.5])
 
-    if not students:
-        st.info("Nenhum aluno cadastrado ainda.")
-        selected_id = None
-    else:
-        options = {f"{s['name']}": s["id"] for s in students}
-        selected_label = st.selectbox(
-            "Selecione um aluno para editar",
-            options=list(options.keys()),
-            index=0,
-        )
-        selected_id = options.get(selected_label)
+    with colA:
+        name = st.text_input("Nome do aluno*", placeholder="Ex.: Maria Silva")
+    with colB:
+        birth_date = st.date_input("Nascimento", value=None)
+    with colC:
+        grade = st.text_input("Série/Ano", placeholder="Ex.: 5º ano")
 
-    st.caption(f"Total: {len(students)}")
+    colD, colE = st.columns([2, 2])
+    with colD:
+        class_group = st.text_input("Turma", placeholder="Ex.: A")
+    with colE:
+        diagnosis = st.text_input("Diagnóstico (opcional)", placeholder="Ex.: TEA")
 
-    # tabela simples
-    if students:
-        table_rows = []
-        for s in students:
-            table_rows.append({
-                "Nome": s.get("name"),
-                "Nascimento": s.get("birth_date"),
-                "Série": s.get("grade"),
-                "Turma": s.get("class_group"),
-                "Diagnóstico": s.get("diagnosis"),
-            })
-        st.dataframe(table_rows, use_container_width=True, hide_index=True)
+    notes = st.text_area("Observações", placeholder="Notas gerais (opcional)")
 
-# -----------------------------
-# Right: criar/editar
-# -----------------------------
-with right:
-    st.subheader("Cadastrar / Editar")
+    submitted = st.form_submit_button("Salvar aluno")
+    if submitted:
+        if not name.strip():
+            st.warning("Preencha o nome do aluno.")
+            st.stop()
 
-    # encontra o aluno selecionado
-    current = None
-    if selected_id:
-        current = next((s for s in students if s["id"] == selected_id), None)
+        payload = {
+            "name": name.strip(),
+            "birth_date": birth_date.isoformat() if birth_date else None,
+            "grade": grade.strip() if grade else None,
+            "class_group": class_group.strip() if class_group else None,
+            "diagnosis": diagnosis.strip() if diagnosis else None,
+            # se sua tabela tiver coluna para isso (ajuste se necessário)
+            # caso não tenha, remova esta linha:
+            # "observacoes": notes.strip() if notes else None,
+        }
 
-    tab_new, tab_edit = st.tabs(["➕ Novo aluno", "✏️ Editar aluno"])
+        # Se a sua tabela NÃO tem coluna "observacoes", comente/remova no payload acima.
+        # Vou inserir notes em JSON caso você tenha coluna jsonb "dados" (se existir):
+        payload["dados"] = {"observacoes": notes.strip()} if notes else {}
 
-    with tab_new:
-        with st.form("form_new", clear_on_submit=True):
-            name = st.text_input("Nome do aluno *")
-            birth_date = st.date_input("Data de nascimento", value=None)
-            grade = st.text_input("Série/Ano")
-            class_group = st.text_input("Turma")
-            diagnosis = st.text_area("Diagnóstico / Observações (resumo)", height=120)
+        try:
+            _insert_student(ws_id, payload)
+            st.success("Aluno cadastrado!")
+            st.rerun()
+        except Exception as e:
+            st.error("Erro ao salvar aluno.")
+            st.code(str(e))
+            st.stop()
 
-            submitted = st.form_submit_button("Salvar aluno", use_container_width=True)
-            if submitted:
-                if not name.strip():
-                    st.error("Preencha o nome do aluno.")
-                    st.stop()
+st.divider()
 
+# -----------------------------------------------------------------------------
+# Lista + edição rápida
+# -----------------------------------------------------------------------------
+st.subheader("Lista de alunos")
+
+if not students:
+    st.info("Nenhum aluno cadastrado para este workspace ainda.")
+    st.stop()
+
+for s in students:
+    sid = s.get("id")
+    nm = s.get("name") or "—"
+    bd = s.get("birth_date")
+    gr = s.get("grade")
+    cg = s.get("class_group")
+    dx = s.get("diagnosis")
+
+    with st.expander(f"{nm}", expanded=False):
+        a, b, c = st.columns([2, 2, 1.2])
+
+        with a:
+            new_name = st.text_input("Nome", value=nm, key=f"nm_{sid}")
+            new_grade = st.text_input("Série/Ano", value=gr or "", key=f"gr_{sid}")
+            new_class = st.text_input("Turma", value=cg or "", key=f"cg_{sid}")
+
+        with b:
+            # birth_date pode vir como 'YYYY-MM-DD'
+            try:
+                bd_val = date.fromisoformat(bd) if bd else None
+            except Exception:
+                bd_val = None
+
+            new_birth = st.date_input("Nascimento", value=bd_val, key=f"bd_{sid}")
+            new_dx = st.text_input("Diagnóstico", value=dx or "", key=f"dx_{sid}")
+
+            # tenta ler observacoes do json "dados"
+            dados = s.get("dados") or {}
+            obs_val = (dados.get("observacoes") or "") if isinstance(dados, dict) else ""
+            new_obs = st.text_area("Observações", value=obs_val, key=f"obs_{sid}")
+
+        with c:
+            st.caption("Ações")
+            if st.button("💾 Salvar alterações", key=f"save_{sid}", use_container_width=True):
                 payload = {
-                    "name": name.strip(),
-                    "birth_date": birth_date if isinstance(birth_date, date) else None,
-                    "grade": grade.strip() if grade else None,
-                    "class_group": class_group.strip() if class_group else None,
-                    "diagnosis": diagnosis.strip() if diagnosis else None,
+                    "name": (new_name or "").strip(),
+                    "grade": (new_grade or "").strip() or None,
+                    "class_group": (new_class or "").strip() or None,
+                    "birth_date": new_birth.isoformat() if new_birth else None,
+                    "diagnosis": (new_dx or "").strip() or None,
+                    "dados": {"observacoes": (new_obs or "").strip()} if new_obs else {},
                 }
-
                 try:
-                    _insert_student(sb, workspace_id, payload)
-                    st.success("Aluno cadastrado com sucesso.")
+                    _update_student(sid, ws_id, payload)
+                    st.success("Atualizado!")
                     st.rerun()
                 except Exception as e:
-                    st.error("Falha ao cadastrar aluno.")
-                    st.exception(e)
+                    st.error("Erro ao atualizar.")
+                    st.code(str(e))
 
-    with tab_edit:
-        if not current:
-            st.info("Selecione um aluno na lista para editar.")
-        else:
-            with st.form("form_edit"):
-                name = st.text_input("Nome do aluno *", value=current.get("name") or "")
-                bd = current.get("birth_date")
-                birth_date = st.date_input("Data de nascimento", value=bd)
-                grade = st.text_input("Série/Ano", value=current.get("grade") or "")
-                class_group = st.text_input("Turma", value=current.get("class_group") or "")
-                diagnosis = st.text_area("Diagnóstico / Observações (resumo)", value=current.get("diagnosis") or "", height=120)
+            st.markdown("")
 
-                c1, c2 = st.columns([1, 1])
-                with c1:
-                    save = st.form_submit_button("Salvar alterações", use_container_width=True)
-                with c2:
-                    delete = st.form_submit_button("Excluir aluno", use_container_width=True)
-
-                if save:
-                    if not name.strip():
-                        st.error("Preencha o nome do aluno.")
-                        st.stop()
-
-                    payload = {
-                        "name": name.strip(),
-                        "birth_date": birth_date if isinstance(birth_date, date) else None,
-                        "grade": grade.strip() if grade else None,
-                        "class_group": class_group.strip() if class_group else None,
-                        "diagnosis": diagnosis.strip() if diagnosis else None,
-                        "updated_at": "now()",  # se seu Supabase aceitar; senão, remova
-                    }
-
-                    try:
-                        # Se "now()" não funcionar via postgrest, remova updated_at do payload.
-                        _update_student(sb, current["id"], workspace_id, payload)
-                        st.success("Aluno atualizado.")
-                        st.rerun()
-                    except Exception as e:
-                        # fallback sem updated_at
-                        try:
-                            payload.pop("updated_at", None)
-                            _update_student(sb, current["id"], workspace_id, payload)
-                            st.success("Aluno atualizado.")
-                            st.rerun()
-                        except Exception as e2:
-                            st.error("Falha ao atualizar.")
-                            st.exception(e2)
-
-                if delete:
-                    try:
-                        _delete_student(sb, current["id"], workspace_id)
-                        st.success("Aluno excluído.")
-                        st.rerun()
-                    except Exception as e:
-                        st.error("Falha ao excluir.")
-                        st.exception(e)
+            if st.button("🗑️ Excluir aluno", key=f"del_{sid}", use_container_width=True):
+                try:
+                    _delete_student(sid, ws_id)
+                    st.success("Excluído!")
+                    st.rerun()
+                except Exception as e:
+                    st.error("Erro ao excluir.")
+                    st.code(str(e))
