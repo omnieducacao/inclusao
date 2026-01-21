@@ -1,4 +1,3 @@
-# streamlit_app.py
 import streamlit as st
 from datetime import date
 import base64
@@ -6,16 +5,10 @@ import os
 import time
 
 # ==============================================================================
-# 0) CONFIGURAÇÃO DO APP
+# 0) CONFIGURAÇÃO
 # ==============================================================================
-APP_VERSION = "v133.1 (Home High Design • cards compactos)"
-
-try:
-    IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
-except Exception:
-    IS_TEST_ENV = False
-
-titulo_pag = "[TESTE] Omnisfera" if IS_TEST_ENV else "Omnisfera | Ecossistema"
+APP_VERSION = "v134.1 (Home High Design • sem login aqui)"
+titulo_pag = "Omnisfera | Ecossistema"
 icone_pag = "omni_icone.png" if os.path.exists("omni_icone.png") else "🌐"
 
 st.set_page_config(
@@ -26,12 +19,26 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 1) STATE (mínimo) + compat
+# 1) GATE DE ACESSO — HOME NÃO AUTENTICA (PIN/SUPABASE É EM OUTRO ARQUIVO)
 # ==============================================================================
-if "autenticado" not in st.session_state:
-    st.session_state["autenticado"] = False
+if not st.session_state.get("autenticado", False):
+    st.warning("🔐 Acesso restrito. Faça login (PIN) para continuar.")
+    st.stop()
+
+# Recomendado: Home exige escola/workspace válido
+if not st.session_state.get("workspace_id"):
+    st.error("⚠️ Nenhuma escola vinculada (workspace_id ausente). Verifique o login por PIN.")
+    st.stop()
+
+# ==============================================================================
+# 2) STATE BASE (compat)
+# ==============================================================================
+if "workspace_name" not in st.session_state:
+    st.session_state["workspace_name"] = ""
+
 if "usuario_nome" not in st.session_state:
-    st.session_state["usuario_nome"] = ""
+    st.session_state["usuario_nome"] = "Visitante"
+
 if "usuario_cargo" not in st.session_state:
     st.session_state["usuario_cargo"] = ""
 
@@ -40,7 +47,7 @@ if "dados" not in st.session_state:
     st.session_state.dados = default_state.copy()
 
 # ==============================================================================
-# 2) HELPERS
+# 3) HELPERS
 # ==============================================================================
 def get_base64_image(image_path: str) -> str:
     if not image_path or not os.path.exists(image_path):
@@ -48,22 +55,17 @@ def get_base64_image(image_path: str) -> str:
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-def get_escola_vinculada() -> str:
-    keys_direct = [
-        "escola", "escola_nome", "school_name",
-        "workspace_name", "workspace_label", "workspace_display"
-    ]
-    for k in keys_direct:
-        v = st.session_state.get(k)
-        if isinstance(v, str) and v.strip():
-            return v.strip()
+def escola_vinculada() -> str:
+    # principal (definido no login PIN)
+    v = st.session_state.get("workspace_name")
+    if isinstance(v, str) and v.strip():
+        return v.strip()
 
-    w = st.session_state.get("workspace")
-    if isinstance(w, dict):
-        for k in ["name", "school_name", "escola", "escola_nome", "label", "display_name"]:
-            v = w.get(k)
-            if isinstance(v, str) and v.strip():
-                return v.strip()
+    # fallback
+    for k in ["escola_nome", "escola", "school_name", "workspace_label", "workspace_display"]:
+        vv = st.session_state.get(k)
+        if isinstance(vv, str) and vv.strip():
+            return vv.strip()
 
     wsid = st.session_state.get("workspace_id")
     if isinstance(wsid, str) and wsid.strip():
@@ -72,117 +74,29 @@ def get_escola_vinculada() -> str:
     return ""
 
 # ==============================================================================
-# 3) CSS BASE (sempre)
+# 4) CSS BASE + VISUAL HOME (GRID REAL 3 POR LINHA)
 # ==============================================================================
 st.markdown(
     """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap');
+
 html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color:#1A202C; background:#F7FAFC; }
+
 [data-testid="stSidebarNav"] { display: none !important; }
 [data-testid="stHeader"] { visibility: hidden !important; height: 0px !important; }
+
 .block-container { padding-top: 128px !important; padding-bottom: 2rem !important; }
-</style>
-""",
-    unsafe_allow_html=True,
-)
 
-# ==============================================================================
-# 4) LOGIN (único)
-# ==============================================================================
-if not st.session_state["autenticado"]:
-    st.markdown("""<style>section[data-testid="stSidebar"] { display:none !important; }</style>""", unsafe_allow_html=True)
-
-    st.markdown(
-        """
-<style>
-.login-shell { max-width: 520px; margin: 50px auto; }
-.login-card {
-  background: rgba(255,255,255,0.92);
-  border: 1px solid rgba(226,232,240,0.9);
-  border-radius: 22px;
-  box-shadow: 0 18px 45px rgba(15,82,186,0.10);
-  padding: 28px;
-  text-align: center;
-}
-.login-title { font-family: Inter, sans-serif; font-weight: 900; letter-spacing: .6px; color:#0F52BA; margin: 12px 0 2px; }
-.login-sub { color:#718096; font-weight:800; margin-bottom: 16px; }
 @keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }
-</style>
-""",
-        unsafe_allow_html=True,
-    )
 
-    c1, c_login, c2 = st.columns([1, 2, 1])
-    with c_login:
-        st.markdown("<div class='login-shell'><div class='login-card'>", unsafe_allow_html=True)
-
-        img_icone = get_base64_image("omni_icone.png")
-        if img_icone:
-            st.markdown(
-                f"<img src='data:image/png;base64,{img_icone}' style='height:84px; animation: spin 45s linear infinite;'>",
-                unsafe_allow_html=True,
-            )
-
-        st.markdown("<div class='login-title'>OMNISFERA</div>", unsafe_allow_html=True)
-        st.markdown("<div class='login-sub'>Ecossistema de Inteligência Pedagógica</div>", unsafe_allow_html=True)
-
-        if IS_TEST_ENV:
-            if st.button("🚀 ENTRAR (MODO TESTE)", use_container_width=True):
-                st.session_state["autenticado"] = True
-                st.session_state["usuario_nome"] = "Visitante Teste"
-                st.session_state["usuario_cargo"] = "Ambiente de Teste"
-                st.rerun()
-        else:
-            nome = st.text_input("Nome", placeholder="Seu Nome")
-            cargo = st.text_input("Cargo", placeholder="Seu Cargo")
-            senha = st.text_input("Senha", type="password", placeholder="Senha de Acesso")
-
-            if st.button("ACESSAR", use_container_width=True):
-                hoje = date.today()
-                senha_mestra = "PEI_START_2026" if hoje <= date(2026, 1, 19) else "OMNI_PRO"
-                if senha == senha_mestra and nome:
-                    st.session_state["autenticado"] = True
-                    st.session_state["usuario_nome"] = nome
-                    st.session_state["usuario_cargo"] = cargo
-                    st.rerun()
-                else:
-                    st.error("Dados incorretos.")
-
-        st.markdown("</div></div>", unsafe_allow_html=True)
-
-    st.stop()
-
-# ==============================================================================
-# 5) TOPBAR + HOME HIGH DESIGN (compact)
-# ==============================================================================
-if IS_TEST_ENV:
-    card_bg, card_border, display_text, footer_visibility = (
-        "rgba(255, 220, 50, 0.95)",
-        "rgba(200, 160, 0, 0.5)",
-        "OMNISFERA | TESTE",
-        "visible",
-    )
-else:
-    card_bg, card_border, display_text, footer_visibility = (
-        "rgba(255, 255, 255, 0.85)",
-        "rgba(255, 255, 255, 0.6)",
-        f"OMNISFERA {APP_VERSION}",
-        "hidden",
-    )
-
-escola_vinculada = get_escola_vinculada()
-
-st.markdown(
-    f"""
-<style>
-/* Flaticon UIcons v3.0.0 */
+/* Flaticon UIcons */
 @import url('https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css');
 @import url('https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-straight/css/uicons-solid-straight.css');
 @import url('https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css');
 
 /* TOPBAR */
-.header-container {{
+.header-container {
   position: fixed; top: 0; left: 0; width: 100%; height: 88px;
   background: rgba(255,255,255,0.78);
   backdrop-filter: blur(14px);
@@ -191,15 +105,15 @@ st.markdown(
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 28px;
   box-shadow: 0 10px 30px rgba(15,82,186,0.06);
-}}
-.header-left {{ display: flex; align-items: center; gap: 16px; }}
-.header-logo-spin {{ height: 54px; width: 54px; animation: spin 18s linear infinite; }}
-.header-logo-text {{ height: 38px; width: auto; }}
-.header-divider {{ height: 36px; width: 1px; background: rgba(203,213,224,0.9); margin: 0 6px; }}
-.header-slogan {{ font-weight: 900; color: #718096; letter-spacing: .2px; }}
-.header-badge {{
-  background: {card_bg};
-  border: 1px solid {card_border};
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.header-logo-spin { height: 54px; width: 54px; animation: spin 18s linear infinite; }
+.header-logo-text { height: 38px; width: auto; }
+.header-divider { height: 36px; width: 1px; background: rgba(203,213,224,0.9); margin: 0 6px; }
+.header-slogan { font-weight: 900; color: #718096; letter-spacing: .2px; }
+.header-badge {
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.6);
   border-radius: 14px;
   padding: 8px 12px;
   display: flex;
@@ -207,16 +121,16 @@ st.markdown(
   gap: 2px;
   align-items: flex-end;
   box-shadow: 0 10px 20px rgba(15,82,186,0.07);
-}}
-.badge-top {{
+}
+.badge-top {
   font-family: Inter, sans-serif;
   font-weight: 900;
   font-size: 0.62rem;
   letter-spacing: 1.4px;
   text-transform: uppercase;
   color: #1A202C;
-}}
-.badge-school {{
+}
+.badge-school {
   font-weight: 900;
   font-size: 0.80rem;
   color: #2D3748;
@@ -225,11 +139,10 @@ st.markdown(
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}}
-@keyframes spin {{ from {{ transform: rotate(0deg); }} to {{ transform: rotate(360deg); }} }}
+}
 
-/* HERO (um pouco mais baixo) */
-.hero-shell {{
+/* HERO */
+.hero-shell {
   background:
     radial-gradient(900px 240px at 15% 10%, rgba(15,82,186,0.22), transparent 65%),
     radial-gradient(900px 240px at 85% 0%, rgba(56,178,172,0.18), transparent 60%),
@@ -237,31 +150,31 @@ st.markdown(
   border-radius: 22px;
   border: 1px solid rgba(255,255,255,0.14);
   box-shadow: 0 18px 50px rgba(15,82,186,0.24);
-  padding: 22px 24px; /* menor */
+  padding: 22px 24px;
   color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 14px;
-}}
-.hero-title {{
+}
+.hero-title {
   font-family: Inter, sans-serif;
   font-weight: 900;
-  font-size: 1.45rem; /* menor */
+  font-size: 1.45rem;
   margin: 0;
-}}
-.hero-sub {{
+}
+.hero-sub {
   margin-top: 6px;
   font-weight: 900;
   color: rgba(255,255,255,0.86);
-}}
-.hero-chips {{
+}
+.hero-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 12px;
-}}
-.chip {{
+}
+.chip {
   background: rgba(255,255,255,0.12);
   border: 1px solid rgba(255,255,255,0.14);
   padding: 6px 10px;
@@ -269,43 +182,34 @@ st.markdown(
   font-weight: 900;
   font-size: 0.76rem;
   color: rgba(255,255,255,0.92);
-}}
-.hero-right {{ min-width: 220px; display: flex; justify-content: flex-end; }}
-.hero-pulse {{
+}
+.hero-right { min-width: 220px; display: flex; justify-content: flex-end; }
+.hero-pulse {
   background: rgba(255,255,255,0.10);
   border: 1px solid rgba(255,255,255,0.14);
   border-radius: 18px;
   padding: 10px 12px;
   text-align: right;
-}}
-.hero-mini {{ font-weight: 900; letter-spacing: .3px; }}
-.hero-mini-sub {{ margin-top: 3px; font-weight: 900; color: rgba(255,255,255,0.86); font-size: .80rem; }}
+}
+.hero-mini { font-weight: 900; letter-spacing: .3px; }
+.hero-mini-sub { margin-top: 3px; font-weight: 900; color: rgba(255,255,255,0.86); font-size: .80rem; }
 
-/* CARDS — compactos e “lado a lado” */
-.home-grid {{
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px; /* menor */
-  margin-top: 10px;
-}}
-@media (max-width: 1100px) {{ .home-grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }} }}
-@media (max-width: 700px)  {{ .home-grid {{ grid-template-columns: repeat(1, minmax(0, 1fr)); }} }}
-
-.home-card {{
+/* CARD compacto */
+.home-card {
   position: relative;
   background: rgba(255,255,255,0.92);
   border-radius: 20px;
   border: 1px solid rgba(226,232,240,0.95);
   box-shadow: 0 10px 22px rgba(15,82,186,0.07);
-  padding: 14px 14px;        /* menor */
+  padding: 14px 14px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  min-height: 104px;         /* menor */
+  min-height: 104px;
   transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
   overflow: hidden;
-}}
-.home-card:before {{
+}
+.home-card:before {
   content: "";
   position: absolute;
   inset: -60px -60px auto auto;
@@ -313,94 +217,88 @@ st.markdown(
   height: 130px;
   border-radius: 999px;
   background: rgba(15,82,186,0.07);
-}}
-.home-card:hover {{
+}
+.home-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 16px 38px rgba(15,82,186,0.12);
   border-color: rgba(49,130,206,0.35);
-}}
-
-.home-ic {{
-  width: 44px; height: 44px; /* menor */
+}
+.home-ic {
+  width: 44px; height: 44px;
   border-radius: 15px;
   display: flex; align-items: center; justify-content: center;
   background: rgba(15,82,186,0.08);
   border: 1px solid rgba(15,82,186,0.12);
   margin-top: 1px;
-}}
-.home-ic i {{ font-size: 21px; color: #0F52BA; line-height: 1; }}
-
-.home-txt {{ display:flex; flex-direction:column; gap:5px; min-width: 0; }}
-.home-title {{
+}
+.home-ic i { font-size: 21px; color: #0F52BA; line-height: 1; }
+.home-txt { display:flex; flex-direction:column; gap:5px; min-width: 0; }
+.home-title {
   font-family: Inter, sans-serif;
   font-weight: 900;
-  font-size: 0.98rem; /* menor */
+  font-size: 0.98rem;
   color: #1A202C;
   margin: 0;
-}}
-.home-sub {{
-  font-size: 0.80rem;  /* menor */
+}
+.home-sub {
+  font-size: 0.80rem;
   color: #718096;
   margin: 0;
   font-weight: 900;
   line-height: 1.22rem;
   display: -webkit-box;
-  -webkit-line-clamp: 2;      /* trava em 2 linhas */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}}
-.home-tags {{
+}
+.home-tags {
   display:flex;
-  flex-wrap: nowrap;          /* 1 linha */
+  flex-wrap: nowrap;
   gap: 6px;
   margin-top: 2px;
   overflow: hidden;
-}}
-.tag {{
+}
+.tag {
   background: rgba(226,232,240,0.55);
   border: 1px solid rgba(226,232,240,0.9);
   color: #2D3748;
-  padding: 3px 8px;           /* menor */
+  padding: 3px 8px;
   border-radius: 999px;
   font-weight: 900;
-  font-size: 0.66rem;         /* menor */
+  font-size: 0.66rem;
   letter-spacing: .2px;
   white-space: nowrap;
-}}
-.home-cta {{
+}
+.home-cta {
   margin-top: 0px;
   font-weight: 900;
   color: #0F52BA;
   font-size: 0.76rem;
-}}
+}
 
-/* botão invisível cobrindo o card */
-.home-btn-wrap {{ position: relative; }}
-.home-btn-wrap button {{
-  position: absolute;
-  inset: 0;
-  opacity: 0.01;
-  height: 100%;
-  z-index: 10;
-}}
-.home-btn-wrap [data-testid="stButton"] {{ margin: 0; }}
-.home-btn-wrap [data-testid="stButton"] > button {{ padding: 0 !important; }}
-.home-btn-wrap [data-testid="stButton"] > button:focus {{ outline: none !important; box-shadow: none !important; }}
+.b-slate { border-bottom: 4px solid #4A5568; }
+.b-blue  { border-bottom: 4px solid #3182CE; }
+.b-purple{ border-bottom: 4px solid #805AD5; }
+.b-teal  { border-bottom: 4px solid #38B2AC; }
 
-/* acentos por módulo */
-.b-slate {{ border-bottom: 4px solid #4A5568; }}
-.b-blue  {{ border-bottom: 4px solid #3182CE; }}
-.b-purple{{ border-bottom: 4px solid #805AD5; }}
-.b-teal  {{ border-bottom: 4px solid #38B2AC; }}
-
-/* footer */
-footer {{ visibility: {footer_visibility} !important; }}
+/* Botão invisível SEM “open” aparecendo e sem ocupar espaço */
+.ghost-btn [data-testid="stButton"] > button {
+  height: 1px !important;
+  min-height: 1px !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  border: 0 !important;
+  margin: 0 !important;
+}
 </style>
 """,
     unsafe_allow_html=True,
 )
 
-# TOPBAR render
+# ==============================================================================
+# 5) TOPBAR
+# ==============================================================================
+esc = escola_vinculada()
 icone_b64 = get_base64_image("omni_icone.png")
 texto_b64 = get_base64_image("omni_texto.png")
 
@@ -425,8 +323,8 @@ st.markdown(
     <div class="header-slogan">Ecossistema de Inteligência Pedagógica</div>
   </div>
   <div class="header-badge">
-    <div class="badge-top">{display_text}</div>
-    {"<div class='badge-school'>🏫 "+escola_vinculada+"</div>" if escola_vinculada else ""}
+    <div class="badge-top">OMNISFERA {APP_VERSION}</div>
+    {"<div class='badge-school'>🏫 "+esc+"</div>" if esc else ""}
   </div>
 </div>
 """,
@@ -434,7 +332,7 @@ st.markdown(
 )
 
 # ==============================================================================
-# 6) SIDEBAR (NAV + usuário)
+# 6) SIDEBAR (aponta para os mesmos destinos)
 # ==============================================================================
 with st.sidebar:
     st.markdown("### 🧭 Navegação")
@@ -454,26 +352,25 @@ with st.sidebar:
         st.switch_page("pages/3_Hub_Inclusao.py")
 
     st.markdown("---")
-    if escola_vinculada:
+    if esc:
         st.caption("🏫 Escola vinculada")
-        st.markdown(f"**{escola_vinculada}**")
+        st.markdown(f"**{esc}**")
 
     st.markdown("---")
     st.markdown(f"**👤 {st.session_state.get('usuario_nome', '')}**")
     st.caption(st.session_state.get("usuario_cargo", ""))
 
     if st.button("Sair", use_container_width=True):
+        # O arquivo de login deve cuidar da autenticação, mas deixamos um logout simples
         st.session_state["autenticado"] = False
+        st.session_state["workspace_id"] = None
+        st.session_state["workspace_name"] = ""
         st.rerun()
 
 # ==============================================================================
-# 7) HOME (conteúdo)
+# 7) HOME (conteúdo) — cards 3 por linha (compactos)
 # ==============================================================================
-primeiro_nome = ""
-try:
-    primeiro_nome = (st.session_state.get("usuario_nome", "") or "").split()[0]
-except Exception:
-    primeiro_nome = ""
+primeiro_nome = (st.session_state.get("usuario_nome") or "Visitante").split()[0]
 
 chips = ["BNCC + DUA", "PEI / PAEE", "Rubricas", "Inclusão"]
 chips_html = "".join([f"<span class='chip'>{c}</span>" for c in chips])
@@ -483,7 +380,7 @@ st.markdown(
 <div class="hero-shell">
   <div>
     <div class="hero-title">Olá, {primeiro_nome}!</div>
-    <div class="hero-sub">{("🏫 " + escola_vinculada) if escola_vinculada else "Bem-vindo(a) ao Omnisfera."}</div>
+    <div class="hero-sub">{("🏫 " + esc) if esc else "Bem-vindo(a) ao Omnisfera."}</div>
     <div class="hero-chips">{chips_html}</div>
   </div>
   <div class="hero-right">
@@ -497,12 +394,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ==============================================================================
-# 7.1) HOME — 6 CARDS (compactos)
-# ==============================================================================
 st.markdown("### 🚀 Módulos")
 
-def _handle(dest: str):
+def go(dest: str):
     if dest == "ALUNOS":
         st.switch_page("pages/0_Alunos.py")
     elif dest == "PEI":
@@ -513,13 +407,9 @@ def _handle(dest: str):
         st.switch_page("pages/3_Hub_Inclusao.py")
     elif dest == "DIARIO":
         st.toast("🛠️ Diário de Bordo — em breve neste build.", icon="✨")
-        time.sleep(0.2)
     elif dest == "DADOS":
         st.toast("🛠️ Evolução & Dados — em breve neste build.", icon="✨")
-        time.sleep(0.2)
-    else:
-        st.toast("🛠️ Em breve.", icon="✨")
-        time.sleep(0.2)
+    time.sleep(0.10)
 
 cards = [
     ("Estudantes", "Gestão, seleção e histórico do aluno.", "fi fi-br-users", "ALUNOS", "b-slate", ["Cadastro", "Turmas"], "Abrir →"),
@@ -530,33 +420,33 @@ cards = [
     ("Evolução & Dados", "Indicadores e visão longitudinal.", "fi fi-br-chart-histogram", "DADOS", "b-slate", ["KPIs", "Radar"], "Em breve →"),
 ]
 
-st.markdown("<div class='home-grid'>", unsafe_allow_html=True)
+for r in range(0, len(cards), 3):
+    row = cards[r:r+3]
+    cols = st.columns(3)
+    for i, item in enumerate(row):
+        title, sub, icon_class, dest, border, tags, cta = item
+        tags = (tags or [])[:2]
+        tags_html = "".join([f"<span class='tag'>{t}</span>" for t in tags])
 
-for idx, (title, sub, icon_class, dest, border, tags, cta) in enumerate(cards):
-    # limita a 2 tags para manter compacto “como ontem”
-    tags = (tags or [])[:2]
-    tags_html = "".join([f"<span class='tag'>{t}</span>" for t in tags])
-
-    st.markdown(
-        f"""
-<div class="home-btn-wrap">
-  <div class="home-card {border}">
-    <div class="home-ic"><i class="{icon_class}"></i></div>
-    <div class="home-txt">
-      <div class="home-title">{title}</div>
-      <div class="home-sub">{sub}</div>
-      <div class="home-tags">{tags_html}</div>
-      <div class="home-cta">{cta}</div>
-    </div>
+        with cols[i]:
+            st.markdown(
+                f"""
+<div class="home-card {border}">
+  <div class="home-ic"><i class="{icon_class}"></i></div>
+  <div class="home-txt">
+    <div class="home-title">{title}</div>
+    <div class="home-sub">{sub}</div>
+    <div class="home-tags">{tags_html}</div>
+    <div class="home-cta">{cta}</div>
   </div>
 </div>
 """,
-        unsafe_allow_html=True,
-    )
-    if st.button("open", key=f"home_card_{idx}", use_container_width=True):
-        _handle(dest)
-
-st.markdown("</div>", unsafe_allow_html=True)
+                unsafe_allow_html=True,
+            )
+            st.markdown("<div class='ghost-btn'>", unsafe_allow_html=True)
+            if st.button("open", key=f"card_{r+i}", use_container_width=True):
+                go(dest)
+            st.markdown("</div>", unsafe_allow_html=True)
 
 # ==============================================================================
 # 8) FOOTER
