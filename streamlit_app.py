@@ -10,7 +10,7 @@ from supabase import create_client
 # ==============================================================================
 # 0) CONFIGURAÇÃO DO APP
 # ==============================================================================
-APP_VERSION = "v128.0 (Home + Supabase Only)"
+APP_VERSION = "v129.0 (Home 6 Cards + Supabase Only)"
 
 try:
     IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
@@ -188,7 +188,7 @@ if not st.session_state["autenticado"]:
     st.stop()
 
 # ==============================================================================
-# 4) TOPBAR (SÓ HOME) + CSS GLOBAL + ESCONDER NAV PADRÃO
+# 4) TOPBAR (SÓ HOME) + CSS GLOBAL + ESCONDER NAV PADRÃO + FLATICON
 # ==============================================================================
 if IS_TEST_ENV:
     card_bg, card_border, display_text, footer_visibility = (
@@ -208,6 +208,11 @@ else:
 st.markdown(
     f"""
 <style>
+/* Flaticon UIcons v3.0.0 */
+@import url('https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css');
+@import url('https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-straight/css/uicons-solid-straight.css');
+@import url('https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css');
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700&display=swap');
 
 html, body, [class*="css"] {{
@@ -328,27 +333,84 @@ html, body, [class*="css"] {{
   margin: 0;
 }}
 
-/* Cards */
-.nav-btn-card {{
-  background: white;
-  border-radius: 16px;
-  padding: 15px;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 130px;
-  position: relative;
+/* HOME 6 CARDS (grid) */
+.home-grid {{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }}
-.nav-icon {{ height: 45px; width: auto; object-fit: contain; margin-bottom: 10px; }}
-.nav-desc {{ font-size: 0.75rem; color: #718096; font-weight: 500; }}
+@media (max-width: 1100px) {{ .home-grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }} }}
+@media (max-width: 700px)  {{ .home-grid {{ grid-template-columns: repeat(1, minmax(0, 1fr)); }} }}
 
+.home-card {{
+  background: white;
+  border-radius: 18px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  padding: 16px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 92px;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}}
+.home-card:hover {{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(15,82,186,0.07);
+  border-color: rgba(49,130,206,0.35);
+}}
+
+.home-ic {{
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(15,82,186,0.08);
+  border: 1px solid rgba(15,82,186,0.12);
+}}
+.home-ic i {{
+  font-size: 22px;
+  line-height: 1;
+  color: #0F52BA;
+}}
+
+.home-txt {{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}}
+.home-title {{
+  font-family:'Inter',sans-serif;
+  font-weight:800;
+  font-size:0.95rem;
+  color:#1A202C;
+  margin:0;
+}}
+.home-sub {{
+  font-size:0.78rem;
+  color:#718096;
+  margin:0;
+  font-weight:600;
+}}
+
+/* botão invisível cobrindo o card */
+.home-btn-wrap {{ position: relative; }}
+.home-btn-wrap button {{
+  position: absolute;
+  inset: 0;
+  opacity: 0.01;
+  height: 100%;
+  z-index: 10;
+}}
+/* remove espaçamento extra do st.button dentro do wrap */
+.home-btn-wrap [data-testid="stButton"] {{ margin: 0; }}
+.home-btn-wrap [data-testid="stButton"] > button {{ padding: 0 !important; }}
+.home-btn-wrap [data-testid="stButton"] > button:focus {{ outline: none !important; box-shadow: none !important; }}
+
+/* cards borda por módulo (sutil) */
 .b-blue {{ border-bottom: 4px solid #3182CE; }}
 .b-purple {{ border-bottom: 4px solid #805AD5; }}
 .b-teal {{ border-bottom: 4px solid #38B2AC; }}
+.b-slate {{ border-bottom: 4px solid #4A5568; }}
 
 /* esconder header padrão */
 [data-testid="stHeader"] {{
@@ -395,7 +457,6 @@ st.markdown(
 with st.sidebar:
     st.markdown("### 🧭 Navegação")
 
-    # Home (aqui você já está na home)
     if st.button("🏠 Home", use_container_width=True):
         st.rerun()
 
@@ -431,33 +492,72 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Cards de acesso
+# ==============================================================================
+# 6.1) HOME — 6 CARDS (mesmos destinos da sidebar)
+# ==============================================================================
 st.markdown("### 🚀 Acesso Rápido")
-c1, c2, c3 = st.columns(3)
 
-def render_card(col, img_b64, desc, key, path, border):
-    with col:
-        img_html = (
-            f'<img src="data:image/png;base64,{img_b64}" class="nav-icon">'
-            if img_b64
-            else '<div style="font-size:2.2rem; line-height:1;">🌐</div>'
-        )
-        st.markdown(
-            f"""<div class="nav-btn-card {border}">{img_html}<div class="nav-desc">{desc}</div></div>""",
-            unsafe_allow_html=True,
-        )
-        if st.button("Acessar", key=key, use_container_width=True):
-            if st.session_state.dados.get("nome"):
-                st.switch_page(path)
-            else:
-                st.toast("⚠️ Selecione um aluno abaixo primeiro!", icon="👇")
-                time.sleep(0.2)
+def _go(path: str):
+    if st.session_state.dados.get("nome"):
+        st.switch_page(path)
+    else:
+        st.toast("⚠️ Selecione um aluno abaixo primeiro!", icon="👇")
+        time.sleep(0.2)
 
-render_card(c1, get_base64_image("360.png"), "Plano de Ensino (PEI)", "btn_pei", "pages/1_PEI.py", "b-blue")
-render_card(c2, get_base64_image("pae.png"), "Sala de Recursos (PAEE)", "btn_paee", "pages/2_PAE.py", "b-purple")
-render_card(c3, get_base64_image("hub.png"), "Hub de Inclusão", "btn_hub", "pages/3_Hub_Inclusao.py", "b-teal")
+def _handle(dest: str):
+    if dest == "HOME":
+        st.rerun()
+    elif dest == "PEI":
+        _go("pages/1_PEI.py")
+    elif dest == "PAEE":
+        _go("pages/2_PAE.py")
+    elif dest == "HUB":
+        _go("pages/3_Hub_Inclusao.py")
+    elif dest == "DIARIO":
+        st.toast("🛠️ Diário de Bordo — em breve neste build.", icon="✨")
+        time.sleep(0.2)
+    elif dest == "DADOS":
+        st.toast("🛠️ Evolução & Dados — em breve neste build.", icon="✨")
+        time.sleep(0.2)
+    else:
+        st.toast("🛠️ Em breve.", icon="✨")
+        time.sleep(0.2)
 
-# Banco de estudantes (Supabase)
+cards = [
+    # label, subtitle, icon_class, dest, border_class
+    ("Home", "Central do ecossistema", "fi fi-br-house-blank", "HOME", "b-slate"),
+    ("Estratégias & PEI", "Plano Educacional Individualizado", "fi fi-sr-book-open-cover", "PEI", "b-blue"),
+    ("Plano de Ação / PAEE", "Sala de Recursos e intervenções", "fi fi-ss-puzzle", "PAEE", "b-purple"),
+    ("Hub de Recursos", "Materiais, adaptações e apoio", "fi fi-sr-rocket", "HUB", "b-teal"),
+    ("Diário de Bordo", "Registros e acompanhamentos", "fi fi-br-notebook", "DIARIO", "b-slate"),
+    ("Evolução & Dados", "Dashboards e indicadores", "fi fi-br-chart-histogram", "DADOS", "b-slate"),
+]
+
+st.markdown("<div class='home-grid'>", unsafe_allow_html=True)
+
+for idx, (title, sub, icon_class, dest, border) in enumerate(cards):
+    st.markdown(
+        f"""
+<div class="home-btn-wrap">
+  <div class="home-card {border}">
+    <div class="home-ic"><i class="{icon_class}"></i></div>
+    <div class="home-txt">
+      <div class="home-title">{title}</div>
+      <div class="home-sub">{sub}</div>
+    </div>
+  </div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+    if st.button("open", key=f"home_card_{idx}", use_container_width=True):
+        _handle(dest)
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+# ==============================================================================
+# 7) BANCO DE ESTUDANTES (SUPABASE)
+# ==============================================================================
 st.markdown("---")
 st.markdown("### 🗄️ Banco de Estudantes (Supabase)")
 
@@ -517,7 +617,9 @@ else:
 
             st.markdown("<hr style='margin:5px 0;'>", unsafe_allow_html=True)
 
-# Footer
+# ==============================================================================
+# 8) FOOTER
+# ==============================================================================
 st.markdown(
     "<div style='text-align: center; color: #CBD5E0; font-size: 0.7rem; margin-top: 40px;'>Omnisfera desenvolvida por RODRIGO A. QUEIROZ</div>",
     unsafe_allow_html=True,
