@@ -1,99 +1,87 @@
-# home_view.py
 import streamlit as st
-from omni_utils import ensure_state, inject_base_css, supabase_log_access
-
-APP_VERSION = "v1.0"
-
-def _open_page(page_path: str, event: str):
-    """Navega para uma página do /pages somente após clique (evita loops)."""
-    user = st.session_state.get("user") or {}
-    nome = user.get("nome", "Visitante")
-    cargo = user.get("cargo", "")
-
-    try:
-        supabase_log_access(
-            workspace_id=st.session_state.workspace_id,
-            nome=nome,
-            cargo=cargo,
-            event=event,
-            app_version=APP_VERSION,
-        )
-    except Exception:
-        pass
-
-    st.switch_page(page_path)
 
 def render_home():
-    ensure_state()
-    inject_base_css()
+    # Garante que o CSS básico esteja carregado
+    st.markdown("""
+    <style>
+        .home-header {
+            background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+        }
+        .welcome-text { font-size: 1.8rem; font-weight: 800; }
+        .workspace-tag { 
+            background: rgba(255,255,255,0.2); 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 0.8rem; 
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        .module-card {
+            background: white; border: 1px solid #E5E7EB;
+            border-radius: 12px; padding: 20px;
+            text-align: center;
+            transition: all 0.2s;
+            height: 100%;
+            cursor: pointer;
+        }
+        .module-card:hover { transform: translateY(-3px); border-color: #2563EB; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .card-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+        .card-title { font-weight: 800; color: #1F2937; font-size: 1.1rem; margin-bottom: 5px; }
+        .card-desc { color: #6B7280; font-size: 0.85rem; line-height: 1.4; }
+    </style>
+    """, unsafe_allow_html=True)
 
-    if not st.session_state.get("autenticado") or not st.session_state.get("workspace_id"):
-        st.session_state.view = "login"
-        st.rerun()
+    # Dados da Sessão
+    usuario = st.session_state.get("user", {"nome": "Visitante"})
+    ws_name = st.session_state.get("workspace_name", "Ambiente Geral")
 
-    user = st.session_state.get("user") or {}
-    nome = user.get("nome", "Visitante")
-    cargo = user.get("cargo", "")
+    # Header de Boas Vindas
+    st.markdown(f"""
+    <div class="home-header">
+        <div class="welcome-text">Olá, {usuario['nome']}!</div>
+        <div>Você está conectado como <b>{usuario.get('cargo', 'Educador')}</b>.</div>
+        <div class="workspace-tag">🏢 {ws_name}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown(
-        f"""
-<div class="header-lite">
-  <div>
-    <div class="h-title">Olá, {nome} 👋</div>
-    <div class="h-sub">{cargo} · Workspace ativo</div>
-  </div>
-  <div class="h-badge">OMNISFERA {APP_VERSION}</div>
-</div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown("### Acesso rápido")
-
+    # Grid de Navegação
+    st.markdown("### 🚀 Módulos Disponíveis")
+    
     c1, c2, c3 = st.columns(3)
+    
+    # Função auxiliar para desenhar cards
+    def draw_card(col, icon, title, desc, page_path):
+        with col:
+            st.markdown(f"""
+            <div class="module-card">
+                <span class="card-icon">{icon}</span>
+                <div class="card-title">{title}</div>
+                <div class="card-desc">{desc}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button(f"Acessar {title}", key=f"btn_{title}", use_container_width=True):
+                st.switch_page(page_path)
 
-    with c1:
-        if st.button("🧠 Abrir PEI 360º", use_container_width=True):
-            _open_page("pages/1_PEI.py", "open_pei")
+    draw_card(c1, "👥", "Alunos", "Gestão de cadastro e lista de estudantes.", "pages/0_Alunos.py")
+    draw_card(c2, "🧠", "PEI 360º", "Criação de Planos Educacionais Individualizados.", "pages/1_PEI.py")
+    draw_card(c3, "🧩", "PAEE", "Planejamento e Execução do Atendimento.", "pages/2_PAE.py")
 
-    with c2:
-        if st.button("👥 Alunos", use_container_width=True):
-            _open_page("pages/0_Alunos.py", "open_alunos")
-
-    with c3:
-        if st.button("🧩 PAE", use_container_width=True):
-            _open_page("pages/2_PAE.py", "open_pae")
-
-    st.markdown("---")
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+    
     c4, c5, c6 = st.columns(3)
+    draw_card(c4, "📚", "Hub de Inclusão", "Recursos, adaptações e materiais.", "pages/3_Hub_Inclusao.py")
+    draw_card(c5, "📝", "Diário de Bordo", "Registros diários e observações.", "pages/4_Diario_de_Bordo.py")
+    draw_card(c6, "📊", "Monitoramento", "Análise de dados e evolução.", "pages/5_Monitoramento_Avaliacao.py")
 
-    with c4:
-        if st.button("📚 Hub Inclusão", use_container_width=True):
-            _open_page("pages/3_Hub_Inclusao.py", "open_hub")
-
-    with c5:
-        if st.button("📝 Diário de Bordo", use_container_width=True):
-            _open_page("pages/4_Diario_de_Bordo.py", "open_diario")
-
-    with c6:
-        if st.button("📈 Monitoramento & Avaliação", use_container_width=True):
-            _open_page("pages/5_Monitoramento_Avaliacao.py", "open_monitoramento")
-
-    st.markdown("---")
-    if st.button("🔒 Sair"):
-        try:
-            supabase_log_access(
-                workspace_id=st.session_state.workspace_id,
-                nome=nome,
-                cargo=cargo,
-                event="logout",
-                app_version=APP_VERSION,
-            )
-        except Exception:
-            pass
-
-        st.session_state.autenticado = False
-        st.session_state.workspace_id = None
-        st.session_state.user = None
-        st.session_state.view = "login"
+    st.divider()
+    
+    if st.button("🔒 Sair do Workspace"):
+        # Limpa sessão
+        st.session_state.clear()
         st.rerun()
