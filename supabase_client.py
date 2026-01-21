@@ -1,53 +1,67 @@
+# supabase_client.py
+import os
 import streamlit as st
-from supabase import create_client, Client
-from datetime import datetime
 
-# Conexão Única com Supabase
-@st.cache_resource(show_spinner=False)
-def get_supabase() -> Client:
+# 🔒 Nome da função RPC
+RPC_NAME = "workspace_from_pin"
+
+
+def _get_secret(name: str) -> str | None:
     try:
-        url = st.secrets["SUPABASE_URL"]
-        key = st.secrets["SUPABASE_ANON_KEY"]
-        return create_client(url, key)
-    except Exception as e:
-        st.error(f"Erro de configuração do Supabase: {e}")
-        return None
+        v = st.secrets.get(name)
+        if v:
+            return str(v).strip()
+    except Exception:
+        pass
+    v = os.getenv(name)
+    return str(v).strip() if v else None
 
-def validar_acesso_pin(pin_code, nome_usuario, funcao_usuario):
+
+@st.cache_resource(show_spinner=False)
+def get_supabase():
     """
-    1. Verifica se o PIN existe na tabela 'app_pins'.
-    2. Se existir, registra o acesso na tabela 'access_logs'.
-    3. Retorna os dados do workspace (owner_id) para filtrar os dados.
+    Cria e mantém UM cliente Supabase para o app inteiro.
+    BLINDADO contra import error e secrets faltando.
+    """
+    try:
+        from supabase import create_client  # type: ignore
+    except Exception as e:
+        # Erro comum: pacote não instalado no Streamlit Cloud
+        raise RuntimeError(
+            "Pacote 'supabase' não encontrado.\n"
+            "➡️ Adicione no requirements.txt: supabase==2.* (ou supabase-py compatível)\n"
+            f"Detalhe: {e}"
+        )
+
+    url = _get_secret("SUPABASE_URL")
+    key = _get_secret("SUPABASE_ANON_KEY")
+
+    if not url or not key:
+        raise RuntimeError(
+            "SUPABASE_URL / SUPABASE_ANON_KEY não encontrados.\n"
+            "➡️ Configure em Settings → Secrets do Streamlit Cloud."
+        )
+
+    return create_client(url, key)
+
+
+def rpc_workspace_from_pin(pin: str) -> dict | None:
+    """
+    Chama a função:
+    public.workspace_from_pin(p_pin text)
+    Retorna: { id, name } ou None
     """
     sb = get_supabase()
-    if not sb: return False, None, "Erro de conexão."
+    res = sb.rpc(RPC_NAME, {"p_pin": pin}).execute()
 
-    # 1. Busca o PIN e o Workspace atrelado
-    try:
-        # Busca na tabela de PINs
-        res = sb.table("app_pins").select("*").eq("pin_code", pin_code).execute()
-        
-        if res.data and len(res.data) > 0:
-            workspace_data = res.data[0]
-            owner_id = workspace_data.get("owner_id")
-            workspace_name = workspace_data.get("descricao", "Workspace Padrão")
+    data = res.data
+    if not data:
+        return None
 
-            # 2. Registra quem entrou (Log de Auditoria)
-            # Isso é crucial para o seu controle
-            try:
-                log_data = {
-                    "pin_used": pin_code,
-                    "user_name": nome_usuario,
-                    "user_role": funcao_usuario,
-                    "created_at": datetime.now().isoformat()
-                }
-                sb.table("access_logs").insert(log_data).execute()
-            except Exception as e:
-                print(f"Alerta: Não foi possível salvar log de acesso: {e}")
+    if isinstance(data, list):
+        return data[0] if data else None
 
-            return True, {"owner_id": owner_id, "workspace_name": workspace_name}, None
-        else:
-            return False, None, "PIN não encontrado."
+    if isinstance(data, dict):
+        return data
 
-    except Exception as e:
-        return False, None, f"Erro ao validar PIN: {str(e)}"
+    return None
