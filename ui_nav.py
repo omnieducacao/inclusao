@@ -9,13 +9,22 @@ import streamlit as st
 # -----------------------------
 def ensure_auth_state():
     """
-    Estado mínimo.
-    IMPORTANTE: começa deslogado por padrão.
+    Estado mínimo (único padrão de autenticação).
+    - autenticado: bool
+    - user: dict {email, nome, cargo}
+    Mantém compatibilidade temporária com chaves legadas (usuario_nome/cargo).
     """
     if "autenticado" not in st.session_state:
         st.session_state.autenticado = False
-    if "user" not in st.session_state:
-        st.session_state.user = None
+
+    if "user" not in st.session_state or not isinstance(st.session_state.user, dict):
+        st.session_state.user = {"email": None, "nome": None, "cargo": None}
+
+    # compatibilidade (legado)
+    if "usuario_nome" not in st.session_state:
+        st.session_state["usuario_nome"] = st.session_state.user.get("nome")
+    if "usuario_cargo" not in st.session_state:
+        st.session_state["usuario_cargo"] = st.session_state.user.get("cargo")
 
 
 def boot_ui(do_route: bool = True):
@@ -27,7 +36,7 @@ def boot_ui(do_route: bool = True):
     ensure_auth_state()
     _inject_css()
 
-    if st.session_state.get("autenticado") and do_route:
+    if do_route:
         _route_from_query()
 
 
@@ -49,7 +58,7 @@ def _img_data_uri(path_str: str) -> str | None:
 
 
 # -----------------------------
-# NAV MAP (SEUS ARQUIVOS)
+# NAV CONFIG
 # -----------------------------
 NAV = [
     # key, label, page_path, flaticon_class, accent
@@ -63,6 +72,13 @@ NAV = [
 ]
 
 
+def nav_href(go_key: str) -> str:
+    return f"?go={go_key}"
+
+
+# -----------------------------
+# ROUTER (?go=)
+# -----------------------------
 def _safe_get_go() -> str | None:
     try:
         qp = st.query_params
@@ -76,22 +92,42 @@ def _safe_get_go() -> str | None:
 def _route_from_query():
     """
     Router simples: ?go=pei → st.switch_page(pages/1_PEI.py)
-    Isso mantém session_state (é o mesmo comportamento multipage do Streamlit).
+
+    Regras:
+    - Sempre limpa ?go= para evitar loop.
+    - 'home' não faz switch_page (fica no streamlit_app.py).
+    - Se não autenticado, bloqueia acesso às /pages e volta para Home.
     """
     go = _safe_get_go()
     if not go:
         return
 
-    go = go.lower()
+    go = str(go).lower().strip()
+    target = None
     for key, _, page_path, _, _ in NAV:
         if key == go:
-            # evita loop: limpa query param antes de trocar
-            try:
-                st.query_params.pop("go", None)
-            except Exception:
-                pass
-            st.switch_page(page_path)
-            return
+            target = page_path
+            break
+
+    # sempre limpa o param (evita ficar "preso" em go=...)
+    try:
+        st.query_params.pop("go", None)
+    except Exception:
+        pass
+
+    if not target:
+        return
+
+    # Home: não precisa switch_page
+    if target.endswith("streamlit_app.py"):
+        return
+
+    # Proteção: sem login, não deixa entrar nas páginas internas
+    if not st.session_state.get("autenticado"):
+        st.switch_page("streamlit_app.py")
+        return
+
+    st.switch_page(target)
 
 
 # -----------------------------
@@ -113,53 +149,49 @@ header, footer,
   display: none !important;
 }}
 
-/* espaço p/ topbar fixa */
-.main .block-container {{
-  padding-top: 70px !important;
+/* Container principal: empurra o conteúdo pra baixo da topbar */
+section.main > div.block-container {{
+  padding-top: 72px !important;
   max-width: 1200px;
 }}
+.stApp {{ overflow: visible; }}
 
-/* Flaticon UIcons CDN v3.0.0 */
+/* Flaticon CDN */
 @import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css");
 @import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css");
 @import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-straight/css/uicons-solid-straight.css");
-@import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-straight/css/uicons-bold-straight.css");
 
-/* TOPBAR */
+/* Topbar */
 .omni-topbar {{
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 56px;
   z-index: 9999;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  padding: 0 14px;
-
-  background: rgba(255,255,255,0.88);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(0,0,0,0.08);
+  padding: 0 18px;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
 }}
 
-/* Brand */
 .omni-brand {{
   display:flex;
   align-items:center;
-  gap: 10px;
-  min-width: 220px;
+  gap:10px;
+  font-family: ui-sans-serif, system-ui;
+  color:#111827;
 }}
+
 .omni-logo {{
-  width: 28px; height: 28px;
-  object-fit: contain;
+  width: 24px; height: 24px;
+  border-radius: 8px;
 }}
 .omni-word {{
   height: 16px;
-  opacity: .92;
 }}
 
-/* Nav icons */
 .omni-nav {{
   display:flex;
   align-items:center;
@@ -171,28 +203,31 @@ header, footer,
   height: 38px;
   border-radius: 14px;
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  background: rgba(0,0,0,0.03);
-  border: 1px solid rgba(0,0,0,0.08);
-
-  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
   text-decoration: none !important;
+  background: rgba(0,0,0,0.02);
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
 }}
+
 .omni-ico:hover {{
   transform: translateY(-1px);
-  background: rgba(0,0,0,0.05);
-  box-shadow: 0 14px 34px rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.04);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }}
 
 .omni-ico i {{
+  display: inline-flex;
+  align-items:center;
+  justify-content:center;
   font-size: 18px;
   line-height: 1;
 }}
 
-/* Dica: remove underline/link default */
+/* Remove underline */
 .omni-ico:visited, .omni-ico:active {{
   text-decoration: none !important;
 }}
@@ -205,7 +240,7 @@ header, footer,
   </div>
 
   <div class="omni-nav">
-    { _nav_html() }
+    {_render_nav_html()}
   </div>
 </div>
         """,
@@ -213,25 +248,15 @@ header, footer,
     )
 
 
-def _nav_html() -> str:
-    """
-    Gera os <a href="?go=..."> com ícones coloridos.
-    """
+def _render_nav_html() -> str:
+    # Mostra ícones sempre, mas bloqueia navegação se não autenticado (vai pra home)
     parts = []
-    for key, label, _, ico, accent in NAV:
+    for key, _, _, ico, accent in NAV:
         parts.append(
             f"""
-<a class="omni-ico" href="?go={key}" title="{label}" aria-label="{label}">
+<a class="omni-ico" href="{nav_href(key)}" title="{key}">
   <i class="{ico}" style="color:{accent}"></i>
 </a>
 """
         )
     return "\n".join(parts)
-
-
-def nav_href(key: str) -> str:
-    """
-    Use isso na HOME para links dentro dos cards:
-      st.markdown(f'<a href="{nav_href("alunos")}">Abrir</a>', unsafe_allow_html=True)
-    """
-    return f"?go={key}"
