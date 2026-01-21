@@ -14,10 +14,16 @@ def ensure_auth_state():
         st.session_state.user = {"email": "demo@omnisfera.net"}
 
 
-def boot_ui():
+def boot_ui(do_route: bool = True):
+    """
+    Chame no topo do streamlit_app.py e de TODAS as páginas em /pages.
+    - Injeta CSS (esconde UI nativa + topbar)
+    - Opcionalmente roteia via ?go= (do_route=True)
+    """
     ensure_auth_state()
     _inject_css()
-    if st.session_state.get("autenticado"):
+
+    if st.session_state.get("autenticado") and do_route:
         _route_from_query()
 
 
