@@ -2,11 +2,24 @@
 import streamlit as st
 
 from omni_utils import ensure_state
-
-# Views
 from login_view import render_login
 from home_view import render_home
 
+st.set_page_config(
+    page_title="Omnisfera",
+    page_icon="🌿",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+ensure_state()
+
+view = st.session_state.get("view", "login")
+
+if view == "login":
+    render_login()
+else:
+    render_home()
 
 st.set_page_config(
     page_title="Omnisfera",
