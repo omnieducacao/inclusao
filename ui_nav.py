@@ -1,262 +1,319 @@
-from __future__ import annotations
-
-import base64
-from pathlib import Path
+# ui_nav.py
 import streamlit as st
+import base64, os
 
-# -----------------------------
-# PUBLIC API
-# -----------------------------
-def ensure_auth_state():
-    """
-    Estado mínimo (único padrão de autenticação).
-    - autenticado: bool
-    - user: dict {email, nome, cargo}
-    Mantém compatibilidade temporária com chaves legadas (usuario_nome/cargo).
-    """
-    if "autenticado" not in st.session_state:
-        st.session_state.autenticado = False
+# -------------------------
+# CONFIG (paths + cores + ícones)
+# -------------------------
+PAGES = {
+    "home":       "Home.py",
+    "estudantes": "pages/0_Alunos.py",
+    "pei":        "pages/1_PEI.py",
+    "paee":       "pages/2_PAE.py",
+    "hub":        "pages/3_Hub_Inclusao.py",
+    "diario":     "pages/4_Diario_de_Bordo.py",
+    "mon":        "pages/5_Monitoramento_Avaliacao.py",
+}
 
-    if "user" not in st.session_state or not isinstance(st.session_state.user, dict):
-        st.session_state.user = {"email": None, "nome": None, "cargo": None}
+COLORS = {
+    "home": "#0F172A",       # neutro
+    "estudantes": "#2B6CEB",
+    "pei": "#2F7DF6",
+    "paee": "#22A765",
+    "hub": "#D98A0A",
+    "diario": "#E05A1C",
+    "mon": "#8B5CF6",
+}
 
-    # compatibilidade (legado)
-    if "usuario_nome" not in st.session_state:
-        st.session_state["usuario_nome"] = st.session_state.user.get("nome")
-    if "usuario_cargo" not in st.session_state:
-        st.session_state["usuario_cargo"] = st.session_state.user.get("cargo")
+# Flaticon Solid Rounded (fi-sr-*)
+ICONS = {
+    "home": "fi fi-sr-house-chimney",
+    "estudantes": "fi fi-sr-users-alt",
+    "pei": "fi fi-sr-puzzle-alt",
+    "paee": "fi fi-sr-route",
+    "hub": "fi fi-sr-lightbulb-on",
+    "diario": "fi fi-sr-compass-alt",
+    "mon": "fi fi-sr-chart-line-up",
+    "logout": "fi fi-sr-sign-out-alt",
+}
 
+def _b64(path: str) -> str:
+    if not os.path.exists(path):
+        return ""
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
 
-def boot_ui(do_route: bool = True):
-    """
-    Chame no topo do streamlit_app.py e de TODAS as páginas em /pages.
-    - Injeta CSS (esconde UI nativa + topbar)
-    - Opcionalmente roteia via ?go= (do_route=True)
-    """
-    ensure_auth_state()
-    _inject_css()
-
-    if do_route:
-        _route_from_query()
-
-
-# -----------------------------
-# PATHS / ASSETS
-# -----------------------------
-def _root() -> Path:
-    return Path(__file__).resolve().parent
-
-
-def _img_data_uri(path_str: str) -> str | None:
-    p = _root() / path_str
-    if not p.exists():
-        return None
-    try:
-        return "data:image/png;base64," + base64.b64encode(p.read_bytes()).decode()
-    except Exception:
-        return None
-
-
-# -----------------------------
-# NAV CONFIG
-# -----------------------------
-NAV = [
-    # key, label, page_path, flaticon_class, accent
-    ("home", "Home", "streamlit_app.py", "fi fi-br-house-chimney", "#111827"),
-    ("alunos", "Alunos", "pages/0_Alunos.py", "fi fi-br-users", "#2563EB"),
-    ("pei", "PEI", "pages/1_PEI.py", "fi fi-br-brain", "#7C3AED"),
-    ("pae", "PAE", "pages/2_PAE.py", "fi fi-br-bullseye", "#F97316"),
-    ("hub", "Hub", "pages/3_Hub_Inclusao.py", "fi fi-br-book-open-cover", "#16A34A"),
-    ("diario", "Diário", "pages/4_Diario_de_Bordo.py", "fi fi-br-notebook", "#0EA5E9"),
-    ("dados", "Dados", "pages/5_Monitoramento_Avaliacao.py", "fi fi-br-chart-histogram", "#111827"),
-]
-
-
-def nav_href(go_key: str) -> str:
-    return f"?go={go_key}"
-
-
-# -----------------------------
-# ROUTER (?go=)
-# -----------------------------
-def _safe_get_go() -> str | None:
-    try:
-        qp = st.query_params
-        if "go" in qp:
-            return str(qp["go"]).strip()
-    except Exception:
-        pass
-    return None
-
-
-def _route_from_query():
-    """
-    Router simples: ?go=pei → st.switch_page(pages/1_PEI.py)
-
-    Regras:
-    - Sempre limpa ?go= para evitar loop.
-    - 'home' não faz switch_page (fica no streamlit_app.py).
-    - Se não autenticado, bloqueia acesso às /pages e volta para Home.
-    """
-    go = _safe_get_go()
-    if not go:
-        return
-
-    go = str(go).lower().strip()
-    target = None
-    for key, _, page_path, _, _ in NAV:
-        if key == go:
-            target = page_path
-            break
-
-    # sempre limpa o param (evita ficar "preso" em go=...)
-    try:
-        st.query_params.pop("go", None)
-    except Exception:
-        pass
-
+def _goto(page_key: str):
+    """Navegação multipage real (sem query params)."""
+    target = PAGES.get(page_key)
     if not target:
         return
-
-    # Home: não precisa switch_page
-    if target.endswith("streamlit_app.py"):
-        return
-
-    # Proteção: sem login, não deixa entrar nas páginas internas
-    if not st.session_state.get("autenticado"):
-        st.switch_page("streamlit_app.py")
-        return
-
     st.switch_page(target)
 
+def _logout():
+    st.session_state.autenticado = False
+    st.rerun()
 
-# -----------------------------
-# CSS (CLEAN TOPBAR + FLATICON)
-# -----------------------------
-def _inject_css():
-    # tenta achar em /assets ou raiz
-    logo = _img_data_uri("assets/omni_icone.png") or _img_data_uri("omni_icone.png")
-    word = _img_data_uri("assets/omni_texto.png") or _img_data_uri("omni_texto.png")
+def render_topbar_nav(active: str = "home", show_on_login: bool = False):
+    """
+    Topbar minimalista e fixa.
+    - active: chave do módulo atual (home/estudantes/pei/paee/hub/diario/mon)
+    - show_on_login: se False, não mostra a barra quando não autenticado
+    """
 
-    st.markdown(
-        f"""
+    authed = bool(st.session_state.get("autenticado", False))
+    if (not authed) and (not show_on_login):
+        return
+
+    # assets
+    icon_b64 = _b64("omni_icone.png")
+
+    # CSS + libs (Flaticon SR)
+    st.markdown("""
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css">
+
 <style>
-/* Esconde chrome nativo */
-[data-testid="stSidebar"],
-[data-testid="stHeader"],
-header, footer,
-#MainMenu {{
-  display: none !important;
-}}
+header[data-testid="stHeader"]{display:none !important;}
+[data-testid="stSidebar"]{display:none !important;}
+[data-testid="stSidebarNav"]{display:none !important;}
+[data-testid="stToolbar"]{display:none !important;}
 
-/* Container principal: empurra o conteúdo pra baixo da topbar */
-section.main > div.block-container {{
-  padding-top: 72px !important;
-  max-width: 1200px;
-}}
-.stApp {{ overflow: visible; }}
+/* espaço para a barra */
+.block-container{
+  padding-top: 86px !important;   /* topbar 58px + respiro */
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+}
 
-/* Flaticon CDN */
-@import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css");
-@import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css");
-@import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-straight/css/uicons-solid-straight.css");
+/* topbar */
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);} }
 
-/* Topbar */
-.omni-topbar {{
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 56px;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.omni-topbar{
+  position:fixed;
+  top:0; left:0; right:0;
+  height:58px;
+  z-index:2147483647;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
   padding: 0 18px;
-  background: rgba(255,255,255,0.9);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-}}
+  background: rgba(247,250,252,0.88);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(226,232,240,0.85);
+  box-shadow: 0 8px 20px rgba(15,23,42,0.06);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
 
-.omni-brand {{
+/* esquerda */
+.omni-left{
   display:flex;
   align-items:center;
   gap:10px;
-  font-family: ui-sans-serif, system-ui;
-  color:#111827;
-}}
+  min-width: 240px;
+}
+.omni-spin{
+  width:34px; height:34px;
+  border-radius: 999px;
+  animation: spin 45s linear infinite;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.10));
+}
+.omni-mark-fallback{
+  width:34px; height:34px;
+  border-radius:999px;
+  background: conic-gradient(from 0deg,#3B82F6,#22C55E,#F59E0B,#F97316,#A855F7,#3B82F6);
+  animation: spin 45s linear infinite;
+}
+.omni-name{
+  font-weight: 900;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  color:#0F172A;
+}
 
-.omni-logo {{
-  width: 24px; height: 24px;
-  border-radius: 8px;
-}}
-.omni-word {{
-  height: 16px;
-}}
-
-.omni-nav {{
+/* direita (ícones) */
+.omni-right{
   display:flex;
   align-items:center;
   gap: 10px;
-}}
+}
 
-.omni-ico {{
+.omni-btn{
   width: 38px;
   height: 38px;
   border-radius: 14px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  text-decoration: none !important;
-  background: rgba(0,0,0,0.02);
-  border: 1px solid rgba(0,0,0,0.06);
-  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
-}}
-
-.omni-ico:hover {{
-  transform: translateY(-1px);
-  background: rgba(0,0,0,0.04);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-}}
-
-.omni-ico i {{
-  display: inline-flex;
+  display:flex;
   align-items:center;
   justify-content:center;
+  border: 1px solid rgba(226,232,240,0.95);
+  background: rgba(255,255,255,0.70);
+  box-shadow: 0 6px 14px rgba(15,23,42,0.05);
+  transition: transform .14s ease, box-shadow .14s ease, filter .14s ease;
+  cursor:pointer;
+  padding:0;
+}
+
+.omni-btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15,23,42,0.10);
+  filter: brightness(1.02);
+}
+
+.omni-ic{
   font-size: 18px;
   line-height: 1;
-}}
+  display:flex;
+}
 
-/* Remove underline */
-.omni-ico:visited, .omni-ico:active {{
-  text-decoration: none !important;
+/* ativo: halo sutil */
+.omni-btn.active{
+  border-color: rgba(15,23,42,0.16);
+  background: rgba(255,255,255,0.92);
+}
+
+.omni-sep{
+  width:1px;
+  height: 22px;
+  background: rgba(226,232,240,1);
+  margin: 0 4px;
+}
+
+@media (max-width: 900px){
+  .omni-name{display:none;}
+  .block-container{padding-top: 82px !important;}
+}
+</style>
+""", unsafe_allow_html=True)
+
+    # HTML topo (logo)
+    if icon_b64:
+        left_html = f'<img class="omni-spin" src="data:image/png;base64,{icon_b64}" />'
+    else:
+        left_html = '<div class="omni-mark-fallback"></div>'
+
+    st.markdown(f"""
+<div class="omni-topbar">
+  <div class="omni-left">
+    {left_html}
+    <div class="omni-name">OMNISFERA</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    # Botões do menu (Streamlit buttons) — overlay “invisível” com estilo
+    # Precisamos renderizar os botões reais para capturar clique.
+    # Fazemos em um container, mas visualmente eles ficam “na barra”.
+    # Truque: usar st.columns e empurrar para a direita com espaçamento.
+
+    # cria uma linha invisível abaixo (mas os botões recebem o CSS .omni-btn via seletor de data-testid)
+    # Para estilizar com precisão, usamos key e CSS por key.
+
+    # container de alinhamento
+    _l, _r = st.columns([6, 4])
+
+    with _r:
+        cols = st.columns([1,1,1,1,1,1,0.2,1])  # 6 ícones + separador + sair
+
+        items = [
+            ("home","Home"),
+            ("estudantes","Estudantes"),
+            ("pei","PEI"),
+            ("paee","PAEE"),
+            ("hub","Hub"),
+            ("diario","Diário"),
+            ("mon","Dados"),
+        ]
+
+        # Render: cada botão com key única
+        for i, (k, label) in enumerate(items):
+            with cols[i]:
+                key = f"nav_{k}"
+                if st.button(" ", key=key, help=label, use_container_width=True):
+                    _goto(k)
+
+                # CSS por botão key (Streamlit renderiza button dentro de div[data-testid="stButton"])
+                color = COLORS.get(k, "#0F172A")
+                icon = ICONS.get(k, "fi fi-sr-circle")
+                is_active = (k == active)
+
+                st.markdown(f"""
+<style>
+/* ataca o botão específico via key */
+div[data-testid="stButton"] button[kind="secondary"][data-testid="baseButton-secondary"] {{
+  /* fallback: não garante seletor por key */
+}}
+</style>
+""", unsafe_allow_html=True)
+
+                # seletor robusto: Streamlit dá um id no DOM? Não.
+                # Então aplicamos classe por "nth" é frágil. Melhor: colocar HTML do ícone dentro do botão via unsafe? Streamlit não permite.
+                # Solução estável: renderizar um HTML (ícone) clicável com st.markdown + link? (abre nova página).
+                # MAS você pediu navegação real. Então: usamos os botões, e desenhamos uma “camada visual” por cima em HTML.
+                # Isso é o mais estável e bonito.
+
+        # separador visual no meio
+        with cols[6]:
+            st.markdown('<div class="omni-sep"></div>', unsafe_allow_html=True)
+
+        # botão sair
+        with cols[7]:
+            if st.button(" ", key="nav_logout", help="Sair", use_container_width=True):
+                _logout()
+
+    # Camada visual por cima (HTML) — Ícones reais, cores, estado ativo
+    # Os botões reais ficam logo abaixo; o clique funciona porque os botões ocupam a área.
+    # Precisamos alinhar. O padding-top da page já compensa.
+
+    # Monta ícones em HTML com mesmo grid e tamanhos (vai “casar” com a área dos botões)
+    icons_html = ""
+    for k, label in [
+        ("home","Home"),
+        ("estudantes","Estudantes"),
+        ("pei","Estratégias & PEI"),
+        ("paee","Plano de Ação"),
+        ("hub","Hub"),
+        ("diario","Diário"),
+        ("mon","Evolução & Dados"),
+    ]:
+        color = COLORS.get(k, "#0F172A")
+        ic = ICONS.get(k, "fi fi-sr-circle")
+        active_cls = "active" if (k == active) else ""
+        icons_html += f"""
+<div class="omni-btn {active_cls}">
+  <i class="{ic} omni-ic" style="color:{color};"></i>
+</div>
+"""
+
+    # logout icon
+    logout_html = f"""
+<div class="omni-btn">
+  <i class="{ICONS['logout']} omni-ic" style="color:rgba(15,23,42,0.55);"></i>
+</div>
+"""
+
+    st.markdown(f"""
+<style>
+/* camada visual do lado direito, posicionada em cima da topbar */
+.omni-right-overlay{{
+  position: fixed;
+  top: 10px;
+  right: 18px;
+  height: 38px;
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  z-index: 2147483647;
+  pointer-events: none; /* clique passa pros botões streamlit */
 }}
 </style>
 
-<div class="omni-topbar">
-  <div class="omni-brand">
-    {"<img class='omni-logo' src='"+logo+"'/>" if logo else "🌿"}
-    {"<img class='omni-word' src='"+word+"'/>" if word else "<b>Omnisfera</b>"}
-  </div>
-
-  <div class="omni-nav">
-    {_render_nav_html()}
-  </div>
+<div class="omni-right-overlay">
+  {icons_html}
+  <div class="omni-sep"></div>
+  {logout_html}
 </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def _render_nav_html() -> str:
-    # Mostra ícones sempre, mas bloqueia navegação se não autenticado (vai pra home)
-    parts = []
-    for key, _, _, ico, accent in NAV:
-        parts.append(
-            f"""
-<a class="omni-ico" href="{nav_href(key)}" title="{key}">
-  <i class="{ico}" style="color:{accent}"></i>
-</a>
-"""
-        )
-    return "\n".join(parts)
+""", unsafe_allow_html=True)
