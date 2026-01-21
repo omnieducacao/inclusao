@@ -8,7 +8,7 @@ import time
 # ==============================================================================
 # 0) CONFIGURAÇÃO DO APP
 # ==============================================================================
-APP_VERSION = "v131.0 (Home 6 Cards • limpa • sem gate de aluno)"
+APP_VERSION = "v132.0 (Home 6 Cards • Estudantes + Escola do PIN)"
 
 try:
     IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
@@ -37,7 +37,7 @@ if "usuario_nome" not in st.session_state:
 if "usuario_cargo" not in st.session_state:
     st.session_state["usuario_cargo"] = ""
 
-# (mantém dados para compatibilidade com suas páginas, mas Home NÃO usa como gate)
+# Mantém dados para compatibilidade com suas páginas (Home NÃO usa como gate)
 default_state = {
     "nome": "",
     "nasc": date(2015, 1, 1),
@@ -75,10 +75,41 @@ def get_base64_image(image_path: str) -> str:
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
+def get_escola_vinculada() -> str:
+    """
+    Tentativa robusta de recuperar o nome da escola vinculada ao PIN.
+    Como o seu fluxo já "conseguiu trazer a informação do PIN", geralmente
+    ela fica em algo como:
+      - st.session_state["workspace_name"]
+      - st.session_state["escola_nome"]
+      - st.session_state["school_name"]
+      - st.session_state["workspace"]["name"]
+      - st.session_state["workspace"]["school_name"]
+    Esta função tenta todas sem quebrar.
+    """
+    keys_direct = ["escola", "escola_nome", "school_name", "workspace_name", "workspace_label", "workspace_display"]
+    for k in keys_direct:
+        v = st.session_state.get(k)
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+
+    w = st.session_state.get("workspace")
+    if isinstance(w, dict):
+        for k in ["name", "school_name", "escola", "escola_nome", "label", "display_name"]:
+            v = w.get(k)
+            if isinstance(v, str) and v.strip():
+                return v.strip()
+
+    # fallback: se só tiver workspace_id, mostramos uma forma curta
+    wsid = st.session_state.get("workspace_id")
+    if isinstance(wsid, str) and wsid.strip():
+        return f"Workspace {wsid[:8]}…"
+
+    return ""
+
 # ==============================================================================
 # 3) CSS GLOBAL (sempre) — evita “duas telas” sobrepondo
 # ==============================================================================
-# A ideia: manter um CSS base sempre, e só mostrar a UI de login OU a UI do app.
 st.markdown(
     """
 <style>
@@ -99,13 +130,11 @@ html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color:#2D3748; b
 # 4) LOGIN (único) — sem sobreposição
 # ==============================================================================
 if not st.session_state["autenticado"]:
-    # esconde sidebar só no login
     st.markdown(
         """<style>section[data-testid="stSidebar"] { display: none !important; }</style>""",
         unsafe_allow_html=True,
     )
 
-    # CSS do login (somente aqui)
     st.markdown(
         """
 <style>
@@ -181,6 +210,8 @@ else:
         "hidden",
     )
 
+escola_vinculada = get_escola_vinculada()
+
 st.markdown(
     f"""
 <style>
@@ -215,16 +246,29 @@ st.markdown(
   position: fixed; top: 15px; right: 15px;
   background: {card_bg}; border: 1px solid {card_border};
   backdrop-filter: blur(12px);
-  padding: 5px 15px; min-width: 150px; border-radius: 12px;
+  padding: 6px 14px;
+  border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.06);
   z-index: 999990;
-  display:flex; align-items:center; justify-content:center;
+  display:flex; flex-direction:column; align-items:flex-end; justify-content:center;
+  gap: 2px;
   pointer-events: none;
 }}
 .omni-text {{
   font-family:'Inter', sans-serif;
   font-weight: 800; font-size: 0.6rem; color: #2D3748;
   letter-spacing: 1.5px; text-transform: uppercase;
+}}
+.omni-school {{
+  font-family:'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: #2D3748;
+  opacity: 0.92;
+  max-width: 340px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }}
 
 @keyframes spin {{ from {{ transform: rotate(0deg); }} to {{ transform: rotate(360deg); }} }}
@@ -248,8 +292,13 @@ st.markdown(
   font-size: 1.5rem;
   margin: 0;
 }}
+.hero-sub {{
+  margin-top: 6px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+}}
 
-/* HOME 6 CARDS — 3 por linha (desktop), responsivo */
+/* HOME CARDS — 3 por linha (desktop), responsivo */
 .home-grid {{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -352,7 +401,10 @@ st.markdown(
   {logo_text_html}
   <div class="header-subtitle-text">Ecossistema de Inteligência Pedagógica</div>
 </div>
-<div class="omni-badge"><span class="omni-text">{display_text}</span></div>
+<div class="omni-badge">
+  <span class="omni-text">{display_text}</span>
+  {"<span class='omni-school'>"+escola_vinculada+"</span>" if escola_vinculada else ""}
+</div>
 """,
     unsafe_allow_html=True,
 )
@@ -363,8 +415,9 @@ st.markdown(
 with st.sidebar:
     st.markdown("### 🧭 Navegação")
 
-    if st.button("🏠 Home", use_container_width=True):
-        st.rerun()
+    # Estudantes (nova pasta/arquivo)
+    if st.button("👥 Estudantes", use_container_width=True):
+        st.switch_page("pages/0_Alunos.py")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -378,8 +431,16 @@ with st.sidebar:
         st.switch_page("pages/3_Hub_Inclusao.py")
 
     st.markdown("---")
+
+    # Escola do PIN (também na sidebar)
+    if escola_vinculada:
+        st.caption("🏫 Escola vinculada")
+        st.markdown(f"**{escola_vinculada}**")
+
+    st.markdown("---")
     st.markdown(f"**👤 {st.session_state.get('usuario_nome', '')}**")
     st.caption(st.session_state.get("usuario_cargo", ""))
+
     if st.button("Sair", use_container_width=True):
         st.session_state["autenticado"] = False
         st.rerun()
@@ -394,18 +455,27 @@ except Exception:
     primeiro_nome = ""
 
 st.markdown(
-    f"""<div class="dash-hero"><div class="hero-title">Olá, {primeiro_nome}!</div></div>""",
+    f"""
+<div class="dash-hero">
+  <div>
+    <div class="hero-title">Olá, {primeiro_nome}!</div>
+    {"<div class='hero-sub'>🏫 "+escola_vinculada+"</div>" if escola_vinculada else ""}
+  </div>
+</div>
+""",
     unsafe_allow_html=True,
 )
 
 # ==============================================================================
-# 7.1) HOME — 6 CARDS (3 por linha) — SEM gate de aluno
+# 7.1) HOME — 6 CARDS (3 por linha)
+# - removemos o card HOME
+# - adicionamos ESTUDANTES -> pages/0_Alunos.py
 # ==============================================================================
 st.markdown("### 🚀 Acesso Rápido")
 
 def _handle(dest: str):
-    if dest == "HOME":
-        st.rerun()
+    if dest == "ALUNOS":
+        st.switch_page("pages/0_Alunos.py")
     elif dest == "PEI":
         st.switch_page("pages/1_PEI.py")
     elif dest == "PAEE":
@@ -423,7 +493,8 @@ def _handle(dest: str):
         time.sleep(0.2)
 
 cards = [
-    ("Home", "Central do ecossistema", "fi fi-br-house-blank", "HOME", "b-slate"),
+    # label, subtitle, icon_class, dest, border_class
+    ("Estudantes", "Gestão e seleção de alunos", "fi fi-br-users", "ALUNOS", "b-slate"),
     ("Estratégias & PEI", "Plano Educacional Individualizado", "fi fi-sr-book-open-cover", "PEI", "b-blue"),
     ("Plano de Ação / PAEE", "Sala de Recursos e intervenções", "fi fi-ss-puzzle", "PAEE", "b-purple"),
     ("Hub de Recursos", "Materiais, adaptações e apoio", "fi fi-sr-rocket", "HUB", "b-teal"),
