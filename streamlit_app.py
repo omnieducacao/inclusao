@@ -2,6 +2,13 @@ import streamlit as st
 from login_view import render_login
 from home_view import render_home
 
+st.set_page_config(page_title="Omnisfera | Ecossistema", page_icon="🌐", layout="wide")
+
+from home_view import render_home
+
+render_home()
+
+
 # Configuração Global da Página
 st.set_page_config(
     page_title="Omnisfera",
