@@ -5,12 +5,13 @@ import base64
 import os
 import time
 
+# Supabase (mantido só para não quebrar o projeto; a lista de estudantes foi removida)
 from supabase import create_client
 
 # ==============================================================================
 # 0) CONFIGURAÇÃO DO APP
 # ==============================================================================
-APP_VERSION = "v129.0 (Home 6 Cards + Supabase Only)"
+APP_VERSION = "v130.0 (Home 6 Cards • sem lista de estudantes)"
 
 try:
     IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
@@ -79,52 +80,8 @@ def get_sb():
         return None
     return create_client(url, key)
 
+# mantém o client disponível no app, mas não usamos nesta Home agora
 sb = get_sb()
-
-def get_workspace_id():
-    # Se você usa workspace via PIN/RPC, normalmente esse valor já está em session_state.
-    # Aqui a Home não cria/redirecta nada — só lê.
-    return st.session_state.get("workspace_id")
-
-def sb_list_students():
-    if not sb:
-        return []
-    ws = get_workspace_id()
-    q = sb.table("students").select(
-        "id,name,birth_date,grade,class_group,diagnosis,created_at,workspace_id"
-    )
-    if ws:
-        q = q.eq("workspace_id", ws)
-    res = q.order("created_at", desc=True).execute()
-    return res.data or []
-
-def sb_delete_student(student_id: str):
-    if not sb:
-        return False, "Supabase não configurado."
-    ws = get_workspace_id()
-    q = sb.table("students").delete().eq("id", student_id)
-    if ws:
-        q = q.eq("workspace_id", ws)
-    q.execute()
-    return True, "Aluno removido."
-
-def load_student_to_session(row: dict):
-    st.session_state.dados["student_id"] = row.get("id")
-    st.session_state.dados["nome"] = row.get("name", "") or ""
-    st.session_state.dados["serie"] = row.get("grade", None)
-    st.session_state.dados["turma"] = row.get("class_group", "") or ""
-    st.session_state.dados["diagnostico"] = row.get("diagnosis", "") or ""
-
-    bd = row.get("birth_date")
-    if isinstance(bd, str):
-        try:
-            st.session_state.dados["nasc"] = date.fromisoformat(bd)
-        except Exception:
-            pass
-
-# Cache leve na sessão (lista)
-if "banco_estudantes" not in st.session_state:
-    st.session_state.banco_estudantes = sb_list_students() if sb else []
 
 # ==============================================================================
 # 3) LOGIN (gate)
@@ -333,7 +290,7 @@ html, body, [class*="css"] {{
   margin: 0;
 }}
 
-/* HOME 6 CARDS (grid) */
+/* HOME 6 CARDS — 3 por linha (fixo em desktop), responsivo */
 .home-grid {{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -401,12 +358,11 @@ html, body, [class*="css"] {{
   height: 100%;
   z-index: 10;
 }}
-/* remove espaçamento extra do st.button dentro do wrap */
 .home-btn-wrap [data-testid="stButton"] {{ margin: 0; }}
 .home-btn-wrap [data-testid="stButton"] > button {{ padding: 0 !important; }}
 .home-btn-wrap [data-testid="stButton"] > button:focus {{ outline: none !important; box-shadow: none !important; }}
 
-/* cards borda por módulo (sutil) */
+/* borda por módulo (sutil) */
 .b-blue {{ border-bottom: 4px solid #3182CE; }}
 .b-purple {{ border-bottom: 4px solid #805AD5; }}
 .b-teal {{ border-bottom: 4px solid #38B2AC; }}
@@ -493,7 +449,7 @@ st.markdown(
 )
 
 # ==============================================================================
-# 6.1) HOME — 6 CARDS (mesmos destinos da sidebar)
+# 6.1) HOME — 6 CARDS (3 por linha) — mesmos destinos da sidebar
 # ==============================================================================
 st.markdown("### 🚀 Acesso Rápido")
 
@@ -556,69 +512,7 @@ for idx, (title, sub, icon_class, dest, border) in enumerate(cards):
 st.markdown("</div>", unsafe_allow_html=True)
 
 # ==============================================================================
-# 7) BANCO DE ESTUDANTES (SUPABASE)
-# ==============================================================================
-st.markdown("---")
-st.markdown("### 🗄️ Banco de Estudantes (Supabase)")
-
-if st.session_state.dados.get("nome"):
-    st.success(f"✅ Aluno Ativo: **{st.session_state.dados['nome']}**")
-else:
-    st.info("👇 Selecione um aluno para começar ou vá ao PEI para criar um novo.")
-
-if not sb:
-    st.error("❌ Supabase não configurado. Verifique SUPABASE_URL e SUPABASE_ANON_KEY em st.secrets.")
-else:
-    ws = get_workspace_id()
-    if ws:
-        st.caption(f"Workspace ativo: {ws}")
-    else:
-        st.caption("Workspace_id não encontrado no session_state. Listando sem filtro de workspace.")
-
-    colA, colB = st.columns([1, 3])
-    with colA:
-        if st.button("🔄 Recarregar lista", use_container_width=True):
-            st.session_state.banco_estudantes = sb_list_students()
-            st.rerun()
-    with colB:
-        st.caption("Dica: crie/edite alunos no PEI e volte aqui para carregar rapidamente.")
-
-    alunos = st.session_state.banco_estudantes or []
-    if not alunos:
-        st.warning("Nenhum aluno encontrado.")
-    else:
-        for i, aluno in enumerate(alunos):
-            nome = aluno.get("name", "")
-            if not nome:
-                continue
-
-            with st.container():
-                c_info, c_act = st.columns([4, 1])
-
-                with c_info:
-                    st.markdown(f"**{nome}** | {aluno.get('grade', '-')}")
-                    st.caption(f"Diagnóstico: {aluno.get('diagnosis', '---')}")
-
-                with c_act:
-                    if st.button("📂 Carregar", key=f"load_{i}", use_container_width=True):
-                        load_student_to_session(aluno)
-                        st.toast(f"Carregado: {nome}", icon="✅")
-                        time.sleep(0.2)
-                        st.rerun()
-
-                    if st.button("🗑️", key=f"del_{i}", type="secondary", use_container_width=True):
-                        ok, msg = sb_delete_student(aluno.get("id"))
-                        if ok:
-                            st.success(msg)
-                            st.session_state.banco_estudantes = sb_list_students()
-                            st.rerun()
-                        else:
-                            st.error(msg)
-
-            st.markdown("<hr style='margin:5px 0;'>", unsafe_allow_html=True)
-
-# ==============================================================================
-# 8) FOOTER
+# 7) FOOTER
 # ==============================================================================
 st.markdown(
     "<div style='text-align: center; color: #CBD5E0; font-size: 0.7rem; margin-top: 40px;'>Omnisfera desenvolvida por RODRIGO A. QUEIROZ</div>",
