@@ -2,14 +2,8 @@ import streamlit as st
 
 st.set_page_config(page_title="Omnisfera | Ecossistema", page_icon="🌐", layout="wide")
 
-try:
-    from home_view import render_home
-except Exception as e:
-    st.error("Falha ao importar home_view.py")
-    st.exception(e)
-    st.stop()
-
-render_home()
+# manda direto pra Home
+st.switch_page("pages/0_Home.py")
 
 
 
