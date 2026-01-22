@@ -1204,28 +1204,40 @@ abas = [
 ]
 tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab_mapa = st.tabs(abas)
 
+
 # ==============================================================================
 # 11. ABA INÍCIO — CENTRAL (Gestão de Alunos + Backups)
 # ==============================================================================
 with tab0:
     st.markdown("### 🏛️ Central de Fundamentos e Gestão")
-    st.caption("Aqui você gerencia alunos (nuvem/backup) e acessa os fundamentos do PEI.")
+    st.caption("Aqui você gerencia alunos (backup local e nuvem/Supabase) e acessa fundamentos do PEI.")
 
     # -------------------------
     # Helpers locais (somente UI)
     # -------------------------
     def _coerce_dates_in_payload(d: dict):
-        """Converte campos de data salvos como string de volta para date."""
+        """Converte campos de data salvos como string de volta para date (sem depender de Supabase)."""
         if not isinstance(d, dict):
             return d
-
         for k in ["nasc", "monitoramento_data"]:
             try:
                 if k in d and isinstance(d[k], str) and d[k]:
                     d[k] = date.fromisoformat(d[k])
-            except:
+            except Exception:
                 pass
         return d
+
+    def _cloud_ready():
+        """
+        Nuvem só deve aparecer quando:
+        - sb (cliente supabase) está OK
+        - OWNER_ID e ws_id existem
+        Observação: se seu projeto usa JWT/user_id, isso normalmente já chega pela Home/Login.
+        """
+        try:
+            return (sb is not None) and bool(OWNER_ID) and bool(ws_id)
+        except Exception:
+            return False
 
     # -------------------------
     # LAYOUT 2 COLUNAS
@@ -1268,52 +1280,67 @@ with tab0:
         # Status vínculo
         student_id = st.session_state.get("selected_student_id")
         if student_id:
-            st.success("✅ Aluno vinculado ao Supabase")
+            st.success("✅ Aluno vinculado ao Supabase (nuvem)")
             st.caption(f"student_id: {student_id[:8]}...")
         else:
-            st.warning("📝 Modo rascunho (não salvo na nuvem)")
+            st.warning("📝 Modo rascunho (sem vínculo na nuvem)")
 
-        # ---------
-        # (1) Carregar JSON do PC
-        # ---------
+        # ------------------------------------------------------------------
+        # (1) BACKUP LOCAL: carregar JSON do computador (NÃO chama Supabase)
+        # ------------------------------------------------------------------
         with st.container(border=True):
-            st.markdown("##### 1) Carregar Backup (.JSON)")
+            st.markdown("##### 1) Carregar Backup Local (.JSON)")
+            st.caption("✅ Isso **não** comunica com o Supabase. Apenas aplica os dados no formulário.")
+
             up_json = st.file_uploader(
                 "Envie um arquivo .json",
                 type="json",
-                key="inicio_uploader_json"
+                key="inicio_uploader_json",
             )
             if up_json:
                 try:
-                    d = json.load(up_json)
-                    d = _coerce_dates_in_payload(d)
-                    if "dados" in st.session_state and isinstance(st.session_state.dados, dict):
-                        st.session_state.dados.update(d)
-                    else:
-                        st.session_state.dados = d
+                    payload = json.load(up_json)
+                    payload = _coerce_dates_in_payload(payload)
 
-                    st.success("Backup carregado ✅")
+                    # aplica no estado do formulário
+                    if "dados" in st.session_state and isinstance(st.session_state.dados, dict):
+                        st.session_state.dados.update(payload)
+                    else:
+                        st.session_state.dados = payload
+
+                    # importante: carregar JSON NÃO cria vínculo com a nuvem
+                    st.session_state["selected_student_id"] = None
+                    st.session_state["selected_student_name"] = ""
+                    # opcional: também limpa o texto de pdf caso exista
+                    # st.session_state["pdf_text"] = ""
+
+                    st.success("Backup local carregado ✅ (aplicado ao formulário)")
                     st.toast("Dados aplicados ao formulário.", icon="✅")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Erro ao ler JSON: {e}")
 
-            st.caption("Dica: use isso para migrar dados entre máquinas ou restaurar um PEI salvo.")
-
-        # ---------
-        # (2) Nuvem: listar / carregar / excluir
-        # ---------
+        # ------------------------------------------------------------------
+        # (2) NUVEM (SUPABASE): listar / carregar / excluir
+        #     -> Só aqui você “vai no banco” para abrir aluno salvo na nuvem
+        # ------------------------------------------------------------------
         with st.container(border=True):
-            st.markdown("##### 2) Nuvem (Supabase) — Alunos")
-            if not st.session_state.get("supabase_jwt") or not st.session_state.get("supabase_user_id"):
-                st.info("Faça login Supabase na Home para ver alunos salvos na nuvem.")
+            st.markdown("##### 2) Nuvem (Supabase) — Abrir aluno salvo")
+
+            if not _cloud_ready():
+                st.info("Nuvem indisponível: faça login (Home/PIN) e garanta workspace + sessão Supabase.")
             else:
-                # Buscar alunos
-                alunos = db_list_students()
+                # Buscar alunos (do banco)
+                try:
+                    alunos = db_list_students()
+                except Exception as e:
+                    alunos = []
+                    st.error(f"Erro ao listar alunos: {e}")
+
                 if not alunos:
-                    st.info("Nenhum aluno salvo ainda.")
+                    st.info("Nenhum aluno salvo na nuvem ainda.")
                 else:
-                    # Exibir select por nome + (turma/serie) como contexto
+                    # Select por nome + série/turma
                     opcoes = []
                     mapa = {}
                     for a in alunos:
@@ -1325,53 +1352,70 @@ with tab0:
                         mapa[label] = a
 
                     sel = st.selectbox(
-                        "Selecione um aluno",
+                        "Selecione um aluno salvo na nuvem",
                         options=opcoes,
                         index=None,
                         placeholder="Escolha para carregar/excluir…",
-                        key="inicio_select_aluno"
+                        key="inicio_select_aluno_nuvem",
                     )
 
                     cA, cB, cC = st.columns(3)
-                    # Carregar: puxa student + último PEI e aplica no estado
+
+                    # A) Carregar da nuvem: vincula + puxa último PEI (pei_documents)
                     with cA:
-                        if st.button("☁️ Carregar", use_container_width=True, disabled=(not sel), key="inicio_btn_carregar"):
+                        if st.button(
+                            "☁️ Abrir da Nuvem",
+                            use_container_width=True,
+                            disabled=(not sel),
+                            key="inicio_btn_carregar_nuvem",
+                        ):
                             a = mapa.get(sel)
                             if not a:
                                 st.error("Aluno inválido.")
                             else:
                                 sid = a["id"]
-                                # vincula
+
+                                # 1) Vincular este aluno
                                 st.session_state["selected_student_id"] = sid
                                 st.session_state["selected_student_name"] = a.get("name") or ""
 
-                                # tenta carregar o último PEI salvo
-                                row = supa_load_latest_pei(sid)
+                                # 2) Tentar carregar o último PEI salvo
+                                try:
+                                    row = supa_load_latest_pei(sid)
+                                except Exception as e:
+                                    row = None
+                                    st.warning(f"Não consegui buscar PEI salvo (pei_documents): {e}")
+
                                 if row and row.get("payload"):
-                                    payload = row["payload"]
-                                    payload = _coerce_dates_in_payload(payload)
+                                    payload = _coerce_dates_in_payload(row["payload"])
                                     st.session_state.dados.update(payload)
                                     st.session_state.pdf_text = row.get("pdf_text") or ""
-                                    st.success("Aluno + último PEI carregados ✅")
+                                    st.success("Aluno + último PEI (nuvem) carregados ✅")
                                 else:
-                                    # se não houver PEI, preenche só cadastro básico
+                                    # fallback: se não houver PEI salvo, carrega só o cadastro básico do student
                                     st.session_state.dados["nome"] = a.get("name") or ""
                                     try:
                                         bd = a.get("birth_date")
                                         if isinstance(bd, str) and bd:
                                             st.session_state.dados["nasc"] = date.fromisoformat(bd)
-                                    except:
+                                    except Exception:
                                         pass
-                                    st.session_state.dados["serie"] = a.get("grade")
+                                    st.session_state.dados["serie"] = a.get("grade") or None
                                     st.session_state.dados["turma"] = a.get("class_group") or ""
                                     st.session_state.dados["diagnostico"] = a.get("diagnosis") or ""
-                                    st.info("Aluno carregado. Ainda não existe PEI salvo para este aluno.")
+                                    st.info("Aluno carregado. Ainda não existe PEI salvo na nuvem para este aluno.")
 
                                 st.rerun()
 
-                    # Excluir: remove o aluno (e por consequência PEIs via FK/cascade se configurado)
+                    # B) Excluir na nuvem: deleta aluno (e PEIs se FK/cascade estiver configurado)
                     with cB:
-                        if st.button("🗑️ Excluir", use_container_width=True, disabled=(not sel), type="primary", key="inicio_btn_excluir"):
+                        if st.button(
+                            "🗑️ Excluir da Nuvem",
+                            use_container_width=True,
+                            disabled=(not sel),
+                            type="primary",
+                            key="inicio_btn_excluir_nuvem",
+                        ):
                             a = mapa.get(sel)
                             if not a:
                                 st.error("Aluno inválido.")
@@ -1382,36 +1426,38 @@ with tab0:
                                     if st.session_state.get("selected_student_id") == a["id"]:
                                         st.session_state["selected_student_id"] = None
                                         st.session_state["selected_student_name"] = ""
-                                    st.success("Aluno excluído ✅")
+                                    st.success("Aluno excluído da nuvem ✅")
                                     st.rerun()
                                 except Exception as e:
                                     st.error(f"Erro ao excluir: {e}")
 
-                    # Limpar rascunho / desvincular
+                    # C) Voltar para rascunho: desvincula (SEM mexer no banco)
                     with cC:
-                        if st.button("🧹 Novo (Rascunho)", use_container_width=True, key="inicio_btn_novo"):
+                        if st.button("🧹 Novo (Rascunho)", use_container_width=True, key="inicio_btn_novo_rascunho"):
                             st.session_state["selected_student_id"] = None
                             st.session_state["selected_student_name"] = ""
-                            # mantém seus defaults já existentes no app
-                            for k in list(st.session_state.dados.keys()):
-                                pass
                             st.toast("Voltando para rascunho…", icon="📝")
                             st.rerun()
 
-        # ---------
-        # Sincronizar aluno (criar na nuvem) — trazendo da sidebar
-        # ---------
+        # ------------------------------------------------------------------
+        # (3) SINCRONIZAR: criar aluno na nuvem (somente quando você quiser)
+        # ------------------------------------------------------------------
         with st.container(border=True):
-            st.markdown("##### 🔗 Sincronizar aluno (criar e vincular)")
-            st.caption("Cria o aluno na tabela **students** e libera Salvar/Carregar do PEI.")
+            st.markdown("##### 🔗 Sincronizar aluno (criar e vincular na nuvem)")
+            st.caption("Cria o aluno na tabela **students** e libera salvar/carregar PEI na nuvem.")
 
-            if not st.session_state.get("supabase_jwt") or not st.session_state.get("supabase_user_id"):
-                st.info("Faça login Supabase na Home para habilitar.")
+            if not _cloud_ready():
+                st.info("Nuvem indisponível: faça login e valide workspace.")
             else:
                 if st.session_state.get("selected_student_id"):
                     st.success("Este aluno já está sincronizado ✅")
                 else:
-                    btn_sync = st.button("🔗 Sincronizar agora", type="primary", use_container_width=True, key="inicio_btn_sync")
+                    btn_sync = st.button(
+                        "🔗 Sincronizar agora",
+                        type="primary",
+                        use_container_width=True,
+                        key="inicio_btn_sync_nuvem",
+                    )
                     if btn_sync:
                         if not st.session_state.dados.get("nome"):
                             st.warning("Preencha o NOME do estudante na aba Estudante antes de sincronizar.")
@@ -1420,17 +1466,20 @@ with tab0:
                         else:
                             try:
                                 created = db_create_student({
-                                    "owner_id": OWNER_ID,
                                     "name": st.session_state.dados.get("nome"),
-                                    "birth_date": st.session_state.dados.get("nasc").isoformat() if hasattr(st.session_state.dados.get("nasc"), "isoformat") else None,
+                                    "birth_date": (
+                                        st.session_state.dados.get("nasc").isoformat()
+                                        if hasattr(st.session_state.dados.get("nasc"), "isoformat")
+                                        else None
+                                    ),
                                     "grade": st.session_state.dados.get("serie"),
                                     "class_group": st.session_state.dados.get("turma") or None,
-                                    "diagnosis": st.session_state.dados.get("diagnostico") or None
+                                    "diagnosis": st.session_state.dados.get("diagnostico") or None,
                                 })
                                 if created and created.get("id"):
                                     st.session_state["selected_student_id"] = created["id"]
                                     st.session_state["selected_student_name"] = created.get("name") or ""
-                                    st.success("Sincronizado ✅ Agora você pode salvar/carregar PEI.")
+                                    st.success("Sincronizado ✅ Agora você pode salvar/carregar PEI na nuvem.")
                                     st.rerun()
                                 else:
                                     st.error("Falha ao criar aluno. Verifique RLS/policies no Supabase.")
