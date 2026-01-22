@@ -1,3 +1,4 @@
+# pages/1_PEI.py
 import streamlit as st
 from datetime import date
 from io import BytesIO
@@ -11,58 +12,68 @@ import os
 import time
 import re
 
-from _client import get_supabase
+# ✅ 1) set_page_config PRIMEIRO (uma vez só)
+st.set_page_config(
+    page_title="Omnisfera | PEI",
+    page_icon="📘",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-sb = get_supabase()
+# ✅ 2) UI lockdown (sem quebrar se faltar arquivo)
+try:
+    from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
+    hide_streamlit_chrome_if_needed()
+    hide_default_sidebar_nav()
+except Exception:
+    pass
+
+APP_VERSION = "v150.0 (SaaS Design)"
+
+# ✅ 3) Gate mínimo: só abre se estiver autenticado e com workspace_id
+if not st.session_state.get("autenticado"):
+    st.error("🔒 Acesso negado. Faça login na Página Inicial.")
+    st.stop()
 
 ws_id = st.session_state.get("workspace_id")
 if not ws_id:
     st.error("Workspace não definido. Volte ao Início e valide o PIN.")
+    if st.button("Voltar para Login", use_container_width=True):
+        for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo"]:
+            if k in st.session_state:
+                del st.session_state[k]
+        st.switch_page("streamlit_app.py")
     st.stop()
 
-from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
+# ✅ 4) Supabase: opcional por enquanto (não bloqueia o PEI)
+sb = None
+try:
+    from _client import get_supabase  # só funciona se o arquivo existir na raiz
+    sb = get_supabase()
+except Exception:
+    sb = None
 
-APP_VERSION = "v150.0 (SaaS Design)"
+# ✅ 5) Sidebar de navegação (simples, sem auto-loop)
+with st.sidebar:
+    st.markdown("### 🧭 Navegação")
+    if st.button("🏠 Home", use_container_width=True):
+        st.switch_page("streamlit_app.py")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.button("📘 PEI", use_container_width=True, disabled=True)
+    with col2:
+        if st.button("🧩 PAEE", use_container_width=True):
+            st.switch_page("pages/2_PAE.py")
+    if st.button("🚀 Hub", use_container_width=True):
+        st.switch_page("pages/3_Hub_Inclusao.py")
+    st.markdown("---")
 
-# ✅ 1) set_page_config TEM que vir antes de qualquer st.markdown/st.sidebar/st.button
-st.set_page_config(
-    page_title="Omnisfera",
-    page_icon="omni_icone.png" if os.path.exists("omni_icone.png") else "🌐",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# ✅ 2) Lockdown (ENV=TESTE não esconde; sem ENV esconde)
-hide_streamlit_chrome_if_needed()
-
-# ✅ 3) Esconde o nav padrão
-hide_default_sidebar_nav()
-
-# (Opcional) Detecta ambiente de teste, se você ainda usa isso em algum lugar
+# ✅ 6) Flag de ambiente (se você quiser usar no visual)
 try:
     IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
 except Exception:
     IS_TEST_ENV = False
 
-# ✅ Sidebar simples de navegação (mantém seu comportamento)
-with st.sidebar:
-    st.markdown("### 🧭 Navegação")
-
-    if st.button("🏠 Home", use_container_width=True):
-        st.switch_page("streamlit_app.py")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("📘 PEI", use_container_width=True):
-            st.switch_page("pages/1_PEI.py")
-    with col2:
-        if st.button("🧩 PAEE", use_container_width=True):
-            st.switch_page("pages/2_PAE.py")
-
-    if st.button("🚀 Hub", use_container_width=True):
-        st.switch_page("pages/3_Hub_Inclusao.py")
-
-    st.markdown("---")
 
 # ==============================================================================
 # 0. CONFIGURAÇÃO DE PÁGINA
