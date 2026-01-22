@@ -8,7 +8,7 @@ import time
 # ==============================================================================
 # 1. CONFIGURAÇÃO INICIAL
 # ==============================================================================
-APP_VERSION = "v142.0 (Portal Omnisfera)"
+APP_VERSION = "v143.0 (Recursos Coloridos)"
 
 try:
     IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
@@ -26,7 +26,6 @@ st.set_page_config(
 # 2. GATE DE ACESSO
 # ==============================================================================
 def acesso_bloqueado(msg: str):
-    # HTML Flush (sem indentação) para evitar bug de renderização
     html_error = f"""
 <div style="display:flex; justify-content:center; align-items:center; height:70vh;">
 <div style="text-align:center; padding:40px; background:white; border-radius:24px; box-shadow:0 10px 40px rgba(0,0,0,0.08); max-width:480px; border:1px solid #E2E8F0;">
@@ -67,7 +66,7 @@ def escola_vinculada() -> str:
     return st.session_state.get("workspace_name") or st.session_state.get("workspace_id", "")[:8]
 
 # ==============================================================================
-# 4. CSS (DESIGN SYSTEM PORTAL)
+# 4. CSS (DESIGN SYSTEM)
 # ==============================================================================
 st.markdown("""
 <style>
@@ -80,7 +79,6 @@ html, body, [class*="css"] {
     background-color: #F8FAFC;
 }
 
-/* Limpeza UI Streamlit */
 [data-testid="stSidebarNav"] { display: none !important; }
 [data-testid="stHeader"] { visibility: hidden !important; height: 0px !important; }
 .block-container { 
@@ -127,7 +125,7 @@ html, body, [class*="css"] {
 .hero-title { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 1.8rem; margin: 0; }
 .hero-quote { font-size: 1.05rem; opacity: 0.9; font-style: italic; max-width: 800px; line-height: 1.6; }
 
-/* MODULE CARDS */
+/* MODULE CARDS (Main Grid) */
 .mod-card {
     background: white; border-radius: 16px; padding: 24px;
     border: 1px solid #E2E8F0; height: 100%; min-height: 150px;
@@ -149,8 +147,7 @@ html, body, [class*="css"] {
     padding-top: 15px; border-top: 1px solid #F1F5F9;
 }
 
-/* INFO CARDS (FUNDAMENTOS) */
-.info-section { margin-top: 40px; margin-bottom: 20px; }
+/* INFO BOXES (Tabs) */
 .info-header { font-size: 1.2rem; font-weight: 800; color: #1E293B; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
 .info-box {
     background: white; padding: 20px; border-radius: 12px; border: 1px solid #E2E8F0;
@@ -160,21 +157,48 @@ html, body, [class*="css"] {
 .info-text { font-size: 0.9rem; color: #475569; line-height: 1.6; }
 .highlight { color: #2563EB; font-weight: 600; }
 
-/* RESOURCE LINKS */
-.res-card {
-    background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px;
-    display: flex; align-items: center; gap: 12px; transition: all 0.2s;
+/* RECURSOS EXTERNOS (COLORIDOS) */
+.resource-btn {
+    display: flex; align-items: center; gap: 15px;
+    padding: 16px 20px;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    text-decoration: none !important;
+    height: 100%;
 }
-.res-card:hover { background: white; border-color: #CBD5E1; transform: translateY(-2px); }
-.res-icon { font-size: 1.5rem; color: #64748B; }
-.res-text { font-weight: 600; color: #1E293B; font-size: 0.9rem; }
+.resource-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.06);
+}
+.res-icon-box {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; flex-shrink: 0;
+}
+.res-content {
+    display: flex; flex-direction: column;
+}
+.res-label { font-weight: 700; font-size: 0.95rem; color: #1E293B; }
+.res-sub { font-size: 0.75rem; opacity: 0.8; font-weight: 500; }
+
+/* Cores de Fundo Específicas */
+.bg-light-blue { background-color: #EFF6FF; border-color: #DBEAFE; }
+.bg-light-green { background-color: #F0FDF4; border-color: #DCFCE7; }
+.bg-light-pink { background-color: #FDF2F8; border-color: #FCE7F3; }
+.bg-light-orange { background-color: #FFF7ED; border-color: #FFEDD5; }
+
+/* Cores de Ícone */
+.txt-blue { color: #2563EB; }
+.txt-green { color: #16A34A; }
+.txt-pink { color: #DB2777; }
+.txt-orange { color: #EA580C; }
 
 /* THEMES */
 .t-indigo { background: #EEF2FF; color: #4F46E5; }
 .t-blue { background: #EFF6FF; color: #2563EB; }
 .t-purple { background: #FAF5FF; color: #9333EA; }
 .t-teal { background: #F0FDFA; color: #0D9488; }
-.t-slate { background: #F8FAFC; color: #64748B; }
 
 .ghost-btn button { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; z-index: 10; cursor: pointer; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -182,12 +206,11 @@ html, body, [class*="css"] {
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 5. RENDER HEADER
+# 5. HEADER
 # ==============================================================================
 icone_b64 = get_base64_image("omni_icone.png")
 workspace_name = escola_vinculada()
 usuario_nome = st.session_state.get('usuario_nome', 'Visitante')
-iniciais = usuario_nome[:2].upper() if usuario_nome else "UN"
 
 logo_img = f'<img src="data:image/png;base64,{icone_b64}" class="brand-logo">' if icone_b64 else "🌐"
 
@@ -205,11 +228,10 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 6. SIDEBAR (Navegação Auxiliar)
+# 6. SIDEBAR
 # ==============================================================================
 with st.sidebar:
     st.markdown("### 🧭 Navegação")
-    # Nota: Usando 'pages/0_Alunos.py' baseado na lista de arquivos. Ajuste se necessário.
     if st.button("👥 Alunos", use_container_width=True): st.switch_page("pages/0_Alunos.py")
     
     c1, c2 = st.columns(2)
@@ -226,10 +248,10 @@ with st.sidebar:
         st.rerun()
 
 # ==============================================================================
-# 7. CONTEÚDO PRINCIPAL
+# 7. CONTEÚDO
 # ==============================================================================
 
-# HERO (Inspiracional)
+# HERO
 frase_inclusao = "A inclusão não é sobre inserir pessoas em moldes pré-existentes, mas sobre transformar o ambiente para que todos possam pertencer."
 
 st.markdown(f"""
@@ -239,11 +261,10 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# MÓDULOS (Grid Principal)
+# MÓDULOS
 st.markdown("### 🚀 Acesso aos Módulos")
 
 def render_module(title, desc, icon, theme, page_path, key):
-    # HTML SEM indentação interna para evitar bugs
     html = f"""
 <div class="mod-card">
 <div class="mod-icon {theme}"><i class="{icon}"></i></div>
@@ -255,7 +276,6 @@ def render_module(title, desc, icon, theme, page_path, key):
 </div>
 """
     st.markdown(html, unsafe_allow_html=True)
-    
     st.markdown(f'<div class="ghost-btn">', unsafe_allow_html=True)
     if st.button(f"btn_{key}", key=key):
         st.switch_page(page_path)
@@ -272,7 +292,7 @@ with c3:
 with c4:
     render_module("Hub Inclusão", "Materiais e IA.", "ri-rocket-2-line", "t-teal", "pages/3_Hub_Inclusao.py", "m_hub")
 
-# SEÇÃO DE FUNDAMENTOS (Conteúdo Rico em Abas)
+# FUNDAMENTOS
 st.markdown("<div style='height:40px'></div>", unsafe_allow_html=True)
 st.markdown('<div class="info-header"><i class="ri-book-mark-fill" style="color:#2563EB;"></i> Fundamentos da Inclusão</div>', unsafe_allow_html=True)
 
@@ -288,19 +308,13 @@ with tab1:
                 <span class="highlight">Conceito de "Outrar-se":</span> A inclusão exige a capacidade de "fazer-se outro", sentir o mundo do outro numa relação empática, sem confundir os sentimentos.
             </div>
         </div>
-        <div class="info-box">
-            <div class="info-title">Pertencimento vs. Retórica</div>
-            <div class="info-text">
-                Receber o aluno é diferente de incluí-lo. É necessário criar uma cultura onde a presença física venha acompanhada de participação efetiva. Não basta falar sobre inclusão, é preciso vivê-la.
-            </div>
-        </div>
         """, unsafe_allow_html=True)
     with col_b:
         st.markdown("""
         <div class="info-box" style="border-left: 4px solid #2563EB;">
             <div class="info-title">Justiça Curricular</div>
             <div class="info-text">
-                O currículo deve representar e respeitar todos os grupos sociais, oferecendo condições igualitárias de desenvolvimento. Adaptação não é favor, é direito e justiça.
+                O currículo deve representar e respeitar todos os grupos sociais, oferecendo condições igualitárias de desenvolvimento. Adaptação não é favor, é direito.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -330,7 +344,7 @@ with tab2:
         <div class="info-box">
             <div class="info-title">👁️ Visão de Potência</div>
             <div class="info-text">
-                Abandonar a visão de "limitação" e focar nas habilidades que podem ser desenvolvidas. Todo aluno aprende, mas não no mesmo tempo nem do mesmo jeito.
+                Abandonar a visão de "limitação" e focar nas habilidades que podem ser desenvolvidas. Todo aluno aprende, mas não no mesmo tempo.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -340,35 +354,39 @@ with tab3:
     <div class="info-box">
         <div class="info-title">Características de um ambiente sensibilizado</div>
         <ul style="margin:0; padding-left:20px; color:#475569; font-size:0.9rem;">
-            <li style="margin-bottom:10px;"><b>Equipe Engajada:</b> Educadores interessados nos direitos de TODOS, não apenas dos que se encaixam no padrão.</li>
-            <li style="margin-bottom:10px;"><b>Eventos Acessíveis:</b> Festas e atividades extracurriculares planejadas para que todos participem plenamente.</li>
-            <li style="margin-bottom:10px;"><b>Formação Contínua:</b> Busca constante por práticas anticapacitistas e diversidade.</li>
-            <li><b>Parceria com Famílias:</b> Uma relação de confiança e troca, fundamental para o sucesso do PEI.</li>
+            <li style="margin-bottom:10px;"><b>Equipe Engajada:</b> Educadores interessados nos direitos de TODOS.</li>
+            <li style="margin-bottom:10px;"><b>Eventos Acessíveis:</b> Festas e atividades planejadas para participação plena.</li>
+            <li style="margin-bottom:10px;"><b>Formação Contínua:</b> Busca constante por práticas anticapacitistas.</li>
+            <li><b>Parceria com Famílias:</b> Uma relação de confiança e troca.</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
 
-# RODAPÉ DE RECURSOS (LINKS ÚTEIS)
+# RECURSOS EXTERNOS (COLORIDOS E RETANGULARES)
 st.markdown("<div style='height:30px'></div>", unsafe_allow_html=True)
 st.markdown('<div class="info-header"><i class="ri-links-line" style="color:#64748B;"></i> Recursos Externos</div>', unsafe_allow_html=True)
 
 r1, r2, r3, r4 = st.columns(4)
 
-def render_resource(col, icon, text, link):
+def render_colored_resource(col, icon, text, sub, link, bg_class, txt_class):
     with col:
+        # Link externo seguro
         st.markdown(f"""
-        <a href="{link}" target="_blank" style="text-decoration:none;">
-            <div class="res-card">
-                <i class="{icon} res-icon"></i>
-                <div class="res-text">{text}</div>
+        <a href="{link}" target="_blank" class="resource-btn {bg_class}">
+            <div class="res-icon-box" style="background:rgba(255,255,255,0.6); color: inherit;">
+                <i class="{icon} {txt_class}"></i>
+            </div>
+            <div class="res-content">
+                <div class="res-label {txt_class}">{text}</div>
+                <div class="res-sub {txt_class}">{sub}</div>
             </div>
         </a>
         """, unsafe_allow_html=True)
 
-render_resource(r1, "ri-file-text-line", "Lei da Inclusão", "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm")
-render_resource(r2, "ri-compass-3-line", "Base Nacional (BNCC)", "http://basenacionalcomum.mec.gov.br/")
-render_resource(r3, "ri-brain-line", "Neurociência", "https://institutoneurosaber.com.br/")
-render_resource(r4, "ri-question-line", "Ajuda Omnisfera", "#")
+render_colored_resource(r1, "ri-file-text-line", "Lei da Inclusão", "LBI e diretrizes", "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm", "bg-light-blue", "txt-blue")
+render_colored_resource(r2, "ri-compass-3-line", "Base Nacional", "Competências BNCC", "http://basenacionalcomum.mec.gov.br/", "bg-light-green", "txt-green")
+render_colored_resource(r3, "ri-brain-line", "Neurociência", "Artigos e estudos", "https://institutoneurosaber.com.br/", "bg-light-pink", "txt-pink")
+render_colored_resource(r4, "ri-question-line", "Ajuda Omnisfera", "Suporte e tutoriais", "#", "bg-light-orange", "txt-orange")
 
 st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True)
 st.markdown("<div style='text-align: center; color: #CBD5E0; font-size: 0.75rem;'>Omnisfera desenvolvida por RODRIGO A. QUEIROZ</div>", unsafe_allow_html=True)
