@@ -3,6 +3,7 @@ import os
 import base64
 from datetime import datetime
 import streamlit as st
+import streamlit.components.v1 as components
 from supabase_client import rpc_workspace_from_pin, RPC_NAME
 
 # ==============================================================================
@@ -34,7 +35,14 @@ def b64(path):
             return base64.b64encode(f.read()).decode()
     return ""
 
-ICON = next((b64(f) for f in ["omni_icone.png","omni.png","logo.png"] if b64(f)), "")
+def _pick_icon_b64():
+    for f in ["omni_icone.png", "omni.png", "logo.png", "iconeaba.png", "omnisfera.png"]:
+        bb = b64(f)
+        if bb:
+            return bb
+    return ""
+
+ICON = _pick_icon_b64()
 TEXT = b64("omni_texto.png")
 
 # ==============================================================================
@@ -52,10 +60,10 @@ def inject_css():
     }
 
     /* Container Centralizado */
-    .wrap { 
-        max-width: 480px; 
-        margin: auto; 
-        padding-top: 40px; 
+    .wrap {
+        max-width: 480px;
+        margin: auto;
+        padding-top: 40px;
         padding-bottom: 60px;
     }
 
@@ -63,9 +71,9 @@ def inject_css():
     .brand {
         display:flex;
         align-items:center;
-        justify-content: center; /* Centraliza horizontalmente */
+        justify-content: center;
         gap:16px;
-        margin-bottom: 24px;
+        margin-bottom: 18px;
     }
 
     .logoSpin img {
@@ -80,9 +88,9 @@ def inject_css():
     }
 
     .subtitle {
-        text-align: center; /* Texto centralizado */
-        margin-bottom: 20px;
-        font-weight:700;
+        text-align: center;
+        margin-bottom: 22px;
+        font-weight:800;
         color:#64748B;
         font-size:15px;
     }
@@ -104,19 +112,20 @@ def inject_css():
         text-align: center;
     }
 
-    /* Termo de Confidencialidade (Caixa de Rolagem) */
+    /* Termo de Confidencialidade */
     .termo-box {
-        background-color: #F8FAFC; 
-        padding: 15px; 
+        background-color: #F8FAFC;
+        padding: 15px;
         border-radius: 10px;
-        height: 120px; 
-        overflow-y: auto; 
+        height: 120px;
+        overflow-y: auto;
         font-size: 13px;
-        border: 1px solid #E2E8F0; 
+        border: 1px solid #E2E8F0;
         margin: 15px 0;
-        text-align: justify; 
+        text-align: justify;
         color: #475569;
         line-height: 1.5;
+        font-weight: 700;
     }
 
     .err {
@@ -129,8 +138,8 @@ def inject_css():
         font-weight:900;
         text-align: center;
     }
-    
-    /* Ajuste inputs */
+
+    /* Inputs */
     div[data-testid="stTextInput"] input {
         border-radius: 10px;
     }
@@ -147,24 +156,31 @@ def render_login():
     # Container Principal Centralizado
     st.markdown('<div class="wrap">', unsafe_allow_html=True)
 
-    # 1. Logo Centralizada
-    st.markdown(f"""
-    <div class="brand">
-        <div class="logoSpin"><img src="data:image/png;base64,{ICON}"></div>
-        <div class="logoText"><img src="data:image/png;base64,{TEXT}"></div>
-    </div>
-    <div class="subtitle">Identifique-se para acessar seu workspace</div>
-    """, unsafe_allow_html=True)
+    # 1) Logo + subtítulo via components.html (evita “retângulo”/codeblock)
+    #    (Se os arquivos não existirem, fica limpo sem quebrar)
+    icon_html = f"<img src='data:image/png;base64,{ICON}'>" if ICON else ""
+    text_html = f"<img src='data:image/png;base64,{TEXT}'>" if TEXT else "<div style='font-weight:900;font-size:28px;color:#062B61;'>OMNISFERA</div>"
 
-    # 2. Cartão de Login
+    components.html(
+        f"""
+        <div class="brand">
+            <div class="logoSpin">{icon_html}</div>
+            <div class="logoText">{text_html}</div>
+        </div>
+        <div class="subtitle">Identifique-se para acessar seu workspace</div>
+        """,
+        height=120,
+    )
+
+    # 2) Cartão de Login
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    
+
     # Inputs
     nome = st.text_input("Seu nome")
     cargo = st.text_input("Sua função")
     pin = st.text_input("PIN do Workspace", type="password")
 
-    # 3. Termo de Confidencialidade (Caixa Restaurada)
+    # 3) Termo de Confidencialidade (Caixa com rolagem)
     st.markdown("""
     <div class="termo-box">
         <strong>1. Confidencialidade:</strong> O usuário compromete-se a não inserir dados reais sensíveis (nomes completos, documentos) que identifiquem estudantes, exceto em ambiente seguro autorizado pela instituição.<br><br>
@@ -183,31 +199,34 @@ def render_login():
             st.markdown("<div class='err'>Preencha todos os campos e aceite o termo.</div>", unsafe_allow_html=True)
             st.stop()
 
-        pin = pin.strip().upper()
-        if len(pin) == 8 and "-" not in pin:
-            pin = pin[:4] + "-" + pin[4:]
+        pin_norm = pin.strip().upper().replace(" ", "")
+        if len(pin_norm) == 8 and "-" not in pin_norm:
+            pin_norm = pin_norm[:4] + "-" + pin_norm[4:]
 
         # Validação via RPC
-        ws = rpc_workspace_from_pin(pin)
-        
+        ws = rpc_workspace_from_pin(pin_norm)
+
         if not ws:
             st.markdown("<div class='err'>PIN inválido ou workspace não encontrado.</div>", unsafe_allow_html=True)
         else:
             # Sucesso
-            st.session_state.usuario_nome = nome
-            st.session_state.usuario_cargo = cargo
+            st.session_state.usuario_nome = nome.strip()
+            st.session_state.usuario_cargo = cargo.strip()
             st.session_state.autenticado = True
-            st.session_state.workspace_id = ws["id"]
-            st.session_state.workspace_name = ws["name"]
+            st.session_state.workspace_id = ws.get("id")
+            st.session_state.workspace_name = ws.get("name")
             st.rerun()
 
-    st.markdown('</div>', unsafe_allow_html=True) # Fim Card
-    
-    # Info técnica discreta
-    st.markdown(f"""
-    <div style="text-align:center; margin-top:20px; color:#94A3B8; font-size:12px;">
-        RPC: <code>{RPC_NAME}</code>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)  # Fim Card
 
-    st.markdown('</div>', unsafe_allow_html=True) # Fim Wrap
+    # Info técnica discreta (também via components para evitar qualquer “retângulo”)
+    components.html(
+        f"""
+        <div style="text-align:center; margin-top:18px; color:#94A3B8; font-size:12px; font-family: 'Nunito', sans-serif;">
+            RPC: <code>{RPC_NAME}</code>
+        </div>
+        """,
+        height=30,
+    )
+
+    st.markdown('</div>', unsafe_allow_html=True)  # Fim Wrap
