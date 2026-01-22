@@ -1188,24 +1188,13 @@ def render_sidebar():
 # ==============================================================================
 # 10. HEADER + ABAS
 # ==============================================================================
-
-# (A) Se você usa sidebar_js para esconder menu / etc, injete assim (SEM indent solto)
-if "sidebar_js" in globals() and sidebar_js:
-    st.markdown(sidebar_js, unsafe_allow_html=True)
-
-# Header
 logo_path = finding_logo()
 b64_logo = get_base64_image(logo_path)
 mime = "image/png"
 img_html = f'<img src="data:{mime};base64,{b64_logo}" style="height: 110px;">' if logo_path else ""
 
 st.markdown(
-    f"""
-    <div class="header-unified">
-        {img_html}
-        <div class="header-subtitle">Planejamento Educacional Inclusivo Inteligente</div>
-    </div>
-    """,
+    f"""<div class="header-unified">{img_html}<div class="header-subtitle">Planejamento Educacional Inclusivo Inteligente</div></div>""",
     unsafe_allow_html=True
 )
 
@@ -1214,6 +1203,7 @@ abas = [
     "PLANO DE AÇÃO", "MONITORAMENTO", "CONSULTORIA IA", "DASHBOARD & DOCS", "JORNADA GAMIFICADA"
 ]
 tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab_mapa = st.tabs(abas)
+
 
 # ==============================================================================
 # 11. ABA INÍCIO — CENTRAL (Gestão de Alunos + Backups)
@@ -1242,6 +1232,7 @@ with tab0:
         Nuvem só deve aparecer quando:
         - sb (cliente supabase) está OK
         - OWNER_ID e ws_id existem
+        Observação: se seu projeto usa JWT/user_id, isso normalmente já chega pela Home/Login.
         """
         try:
             return (sb is not None) and bool(OWNER_ID) and bool(ws_id)
@@ -1290,10 +1281,7 @@ with tab0:
         student_id = st.session_state.get("selected_student_id")
         if student_id:
             st.success("✅ Aluno vinculado ao Supabase (nuvem)")
-            try:
-                st.caption(f"student_id: {student_id[:8]}...")
-            except Exception:
-                st.caption("student_id: (ok)")
+            st.caption(f"student_id: {student_id[:8]}...")
         else:
             st.warning("📝 Modo rascunho (sem vínculo na nuvem)")
 
@@ -1305,8 +1293,10 @@ with tab0:
             st.caption("✅ Não comunica com Supabase. Envie o arquivo e clique em **Carregar no formulário**.")
 
             # estados do fluxo local (cache em memória)
-            st.session_state.setdefault("local_json_pending", None)
-            st.session_state.setdefault("local_json_name", "")
+            if "local_json_pending" not in st.session_state:
+                st.session_state["local_json_pending"] = None
+            if "local_json_name" not in st.session_state:
+                st.session_state["local_json_name"] = ""
 
             up_json = st.file_uploader(
                 "Envie um arquivo .json",
@@ -1314,12 +1304,10 @@ with tab0:
                 key="inicio_uploader_json",
             )
 
-            # Ao enviar: só guardar em memória (não aplicar automaticamente)
+            # 1) Ao enviar: só guardar em memória (não aplicar)
             if up_json is not None:
                 try:
-                    # IMPORTANTÍSSIMO: ler bytes para não ficar re-lendo o mesmo objeto em loop
-                    raw = up_json.getvalue()
-                    payload = json.loads(raw.decode("utf-8"))
+                    payload = json.load(up_json)
                     payload = _coerce_dates_in_payload(payload)
 
                     st.session_state["local_json_pending"] = payload
@@ -1334,7 +1322,7 @@ with tab0:
 
             pending = st.session_state.get("local_json_pending")
 
-            # Prévia (opcional)
+            # 2) Prévia (opcional)
             if isinstance(pending, dict) and pending:
                 with st.expander("👀 Prévia do backup", expanded=False):
                     st.write({
@@ -1345,7 +1333,7 @@ with tab0:
                         "tem_ia_sugestao": bool(pending.get("ia_sugestao")),
                     })
 
-            # Botões
+            # 3) Botões
             b1, b2 = st.columns(2)
 
             with b1:
@@ -1356,6 +1344,7 @@ with tab0:
                     disabled=not isinstance(pending, dict),
                     key="inicio_btn_aplicar_json_local",
                 ):
+                    # aplica no estado do formulário
                     if "dados" in st.session_state and isinstance(st.session_state.dados, dict):
                         st.session_state.dados.update(pending)
                     else:
@@ -1382,6 +1371,10 @@ with tab0:
                     st.session_state["local_json_pending"] = None
                     st.session_state["local_json_name"] = ""
                     st.rerun()
+
+        # ------------------------------------------------------------------
+        # (2) (Opcional) OUTROS CONTROLES LOCAIS AQUI
+        # ------------------------------------------------------------------
 
         # ------------------------------------------------------------------
         # (3) SINCRONIZAR: criar aluno na nuvem (somente quando você quiser)
@@ -1429,6 +1422,8 @@ with tab0:
                                     st.error("Falha ao criar aluno. Verifique RLS/policies no Supabase.")
                             except Exception as e:
                                 st.error(f"Erro ao sincronizar: {e}")
+
+
 # ==============================================================================
 # 12. ABA ESTUDANTE
 # ==============================================================================
