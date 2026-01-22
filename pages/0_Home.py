@@ -8,7 +8,7 @@ import time
 # ==============================================================================
 # 1. CONFIGURAÇÃO INICIAL
 # ==============================================================================
-APP_VERSION = "v159.0 (Correções: Botão + Ícone + Verificação)"
+APP_VERSION = "v160.0 (Sidebar Corrigida com Logo Centralizada)"
 
 try:
     IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
@@ -23,7 +23,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. CSS & DESIGN SYSTEM ATUALIZADO
+# 2. CSS & DESIGN SYSTEM ATUALIZADO (SIDEBAR CORRIGIDA)
 # ==============================================================================
 st.markdown("""
 <style>
@@ -92,6 +92,92 @@ html, body, [class*="css"] {
     font-size: 0.8rem; 
     font-weight: 700; 
     color: #64748B;
+}
+
+/* --- SIDEBAR PERSONALIZADA --- */
+/* Container principal da sidebar */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+    border-right: 1px solid #E2E8F0;
+}
+
+/* Logo centralizada na sidebar */
+.sidebar-logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.sidebar-logo {
+    max-width: 180px;
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-logo:hover {
+    transform: scale(1.03);
+}
+
+/* Seção de navegação */
+.sidebar-nav-section {
+    padding: 0 15px;
+}
+
+.sidebar-nav-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Botões da sidebar */
+.sidebar-nav-button {
+    width: 100%;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    background: white;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 12px 16px;
+    text-align: left;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar-nav-button:hover {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    color: white;
+    border-color: #4F46E5;
+    transform: translateX(5px);
+}
+
+.sidebar-nav-button i {
+    font-size: 1.1rem;
+}
+
+/* Botão sair especial */
+.sidebar-logout-button {
+    background: linear-gradient(135deg, #F43F5E 0%, #E11D48 100%);
+    color: white;
+    border: none;
+    margin-top: 20px;
+}
+
+.sidebar-logout-button:hover {
+    background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%);
+    transform: translateX(0) scale(1.02);
 }
 
 /* --- HERO SECTION --- */
@@ -367,6 +453,9 @@ html, body, [class*="css"] {
     .mod-desc {
         font-size: 0.7rem;
     }
+    .sidebar-logo {
+        max-width: 140px;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -426,7 +515,6 @@ def create_module_with_button(title, desc, icon, color_cls, bg_cls, btn_class, p
         if st.button(
             f"📂 ACESSAR {title.split()[0].upper()}",  # Pega a primeira palavra do título
             key=f"btn_{key}",
-            # REMOVIDO: type="primary" if "indigo" in btn_class else "secondary" (isso causava cor vermelha)
             use_container_width=True,
             help=f"Clique para acessar {title}"
         ):
@@ -461,42 +549,70 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# SIDEBAR SIMPLIFICADA
+# SIDEBAR CORRIGIDA COM LOGO CENTRALIZADA
 with st.sidebar:
-    # Logo
-    if os.path.exists("omni_icone.png"):
-        st.image("omni_icone.png", width=60)
+    # Container para logo centralizada
+    st.markdown('<div class="sidebar-logo-container">', unsafe_allow_html=True)
+    
+    # Primeiro tenta carregar omnisfera.png (logo com texto)
+    if os.path.exists("omnisfera.png"):
+        st.image("omnisfera.png", use_column_width=True)
+    # Se não encontrar, tenta omni_texto.png
+    elif os.path.exists("omni_texto.png"):
+        st.image("omni_texto.png", use_column_width=True)
+    # Se não encontrar nenhum, mostra placeholder
     else:
-        st.markdown("### 🌐 **Omnisfera**")
+        st.markdown("""
+        <div style="text-align: center;">
+            <div style="font-size: 1.8rem; font-weight: 800; color: #4F46E5; margin-bottom: 5px;">
+                🌐
+            </div>
+            <div style="font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); 
+                -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                OMNISFERA
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    st.markdown("---")
+    st.markdown('</div>', unsafe_allow_html=True)
     
-    # Links rápidos
-    st.markdown("#### 🔗 Navegação Rápida")
+    # Seção de navegação
+    st.markdown("""
+    <div class="sidebar-nav-section">
+        <div class="sidebar-nav-title">
+            <i class="ri-compass-3-line"></i> NAVEGAÇÃO
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Criar botões na sidebar com ícones
+    # Links rápidos com estilo personalizado
     sidebar_options = [
-        ("👥 Alunos", "pages/Alunos.py", "#4F46E5"),
-        ("📘 PEI", "pages/1_PEI.py", "#3B82F6"),
-        ("🧩 PAEE", "pages/2_PAE.py", "#8B5CF6"),
-        ("🚀 Hub", "pages/3_Hub_Inclusao.py", "#14B8A6"),
-        ("📓 Diário", "pages/4_Diario_de_Bordo.py", "#64748B"),
-        ("📊 Dados", "pages/5_Monitoramento_Avaliacao.py", "#475569"),
+        ("👥 Alunos", "pages/Alunos.py", "#4F46E5", "ri-team-line"),
+        ("📘 PEI", "pages/1_PEI.py", "#3B82F6", "ri-book-open-line"),
+        ("🧩 PAEE", "pages/2_PAE.py", "#8B5CF6", "ri-puzzle-line"),
+        ("🚀 Hub", "pages/3_Hub_Inclusao.py", "#14B8A6", "ri-rocket-line"),
+        ("📓 Diário", "pages/4_Diario_de_Bordo.py", "#64748B", "ri-notebook-line"),
+        ("📊 Dados", "pages/5_Monitoramento_Avaliacao.py", "#475569", "ri-bar-chart-line"),
     ]
     
-    for label, page, color in sidebar_options:
-        if st.button(
-            label, 
-            use_container_width=True, 
-            key=f"sidebar_{label}",
-            help=f"Clique para acessar {label}"
-        ):
-            st.switch_page(page)
+    for label, page, color, icon in sidebar_options:
+        # Usando HTML/CSS para botões personalizados
+        button_html = f"""
+        <button class="sidebar-nav-button" onclick="window.location='{page}'" 
+                style="border-left: 4px solid {color};">
+            <i class="{icon}"></i> {label}
+        </button>
+        """
+        st.markdown(button_html, unsafe_allow_html=True)
     
-    st.markdown("---")
+    # Separador
+    st.markdown("<div style='margin: 20px 0; border-top: 1px solid #E2E8F0;'></div>", unsafe_allow_html=True)
     
     # Botão de logout
-    if st.button("🚪 Sair do Sistema", use_container_width=True, type="secondary"):
+    if st.button("🚪 Sair do Sistema", 
+                 use_container_width=True, 
+                 type="secondary",
+                 help="Clique para sair do sistema"):
         st.session_state.autenticado = False
         st.rerun()
 
@@ -517,22 +633,22 @@ st.markdown(f"""
 # MÓDULOS COM BOTÕES COLORIDOS
 st.markdown("### 🚀 Módulos da Plataforma")
 
-# Definir módulos com suas cores específicas (CORRIGIDO: Ícone do PAEE)
+# Definir módulos com suas cores específicas
 modules = [
     {
         "title": "Estudantes",
         "desc": "Gestão completa de alunos, histórico e acompanhamento individualizado.",
-        "icon": "ri-group-fill",  # ✅ Ícone correto
+        "icon": "ri-group-fill",
         "color_cls": "c-indigo",
         "bg_cls": "bg-indigo-soft",
-        "btn_class": "btn-indigo",  # ✅ Cor indigo como os outros
+        "btn_class": "btn-indigo",
         "page": "pages/Alunos.py",
         "key": "m_aluno"
     },
     {
         "title": "Hub de Recursos",
         "desc": "Biblioteca de materiais, modelos e inteligência artificial para apoio.",
-        "icon": "ri-rocket-2-fill",  # ✅ Ícone correto
+        "icon": "ri-rocket-2-fill",
         "color_cls": "c-teal",
         "bg_cls": "bg-teal-soft",
         "btn_class": "btn-teal",
@@ -542,7 +658,7 @@ modules = [
     {
         "title": "Estratégias & PEI",
         "desc": "Plano Educacional Individual com objetivos, avaliações e acompanhamento.",
-        "icon": "ri-book-open-fill",  # ✅ Ícone correto
+        "icon": "ri-book-open-fill",
         "color_cls": "c-blue",
         "bg_cls": "bg-blue-soft",
         "btn_class": "btn-blue",
@@ -552,7 +668,7 @@ modules = [
     {
         "title": "Plano de Ação / PAEE",
         "desc": "Plano de Atendimento Educacional Especializado e sala de recursos.",
-        "icon": "ri-puzzle-fill",  # ✅ CORRIGIDO: Ícone correto (puzzle-fill ao invés de puzzle-2-fill)
+        "icon": "ri-puzzle-fill",
         "color_cls": "c-purple",
         "bg_cls": "bg-purple-soft",
         "btn_class": "btn-purple",
@@ -562,7 +678,7 @@ modules = [
     {
         "title": "Diário de Bordo",
         "desc": "Registro diário de observações, evidências e intervenções.",
-        "icon": "ri-file-list-3-fill",  # ✅ Ícone correto
+        "icon": "ri-file-list-3-fill",
         "color_cls": "c-slate",
         "bg_cls": "bg-slate-soft",
         "btn_class": "btn-slate",
@@ -572,7 +688,7 @@ modules = [
     {
         "title": "Evolução & Dados",
         "desc": "Indicadores, gráficos e relatórios de progresso dos alunos.",
-        "icon": "ri-bar-chart-box-fill",  # ✅ Ícone correto
+        "icon": "ri-bar-chart-box-fill",
         "color_cls": "c-slate",
         "bg_cls": "bg-slate-soft",
         "btn_class": "btn-slate",
@@ -671,44 +787,44 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# CSS ADICIONAL para corrigir cor do botão Estudantes
+# CSS ADICIONAL para corrigir interatividade dos botões na sidebar
 st.markdown("""
+<script>
+// JavaScript para fazer os botões da sidebar funcionarem
+document.addEventListener('DOMContentLoaded', function() {
+    // Seleciona todos os botões personalizados da sidebar
+    const sidebarButtons = document.querySelectorAll('.sidebar-nav-button');
+    
+    sidebarButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const pageUrl = this.getAttribute('onclick').match(/'([^']+)'/)[1];
+            // Usando o método Streamlit para navegação
+            window.parent.postMessage({
+                type: 'streamlit:setComponentValue',
+                data: {page: pageUrl}
+            }, '*');
+        });
+    });
+});
+</script>
+
 <style>
-/* CSS para corrigir a cor do botão Estudantes */
+/* CSS para corrigir a cor dos botões principais */
 .stButton > button {
     background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%) !important;
     color: white !important;
     border: none !important;
+    font-weight: 700 !important;
 }
 
-/* Cor específica para cada botão baseado no texto */
-.stButton > button:contains("ACESSAR ESTUDANTES") {
+/* Cor específica para cada botão baseado no texto (fallback) */
+.stButton > button[data-testid="baseButton-secondary"] {
     background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%) !important;
 }
 
-.stButton > button:contains("ACESSAR HUB") {
-    background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%) !important;
-}
-
-.stButton > button:contains("ACESSAR ESTRATÉGIAS") {
-    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
-}
-
-.stButton > button:contains("ACESSAR PLANO") {
-    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%) !important;
-}
-
-.stButton > button:contains("ACESSAR DIÁRIO") {
-    background: linear-gradient(135deg, #64748B 0%, #475569 100%) !important;
-}
-
-.stButton > button:contains("ACESSAR EVOLUÇÃO") {
-    background: linear-gradient(135deg, #64748B 0%, #475569 100%) !important;
-}
-
-/* Hover states */
+/* Hover states para botões Streamlit */
 .stButton > button:hover {
-    transform: translateY(-1px);
+    transform: translateY(-1px) !important;
     box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
 }
 </style>
