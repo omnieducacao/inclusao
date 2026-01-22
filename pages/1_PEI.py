@@ -4,7 +4,34 @@ from datetime import datetime, date
 import base64
 import os
 import time
+from streamlit_cropper import st_cropper
+import streamlit as st
 
+# Esconde o nav padrão
+st.markdown("""
+<style>
+[data-testid="stSidebarNav"] { display: none !important; }
+</style>
+""", unsafe_allow_html=True)
+
+with st.sidebar:
+    st.markdown("### 🧭 Navegação")
+
+    if st.button("🏠 Home", use_container_width=True):
+        st.switch_page("streamlit_app.py")  # <-- volta pro app principal
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("📘 PEI", use_container_width=True):
+            st.switch_page("pages/1_PEI.py")
+    with col2:
+        if st.button("🧩 PAEE", use_container_width=True):
+            st.switch_page("pages/2_PAE.py")
+
+    if st.button("🚀 Hub", use_container_width=True):
+        st.switch_page("pages/3_Hub_Inclusao.py")
+
+    st.markdown("---")
 # ==============================================================================
 # 1. CONFIGURAÇÃO INICIAL
 # ==============================================================================
