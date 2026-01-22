@@ -2634,28 +2634,15 @@ with tab8:
             # Botão de sincronizar (tenta achar função do seu projeto novo; se não, avisa)
             sync_fn = globals().get("supa_sync_student_from_dados") or globals().get("salvar_aluno_integrado") or globals().get("db_create_student")
 
-            if st.button("🔗 Sincronizar (Omnisfera)", type="primary", use_container_width=True):
-                try:
-                    if "salvar_aluno_integrado" in globals():
-                        ok, msg = salvar_aluno_integrado(d)
-                        if ok:
-                            st.toast(msg, icon="✅")
-                        else:
-                            st.error(msg)
-                    elif "supa_sync_student_from_dados" in globals():
-                        # se você já usa selected_student_id
-                        sid = st.session_state.get("selected_student_id")
-                        if not sid:
-                            st.warning("Aluno ainda não está vinculado (sem selected_student_id).")
-                        else:
-                            supa_sync_student_from_dados(sid, d)
-                            st.toast("Sincronizado ✅", icon="✅")
-                    elif "db_create_student" in globals():
-                        st.warning("Existe db_create_student, mas não achei a rotina completa de vínculo aqui.")
-                    else:
-                        st.warning("Não encontrei função de sincronização nesta versão do app.")
-                except Exception as e:
-                    st.error(f"Erro ao sincronizar: {e}")
+           if st.button("🔗 Sincronizar (Omnisfera)", type="primary", use_container_width=True):
+    try:
+        sid = sincronizar_e_salvar_pei(st.session_state.dados)
+        st.success("✅ Sincronizado: aluno vinculado + PEI salvo na nuvem.")
+        st.caption(f"student_id: {sid[:8]}...")
+        st.rerun()
+    except Exception as e:
+        st.error(f"Erro ao sincronizar/salvar: {e}")
+
 
 # ==============================================================================
 # ABA — JORNADA GAMIFICADA (BLOCO COMPLETO)
