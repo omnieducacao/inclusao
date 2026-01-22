@@ -2631,36 +2631,28 @@ with tab8:
                 use_container_width=True
             )
 
-        with col_sys:
+                with col_sys:
             st.caption("🌐 Omnisfera")
             st.markdown(
                 "<div style='font-size:.85rem; color:#4A5568; margin-bottom:8px;'>"
-                "Aqui fica o <b>Sincronizar aluno</b> (para aposentar a sidebar depois)."
+                "Clique para <b>vincular o aluno</b> e <b>salvar o PEI</b> na nuvem (Supabase)."
                 "</div>",
                 unsafe_allow_html=True
             )
 
-            # Botão de sincronizar (tenta achar função do seu projeto novo; se não, avisa)
-           with col_sys:
-    st.caption("🌐 Omnisfera")
-    st.markdown(
-        "<div style='font-size:.85rem; color:#4A5568; margin-bottom:8px;'>"
-        "Clique para <b>vincular o aluno</b> e <b>salvar o PEI</b> na nuvem (Supabase)."
-        "</div>",
-        unsafe_allow_html=True
-    )
-
-                # Botão de sincronizar (tenta achar função do seu projeto novo; se não, avisa)
-            # OBS: aqui só chamamos funções SE EXISTIREM, sem quebrar o app.
-            if st.button("🔗 Sincronizar (Omnisfera)", type="primary", use_container_width=True, key="btn_sync_omnisfera_tab8"):
+            if st.button(
+                "🔗 Sincronizar (Omnisfera)",
+                type="primary",
+                use_container_width=True,
+                key="btn_sync_omnisfera_tab8"
+            ):
                 if not _cloud_ready():
                     st.error("Nuvem indisponível: verifique login, workspace e Supabase.")
                 else:
                     try:
-                        # 1) Se já existe student_id, só atualiza o student + salva PEI
                         sid = st.session_state.get("selected_student_id")
 
-                        # Se não tem, cria aluno na tabela students
+                        # Se não tem vínculo, cria aluno na tabela students
                         if not sid:
                             created = db_create_student({
                                 "name": d.get("nome"),
@@ -2677,11 +2669,13 @@ with tab8:
                             st.session_state["selected_student_id"] = sid
                             st.session_state["selected_student_name"] = (created or {}).get("name") or ""
 
-                        # 2) Mantém students atualizado
-                        supa_sync_student_from_dados(sid, d)
+                        # Atualiza student (se existir a função no seu projeto)
+                        if "supa_sync_student_from_dados" in globals():
+                            supa_sync_student_from_dados(sid, d)
 
-                        # 3) Salva/atualiza PEI na tabela pei_documents
-                        supa_save_pei(sid, d, st.session_state.get("pdf_text", ""))
+                        # Salva PEI (se existir a função no seu projeto)
+                        if "supa_save_pei" in globals():
+                            supa_save_pei(sid, d, st.session_state.get("pdf_text", ""))
 
                         st.success("✅ Sincronizado: aluno vinculado + PEI salvo na nuvem.")
                         st.caption(f"student_id: {sid[:8]}...")
@@ -2689,8 +2683,6 @@ with tab8:
 
                     except Exception as e:
                         st.error(f"Erro ao sincronizar/salvar: {e}")
-
-
 
 # ==============================================================================
 # ABA — JORNADA GAMIFICADA (BLOCO COMPLETO)
