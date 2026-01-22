@@ -1289,85 +1289,156 @@ with tab0:
         # (1) BACKUP LOCAL: carregar JSON do computador (NÃO chama Supabase)
         # ------------------------------------------------------------------
         with st.container(border=True):
-    st.markdown("##### 1) Carregar Backup Local (.JSON)")
-    st.caption("✅ Isso **não** comunica com o Supabase. Primeiro você envia o arquivo; depois clica em **Carregar no formulário**.")
+            st.markdown("##### 1) Carregar Backup Local (.JSON)")
+            st.caption("✅ Isso **não** comunica com o Supabase. Apenas aplica os dados no formulário.")
 
-    # estados do fluxo local
-    st.session_state.setdefault("local_json_pending", None)   # payload aguardando aplicar
-    st.session_state.setdefault("local_json_name", "")        # nome do arquivo (opcional)
+            up_json = st.file_uploader(
+                "Envie um arquivo .json",
+                type="json",
+                key="inicio_uploader_json",
+            )
+            if up_json:
+                try:
+                    payload = json.load(up_json)
+                    payload = _coerce_dates_in_payload(payload)
 
-    up_json = st.file_uploader(
-        "Envie um arquivo .json",
-        type="json",
-        key="inicio_uploader_json",
-    )
+                    # aplica no estado do formulário
+                    if "dados" in st.session_state and isinstance(st.session_state.dados, dict):
+                        st.session_state.dados.update(payload)
+                    else:
+                        st.session_state.dados = payload
 
-    # 1) Ao enviar: apenas guardar em memória (NÃO aplicar)
-    if up_json is not None:
-        try:
-            payload = json.load(up_json)
-            payload = _coerce_dates_in_payload(payload)
+                    # importante: carregar JSON NÃO cria vínculo com a nuvem
+                    st.session_state["selected_student_id"] = None
+                    st.session_state["selected_student_name"] = ""
+                    # opcional: também limpa o texto de pdf caso exista
+                    # st.session_state["pdf_text"] = ""
 
-            st.session_state["local_json_pending"] = payload
-            st.session_state["local_json_name"] = getattr(up_json, "name", "") or "backup.json"
+                    st.success("Backup local carregado ✅ (aplicado ao formulário)")
+                    st.toast("Dados aplicados ao formulário.", icon="✅")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro ao ler JSON: {e}")
 
-            st.success(f"Arquivo pronto ✅ ({st.session_state['local_json_name']})")
-            st.caption("Agora clique em **Carregar no formulário** para aplicar os dados.")
-        except Exception as e:
-            st.session_state["local_json_pending"] = None
-            st.session_state["local_json_name"] = ""
-            st.error(f"Erro ao ler JSON: {e}")
+        # ------------------------------------------------------------------
+        # (2) NUVEM (SUPABASE): listar / carregar / excluir
+        #     -> Só aqui você “vai no banco” para abrir aluno salvo na nuvem
+        # ------------------------------------------------------------------
+        with st.container(border=True):
+            st.markdown("##### 2) Nuvem (Supabase) — Abrir aluno salvo")
 
-    pending = st.session_state.get("local_json_pending")
-
-    # 2) Prévia rápida (opcional, mas ajuda)
-    if isinstance(pending, dict) and pending:
-        with st.expander("👀 Prévia do backup", expanded=False):
-            st.write({
-                "nome": pending.get("nome"),
-                "serie": pending.get("serie"),
-                "turma": pending.get("turma"),
-                "diagnostico": pending.get("diagnostico"),
-                "tem_ia_sugestao": bool(pending.get("ia_sugestao")),
-            })
-
-    # 3) Botões de ação
-    c1, c2 = st.columns(2)
-    with c1:
-        if st.button(
-            "📥 Carregar no formulário",
-            type="primary",
-            use_container_width=True,
-            disabled=not isinstance(pending, dict),
-            key="btn_aplicar_json_local",
-        ):
-            # aplica no estado do formulário
-            if "dados" in st.session_state and isinstance(st.session_state.dados, dict):
-                st.session_state.dados.update(pending)
+            if not _cloud_ready():
+                st.info("Nuvem indisponível: faça login (Home/PIN) e garanta workspace + sessão Supabase.")
             else:
-                st.session_state.dados = pending
+                # Buscar alunos (do banco)
+                try:
+                    alunos = db_list_students()
+                except Exception as e:
+                    alunos = []
+                    st.error(f"Erro ao listar alunos: {e}")
 
-            # importante: JSON local NÃO cria vínculo com nuvem
-            st.session_state["selected_student_id"] = None
-            st.session_state["selected_student_name"] = ""
+                if not alunos:
+                    st.info("Nenhum aluno salvo na nuvem ainda.")
+                else:
+                    # Select por nome + série/turma
+                    opcoes = []
+                    mapa = {}
+                    for a in alunos:
+                        nome = a.get("name") or "Sem nome"
+                        serie = a.get("grade") or "-"
+                        turma = a.get("class_group") or "-"
+                        label = f"{nome} — {serie} / {turma}"
+                        opcoes.append(label)
+                        mapa[label] = a
 
-            # limpa pendência para não reaplicar
-            st.session_state["local_json_pending"] = None
-            st.session_state["local_json_name"] = ""
+                    sel = st.selectbox(
+                        "Selecione um aluno salvo na nuvem",
+                        options=opcoes,
+                        index=None,
+                        placeholder="Escolha para carregar/excluir…",
+                        key="inicio_select_aluno_nuvem",
+                    )
 
-            st.success("Backup aplicado ao formulário ✅")
-            st.toast("Dados aplicados.", icon="✅")
-            st.rerun()
+                    cA, cB, cC = st.columns(3)
 
-    with c2:
-        if st.button(
-            "🧹 Limpar upload/pendência",
-            use_container_width=True,
-            key="btn_limpar_json_local",
-        ):
-            st.session_state["local_json_pending"] = None
-            st.session_state["local_json_name"] = ""
-            st.rerun()
+                    # A) Carregar da nuvem: vincula + puxa último PEI (pei_documents)
+                    with cA:
+                        if st.button(
+                            "☁️ Abrir da Nuvem",
+                            use_container_width=True,
+                            disabled=(not sel),
+                            key="inicio_btn_carregar_nuvem",
+                        ):
+                            a = mapa.get(sel)
+                            if not a:
+                                st.error("Aluno inválido.")
+                            else:
+                                sid = a["id"]
+
+                                # 1) Vincular este aluno
+                                st.session_state["selected_student_id"] = sid
+                                st.session_state["selected_student_name"] = a.get("name") or ""
+
+                                # 2) Tentar carregar o último PEI salvo
+                                try:
+                                    row = supa_load_latest_pei(sid)
+                                except Exception as e:
+                                    row = None
+                                    st.warning(f"Não consegui buscar PEI salvo (pei_documents): {e}")
+
+                                if row and row.get("payload"):
+                                    payload = _coerce_dates_in_payload(row["payload"])
+                                    st.session_state.dados.update(payload)
+                                    st.session_state.pdf_text = row.get("pdf_text") or ""
+                                    st.success("Aluno + último PEI (nuvem) carregados ✅")
+                                else:
+                                    # fallback: se não houver PEI salvo, carrega só o cadastro básico do student
+                                    st.session_state.dados["nome"] = a.get("name") or ""
+                                    try:
+                                        bd = a.get("birth_date")
+                                        if isinstance(bd, str) and bd:
+                                            st.session_state.dados["nasc"] = date.fromisoformat(bd)
+                                    except Exception:
+                                        pass
+                                    st.session_state.dados["serie"] = a.get("grade") or None
+                                    st.session_state.dados["turma"] = a.get("class_group") or ""
+                                    st.session_state.dados["diagnostico"] = a.get("diagnosis") or ""
+                                    st.info("Aluno carregado. Ainda não existe PEI salvo na nuvem para este aluno.")
+
+                                st.rerun()
+
+                    # B) Excluir na nuvem: deleta aluno (e PEIs se FK/cascade estiver configurado)
+                    with cB:
+                        if st.button(
+                            "🗑️ Excluir da Nuvem",
+                            use_container_width=True,
+                            disabled=(not sel),
+                            type="primary",
+                            key="inicio_btn_excluir_nuvem",
+                        ):
+                            a = mapa.get(sel)
+                            if not a:
+                                st.error("Aluno inválido.")
+                            else:
+                                try:
+                                    db_delete_student(a["id"])
+                                    # se o aluno atual for o mesmo, limpa vínculo
+                                    if st.session_state.get("selected_student_id") == a["id"]:
+                                        st.session_state["selected_student_id"] = None
+                                        st.session_state["selected_student_name"] = ""
+                                    st.success("Aluno excluído da nuvem ✅")
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Erro ao excluir: {e}")
+
+                    # C) Voltar para rascunho: desvincula (SEM mexer no banco)
+                    with cC:
+                        if st.button("🧹 Novo (Rascunho)", use_container_width=True, key="inicio_btn_novo_rascunho"):
+                            st.session_state["selected_student_id"] = None
+                            st.session_state["selected_student_name"] = ""
+                            st.toast("Voltando para rascunho…", icon="📝")
+                            st.rerun()
+
         # ------------------------------------------------------------------
         # (3) SINCRONIZAR: criar aluno na nuvem (somente quando você quiser)
         # ------------------------------------------------------------------
