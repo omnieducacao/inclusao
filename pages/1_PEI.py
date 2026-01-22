@@ -2306,7 +2306,8 @@ with tab8:
             .dash-hero { background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%); border-radius: 16px; padding: 25px; color: white; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
             .apple-avatar { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,.15); border: 2px solid rgba(255,255,255,.4); display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:800; }
             .metric-card { background:white; border-radius:16px; padding:15px; border:1px solid #E2E8F0; height:140px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-            .soft-card { border-radius:12px; padding:20px; border-left:5px solid; background:#FFF; }
+            .soft-card { border-radius:12px; padding:20px; border-left:5px solid; background:#FFF; border:1px solid #E2E8F0; }
+            .tiny { font-size:.82rem; opacity:.8; }
         </style>
         """
         st.markdown(css, unsafe_allow_html=True)
@@ -2366,17 +2367,13 @@ with tab8:
     )
 
     # --------------------------------------------------------------------------
-    # 4) KPIs (simples)
+    # 4) KPIs
     # --------------------------------------------------------------------------
     c1, c2, c3 = st.columns(3)
-
     with c1:
         st.metric("Potencialidades", len(d.get("potencias", []) or []))
     with c2:
-        st.metric(
-            "Barreiras",
-            sum(len(v) for v in (d.get("barreiras_selecionadas", {}) or {}).values())
-        )
+        st.metric("Barreiras", sum(len(v) for v in (d.get("barreiras_selecionadas", {}) or {}).values()))
     with c3:
         st.metric("Rede de Apoio", len(d.get("rede_apoio", []) or []))
 
@@ -2411,28 +2408,17 @@ with tab8:
     # ---------------- DOCS ----------------
     with col_docs:
         st.caption("📄 Documentos")
-
         try:
             pdf = gerar_pdf_final(d)
-            st.download_button(
-                "Baixar PDF",
-                pdf,
-                f"PEI_{d.get('nome')}.pdf",
-                "application/pdf",
-                use_container_width=True
-            )
+            st.download_button("Baixar PDF", pdf, f"PEI_{d.get('nome')}.pdf", "application/pdf", use_container_width=True)
         except Exception as e:
             st.error(f"Erro PDF: {e}")
 
         try:
             docx = gerar_docx_final(d)
-            st.download_button(
-                "Baixar Word",
-                docx,
-                f"PEI_{d.get('nome')}.docx",
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                use_container_width=True
-            )
+            st.download_button("Baixar Word", docx, f"PEI_{d.get('nome')}.docx",
+                               "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                               use_container_width=True)
         except Exception as e:
             st.error(f"Erro Word: {e}")
 
@@ -2450,28 +2436,30 @@ with tab8:
     # ---------------- CLOUD ----------------
     with col_sys:
         st.caption("🌐 Omnisfera")
+        st.markdown("<div class='tiny'>Vincula o aluno e salva o PEI na nuvem.</div>", unsafe_allow_html=True)
 
-        def _cloud_ready_debug_adapter():
+        def _cloud_ready(debug=False):
             details = {}
 
-            sb = st.session_state.get("sb") or globals().get("sb")
-            ws = st.session_state.get("workspace_id")
-            auth = st.session_state.get("autenticado", False)
+            details["autenticado"] = bool(st.session_state.get("autenticado"))
+            details["workspace_id"] = bool(st.session_state.get("workspace_id"))
 
-            details["has_sb"] = bool(sb)
-            details["has_workspace_id"] = bool(ws)
-            details["autenticado"] = bool(auth)
+            try:
+                details["SUPABASE_URL"] = bool(st.secrets.get("SUPABASE_URL"))
+                details["SUPABASE_KEY"] = bool(
+                    st.secrets.get("SUPABASE_SERVICE_KEY") or st.secrets.get("SUPABASE_ANON_KEY")
+                )
+            except Exception:
+                details["SUPABASE_URL"] = False
+                details["SUPABASE_KEY"] = False
 
             ok = all(details.values())
-            details["missing"] = [k for k, v in details.items() if not v]
+            if debug:
+                details["missing"] = [k for k, v in details.items() if not v]
             return ok, details
 
-        if st.button(
-            "🔗 Sincronizar (Omnisfera)",
-            type="primary",
-            use_container_width=True
-        ):
-            ok, details = _cloud_ready_debug_adapter()
+        if st.button("🔗 Sincronizar (Omnisfera)", type="primary", use_container_width=True):
+            ok, details = _cloud_ready(debug=True)
             if not ok:
                 st.error("Nuvem indisponível.")
                 st.json(details)
@@ -2499,6 +2487,7 @@ with tab8:
 
             except Exception as e:
                 st.error(f"Erro ao salvar na nuvem: {e}")
+
 
 # ==============================================================================
 # ABA — JORNADA GAMIFICADA (BLOCO COMPLETO)
