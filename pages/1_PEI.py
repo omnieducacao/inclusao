@@ -2566,8 +2566,8 @@ with tab8:
             unsafe_allow_html=True
         )
 
-        # --------------------------------------------------------------------------
-    # 7) EXPORTAÇÃO + SINCRONIZAÇÃO (corrigido)
+    # --------------------------------------------------------------------------
+    # 7) EXPORTAÇÃO + SINCRONIZAÇÃO (com correções)
     # --------------------------------------------------------------------------
     st.divider()
     st.markdown("#### 📤 Exportação e Sincronização")
@@ -2577,19 +2577,14 @@ with tab8:
     else:
         col_docs, col_backup, col_sys = st.columns(3)
 
-        # ----------------------------
-        # COL 1 — Documentos (PDF/DOCX)
-        # ----------------------------
         with col_docs:
             st.caption("📄 Documentos")
 
             # PDF — compatível com assinatura antiga e nova
             pdf_bytes = None
             try:
-                # assinatura antiga
                 pdf_bytes = gerar_pdf_final(d, len(st.session_state.get("pdf_text", "")) > 0)
             except TypeError:
-                # assinatura nova (sem tem_anexo)
                 try:
                     pdf_bytes = gerar_pdf_final(d)
                 except Exception as e:
@@ -2617,9 +2612,6 @@ with tab8:
             except Exception as e:
                 st.error(f"Não foi possível gerar Word: {e}")
 
-        # ----------------------------
-        # COL 2 — Backup JSON
-        # ----------------------------
         with col_backup:
             st.caption("💾 Backup (JSON)")
             st.markdown(
@@ -2637,9 +2629,6 @@ with tab8:
                 use_container_width=True
             )
 
-        # ----------------------------
-        # COL 3 — Omnisfera / Supabase
-        # ----------------------------
         with col_sys:
             st.caption("🌐 Omnisfera")
             st.markdown(
@@ -2655,43 +2644,44 @@ with tab8:
                 use_container_width=True,
                 key="btn_sync_omnisfera_tab8"
             ):
-                if not _cloud_ready():
-                    st.error("Nuvem indisponível: verifique login, workspace e Supabase.")
-                else:
-                    try:
-                        sid = st.session_state.get("selected_student_id")
+                ok, details = _cloud_ready(debug=True)
+                if not ok:
+                    st.error("Nuvem indisponível: falta configurar algum item da sessão/cliente.")
+                    st.json(details)
+                    st.stop()
 
-                        # Se não tem vínculo, cria aluno na tabela students
+                try:
+                    sid = st.session_state.get("selected_student_id")
+
+                    if not sid:
+                        created = db_create_student({
+                            "name": d.get("nome"),
+                            "birth_date": d.get("nasc").isoformat() if hasattr(d.get("nasc"), "isoformat") else None,
+                            "grade": d.get("serie"),
+                            "class_group": d.get("turma") or None,
+                            "diagnosis": d.get("diagnostico") or None,
+                        })
+                        sid = (created or {}).get("id")
+
                         if not sid:
-                            created = db_create_student({
-                                "name": d.get("nome"),
-                                "birth_date": d.get("nasc").isoformat() if hasattr(d.get("nasc"), "isoformat") else None,
-                                "grade": d.get("serie"),
-                                "class_group": d.get("turma") or None,
-                                "diagnosis": d.get("diagnostico") or None,
-                            })
-                            sid = (created or {}).get("id")
+                            raise RuntimeError("Falha ao criar aluno no Supabase (students). Verifique RLS/policies.")
 
-                            if not sid:
-                                raise RuntimeError("Falha ao criar aluno no Supabase (students). Verifique RLS/policies.")
+                        st.session_state["selected_student_id"] = sid
+                        st.session_state["selected_student_name"] = (created or {}).get("name") or ""
 
-                            st.session_state["selected_student_id"] = sid
-                            st.session_state["selected_student_name"] = (created or {}).get("name") or ""
+                    if "supa_sync_student_from_dados" in globals():
+                        supa_sync_student_from_dados(sid, d)
 
-                        # Atualiza student (se existir a função no seu projeto)
-                        if "supa_sync_student_from_dados" in globals():
-                            supa_sync_student_from_dados(sid, d)
+                    if "supa_save_pei" in globals():
+                        supa_save_pei(sid, d, st.session_state.get("pdf_text", ""))
 
-                        # Salva PEI (se existir a função no seu projeto)
-                        if "supa_save_pei" in globals():
-                            supa_save_pei(sid, d, st.session_state.get("pdf_text", ""))
+                    st.success("✅ Sincronizado: aluno vinculado + PEI salvo na nuvem.")
+                    st.caption(f"student_id: {sid[:8]}...")
+                    st.rerun()
 
-                        st.success("✅ Sincronizado: aluno vinculado + PEI salvo na nuvem.")
-                        st.caption(f"student_id: {sid[:8]}...")
-                        st.rerun()
+                except Exception as e:
+                    st.error(f"Erro ao sincronizar/salvar: {e}")
 
-                    except Exception as e:
-                        st.error(f"Erro ao sincronizar/salvar: {e}")
 
 # ==============================================================================
 # ABA — JORNADA GAMIFICADA (BLOCO COMPLETO)
