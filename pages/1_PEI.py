@@ -331,110 +331,86 @@ st.session_state.setdefault("selected_student_name", "")
 
 
 # ==============================================================================
-# 6. SUPABASE: carregar/salvar PEI (pei_documents) — só quando vinculado
+# 6. SIDEBAR (Renderização segura)
 # ==============================================================================
-def supa_load_latest_pei(student_id: str):
-    if not _sb_ok():
-        return None
-    res = (
-        sb.table("pei_documents")
-        .select("*")
-        .eq("student_id", student_id)
-        .eq("owner_id", OWNER_ID)
-        .eq("workspace_id", ws_id)
-        .order("updated_at", desc=True)
-        .limit(1)
-        .execute()
-    )
-    data = res.data or []
-    return data[0] if data else None
 
-def supa_save_pei(student_id: str, payload: dict, pdf_text: str):
-    if not _sb_ok():
-        raise RuntimeError("Supabase não está pronto (sb/OWNER_ID/workspace_id).")
-
-    def _jsonify(x):
-        return json.loads(json.dumps(x, default=str))
-
-    safe_payload = _jsonify(payload or {})
-    year = date.today().year
-
-    existing = supa_load_latest_pei(student_id)
-    if existing:
-        sb.table("pei_documents").update({
-            "payload": safe_payload,
-            "pdf_text": (pdf_text or "")[:20000],
-            "school_year": year,
-            "status": (payload or {}).get("status_validacao_pei", "draft"),
-        }).eq("id", existing["id"]).eq("owner_id", OWNER_ID).eq("workspace_id", ws_id).execute()
-    else:
-        sb.table("pei_documents").insert({
-            "owner_id": OWNER_ID,
-            "workspace_id": ws_id,
-            "student_id": student_id,
-            "school_year": year,
-            "status": (payload or {}).get("status_validacao_pei", "draft"),
-            "payload": safe_payload,
-            "pdf_text": (pdf_text or "")[:20000],
-        }).execute()
-
-def supa_sync_student_from_dados(student_id: str, d: dict):
-    def sincronizar_e_salvar_pei():
+def render_sidebar():
     """
-    1) Se ainda não tiver student_id: cria o aluno em students e vincula
-    2) Atualiza students com dados básicos do formulário
-    3) Salva o PEI em pei_documents (payload + pdf_text)
+    Renderiza a sidebar da Omnisfera.
+    Este bloco é isolado e seguro contra IndentationError.
     """
-    if not _cloud_ready():
-        raise RuntimeError("Nuvem indisponível: faça login e valide workspace.")
 
-    d = st.session_state.dados
+    # CSS e JS podem estar vazios sem quebrar o app
+    sidebar_css = ""
+    sidebar_js = ""
 
-    if not d.get("nome"):
-        raise RuntimeError("Preencha o NOME do estudante antes de sincronizar.")
-    if not d.get("serie"):
-        raise RuntimeError("Selecione a SÉRIE/Ano antes de sincronizar.")
+    # Injetar CSS (se existir)
+    if sidebar_css:
+        st.markdown(sidebar_css, unsafe_allow_html=True)
 
-    # 1) garantir vínculo
-    sid = st.session_state.get("selected_student_id")
+    # Injetar JS (se existir)
+    if sidebar_js:
+        st.markdown(sidebar_js, unsafe_allow_html=True)
 
-    if not sid:
-        created = db_create_student({
-            "name": d.get("nome"),
-            "birth_date": (d.get("nasc").isoformat() if hasattr(d.get("nasc"), "isoformat") else None),
-            "grade": d.get("serie"),
-            "class_group": d.get("turma") or None,
-            "diagnosis": d.get("diagnostico") or None,
-        })
-        if not created or not created.get("id"):
-            raise RuntimeError("Falha ao criar aluno. Verifique RLS/policies no Supabase.")
+    # Sidebar visual
+    with st.sidebar:
+        # Container principal
+        st.markdown("<div class='sidebar-content'>", unsafe_allow_html=True)
 
-        sid = created["id"]
-        st.session_state["selected_student_id"] = sid
-        st.session_state["selected_student_name"] = created.get("name") or ""
+        # Logo
+        st.markdown("<div class='sidebar-logo-container'>", unsafe_allow_html=True)
 
-    # 2) atualizar tabela students
-    try:
-        supa_sync_student_from_dados(sid, d)
-    except Exception:
-        pass
+        if os.path.exists("omnisfera.png"):
+            st.image("omnisfera.png", use_container_width=True)
+        elif os.path.exists("omni_texto.png"):
+            st.image("omni_texto.png", use_container_width=True)
+        else:
+            st.markdown(
+                """
+                <div style="text-align:center; padding:16px 0;">
+                    <div style="
+                        font-size:1.8rem;
+                        font-weight:800;
+                        background:linear-gradient(135deg,#4F46E5,#7C3AED);
+                        -webkit-background-clip:text;
+                        -webkit-text-fill-color:transparent;
+                    ">
+                        OMNISFERA
+                    </div>
+                    <div style="font-size:.9rem; color:#64748B;">
+                        Educação Inclusiva Inteligente
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
-    # 3) salvar PEI
-    pdf_text = st.session_state.get("pdf_text", "") or ""
-    supa_save_pei(sid, d, pdf_text)
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    return sid
+        # Separador
+        st.divider()
 
-    
-    # mantém students atualizado com dados básicos do PEI
-    db_update_student(student_id, {
-        "name": d.get("nome") or None,
-        "birth_date": d.get("nasc").isoformat() if hasattr(d.get("nasc"), "isoformat") else None,
-        "grade": d.get("serie") or None,
-        "class_group": d.get("turma") or None,
-        "diagnosis": d.get("diagnostico") or None,
-    })
+        # Informações de sessão (opcional)
+        usuario = st.session_state.get("usuario_nome")
+        workspace = st.session_state.get("workspace_name")
 
+        if usuario:
+            st.caption(f"👤 {usuario}")
+        if workspace:
+            st.caption(f"🏫 {workspace}")
+
+        # Rodapé
+        st.markdown(
+            """
+            <div style="margin-top:40px; font-size:.75rem; color:#94A3B8; text-align:center;">
+                Omnisfera © 2026<br>
+                Educação como direito de todos
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # ==============================================================================
 # 7. UTILITÁRIOS
