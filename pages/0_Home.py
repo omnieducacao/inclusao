@@ -5,471 +5,323 @@ import base64
 import os
 import time
 
-APP_VERSION = "v134.1 (Home High Design • sem login aqui)"
+# ==============================================================================
+# 1. CONFIGURAÇÃO INICIAL
+# ==============================================================================
+APP_VERSION = "v135.0 (Flat Design)"
+
+# Detecção de Ambiente
+try:
+    IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
+except Exception:
+    IS_TEST_ENV = False
+
+st.set_page_config(
+    page_title="Omnisfera",
+    page_icon="omni_icone.png" if os.path.exists("omni_icone.png") else "🌐",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # ==============================================================================
-# GATE DE ACESSO — HOME NÃO AUTENTICA
+# 2. GATE DE ACESSO (PROTEÇÃO)
 # ==============================================================================
-
 def acesso_bloqueado(msg: str):
-    st.markdown(
-        f"""
-        <div style="
-            max-width:520px;
-            margin: 120px auto;
-            padding: 28px;
-            background: white;
-            border-radius: 18px;
-            border: 1px solid #E2E8F0;
-            box-shadow: 0 20px 40px rgba(15,82,186,0.12);
-            text-align: center;
-        ">
-            <div style="font-size:2.2rem; margin-bottom:10px;">🔐</div>
-            <div style="font-weight:900; font-size:1.1rem; margin-bottom:6px;">
-                Acesso restrito
-            </div>
-            <div style="color:#4A5568; font-weight:700; font-size:0.95rem; margin-bottom:18px;">
-                {msg}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    st.markdown(f"""
+    <div style="max-width:500px; margin:100px auto; text-align:center; padding:30px; background:white; border-radius:16px; border:1px solid #E2E8F0; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+        <div style="font-size:3rem; margin-bottom:15px;">🔐</div>
+        <div style="font-weight:800; font-size:1.2rem; color:#2D3748; margin-bottom:8px;">Acesso Restrito</div>
+        <div style="color:#718096; margin-bottom:20px;">{msg}</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("🔑 Voltar para a tela de login", use_container_width=True):
+        if st.button("🔑 Ir para Login", use_container_width=True, type="primary"):
             st.session_state.autenticado = False
             st.session_state.workspace_id = None
-            st.session_state.workspace_name = None
             st.rerun()
-
     st.stop()
 
-
 if not st.session_state.get("autenticado", False):
-    acesso_bloqueado("Faça login para acessar o Omnisfera.")
+    acesso_bloqueado("Sessão expirada ou não iniciada.")
 
 if not st.session_state.get("workspace_id"):
-    acesso_bloqueado("Nenhuma escola vinculada ao seu acesso.")
-
+    acesso_bloqueado("Nenhum workspace vinculado.")
 
 # ==============================================================================
-# 2) STATE BASE (compat)
+# 3. HELPERS & STATE
 # ==============================================================================
-if "workspace_name" not in st.session_state:
-    st.session_state["workspace_name"] = ""
-
-if "usuario_nome" not in st.session_state:
-    st.session_state["usuario_nome"] = "Visitante"
-
-if "usuario_cargo" not in st.session_state:
-    st.session_state["usuario_cargo"] = ""
-
-default_state = {"nome": "", "nasc": date(2015, 1, 1), "serie": None, "turma": "", "diagnostico": "", "student_id": None}
 if "dados" not in st.session_state:
-    st.session_state.dados = default_state.copy()
+    st.session_state.dados = {"nome": "", "nasc": date(2015, 1, 1), "serie": None, "turma": "", "diagnostico": "", "student_id": None}
 
-# ==============================================================================
-# 3) HELPERS
-# ==============================================================================
 def get_base64_image(image_path: str) -> str:
-    if not image_path or not os.path.exists(image_path):
-        return ""
+    if not image_path or not os.path.exists(image_path): return ""
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
 def escola_vinculada() -> str:
-    v = st.session_state.get("workspace_name")
-    if isinstance(v, str) and v.strip():
-        return v.strip()
-
-    for k in ["escola_nome", "escola", "school_name", "workspace_label", "workspace_display"]:
-        vv = st.session_state.get(k)
-        if isinstance(vv, str) and vv.strip():
-            return vv.strip()
-
-    wsid = st.session_state.get("workspace_id")
-    if isinstance(wsid, str) and wsid.strip():
-        return f"Workspace {wsid[:8]}…"
-
-    return ""
+    # Tenta pegar o nome legível, se não, usa o ID
+    return st.session_state.get("workspace_name") or st.session_state.get("workspace_id", "")[:8]
 
 # ==============================================================================
-# 4) CSS BASE + VISUAL HOME
+# 4. CSS (DESIGN SYSTEM FLAT)
 # ==============================================================================
-st.markdown(
-    """
+st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito:wght@400;600;700;800&display=swap');
+/* Import Fonts & Icons */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700&display=swap');
+@import url("https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css");
 
-html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color:#1A202C; background:#F7FAFC; }
+html, body, [class*="css"] {
+    font-family: 'Nunito', sans-serif;
+    color: #1A202C;
+    background-color: #F7FAFC; /* Fundo cinza gelo muito suave */
+}
 
+/* Limpeza do Streamlit */
 [data-testid="stSidebarNav"] { display: none !important; }
 [data-testid="stHeader"] { visibility: hidden !important; height: 0px !important; }
+.block-container { padding-top: 110px !important; padding-bottom: 3rem !important; max-width: 1200px; }
 
-.block-container { padding-top: 128px !important; padding-bottom: 2rem !important; }
-
-@keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }
-
-/* Flaticon UIcons */
-@import url('https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css');
-@import url('https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-straight/css/uicons-solid-straight.css');
-@import url('https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css');
-
-/* TOPBAR */
+/* --- TOPBAR FIXA --- */
 .header-container {
-  position: fixed; top: 0; left: 0; width: 100%; height: 88px;
-  background: rgba(255,255,255,0.78);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(226,232,240,0.85);
-  z-index: 99999;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 28px;
-  box-shadow: 0 10px 30px rgba(15,82,186,0.06);
+    position: fixed; top: 0; left: 0; width: 100%; height: 80px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    z-index: 99999;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
 }
-.header-left { display: flex; align-items: center; gap: 16px; }
-.header-logo-spin { height: 54px; width: 54px; animation: spin 18s linear infinite; }
-.header-logo-text { height: 38px; width: auto; }
-.header-divider { height: 36px; width: 1px; background: rgba(203,213,224,0.9); margin: 0 6px; }
-.header-slogan { font-weight: 900; color: #718096; letter-spacing: .2px; }
+
+.logo-spin { height: 48px; width: auto; animation: spin 20s linear infinite; }
+.logo-text { height: 32px; width: auto; margin-left: 12px; }
+.header-div { width: 1px; height: 30px; background: #CBD5E0; margin: 0 15px; }
+.header-slogan { font-weight: 600; color: #718096; font-size: 0.9rem; letter-spacing: 0.3px; }
+
 .header-badge {
-  background: rgba(255,255,255,0.85);
-  border: 1px solid rgba(255,255,255,0.6);
-  border-radius: 14px;
-  padding: 8px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  align-items: flex-end;
-  box-shadow: 0 10px 20px rgba(15,82,186,0.07);
+    background: white; border: 1px solid #E2E8F0;
+    padding: 6px 14px; border-radius: 12px;
+    text-align: right;
 }
-.badge-top {
-  font-family: Inter, sans-serif;
-  font-weight: 900;
-  font-size: 0.62rem;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: #1A202C;
+.badge-label { font-size: 0.65rem; font-weight: 800; color: #A0AEC0; text-transform: uppercase; letter-spacing: 1px; }
+.badge-val { font-size: 0.85rem; font-weight: 800; color: #2D3748; }
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* --- HERO SECTION --- */
+.hero-box {
+    background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%);
+    border-radius: 20px;
+    padding: 35px 40px;
+    color: white;
+    box-shadow: 0 15px 40px rgba(15, 82, 186, 0.25);
+    margin-bottom: 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid rgba(255,255,255,0.1);
 }
-.badge-school {
-  font-weight: 900;
-  font-size: 0.80rem;
-  color: #2D3748;
-  opacity: .92;
-  max-width: 420px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.hero-welcome { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 1.8rem; margin-bottom: 5px; }
+.hero-sub { opacity: 0.85; font-size: 1rem; font-weight: 500; }
+.hero-action { 
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+    padding: 10px 20px; border-radius: 12px; text-align: right;
 }
 
-/* HERO */
-.hero-shell {
-  background:
-    radial-gradient(900px 240px at 15% 10%, rgba(15,82,186,0.22), transparent 65%),
-    radial-gradient(900px 240px at 85% 0%, rgba(56,178,172,0.18), transparent 60%),
-    radial-gradient(circle at top right, #0F52BA, #062B61);
-  border-radius: 22px;
-  border: 1px solid rgba(255,255,255,0.14);
-  box-shadow: 0 18px 50px rgba(15,82,186,0.24);
-  padding: 22px 24px;
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-}
-.hero-title {
-  font-family: Inter, sans-serif;
-  font-weight: 900;
-  font-size: 1.45rem;
-  margin: 0;
-}
-.hero-sub {
-  margin-top: 6px;
-  font-weight: 900;
-  color: rgba(255,255,255,0.86);
-}
-.hero-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-.chip {
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.14);
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-weight: 900;
-  font-size: 0.76rem;
-  color: rgba(255,255,255,0.92);
-}
-.hero-right { min-width: 220px; display: flex; justify-content: flex-end; }
-.hero-pulse {
-  background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 18px;
-  padding: 10px 12px;
-  text-align: right;
-}
-.hero-mini { font-weight: 900; letter-spacing: .3px; }
-.hero-mini-sub { margin-top: 3px; font-weight: 900; color: rgba(255,255,255,0.86); font-size: .80rem; }
-
-/* CARD compacto */
-.home-card {
-  position: relative;
-  background: rgba(255,255,255,0.92);
-  border-radius: 20px;
-  border: 1px solid rgba(226,232,240,0.95);
-  box-shadow: 0 10px 22px rgba(15,82,186,0.07);
-  padding: 14px 14px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  min-height: 104px;
-  transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
-  overflow: hidden;
-}
-.home-card:before {
-  content: "";
-  position: absolute;
-  inset: -60px -60px auto auto;
-  width: 130px;
-  height: 130px;
-  border-radius: 999px;
-  background: rgba(15,82,186,0.07);
-}
-.home-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 38px rgba(15,82,186,0.12);
-  border-color: rgba(49,130,206,0.35);
-}
-.home-ic {
-  width: 44px; height: 44px;
-  border-radius: 15px;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(15,82,186,0.08);
-  border: 1px solid rgba(15,82,186,0.12);
-  margin-top: 1px;
-}
-.home-ic i { font-size: 21px; color: #0F52BA; line-height: 1; }
-.home-txt { display:flex; flex-direction:column; gap:5px; min-width: 0; }
-.home-title {
-  font-family: Inter, sans-serif;
-  font-weight: 900;
-  font-size: 0.98rem;
-  color: #1A202C;
-  margin: 0;
-}
-.home-sub {
-  font-size: 0.80rem;
-  color: #718096;
-  margin: 0;
-  font-weight: 900;
-  line-height: 1.22rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.home-tags {
-  display:flex;
-  flex-wrap: nowrap;
-  gap: 6px;
-  margin-top: 2px;
-  overflow: hidden;
-}
-.tag {
-  background: rgba(226,232,240,0.55);
-  border: 1px solid rgba(226,232,240,0.9);
-  color: #2D3748;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-weight: 900;
-  font-size: 0.66rem;
-  letter-spacing: .2px;
-  white-space: nowrap;
-}
-.home-cta {
-  margin-top: 0px;
-  font-weight: 900;
-  color: #0F52BA;
-  font-size: 0.76rem;
+/* --- CARDS FLAT (O SALTO DE DESIGN) --- */
+.flat-card {
+    background: white;
+    border-radius: 18px;
+    padding: 24px;
+    border: 1px solid #EDF2F7;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 180px; /* Altura fixa para uniformidade */
+    position: relative;
+    display: flex; flex-direction: column; justify-content: space-between;
+    overflow: hidden;
 }
 
-.b-slate { border-bottom: 4px solid #4A5568; }
-.b-blue  { border-bottom: 4px solid #3182CE; }
-.b-purple{ border-bottom: 4px solid #805AD5; }
-.b-teal  { border-bottom: 4px solid #38B2AC; }
+.flat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    border-color: #E2E8F0;
+}
 
-/* Botão invisível */
-.ghost-btn [data-testid="stButton"] > button {
-  height: 1px !important;
-  min-height: 1px !important;
-  padding: 0 !important;
-  opacity: 0 !important;
-  border: 0 !important;
-  margin: 0 !important;
+/* Ícone com fundo colorido */
+.icon-box {
+    width: 50px; height: 50px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+.card-title { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.1rem; color: #1A202C; margin-bottom: 6px; }
+.card-desc { font-size: 0.85rem; color: #718096; line-height: 1.4; }
+.card-link { font-size: 0.8rem; font-weight: 700; margin-top: auto; display: flex; align-items: center; gap: 5px; }
+
+/* Cores dos Ícones */
+.theme-blue { background: #EBF8FF; color: #3182CE; } /* PEI */
+.theme-purple { background: #FAF5FF; color: #805AD5; } /* PAEE */
+.theme-teal { background: #E6FFFA; color: #319795; } /* Hub */
+.theme-indigo { background: #E0E7FF; color: #4F46E5; } /* Alunos */
+.theme-gray { background: #F7FAFC; color: #718096; } /* Inativo */
+
+/* Botão Invisível (Ghost Button) */
+.ghost-btn button {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0; z-index: 10; cursor: pointer;
 }
 </style>
-""",
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
 # ==============================================================================
-# 5) TOPBAR
+# 5. TOPBAR RENDER
 # ==============================================================================
-esc = escola_vinculada()
 icone_b64 = get_base64_image("omni_icone.png")
 texto_b64 = get_base64_image("omni_texto.png")
+esc = escola_vinculada()
 
-logo_icon_html = (
-    f'<img src="data:image/png;base64,{icone_b64}" class="header-logo-spin">'
-    if icone_b64
-    else '<div style="width:54px;height:54px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:white;border:1px solid #E2E8F0;">🌐</div>'
-)
-logo_text_html = (
-    f'<img src="data:image/png;base64,{texto_b64}" class="header-logo-text">'
-    if texto_b64
-    else '<div style="font-family:Inter,sans-serif;font-weight:900;font-size:1.15rem;color:#0F52BA;">OMNISFERA</div>'
-)
+logo_html = f'<img src="data:image/png;base64,{icone_b64}" class="logo-spin">' if icone_b64 else "🌐"
+nome_html = f'<img src="data:image/png;base64,{texto_b64}" class="logo-text">' if texto_b64 else "<b style='color:#0F52BA;margin-left:10px'>OMNISFERA</b>"
 
-st.markdown(
-    f"""
+st.markdown(f"""
 <div class="header-container">
-  <div class="header-left">
-    {logo_icon_html}
-    {logo_text_html}
-    <div class="header-divider"></div>
-    <div class="header-slogan">Ecossistema de Inteligência Pedagógica</div>
-  </div>
-  <div class="header-badge">
-    <div class="badge-top">OMNISFERA {APP_VERSION}</div>
-    {"<div class='badge-school'>🏫 "+esc+"</div>" if esc else ""}
-  </div>
+    <div style="display:flex; align-items:center;">
+        {logo_html}
+        {nome_html}
+        <div class="header-div"></div>
+        <div class="header-slogan">Inteligência Pedagógica</div>
+    </div>
+    <div class="header-badge">
+        <div class="badge-label">WORKSPACE</div>
+        <div class="badge-val">{esc if esc else "Não vinculado"}</div>
+    </div>
 </div>
-""",
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
 # ==============================================================================
-# 6) SIDEBAR
+# 6. SIDEBAR
 # ==============================================================================
 with st.sidebar:
     st.markdown("### 🧭 Navegação")
-
-    if st.button("👥 Estudantes", use_container_width=True):
-        st.switch_page("pages/0_Alunos.py")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("📘 PEI", use_container_width=True):
-            st.switch_page("pages/1_PEI.py")
-    with col2:
-        if st.button("🧩 PAEE", use_container_width=True):
-            st.switch_page("pages/2_PAE.py")
-
-    if st.button("🚀 Hub", use_container_width=True):
-        st.switch_page("pages/3_Hub_Inclusao.py")
-
+    if st.button("👥 Alunos", use_container_width=True): st.switch_page("pages/0_Alunos.py")
+    
+    c1, c2 = st.columns(2)
+    with c1: 
+        if st.button("📘 PEI", use_container_width=True): st.switch_page("pages/1_PEI.py")
+    with c2: 
+        if st.button("🧩 PAEE", use_container_width=True): st.switch_page("pages/2_PAE.py")
+    
+    if st.button("🚀 Hub", use_container_width=True): st.switch_page("pages/3_Hub_Inclusao.py")
+    
     st.markdown("---")
-    if esc:
-        st.caption("🏫 Escola vinculada")
-        st.markdown(f"**{esc}**")
-
-    st.markdown("---")
-    st.markdown(f"**👤 {st.session_state.get('usuario_nome', '')}**")
-    st.caption(st.session_state.get("usuario_cargo", ""))
-
+    st.markdown(f"**👤 {st.session_state.get('usuario_nome', 'Usuário')}**")
+    st.caption(st.session_state.get("usuario_cargo", "Educador"))
+    
     if st.button("Sair", use_container_width=True):
-        st.session_state["autenticado"] = False
-        st.session_state["workspace_id"] = None
-        st.session_state["workspace_name"] = ""
+        st.session_state.autenticado = False
         st.rerun()
 
 # ==============================================================================
-# 7) HOME
+# 7. HERO SECTION (LIMPA)
 # ==============================================================================
-primeiro_nome = (st.session_state.get("usuario_nome") or "Visitante").split()[0]
+nome_usuario = st.session_state.get('usuario_nome', 'Visitante').split()[0]
 
-chips = ["BNCC + DUA", "PEI / PAEE", "Rubricas", "Inclusão"]
-chips_html = "".join([f"<span class='chip'>{c}</span>" for c in chips])
-
-st.markdown(
-    f"""
-<div class="hero-shell">
-  <div>
-    <div class="hero-title">Olá, {primeiro_nome}!</div>
-    <div class="hero-sub">{("🏫 " + esc) if esc else "Bem-vindo(a) ao Omnisfera."}</div>
-    <div class="hero-chips">{chips_html}</div>
-  </div>
-  <div class="hero-right">
-    <div class="hero-pulse">
-      <div class="hero-mini">Acesso rápido</div>
-      <div class="hero-mini-sub">Seus módulos em 1 clique</div>
+st.markdown(f"""
+<div class="hero-box">
+    <div>
+        <div class="hero-welcome">Olá, {nome_usuario}!</div>
+        <div class="hero-sub">Seja bem-vindo ao seu painel de controle da inclusão.</div>
     </div>
-  </div>
+    <div class="hero-action">
+        <div style="font-size:0.7rem; opacity:0.8; text-transform:uppercase; font-weight:700;">Acesso Rápido</div>
+        <div style="font-weight:700;">Seus módulos</div>
+    </div>
 </div>
-""",
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
+# ==============================================================================
+# 8. MÓDULOS (CARDS COM ÍCONES FLAT)
+# ==============================================================================
 st.markdown("### 🚀 Módulos")
 
-def go(dest: str):
-    if dest == "ALUNOS":
-        st.switch_page("pages/0_Alunos.py")
-    elif dest == "PEI":
-        st.switch_page("pages/1_PEI.py")
-    elif dest == "PAEE":
-        st.switch_page("pages/2_PAE.py")
-    elif dest == "HUB":
-        st.switch_page("pages/3_Hub_Inclusao.py")
-    elif dest == "DIARIO":
-        st.toast("🛠️ Diário de Bordo — em breve neste build.", icon="✨")
-    elif dest == "DADOS":
-        st.toast("🛠️ Evolução & Dados — em breve neste build.", icon="✨")
-    time.sleep(0.10)
+def render_module_card(title, desc, icon_class, theme_class, target_page, key):
+    # Renderiza o visual HTML
+    st.markdown(f"""
+    <div class="flat-card">
+        <div class="icon-box {theme_class}">
+            <i class="{icon_class}"></i>
+        </div>
+        <div>
+            <div class="card-title">{title}</div>
+            <div class="card-desc">{desc}</div>
+        </div>
+        <div class="card-link" style="color: inherit;">
+            Abrir módulo <i class="ri-arrow-right-line"></i>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Botão Invisível por cima
+    st.markdown(f'<div class="ghost-btn">', unsafe_allow_html=True)
+    if st.button(f"btn_{key}", key=key):
+        if target_page:
+            st.switch_page(target_page)
+        else:
+            st.toast("🚧 Módulo em desenvolvimento", icon="🔨")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-cards = [
-    ("Estudantes", "Gestão, seleção e histórico do aluno.", "fi fi-br-users", "ALUNOS", "b-slate", ["Cadastro", "Turmas"], "Abrir →"),
-    ("Estratégias & PEI", "Plano Educacional Individualizado com rubricas.", "fi fi-sr-book-open-cover", "PEI", "b-blue", ["PEI 360°", "DUA"], "Abrir →"),
-    ("Plano de Ação / PAEE", "Intervenções e sala de recursos.", "fi fi-ss-puzzle", "PAEE", "b-purple", ["AEE", "Ações"], "Abrir →"),
-    ("Hub de Recursos", "Modelos, adaptações e ferramentas.", "fi fi-sr-rocket", "HUB", "b-teal", ["Materiais", "Provas"], "Abrir →"),
-    ("Diário de Bordo", "Registro contínuo e evidências.", "fi fi-br-notebook", "DIARIO", "b-slate", ["Notas", "Evidências"], "Em breve →"),
-    ("Evolução & Dados", "Indicadores e visão longitudinal.", "fi fi-br-chart-histogram", "DADOS", "b-slate", ["KPIs", "Radar"], "Em breve →"),
-]
+# Grid de Cards
+r1_c1, r1_c2, r1_c3 = st.columns(3)
 
-for r in range(0, len(cards), 3):
-    row = cards[r:r+3]
-    cols = st.columns(3)
-    for i, item in enumerate(row):
-        title, sub, icon_class, dest, border, tags, cta = item
-        tags = (tags or [])[:2]
-        tags_html = "".join([f"<span class='tag'>{t}</span>" for t in tags])
+with r1_c1:
+    render_module_card(
+        "Estudantes", 
+        "Gestão, seleção e histórico clínico.", 
+        "ri-group-line", "theme-indigo", "pages/0_Alunos.py", "mod_alunos"
+    )
 
-        with cols[i]:
-            st.markdown(
-                f"""
-<div class="home-card {border}">
-  <div class="home-ic"><i class="{icon_class}"></i></div>
-  <div class="home-txt">
-    <div class="home-title">{title}</div>
-    <div class="home-sub">{sub}</div>
-    <div class="home-tags">{tags_html}</div>
-    <div class="home-cta">{cta}</div>
-  </div>
-</div>
-""",
-                unsafe_allow_html=True,
-            )
-            st.markdown("<div class='ghost-btn'>", unsafe_allow_html=True)
-            if st.button("open", key=f"card_{r+i}", use_container_width=True):
-                go(dest)
-            st.markdown("</div>", unsafe_allow_html=True)
+with r1_c2:
+    render_module_card(
+        "Estratégias & PEI", 
+        "Plano Educacional Individualizado.", 
+        "ri-book-open-line", "theme-blue", "pages/1_PEI.py", "mod_pei"
+    )
 
-st.markdown(
-    "<div style='text-align: center; color: #A0AEC0; font-weight:900; font-size: 0.72rem; margin-top: 44px;'>Omnisfera desenvolvida por RODRIGO A. QUEIROZ</div>",
-    unsafe_allow_html=True,
-)
+with r1_c3:
+    render_module_card(
+        "Plano de Ação / PAEE", 
+        "Intervenções e sala de recursos.", 
+        "ri-puzzle-2-line", "theme-purple", "pages/2_PAE.py", "mod_pae"
+    )
+
+st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True) # Espaçamento
+
+r2_c1, r2_c2, r2_c3 = st.columns(3)
+
+with r2_c1:
+    render_module_card(
+        "Hub de Recursos", 
+        "Modelos, adaptações e ferramentas IA.", 
+        "ri-rocket-2-line", "theme-teal", "pages/3_Hub_Inclusao.py", "mod_hub"
+    )
+
+with r2_c2:
+    render_module_card(
+        "Diário de Bordo", 
+        "Registro contínuo e evidências.", 
+        "ri-file-list-3-line", "theme-gray", "pages/4_Diario_de_Bordo.py", "mod_diario"
+    )
+
+with r2_c3:
+    render_module_card(
+        "Evolução & Dados", 
+        "Indicadores e visão longitudinal.", 
+        "ri-bar-chart-box-line", "theme-gray", "pages/5_Monitoramento_Avaliacao.py", "mod_dados"
+    )
+
+# Footer
+st.markdown("<div style='text-align: center; color: #CBD5E0; font-size: 0.75rem; margin-top: 50px;'>Omnisfera desenvolvida por RODRIGO A. QUEIROZ</div>", unsafe_allow_html=True)
