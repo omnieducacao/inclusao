@@ -2303,11 +2303,49 @@ with tab8:
     def _ensure_dashboard_css():
         css = """
         <style>
-            .dash-hero { background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%); border-radius: 16px; padding: 25px; color: white; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-            .apple-avatar { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,.15); border: 2px solid rgba(255,255,255,.4); display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:800; }
-            .metric-card { background:white; border-radius:16px; padding:15px; border:1px solid #E2E8F0; height:140px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-            .soft-card { border-radius:12px; padding:20px; border-left:5px solid; background:#FFF; border:1px solid #E2E8F0; }
-            .tiny { font-size:.82rem; opacity:.8; }
+            .dash-hero {
+                background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%);
+                border-radius: 16px;
+                padding: 25px;
+                color: white;
+                margin-bottom: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 8px 22px rgba(2, 6, 23, 0.15);
+            }
+            .apple-avatar {
+                width: 60px; height: 60px; border-radius: 50%;
+                background: rgba(255,255,255,.15);
+                border: 2px solid rgba(255,255,255,.35);
+                display:flex; align-items:center; justify-content:center;
+                font-size:1.6rem; font-weight:900;
+            }
+            .metric-card {
+                background:white;
+                border-radius:16px;
+                padding:15px;
+                border:1px solid #E2E8F0;
+                height:140px;
+                display:flex;
+                flex-direction:column;
+                align-items:center;
+                justify-content:center;
+                box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04);
+            }
+            .soft-card {
+                border-radius:12px;
+                padding:20px;
+                border-left:5px solid;
+                background:#FFF;
+                border: 1px solid rgba(15, 23, 42, 0.06);
+                box-shadow: 0 3px 10px rgba(15, 23, 42, 0.03);
+            }
+            .muted {
+                color:#64748B;
+                font-weight:700;
+                font-size:.85rem;
+            }
         </style>
         """
         st.markdown(css, unsafe_allow_html=True)
@@ -2338,7 +2376,7 @@ with tab8:
     # --------------------------------------------------------------------------
     # 3) HERO
     # --------------------------------------------------------------------------
-    init_avatar = d["nome"][0].upper()
+    init_avatar = (d.get("nome") or "?")[0].upper() if d.get("nome") else "?"
     idade = calcular_idade_fn(d.get("nasc"))
     student_id = st.session_state.get("selected_student_id")
 
@@ -2348,18 +2386,18 @@ with tab8:
             <div style="display:flex; gap:16px; align-items:center;">
                 <div class="apple-avatar">{init_avatar}</div>
                 <div>
-                    <h2 style="margin:0;">{d.get("nome")}</h2>
-                    <div style="opacity:.85; font-size:.9rem;">
+                    <h2 style="margin:0;">{d.get("nome","")}</h2>
+                    <div style="opacity:.88; font-size:.92rem;">
                         {d.get("serie","-")} • {d.get("turma","-")}
                     </div>
-                    <div style="font-size:.8rem; opacity:.7;">
-                        {"Vinculado ao Supabase" if student_id else "Rascunho local"}
+                    <div style="font-size:.82rem; opacity:.78; font-weight:800;">
+                        {"Vinculado ao Supabase ✅" if student_id else "Rascunho local (não sincronizado)"}
                     </div>
                 </div>
             </div>
             <div style="text-align:right;">
-                <div style="font-size:.75rem;">IDADE</div>
-                <div style="font-size:1.2rem; font-weight:800;">{idade}</div>
+                <div style="font-size:.75rem; opacity:.85;">IDADE</div>
+                <div style="font-size:1.2rem; font-weight:900;">{idade}</div>
             </div>
         </div>
         """,
@@ -2367,13 +2405,18 @@ with tab8:
     )
 
     # --------------------------------------------------------------------------
-    # 4) KPIs
+    # 4) KPIs (simples)
     # --------------------------------------------------------------------------
     c1, c2, c3 = st.columns(3)
     with c1:
         st.metric("Potencialidades", len(d.get("potencias", []) or []))
     with c2:
-        st.metric("Barreiras", sum(len(v) for v in (d.get("barreiras_selecionadas", {}) or {}).values()))
+        barreiras_dict = (d.get("barreiras_selecionadas", {}) or {})
+        try:
+            n_barreiras = sum(len(v) for v in barreiras_dict.values()) if isinstance(barreiras_dict, dict) else 0
+        except Exception:
+            n_barreiras = 0
+        st.metric("Barreiras", n_barreiras)
     with c3:
         st.metric("Rede de Apoio", len(d.get("rede_apoio", []) or []))
 
@@ -2385,9 +2428,9 @@ with tab8:
         f"""
         <div class="soft-card" style="border-left-color:#D69E2E;">
             <b>🏁 Metas</b><br><br>
-            <b>Curto:</b> {metas.get("Curto")}<br>
-            <b>Médio:</b> {metas.get("Medio")}<br>
-            <b>Longo:</b> {metas.get("Longo")}
+            <b>Curto:</b> {metas.get("Curto","—")}<br>
+            <b>Médio:</b> {metas.get("Medio","—")}<br>
+            <b>Longo:</b> {metas.get("Longo","—")}
         </div>
         """,
         unsafe_allow_html=True
@@ -2408,17 +2451,38 @@ with tab8:
     # ---------------- DOCS ----------------
     with col_docs:
         st.caption("📄 Documentos")
+
+        # PDF (tenta assinatura nova e antiga)
         try:
-            pdf = gerar_pdf_final(d)
-            st.download_button("Baixar PDF", pdf, f"PEI_{d.get('nome')}.pdf", "application/pdf", use_container_width=True)
+            pdf = None
+            try:
+                pdf = gerar_pdf_final(d, len(st.session_state.get("pdf_text", "")) > 0)
+            except TypeError:
+                pdf = gerar_pdf_final(d)
+
+            if pdf:
+                st.download_button(
+                    "Baixar PDF",
+                    pdf,
+                    f"PEI_{d.get('nome','Aluno')}.pdf",
+                    "application/pdf",
+                    use_container_width=True
+                )
+            else:
+                st.warning("PDF não gerado (retornou vazio).")
         except Exception as e:
             st.error(f"Erro PDF: {e}")
 
+        # Word
         try:
             docx = gerar_docx_final(d)
-            st.download_button("Baixar Word", docx, f"PEI_{d.get('nome')}.docx",
-                               "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                               use_container_width=True)
+            st.download_button(
+                "Baixar Word",
+                docx,
+                f"PEI_{d.get('nome','Aluno')}.docx",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                use_container_width=True
+            )
         except Exception as e:
             st.error(f"Erro Word: {e}")
 
@@ -2428,7 +2492,7 @@ with tab8:
         st.download_button(
             "Salvar JSON",
             json.dumps(d, default=str, ensure_ascii=False),
-            f"PEI_{d.get('nome')}.json",
+            f"PEI_{d.get('nome','Aluno')}.json",
             "application/json",
             use_container_width=True
         )
@@ -2436,57 +2500,82 @@ with tab8:
     # ---------------- CLOUD ----------------
     with col_sys:
         st.caption("🌐 Omnisfera")
-        st.markdown("<div class='tiny'>Vincula o aluno e salva o PEI na nuvem.</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='muted'>Vincula o aluno e salva o PEI na nuvem (Supabase).</div>",
+            unsafe_allow_html=True
+        )
 
-        def _cloud_ready(debug=False):
-            details = {}
+        def _cloud_ready():
+            """
+            Valida pronto-para-salvar conforme sua arquitetura atual:
+            - workspace_id e autenticado (vindos do login_view)
+            - NÃO exige 'sb' nem 'OWNER_ID' porque você usa REST (omni_utils.py)
+            """
+            workspace_id = st.session_state.get("workspace_id")
+            autenticado = st.session_state.get("autenticado", False)
 
-            details["autenticado"] = bool(st.session_state.get("autenticado"))
-            details["workspace_id"] = bool(st.session_state.get("workspace_id"))
-
-            try:
-                details["SUPABASE_URL"] = bool(st.secrets.get("SUPABASE_URL"))
-                details["SUPABASE_KEY"] = bool(
-                    st.secrets.get("SUPABASE_SERVICE_KEY") or st.secrets.get("SUPABASE_ANON_KEY")
-                )
-            except Exception:
-                details["SUPABASE_URL"] = False
-                details["SUPABASE_KEY"] = False
-
+            details = {
+                "has_workspace_id": bool(workspace_id),
+                "autenticado": bool(autenticado),
+            }
             ok = all(details.values())
-            if debug:
-                details["missing"] = [k for k, v in details.items() if not v]
+            details["missing"] = [k for k, v in details.items() if not v]
             return ok, details
 
-        if st.button("🔗 Sincronizar (Omnisfera)", type="primary", use_container_width=True):
-            ok, details = _cloud_ready(debug=True)
+        if st.button(
+            "🔗 Sincronizar (Omnisfera)",
+            type="primary",
+            use_container_width=True,
+            key="btn_sync_omnisfera_tab8",
+        ):
+            ok, details = _cloud_ready()
             if not ok:
-                st.error("Nuvem indisponível.")
+                st.error("Nuvem indisponível: falta configurar sessão (login/workspace).")
                 st.json(details)
                 st.stop()
 
             try:
                 sid = st.session_state.get("selected_student_id")
 
+                # 1) cria aluno se ainda não existe
                 if not sid:
-                    created = db_create_student({
+                    payload_student = {
                         "name": d.get("nome"),
-                        "birth_date": d.get("nasc"),
+                        "birth_date": (
+                            d.get("nasc").isoformat()
+                            if hasattr(d.get("nasc"), "isoformat")
+                            else d.get("nasc")
+                        ),
                         "grade": d.get("serie"),
-                        "class_group": d.get("turma"),
-                        "diagnosis": d.get("diagnostico"),
-                    })
-                    sid = created.get("id")
+                        "class_group": d.get("turma") or None,
+                        "diagnosis": d.get("diagnostico") or None,
+                        # MUITO IMPORTANTE para sua arquitetura multi-workspace:
+                        "workspace_id": st.session_state.get("workspace_id"),
+                    }
+
+                    created = db_create_student(payload_student)
+                    sid = (created or {}).get("id")
+
+                    if not sid:
+                        raise RuntimeError("Falha ao criar aluno no Supabase (students). Verifique policies/RLS.")
+
                     st.session_state["selected_student_id"] = sid
 
+                # 2) opcional: sync dados do aluno (se existir na sua base)
+                if "supa_sync_student_from_dados" in globals():
+                    supa_sync_student_from_dados(sid, d)
+
+                # 3) salva PEI (se existir)
                 if "supa_save_pei" in globals():
                     supa_save_pei(sid, d, st.session_state.get("pdf_text", ""))
 
-                st.success("✅ PEI salvo na nuvem com sucesso.")
+                st.success("✅ Sincronizado: aluno vinculado + PEI salvo na nuvem.")
+                st.caption(f"student_id: {sid[:8]}...")
                 st.rerun()
 
             except Exception as e:
                 st.error(f"Erro ao salvar na nuvem: {e}")
+
 
 
 # ==============================================================================
