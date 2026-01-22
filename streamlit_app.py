@@ -67,7 +67,7 @@ def acesso_bloqueado(msg: str):
     with col2:
         if st.button("🔑 Voltar para o Login", use_container_width=True, type="primary"):
             # 1) limpa sessão
-            for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo"]:
+            for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "sb", "sb_error"]:
                 st.session_state.pop(k, None)
 
             # 2) tenta ir para o começo (streamlit_app.py)
@@ -85,17 +85,16 @@ def acesso_bloqueado(msg: str):
                       </a>
                     </div>
                     """,
-                    unsafe_allow_html=True
+                    unsafe_allow_html=True,
                 )
                 st.stop()
 
     st.stop()
 
 
-
-
-
+# ------------------------------------------------------------------------------
 # Estado mínimo
+# ------------------------------------------------------------------------------
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 if "workspace_id" not in st.session_state:
@@ -105,7 +104,9 @@ if "workspace_name" not in st.session_state:
 
 HOME_PAGE = "pages/0_Home.py"
 
+# ------------------------------------------------------------------------------
 # Router
+# ------------------------------------------------------------------------------
 if not st.session_state.autenticado:
     render_login()
 else:
@@ -115,5 +116,15 @@ else:
         st.warning("Workspace não encontrado. Faça login novamente.")
         render_login()
     else:
+        # ✅ GARANTE O CLIENT SUPABASE NA SESSÃO (resolve has_sb:false)
+        try:
+            from supabase_client import get_sb
+
+            get_sb()  # salva em st.session_state["sb"]
+        except Exception as e:
+            st.error("Supabase não inicializou. Verifique Secrets e requirements.")
+            st.code(str(e))
+            st.stop()
+
         # Vai para Home real (multipage)
         st.switch_page(HOME_PAGE)
