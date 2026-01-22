@@ -18,12 +18,12 @@ def hide_streamlit():
     if _env() == "TESTE":
         return
     st.markdown("""
-    <style>
-        #MainMenu, footer, header { visibility: hidden; }
-        [data-testid="stToolbar"] { visibility: hidden; }
-        .block-container { padding-top: 1.2rem; }
-    </style>
-    """, unsafe_allow_html=True)
+<style>
+    #MainMenu, footer, header { visibility: hidden; }
+    [data-testid="stToolbar"] { visibility: hidden; }
+    .block-container { padding-top: 1.2rem; }
+</style>
+""", unsafe_allow_html=True)
 
 # ==============================================================================
 # Assets
@@ -42,120 +42,120 @@ TEXT = b64("omni_texto.png")
 # ==============================================================================
 def inject_css():
     st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 
-    html, body, [class*="css"] {
-        font-family: 'Nunito', sans-serif;
-        background: #F7FAFC;
-        color: #0f172a;
-    }
+html, body, [class*="css"] {
+    font-family: 'Nunito', sans-serif;
+    background: #F7FAFC;
+    color: #0f172a;
+}
 
-    .wrap { max-width: 1080px; margin: auto; padding: 22px 18px 64px; }
+.wrap { max-width: 1080px; margin: auto; padding: 22px 18px 64px; }
 
-    .top-chip {
-        display:inline-block;
-        padding:6px 12px;
-        border-radius:999px;
-        font-size:13px;
-        font-weight:800;
-        color:#475569;
-        background:#EDF2F7;
-        border:1px solid #E2E8F0;
-    }
+.top-chip {
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:800;
+    color:#475569;
+    background:#EDF2F7;
+    border:1px solid #E2E8F0;
+}
 
-    .brand {
-        display:flex;
-        align-items:center;
-        gap:16px;
-        margin-top:18px;
-    }
+.brand {
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin-top:18px;
+}
 
-    .logoSpin img {
-        width:58px;
-        animation: spin 12s linear infinite;
-    }
+.logoSpin img {
+    width:58px;
+    animation: spin 12s linear infinite;
+}
 
-    @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-    .logoText img {
-        height:42px;
-    }
+.logoText img {
+    height:42px;
+}
 
-    .subtitle {
-        margin-top:12px;
-        font-weight:700;
-        color:#64748B;
-        font-size:16px;
-    }
+.subtitle {
+    margin-top:12px;
+    font-weight:700;
+    color:#64748B;
+    font-size:16px;
+}
 
-    .grid {
-        display:grid;
-        grid-template-columns: 1.1fr .9fr;
-        gap:14px;
-        margin-top:18px;
-    }
+.grid {
+    display:grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap:14px;
+    margin-top:18px;
+}
 
-    @media(max-width:980px){
-        .grid { grid-template-columns:1fr; }
-    }
+@media(max-width:980px){
+    .grid { grid-template-columns:1fr; }
+}
 
-    .card {
-        background:white;
-        border-radius:20px;
-        border:1px solid #E2E8F0;
-        padding:16px;
-        box-shadow:0 18px 40px rgba(15,23,42,.08);
-    }
+.card {
+    background:white;
+    border-radius:20px;
+    border:1px solid #E2E8F0;
+    padding:16px;
+    box-shadow:0 18px 40px rgba(15,23,42,.08);
+}
 
-    .card-h {
-        font-weight:900;
-        font-size:15px;
-        color:#062B61;
-    }
+.card-h {
+    font-weight:900;
+    font-size:15px;
+    color:#062B61;
+}
 
-    .manifesto {
-        background: radial-gradient(circle at top right, #E6F0FF, #FFFFFF);
-        border-radius:20px;
-        padding:16px;
-        border:1px solid #DBEAFE;
-        box-shadow:0 18px 44px rgba(15,82,186,.12);
-    }
+.manifesto {
+    background: radial-gradient(circle at top right, #E6F0FF, #FFFFFF);
+    border-radius:20px;
+    padding:16px;
+    border:1px solid #DBEAFE;
+    box-shadow:0 18px 44px rgba(15,82,186,.12);
+}
 
-    .manifesto p {
-        font-weight:700;
-        font-size:14px;
-        line-height:1.4rem;
-        color:#1E293B;
-        margin:0;
-    }
+.manifesto p {
+    font-weight:700;
+    font-size:14px;
+    line-height:1.4rem;
+    color:#1E293B;
+    margin:0;
+}
 
-    .pill {
-        display:inline-block;
-        margin-top:10px;
-        margin-right:6px;
-        padding:6px 12px;
-        border-radius:999px;
-        background:#EDF2F7;
-        border:1px solid #E2E8F0;
-        font-weight:900;
-        font-size:12px;
-    }
+.pill {
+    display:inline-block;
+    margin-top:10px;
+    margin-right:6px;
+    padding:6px 12px;
+    border-radius:999px;
+    background:#EDF2F7;
+    border:1px solid #E2E8F0;
+    font-weight:900;
+    font-size:12px;
+}
 
-    .err {
-        margin-top:12px;
-        padding:12px;
-        border-radius:14px;
-        background:#FEE2E2;
-        border:1px solid #FCA5A5;
-        color:#7F1D1D;
-        font-weight:900;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+.err {
+    margin-top:12px;
+    padding:12px;
+    border-radius:14px;
+    background:#FEE2E2;
+    border:1px solid #FCA5A5;
+    color:#7F1D1D;
+    font-weight:900;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ==============================================================================
-# Manifesto
+# Manifesto (SEM INDENTAÇÃO INTERNA)
 # ==============================================================================
 MANIFESTO_HTML = """
 <div class="manifesto">
@@ -181,32 +181,32 @@ def render_login():
     hide_streamlit()
     inject_css()
 
-    # ---------- TOPO (HTML PURO) ----------
+    # ---------- TOPO (HTML PURO - SEM INDENTAÇÃO) ----------
     st.markdown(f"""
-    <div class="wrap">
-      <span class="top-chip">Acesso por PIN • Supabase Workspace</span>
+<div class="wrap">
+  <span class="top-chip">Acesso por PIN • Supabase Workspace</span>
 
-      <div class="brand">
-        <div class="logoSpin"><img src="data:image/png;base64,{ICON}"></div>
-        <div class="logoText"><img src="data:image/png;base64,{TEXT}"></div>
-      </div>
+  <div class="brand">
+    <div class="logoSpin"><img src="data:image/png;base64,{ICON}"></div>
+    <div class="logoText"><img src="data:image/png;base64,{TEXT}"></div>
+  </div>
 
-      <div class="subtitle">
-        Identifique-se, aceite o termo e valide seu PIN para entrar no workspace.
-      </div>
+  <div class="subtitle">
+    Identifique-se, aceite o termo e valide seu PIN para entrar no workspace.
+  </div>
 
-      <div class="grid">
-        <div class="card">
-          <div class="card-h">Identificação & Acesso</div>
-          <div style="font-size:13px;color:#64748B;font-weight:800;">
-            RPC: <code>{RPC_NAME}(p_pin text)</code>
-          </div>
-        </div>
-
-        {MANIFESTO_HTML}
+  <div class="grid">
+    <div class="card">
+      <div class="card-h">Identificação & Acesso</div>
+      <div style="font-size:13px;color:#64748B;font-weight:800;">
+        RPC: <code>{RPC_NAME}(p_pin text)</code>
       </div>
     </div>
-    """, unsafe_allow_html=True)
+
+    {MANIFESTO_HTML}
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
     # ---------- FORMULÁRIO ----------
     st.markdown('<div class="wrap">', unsafe_allow_html=True)
