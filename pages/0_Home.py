@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. CSS & DESIGN SYSTEM (CORREÇÃO DE BOTÃO E LAYOUT)
+# 2. CSS & DESIGN SYSTEM (CORREÇÃO DE POSICIONAMENTO)
 # ==============================================================================
 st.markdown("""
 <style>
@@ -50,9 +50,9 @@ html, body, [class*="css"] {
 .brand-logo { height: 45px; animation: spin 60s linear infinite; }
 .brand-text { font-weight: 800; color: #1E293B; font-size: 1.2rem; }
 
-/* HERO SECTION */
+/* HERO */
 .hero {
-    background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
+    background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
     border-radius: 20px; padding: 40px 50px; color: white;
     margin-bottom: 40px; position: relative; overflow: hidden;
     box-shadow: 0 10px 30px -10px rgba(37, 99, 235, 0.4);
@@ -66,12 +66,12 @@ html, body, [class*="css"] {
     border-radius: 16px;
     border: 1px solid #E2E8F0;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-    height: 120px; /* Altura fixa */
+    height: 120px; /* Altura fixa para alinhar */
     position: relative;
     display: flex; 
     align-items: center;
     padding-left: 100px; /* Espaço para ícone */
-    padding-right: 140px; /* Espaço para botão */
+    padding-right: 20px; 
     transition: transform 0.2s;
     overflow: hidden;
 }
@@ -83,7 +83,7 @@ html, body, [class*="css"] {
 
 /* Faixa lateral colorida */
 .card-edge {
-    position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+    position: absolute; left: 0; top: 0; bottom: 0; width: 8px;
 }
 
 /* Ícone */
@@ -97,28 +97,28 @@ html, body, [class*="css"] {
 }
 
 /* Texto */
-.card-content { width: 100%; }
 .card-content h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #0F172A; }
-.card-content p { margin: 4px 0 0 0; font-size: 0.8rem; color: #64748B; line-height: 1.3; }
+.card-content p { margin: 4px 0 0 0; font-size: 0.85rem; color: #64748B; line-height: 1.3; max-width: 60%; }
 
-/* --- BOTÃO STREAMLIT (CSS HACK) --- */
-/* Esta classe puxa o botão st.button para dentro do card visual acima dele */
-div[data-testid="stVerticalBlock"] > div > div[data-testid="stButton"] {
-    margin-top: -85px; /* Puxa para cima */
-    text-align: right;
-    padding-right: 25px;
+/* --- CSS DO BOTÃO (CORREÇÃO DE POSIÇÃO) --- */
+/* Seleciona o container do botão que vem logo após o card */
+div.element-container:has(div.card-box) + div.element-container {
+    display: flex;
+    justify-content: flex-end; /* ISSO ALINHA À DIREITA */
+    margin-top: -85px; /* Puxa para cima para entrar no card */
+    padding-right: 30px; /* Margem da direita */
     position: relative;
     z-index: 10;
-    pointer-events: none; /* Container transparente */
+    pointer-events: none; /* Deixa clicar no card atrás se não acertar o botão */
 }
 
-div[data-testid="stVerticalBlock"] > div > div[data-testid="stButton"] > button {
-    pointer-events: auto; /* Botão clicável */
+div.element-container:has(div.card-box) + div.element-container button {
+    pointer-events: auto; /* Reativa o clique no botão */
     background-color: #4F46E5;
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 0.5rem 1.2rem;
+    padding: 0.5rem 1.5rem;
     font-weight: 700;
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -126,10 +126,11 @@ div[data-testid="stVerticalBlock"] > div > div[data-testid="stButton"] > button 
     transition: all 0.2s;
 }
 
-div[data-testid="stVerticalBlock"] > div > div[data-testid="stButton"] > button:hover {
+div.element-container:has(div.card-box) + div.element-container button:hover {
     background-color: #4338ca;
     transform: scale(1.05);
     color: white;
+    border: none;
 }
 
 /* RECURSOS EXTERNOS */
@@ -169,7 +170,7 @@ if not st.session_state.get("autenticado") or not st.session_state.get("workspac
     st.stop()
 
 # ==============================================================================
-# 4. RENDERIZAÇÃO
+# 4. LAYOUT
 # ==============================================================================
 
 # TOPBAR
@@ -218,14 +219,17 @@ def card_funcional(titulo, desc, icone, cor, arquivo, chave):
 """
     st.markdown(html, unsafe_allow_html=True)
     
-    # BOTÃO REAL (que será movido pelo CSS acima)
+    # BOTÃO REAL (Posicionado via CSS 'justify-content: flex-end')
     if st.button("CLIQUE AQUI", key=chave):
+        # Lógica de redirecionamento precisa (com base na sua lista de arquivos)
         if "Alunos" in titulo:
-            st.switch_page("pages/Alunos.py") # CAMINHO EXATO
+            st.switch_page("pages/Alunos.py") 
+        elif "Estudantes" in titulo:
+             st.switch_page("pages/Alunos.py")
         elif st.session_state.dados.get("nome"):
-            st.switch_page(arquivo) # CAMINHO EXATO
+            st.switch_page(arquivo)
         else:
-            st.toast("⚠️ Selecione um aluno primeiro!", icon="🚫")
+            st.toast("⚠️ Selecione um aluno primeiro em Estudantes!", icon="🚫")
             time.sleep(1)
             st.switch_page("pages/Alunos.py")
 
@@ -234,7 +238,7 @@ c1, c2 = st.columns(2, gap="large")
 
 with c1:
     card_funcional("Estudantes", "Gestão e histórico escolar.", "ri-group-fill", "#4F46E5", "pages/Alunos.py", "btn_aluno")
-    st.write("") # Espaço para o CSS funcionar bem
+    st.write("") 
     card_funcional("Plano de Ação / PAEE", "Sala de recursos e intervenções.", "ri-puzzle-2-fill", "#9333EA", "pages/2_PAE.py", "btn_paee")
     st.write("")
     card_funcional("Hub de Recursos", "Materiais adaptados e IA.", "ri-rocket-2-fill", "#0D9488", "pages/3_Hub_Inclusao.py", "btn_hub")
@@ -251,7 +255,6 @@ st.markdown("<br>### 📚 Recursos Externos", unsafe_allow_html=True)
 
 def link_card(col, icon, tit, sub, url, color):
     with col:
-        # Link seguro sem indentação
         st.markdown(f"""
 <a href="{url}" target="_blank" class="res-link">
 <div class="res-card">
