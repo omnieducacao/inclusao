@@ -37,6 +37,23 @@ if ENV != "TESTE":
         unsafe_allow_html=True,
     )
 
+
+if st.button("🔑 Voltar para o Login", use_container_width=True, type="primary"):
+    # limpa sessão
+    st.session_state.autenticado = False
+    st.session_state.workspace_id = None
+    st.session_state.workspace_name = None
+
+    # ✅ volta para o início do app (onde está o router/login)
+    try:
+        st.switch_page("streamlit_app.py")
+    except Exception:
+        # fallback: recarrega e deixa o usuário clicar no início
+        st.rerun()
+
+
+
+
 # Estado mínimo
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
