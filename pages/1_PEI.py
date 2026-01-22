@@ -2363,9 +2363,8 @@ with tab8:
     idade_str = calcular_idade_fn(d.get("nasc"))
     serie_txt = d.get("serie") or "-"
     turma_txt = d.get("turma") or "-"
-    matricula_txt = d.get("matricula") or d.get("ra") or "-"  # (campo novo só local por enquanto)
+    matricula_txt = d.get("matricula") or d.get("ra") or "-"
 
-    # status de vínculo (se existir no seu projeto novo)
     student_id = st.session_state.get("selected_student_id")
     vinculo_txt = "Vinculado ao Supabase ✅" if student_id else "Rascunho (não sincronizado)"
 
@@ -2455,10 +2454,9 @@ with tab8:
     c_r1, c_r2 = st.columns(2)
 
     with c_r1:
-        # Medicação
         lista_meds = d.get("lista_medicamentos", []) or []
         if len(lista_meds) > 0:
-            nomes_meds = ", ".join([m.get("nome","").strip() for m in lista_meds if m.get("nome")])
+            nomes_meds = ", ".join([m.get("nome", "").strip() for m in lista_meds if m.get("nome")])
             alerta_escola = any(bool(m.get("escola")) for m in lista_meds)
 
             icon_alerta = '<i class="ri-alarm-warning-fill pulse-alert" style="font-size:1.2rem; margin-left:10px;"></i>' if alerta_escola else ""
@@ -2483,8 +2481,6 @@ with tab8:
             )
 
         st.write("")
-
-        # Metas (mantém seu modelo “rico”; se quiser 3 cards como você curtiu, eu adapto depois)
         metas = extrair_metas_estruturadas_fn(d.get("ia_sugestao", ""))
         html_metas = (
             f"""<div class="meta-row"><span style="font-size:1.2rem;">🏁</span> <b>Curto:</b> {metas.get('Curto','Definir...')}</div>
@@ -2501,7 +2497,6 @@ with tab8:
         )
 
     with c_r2:
-        # Radar Curricular
         comps_inferidos = inferir_componentes_impactados_fn(d) or []
         if comps_inferidos:
             html_comps = "".join([f'<span class="rede-chip" style="border-color:#FC8181; color:#C53030;">{c}</span> ' for c in comps_inferidos])
@@ -2525,8 +2520,6 @@ with tab8:
             )
 
         st.write("")
-
-        # Rede de Apoio
         rede = d.get("rede_apoio", []) or []
         rede_html = "".join([f'<span class="rede-chip">{get_pro_icon_fn(p)} {p}</span> ' for p in rede]) if rede else "<span style='opacity:0.6;'>Sem rede.</span>"
         st.markdown(
@@ -2545,7 +2538,6 @@ with tab8:
     st.markdown("##### 🧬 DNA de Suporte")
     dna_c1, dna_c2 = st.columns(2)
 
-    # tenta pegar LISTAS_BARREIRAS do seu código
     LISTAS_BARREIRAS_LOCAL = globals().get("LISTAS_BARREIRAS", {}) or {}
     areas = list(LISTAS_BARREIRAS_LOCAL.keys()) if isinstance(LISTAS_BARREIRAS_LOCAL, dict) else []
 
@@ -2555,8 +2547,10 @@ with tab8:
         target = dna_c1 if i < 3 else dna_c2
 
         color = "#3182CE"
-        if val > 40: color = "#DD6B20"
-        if val > 70: color = "#E53E3E"
+        if val > 40:
+            color = "#DD6B20"
+        if val > 70:
+            color = "#E53E3E"
 
         target.markdown(
             f"""<div class="dna-bar-container">
@@ -2572,6 +2566,40 @@ with tab8:
     st.divider()
     st.markdown("#### 📤 Exportação e Sincronização")
 
+    # ✅ Adaptador: evita TypeError se _cloud_ready não retornar (ok, details)
+    def _cloud_ready_debug_adapter():
+        # Se existir um _cloud_ready no seu projeto, tenta usar (com debug=True),
+        # mas aceita também versões que retornam só bool.
+        if "_cloud_ready" in globals() and callable(globals().get("_cloud_ready")):
+            try:
+                res = globals()["_cloud_ready"](debug=True)
+            except TypeError:
+                # versão antiga sem parâmetro debug
+                res = globals()["_cloud_ready"]()
+
+            if isinstance(res, tuple) and len(res) == 2:
+                ok, details = res
+                return bool(ok), (details or {})
+            if isinstance(res, bool):
+                return res, {"note": "_cloud_ready retornou bool (sem details)", "has_cloud": res}
+            return bool(res), {"note": "retorno inesperado de _cloud_ready", "type": str(type(res))}
+
+        # Fallback: checagens mínimas pelo estado do app
+        details = {}
+        sb = st.session_state.get("sb") or st.session_state.get("supabase") or globals().get("sb") or globals().get("supabase")
+        ws_id = st.session_state.get("workspace_id")
+        auth = bool(st.session_state.get("autenticado", False))
+        owner_id = st.session_state.get("OWNER_ID") or st.session_state.get("owner_id")
+
+        details["has_sb"] = bool(sb)
+        details["has_workspace_id"] = bool(ws_id)
+        details["autenticado"] = bool(auth)
+        details["has_owner_id"] = bool(owner_id)
+
+        ok = all([details["has_sb"], details["has_workspace_id"], details["autenticado"]])
+        details["missing"] = [k for k, v in details.items() if v is False]
+        return ok, details
+
     if not d.get("ia_sugestao"):
         st.info("Gere o Plano na aba **Consultoria IA** para liberar PDF e Word.")
     else:
@@ -2580,7 +2608,6 @@ with tab8:
         with col_docs:
             st.caption("📄 Documentos")
 
-            # PDF — compatível com assinatura antiga e nova
             pdf_bytes = None
             try:
                 pdf_bytes = gerar_pdf_final(d, len(st.session_state.get("pdf_text", "")) > 0)
@@ -2599,7 +2626,6 @@ with tab8:
                     use_container_width=True
                 )
 
-            # Word
             try:
                 docx = gerar_docx_final(d)
                 st.download_button(
@@ -2644,10 +2670,14 @@ with tab8:
                 use_container_width=True,
                 key="btn_sync_omnisfera_tab8"
             ):
-                ok, details = _cloud_ready(debug=True)
+                ok, details = _cloud_ready_debug_adapter()
                 if not ok:
                     st.error("Nuvem indisponível: falta configurar algum item da sessão/cliente.")
                     st.json(details)
+                    st.stop()
+
+                if "db_create_student" not in globals():
+                    st.error("Função db_create_student() não encontrada no projeto.")
                     st.stop()
 
                 try:
@@ -2681,6 +2711,7 @@ with tab8:
 
                 except Exception as e:
                     st.error(f"Erro ao sincronizar/salvar: {e}")
+
 
 
 # ==============================================================================
