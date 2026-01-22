@@ -39,7 +39,6 @@ def inject_base_css():
 section[data-testid="stSidebar"] { display: none !important; }
 button[data-testid="collapsedControl"] { display: none !important; }
 
-
 /* LOGIN */
 .login-box {
   background: white; border-radius: 24px; padding: 40px;
@@ -185,3 +184,54 @@ def supabase_log_access(
         "app_version": (app_version or "").strip(),
     }
     return supabase_insert("access_logs", row)
+
+
+# =============================================================================
+# CLOUD READY (REST) — ESTE É O BLOCO QUE ESTAVA FALTANDO
+# =============================================================================
+def _cloud_ready(debug: bool = False):
+    """
+    Versão compatível com ESTE omni_utils.py (REST via requests).
+    NÃO exige st.session_state['sb'].
+
+    Retorna:
+      (ok: bool, details: dict)
+    """
+    details = {}
+
+    # secrets (não estoura exception aqui; só reporta)
+    try:
+        supabase_url = str(st.secrets.get("SUPABASE_URL", "")).strip()
+    except Exception:
+        supabase_url = ""
+    try:
+        service_key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "")).strip()
+    except Exception:
+        service_key = ""
+    try:
+        anon_key = str(st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+    except Exception:
+        anon_key = ""
+
+    has_key = bool(service_key or anon_key)
+
+    # sessão
+    ws_id = st.session_state.get("workspace_id")
+    auth = st.session_state.get("autenticado", False)
+
+    details["has_supabase_url"] = bool(supabase_url)
+    details["has_supabase_key"] = bool(has_key)
+    details["has_workspace_id"] = bool(ws_id)
+    details["autenticado"] = bool(auth)
+
+    ok = all([
+        details["has_supabase_url"],
+        details["has_supabase_key"],
+        details["has_workspace_id"],
+        details["autenticado"],
+    ])
+
+    if debug:
+        details["missing"] = [k for k, v in details.items() if v is False]
+
+    return ok, details
