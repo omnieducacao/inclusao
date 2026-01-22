@@ -1,6 +1,6 @@
 # pages/0_Home.py
 import streamlit as st
-from datetime import date
+from datetime import date, datetime
 import base64
 import os
 import time
@@ -8,7 +8,7 @@ import time
 # ==============================================================================
 # 1. CONFIGURAÇÃO INICIAL
 # ==============================================================================
-APP_VERSION = "v144.0 (Dashboard Pro + Links Coloridos)"
+APP_VERSION = "v145.0 (Horizontal Pro)"
 
 try:
     IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
@@ -23,54 +23,12 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. GATE DE ACESSO
-# ==============================================================================
-def acesso_bloqueado(msg: str):
-    html_error = f"""
-<div style="display:flex; justify-content:center; align-items:center; height:70vh;">
-<div style="text-align:center; padding:40px; background:white; border-radius:24px; box-shadow:0 10px 40px rgba(0,0,0,0.08); max-width:480px; border:1px solid #E2E8F0;">
-<div style="font-size:3rem; margin-bottom:15px;">🔐</div>
-<h3 style="color:#1E293B; margin-bottom:10px; font-family:'Inter',sans-serif;">Acesso Restrito</h3>
-<p style="color:#64748B; margin-bottom:25px;">{msg}</p>
-</div>
-</div>
-"""
-    st.markdown(html_error, unsafe_allow_html=True)
-    
-    c1, c2, c3 = st.columns([1, 2, 1])
-    with c2:
-        if st.button("Ir para Login", type="primary", use_container_width=True):
-            st.session_state.autenticado = False
-            st.session_state.workspace_id = None
-            st.rerun()
-    st.stop()
-
-if not st.session_state.get("autenticado", False):
-    acesso_bloqueado("Sua sessão expirou.")
-
-if not st.session_state.get("workspace_id"):
-    acesso_bloqueado("Workspace não identificado.")
-
-# ==============================================================================
-# 3. HELPERS
-# ==============================================================================
-if "dados" not in st.session_state:
-    st.session_state.dados = {"nome": "", "nasc": date(2015, 1, 1), "serie": None, "turma": "", "diagnostico": "", "student_id": None}
-
-def get_base64_image(image_path: str) -> str:
-    if not image_path or not os.path.exists(image_path): return ""
-    with open(image_path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode()
-
-def escola_vinculada() -> str:
-    return st.session_state.get("workspace_name") or st.session_state.get("workspace_id", "")[:8]
-
-# ==============================================================================
-# 4. CSS (DESIGN SYSTEM COMPLETO)
+# 2. CSS & DESIGN SYSTEM (FUNDAMENTAL)
 # ==============================================================================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+/* Fontes e Ícones */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import url("https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css");
 
 html, body, [class*="css"] {
@@ -79,359 +37,284 @@ html, body, [class*="css"] {
     background-color: #F8FAFC;
 }
 
-[data-testid="stSidebarNav"] { display: none !important; }
-[data-testid="stHeader"] { visibility: hidden !important; height: 0px !important; }
+/* Limpeza Geral */
+[data-testid="stSidebarNav"], [data-testid="stHeader"] { display: none !important; }
 .block-container { 
     padding-top: 80px !important; 
-    padding-bottom: 3rem !important; 
-    max-width: 1300px !important; 
+    padding-bottom: 4rem !important; 
+    max-width: 1280px !important; 
 }
 
-/* TOPBAR */
+/* --- HEADER --- */
 .topbar {
-    position: fixed; top: 0; left: 0; right: 0; height: 64px;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(16px);
-    border-bottom: 1px solid #E2E8F0;
-    z-index: 9999;
+    position: fixed; top: 0; left: 0; right: 0; height: 70px;
+    background: rgba(255,255,255,0.9); backdrop-filter: blur(12px);
+    border-bottom: 1px solid #E2E8F0; z-index: 9999;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 32px;
+    padding: 0 40px;
 }
-.brand-area { display: flex; align-items: center; gap: 12px; }
-.brand-logo { height: 32px; width: auto; animation: spin 40s linear infinite; }
-.brand-text { font-weight: 800; font-size: 1.1rem; color: #0F172A; letter-spacing: -0.5px; }
-.user-area { display: flex; align-items: center; gap: 16px; }
-.workspace-badge { 
-    background: #F1F5F9; padding: 4px 10px; border-radius: 6px; 
-    font-size: 0.75rem; font-weight: 700; color: #64748B; border: 1px solid #E2E8F0; text-transform: uppercase;
+.brand-box { display: flex; align-items: center; gap: 12px; }
+.brand-logo { height: 36px; width: auto; animation: spin 45s linear infinite; }
+.brand-name { font-weight: 800; font-size: 1.1rem; color: #0F172A; letter-spacing: -0.5px; }
+.user-badge { 
+    background: #F1F5F9; border: 1px solid #E2E8F0; 
+    padding: 6px 14px; border-radius: 99px; font-size: 0.8rem; font-weight: 700; color: #64748B;
 }
 
-/* HERO */
-.hero-portal {
-    background: linear-gradient(120deg, #1E40AF 0%, #2563EB 100%);
-    border-radius: 20px;
-    padding: 36px 40px;
-    color: white;
-    box-shadow: 0 10px 30px -10px rgba(37, 99, 235, 0.4);
-    margin-bottom: 40px;
-    display: flex; flex-direction: column; gap: 8px;
-    position: relative; overflow: hidden;
+/* --- HERO SECTION --- */
+.hero-wrapper {
+    background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+    border-radius: 24px; padding: 48px; color: white;
+    margin-bottom: 50px; position: relative; overflow: hidden;
+    box-shadow: 0 20px 40px -10px rgba(30, 58, 138, 0.3);
 }
-.hero-portal::before {
-    content: ""; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+.hero-wrapper::after {
+    content: ""; position: absolute; right: -50px; top: -50px;
+    width: 300px; height: 300px; background: rgba(255,255,255,0.1);
     border-radius: 50%; pointer-events: none;
 }
-.hero-title { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 1.8rem; margin: 0; }
-.hero-quote { font-size: 1.05rem; opacity: 0.9; font-style: italic; max-width: 800px; line-height: 1.6; }
+.hero-greet { font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; letter-spacing: -1px; }
+.hero-text { font-size: 1.1rem; opacity: 0.9; max-width: 700px; line-height: 1.6; }
 
-/* MODULE CARDS */
-.mod-card {
-    background: white; border-radius: 16px; padding: 24px;
-    border: 1px solid #E2E8F0; height: 100%; min-height: 150px;
-    position: relative; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex; flex-direction: column; justify-content: space-between;
-}
-.mod-card:hover {
-    transform: translateY(-4px); box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.08); border-color: #CBD5E1;
-}
-.mod-icon {
-    width: 44px; height: 44px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px; margin-bottom: 16px;
-}
-.mod-title { font-weight: 700; font-size: 1.05rem; color: #1E293B; margin-bottom: 4px; }
-.mod-desc { font-size: 0.85rem; color: #64748B; line-height: 1.4; }
-.mod-cta {
-    font-size: 0.8rem; font-weight: 700; margin-top: 15px; display: flex; align-items: center; gap: 5px;
-    padding-top: 15px; border-top: 1px solid #F1F5F9;
-}
-
-/* INFO BOXES (Tabs) */
-.info-header { font-size: 1.2rem; font-weight: 800; color: #1E293B; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-.info-box {
-    background: white; padding: 20px; border-radius: 12px; border: 1px solid #E2E8F0;
-    margin-bottom: 15px;
-}
-.info-title { font-weight: 700; color: #0F172A; margin-bottom: 8px; font-size: 1rem; }
-.info-text { font-size: 0.9rem; color: #475569; line-height: 1.6; }
-.highlight { color: #2563EB; font-weight: 600; }
-
-/* --- RECURSOS COLORIDOS (EFEITO CLICÁVEL) --- */
-.res-card-link {
-    text-decoration: none !important;
-    display: block;
-    height: 100%;
-}
-
-.res-card {
-    border-radius: 16px;
-    padding: 20px;
-    display: flex;
+/* --- CARDS DE MÓDULO (RETANGULARES & HORIZONTAIS) --- */
+/* Esta classe define o layout do card: Ícone na esquerda, Texto no meio */
+.mod-card-rect {
+    background: white;
+    border-radius: 20px;
+    padding: 0; /* Padding controlado internamente */
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    display: flex; flex-direction: row; /* Horizontal */
     align-items: center;
-    gap: 16px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid transparent;
-    height: 100%;
+    height: 120px; /* Altura fixa para uniformidade */
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
 }
 
-.res-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05);
+/* Efeito Hover no Card Inteiro */
+.mod-card-rect:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+    border-color: #CBD5E1;
 }
 
-.res-icon-box {
-    width: 48px; height: 48px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.8);
+/* Barra lateral colorida de destaque */
+.mod-bar { width: 6px; height: 100%; flex-shrink: 0; }
+
+/* Área do Ícone */
+.mod-icon-area {
+    width: 90px; height: 100%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem;
-    flex-shrink: 0;
+    font-size: 2rem; flex-shrink: 0;
+    background: #FAFAFA;
 }
 
-.res-content {
-    display: flex; flex-direction: column;
+/* Área de Texto */
+.mod-content {
+    flex-grow: 1; padding: 0 20px;
+    display: flex; flex-direction: column; justify-content: center;
+}
+.mod-title { font-weight: 800; font-size: 1.1rem; color: #1E293B; margin-bottom: 4px; }
+.mod-desc { font-size: 0.85rem; color: #64748B; line-height: 1.3; }
+
+/* Botão de Ação (Seta) */
+.mod-action {
+    width: 60px; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: #CBD5E1; font-size: 1.5rem;
+    transition: color 0.2s;
+}
+.mod-card-rect:hover .mod-action { color: #3B82F6; }
+
+/* BOTÃO INVISÍVEL (O TRUQUE PARA CLIQUE TOTAL) */
+/* Posiciona o st.button EXATAMENTE sobre o card HTML */
+.ghost-btn-container {
+    position: relative;
+    height: 120px; /* Mesma altura do card */
+    margin-top: -120px; /* Puxa para cima para cobrir o HTML */
+    z-index: 10;
+}
+.ghost-btn-container button {
+    width: 100%; height: 100%;
+    opacity: 0; /* Invisível */
+    border: none; cursor: pointer;
 }
 
-.res-title {
-    font-weight: 800;
-    font-size: 1rem;
-    margin-bottom: 4px;
+/* --- ESTILOS DE LINK (RECURSOS) --- */
+.res-card-link { text-decoration: none !important; display: block; height: 100%; }
+.res-card {
+    background: white; border-radius: 16px; padding: 20px;
+    border: 1px solid #E2E8F0; display: flex; align-items: center; gap: 15px;
+    transition: all 0.2s; height: 100%;
 }
-
-.res-desc {
-    font-size: 0.8rem;
-    font-weight: 600;
-    opacity: 0.8;
+.res-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.06); }
+.res-icon { 
+    width: 45px; height: 45px; border-radius: 12px; 
+    display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
 }
+.res-info { display: flex; flex-direction: column; }
+.res-name { font-weight: 700; color: #1E293B; font-size: 0.95rem; }
+.res-meta { font-size: 0.75rem; font-weight: 600; opacity: 0.8; }
 
-/* TEMAS DE COR DOS RECURSOS */
-/* Azul */
-.rc-blue { background-color: #EFF6FF; border-color: #DBEAFE; }
-.rc-blue:hover { border-color: #2563EB; }
-.rc-blue .res-title { color: #1E40AF; }
-.rc-blue .res-desc { color: #3B82F6; }
-.rc-blue .res-icon-box { color: #2563EB; }
+/* CORES */
+.c-blue { background: #3B82F6; color: #3B82F6; }
+.bg-blue-soft { background: #EFF6FF; color: #2563EB; }
+.c-purple { background: #8B5CF6; color: #8B5CF6; }
+.bg-purple-soft { background: #F5F3FF; color: #7C3AED; }
+.c-teal { background: #14B8A6; color: #14B8A6; }
+.bg-teal-soft { background: #F0FDFA; color: #0D9488; }
+.c-indigo { background: #6366F1; color: #6366F1; }
+.bg-indigo-soft { background: #EEF2FF; color: #4F46E5; }
+.c-slate { background: #64748B; color: #64748B; }
+.bg-slate-soft { background: #F8FAFC; color: #475569; }
 
-/* Verde */
-.rc-green { background-color: #F0FDF4; border-color: #DCFCE7; }
-.rc-green:hover { border-color: #16A34A; }
-.rc-green .res-title { color: #166534; }
-.rc-green .res-desc { color: #22C55E; }
-.rc-green .res-icon-box { color: #16A34A; }
+/* Cores para Recursos */
+.rc-green { background: #F0FDF4; color: #16A34A; border-color: #DCFCE7; }
+.rc-orange { background: #FFF7ED; color: #EA580C; border-color: #FFEDD5; }
+.rc-rose { background: #FFF1F2; color: #E11D48; border-color: #FECDD3; }
+.rc-sky { background: #F0F9FF; color: #0284C7; border-color: #E0F2FE; }
 
-/* Rosa */
-.rc-pink { background-color: #FDF2F8; border-color: #FCE7F3; }
-.rc-pink:hover { border-color: #DB2777; }
-.rc-pink .res-title { color: #9D174D; }
-.rc-pink .res-desc { color: #EC4899; }
-.rc-pink .res-icon-box { color: #DB2777; }
-
-/* Laranja */
-.rc-orange { background-color: #FFF7ED; border-color: #FFEDD5; }
-.rc-orange:hover { border-color: #EA580C; }
-.rc-orange .res-title { color: #9A3412; }
-.rc-orange .res-desc { color: #F97316; }
-.rc-orange .res-icon-box { color: #EA580C; }
-
-/* THEMES MODULOS */
-.t-indigo { background: #EEF2FF; color: #4F46E5; }
-.t-blue { background: #EFF6FF; color: #2563EB; }
-.t-purple { background: #FAF5FF; color: #9333EA; }
-.t-teal { background: #F0FDFA; color: #0D9488; }
-
-.ghost-btn button { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; z-index: 10; cursor: pointer; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 5. HEADER
+# 3. GATE & HELPERS
 # ==============================================================================
-icone_b64 = get_base64_image("omni_icone.png")
-workspace_name = escola_vinculada()
-usuario_nome = st.session_state.get('usuario_nome', 'Visitante')
+def acesso_bloqueado(msg):
+    st.markdown(f"<div style='text-align:center; padding:50px; color:#64748B;'><h3>🔐 Acesso Restrito</h3><p>{msg}</p></div>", unsafe_allow_html=True)
+    if st.button("Ir para Login", key="btn_login_gate"):
+        st.session_state.autenticado = False; st.session_state.workspace_id = None; st.rerun()
+    st.stop()
 
-logo_img = f'<img src="data:image/png;base64,{icone_b64}" class="brand-logo">' if icone_b64 else "🌐"
+if not st.session_state.get("autenticado") or not st.session_state.get("workspace_id"):
+    acesso_bloqueado("Sessão inválida.")
+
+if "dados" not in st.session_state: st.session_state.dados = {"nome": "", "nasc": date(2015,1,1), "serie": None}
+
+def get_base64_image(image_path):
+    if not os.path.exists(image_path): return ""
+    with open(image_path, "rb") as f: return base64.b64encode(f.read()).decode()
+
+def escola_vinculada():
+    return st.session_state.get("workspace_name") or st.session_state.get("workspace_id", "")[:8]
+
+# ==============================================================================
+# 4. RENDERIZAÇÃO
+# ==============================================================================
+
+# TOPBAR
+icone_b64 = get_base64_image("omni_icone.png")
+workspace = escola_vinculada()
+nome_user = st.session_state.get('usuario_nome', 'Visitante').split()[0]
+img_logo = f'<img src="data:image/png;base64,{icone_b64}" class="brand-logo">' if icone_b64 else "🌐"
 
 st.markdown(f"""
 <div class="topbar">
-    <div class="brand-area">
-        {logo_img}
-        <div class="brand-text">OMNISFERA</div>
-    </div>
-    <div class="user-area">
-        <div class="workspace-badge">{workspace_name}</div>
-        <div style="font-weight:600; color:#1E293B; font-size:0.9rem;">{usuario_nome.split()[0]}</div>
+    <div class="brand-box">{img_logo} <div class="brand-name">OMNISFERA</div></div>
+    <div class="brand-box">
+        <div class="user-badge">{workspace}</div>
+        <div style="font-weight:700; color:#334155;">{nome_user}</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ==============================================================================
-# 6. SIDEBAR
-# ==============================================================================
+# SIDEBAR
 with st.sidebar:
-    st.markdown("### 🧭 Navegação")
+    st.markdown("### Navegação")
     if st.button("👥 Alunos", use_container_width=True): st.switch_page("pages/0_Alunos.py")
-    
-    c1, c2 = st.columns(2)
-    with c1: 
-        if st.button("📘 PEI", use_container_width=True): st.switch_page("pages/1_PEI.py")
-    with c2: 
-        if st.button("🧩 PAEE", use_container_width=True): st.switch_page("pages/2_PAE.py")
-    
+    if st.button("📘 PEI", use_container_width=True): st.switch_page("pages/1_PEI.py")
+    if st.button("🧩 PAEE", use_container_width=True): st.switch_page("pages/2_PAE.py")
     if st.button("🚀 Hub", use_container_width=True): st.switch_page("pages/3_Hub_Inclusao.py")
-    
     st.markdown("---")
     if st.button("Sair", use_container_width=True):
-        st.session_state.autenticado = False
-        st.rerun()
-
-# ==============================================================================
-# 7. CONTEÚDO
-# ==============================================================================
+        st.session_state.autenticado = False; st.rerun()
 
 # HERO
-frase_inclusao = "A inclusão não é sobre inserir pessoas em moldes pré-existentes, mas sobre transformar o ambiente para que todos possam pertencer."
+hora = datetime.now().hour
+saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
 
 st.markdown(f"""
-<div class="hero-portal">
-    <div class="hero-title">Olá, {usuario_nome.split()[0]}!</div>
-    <div class="hero-quote">"{frase_inclusao}"</div>
+<div class="hero-wrapper">
+    <div class="hero-greet">{saudacao}, {nome_user}!</div>
+    <div class="hero-text">"A inclusão acontece quando aprendemos com as diferenças e não com as igualdades."<br>Seu painel pedagógico está pronto.</div>
 </div>
 """, unsafe_allow_html=True)
 
-# MÓDULOS
-st.markdown("### 🚀 Acesso aos Módulos")
+# MÓDULOS (2 COLUNAS - RETANGULAR - BOTÃO INTEGRADO)
+st.markdown("### 🚀 Seus Módulos")
 
-def render_module(title, desc, icon, theme, page_path, key):
-    html = f"""
-<div class="mod-card">
-<div class="mod-icon {theme}"><i class="{icon}"></i></div>
-<div>
-<div class="mod-title">{title}</div>
-<div class="mod-desc">{desc}</div>
-</div>
-<div class="mod-cta" style="color:inherit">Acessar <i class="ri-arrow-right-line"></i></div>
-</div>
-"""
-    st.markdown(html, unsafe_allow_html=True)
-    st.markdown(f'<div class="ghost-btn">', unsafe_allow_html=True)
-    if st.button(f"btn_{key}", key=key):
-        st.switch_page(page_path)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-c1, c2, c3, c4 = st.columns(4, gap="medium")
-
-with c1:
-    render_module("Estudantes", "Gestão e histórico.", "ri-group-line", "t-indigo", "pages/0_Alunos.py", "m_aluno")
-with c2:
-    render_module("PEI 360°", "Estratégias e Plano.", "ri-book-open-line", "t-blue", "pages/1_PEI.py", "m_pei")
-with c3:
-    render_module("PAEE", "Sala de Recursos.", "ri-puzzle-2-line", "t-purple", "pages/2_PAE.py", "m_pae")
-with c4:
-    render_module("Hub Inclusão", "Materiais e IA.", "ri-rocket-2-line", "t-teal", "pages/3_Hub_Inclusao.py", "m_hub")
-
-# FUNDAMENTOS
-st.markdown("<div style='height:40px'></div>", unsafe_allow_html=True)
-st.markdown('<div class="info-header"><i class="ri-book-mark-fill" style="color:#2563EB;"></i> Fundamentos da Inclusão</div>', unsafe_allow_html=True)
-
-tab1, tab2, tab3 = st.tabs(["🏛️ Cultura Inclusiva", "🚫 Combate ao Capacitismo", "🏫 A Escola Necessária"])
-
-with tab1:
-    col_a, col_b = st.columns([1, 1])
-    with col_a:
-        st.markdown("""
-        <div class="info-box">
-            <div class="info-title">Foco: A filosofia do acolhimento real</div>
-            <div class="info-text">
-                <span class="highlight">Conceito de "Outrar-se":</span> A inclusão exige a capacidade de "fazer-se outro", sentir o mundo do outro numa relação empática, sem confundir os sentimentos.
-            </div>
+def render_rect_module(title, desc, icon, color_cls, icon_cls, page_path, key):
+    # 1. Renderiza o Card Visual (HTML)
+    st.markdown(f"""
+    <div class="mod-card-rect">
+        <div class="mod-bar {color_cls}"></div>
+        <div class="mod-icon-area">
+            <i class="{icon} {color_cls}" style="background:transparent; -webkit-background-clip: text; color: transparent; filter: brightness(0.9);"></i>
+            <i class="{icon}" style="color: inherit;"></i> 
         </div>
-        """, unsafe_allow_html=True)
-    with col_b:
-        st.markdown("""
-        <div class="info-box" style="border-left: 4px solid #2563EB;">
-            <div class="info-title">Justiça Curricular</div>
-            <div class="info-text">
-                O currículo deve representar e respeitar todos os grupos sociais, oferecendo condições igualitárias de desenvolvimento. Adaptação não é favor, é direito.
-            </div>
+        <div class="mod-content">
+            <div class="mod-title">{title}</div>
+            <div class="mod-desc">{desc}</div>
         </div>
-        """, unsafe_allow_html=True)
-
-with tab2:
-    st.markdown("""
-    <div class="info-box">
-        <div class="info-title">O que é Capacitismo?</div>
-        <div class="info-text">
-            É qualquer discriminação que prejudique a pessoa com deficiência (PCD), baseada na premissa de que a deficiência a torna "menos capaz" ou "inferior".
-        </div>
+        <div class="mod-action"><i class="ri-arrow-right-s-line"></i></div>
     </div>
+    <style>.{color_cls} {{ background-color: currentColor; }}</style>
     """, unsafe_allow_html=True)
     
-    t2_c1, t2_c2 = st.columns(2)
-    with t2_c1:
-        st.markdown("""
-        <div class="info-box">
-            <div class="info-title">⚠️ Atenção à Linguagem</div>
-            <div class="info-text">
-                Evite metáforas que reforçam estigmas (ex: "dar uma de joão-sem-braço", "fingir demência"). A linguagem constrói realidade.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    with t2_c2:
-        st.markdown("""
-        <div class="info-box">
-            <div class="info-title">👁️ Visão de Potência</div>
-            <div class="info-text">
-                Abandonar a visão de "limitação" e focar nas habilidades que podem ser desenvolvidas. Todo aluno aprende, mas não no mesmo tempo.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    # 2. Renderiza o Botão Invisível por Cima (Overlay Perfeito)
+    st.markdown('<div class="ghost-btn-container">', unsafe_allow_html=True)
+    if st.button(f"btn_{key}", key=key):
+        if "Alunos" in title or st.session_state.dados.get("nome"):
+            st.switch_page(page_path)
+        else:
+            st.toast("Selecione um aluno primeiro!", icon="⚠️")
+            time.sleep(1)
+            st.switch_page("pages/0_Alunos.py")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-with tab3:
-    st.markdown("""
-    <div class="info-box">
-        <div class="info-title">Características de um ambiente sensibilizado</div>
-        <ul style="margin:0; padding-left:20px; color:#475569; font-size:0.9rem;">
-            <li style="margin-bottom:10px;"><b>Equipe Engajada:</b> Educadores interessados nos direitos de TODOS.</li>
-            <li style="margin-bottom:10px;"><b>Eventos Acessíveis:</b> Festas e atividades planejadas para participação plena.</li>
-            <li style="margin-bottom:10px;"><b>Formação Contínua:</b> Busca constante por práticas anticapacitistas.</li>
-            <li><b>Parceria com Famílias:</b> Uma relação de confiança e troca.</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
+# GRID 2x3 (Horizontal Rectangular)
+c1, c2 = st.columns(2, gap="medium")
 
-# -----------------------------------------------------------
-# RECURSOS EXTERNOS (COLORIDOS, CLICÁVEIS E ANIMADOS)
-# -----------------------------------------------------------
+with c1:
+    render_rect_module("Estudantes", "Gestão de cadastro e histórico.", "ri-group-fill", "c-indigo", "bg-indigo-soft", "pages/0_Alunos.py", "m_aluno")
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+    render_rect_module("Plano de Ação / PAEE", "Sala de recursos e intervenções.", "ri-puzzle-2-fill", "c-purple", "bg-purple-soft", "pages/2_PAE.py", "m_pae")
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+    render_rect_module("Diário de Bordo", "Registro diário de evidências.", "ri-file-list-3-fill", "c-slate", "bg-slate-soft", "pages/4_Diario_de_Bordo.py", "m_diario")
+
+with c2:
+    render_rect_module("Estratégias & PEI", "Plano Educacional Individualizado.", "ri-book-open-fill", "c-blue", "bg-blue-soft", "pages/1_PEI.py", "m_pei")
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+    render_rect_module("Hub de Recursos", "Banco de materiais e IA.", "ri-rocket-2-fill", "c-teal", "bg-teal-soft", "pages/3_Hub_Inclusao.py", "m_hub")
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+    render_rect_module("Evolução & Dados", "Indicadores e progresso.", "ri-bar-chart-box-fill", "c-slate", "bg-slate-soft", "pages/5_Monitoramento_Avaliacao.py", "m_dados")
+
+# RECURSOS EXTERNOS (LINKS CLICÁVEIS COLORIDOS)
 st.markdown("<div style='height:40px'></div>", unsafe_allow_html=True)
-st.markdown('<div class="info-header"><i class="ri-links-line" style="color:#64748B;"></i> Recursos Externos</div>', unsafe_allow_html=True)
+st.markdown("### 📚 Recursos Externos")
 
-def render_resource_card(col, icon, title, desc, link, theme_class):
+def render_resource(col, title, desc, icon, theme, link):
     with col:
-        # AQUI ESTÁ A MÁGICA: O card inteiro é um link (<a>)
-        html = f"""
+        st.markdown(f"""
         <a href="{link}" target="_blank" class="res-card-link">
-            <div class="res-card {theme_class}">
-                <div class="res-icon-box">
-                    <i class="{icon}"></i>
-                </div>
-                <div class="res-content">
-                    <div class="res-title">{title}</div>
-                    <div class="res-desc">{desc}</div>
+            <div class="res-card {theme}">
+                <div class="res-icon {theme}"><i class="{icon}"></i></div>
+                <div class="res-info">
+                    <div class="res-name">{title}</div>
+                    <div class="res-meta">{desc}</div>
                 </div>
             </div>
         </a>
-        """
-        st.markdown(html, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-r1, r2, r3, r4 = st.columns(4)
+r1, r2, r3, r4 = st.columns(4, gap="medium")
 
-render_resource_card(r1, "ri-file-text-line", "Lei da Inclusão", "LBI e diretrizes", "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm", "rc-blue")
-render_resource_card(r2, "ri-compass-3-line", "Base Nacional", "Competências BNCC", "http://basenacionalcomum.mec.gov.br/", "rc-green")
-render_resource_card(r3, "ri-brain-line", "Neurociência", "Artigos e estudos", "https://institutoneurosaber.com.br/", "rc-pink")
-render_resource_card(r4, "ri-question-line", "Ajuda Omnisfera", "Suporte e tutoriais", "#", "rc-orange")
+render_resource(r1, "Lei da Inclusão", "LBI e diretrizes", "ri-government-fill", "rc-sky", "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm")
+render_resource(r2, "Base Nacional", "Competências BNCC", "ri-compass-3-fill", "rc-green", "http://basenacionalcomum.mec.gov.br/")
+render_resource(r3, "Neurociência", "Artigos e estudos", "ri-brain-fill", "rc-rose", "https://institutoneurosaber.com.br/")
+render_resource(r4, "Ajuda Omnisfera", "Tutoriais e suporte", "ri-question-fill", "rc-orange", "#")
 
 st.markdown("<div style='height: 60px;'></div>", unsafe_allow_html=True)
 st.markdown("<div style='text-align: center; color: #CBD5E0; font-size: 0.75rem;'>Omnisfera desenvolvida por RODRIGO A. QUEIROZ</div>", unsafe_allow_html=True)
