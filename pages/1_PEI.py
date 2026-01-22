@@ -104,8 +104,6 @@ def verificar_login_supabase():
 verificar_login_app()
 verificar_login_supabase()
 
-def sb():
-    return get_supabase_user(st.session_state["supabase_jwt"])
 
 OWNER_ID = st.session_state.get("supabase_user_id", "")
 
