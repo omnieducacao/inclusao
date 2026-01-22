@@ -8,7 +8,7 @@ import time
 # ==============================================================================
 # 1. CONFIGURAÇÃO INICIAL
 # ==============================================================================
-APP_VERSION = "v157.0 (Botão Funcional Fix)"
+APP_VERSION = "v158.0 (Botões Coloridos Abaixo dos Cards)"
 
 try:
     IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
@@ -23,7 +23,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. CSS & DESIGN SYSTEM - CORRIGIDO
+# 2. CSS & DESIGN SYSTEM ATUALIZADO
 # ==============================================================================
 st.markdown("""
 <style>
@@ -138,19 +138,20 @@ html, body, [class*="css"] {
     max-width: 800px; 
 }
 
-/* --- CONTAINER DOS CARDS (NOVO) --- */
-.mod-card-container {
-    position: relative;
+/* --- CONTAINER DO CARD + BOTÃO --- */
+.mod-card-wrapper {
+    display: flex;
+    flex-direction: column;
     margin-bottom: 20px;
-    height: 120px;
 }
 
-/* --- CARDS DE MÓDULO (SIMPLIFICADO) --- */
+/* --- CARDS DE MÓDULO --- */
 .mod-card-rect {
     background: white;
-    border-radius: 16px;
+    border-radius: 16px 16px 0 0; /* Arredondar só em cima */
     padding: 0;
     border: 1px solid #E2E8F0;
+    border-bottom: none; /* Remove borda inferior */
     box-shadow: 0 4px 6px rgba(0,0,0,0.01);
     display: flex; 
     flex-direction: row;
@@ -160,12 +161,11 @@ html, body, [class*="css"] {
     position: relative;
     overflow: hidden;
     transition: all 0.25s ease;
-    cursor: pointer;
 }
 
 .mod-card-rect:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
     border-color: #CBD5E1;
 }
 
@@ -208,24 +208,70 @@ html, body, [class*="css"] {
     line-height: 1.3; 
 }
 
-/* BOTÃO VISUAL DENTRO DO CARD */
-.mod-btn-visual {
-    background-color: #4318FF;
+/* --- BOTÕES COLORIDOS ABAIXO DOS CARDS --- */
+.mod-action-button {
+    width: 100%;
+    height: 40px;
+    border: none;
+    border-radius: 0 0 16px 16px;
     color: white;
-    font-size: 0.65rem;
     font-weight: 700;
+    font-size: 0.85rem;
     text-transform: uppercase;
-    padding: 6px 12px;
-    border-radius: 6px;
-    margin-right: 20px;
-    white-space: nowrap;
-    transition: all 0.2s;
     letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.mod-card-rect:hover .mod-btn-visual {
-    background-color: #2B3674;
-    transform: scale(1.05);
+.mod-action-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Cores específicas para cada tipo de botão */
+.btn-indigo {
+    background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+}
+
+.btn-indigo:hover {
+    background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+}
+
+.btn-teal {
+    background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
+}
+
+.btn-teal:hover {
+    background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%);
+}
+
+.btn-blue {
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+}
+
+.btn-blue:hover {
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+}
+
+.btn-purple {
+    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+}
+
+.btn-purple:hover {
+    background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+}
+
+.btn-slate {
+    background: linear-gradient(135deg, #64748B 0%, #475569 100%);
+}
+
+.btn-slate:hover {
+    background: linear-gradient(135deg, #475569 0%, #334155 100%);
 }
 
 /* --- RECURSOS --- */
@@ -279,7 +325,7 @@ html, body, [class*="css"] {
     opacity: 0.8; 
 }
 
-/* CORES TEMÁTICAS */
+/* CORES TEMÁTICAS DOS CARDS */
 .c-blue { background: #3B82F6; color: #3B82F6; }
 .bg-blue-soft { background: #EFF6FF; color: #2563EB; }
 .c-purple { background: #8B5CF6; color: #8B5CF6; }
@@ -301,22 +347,26 @@ html, body, [class*="css"] {
     100% { transform: rotate(360deg); } 
 }
 
-/* BOTÃO DO STREAMLIT INVISÍVEL (NOVA ABORDAGEM) */
-.mod-btn-invisible {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-    z-index: 5;
-    border: none;
-    background: transparent;
-}
-
-.mod-btn-invisible:hover {
-    cursor: pointer;
+/* --- RESPONSIVIDADE --- */
+@media (max-width: 768px) {
+    .topbar {
+        padding: 0 20px;
+    }
+    .hero-wrapper {
+        padding: 30px 20px;
+    }
+    .mod-card-rect {
+        height: 100px;
+    }
+    .mod-icon-area {
+        width: 60px;
+    }
+    .mod-title {
+        font-size: 0.9rem;
+    }
+    .mod-desc {
+        font-size: 0.7rem;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -350,48 +400,45 @@ def escola_vinculada():
     return st.session_state.get("workspace_name") or st.session_state.get("workspace_id", "")[:8]
 
 # ==============================================================================
-# 4. FUNÇÃO PARA CRIAR CARDS CLICÁVEIS
+# 4. FUNÇÃO PARA CRIAR CARDS COM BOTÕES COLORIDOS
 # ==============================================================================
-def create_clickable_card(title, desc, icon, color_cls, bg_cls, page_path, key):
-    """Cria um card clicável com botão invisível"""
+def create_module_with_button(title, desc, icon, color_cls, bg_cls, btn_class, page_path, key):
+    """Cria um card com botão colorido abaixo"""
     
-    # HTML do card (apenas visual)
-    card_html = f"""
-    <div class="mod-card-container">
-        <div class="mod-card-rect" id="card_{key}">
-            <div class="mod-bar {color_cls}"></div>
-            <div class="mod-icon-area {bg_cls}">
-                <i class="{icon} {color_cls}" style="background:transparent; -webkit-background-clip: text; color: transparent; filter: brightness(0.9);"></i>
-                <i class="{icon}" style="color: inherit;"></i> 
-            </div>
-            <div class="mod-content">
-                <div class="mod-title">{title}</div>
-                <div class="mod-desc">{desc}</div>
-            </div>
-            <div class="mod-btn-visual">CLIQUE AQUI</div>
-        </div>
-    </div>
-    <style>.{color_cls} {{ background-color: currentColor; }}</style>
-    """
-    
-    # Renderizar o card
-    st.markdown(card_html, unsafe_allow_html=True)
-    
-    # Criar um botão invisível que cobre todo o card
-    # Usamos um container para posicionar o botão
+    # Container principal
     with st.container():
-        col1, col2, col3 = st.columns([1, 1, 1])
-        # O botão estará no meio (coluna 2), mas invisível
-        with col2:
-            # Botão invisível que cobre a área do card
-            if st.button(f" ", key=f"btn_{key}", help=f"Acessar {title}"):
-                # Lógica de navegação
-                if "Alunos" in title or st.session_state.dados.get("nome"):
-                    st.switch_page(page_path)
-                else:
-                    st.toast("Selecione um aluno primeiro!", icon="⚠️")
-                    time.sleep(1)
-                    st.switch_page("pages/0_Alunos.py")
+        # Card visual
+        st.markdown(f"""
+        <div class="mod-card-wrapper">
+            <div class="mod-card-rect">
+                <div class="mod-bar {color_cls}"></div>
+                <div class="mod-icon-area {bg_cls}">
+                    <i class="{icon}"></i>
+                </div>
+                <div class="mod-content">
+                    <div class="mod-title">{title}</div>
+                    <div class="mod-desc">{desc}</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Botão colorido abaixo do card
+        if st.button(
+            f"📂 ACESSAR {title.split()[0].upper()}",  # Pega a primeira palavra do título
+            key=f"btn_{key}",
+            type="primary" if "indigo" in btn_class else "secondary",
+            use_container_width=True,
+            help=f"Clique para acessar {title}"
+        ):
+            # Lógica de navegação
+            if "Alunos" in title or st.session_state.dados.get("nome"):
+                st.switch_page(page_path)
+            else:
+                st.toast("Selecione um aluno primeiro!", icon="⚠️")
+                time.sleep(1)
+                st.switch_page("pages/0_Alunos.py")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # ==============================================================================
 # 5. RENDERIZAÇÃO PRINCIPAL
@@ -419,36 +466,46 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# SIDEBAR
+# SIDEBAR SIMPLIFICADA
 with st.sidebar:
-    # Usar caminho relativo correto
+    # Logo
     if os.path.exists("omni_icone.png"):
         st.image("omni_icone.png", width=60)
     else:
-        st.markdown("🌐 **Omnisfera**")
+        st.markdown("### 🌐 **Omnisfera**")
     
-    st.markdown("### Navegação")
+    st.markdown("---")
     
-    # Botões da sidebar que funcionam
-    nav_options = [
-        ("👥 Alunos", "pages/0_Alunos.py"),
-        ("📘 PEI", "pages/1_PEI.py"),
-        ("🧩 PAEE", "pages/2_PAE.py"),
-        ("🚀 Hub", "pages/3_Hub_Inclusao.py"),
-        ("📓 Diário", "pages/4_Diario_de_Bordo.py"),
-        ("📊 Dados", "pages/5_Monitoramento_Avaliacao.py"),
+    # Links rápidos
+    st.markdown("#### 🔗 Navegação Rápida")
+    
+    # Criar botões na sidebar com ícones
+    sidebar_options = [
+        ("👥 Alunos", "pages/0_Alunos.py", "#4F46E5"),
+        ("📘 PEI", "pages/1_PEI.py", "#3B82F6"),
+        ("🧩 PAEE", "pages/2_PAE.py", "#8B5CF6"),
+        ("🚀 Hub", "pages/3_Hub_Inclusao.py", "#14B8A6"),
+        ("📓 Diário", "pages/4_Diario_de_Bordo.py", "#64748B"),
+        ("📊 Dados", "pages/5_Monitoramento_Avaliacao.py", "#475569"),
     ]
     
-    for label, page in nav_options:
-        if st.button(label, use_container_width=True, key=f"sidebar_{label}"):
+    for label, page, color in sidebar_options:
+        if st.button(
+            label, 
+            use_container_width=True, 
+            key=f"sidebar_{label}",
+            help=f"Clique para acessar {label}"
+        ):
             st.switch_page(page)
     
     st.markdown("---")
-    if st.button("🚪 Sair", use_container_width=True, key="sair"):
+    
+    # Botão de logout
+    if st.button("🚪 Sair do Sistema", use_container_width=True, type="secondary"):
         st.session_state.autenticado = False
         st.rerun()
 
-# HERO
+# HERO SECTION
 hora = datetime.now().hour
 saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
 
@@ -462,62 +519,68 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# MÓDULOS (3 COLUNAS)
-st.markdown("### 🚀 Seus Módulos")
+# MÓDULOS COM BOTÕES COLORIDOS
+st.markdown("### 🚀 Módulos da Plataforma")
 
-# Definir os módulos
+# Definir módulos com suas cores específicas
 modules = [
     {
         "title": "Estudantes",
-        "desc": "Gestão e histórico.",
+        "desc": "Gestão completa de alunos, histórico e acompanhamento individualizado.",
         "icon": "ri-group-fill",
-        "color": "c-indigo",
-        "bg": "bg-indigo-soft",
+        "color_cls": "c-indigo",
+        "bg_cls": "bg-indigo-soft",
+        "btn_class": "btn-indigo",
         "page": "pages/0_Alunos.py",
         "key": "m_aluno"
     },
     {
         "title": "Hub de Recursos",
-        "desc": "Materiais e IA.",
+        "desc": "Biblioteca de materiais, modelos e inteligência artificial para apoio.",
         "icon": "ri-rocket-2-fill",
-        "color": "c-teal",
-        "bg": "bg-teal-soft",
+        "color_cls": "c-teal",
+        "bg_cls": "bg-teal-soft",
+        "btn_class": "btn-teal",
         "page": "pages/3_Hub_Inclusao.py",
         "key": "m_hub"
     },
     {
         "title": "Estratégias & PEI",
-        "desc": "Plano Individualizado.",
+        "desc": "Plano Educacional Individual com objetivos, avaliações e acompanhamento.",
         "icon": "ri-book-open-fill",
-        "color": "c-blue",
-        "bg": "bg-blue-soft",
+        "color_cls": "c-blue",
+        "bg_cls": "bg-blue-soft",
+        "btn_class": "btn-blue",
         "page": "pages/1_PEI.py",
         "key": "m_pei"
     },
     {
         "title": "Plano de Ação / PAEE",
-        "desc": "Sala de recursos.",
+        "desc": "Plano de Atendimento Educacional Especializado e sala de recursos.",
         "icon": "ri-puzzle-2-fill",
-        "color": "c-purple",
-        "bg": "bg-purple-soft",
+        "color_cls": "c-purple",
+        "bg_cls": "bg-purple-soft",
+        "btn_class": "btn-purple",
         "page": "pages/2_PAE.py",
         "key": "m_pae"
     },
     {
         "title": "Diário de Bordo",
-        "desc": "Registro de evidências.",
+        "desc": "Registro diário de observações, evidências e intervenções.",
         "icon": "ri-file-list-3-fill",
-        "color": "c-slate",
-        "bg": "bg-slate-soft",
+        "color_cls": "c-slate",
+        "bg_cls": "bg-slate-soft",
+        "btn_class": "btn-slate",
         "page": "pages/4_Diario_de_Bordo.py",
         "key": "m_diario"
     },
     {
         "title": "Evolução & Dados",
-        "desc": "Indicadores e progresso.",
+        "desc": "Indicadores, gráficos e relatórios de progresso dos alunos.",
         "icon": "ri-bar-chart-box-fill",
-        "color": "c-slate",
-        "bg": "bg-slate-soft",
+        "color_cls": "c-slate",
+        "bg_cls": "bg-slate-soft",
+        "btn_class": "btn-slate",
         "page": "pages/5_Monitoramento_Avaliacao.py",
         "key": "m_dados"
     }
@@ -529,38 +592,23 @@ cols = st.columns(3, gap="medium")
 # Distribuir módulos pelas colunas
 for i, module in enumerate(modules):
     with cols[i % 3]:
-        # Usar a nova função que cria cards clicáveis
-        if st.button(f"**{module['title']}**", 
-                    key=f"btn_main_{module['key']}",
-                    help=f"Clique para acessar {module['title']}",
-                    use_container_width=True):
-            if "Alunos" in module['title'] or st.session_state.dados.get("nome"):
-                st.switch_page(module['page'])
-            else:
-                st.toast("Selecione um aluno primeiro!", icon="⚠️")
-                time.sleep(1)
-                st.switch_page("pages/0_Alunos.py")
-        
-        # Card visual (agora apenas decorativo, o clique é no botão acima)
-        st.markdown(f"""
-        <div class="mod-card-rect">
-            <div class="mod-bar {module['color']}"></div>
-            <div class="mod-icon-area {module['bg']}">
-                <i class="{module['icon']} {module['color']}" style="background:transparent; -webkit-background-clip: text; color: transparent; filter: brightness(0.9);"></i>
-                <i class="{module['icon']}" style="color: inherit;"></i> 
-            </div>
-            <div class="mod-content">
-                <div class="mod-title">{module['title']}</div>
-                <div class="mod-desc">{module['desc']}</div>
-            </div>
-            <div class="mod-btn-visual">CLIQUE AQUI</div>
-        </div>
-        <style>.{module['color']} {{ background-color: currentColor; }}</style>
-        """, unsafe_allow_html=True)
+        # Usar a função que cria card + botão
+        create_module_with_button(
+            title=module["title"],
+            desc=module["desc"],
+            icon=module["icon"],
+            color_cls=module["color_cls"],
+            bg_cls=module["bg_cls"],
+            btn_class=module["btn_class"],
+            page_path=module["page"],
+            key=module["key"]
+        )
+
+# Adicionar espaçamento entre as linhas
+st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
 # RECURSOS EXTERNOS
-st.markdown("<div style='height:40px'></div>", unsafe_allow_html=True)
-st.markdown("### 📚 Recursos Externos")
+st.markdown("### 📚 Recursos Externos & Referências")
 
 # Criar colunas para recursos
 r1, r2, r3, r4 = st.columns(4, gap="medium")
@@ -568,16 +616,21 @@ r1, r2, r3, r4 = st.columns(4, gap="medium")
 # Função para criar recursos
 def create_resource(col, title, desc, icon, theme, link):
     with col:
+        if link != "#":
+            target = "_blank"
+            onclick = f"window.open('{link}', '_blank')"
+        else:
+            target = "_self"
+            onclick = "st.alert('Em breve!')"
+        
         st.markdown(f"""
-        <a href="{link}" target="_blank" class="res-card-link">
-            <div class="res-card {theme}">
-                <div class="res-icon {theme}"><i class="{icon}"></i></div>
-                <div class="res-info">
-                    <div class="res-name">{title}</div>
-                    <div class="res-meta">{desc}</div>
-                </div>
+        <div class="res-card {theme}" onclick="{onclick}" style="cursor: pointer;">
+            <div class="res-icon {theme}"><i class="{icon}"></i></div>
+            <div class="res-info">
+                <div class="res-name">{title}</div>
+                <div class="res-meta">{desc}</div>
             </div>
-        </a>
+        </div>
         """, unsafe_allow_html=True)
 
 # Adicionar recursos
@@ -587,7 +640,32 @@ create_resource(r3, "Neurociência", "Artigos e estudos", "ri-brain-fill", "rc-r
 create_resource(r4, "Ajuda Omnisfera", "Tutoriais e suporte", "ri-question-fill", "rc-orange", "#")
 
 # RODAPÉ
-st.markdown("<div style='height: 60px;'></div>", unsafe_allow_html=True)
-st.markdown("<div style='text-align: center; color: #CBD5E0; font-size: 0.75rem;'>Omnisfera desenvolvida por RODRIGO A. QUEIROZ • {}</div>".format(
-    datetime.now().strftime("%d/%m/%Y")
-), unsafe_allow_html=True)
+st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+
+# Estatísticas rápidas
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    st.metric("Alunos Ativos", "12", "+2")
+with col2:
+    st.metric("PEIs Ativos", "8", "+1")
+with col3:
+    st.metric("Evidências Hoje", "3", "0")
+with col4:
+    st.metric("Meta Mensal", "75%", "+5%")
+
+# Copyright
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+st.markdown(f"""
+<div style='
+    text-align: center; 
+    color: #64748B; 
+    font-size: 0.75rem;
+    padding: 20px;
+    border-top: 1px solid #E2E8F0;
+    margin-top: 20px;
+'>
+    <strong>Omnisfera v2.0</strong> • Plataforma de Inclusão Educacional • 
+    Desenvolvido por RODRIGO A. QUEIROZ • 
+    {datetime.now().strftime("%d/%m/%Y %H:%M")}
+</div>
+""", unsafe_allow_html=True)
