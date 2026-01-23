@@ -69,6 +69,92 @@ def verificar_login_supabase():
 verificar_login_supabase()
 OWNER_ID = st.session_state.get("supabase_user_id", "")
 
+def render_sidebar():
+    # garante variáveis que outras partes podem usar
+    st.session_state.setdefault("selected_student_id", None)
+    st.session_state.setdefault("selected_student_name", "")
+
+    def _is_cloud_ready():
+        auth = bool(st.session_state.get("autenticado", False))
+        ws_ok = bool(st.session_state.get("workspace_id"))
+
+        try:
+            has_url = bool(str(st.secrets.get("SUPABASE_URL", "")).strip())
+        except Exception:
+            has_url = False
+
+        try:
+            has_key = bool(
+                str(st.secrets.get("SUPABASE_SERVICE_KEY", "")).strip()
+                or str(st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+            )
+        except Exception:
+            has_key = False
+
+        return auth and ws_ok and has_url and has_key, {
+            "autenticado": auth,
+            "workspace_id": ws_ok,
+            "SUPABASE_URL": has_url,
+            "SUPABASE_KEY": has_key,
+        }
+
+    with st.sidebar:
+        st.markdown("### 🧭 Navegação")
+
+        # ✅ Home real é pages/0_Home.py
+        if st.button("🏠 Home", key="pei_nav_home", use_container_width=True):
+            st.switch_page("pages/0_Home.py")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.button("📘 PEI", key="pei_nav_pei", use_container_width=True, disabled=True)
+        with col2:
+            if st.button("🧩 PAEE", key="pei_nav_paee", use_container_width=True):
+                st.switch_page("pages/2_PAE.py")
+
+        if st.button("🚀 Hub", key="pei_nav_hub", use_container_width=True):
+            st.switch_page("pages/3_Hub_Inclusao.py")
+
+        st.markdown("---")
+        st.markdown("### 👤 Sessão")
+        st.caption(f"Usuário: **{st.session_state.get('usuario_nome','')}**")
+        st.caption(f"Workspace: **{st.session_state.get('workspace_name','')}**")
+
+        st.markdown("---")
+        st.markdown("### 🔑 OpenAI")
+
+        if "OPENAI_API_KEY" in st.secrets and str(st.secrets.get("OPENAI_API_KEY","")).strip():
+            st.session_state["OPENAI_API_KEY"] = str(st.secrets["OPENAI_API_KEY"]).strip()
+            st.success("✅ OpenAI OK (Secrets)")
+        else:
+            typed = st.text_input("Chave OpenAI:", type="password", key="pei_openai_key")
+            if typed and typed.strip():
+                st.session_state["OPENAI_API_KEY"] = typed.strip()
+                st.success("✅ OpenAI OK (Sessão)")
+            else:
+                st.info("Informe sua chave OpenAI para liberar a IA nesta sessão.")
+
+        st.markdown("---")
+        st.markdown("### 🧾 Status do Aluno (Supabase)")
+        student_id = st.session_state.get("selected_student_id")
+        if student_id:
+            st.success("✅ Vinculado ao Supabase")
+            st.caption(f"student_id: {student_id[:8]}…")
+        else:
+            st.warning("📝 Rascunho (ainda não salvo no Supabase)")
+
+        st.markdown("---")
+        st.markdown("### ☁️ Status da Nuvem (Supabase)")
+        ok_cloud, details = _is_cloud_ready()
+        if ok_cloud:
+            st.success("✅ Nuvem pronta (REST)")
+        else:
+            st.warning("⚠️ Nuvem incompleta")
+            st.caption(" • ".join([f"{k}:{'OK' if v else 'FALTA'}" for k, v in details.items()]))
+
+        st.markdown("---")
+
+
 # ✅ Sidebar UNIFICADA — (navegação + sessão + OpenAI + status aluno + status nuvem)
 # -------------------------------------------------------------------
 # OBS: seu projeto atual usa Supabase via REST (omni_utils.py), então NÃO existe `sb`.
@@ -519,65 +605,9 @@ def render_sidebar():
     if sidebar_js:
         st.markdown(sidebar_js, unsafe_allow_html=True)
 
-    # Sidebar visual
-    with st.sidebar:
-        # Container principal
-        st.markdown("<div class='sidebar-content'>", unsafe_allow_html=True)
+  # ✅ SIDEBAR (unificada)
+  render_sidebar()
 
-        # Logo
-        st.markdown("<div class='sidebar-logo-container'>", unsafe_allow_html=True)
-
-        if os.path.exists("omnisfera.png"):
-            st.image("omnisfera.png", use_container_width=True)
-        elif os.path.exists("omni_texto.png"):
-            st.image("omni_texto.png", use_container_width=True)
-        else:
-            st.markdown(
-                """
-                <div style="text-align:center; padding:16px 0;">
-                    <div style="
-                        font-size:1.8rem;
-                        font-weight:800;
-                        background:linear-gradient(135deg,#4F46E5,#7C3AED);
-                        -webkit-background-clip:text;
-                        -webkit-text-fill-color:transparent;
-                    ">
-                        OMNISFERA
-                    </div>
-                    <div style="font-size:.9rem; color:#64748B;">
-                        Educação Inclusiva Inteligente
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        # Separador
-        st.divider()
-
-        # Informações de sessão (opcional)
-        usuario = st.session_state.get("usuario_nome")
-        workspace = st.session_state.get("workspace_name")
-
-        if usuario:
-            st.caption(f"👤 {usuario}")
-        if workspace:
-            st.caption(f"🏫 {workspace}")
-
-        # Rodapé
-        st.markdown(
-            """
-            <div style="margin-top:40px; font-size:.75rem; color:#94A3B8; text-align:center;">
-                Omnisfera © 2026<br>
-                Educação como direito de todos
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        st.markdown("</div>", unsafe_allow_html=True)
 
 # ==============================================================================
 # 7. UTILITÁRIOS
@@ -1253,113 +1283,9 @@ def render_sidebar():
     # Injetar CSS
     st.markdown(sidebar_css, unsafe_allow_html=True)
     
-    with st.sidebar:
-        # Container principal
-        st.markdown('<div class="sidebar-content">', unsafe_allow_html=True)
-        
-        # 1. Logo centralizada
-        st.markdown('<div class="sidebar-logo-container">', unsafe_allow_html=True)
-        
-        if os.path.exists("omnisfera.png"):
-            st.image("omnisfera.png", use_column_width=True)
-        elif os.path.exists("omni_texto.png"):
-            st.image("omni_texto.png", use_column_width=True)
-        else:
-            st.markdown("""
-            <div style="text-align: center; width: 100%;">
-                <div style="
-                    font-size: 2rem; 
-                    font-weight: 800; 
-                    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); 
-                    -webkit-background-clip: text; 
-                    -webkit-text-fill-color: transparent;
-                    margin-bottom: 10px;
-                ">
-                    OMNISFERA
-                </div>
-                <div style="font-size: 0.9rem; color: #64748B;">
-                    Plataforma de Inclusão
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # 2. Informações do usuário
-        if st.session_state.get("autenticado"):
-            nome_user = st.session_state.get('usuario_nome', 'Visitante')
-            workspace = st.session_state.get("workspace_name") or st.session_state.get("workspace_id", "ESCOLA")[:8]
-            
-            iniciais = "".join([n[0].upper() for n in nome_user.split()[:2]])
-            
-            st.markdown(f'''
-            <div class="user-info-container">
-                <div class="user-avatar">{iniciais}</div>
-                <div class="user-name">{nome_user.split()[0]}</div>
-                <div class="user-workspace">{workspace}</div>
-            </div>
-            ''', unsafe_allow_html=True)
-        
-        # 3. Menu de navegação
-        st.markdown("""
-        <div class="sidebar-nav-section">
-            <div class="sidebar-nav-title">
-                <i class="ri-compass-3-line"></i> MENU PRINCIPAL
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Botões de navegação
-        nav_items = [
-            {"label": "👥 Alunos", "page": "pages/Alunos.py", "icon": "ri-team-line", "class": "sidebar-btn-alunos"},
-            {"label": "📘 PEI 360°", "page": "pages/1_PEI.py", "icon": "ri-book-open-line", "class": "sidebar-btn-pei"},
-            {"label": "🧩 PAEE & T.A.", "page": "pages/2_PAE.py", "icon": "ri-puzzle-line", "class": "sidebar-btn-paee"},
-            {"label": "🚀 Hub de Inclusão", "page": "pages/3_Hub_Inclusao.py", "icon": "ri-rocket-line", "class": "sidebar-btn-hub"},
-            {"label": "📓 Diário de Bordo", "page": "pages/4_Diario_de_Bordo.py", "icon": "ri-notebook-line", "class": "sidebar-btn-diario"},
-            {"label": "📊 Monitoramento", "page": "pages/5_Monitoramento_Avaliacao.py", "icon": "ri-bar-chart-line", "class": "sidebar-btn-dados"},
-        ]
-        
-        for item in nav_items:
-            button_html = f'''
-            <div class="sidebar-nav-button {item['class']}" data-page="{item['page']}">
-                <i class="{item['icon']}"></i>
-                <span>{item['label']}</span>
-            </div>
-            '''
-            st.markdown(button_html, unsafe_allow_html=True)
-        
-        # Espaçador
-        st.markdown('<div class="sidebar-spacer"></div>', unsafe_allow_html=True)
-        
-        # Botão de sair
-        st.markdown('<div class="sidebar-logout-container">', unsafe_allow_html=True)
-        
-        if st.button("🚪 Sair do Sistema", 
-                    use_container_width=True,
-                    type="secondary",
-                    key="sidebar_logout"):
-            st.session_state.autenticado = False
-            st.rerun()
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Versão
-        st.markdown(f"""
-        <div style="
-            text-align: center; 
-            color: #94A3B8; 
-            font-size: 0.7rem;
-            margin-top: 20px;
-            padding: 10px;
-        ">
-            Omnisfera v2.1 • {datetime.now().strftime("%d/%m/%Y")}
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # JavaScript
-        st.markdown(sidebar_js, unsafe_allow_html=True)
+   def render_sidebar(active: str = ""):
+    ...
+
         
 # ==============================================================================
 # 10. HEADER + ABAS
