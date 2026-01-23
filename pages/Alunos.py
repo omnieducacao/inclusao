@@ -1,20 +1,22 @@
 # pages/Alunos.py
 import streamlit as st
 import requests
-import base64
-import os
-from datetime import datetime
 
 # ==============================================================================
 # CONFIG
 # ==============================================================================
 st.set_page_config(page_title="Omnisfera • Estudantes", page_icon="👥", layout="wide")
 
+
 # ==============================================================================
-# VISUAL (mesmo padrão da Home v2.0)
+# 🔒 BLOCO VISUAL (HOME v2.0) — NÃO MEXER POR ENQUANTO
+# - Objetivo: trazer identidade visual da Home para a página Estudantes
+# - Sem topbar (vamos usar sidebar para navegar)
+# - Tudo isolado para mexer fácil no futuro
 # ==============================================================================
-st.markdown(
-    """
+def _ui_home_block():
+    st.markdown(
+        """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import url("https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css");
@@ -25,74 +27,25 @@ html, body, [class*="css"] {
     background-color: #F8FAFC !important;
 }
 
-/* --- OCULTAR CHROME NATIVO DO STREAMLIT --- */
-[data-testid="stSidebarNav"],
+/* Mantém SIDEBAR (navegação), mas limpa o chrome */
 [data-testid="stHeader"],
 [data-testid="stToolbar"],
-[data-testid="collapsedControl"],
 footer {
     display: none !important;
 }
 
-/* Ajustar padding para compensar a topbar fixa */
+/* Conteúdo mais “premium” */
 .block-container {
-    padding-top: 100px !important;
-    padding-bottom: 4rem !important;
+    padding-top: 1.25rem !important;
+    padding-bottom: 3rem !important;
     max-width: 95% !important;
     padding-left: 1rem !important;
     padding-right: 1rem !important;
 }
 
-/* --- TOPBAR (HOME v2.0) --- */
-.topbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 80px;
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border-bottom: 1px solid #E2E8F0;
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 2.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
+/* --- PADRÃO "RECURSOS EXTERNOS" (para cabeçalhos internos) --- */
+.res-card-link { text-decoration: none !important; display: block; height: 100%; border-radius: 14px; overflow: hidden; }
 
-.brand-box {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.brand-logo {
-    height: 55px !important;
-    width: auto !important;
-    animation: spin 45s linear infinite;
-    filter: brightness(1.1);
-}
-
-.brand-img-text {
-    height: 35px !important;
-    width: auto;
-    margin-left: 10px;
-}
-
-.user-badge {
-    background: #F1F5F9;
-    border: 1px solid #E2E8F0;
-    padding: 6px 14px;
-    border-radius: 99px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #64748B;
-    letter-spacing: 0.5px;
-}
-
-/* --- PADRÃO "RECURSOS EXTERNOS" (para cabeçalho) --- */
 .res-card {
     background: white;
     border-radius: 14px;
@@ -107,53 +60,31 @@ footer {
 }
 
 .res-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
     border-color: transparent;
 }
 
 .res-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     flex-shrink: 0;
     transition: all 0.3s ease;
 }
 
-.res-card:hover .res-icon {
-    transform: scale(1.06) rotate(3deg);
-}
+.res-card:hover .res-icon { transform: scale(1.06) rotate(4deg); }
 
-.res-info {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-}
+.res-info { display: flex; flex-direction: column; flex-grow: 1; }
+.res-name { font-weight: 800; color: #1E293B; font-size: 1.15rem; margin-bottom: 2px; transition: color 0.2s; }
+.res-card:hover .res-name { color: #4F46E5; }
+.res-meta { font-size: 0.86rem; font-weight: 650; color: #64748B; opacity: 0.95; line-height: 1.4; }
 
-.res-name {
-    font-weight: 800;
-    color: #1E293B;
-    font-size: 1.05rem;
-    margin-bottom: 2px;
-    transition: color 0.2s;
-}
-
-.res-card:hover .res-name {
-    color: #4F46E5;
-}
-
-.res-meta {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #64748B;
-    opacity: 0.9;
-}
-
-/* Temas (rc-*) */
+/* Tema usado na página Estudantes (pode trocar depois) */
 .rc-sky {
     background: #F0F9FF !important;
     color: #0284C7 !important;
@@ -161,28 +92,7 @@ footer {
 }
 .rc-sky .res-icon { background: #F0F9FF !important; border: 1px solid #BAE6FD !important; }
 
-.rc-green {
-    background: #F0FDF4 !important;
-    color: #16A34A !important;
-    border-color: #BBF7D0 !important;
-}
-.rc-green .res-icon { background: #F0FDF4 !important; border: 1px solid #BBF7D0 !important; }
-
-.rc-rose {
-    background: #FFF1F2 !important;
-    color: #E11D48 !important;
-    border-color: #FECDD3 !important;
-}
-.rc-rose .res-icon { background: #FFF1F2 !important; border: 1px solid #FECDD3 !important; }
-
-.rc-orange {
-    background: #FFF7ED !important;
-    color: #EA580C !important;
-    border-color: #FDBA74 !important;
-}
-.rc-orange .res-icon { background: #FFF7ED !important; border: 1px solid #FDBA74 !important; }
-
-/* botão */
+/* Botões um pouco mais elegantes (sem alterar lógica) */
 .stButton > button {
     border-radius: 14px !important;
     border: 1px solid #E2E8F0 !important;
@@ -198,142 +108,17 @@ footer {
     transform: translateY(-1px) !important;
     box-shadow: 0 10px 18px rgba(0,0,0,0.08) !important;
 }
-
-/* animação logo */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* responsividade */
-@media (max-width: 640px) {
-    .brand-img-text { display: none; }
-    .user-badge { display: none; }
-    .topbar { padding: 0 1rem; }
-}
 </style>
-""",
-    unsafe_allow_html=True,
-)
-
-# ==============================================================================
-# FUNÇÕES VISUAIS (reaproveitadas da Home)
-# ==============================================================================
-def _get_base64_image(image_path: str) -> str:
-    if not os.path.exists(image_path):
-        return ""
-    try:
-        with open(image_path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    except Exception:
-        return ""
-
-
-def _escola_vinculada() -> str:
-    workspace_name = st.session_state.get("workspace_name", "")
-    workspace_id = st.session_state.get("workspace_id", "")
-    if workspace_name:
-        return workspace_name[:20] + "..." if len(workspace_name) > 20 else workspace_name
-    if workspace_id:
-        return f"ID: {str(workspace_id)[:8]}..."
-    return "Sem Escola"
-
-
-def _get_user_initials(nome: str) -> str:
-    if not nome:
-        return "U"
-    parts = nome.split()
-    if len(parts) >= 2:
-        return f"{parts[0][0]}{parts[-1][0]}".upper()
-    return nome[:2].upper() if len(nome) >= 2 else nome[0].upper()
-
-
-def render_topbar():
-    icone_b64 = _get_base64_image("omni_icone.png")
-    texto_b64 = _get_base64_image("omni_texto.png")
-    workspace = _escola_vinculada()
-    nome_user_full = st.session_state.get("usuario_nome", "Visitante")
-    nome_user = (nome_user_full.split()[0] if nome_user_full else "Visitante")
-    initials = _get_user_initials(nome_user_full)
-
-    img_logo = (
-        f'<img src="data:image/png;base64,{icone_b64}" class="brand-logo" alt="Omnisfera Logo">'
-        if icone_b64 else "🌐"
-    )
-    img_text = (
-        f'<img src="data:image/png;base64,{texto_b64}" class="brand-img-text" alt="Omnisfera">'
-        if texto_b64 else "<span style='font-weight:900; font-size:1.1rem; color:#2B3674;'>OMNISFERA</span>"
-    )
-
-    st.markdown(
-        f"""
-        <div class="topbar">
-            <div class="brand-box">
-                {img_logo}
-                {img_text}
-            </div>
-            <div class="brand-box" style="gap: 16px;">
-                <div class="user-badge">{workspace}</div>
-                <div style="
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    font-weight: 800;
-                    color: #334155;
-                ">
-                    <div style="
-                        width: 40px;
-                        height: 40px;
-                        border-radius: 50%;
-                        background: linear-gradient(135deg, #4F46E5, #7C3AED);
-                        color: white;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-weight: 900;
-                        font-size: 0.9rem;
-                    ">{initials}</div>
-                    <div>{nome_user}</div>
-                </div>
-            </div>
-        </div>
         """,
         unsafe_allow_html=True,
     )
 
 
-def render_page_header_estudantes(workspace_name: str):
-    # Cabeçalho no padrão dos “Recursos Externos” (card grande)
-    st.markdown(
-        f"""
-        <div class="res-card rc-sky" style="
-            margin-bottom: 18px;
-            padding: 26px;
-            align-items: flex-start;
-        ">
-            <div class="res-icon rc-sky" style="
-                width: 64px;
-                height: 64px;
-                font-size: 2rem;
-            ">
-                <i class="ri-group-fill"></i>
-            </div>
-            <div class="res-info">
-                <div class="res-name" style="font-size:1.45rem;">
-                    Estudantes
-                </div>
-                <div class="res-meta" style="font-size:0.92rem; margin-top:4px; max-width:820px;">
-                    Gestão do workspace (PIN) — <strong>{workspace_name}</strong>. Aqui você visualiza os estudantes criados no PEI
-                    deste workspace e pode apagar quando necessário.
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+_ui_home_block()
+
 
 # ==============================================================================
-# GATE (SEM LOGIN AQUI) — só redireciona para o começo do app
+# 🔒 GATE (SEM LOGIN AQUI) — NÃO MEXER POR ENQUANTO
 # ==============================================================================
 def acesso_bloqueado(msg: str):
     st.markdown(
@@ -395,6 +180,7 @@ if not st.session_state.get("workspace_id"):
 WORKSPACE_ID = st.session_state.get("workspace_id")
 WORKSPACE_NAME = st.session_state.get("workspace_name") or f"{str(WORKSPACE_ID)[:8]}…"
 
+
 # ==============================================================================
 # SUPABASE REST (mesmo padrão do PEI)
 # ==============================================================================
@@ -452,15 +238,27 @@ def delete_student_rest(student_id: str, workspace_id: str):
         _http_error("Delete em students falhou", r)
     return r.json()
 
-# ==============================================================================
-# UI
-# ==============================================================================
 
-# Topbar fixa (mesmo padrão da Home)
-render_topbar()
-
-# Cabeçalho da página no padrão “Recursos Externos”
-render_page_header_estudantes(WORKSPACE_NAME)
+# ==============================================================================
+# UI — Cabeçalho novo (padrão Recursos Externos) + resto igual
+# ==============================================================================
+st.markdown(
+    f"""
+    <div class="res-card rc-sky" style="margin-bottom: 14px;">
+        <div class="res-icon rc-sky" style="font-size: 1.9rem;">
+            <i class="ri-group-fill"></i>
+        </div>
+        <div class="res-info">
+            <div class="res-name">Estudantes</div>
+            <div class="res-meta">
+                Gestão do workspace (PIN) — <strong>{WORKSPACE_NAME}</strong>.
+                Aqui você apenas visualiza os estudantes criados no PEI deste workspace e pode apagar quando necessário.
+            </div>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 top_l, top_r = st.columns([3, 1])
 with top_l:
@@ -549,21 +347,3 @@ for a in alunos:
                     st.rerun()
 
     st.markdown("<hr style='margin:8px 0; border:none; border-top:1px solid #EEF2F7;'>", unsafe_allow_html=True)
-
-# Rodapé discreto (opcional, não interfere em nada)
-st.markdown(
-    f"""
-    <div style='
-        text-align: center;
-        color: #64748B;
-        font-size: 0.72rem;
-        padding: 18px 10px;
-        border-top: 1px solid #E2E8F0;
-        margin-top: 30px;
-        opacity: 0.9;
-    '>
-        <strong>Omnisfera</strong> • Estudantes • {datetime.now().strftime("%d/%m/%Y %H:%M")}
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
