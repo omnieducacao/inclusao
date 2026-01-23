@@ -107,12 +107,12 @@ def render_sidebar_old():
 
         col1, col2 = st.columns(2)
         with col1:
-            st.button("📘 PEI", key="pei_nav_pei", use_container_width=True, disabled=True)
+            st.button("📘 PEI", key=f"{key_prefix}_nav_hub", use_container_width=True):
         with col2:
-            if st.button("🧩 PAEE", key="pei_nav_paee", use_container_width=True):
+            if st.button("🧩 PAEE", key=f"{key_prefix}_nav_hub", use_container_width=True):
                 st.switch_page("pages/2_PAE.py")
 
-        if st.button("🚀 Hub", key="pei_nav_hub", use_container_width=True):
+        if st.button("🚀 Hub", key=f"{key_prefix}_nav_hub", use_container_width=True):
             st.switch_page("pages/3_Hub_Inclusao.py")
 
         st.markdown("---")
