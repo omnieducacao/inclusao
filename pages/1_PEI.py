@@ -69,11 +69,50 @@ def verificar_login_supabase():
 verificar_login_supabase()
 OWNER_ID = st.session_state.get("supabase_user_id", "")
 
-# ✅ Sidebar UNIFICADA (navegação + sessão + salvar/carregar + sync)
+# ✅ Sidebar UNIFICADA — (navegação + sessão + OpenAI + status aluno + status nuvem)
+# -------------------------------------------------------------------
+# OBS: seu projeto atual usa Supabase via REST (omni_utils.py), então NÃO existe `sb`.
+# -------------------------------------------------------------------
+
+# garante variáveis que outras partes podem usar
+st.session_state.setdefault("selected_student_id", None)
+st.session_state.setdefault("selected_student_name", "")
+
+def _is_cloud_ready():
+    """
+    Checa se a nuvem (Supabase REST) está pronta.
+    Não imprime secrets; só diz se existe.
+    """
+    auth = bool(st.session_state.get("autenticado", False))
+    ws_ok = bool(st.session_state.get("workspace_id"))
+
+    try:
+        has_url = bool(str(st.secrets.get("SUPABASE_URL", "")).strip())
+    except Exception:
+        has_url = False
+
+    try:
+        has_key = bool(
+            str(st.secrets.get("SUPABASE_SERVICE_KEY", "")).strip()
+            or str(st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+        )
+    except Exception:
+        has_key = False
+
+    return auth and ws_ok and has_url and has_key, {
+        "autenticado": auth,
+        "workspace_id": ws_ok,
+        "SUPABASE_URL": has_url,
+        "SUPABASE_KEY": has_key,
+    }
+
+
 with st.sidebar:
     st.markdown("### 🧭 Navegação")
+
+    # ✅ Home real é pages/0_Home.py
     if st.button("🏠 Home", key="pei_nav_home", use_container_width=True):
-        st.switch_page("streamlit_app.py")  # se sua home for pages/0_Home.py, troque aqui
+        st.switch_page("pages/0_Home.py")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -92,29 +131,44 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("### 🔑 OpenAI")
-    if 'OPENAI_API_KEY' in st.secrets:
-        api_key = st.secrets['OPENAI_API_KEY']
-        st.success("✅ OpenAI OK")
+
+    # ✅ padrão: usa secrets se existir, senão pede e guarda em session_state
+    if "OPENAI_API_KEY" in st.secrets and str(st.secrets.get("OPENAI_API_KEY","")).strip():
+        st.session_state["OPENAI_API_KEY"] = str(st.secrets["OPENAI_API_KEY"]).strip()
+        st.success("✅ OpenAI OK (Secrets)")
     else:
-        api_key = st.text_input("Chave OpenAI:", type="password", key="pei_openai_key")
+        typed = st.text_input("Chave OpenAI:", type="password", key="pei_openai_key")
+        if typed and typed.strip():
+            st.session_state["OPENAI_API_KEY"] = typed.strip()
+            st.success("✅ OpenAI OK (Sessão)")
+        else:
+            st.info("Informe sua chave OpenAI para liberar a IA nesta sessão.")
 
     st.markdown("---")
     st.markdown("### 🧾 Status do Aluno (Supabase)")
-    st.session_state.setdefault("selected_student_id", None)
-    st.session_state.setdefault("selected_student_name", "")
 
     student_id = st.session_state.get("selected_student_id")
     if student_id:
         st.success("✅ Vinculado ao Supabase")
-        st.caption(f"student_id: {student_id[:8]}...")
+        st.caption(f"student_id: {student_id[:8]}…")
     else:
         st.warning("📝 Rascunho (ainda não salvo no Supabase)")
 
-    # Aviso se supabase não estiver pronto
-    if sb is None:
-        st.info("Supabase não inicializado (sb=None). O PEI funciona em rascunho, mas não salva/carrega.")
+    st.markdown("---")
+    st.markdown("### ☁️ Status da Nuvem (Supabase)")
+
+    ok_cloud, details = _is_cloud_ready()
+    if ok_cloud:
+        st.success("✅ Nuvem pronta (REST)")
+    else:
+        st.warning("⚠️ Nuvem incompleta")
+        # debug leve (sem expor valores)
+        st.caption(
+            " • ".join([f"{k}:{'OK' if v else 'FALTA'}" for k, v in details.items()])
+        )
 
     st.markdown("---")
+
 
 # ==============================================================================
 # 1. GUARDAS (LOGIN + SUPABASE)
