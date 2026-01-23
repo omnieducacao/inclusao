@@ -2,11 +2,12 @@ import streamlit as st
 from datetime import date, datetime
 import base64
 import os
+import json
 
 # ==============================================================================
 # 1. CONFIGURAÇÃO INICIAL
 # ==============================================================================
-APP_VERSION = "v2.0 - Sidebar Ocultada"
+APP_VERSION = "v2.0 - Guia de Inclusão"
 
 try:
     IS_TEST_ENV = st.secrets.get("ENV", "PRODUCAO") == "TESTE"
@@ -80,14 +81,14 @@ footer {
 }
 
 .brand-logo {
-    height: 55px !important;  /* AUMENTEI O TAMANHO DA LOGO */
+    height: 55px !important;
     width: auto !important;
     animation: spin 45s linear infinite;
     filter: brightness(1.1);
 }
 
 .brand-img-text {
-    height: 35px !important;  /* AUMENTEI O TAMANHO DO TEXTO */
+    height: 35px !important;
     width: auto;
     margin-left: 10px;
 }
@@ -352,71 +353,134 @@ footer {
     opacity: 0.8;
 }
 
-/* --- CORES TEMÁTICAS --- */
-.c-indigo { background: #4F46E5 !important; }
-.bg-indigo-soft { 
-    background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%) !important; 
-    color: #4F46E5 !important;
+/* --- CARDS DE INFORMAÇÃO --- */
+.info-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #E2E8F0;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    height: 100%;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
-.c-blue { background: #3B82F6 !important; }
-.bg-blue-soft { 
-    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%) !important;
-    color: #2563EB !important;
+.info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    border-color: #CBD5E1;
 }
 
-.c-purple { background: #8B5CF6 !important; }
-.bg-purple-soft { 
-    background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%) !important;
-    color: #7C3AED !important;
+.info-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #F1F5F9;
 }
 
-.c-teal { background: #14B8A6 !important; }
-.bg-teal-soft { 
-    background: linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%) !important;
-    color: #0D9488 !important;
+.info-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
 }
 
-.c-rose { background: #E11D48 !important; }
-.bg-rose-soft { 
-    background: linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%) !important;
-    color: #BE123C !important;
+.info-card-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1E293B;
+    margin: 0;
+    line-height: 1.3;
 }
 
-.c-sky { background: #0284C7 !important; }
-.bg-sky-soft { 
-    background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%) !important;
-    color: #0369A1 !important;
+.info-card-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 8px;
 }
 
-/* --- CORES RECURSOS --- */
-.rc-sky {
-    background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%) !important;
-    color: #0284C7 !important;
-    border-color: #BAE6FD !important;
+.info-card-content p {
+    font-size: 0.85rem;
+    color: #64748B;
+    line-height: 1.5;
+    margin-bottom: 12px;
 }
-.rc-sky .res-icon { background: #F0F9FF !important; border: 1px solid #BAE6FD !important; }
 
-.rc-green {
-    background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%) !important;
-    color: #16A34A !important;
-    border-color: #BBF7D0 !important;
+.info-card-content ul {
+    font-size: 0.85rem;
+    color: #64748B;
+    line-height: 1.5;
+    margin-left: 16px;
+    margin-bottom: 12px;
 }
-.rc-green .res-icon { background: #F0FDF4 !important; border: 1px solid #BBF7D0 !important; }
 
-.rc-rose {
-    background: linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%) !important;
-    color: #E11D48 !important;
-    border-color: #FECDD3 !important;
+.info-card-content li {
+    margin-bottom: 6px;
 }
-.rc-rose .res-icon { background: #FFF1F2 !important; border: 1px solid #FECDD3 !important; }
 
-.rc-orange {
-    background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%) !important;
-    color: #EA580C !important;
-    border-color: #FDBA74 !important;
+/* --- CORES DOS CARDS DE INFORMAÇÃO --- */
+.info-card-orange {
+    border-left: 4px solid #EA580C;
 }
-.rc-orange .res-icon { background: #FFF7ED !important; border: 1px solid #FDBA74 !important; }
+.info-card-orange .info-card-icon {
+    background: #FFF7ED;
+    color: #EA580C;
+    border: 1px solid #FDBA74;
+}
+
+.info-card-blue {
+    border-left: 4px solid #3B82F6;
+}
+.info-card-blue .info-card-icon {
+    background: #EFF6FF;
+    color: #3B82F6;
+    border: 1px solid #93C5FD;
+}
+
+.info-card-purple {
+    border-left: 4px solid #8B5CF6;
+}
+.info-card-purple .info-card-icon {
+    background: #F5F3FF;
+    color: #8B5CF6;
+    border: 1px solid #C4B5FD;
+}
+
+.info-card-teal {
+    border-left: 4px solid #14B8A6;
+}
+.info-card-teal .info-card-icon {
+    background: #F0FDFA;
+    color: #14B8A6;
+    border: 1px solid #5EEAD4;
+}
+
+.info-card-rose {
+    border-left: 4px solid #E11D48;
+}
+.info-card-rose .info-card-icon {
+    background: #FFF1F2;
+    color: #E11D48;
+    border: 1px solid #FDA4AF;
+}
+
+.info-card-indigo {
+    border-left: 4px solid #4F46E5;
+}
+.info-card-indigo .info-card-icon {
+    background: #EEF2FF;
+    color: #4F46E5;
+    border: 1px solid #A5B4FC;
+}
 
 /* --- MÉTRICAS --- */
 .metric-card {
@@ -466,6 +530,65 @@ footer {
 .metric-down { color: #DC2626 !important; }
 .metric-neutral { color: #64748B !important; }
 
+/* --- CHAT SECTION --- */
+.chat-container {
+    background: white;
+    border-radius: 20px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-top: 30px;
+}
+
+.chat-header {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.chat-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.chat-messages {
+    height: 300px;
+    overflow-y: auto;
+    padding: 20px;
+    background: #F8FAFC;
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.user-message {
+    background: #E0E7FF;
+    color: #3730A3;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+}
+
+.bot-message {
+    background: white;
+    color: #1E293B;
+    border: 1px solid #E2E8F0;
+    margin-right: auto;
+    border-bottom-left-radius: 4px;
+}
+
+.chat-input-container {
+    padding: 20px;
+    border-top: 1px solid #E2E8F0;
+    background: white;
+}
+
 /* --- ANIMAÇÕES --- */
 @keyframes spin {
     0% { transform: rotate(0deg); }
@@ -479,6 +602,7 @@ footer {
     .hero-greet { font-size: 2rem; }
     .mod-card-rect { height: 120px; }
     .mod-icon-area { width: 80px; }
+    .info-card { min-height: 350px; }
 }
 
 @media (max-width: 768px) {
@@ -498,6 +622,7 @@ footer {
     .mod-desc { font-size: 0.75rem; }
     .res-card { padding: 16px; gap: 12px; }
     .res-icon { width: 40px; height: 40px; font-size: 1.2rem; }
+    .info-card { min-height: 380px; padding: 18px; }
 }
 
 @media (max-width: 640px) {
@@ -558,7 +683,8 @@ def initialize_session_state():
         "workspace_id": None,
         "usuario_nome": "Visitante",
         "workspace_name": "Escola Modelo",
-        "dados": {"nome": "", "nasc": date(2015, 1, 1), "serie": None}
+        "dados": {"nome": "", "nasc": date(2015, 1, 1), "serie": None},
+        "chat_messages": []
     }
     
     for key, value in defaults.items():
@@ -687,6 +813,202 @@ def create_module_card(title, desc, icon, color_cls, bg_cls, page, key):
             st.switch_page(page)
         
         st.markdown("</div>", unsafe_allow_html=True)
+
+
+def render_info_cards():
+    """Renderiza os cards informativos"""
+    info_cards_data = [
+        {
+            "title": "Acolhimento e Cultura Inclusiva",
+            "icon": "ri-heart-line",
+            "color": "info-card-orange",
+            "content": """
+                <p><strong>Foco:</strong> O primeiro passo para a inclusão efetiva.</p>
+                <p><strong>Conceito:</strong> Receber o aluno com deficiência não garante a inclusão automática; é necessário integrar plenamente por meio de práticas pedagógicas significativas.</p>
+                <p><strong>Pilares do Acolhimento:</strong></p>
+                <ul>
+                    <li><strong>Políticas Claras:</strong> Adoção de um Projeto Político-Pedagógico (PPP) que contemple a diversidade.</li>
+                    <li><strong>Acessibilidade:</strong> Adaptação da infraestrutura (rampas, banheiros, tecnologias assistivas).</li>
+                    <li><strong>Mediação:</strong> Gestores devem atuar proativamente contra preconceitos e oferecer apoio emocional aos educadores.</li>
+                </ul>
+                <p><strong>Ação Prática:</strong> Criar um plano de acolhimento personalizado envolvendo a família e realizar atividades de integração.</p>
+            """
+        },
+        {
+            "title": "Gestão Estratégica (PGEI)",
+            "icon": "ri-strategy-line",
+            "color": "info-card-blue",
+            "content": """
+                <p><strong>Foco:</strong> Organização macro da escola para a inclusão.</p>
+                <p><strong>O que é:</strong> O Plano Geral de Educação Inclusiva (PGEI) organiza ações para diferentes perfis (deficiências, transtornos, altas habilidades).</p>
+                <p><strong>Dimensionamento:</strong> É crucial analisar o número total de alunos versus profissionais disponíveis para definir a carga horária e a alocação de recursos.</p>
+                <p><strong>Check-list do Gestor:</strong></p>
+                <ul>
+                    <li>Levantar perfis específicos dos alunos.</li>
+                    <li>Dimensionar a equipe de inclusão.</li>
+                    <li>Planejar ações coletivas e individuais alinhadas ao PPP.</li>
+                </ul>
+            """
+        },
+        {
+            "title": "Equipe Multidisciplinar",
+            "icon": "ri-team-line",
+            "color": "info-card-purple",
+            "content": """
+                <p><strong>Foco:</strong> Papéis e responsabilidades dos profissionais.</p>
+                <ul>
+                    <li><strong>Orientador Educacional:</strong> Atua na convivência, integração social e pontes entre currículo e desempenho.</li>
+                    <li><strong>Psicólogo Escolar:</strong> Acompanha estudos de caso, supervisiona ATs e APs e orienta famílias (não faz terapia clínica na escola).</li>
+                    <li><strong>Atendente Terapêutico (AT):</strong> Profissional externo (custeado pela família/Estado) com foco no atendimento individual e exclusivo (ex: autismo).</li>
+                    <li><strong>Atendente Pedagógico (AP):</strong> Vínculo com a escola; auxilia na locomoção, higiene, organização de materiais e interação em atividades coletivas.</li>
+                </ul>
+            """
+        },
+        {
+            "title": "O Plano Individual (PEI/PDI)",
+            "icon": "ri-file-list-3-line",
+            "color": "info-card-teal",
+            "content": """
+                <p><strong>Foco:</strong> O roteiro de aprendizagem do aluno.</p>
+                <p><strong>Definição:</strong> O Plano Educacional Individualizado (PEI) ou Plano de Desenvolvimento Individual (PDI) é um roteiro flexível e obrigatório para nortear a aprendizagem.</p>
+                <p><strong>Elaboração:</strong> Feito pela equipe multidisciplinar em parceria com a família e profissionais externos, devendo ser atualizado sistematicamente.</p>
+                <p><strong>Conteúdo Essencial:</strong> Identidade, necessidades específicas, dados de autonomia, desenvolvimento escolar e necessidade de tecnologias assistivas.</p>
+                <p><strong>Avaliação:</strong> Baseada no progresso individual em relação ao conhecimento inicial, e não comparativa com a turma.</p>
+            """
+        },
+        {
+            "title": "Adaptações e Transtornos",
+            "icon": "ri-adjustments-line",
+            "color": "info-card-rose",
+            "content": """
+                <p><strong>Foco:</strong> Estratégias para sala de aula.</p>
+                <ul>
+                    <li><strong>Flexibilidade:</strong> Ajuste no tempo para execução de tarefas e avaliações.</li>
+                    <li><strong>Avaliação:</strong> Diversificar instrumentos (orais, adaptados) e considerar toda produção do aluno como avaliativa.</li>
+                    <li><strong>Ambiente:</strong> Organizar a sala para reduzir estímulos ou facilitar o contato com o professor.</li>
+                    <li><strong>Materiais:</strong> Uso de recursos visuais, materiais concretos, fontes ampliadas e tecnologia assistiva.</li>
+                </ul>
+            """
+        },
+        {
+            "title": "Deficiências e Suporte Prático",
+            "icon": "ri-wheelchair-line",
+            "color": "info-card-indigo",
+            "content": """
+                <p><strong>Foco:</strong> Resumo técnico das necessidades.</p>
+                <ul>
+                    <li><strong>Física:</strong> Foco em acessibilidade arquitetônica, mobiliário adaptado e apoio para mobilidade.</li>
+                    <li><strong>Auditiva:</strong> Uso de Libras, leitura labial, legendas e aparelhos auditivos. Varia de leve a profunda.</li>
+                    <li><strong>Visual:</strong> Desde baixa visão até cegueira. Requer Braille, audiodescrição, pisos táteis e leitores de tela.</li>
+                    <li><strong>Intelectual:</strong> Limitações no raciocínio e comportamento adaptativo. Requer linguagem simples, rotina e apoio no desenvolvimento de habilidades de vida.</li>
+                </ul>
+            """
+        }
+    ]
+    
+    # Primeira linha de cards
+    cols = st.columns(3, gap="medium")
+    for idx, card in enumerate(info_cards_data[:3]):
+        with cols[idx]:
+            st.markdown(
+                f"""
+                <div class="info-card {card['color']}">
+                    <div class="info-card-header">
+                        <div class="info-card-icon">
+                            <i class="{card['icon']}"></i>
+                        </div>
+                        <h3 class="info-card-title">{card['title']}</h3>
+                    </div>
+                    <div class="info-card-content">
+                        {card['content']}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+    
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+    
+    # Segunda linha de cards
+    cols = st.columns(3, gap="medium")
+    for idx, card in enumerate(info_cards_data[3:]):
+        with cols[idx]:
+            st.markdown(
+                f"""
+                <div class="info-card {card['color']}">
+                    <div class="info-card-header">
+                        <div class="info-card-icon">
+                            <i class="{card['icon']}"></i>
+                        </div>
+                        <h3 class="info-card-title">{card['title']}</h3>
+                    </div>
+                    <div class="info-card-content">
+                        {card['content']}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+
+def render_chat():
+    """Renderiza o chat integrado"""
+    st.markdown(
+        """
+        <div class="chat-container">
+            <div class="chat-header">
+                <h3><i class="ri-robot-line"></i> Assistente de Inclusão Omnisfera</h3>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+        """,
+        unsafe_allow_html=True,
+    )
+    
+    # Exibir mensagens anteriores
+    for msg in st.session_state.chat_messages:
+        if msg["role"] == "user":
+            st.markdown(f'<div class="message user-message"><strong>Você:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="message bot-message"><strong>Assistente:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
+    
+    st.markdown(
+        """
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    
+    # Input do chat
+    with st.form(key="chat_form", clear_on_submit=True):
+        col1, col2 = st.columns([6, 1])
+        with col1:
+            user_input = st.text_input(
+                "Digite sua pergunta sobre inclusão:",
+                placeholder="Ex: Como adaptar atividades para alunos com TEA?",
+                label_visibility="collapsed"
+            )
+        with col2:
+            submit_button = st.form_submit_button("Enviar", use_container_width=True)
+    
+    if submit_button and user_input:
+        # Adicionar mensagem do usuário
+        st.session_state.chat_messages.append({"role": "user", "content": user_input})
+        
+        # Simular resposta do assistente (substituir por integração real com ChatGPT)
+        resposta = f"""Ótima pergunta sobre inclusão! Baseado nos nossos guias:
+
+Para alunos com TEA, recomendo:
+1. Estruturar rotinas visuais claras
+2. Usar histórias sociais para explicar situações
+3. Criar espaços tranquilos para momentos de sobrecarga sensorial
+4. Adaptar instruções com suportes visuais
+5. Trabalhar com antecipação de atividades
+
+Gostaria de mais detalhes sobre alguma dessas estratégias?"""
+        
+        st.session_state.chat_messages.append({"role": "assistant", "content": resposta})
+        st.rerun()
 
 
 def render_resources():
@@ -892,6 +1214,18 @@ render_resources()
 # Métricas
 st.markdown("<div style='height:40px'></div>", unsafe_allow_html=True)
 render_metrics()
+
+# Nova Seção: Guia de Inclusão
+st.markdown("---")
+st.markdown("## 📘 Guia Prático de Inclusão")
+st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+render_info_cards()
+
+# Chat Integrado
+st.markdown("---")
+st.markdown("## 🤖 Assistente de Inclusão")
+st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+render_chat()
 
 # Rodapé
 st.markdown(
