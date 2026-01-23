@@ -537,9 +537,12 @@ def _is_cloud_ready():
     }
 
 
-def render_sidebar(active: str = "pei", key_prefix: str = "pei"):
+def render_sidebar(active: str = "pei", key_prefix: str = "pei_sidebar"):
     st.session_state.setdefault("selected_student_id", None)
     st.session_state.setdefault("selected_student_name", "")
+
+    def k(name: str) -> str:
+        return f"{key_prefix}_{name}"
 
     if sidebar_css and isinstance(sidebar_css, str):
         st.markdown(sidebar_css, unsafe_allow_html=True)
@@ -603,14 +606,6 @@ def render_sidebar(active: str = "pei", key_prefix: str = "pei"):
             st.caption(" • ".join([f"{k}:{'OK' if v else 'FALTA'}" for k, v in details.items()]))
 
         st.markdown("---")
-
-
-# chama UMA VEZ
-render_sidebar(active="pei", key_prefix="pei_sidebar")
-
-# deixa api_key disponível para o resto do app
-api_key = st.session_state.get("OPENAI_API_KEY", "")
-
 
 # ==============================================================================
 # 7. UTILITÁRIOS
