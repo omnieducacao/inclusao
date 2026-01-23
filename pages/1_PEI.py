@@ -584,21 +584,118 @@ st.session_state.setdefault("selected_student_name", "")
 
 
 # ==============================================================================
-# 6. SIDEBAR (Renderização segura)
+# 6. SIDEBAR (ÚNICA) — Navegação + Sessão + OpenAI + Status (sem duplicar)
 # ==============================================================================
 
-# Injetar CSS (se existir)
-if sidebar_css:
-    st.markdown(sidebar_css, unsafe_allow_html=True)
-
-# Injetar JS (se existir)
-if sidebar_js:
-    st.markdown(sidebar_js, unsafe_allow_html=True)
+# CSS da sidebar (opcional) — se não existir, fica vazio e não quebra
+sidebar_css = ""  # <- se você tiver um CSS grande, cole aqui MAIS TARDE
+sidebar_js = ""   # <- se você tiver JS, cole aqui MAIS TARDE
 
 
-# ✅ SIDEBAR (unificada)
+def _is_cloud_ready():
+    """
+    Checa se a nuvem (Supabase REST) está pronta.
+    Não imprime secrets; só diz se existe.
+    """
+    auth = bool(st.session_state.get("autenticado", False))
+    ws_ok = bool(st.session_state.get("workspace_id"))
+
+    try:
+        has_url = bool(str(st.secrets.get("SUPABASE_URL", "")).strip())
+    except Exception:
+        has_url = False
+
+    try:
+        has_key = bool(
+            str(st.secrets.get("SUPABASE_SERVICE_KEY", "")).strip()
+            or str(st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+        )
+    except Exception:
+        has_key = False
+
+    return auth and ws_ok and has_url and has_key, {
+        "autenticado": auth,
+        "workspace_id": ws_ok,
+        "SUPABASE_URL": has_url,
+        "SUPABASE_KEY": has_key,
+    }
+
+
+def render_sidebar(active: str = "pei"):
+    # garante variáveis que outras partes podem usar
+    st.session_state.setdefault("selected_student_id", None)
+    st.session_state.setdefault("selected_student_name", "")
+
+    # injeta CSS/JS se existirem (sem quebrar se vazio)
+    if sidebar_css and isinstance(sidebar_css, str):
+        st.markdown(sidebar_css, unsafe_allow_html=True)
+    if sidebar_js and isinstance(sidebar_js, str):
+        st.markdown(sidebar_js, unsafe_allow_html=True)
+
+    with st.sidebar:
+        st.markdown("### 🧭 Navegação")
+
+        # Home real
+        if st.button("🏠 Home", key="pei_nav_home", use_container_width=True):
+            st.switch_page("pages/0_Home.py")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.button("📘 PEI", key="pei_nav_pei", use_container_width=True, disabled=True)
+        with col2:
+            if st.button("🧩 PAEE", key="pei_nav_paee", use_container_width=True):
+                st.switch_page("pages/2_PAE.py")
+
+        if st.button("🚀 Hub", key="pei_nav_hub", use_container_width=True):
+            st.switch_page("pages/3_Hub_Inclusao.py")
+
+        st.markdown("---")
+        st.markdown("### 👤 Sessão")
+        st.caption(f"Usuário: **{st.session_state.get('usuario_nome','')}**")
+        st.caption(f"Workspace: **{st.session_state.get('workspace_name','')}**")
+
+        st.markdown("---")
+        st.markdown("### 🔑 OpenAI")
+
+        if "OPENAI_API_KEY" in st.secrets and str(st.secrets.get("OPENAI_API_KEY", "")).strip():
+            st.session_state["OPENAI_API_KEY"] = str(st.secrets["OPENAI_API_KEY"]).strip()
+            st.success("✅ OpenAI OK (Secrets)")
+        else:
+            typed = st.text_input("Chave OpenAI:", type="password", key="pei_openai_key")
+            if typed and typed.strip():
+                st.session_state["OPENAI_API_KEY"] = typed.strip()
+                st.success("✅ OpenAI OK (Sessão)")
+            else:
+                st.info("Informe sua chave OpenAI para liberar a IA nesta sessão.")
+
+        st.markdown("---")
+        st.markdown("### 🧾 Status do Aluno (Supabase)")
+
+        student_id = st.session_state.get("selected_student_id")
+        if student_id:
+            st.success("✅ Vinculado ao Supabase")
+            st.caption(f"student_id: {student_id[:8]}…")
+        else:
+            st.warning("📝 Rascunho (ainda não salvo no Supabase)")
+
+        st.markdown("---")
+        st.markdown("### ☁️ Status da Nuvem (Supabase)")
+
+        ok_cloud, details = _is_cloud_ready()
+        if ok_cloud:
+            st.success("✅ Nuvem pronta (REST)")
+        else:
+            st.warning("⚠️ Nuvem incompleta")
+            st.caption(" • ".join([f"{k}:{'OK' if v else 'FALTA'}" for k, v in details.items()]))
+
+        st.markdown("---")
+
+
+# chama UMA VEZ
 render_sidebar(active="pei")
 
+# deixa api_key disponível para o resto do app
+api_key = st.session_state.get("OPENAI_API_KEY", "")
 
 
 # ==============================================================================
@@ -1249,34 +1346,6 @@ st.markdown("""
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
 """, unsafe_allow_html=True)
 
-
-# ==============================================================================
-# 9. SIDEBAR — Sessão + OpenAI + Sincronização + Salvar/Carregar
-#    (sem duplicar navegação / sem loops / com guard supabase)
-# ==============================================================================
-
-# CSS da sidebar (o mesmo código acima)
-sidebar_css = """
-<style>
-... todo o CSS da sidebar aqui ...
-</style>
-"""
-
-# JavaScript da sidebar
-sidebar_js = """
-<script>
-... todo o JavaScript da sidebar aqui ...
-</script>
-"""
-
-def render_sidebar():
-    """Função principal para renderizar a sidebar em qualquer página"""
-    
-    # Injetar CSS
-    st.markdown(sidebar_css, unsafe_allow_html=True)
-    
-   def render_sidebar(active: str = ""):
-    ...
 
         
 # ==============================================================================
