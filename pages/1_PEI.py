@@ -2440,6 +2440,13 @@ with tab8:
         lambda t: {"Curto": "—", "Medio": "—", "Longo": "—"}
     )
 
+    # tenta importar a função real (sem depender de globals)
+    supa_save_pei_fn = None
+    try:
+        from omni_utils import supa_save_pei as supa_save_pei_fn  # type: ignore
+    except Exception:
+        supa_save_pei_fn = None
+
     # --------------------------------------------------------------------------
     # 2) GUARD
     # --------------------------------------------------------------------------
@@ -2574,9 +2581,8 @@ with tab8:
 
         def _cloud_ready(debug: bool = False):
             """
-            ✅ No seu projeto atual NÃO existe `sb`.
-            Você usa Supabase via REST em `omni_utils.py`.
-            Então a nuvem está pronta se:
+            ✅ Você usa Supabase via REST.
+            Nuvem pronta se:
               - autenticado == True
               - workspace_id existe
               - secrets SUPABASE_URL e alguma KEY existem (ANON ou SERVICE)
@@ -2586,14 +2592,16 @@ with tab8:
             auth = bool(st.session_state.get("autenticado", False))
             ws_id = st.session_state.get("workspace_id")
 
-            # checa secrets básicos (sem imprimir valores)
             try:
                 has_url = bool(str(st.secrets.get("SUPABASE_URL", "")).strip())
             except Exception:
                 has_url = False
 
             try:
-                has_key = bool(str(st.secrets.get("SUPABASE_SERVICE_KEY", "")).strip() or str(st.secrets.get("SUPABASE_ANON_KEY", "")).strip())
+                has_key = bool(
+                    str(st.secrets.get("SUPABASE_SERVICE_KEY", "")).strip()
+                    or str(st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+                )
             except Exception:
                 has_key = False
 
@@ -2603,7 +2611,6 @@ with tab8:
             details["has_supabase_key"] = has_key
 
             ok = all(details.values())
-
             if debug:
                 details["missing"] = [k for k, v in details.items() if not v]
 
@@ -2624,16 +2631,15 @@ with tab8:
             try:
                 sid = st.session_state.get("selected_student_id")
 
-                # 1) cria/alinha aluno no Supabase (students) se ainda não tiver
+                # 1) cria aluno no Supabase se ainda não tiver student_id
                 if not sid:
-                    # ✅ seu db_create_student tem que inserir com workspace_id (importantíssimo)
                     created = db_create_student({
                         "name": d.get("nome"),
                         "birth_date": d.get("nasc").isoformat() if hasattr(d.get("nasc"), "isoformat") else None,
                         "grade": d.get("serie"),
                         "class_group": d.get("turma") or None,
                         "diagnosis": d.get("diagnostico") or None,
-                        "workspace_id": st.session_state.get("workspace_id"),
+                        # NÃO precisa mandar workspace_id aqui se seu db_create_student já injeta
                     })
 
                     sid = (created or {}).get("id") if isinstance(created, dict) else None
@@ -2642,11 +2648,15 @@ with tab8:
 
                     st.session_state["selected_student_id"] = sid
 
-                # 2) salva PEI (se função existir)
-                if "supa_save_pei" in globals():
-                    supa_save_pei(sid, d, st.session_state.get("pdf_text", ""))
-                else:
-                    raise RuntimeError("Função supa_save_pei não encontrada no projeto.")
+                # 2) salva PEI
+                if not supa_save_pei_fn:
+                    raise RuntimeError(
+                        "Função supa_save_pei não encontrada.\n"
+                        "➡️ Cole a função supa_save_pei no FINAL do omni_utils.py "
+                        "(junto do supabase_upsert)."
+                    )
+
+                supa_save_pei_fn(sid, d, st.session_state.get("pdf_text", ""))
 
                 st.success("✅ Sincronizado: aluno vinculado + PEI salvo na nuvem.")
                 st.rerun()
