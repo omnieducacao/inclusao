@@ -8,6 +8,52 @@ from datetime import datetime
 # ==============================================================================
 st.set_page_config(page_title="Omnisfera • Estudantes", page_icon="👥", layout="wide")
 
+
+# ==============================================================================
+# BLOCO VISUAL (badge / logo)
+# ==============================================================================
+def get_logo_base64():
+    caminhos = ["omni_icone.png", "logo.png", "iconeaba.png", "omni.png", "ominisfera.png"]
+    for c in caminhos:
+        if os.path.exists(c):
+            with open(c, "rb") as f:
+                return f"data:image/png;base64,{base64.b64encode(f.read()).decode()}"
+    # fallback
+    return "https://cdn-icons-png.flaticon.com/512/1183/1183672.png"
+
+src_logo_giratoria = get_logo_base64()
+
+if IS_TEST_ENV:
+    card_bg = "rgba(255, 220, 50, 0.95)"
+    card_border = "rgba(200, 160, 0, 0.5)"
+else:
+    card_bg = "rgba(255, 255, 255, 0.85)"
+    card_border = "rgba(255, 255, 255, 0.6)"
+
+st.markdown(f"""
+<style>
+    .omni-badge {{
+        position: fixed; top: 15px; right: 15px;
+        background: {card_bg}; border: 1px solid {card_border};
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        padding: 4px 30px; min-width: 260px; justify-content: center;
+        border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        z-index: 999990; display: flex; align-items: center; gap: 10px;
+        pointer-events: none;
+    }}
+    .omni-text {{
+        font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.9rem;
+        color: #2D3748; letter-spacing: 1px; text-transform: uppercase;
+    }}
+    @keyframes spin-slow {{ from {{ transform: rotate(0deg); }} to {{ transform: rotate(360deg); }} }}
+    .omni-logo-spin {{ height: 26px; width: 26px; animation: spin-slow 10s linear infinite; }}
+</style>
+<div class="omni-badge">
+    <img src="{src_logo_giratoria}" class="omni-logo-spin">
+    <span class="omni-text">OMNISFERA</span>
+</div>
+""", unsafe_allow_html=True)
+
 # ==============================================================================
 # 🔷 DESIGN SYSTEM OTIMIZADO (SIDEBAR VISÍVEL)
 # ==============================================================================
