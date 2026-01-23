@@ -4,17 +4,15 @@ import base64
 import os
 
 # ==============================================================================
-# 1. CONFIGURAÇÃO INICIAL OTIMIZADA
+# 1. CONFIGURAÇÃO INICIAL
 # ==============================================================================
 APP_VERSION = "v2.0 - React Style"
 
-# Configuração mais robusta
 try:
     IS_TEST_ENV = st.secrets.get("ENV", "PRODUCAO") == "TESTE"
 except Exception:
     IS_TEST_ENV = False
 
-# Configuração da página com mais opções
 st.set_page_config(
     page_title="Omnisfera - Plataforma de Inclusão Educacional",
     page_icon="🌐" if not os.path.exists("omni_icone.png") else "omni_icone.png",
@@ -24,9 +22,10 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. CSS & DESIGN SYSTEM OTIMIZADO
+# 2. CSS & DESIGN SYSTEM
 # ==============================================================================
-CSS = """
+st.markdown(
+    """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import url("https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css");
@@ -59,7 +58,7 @@ footer {
     padding-right: 1rem !important;
 }
 
-/* --- HEADER FIXO (React Style) --- */
+/* --- HEADER FIXO --- */
 .topbar {
     position: fixed;
     top: 0;
@@ -108,7 +107,7 @@ footer {
     letter-spacing: 0.5px;
 }
 
-/* --- SIDEBAR REACT STYLE --- */
+/* --- SIDEBAR --- */
 [data-testid="stSidebar"] {
     background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%) !important;
     border-right: 1px solid #E2E8F0 !important;
@@ -176,7 +175,7 @@ footer {
     transform: scale(1.1);
 }
 
-/* --- HERO SECTION REACT STYLE --- */
+/* --- HERO SECTION --- */
 .hero-wrapper {
     background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
     border-radius: 20px;
@@ -245,7 +244,7 @@ footer {
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
 
-/* --- MODULE CARDS REACT STYLE --- */
+/* --- MODULE CARDS --- */
 .mod-card-wrapper {
     display: flex;
     flex-direction: column;
@@ -332,7 +331,7 @@ footer {
     overflow: hidden;
 }
 
-/* --- BOTÕES STREAMLIT MELHORADOS --- */
+/* --- BOTÕES STREAMLIT --- */
 .stButton > button {
     border-radius: 0 0 16px 16px !important;
     border: 1px solid #E2E8F0 !important;
@@ -356,7 +355,7 @@ footer {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* --- RECURSOS REACT STYLE --- */
+/* --- RECURSOS --- */
 .res-card-link {
     text-decoration: none !important;
     display: block;
@@ -425,7 +424,7 @@ footer {
     opacity: 0.8;
 }
 
-/* --- CORES TEMÁTICAS (React Palette) --- */
+/* --- CORES TEMÁTICAS --- */
 .c-indigo { background: #4F46E5 !important; }
 .bg-indigo-soft { 
     background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%) !important; 
@@ -462,7 +461,7 @@ footer {
     color: #0369A1 !important;
 }
 
-/* --- CORES RECURSOS (React Style) --- */
+/* --- CORES RECURSOS --- */
 .rc-sky {
     background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%) !important;
     color: #0284C7 !important;
@@ -512,7 +511,7 @@ footer {
     animation: fadeInUp 0.5s ease-out;
 }
 
-/* --- MÉTRICAS STYLE --- */
+/* --- MÉTRICAS --- */
 .metric-card {
     background: white;
     border-radius: 16px;
@@ -560,7 +559,7 @@ footer {
 .metric-down { color: #DC2626 !important; }
 .metric-neutral { color: #64748B !important; }
 
-/* --- RESPONSIVIDADE MELHORADA --- */
+/* --- RESPONSIVIDADE --- */
 @media (max-width: 1024px) {
     .topbar { padding: 0 1.5rem; }
     .hero-wrapper { padding: 2rem; }
@@ -596,20 +595,20 @@ footer {
     .mod-content { padding: 0 16px; }
 }
 </style>
-"""
-
-st.markdown(CSS, unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # ==============================================================================
-# 3. HELPERS OTIMIZADOS
+# 3. FUNÇÕES AUXILIARES
 # ==============================================================================
 def acesso_bloqueado(msg: str):
-    """Componente de acesso restrito estilizado"""
+    """Componente de acesso restrito"""
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown(
             f"""
-            <div class='fade-in-up' style='
+            <div style='
                 text-align: center; 
                 padding: 3rem; 
                 background: white;
@@ -634,7 +633,7 @@ def acesso_bloqueado(msg: str):
 
 
 def get_base64_image(image_path: str) -> str:
-    """Carrega imagem e converte para base64 com cache"""
+    """Carrega imagem e converte para base64"""
     if not os.path.exists(image_path):
         return ""
     try:
@@ -667,7 +666,7 @@ def get_user_initials(nome: str) -> str:
 
 
 # ==============================================================================
-# 4. GERENCIAMENTO DE ESTADO MELHORADO
+# 4. INICIALIZAÇÃO DO ESTADO
 # ==============================================================================
 def initialize_session_state():
     """Inicializa todas as variáveis de estado necessárias"""
@@ -692,7 +691,7 @@ if not st.session_state.get("autenticado") or not st.session_state.get("workspac
     acesso_bloqueado("Sessão inválida ou expirada. Por favor, faça login novamente.")
 
 # ==============================================================================
-# 5. COMPONENTES REUTILIZÁVEIS
+# 5. FUNÇÕES DE RENDERIZAÇÃO
 # ==============================================================================
 def render_topbar():
     """Renderiza a barra superior fixa"""
@@ -716,7 +715,7 @@ def render_topbar():
     
     st.markdown(
         f"""
-        <div class="topbar fade-in-up">
+        <div class="topbar">
             <div class="brand-box">
                 {img_logo}
                 {img_text}
@@ -846,7 +845,7 @@ def render_hero():
     
     st.markdown(
         f"""
-        <div class="hero-wrapper fade-in-up">
+        <div class="hero-wrapper">
             <div class="hero-content">
                 <div class="hero-greet">{saudacao}, {nome_user}!</div>
                 <div class="hero-text">"A inclusão acontece quando aprendemos com as diferenças e não com as igualdades."</div>
@@ -858,7 +857,7 @@ def render_hero():
     )
 
 
-def create_module_card(title, desc, icon, color_cls, bg_cls, page_path, key, logo_path=None):
+def create_module_card(title, desc, icon, color_cls, bg_cls, page, key, logo_path=None):
     """Cria um card de módulo com botão de acesso"""
     logo_html = ""
     if logo_path and os.path.exists(logo_path):
@@ -875,7 +874,7 @@ def create_module_card(title, desc, icon, color_cls, bg_cls, page_path, key, log
     with st.container():
         st.markdown(
             f"""
-            <div class="mod-card-wrapper fade-in-up" style="animation-delay: {key.replace('m_', '') * 0.1}s;">
+            <div class="mod-card-wrapper">
                 <div class="mod-card-rect">
                     <div class="mod-bar {color_cls}"></div>
                     <div class="mod-icon-area {bg_cls}">
@@ -896,7 +895,7 @@ def create_module_card(title, desc, icon, color_cls, bg_cls, page_path, key, log
             use_container_width=True,
             help=f"Clique para acessar {title}",
         ):
-            st.switch_page(page_path)
+            st.switch_page(page)
         
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -940,8 +939,7 @@ def render_resources():
             if resource["link"] != "#":
                 st.markdown(
                     f"""
-                    <a href="{resource['link']}" target="_blank" class="res-card-link fade-in-up" 
-                       style="animation-delay: {0.2 + idx * 0.1}s;">
+                    <a href="{resource['link']}" target="_blank" class="res-card-link">
                         <div class="res-card {resource['theme']}">
                             <div class="res-icon {resource['theme']}"><i class="{resource['icon']}"></i></div>
                             <div class="res-info">
@@ -956,10 +954,7 @@ def render_resources():
             else:
                 st.markdown(
                     f"""
-                    <div class="res-card {resource['theme']} fade-in-up" style="
-                        animation-delay: {0.2 + idx * 0.1}s;
-                        cursor: pointer;
-                    ">
+                    <div class="res-card {resource['theme']}" style="cursor: pointer;">
                         <div class="res-icon {resource['theme']}"><i class="{resource['icon']}"></i></div>
                         <div class="res-info">
                             <div class="res-name">{resource['title']}</div>
@@ -988,7 +983,7 @@ def render_metrics():
             
             st.markdown(
                 f"""
-                <div class="metric-card fade-in-up" style="animation-delay: {0.3 + idx * 0.1}s;">
+                <div class="metric-card">
                     <span class="metric-label">{metric['label']}</span>
                     <div class="metric-value">{metric['value']}</div>
                     <div class="metric-change {trend_class}">
@@ -1102,9 +1097,18 @@ modules_data = [
 
 # Organiza módulos em grid responsivo
 cols = st.columns(3, gap="medium")
-for idx, module in enumerate(modules_data):
-    with cols[idx % 3]:
-        create_module_card(**module)
+for i, module in enumerate(modules_data):
+    with cols[i % 3]:
+        create_module_card(
+            title=module["title"],
+            desc=module["desc"],
+            icon=module["icon"],
+            color_cls=module["color_cls"],
+            bg_cls=module["bg_cls"],
+            page=module["page"],
+            key=module["key"],
+            logo_path=module.get("logo_path")
+        )
 
 st.markdown("<div style='height:30px'></div>", unsafe_allow_html=True)
 
