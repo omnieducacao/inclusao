@@ -235,3 +235,63 @@ def _cloud_ready(debug: bool = False):
         details["missing"] = [k for k, v in details.items() if v is False]
 
     return ok, details
+
+# =============================================================================
+# PEI (SALVAR NA NUVEM) — REST
+# =============================================================================
+import json
+import requests
+import streamlit as st
+
+
+def supabase_upsert(table: str, row: dict, on_conflict: str):
+    """
+    Upsert genérico via REST:
+    - table: nome da tabela
+    - row: dict com os campos
+    - on_conflict: colunas únicas (ex: "student_id")
+    """
+    url = f"{_sb_url()}/rest/v1/{table}?on_conflict={on_conflict}"
+    h = _headers()
+    # merge-duplicates faz UPSERT
+    h["Prefer"] = "resolution=merge-duplicates,return=representation"
+
+    r = requests.post(url, headers=h, json=row, timeout=20)
+    if r.status_code >= 400:
+        raise RuntimeError(f"Upsert em {table} falhou: {r.status_code} {r.text}")
+
+    data = r.json()
+    if isinstance(data, list) and len(data) > 0:
+        return data[0]
+    if isinstance(data, dict):
+        return data
+    return None
+
+
+def supa_save_pei(student_id: str, dados: dict, pdf_text: str = ""):
+    """
+    Salva o PEI na tabela public.peis via REST.
+    Requisitos:
+    - st.session_state.workspace_id existir
+    - tabela public.peis existir (veja SQL abaixo)
+    Estratégia:
+    - upsert por student_id (1 PEI "atual" por aluno; depois você pode versionar)
+    """
+    if not student_id:
+        raise RuntimeError("student_id vazio — não dá para salvar PEI.")
+
+    ws_id = st.session_state.get("workspace_id")
+    if not ws_id:
+        raise RuntimeError("workspace_id não encontrado na sessão. Faça login novamente.")
+
+    # JSONB seguro
+    pei_json = dados if isinstance(dados, dict) else {}
+
+    row = {
+        "student_id": student_id,
+        "workspace_id": ws_id,
+        "pei_json": pei_json,           # jsonb
+        "pdf_text": pdf_text or "",     # text
+    }
+
+    return supabase_upsert("peis", row, on_conflict="student_id")
