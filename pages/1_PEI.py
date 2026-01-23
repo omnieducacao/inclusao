@@ -2666,6 +2666,7 @@ with tab8:
                 supa_save_pei(sid, dados_cloud, st.session_state.get("pdf_text", ""))
 
                 st.success("✅ Sincronizado: aluno vinculado + PEI salvo na nuvem.")
+                st.session_state["students_dirty"] = True
                 st.rerun()
 
             except Exception as e:
