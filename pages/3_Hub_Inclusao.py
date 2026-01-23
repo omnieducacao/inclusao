@@ -15,37 +15,6 @@ import requests
 from PIL import Image
 from streamlit_cropper import st_cropper
 
-
-import streamlit as st
-
-# Esconde o nav padrão
-st.markdown("""
-<style>
-[data-testid="stSidebarNav"] { display: none !important; }
-</style>
-""", unsafe_allow_html=True)
-
-with st.sidebar:
-    st.markdown("### 🧭 Navegação")
-
-    if st.button("🏠 Home", use_container_width=True):
-        st.switch_page("streamlit_app.py")  # <-- volta pro app principal
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("📘 PEI", use_container_width=True):
-            st.switch_page("pages/1_PEI.py")
-    with col2:
-        if st.button("🧩 PAEE", use_container_width=True):
-            st.switch_page("pages/2_PAE.py")
-
-    if st.button("🚀 Hub", use_container_width=True):
-        st.switch_page("pages/3_Hub_Inclusao.py")
-
-    st.markdown("---")
-
-
-
 # ==============================================================================
 # 1. CONFIGURAÇÃO E SEGURANÇA
 # ==============================================================================
@@ -166,62 +135,17 @@ def verificar_acesso():
 
 verificar_acesso()
 
-# ==============================================================================
-# SIDEBAR PADRÃO — OMNISFERA (VERSÃO ESTÁVEL)
-# ==============================================================================
-
+# --- BARRA LATERAL COM NAVEGAÇÃO ---
 with st.sidebar:
-    st.markdown("## 🌐 Omnisfera")
-
+    try:
+        st.image("ominisfera.png", width=150)
+    except:
+        st.write("🌐 OMNISFERA")
+        
     st.markdown("---")
-    st.markdown("### 🧭 Navegação")
-
-    if st.button("🏠 Home", use_container_width=True):
-        st.switch_page("pages/0_Home.py")
-
-    if st.button("👥 Estudantes", use_container_width=True):
-        st.switch_page("pages/Alunos.py")
-
-    if st.button("📘 PEI", use_container_width=True, disabled=True):
-        pass
-
-    if st.button("🧩 PAEE", use_container_width=True):
-        st.switch_page("pages/2_PAE.py")
-
-    if st.button("🚀 Hub de Inclusão", use_container_width=True):
-        st.switch_page("pages/3_Hub_Inclusao.py")
-
+    if st.button("🏠 Voltar para Home", use_container_width=True):
+        st.switch_page("Home.py")
     st.markdown("---")
-    st.markdown("### 👤 Sessão")
-
-    st.caption(f"Usuário: **{st.session_state.get('usuario_nome','')}**")
-    st.caption(f"Workspace: **{st.session_state.get('workspace_name','')}**")
-
-    st.markdown("---")
-    st.markdown("### 🧾 Status do Aluno")
-
-    student_id = st.session_state.get("selected_student_id")
-    if student_id:
-        st.success("✅ Vinculado ao Supabase")
-        st.caption(f"id: {student_id[:8]}…")
-    else:
-        st.warning("📝 Rascunho (não salvo)")
-
-    st.markdown("---")
-    st.markdown("### 🚪")
-
-    if st.button("Sair do Sistema", type="secondary", use_container_width=True):
-        for k in [
-            "autenticado",
-            "workspace_id",
-            "workspace_name",
-            "usuario_nome",
-            "usuario_cargo",
-            "selected_student_id",
-        ]:
-            st.session_state.pop(k, None)
-        st.switch_page("streamlit_app.py")
-
 
 # ==============================================================================
 # 2. O CÓDIGO DO HUB DE INCLUSÃO
