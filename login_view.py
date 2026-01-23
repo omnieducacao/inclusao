@@ -4,8 +4,9 @@ import base64
 from datetime import datetime
 import streamlit as st
 
-# ✅ IMPORTS SUPABASE (inclui o "ensure" que cria st.session_state["sb"])
-from supabase_client import rpc_workspace_from_pin, RPC_NAME, ensure_supabase_in_session
+# ✅ IMPORTS SUPABASE (somente o que existe com certeza no seu supabase_client.py)
+from supabase_client import rpc_workspace_from_pin, RPC_NAME
+
 
 # ==============================================================================
 # Ambiente / Chrome
@@ -15,6 +16,7 @@ def _env():
         return str(st.secrets.get("ENV", "")).upper()
     except Exception:
         return ""
+
 
 def hide_streamlit():
     # Se ENV="TESTE" no secrets, NÃO esconde o menu (pra debugar)
@@ -32,6 +34,7 @@ def hide_streamlit():
         unsafe_allow_html=True
     )
 
+
 # ==============================================================================
 # Assets
 # ==============================================================================
@@ -41,8 +44,10 @@ def b64(path: str) -> str:
             return base64.b64encode(f.read()).decode()
     return ""
 
+
 ICON = next((b64(f) for f in ["omni_icone.png", "omni.png", "logo.png"] if b64(f)), "")
 TEXT = b64("omni_texto.png")
+
 
 # ==============================================================================
 # CSS GLOBAL (Nunito)
@@ -145,6 +150,17 @@ def inject_css():
             text-align: center;
         }
 
+        .warn {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 14px;
+            background: #FEF3C7;
+            border: 1px solid #FDE68A;
+            color: #92400E;
+            font-weight: 900;
+            text-align: center;
+        }
+
         /* Botão */
         div[data-testid="stButton"] button {
             width: 100%;
@@ -156,6 +172,26 @@ def inject_css():
         """,
         unsafe_allow_html=True
     )
+
+
+# ==============================================================================
+# Supabase client opcional (não quebra login)
+# ==============================================================================
+def _try_init_supabase_client_into_session():
+    """
+    Tenta criar st.session_state['sb'] usando supabase_client.get_supabase(),
+    mas NÃO derruba o login se falhar (pois seu app pode estar usando REST).
+    """
+    try:
+        from supabase_client import get_supabase  # existe no seu supabase_client.py
+        sb = get_supabase()
+        st.session_state["sb"] = sb
+        return True, None
+    except Exception as e:
+        # não bloqueia o login: apenas não cria 'sb'
+        st.session_state.pop("sb", None)
+        return False, str(e)
+
 
 # ==============================================================================
 # Render
@@ -201,7 +237,6 @@ def render_login():
     )
 
     aceitar = st.checkbox("Li e aceito o Termo de Confidencialidade")
-
     st.markdown("<div style='height:15px'></div>", unsafe_allow_html=True)
 
     if st.button("Validar e entrar", use_container_width=True, type="primary"):
@@ -223,17 +258,19 @@ def render_login():
             st.session_state.usuario_nome = nome
             st.session_state.usuario_cargo = cargo
             st.session_state.autenticado = True
-            st.session_state.workspace_id = ws["id"]
-            st.session_state.workspace_name = ws.get("name", "")
 
-            # ✅ CRÍTICO: cria/garante st.session_state["sb"] (cliente supabase)
-            # Isso resolve o seu erro do dashboard: has_sb=false
-            try:
-                ensure_supabase_in_session()
-            except Exception as e:
-                # se falhar, mostra erro amigável e NÃO entra (evita quebrar depois)
-                st.markdown(f"<div class='err'>Erro ao iniciar Supabase: {e}</div>", unsafe_allow_html=True)
-                st.stop()
+            # ws pode vir com chaves diferentes dependendo da sua RPC
+            st.session_state.workspace_id = ws.get("id") or ws.get("workspace_id")
+            st.session_state.workspace_name = ws.get("name") or ws.get("workspace_name") or ""
+
+            # ✅ opcional: tenta criar sb na sessão (sem quebrar o login)
+            ok_sb, err_sb = _try_init_supabase_client_into_session()
+            if (not ok_sb) and (_env() == "TESTE"):
+                # Em TESTE, mostro um aviso técnico leve (pra você depurar)
+                st.markdown(
+                    f"<div class='warn'>Aviso (TESTE): não consegui iniciar supabase-py em st.session_state['sb'].<br>{err_sb}</div>",
+                    unsafe_allow_html=True
+                )
 
             st.rerun()
 
