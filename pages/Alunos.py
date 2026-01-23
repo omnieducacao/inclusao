@@ -2,103 +2,115 @@
 import streamlit as st
 import requests
 from datetime import datetime
+import base64
+import os
 
 # ==============================================================================
 # CONFIG
 # ==============================================================================
 st.set_page_config(page_title="Omnisfera • Estudantes", page_icon="👥", layout="wide")
 
-
 # ==============================================================================
-# BLOCO VISUAL (badge / logo)
-# ==============================================================================
-def get_logo_base64():
-    caminhos = ["omni_icone.png", "logo.png", "iconeaba.png", "omni.png", "ominisfera.png"]
-    for c in caminhos:
-        if os.path.exists(c):
-            with open(c, "rb") as f:
-                return f"data:image/png;base64,{base64.b64encode(f.read()).decode()}"
-    # fallback
-    return "https://cdn-icons-png.flaticon.com/512/1183/1183672.png"
-
-src_logo_giratoria = get_logo_base64()
-
-if IS_TEST_ENV:
-    card_bg = "rgba(255, 220, 50, 0.95)"
-    card_border = "rgba(200, 160, 0, 0.5)"
-else:
-    card_bg = "rgba(255, 255, 255, 0.85)"
-    card_border = "rgba(255, 255, 255, 0.6)"
-
-st.markdown(f"""
-<style>
-    .omni-badge {{
-        position: fixed; top: 15px; right: 15px;
-        background: {card_bg}; border: 1px solid {card_border};
-        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-        padding: 4px 30px; min-width: 260px; justify-content: center;
-        border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        z-index: 999990; display: flex; align-items: center; gap: 10px;
-        pointer-events: none;
-    }}
-    .omni-text {{
-        font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.9rem;
-        color: #2D3748; letter-spacing: 1px; text-transform: uppercase;
-    }}
-    @keyframes spin-slow {{ from {{ transform: rotate(0deg); }} to {{ transform: rotate(360deg); }} }}
-    .omni-logo-spin {{ height: 26px; width: 26px; animation: spin-slow 10s linear infinite; }}
-</style>
-<div class="omni-badge">
-    <img src="{src_logo_giratoria}" class="omni-logo-spin">
-    <span class="omni-text">OMNISFERA</span>
-</div>
-""", unsafe_allow_html=True)
-
-# ==============================================================================
-# 🔷 DESIGN SYSTEM OTIMIZADO (SIDEBAR VISÍVEL)
+# 🔷 DESIGN SYSTEM OTIMIZADO (SIDEBAR VISÍVEL + LOGO FLUTUANTE)
 # ==============================================================================
 def _ui_home_block():
+    # Carrega a imagem da logo para base64
+    def get_base64_image(image_path: str) -> str:
+        """Carrega imagem e converte para base64"""
+        if not os.path.exists(image_path):
+            return ""
+        try:
+            with open(image_path, "rb") as f:
+                return base64.b64encode(f.read()).decode()
+        except Exception:
+            return ""
+
+    icone_b64 = get_base64_image("omni_icone.png")
+    
     st.markdown(
-        """
+        f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import url("https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css");
 
 /* ===== RESET & BASE ===== */
-html, body, [class*="css"] {
+html, body, [class*="css"] {{
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     color: #1E293B !important;
     background-color: #F8FAFC !important;
-}
+}}
 
-/* ===== SIDEBAR VISÍVEL (REMOVER OCULTAÇÃO) ===== */
-/* REMOVEMOS: [data-testid="stSidebarNav"], [data-testid="collapsedControl"] */
+/* ===== SIDEBAR VISÍVEL ===== */
+/* Apenas oculta header e footer nativos */
 [data-testid="stHeader"],
 [data-testid="stToolbar"],
-footer {
+footer {{
     display: none !important;
-}
+}}
+
+/* ===== CARD FLUTUANTE COM LOGO (LADO DIREITO) ===== */
+.floating-logo-card {{
+    position: fixed;
+    top: 120px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    background: white;
+    border-radius: 20px;
+    border: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}}
+
+.floating-logo-card:hover {{
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 16px 32px rgba(79, 70, 229, 0.15);
+    border-color: #4F46E5;
+}}
+
+.floating-logo {{
+    width: 55px;
+    height: 55px;
+    animation: spin 45s linear infinite;
+    filter: brightness(1.1);
+    transition: all 0.3s ease;
+}}
+
+.floating-logo-card:hover .floating-logo {{
+    animation-duration: 20s;
+    filter: brightness(1.2) drop-shadow(0 4px 8px rgba(79, 70, 229, 0.3));
+}}
+
+@keyframes spin {{
+    0% {{ transform: rotate(0deg); }}
+    100% {{ transform: rotate(360deg); }}
+}}
 
 /* ===== CONTAINER COM SIDEBAR ===== */
-.block-container {
-    padding-top: 2rem !important;
+.block-container {{
+    padding-top: 1.25rem !important;
     padding-bottom: 3rem !important;
     max-width: 95% !important;
     padding-left: 1rem !important;
     padding-right: 1rem !important;
-}
+}}
 
 /* ===== CARD HERO (ESTILO EXATO DA HOME) ===== */
-.mod-card-wrapper {
+.mod-card-wrapper {{
     display: flex;
     flex-direction: column;
     margin-bottom: 20px;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-}
+}}
 
-.mod-card-rect {
+.mod-card-rect {{
     background: white;
     border-radius: 16px 16px 0 0;
     padding: 0;
@@ -112,21 +124,21 @@ footer {
     position: relative;
     overflow: hidden;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
+}}
 
-.mod-card-rect:hover {
+.mod-card-rect:hover {{
     transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
     border-color: #CBD5E1;
-}
+}}
 
-.mod-bar {
+.mod-bar {{
     width: 6px;
     height: 100%;
     flex-shrink: 0;
-}
+}}
 
-.mod-icon-area {
+.mod-icon-area {{
     width: 90px;
     height: 100%;
     display: flex;
@@ -137,35 +149,35 @@ footer {
     background: #FAFAFA;
     border-right: 1px solid #F1F5F9;
     transition: all 0.3s ease;
-}
+}}
 
-.mod-card-rect:hover .mod-icon-area {
+.mod-card-rect:hover .mod-icon-area {{
     background: white;
     transform: scale(1.05);
-}
+}}
 
-.mod-content {
+.mod-content {{
     flex-grow: 1;
     padding: 0 24px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-}
+}}
 
-.mod-title {
+.mod-title {{
     font-weight: 800;
     font-size: 1.1rem;
     color: #1E293B;
     margin-bottom: 6px;
     letter-spacing: -0.3px;
     transition: color 0.2s;
-}
+}}
 
-.mod-card-rect:hover .mod-title {
+.mod-card-rect:hover .mod-title {{
     color: #4F46E5;
-}
+}}
 
-.mod-desc {
+.mod-desc {{
     font-size: 0.8rem;
     color: #64748B;
     line-height: 1.4;
@@ -173,26 +185,26 @@ footer {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-}
+}}
 
-/* CORES DOS CARDS */
-.c-sky { background: #0284C7 !important; }
-.bg-sky-soft { 
+/* CORES DOS CARDS - MESMA DA HOME */
+.c-sky {{ background: #0284C7 !important; }}
+.bg-sky-soft {{ 
     background: #F0F9FF !important;
     color: #0284C7 !important;
-}
+}}
 
 /* ===== STUDENT TABLE (MELHORADA) ===== */
-.student-table {
+.student-table {{
     background: white;
     border-radius: 16px;
     border: 1px solid #E2E8F0;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
     margin-top: 24px;
-}
+}}
 
-.student-header {
+.student-header {{
     display: grid;
     grid-template-columns: 3.2fr 1.1fr 1.1fr 2.6fr 1.1fr;
     background: #F8FAFC;
@@ -203,9 +215,9 @@ footer {
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-}
+}}
 
-.student-row {
+.student-row {{
     display: grid;
     grid-template-columns: 3.2fr 1.1fr 1.1fr 2.6fr 1.1fr;
     padding: 20px 24px;
@@ -213,27 +225,27 @@ footer {
     align-items: center;
     transition: all 0.2s ease;
     background: white;
-}
+}}
 
-.student-row:hover {
+.student-row:hover {{
     background: #F8FAFC;
     transform: translateX(4px);
-}
+}}
 
-.student-name {
+.student-name {{
     font-weight: 700;
     color: #1E293B;
     font-size: 0.95rem;
-}
+}}
 
-.student-meta {
+.student-meta {{
     font-size: 0.85rem;
     color: #64748B;
     font-weight: 500;
-}
+}}
 
 /* ===== BADGES ===== */
-.badge-grade {
+.badge-grade {{
     background: #F0F9FF;
     color: #0369A1;
     padding: 4px 10px;
@@ -243,9 +255,9 @@ footer {
     border: 1px solid #BAE6FD;
     display: inline-block;
     text-align: center;
-}
+}}
 
-.badge-class {
+.badge-class {{
     background: #F0FDF4;
     color: #15803D;
     padding: 4px 10px;
@@ -255,10 +267,10 @@ footer {
     border: 1px solid #BBF7D0;
     display: inline-block;
     text-align: center;
-}
+}}
 
 /* ===== ACTION BUTTONS (MELHORADO) ===== */
-.action-btn-small {
+.action-btn-small {{
     width: 36px;
     height: 36px;
     border-radius: 10px;
@@ -272,97 +284,66 @@ footer {
     background: white;
     color: #475569;
     border: 1px solid #E2E8F0;
-}
+}}
 
-.action-btn-small:hover {
+.action-btn-small:hover {{
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-}
+}}
 
-.action-delete {
+.action-delete {{
     background: #FEF2F2;
     color: #DC2626;
     border-color: #FECACA;
-}
+}}
 
-.action-delete:hover {
+.action-delete:hover {{
     background: #FEE2E2;
-}
+}}
 
-.action-confirm {
+.action-confirm {{
     background: #DCFCE7;
     color: #16A34A;
     border-color: #BBF7D0;
-}
+}}
 
-.action-cancel {
+.action-cancel {{
     background: #FEF3C7;
     color: #D97706;
     border-color: #FDE68A;
-}
+}}
 
 /* ===== EMPTY STATE ===== */
-.empty-state {
+.empty-state {{
     text-align: center;
     padding: 80px 40px;
     background: white;
     border-radius: 16px;
     border: 1px dashed #E2E8F0;
     margin-top: 24px;
-}
+}}
 
-.empty-icon {
+.empty-icon {{
     font-size: 3rem;
     color: #CBD5E1;
     margin-bottom: 16px;
-}
+}}
 
-.empty-title {
+.empty-title {{
     font-weight: 800;
     color: #64748B;
     margin-bottom: 8px;
-}
+}}
 
-.empty-desc {
+.empty-desc {{
     color: #94A3B8;
     font-size: 0.9rem;
     max-width: 400px;
     margin: 0 auto;
-}
-
-/* ===== CONTROLS ===== */
-.search-box-container {
-    background: white;
-    border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    padding: 8px 16px;
-    margin-bottom: 16px;
-}
-
-.action-button {
-    background: white;
-    border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    padding: 12px 20px;
-    font-weight: 700;
-    color: #475569;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.action-button:hover {
-    background: #F8FAFC;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-    border-color: #CBD5E1;
-}
+}}
 
 /* ===== STREAMLIT OVERRIDES ===== */
-.stButton > button {
+.stButton > button {{
     border-radius: 12px !important;
     border: 1px solid #E2E8F0 !important;
     background: white !important;
@@ -371,54 +352,86 @@ footer {
     font-size: 0.85rem !important;
     padding: 10px 20px !important;
     transition: all 0.2s ease !important;
-}
+}}
 
-.stButton > button:hover {
+.stButton > button:hover {{
     background: #F8FAFC !important;
     color: #4F46E5 !important;
     border-color: #CBD5E1 !important;
     transform: translateY(-2px) !important;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08) !important;
-}
+}}
 
-.stTextInput > div > div > input {
+.stTextInput > div > div > input {{
     border-radius: 12px !important;
     border: 1px solid #E2E8F0 !important;
     padding: 12px 16px !important;
     font-size: 0.9rem !important;
-}
+}}
 
-.stTextInput > div > div > input:focus {
+.stTextInput > div > div > input:focus {{
     border-color: #4F46E5 !important;
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
-}
+}}
 
 /* ===== RESPONSIVIDADE ===== */
-@media (max-width: 1024px) {
-    .student-header, .student-row { grid-template-columns: 2.5fr 1fr 1fr 2fr 1fr; }
-    .mod-card-rect { height: 120px; }
-    .mod-icon-area { width: 80px; }
-}
+@media (max-width: 1024px) {{
+    .floating-logo-card {{
+        width: 60px;
+        height: 60px;
+        top: 100px;
+        right: 15px;
+    }}
+    .floating-logo {{
+        width: 40px;
+        height: 40px;
+    }}
+    .student-header, .student-row {{ grid-template-columns: 2.5fr 1fr 1fr 2fr 1fr; }}
+    .mod-card-rect {{ height: 120px; }}
+    .mod-icon-area {{ width: 80px; }}
+}}
 
-@media (max-width: 768px) {
-    .student-header, .student-row { grid-template-columns: 1fr; gap: 12px; }
-    .student-header { display: none; }
-    .mod-card-rect { 
+@media (max-width: 768px) {{
+    .floating-logo-card {{
+        display: none; /* Esconde em mobile */
+    }}
+    .student-header, .student-row {{ grid-template-columns: 1fr; gap: 12px; }}
+    .student-header {{ display: none; }}
+    .mod-card-rect {{ 
         height: 110px;
         flex-direction: column;
         height: auto;
         padding: 16px;
-    }
-    .mod-bar { width: 100%; height: 6px; }
-    .mod-icon-area { 
+    }}
+    .mod-bar {{ width: 100%; height: 6px; }}
+    .mod-icon-area {{ 
         width: 100%; 
         height: 60px; 
         border-right: none;
         border-bottom: 1px solid #F1F5F9;
-    }
-    .mod-content { padding: 16px 0 0 0; }
-}
+    }}
+    .mod-content {{ padding: 16px 0 0 0; }}
+}}
+
+/* ===== BANNER DE CONFIRMAÇÃO DE EXCLUSÃO ===== */
+.delete-confirm-banner {{
+    background: #FEF3C7;
+    border: 1px solid #FDE68A;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: #92400E;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}}
 </style>
+
+<!-- CARD FLUTUANTE COM LOGO -->
+<div class="floating-logo-card">
+    {f'<img src="data:image/png;base64,{icone_b64}" class="floating-logo" alt="Omnisfera Logo">' if icone_b64 else '🌐'}
+</div>
         """,
         unsafe_allow_html=True,
     )
@@ -685,19 +698,9 @@ for a in alunos:
     else:
         # Modal de confirmação inline
         st.markdown(f"""
-        <div style="
-            background: #FEF3C7;
-            border: 1px solid #FDE68A;
-            border-radius: 8px;
-            padding: 8px 12px;
-            margin-top: 4px;
-            font-size: 0.8rem;
-            color: #92400E;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        ">
-            <div>Confirmar exclusão?</div>
+        <div class="delete-confirm-banner">
+            <i class="ri-alert-fill"></i>
+            <div>Confirmar exclusão de <strong>{nome}</strong>?</div>
         </div>
         """, unsafe_allow_html=True)
         
