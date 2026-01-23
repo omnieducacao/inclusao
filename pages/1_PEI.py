@@ -118,7 +118,7 @@ with st.sidebar:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.button("📘 PEI", key=(k"pei_nav_pei"), use_container_width=True, disabled=True)
+        st.button("📘 PEI", key=k("pei_nav_pei"), use_container_width=True, disabled=True)
     with col2:
         if st.button("🧩 PAEE", key=k("pei_nav_paee"), use_container_width=True):
             st.switch_page("pages/2_PAE.py")
