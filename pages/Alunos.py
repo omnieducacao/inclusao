@@ -1,8 +1,6 @@
 # pages/Alunos.py
 import streamlit as st
-from datetime import datetime
-
-from supabase_client import get_supabase
+import requests
 
 # ==============================================================================
 # CONFIG
@@ -41,15 +39,12 @@ def acesso_bloqueado(msg: str):
     c1, c2, c3 = st.columns([1, 2, 1])
     with c2:
         if st.button("🔑 Voltar para o Login", use_container_width=True, type="primary"):
-            # limpa sessão essencial
             for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo"]:
                 st.session_state.pop(k, None)
 
-            # tenta voltar para o início (onde o router chama login_view)
             try:
                 st.switch_page("streamlit_app.py")
             except Exception:
-                # fallback super confiável: raiz do app
                 st.markdown(
                     """
                     <div style="text-align:center; margin-top:10px;">
@@ -78,38 +73,61 @@ WORKSPACE_NAME = st.session_state.get("workspace_name") or f"{str(WORKSPACE_ID)[
 
 
 # ==============================================================================
-# DATA
+# SUPABASE REST (mesmo padrão do PEI)
 # ==============================================================================
-@st.cache_data(ttl=20, show_spinner=False)
-def list_students(workspace_id: str):
-    sb = get_supabase()
-    res = (
-        sb.table("students")
-        .select("id, name, birth_date, grade, class_group, diagnosis, created_at")
-        .eq("workspace_id", workspace_id)
-        .order("created_at", desc=True)
-        .execute()
+def _sb_url() -> str:
+    url = str(st.secrets.get("SUPABASE_URL", "")).strip()
+    if not url:
+        raise RuntimeError("SUPABASE_URL não encontrado nos secrets.")
+    return url.rstrip("/")
+
+
+def _sb_key() -> str:
+    # Preferência: SERVICE_KEY (server-side), fallback: ANON_KEY
+    key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "")).strip()
+    if not key:
+        key = str(st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+    if not key:
+        raise RuntimeError("SUPABASE_SERVICE_KEY/ANON_KEY não encontrado nos secrets.")
+    return key
+
+
+def _headers() -> dict:
+    key = _sb_key()
+    return {
+        "apikey": key,
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+    }
+
+
+def _http_error(prefix: str, r: requests.Response):
+    raise RuntimeError(f"{prefix}: {r.status_code} {r.text}")
+
+
+@st.cache_data(ttl=10, show_spinner=False)
+def list_students_rest(workspace_id: str):
+    base = (
+        f"{_sb_url()}/rest/v1/students"
+        f"?select=id,name,birth_date,grade,class_group,diagnosis,created_at"
+        f"&workspace_id=eq.{workspace_id}"
+        f"&order=created_at.desc"
     )
-    return res.data or []
+    r = requests.get(base, headers=_headers(), timeout=20)
+    if r.status_code >= 400:
+        _http_error("List students falhou", r)
+    data = r.json()
+    return data if isinstance(data, list) else []
 
 
-def delete_student(student_id: str):
-    sb = get_supabase()
-    sb.table("students").delete().eq("id", student_id).execute()
-
-
-def _fmt_date(s):
-    if not s:
-        return "—"
-    # pode vir como "YYYY-MM-DD" ou ISO
-    try:
-        if isinstance(s, str) and "T" in s:
-            return s.split("T")[0]
-        if isinstance(s, str):
-            return s[:10]
-    except Exception:
-        pass
-    return "—"
+def delete_student_rest(student_id: str, workspace_id: str):
+    url = f"{_sb_url()}/rest/v1/students?id=eq.{student_id}&workspace_id=eq.{workspace_id}"
+    h = _headers()
+    h["Prefer"] = "return=representation"
+    r = requests.delete(url, headers=h, timeout=20)
+    if r.status_code >= 400:
+        _http_error("Delete em students falhou", r)
+    return r.json()
 
 
 # ==============================================================================
@@ -125,16 +143,22 @@ with top_l:
 with top_r:
     st.markdown("#### Ações")
     if st.button("🔄 Atualizar", use_container_width=True):
-        list_students.clear()
+        list_students_rest.clear()
         st.rerun()
+
+# 🔥 Se você veio de uma sincronização no PEI, forçamos refresh imediato
 if st.session_state.pop("students_dirty", False):
     try:
-        list_students.clear()
+        list_students_rest.clear()
     except Exception:
         pass
 
 with st.spinner("Carregando estudantes..."):
-    alunos = list_students(WORKSPACE_ID)
+    try:
+        alunos = list_students_rest(WORKSPACE_ID)
+    except Exception as e:
+        st.error(f"Erro ao carregar do Supabase: {e}")
+        st.stop()
 
 # filtro
 if q and q.strip():
@@ -186,8 +210,8 @@ for a in alunos:
             with c1:
                 if st.button("✅", key=f"yes_{sid}", use_container_width=True):
                     try:
-                        delete_student(sid)
-                        list_students.clear()
+                        delete_student_rest(sid, WORKSPACE_ID)
+                        list_students_rest.clear()
                         st.session_state[confirm_key] = False
                         st.toast(f"Removido: {nome}", icon="🗑️")
                         st.rerun()
