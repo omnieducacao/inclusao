@@ -1,6 +1,6 @@
 # pages/1_PEI.py
 import streamlit as st
-from datetime import date
+from datetime import date, datetime
 from io import BytesIO
 from docx import Document
 from openai import OpenAI
@@ -12,7 +12,6 @@ import json
 import os
 import time
 import re
-from datetime import date, datetime
 
 
 # ✅ 1) set_page_config (UMA VEZ SÓ e sempre no topo)
@@ -39,6 +38,25 @@ try:
 except Exception:
     IS_TEST_ENV = False
 
+# ==============================================================================
+# 0) GUARDAS DE SESSÃO (mínimo para abrir a página)
+# ==============================================================================
+st.session_state.setdefault("autenticado", False)
+st.session_state.setdefault("workspace_id", "")
+st.session_state.setdefault("workspace_name", "")
+st.session_state.setdefault("usuario_nome", "")
+st.session_state.setdefault("usuario_cargo", "")
+
+# garante variáveis que outras partes podem usar
+st.session_state.setdefault("selected_student_id", None)
+st.session_state.setdefault("selected_student_name", "")
+
+# guardas legadas (não travam; mantêm compatibilidade)
+st.session_state.setdefault("supabase_jwt", "")
+st.session_state.setdefault("supabase_user_id", "")
+
+OWNER_ID = st.session_state.get("supabase_user_id", "")
+
 # ✅ 4) Gate mínimo: autenticado + workspace_id
 if not st.session_state.get("autenticado"):
     st.error("🔒 Acesso negado. Faça login na Página Inicial.")
@@ -48,38 +66,35 @@ ws_id = st.session_state.get("workspace_id")
 if not ws_id:
     st.error("Workspace não definido. Volte ao Início e valide o PIN.")
     if st.button("Voltar para Login", key="pei_btn_voltar_login", use_container_width=True):
-        for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "supabase_jwt", "supabase_user_id"]:
-            st.session_state.pop(k, None)
+        for kk in [
+            "autenticado",
+            "workspace_id",
+            "workspace_name",
+            "usuario_nome",
+            "usuario_cargo",
+            "supabase_jwt",
+            "supabase_user_id",
+            "selected_student_id",
+            "selected_student_name",
+            "OPENAI_API_KEY",
+        ]:
+            st.session_state.pop(kk, None)
         st.switch_page("streamlit_app.py")
     st.stop()
 
-# ✅ 5) Supabase (opcional: não bloqueia PEI se der ruim)
+# ✅ 5) Supabase client (opcional): NÃO BLOQUEIA se falhar
+# (se você não usa sb aqui, tudo bem — deixamos só pra compatibilidade futura)
 sb = None
 try:
     from _client import get_supabase
-    sb = get_supabase()  # <-- cliente (não é função)
+    sb = get_supabase()
 except Exception:
     sb = None
 
-# Guardas legadas (não travam)
-def verificar_login_supabase():
-    st.session_state.setdefault("supabase_jwt", "")
-    st.session_state.setdefault("supabase_user_id", "")
 
-verificar_login_supabase()
-OWNER_ID = st.session_state.get("supabase_user_id", "")
-
-
-
-# ✅ Sidebar UNIFICADA — (navegação + sessão + OpenAI + status aluno + status nuvem)
-# -------------------------------------------------------------------
-# OBS: seu projeto atual usa Supabase via REST (omni_utils.py), então NÃO existe `sb`.
-# -------------------------------------------------------------------
-
-# garante variáveis que outras partes podem usar
-st.session_state.setdefault("selected_student_id", None)
-st.session_state.setdefault("selected_student_name", "")
-
+# ==============================================================================
+# SIDEBAR UNIFICADA — Navegação + Sessão + OpenAI + Status aluno + Status nuvem
+# ==============================================================================
 def _is_cloud_ready():
     """
     Checa se a nuvem (Supabase REST) está pronta.
@@ -112,7 +127,7 @@ def _is_cloud_ready():
 def render_sidebar(active: str = "pei", key_prefix: str = "pei_sidebar"):
     """
     Sidebar unificada com keys estáveis (evita StreamlitDuplicateElementKey)
-    e sem NameError do k().
+    e deixando api_key disponível pro resto do arquivo.
     """
 
     def k(name: str) -> str:
@@ -122,17 +137,17 @@ def render_sidebar(active: str = "pei", key_prefix: str = "pei_sidebar"):
         st.markdown("### 🧭 Navegação")
 
         # ✅ Home real é pages/0_Home.py
-        if st.button("🏠 Home", key=k("pei_nav_home"), use_container_width=True):
+        if st.button("🏠 Home", key=k("nav_home"), use_container_width=True):
             st.switch_page("pages/0_Home.py")
 
         col1, col2 = st.columns(2)
         with col1:
-            st.button("📘 PEI", key=k("pei_nav_pei"), use_container_width=True, disabled=True)
+            st.button("📘 PEI", key=k("nav_pei"), use_container_width=True, disabled=True)
         with col2:
-            if st.button("🧩 PAEE", key=k("pei_nav_paee"), use_container_width=True):
+            if st.button("🧩 PAEE", key=k("nav_paee"), use_container_width=True):
                 st.switch_page("pages/2_PAE.py")
 
-        if st.button("🚀 Hub", key=k("pei_nav_hub"), use_container_width=True):
+        if st.button("🚀 Hub", key=k("nav_hub"), use_container_width=True):
             st.switch_page("pages/3_Hub_Inclusao.py")
 
         st.markdown("---")
@@ -144,11 +159,16 @@ def render_sidebar(active: str = "pei", key_prefix: str = "pei_sidebar"):
         st.markdown("### 🔑 OpenAI")
 
         # ✅ padrão: usa secrets se existir, senão pede e guarda em session_state
-        if "OPENAI_API_KEY" in st.secrets and str(st.secrets.get("OPENAI_API_KEY","")).strip():
-            st.session_state["OPENAI_API_KEY"] = str(st.secrets["OPENAI_API_KEY"]).strip()
+        try:
+            secret_key = str(st.secrets.get("OPENAI_API_KEY", "")).strip()
+        except Exception:
+            secret_key = ""
+
+        if secret_key:
+            st.session_state["OPENAI_API_KEY"] = secret_key
             st.success("✅ OpenAI OK (Secrets)")
         else:
-            typed = st.text_input("Chave OpenAI:", type="password", key=k("pei_openai_key"))
+            typed = st.text_input("Chave OpenAI:", type="password", key=k("openai_key"))
             if typed and typed.strip():
                 st.session_state["OPENAI_API_KEY"] = typed.strip()
                 st.success("✅ OpenAI OK (Sessão)")
@@ -161,7 +181,7 @@ def render_sidebar(active: str = "pei", key_prefix: str = "pei_sidebar"):
         student_id = st.session_state.get("selected_student_id")
         if student_id:
             st.success("✅ Vinculado ao Supabase")
-            st.caption(f"student_id: {student_id[:8]}…")
+            st.caption(f"student_id: {str(student_id)[:8]}…")
         else:
             st.warning("📝 Rascunho (ainda não salvo no Supabase)")
 
@@ -173,17 +193,16 @@ def render_sidebar(active: str = "pei", key_prefix: str = "pei_sidebar"):
             st.success("✅ Nuvem pronta (REST)")
         else:
             st.warning("⚠️ Nuvem incompleta")
-            # debug leve (sem expor valores)
-            st.caption(
-                " • ".join([f"{kk}:{'OK' if vv else 'FALTA'}" for kk, vv in details.items()])
-            )
+            st.caption(" • ".join([f"{kk}:{'OK' if vv else 'FALTA'}" for kk, vv in details.items()]))
 
         st.markdown("---")
 
 
-# ✅ chama UMA VEZ
+# ✅ chama UMA VEZ (no começo)
 render_sidebar(active="pei", key_prefix="pei_sidebar")
 
+# ✅ deixa a chave OpenAI disponível para o resto do arquivo (evita NameError)
+api_key = str(st.session_state.get("OPENAI_API_KEY", "")).strip()
 
 
 # ==============================================================================
@@ -194,17 +213,16 @@ def verificar_login_app():
         st.error("🔒 Acesso Negado. Faça login na Página Inicial.")
         st.stop()
 
+
 def verificar_login_supabase():
     # Supabase é necessário para SALVAR/CARREGAR, mas o PEI pode abrir como rascunho.
     # Então aqui só garantimos chaves mínimas (não bloqueia).
-    if "supabase_jwt" not in st.session_state:
-        st.session_state["supabase_jwt"] = ""
-    if "supabase_user_id" not in st.session_state:
-        st.session_state["supabase_user_id"] = ""
+    st.session_state.setdefault("supabase_jwt", "")
+    st.session_state.setdefault("supabase_user_id", "")
+
 
 verificar_login_app()
 verificar_login_supabase()
-
 
 # =============================================================================
 # 2. SUPABASE (CRUD students) — REST (compatível com omni_utils.py)
