@@ -3,9 +3,9 @@ import os
 from openai import OpenAI
 import json
 import pandas as pd
-from datetime import date
+from datetime import date, datetime
 import base64
-from datetime import datetime
+from supabase import create_client, Client
 
 # ==============================================================================
 # 1. CONFIGURAÇÃO E SEGURANÇA
@@ -163,7 +163,7 @@ st.markdown(f"""
     }}
 
     .mod-card-rect:hover .mod-title {{
-        color: #4F46E5;
+        color: #8B5CF6;
     }}
 
     .mod-desc {{
@@ -176,11 +176,11 @@ st.markdown(f"""
         overflow: hidden;
     }}
 
-    /* CORES DOS CARDS - MESMA DA HOME (LARANJA PARA PAEE) */
-    .c-orange {{ background: #F97316 !important; }}
-    .bg-orange-soft {{ 
+    /* CORES DOS CARDS - ROXO PARA PAEE */
+    .c-purple {{ background: #8B5CF6 !important; }}
+    .bg-purple-soft {{ 
         background: transparent !important; /* FUNDO TRANSPARENTE */
-        color: #F97316 !important; /* COR LARANJA MAIS INTENSA */
+        color: #8B5CF6 !important; /* COR ROXA MAIS INTENSA */
     }}
 
     /* ABAS EM FORMATO DE PÍLULAS - MESMO PADRÃO DO PEI */
@@ -214,13 +214,13 @@ st.markdown(f"""
         justify-content: center !important;
     }}
 
-    /* ABA ATIVA - FUNDO LARANJA SÓLIDO (PAEE) */
+    /* ABA ATIVA - FUNDO ROXO SÓLIDO (PAEE) */
     .stTabs [aria-selected="true"] {{
-        background-color: #F97316 !important;
+        background-color: #8B5CF6 !important;
         color: white !important;
         font-weight: 700 !important;
-        border: 1px solid #F97316 !important;
-        box-shadow: 0 1px 3px rgba(249, 115, 22, 0.2) !important;
+        border: 1px solid #8B5CF6 !important;
+        box-shadow: 0 1px 3px rgba(139, 92, 246, 0.2) !important;
     }}
 
     /* ABA INATIVA - APENAS CONTORNO SUTIL */
@@ -238,15 +238,15 @@ st.markdown(f"""
     }}
 
     .stTabs [aria-selected="true"]:hover {{
-        background-color: #EA580C !important;
-        border-color: #EA580C !important;
+        background-color: #7C3AED !important;
+        border-color: #7C3AED !important;
     }}
 
-    /* PEDAGOGIA BOX (Atualizado para Laranja) */
+    /* PEDAGOGIA BOX (Atualizado para Roxo) */
     .pedagogia-box {{ 
-        background-color: #FFF7ED; border-left: 4px solid #F97316; 
+        background-color: #F5F3FF; border-left: 4px solid #8B5CF6; 
         padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 25px; 
-        font-size: 0.95rem; color: #92400E; 
+        font-size: 0.95rem; color: #5B21B6; 
     }}
 
     /* RESPONSIVIDADE PARA TELAS MENORES */
@@ -347,9 +347,9 @@ st.markdown(
     f"""
     <div class="mod-card-wrapper">
         <div class="mod-card-rect">
-            <div class="mod-bar c-orange"></div>
-            <div class="mod-icon-area bg-orange-soft">
-                <i class="ri-tools-fill"></i>
+            <div class="mod-bar c-purple"></div>
+            <div class="mod-icon-area bg-purple-soft">
+                <i class="ri-wheelchair-fill"></i>
             </div>
             <div class="mod-content">
                 <div class="mod-title">Atendimento Educacional Especializado (AEE) & Tecnologia Assistiva</div>
@@ -369,45 +369,128 @@ st.markdown(
 # 2. SISTEMA PAEE (Plano de Atendimento Educacional Especializado)
 # ==============================================================================
 
-ARQUIVO_DB = "banco_alunos.json"
+# Inicializar cliente Supabase
+@st.cache_resource
+def init_supabase():
+    supabase_url = st.secrets.get("SUPABASE_URL", "")
+    supabase_key = st.secrets.get("SUPABASE_KEY", "")
+    if not supabase_url or not supabase_key:
+        st.error("Configuração do Supabase não encontrada nas secrets.")
+        return None
+    return create_client(supabase_url, supabase_key)
 
-def carregar_banco():
+supabase = init_supabase()
+
+def carregar_estudantes_supabase():
+    """Carrega estudantes do Supabase baseado no usuário logado"""
+    if not supabase:
+        st.error("Conexão com Supabase não disponível.")
+        return []
+    
     usuario_atual = st.session_state.get("usuario_nome", "")
-    if os.path.exists(ARQUIVO_DB):
-        try:
-            with open(ARQUIVO_DB, "r", encoding="utf-8") as f:
-                todos_alunos = json.load(f)
-                return [aluno for aluno in todos_alunos if aluno.get('responsavel') == usuario_atual]
-        except: return []
-    return []
+    workspace_atual = st.session_state.get("workspace_name", "")
+    
+    if not usuario_atual:
+        st.error("Usuário não identificado na sessão.")
+        return []
+    
+    try:
+        # Buscar estudantes do workspace atual criados pelo usuário atual
+        response = supabase.table("planos_pei") \
+            .select("*") \
+            .eq("responsavel", usuario_atual) \
+            .eq("workspace", workspace_atual) \
+            .execute()
+        
+        if response.data:
+            # Converter dados do Supabase para o formato esperado
+            estudantes = []
+            for plano in response.data:
+                estudante = {
+                    'nome': plano.get('nome_aluno', ''),
+                    'serie': plano.get('serie', ''),
+                    'hiperfoco': plano.get('hiperfoco', ''),
+                    'ia_sugestao': plano.get('conteudo_gerado', ''),
+                    'responsavel': plano.get('responsavel', ''),
+                    'workspace': plano.get('workspace', ''),
+                    'created_at': plano.get('created_at', ''),
+                    'id': plano.get('id', '')
+                }
+                estudantes.append(estudante)
+            return estudantes
+        else:
+            return []
+            
+    except Exception as e:
+        st.error(f"Erro ao carregar estudantes do Supabase: {e}")
+        return []
 
+# Carregar estudantes
 if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estudantes:
-    st.session_state.banco_estudantes = carregar_banco()
+    with st.spinner("🔄 Carregando estudantes do Supabase..."):
+        st.session_state.banco_estudantes = carregar_estudantes_supabase()
 
+# --- HEADER UNIFICADO (CLEAN COM DIVISOR - ROXO) ---
+def get_img_tag_custom(file_path, width):
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as f:
+            data = base64.b64encode(f.read()).decode("utf-8")
+        return f'<img src="data:image/png;base64,{data}" width="{width}" style="object-fit: contain;">'
+    return ""
 
+img_pae = get_img_tag_custom("pae.png", "220")
+
+st.markdown(f"""
+<div style="background-color: white; 
+            padding: 35px 40px; 
+            border-radius: 16px; 
+            border: 1px solid #E2E8F0; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02); 
+            margin-bottom: 20px; 
+            display: flex; 
+            align-items: center; 
+            gap: 20px;
+            justify-content: flex-start;">
+    <div style="flex-shrink: 0;">
+        {img_pae}
+    </div>
+    <div style="font-size: 1.2rem; 
+                color: #8B5CF6; 
+                font-weight: 600; 
+                border-left: 2px solid #C4B5FD; 
+                padding-left: 20px; 
+                line-height: 1.2;">
+        Sala de Recursos & Eliminação de Barreiras
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 if not st.session_state.banco_estudantes:
-    st.warning("⚠️ Nenhum aluno encontrado para o seu usuário. Cadastre no módulo PEI primeiro.")
+    st.warning("⚠️ Nenhum aluno encontrado para o seu usuário. Cadastre estudantes no módulo PEI primeiro.")
     st.stop()
 
 # --- SELEÇÃO DE ALUNO ---
-lista_alunos = [a['nome'] for a in st.session_state.banco_estudantes]
+lista_alunos = [a['nome'] for a in st.session_state.banco_estudantes if a.get('nome')]
 col_sel, col_info = st.columns([1, 2])
 with col_sel:
     nome_aluno = st.selectbox("📂 Selecione o Estudante:", lista_alunos)
 
-aluno = next(a for a in st.session_state.banco_estudantes if a['nome'] == nome_aluno)
+aluno = next((a for a in st.session_state.banco_estudantes if a.get('nome') == nome_aluno), None)
+
+if not aluno:
+    st.error("Estudante não encontrado nos dados.")
+    st.stop()
 
 # --- DETECTOR DE EDUCAÇÃO INFANTIL ---
 serie_aluno = aluno.get('serie', '').lower()
-is_ei = "infantil" in serie_aluno or "creche" in serie_aluno or "pré" in serie_aluno
+is_ei = any(term in serie_aluno for term in ["infantil", "creche", "pré", "pré-escola", "maternal", "berçario", "jardim"])
 
-# --- HEADER DO ALUNO (CORES LARANJAS) ---
+# --- HEADER DO ALUNO (CORES ROXAS) ---
 st.markdown(f"""
-    <div style="background-color: #FFF7ED; border: 1px solid #FDBA74; border-radius: 16px; padding: 20px 30px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-        <div><div style="font-size: 0.8rem; color: #F97316; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Nome</div><div style="font-size: 1.2rem; color: #2D3748; font-weight: 800;">{aluno.get('nome')}</div></div>
-        <div><div style="font-size: 0.8rem; color: #F97316; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Série</div><div style="font-size: 1.2rem; color: #2D3748; font-weight: 800;">{aluno.get('serie', '-')}</div></div>
-        <div><div style="font-size: 0.8rem; color: #F97316; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Hiperfoco</div><div style="font-size: 1.2rem; color: #F97316; font-weight: 800;">{aluno.get('hiperfoco', '-')}</div></div>
+    <div style="background-color: #F5F3FF; border: 1px solid #C4B5FD; border-radius: 16px; padding: 20px 30px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <div><div style="font-size: 0.8rem; color: #8B5CF6; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Nome</div><div style="font-size: 1.2rem; color: #2D3748; font-weight: 800;">{aluno.get('nome', 'Não informado')}</div></div>
+        <div><div style="font-size: 0.8rem; color: #8B5CF6; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Série</div><div style="font-size: 1.2rem; color: #2D3748; font-weight: 800;">{aluno.get('serie', '-')}</div></div>
+        <div><div style="font-size: 0.8rem; color: #8B5CF6; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Hiperfoco</div><div style="font-size: 1.2rem; color: #8B5CF6; font-weight: 800;">{aluno.get('hiperfoco', '-')}</div></div>
     </div>
 """, unsafe_allow_html=True)
 
@@ -529,7 +612,8 @@ if is_ei:
         if st.button("Mapear Barreiras do Brincar", type="primary"):
             if not api_key: st.error("Insira a chave OpenAI."); st.stop()
             with st.spinner("Analisando..."):
-                st.markdown(gerar_diagnostico_barreiras(api_key, aluno, obs_aee))
+                resultado = gerar_diagnostico_barreiras(api_key, aluno, obs_aee)
+                st.markdown(resultado)
 
     # 2. PROJETOS (EI)
     with tab_projetos:
@@ -544,6 +628,7 @@ if is_ei:
         ])
         
         if st.button("✨ Gerar Atividades Lúdicas", type="primary"):
+            if not api_key: st.error("Insira a chave OpenAI."); st.stop()
             with st.spinner("Criando experiências..."):
                 atividades = gerar_projetos_ei_bncc(api_key, aluno, campo_bncc)
                 st.markdown(atividades)
@@ -553,8 +638,10 @@ if is_ei:
         st.markdown("<div class='pedagogia-box'><strong>Adaptação de Rotina:</strong> Recursos visuais e sensoriais para a creche/pré-escola.</div>", unsafe_allow_html=True)
         dif_rotina = st.text_input("Dificuldade na Rotina:", placeholder="Ex: Hora do soninho, Desfralde, Alimentação")
         if st.button("Sugerir Adaptação", type="primary"):
+            if not api_key: st.error("Insira a chave OpenAI."); st.stop()
             with st.spinner("Buscando recursos..."):
-                st.markdown(sugerir_tecnologia_assistiva(api_key, aluno, f"Rotina EI: {dif_rotina}"))
+                resultado = sugerir_tecnologia_assistiva(api_key, aluno, f"Rotina EI: {dif_rotina}")
+                st.markdown(resultado)
 
 else:
     # --- ABAS PADRÃO (FUNDAMENTAL / MÉDIO) ---
@@ -572,23 +659,28 @@ else:
         if st.button("Analisar Barreiras via IA", type="primary"):
             if not api_key: st.error("Insira a chave OpenAI."); st.stop()
             with st.spinner("Analisando..."):
-                st.markdown(gerar_diagnostico_barreiras(api_key, aluno, obs_aee))
+                resultado = gerar_diagnostico_barreiras(api_key, aluno, obs_aee)
+                st.markdown(resultado)
 
     # 2. PLANO
     with tab_plano:
         st.markdown("<div class='pedagogia-box'><strong>Treino de Habilidades:</strong> Desenvolvimento cognitivo, motor e social.</div>", unsafe_allow_html=True)
         foco = st.selectbox("Foco do atendimento:", ["Funções Executivas", "Autonomia", "Coordenação Motora", "Comunicação", "Habilidades Sociais"])
         if st.button("Gerar Plano", type="primary"):
+            if not api_key: st.error("Insira a chave OpenAI."); st.stop()
             with st.spinner("Planejando..."):
-                st.markdown(gerar_plano_habilidades(api_key, aluno, foco))
+                resultado = gerar_plano_habilidades(api_key, aluno, foco)
+                st.markdown(resultado)
 
     # 3. T.A.
     with tab_tec:
         st.markdown("<div class='pedagogia-box'><strong>Tecnologia Assistiva:</strong> Recursos para autonomia.</div>", unsafe_allow_html=True)
         dif_especifica = st.text_input("Dificuldade Específica:", placeholder="Ex: Não segura o lápis")
         if st.button("Sugerir Recursos", type="primary"):
+            if not api_key: st.error("Insira a chave OpenAI."); st.stop()
             with st.spinner("Buscando T.A..."):
-                st.markdown(sugerir_tecnologia_assistiva(api_key, aluno, dif_especifica))
+                resultado = sugerir_tecnologia_assistiva(api_key, aluno, dif_especifica)
+                st.markdown(resultado)
 
 # 4. ARTICULAÇÃO (COMUM A TODOS)
 with tab_ponte:
@@ -598,6 +690,7 @@ with tab_ponte:
     turno = c2.selectbox("Turno:", ["Manhã", "Tarde"])
     acoes_resumo = st.text_area("Trabalho no AEE:", placeholder="Ex: Comunicação alternativa...", height=70)
     if st.button("Gerar Carta", type="primary"):
+        if not api_key: st.error("Insira a chave OpenAI."); st.stop()
         with st.spinner("Escrevendo..."):
             carta = gerar_documento_articulacao(api_key, aluno, f"{freq} ({turno})", acoes_resumo)
             st.markdown("### 📄 Documento Gerado")
