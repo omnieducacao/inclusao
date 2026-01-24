@@ -1119,6 +1119,53 @@ with tab_ponte:
                 st.rerun()
 
 # ==============================================================================
+# Módulo de Planejamento Semanal Inteligente
+# ==============================================================================
+
+def gerar_planejamento_semanal_inteligente(api_key, aluno, data_inicio, data_revisao):
+    """
+    Gera um planejamento semanal que distribui as estratégias do PEI
+    até a data de revisão
+    """
+    contexto_pei = aluno.get('ia_sugestao', '')
+    
+    prompt = f"""
+    COMO ESPECIALISTA EM EDUCAÇÃO INFANTIL INCLUSIVA, crie um PLANEJAMENTO SEMANAL.
+    
+    ALUNO: {aluno['nome']}
+    PERÍODO: {data_inicio} até {data_revisao}
+    PEI COMPLETO: {contexto_pei[:3000]}
+    
+    ESTRUTURE:
+    
+    1. **ANÁLISE DO PEI** (Resumo das principais necessidades)
+    2. **DISTRIBUIÇÃO TEMPORAL** (Atividades por semana)
+    3. **PLANO SEMANAL DETALHADO** (Para cada semana):
+       - Foco principal da semana
+       - Objetivos específicos (SMART)
+       - Atividades (2-3 por semana, variadas)
+       - Recursos necessários
+       - Critérios de observação
+       - Adaptações específicas
+    
+    4. **MATRIZ DE PROGRESSO** (Como acompanhar)
+    5. **ROTEIRO PARA REGISTRO** (O que documentar)
+    
+    IMPORTANTE:
+    - Sequência lógica e progressiva
+    - Variação de estratégias
+    - Inclusão de elementos lúdicos
+    - Conexão com BNCC Educação Infantil
+    - Espaço para ajustes
+    """
+    
+    # Implementação da chamada à API
+    return planejamento_gerado
+
+
+             
+
+# ==============================================================================
 # RODAPÉ E INFORMAÇÕES
 # ==============================================================================
 st.markdown("---")
