@@ -5,7 +5,7 @@ import json
 import pandas as pd
 from datetime import date, datetime
 import base64
-from supabase import create_client, Client
+import requests
 
 # ==============================================================================
 # 1. CONFIGURAÇÃO E SEGURANÇA
@@ -366,104 +366,87 @@ st.markdown(
 )
 
 # ==============================================================================
-# 2. SISTEMA PAEE (Plano de Atendimento Educacional Especializado)
+# FUNÇÕES DE ACESSO AO SUPABASE (REST API) - Padrão da página de Alunos
 # ==============================================================================
+def _sb_url() -> str:
+    url = str(st.secrets.get("SUPABASE_URL", "")).strip()
+    if not url:
+        raise RuntimeError("SUPABASE_URL não encontrado nos secrets.")
+    return url.rstrip("/")
 
-# Inicializar cliente Supabase
-@st.cache_resource
-def init_supabase():
-    supabase_url = st.secrets.get("SUPABASE_URL", "")
-    supabase_key = st.secrets.get("SUPABASE_KEY", "")
-    if not supabase_url or not supabase_key:
-        st.error("Configuração do Supabase não encontrada nas secrets.")
-        return None
-    return create_client(supabase_url, supabase_key)
+def _sb_key() -> str:
+    key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "")).strip()
+    if not key:
+        key = str(st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+    if not key:
+        raise RuntimeError("SUPABASE_SERVICE_KEY/ANON_KEY não encontrado nos secrets.")
+    return key
 
-supabase = init_supabase()
+def _headers() -> dict:
+    key = _sb_key()
+    return {
+        "apikey": key,
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+    }
 
+def _http_error(prefix: str, r: requests.Response):
+    raise RuntimeError(f"{prefix}: {r.status_code} {r.text}")
+
+@st.cache_data(ttl=10, show_spinner=False)
+def list_planos_pei_rest(workspace: str, responsavel: str):
+    """Busca planos PEI do Supabase usando a mesma lógica da página Alunos"""
+    base = (
+        f"{_sb_url()}/rest/v1/planos_pei"
+        f"?select=id,nome_aluno,serie,hiperfoco,conteudo_gerado,responsavel,workspace,created_at"
+        f"&workspace=eq.{workspace}"
+        f"&responsavel=eq.{responsavel}"
+        f"&order=created_at.desc"
+    )
+    r = requests.get(base, headers=_headers(), timeout=20)
+    if r.status_code >= 400:
+        _http_error("List planos_pei falhou", r)
+    data = r.json()
+    return data if isinstance(data, list) else []
+
+# ==============================================================================
+# CARREGAR ESTUDANTES DO SUPABASE
+# ==============================================================================
 def carregar_estudantes_supabase():
-    """Carrega estudantes do Supabase baseado no usuário logado"""
-    if not supabase:
-        st.error("Conexão com Supabase não disponível.")
-        return []
-    
-    usuario_atual = st.session_state.get("usuario_nome", "")
+    """Carrega estudantes do Supabase baseado no workspace e usuário logado"""
     workspace_atual = st.session_state.get("workspace_name", "")
+    usuario_atual = st.session_state.get("usuario_nome", "")
     
-    if not usuario_atual:
-        st.error("Usuário não identificado na sessão.")
+    if not workspace_atual or not usuario_atual:
+        st.error("Workspace ou usuário não identificado na sessão.")
         return []
     
     try:
-        # Buscar estudantes do workspace atual criados pelo usuário atual
-        response = supabase.table("planos_pei") \
-            .select("*") \
-            .eq("responsavel", usuario_atual) \
-            .eq("workspace", workspace_atual) \
-            .execute()
-        
-        if response.data:
-            # Converter dados do Supabase para o formato esperado
-            estudantes = []
-            for plano in response.data:
-                estudante = {
-                    'nome': plano.get('nome_aluno', ''),
-                    'serie': plano.get('serie', ''),
-                    'hiperfoco': plano.get('hiperfoco', ''),
-                    'ia_sugestao': plano.get('conteudo_gerado', ''),
-                    'responsavel': plano.get('responsavel', ''),
-                    'workspace': plano.get('workspace', ''),
-                    'created_at': plano.get('created_at', ''),
-                    'id': plano.get('id', '')
-                }
-                estudantes.append(estudante)
-            return estudantes
-        else:
-            return []
-            
+        dados = list_planos_pei_rest(workspace_atual, usuario_atual)
+        estudantes = []
+        for plano in dados:
+            estudante = {
+                'nome': plano.get('nome_aluno', ''),
+                'serie': plano.get('serie', ''),
+                'hiperfoco': plano.get('hiperfoco', ''),
+                'ia_sugestao': plano.get('conteudo_gerado', ''),
+                'responsavel': plano.get('responsavel', ''),
+                'workspace': plano.get('workspace', ''),
+                'created_at': plano.get('created_at', ''),
+                'id': plano.get('id', '')
+            }
+            estudantes.append(estudante)
+        return estudantes
     except Exception as e:
         st.error(f"Erro ao carregar estudantes do Supabase: {e}")
         return []
 
-# Carregar estudantes
+# ==============================================================================
+# CARREGAMENTO DOS DADOS
+# ==============================================================================
 if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estudantes:
     with st.spinner("🔄 Carregando estudantes do Supabase..."):
         st.session_state.banco_estudantes = carregar_estudantes_supabase()
-
-# --- HEADER UNIFICADO (CLEAN COM DIVISOR - ROXO) ---
-def get_img_tag_custom(file_path, width):
-    if os.path.exists(file_path):
-        with open(file_path, "rb") as f:
-            data = base64.b64encode(f.read()).decode("utf-8")
-        return f'<img src="data:image/png;base64,{data}" width="{width}" style="object-fit: contain;">'
-    return ""
-
-img_pae = get_img_tag_custom("pae.png", "220")
-
-st.markdown(f"""
-<div style="background-color: white; 
-            padding: 35px 40px; 
-            border-radius: 16px; 
-            border: 1px solid #E2E8F0; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02); 
-            margin-bottom: 20px; 
-            display: flex; 
-            align-items: center; 
-            gap: 20px;
-            justify-content: flex-start;">
-    <div style="flex-shrink: 0;">
-        {img_pae}
-    </div>
-    <div style="font-size: 1.2rem; 
-                color: #8B5CF6; 
-                font-weight: 600; 
-                border-left: 2px solid #C4B5FD; 
-                padding-left: 20px; 
-                line-height: 1.2;">
-        Sala de Recursos & Eliminação de Barreiras
-    </div>
-</div>
-""", unsafe_allow_html=True)
 
 if not st.session_state.banco_estudantes:
     st.warning("⚠️ Nenhum aluno encontrado para o seu usuário. Cadastre estudantes no módulo PEI primeiro.")
