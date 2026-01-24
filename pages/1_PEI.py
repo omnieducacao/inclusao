@@ -69,6 +69,11 @@ def verificar_login_supabase():
 verificar_login_supabase()
 OWNER_ID = st.session_state.get("supabase_user_id", "")
 
+# ==============================================================================
+# OPENAI
+# ==============================================================================
+api_key = st.secrets.get("OPENAI_API_KEY", "")
+
 
 # ==============================================================================
 # 1. GUARDAS (LOGIN + SUPABASE)
