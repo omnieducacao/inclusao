@@ -2,13 +2,11 @@ import streamlit as st
 from datetime import date, datetime
 import base64
 import os
-import json
-import re
 
 # ==============================================================================
 # 1. CONFIGURAÇÃO INICIAL
 # ==============================================================================
-APP_VERSION = "v3.0 - UI Unificada"
+APP_VERSION = "v3.1 - UI Integrada"
 
 try:
     IS_TEST_ENV = st.secrets.get("ENV", "PRODUCAO") == "TESTE"
@@ -19,15 +17,15 @@ st.set_page_config(
     page_title="Omnisfera - PEI 360°",
     page_icon="📘",
     layout="wide",
-    initial_sidebar_state="collapsed", # Sidebar fechada para focar na UI nova
+    initial_sidebar_state="collapsed",
 )
 
-# Inicializa aba ativa se não existir
+# Inicializa estado da aba
 if "aba_ativa" not in st.session_state:
     st.session_state.aba_ativa = "INÍCIO"
 
 # ==============================================================================
-# 2. CSS & DESIGN SYSTEM (UI QUADRADA + ACTIVE STATE)
+# 2. CSS & DESIGN SYSTEM (UI INTEGRADA)
 # ==============================================================================
 st.markdown(
     """
@@ -41,11 +39,12 @@ html, body, [class*="css"] {
     background-color: #F8FAFC !important;
 }
 
-/* Ocultar elementos nativos */
+/* Ocultar nativos */
 [data-testid="stSidebarNav"], [data-testid="stHeader"], [data-testid="stToolbar"], footer {
     display: none !important;
 }
 
+/* Ajuste topo */
 .block-container {
     padding-top: 100px !important;
     padding-bottom: 4rem !important;
@@ -66,10 +65,10 @@ html, body, [class*="css"] {
 .brand-logo { height: 45px; width: auto; }
 .user-badge { background: #F1F5F9; border: 1px solid #E2E8F0; padding: 6px 14px; border-radius: 99px; font-size: 0.8rem; font-weight: 700; color: #64748B; }
 
-/* --- HERO CARD --- */
+/* --- HERO CARD (Fundo Azul/Roxo) --- */
 .hero-wrapper {
-    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); /* Roxo Omnisfera */
-    border-radius: 20px; padding: 2rem; color: white; margin-bottom: 30px;
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    border-radius: 20px; padding: 2rem; color: white; margin-bottom: 30px; margin-top: 10px;
     position: relative; overflow: hidden;
     box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.3);
     display: flex; align-items: center; justify-content: space-between;
@@ -85,13 +84,8 @@ html, body, [class*="css"] {
 .hero-text { font-size: 0.95rem; opacity: 0.95; max-width: 800px; font-weight: 500; }
 .hero-icon { opacity: 0.8; font-size: 3rem; z-index: 1; position: relative; }
 
-/* --- NAV UNIFICADA (BOTÕES QUADRADOS) --- */
-.nav-square-container {
-    position: relative;
-    height: 75px; 
-    margin-bottom: 12px;
-}
-
+/* --- BOTÕES QUADRADOS UNIFICADOS --- */
+/* O card visual */
 .nav-square {
     background: white;
     border-radius: 12px;
@@ -101,20 +95,14 @@ html, body, [class*="css"] {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    width: 100%; height: 100%;
+    height: 75px; /* Altura exata */
+    width: 100%;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    cursor: pointer;
-}
-
-.nav-square:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    border-color: #C4B5FD;
 }
 
 .nav-sq-icon { font-size: 1.4rem; color: #64748B; transition: color 0.2s; }
-.nav-sq-title { font-size: 0.65rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
+.nav-sq-title { font-size: 0.65rem; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; line-height: 1; }
 
 /* ESTADO ATIVO (ROXO PREENCHIDO) */
 .nav-active {
@@ -125,11 +113,23 @@ html, body, [class*="css"] {
 .nav-active .nav-sq-icon { color: white !important; }
 .nav-active .nav-sq-title { color: white !important; }
 
-/* Botão invisível do Streamlit (Overlay) */
+/* TRUQUE DE INTEGRAÇÃO (Margem Negativa) */
 div[data-testid="column"] button {
-    position: absolute !important; top: 0 !important; left: 0 !important;
-    width: 100% !important; height: 75px !important;
-    opacity: 0 !important; z-index: 5 !important;
+    background-color: transparent !important;
+    border: none !important;
+    color: transparent !important;
+    height: 75px !important; /* Mesma altura do card visual */
+    width: 100% !important;
+    margin-top: -82px !important; /* PUXA O BOTÃO PRA CIMA DO HTML */
+    position: relative;
+    z-index: 5;
+    cursor: pointer;
+}
+
+/* Hover no botão invisível afeta o visual (hack opcional, mas o active já resolve) */
+div[data-testid="column"]:hover .nav-square {
+    border-color: #C4B5FD;
+    transform: translateY(-2px);
 }
 </style>
     """,
@@ -159,7 +159,7 @@ def get_user_initials(nome: str):
 # ==============================================================================
 # 4. COMPONENTE: HEADER & MENU UNIFICADO
 # ==============================================================================
-def render_header_unified():
+def render_layout_unificado():
     # --- 1. TOPBAR FIXA ---
     icone_b64 = get_base64_image("omni_icone.png")
     texto_b64 = get_base64_image("omni_texto.png")
@@ -186,11 +186,9 @@ def render_header_unified():
         unsafe_allow_html=True,
     )
     
-    # Espaço para não ficar atrás da topbar
     st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
-    # --- 2. MENU QUADRADO (UNIFICADO) ---
-    # Lista de abas que controlam o conteúdo
+    # --- 2. MENU QUADRADO (COM LÓGICA DE INTEGRAÇÃO) ---
     menu_items = [
         {"id": "INÍCIO", "icon": "ri-home-smile-2-fill", "label": "Início"},
         {"id": "ESTUDANTE", "icon": "ri-user-smile-fill", "label": "Estudante"},
@@ -204,34 +202,33 @@ def render_header_unified():
         {"id": "GAME", "icon": "ri-gamepad-fill", "label": "Game"},
     ]
     
-    # Renderiza colunas (10 itens)
+    # Grid de 10 colunas (uma linha)
     cols = st.columns(10, gap="small")
     
     for i, item in enumerate(menu_items):
         with cols[i]:
+            # Verifica se é a aba ativa
             is_active = (st.session_state.aba_ativa == item["id"])
             active_class = "nav-active" if is_active else ""
             
-            # HTML Visual do botão
+            # 1. O Desenho (HTML)
             st.markdown(
                 f"""
-                <div class="nav-square-container">
-                    <div class="nav-square {active_class}">
-                        <i class="{item['icon']} nav-sq-icon"></i>
-                        <div class="nav-sq-title">{item['label']}</div>
-                    </div>
+                <div class="nav-square {active_class}">
+                    <i class="{item['icon']} nav-sq-icon"></i>
+                    <div class="nav-sq-title">{item['label']}</div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
             
-            # Botão funcional invisível (overlay)
+            # 2. O Botão (Funcional)
+            # O CSS 'margin-top: -82px' puxa este botão para cima do desenho acima
             if st.button(" ", key=f"nav_{item['id']}", use_container_width=True):
                 st.session_state.aba_ativa = item["id"]
                 st.rerun()
 
-    # --- 3. HERO CARD (DINÂMICO BASEADO NA ABA) ---
-    # Títulos e descrições mudam conforme a aba para dar contexto
+    # --- 3. HERO CARD (CONTEXTUAL) ---
     hero_data = {
         "INÍCIO": ("Bem-vindo ao PEI 360°", "Central de gestão e fundamentos do planejamento inclusivo."),
         "ESTUDANTE": ("Dossiê do Estudante", "Identificação, histórico escolar e contexto familiar."),
@@ -264,53 +261,48 @@ def render_header_unified():
 # 5. EXECUÇÃO DO CONTEÚDO (ROTEAMENTO)
 # ==============================================================================
 
-# 1. Renderiza Header + Menu + Hero
-render_header_unified()
+# 1. Renderiza Topo (Header + Navegação + Hero)
+render_layout_unificado()
 
-# 2. Renderiza o conteúdo da aba ativa
+# 2. Renderiza o conteúdo da aba selecionada
 aba = st.session_state.aba_ativa
 
-if aba == "INÍCIO":
-    # --- CONTEÚDO DA ABA INÍCIO ---
-    c1, c2 = st.columns([1.5, 1])
-    with c1:
+# CONTAINER PRINCIPAL PARA O CONTEÚDO
+with st.container():
+    if aba == "INÍCIO":
         st.info("Aqui entram os fundamentos do PEI e gestão de backups.")
-        # ... (Seu código da aba Início aqui) ...
-    with c2:
-        st.warning("Selecione um aluno ou carregue um arquivo.")
+        # Coloque o código da aba Início aqui
+        
+    elif aba == "ESTUDANTE":
+        st.write("### 👤 Identificação")
+        c1, c2 = st.columns(2)
+        c1.text_input("Nome do Aluno")
+        c2.selectbox("Série", ["1º Ano", "2º Ano"])
 
-elif aba == "ESTUDANTE":
-    st.write("### 👤 Identificação e Histórico")
-    # ... (Seu código da aba Estudante aqui) ...
-    c1, c2 = st.columns(2)
-    c1.text_input("Nome do Aluno")
-    c2.selectbox("Série", ["1º Ano", "2º Ano"])
+    elif aba == "EVIDÊNCIAS":
+        st.write("### 🔎 Evidências")
 
-elif aba == "EVIDÊNCIAS":
-    st.write("### 🔎 Evidências")
-    # ... (Conteúdo Evidências) ...
+    elif aba == "REDE":
+        st.write("### 🤝 Rede de Apoio")
+        
+    elif aba == "MAPEAMENTO":
+        st.write("### 🧭 Mapeamento de Barreiras")
 
-elif aba == "REDE":
-    st.write("### 🤝 Rede de Apoio")
-    
-elif aba == "MAPEAMENTO":
-    st.write("### 🧭 Mapeamento de Barreiras")
+    elif aba == "AÇÃO":
+        st.write("### 🛠️ Plano de Ação")
 
-elif aba == "AÇÃO":
-    st.write("### 🛠️ Plano de Ação")
+    elif aba == "MONITOR":
+        st.write("### 📈 Monitoramento")
 
-elif aba == "MONITOR":
-    st.write("### 📈 Monitoramento")
+    elif aba == "IA":
+        st.write("### 🤖 Consultoria IA")
+        st.button("Gerar PEI com IA", type="primary")
 
-elif aba == "IA":
-    st.write("### 🤖 Consultoria IA")
-    st.button("Gerar PEI com IA", type="primary")
+    elif aba == "DASH":
+        st.write("### 📊 Dashboard e Exportação")
 
-elif aba == "DASH":
-    st.write("### 📊 Dashboard e Exportação")
-
-elif aba == "GAME":
-    st.write("### 🎮 Jornada Gamificada")
+    elif aba == "GAME":
+        st.write("### 🎮 Jornada Gamificada")
 
 # ==============================================================================
 # RODAPÉ
