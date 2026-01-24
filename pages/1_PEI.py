@@ -2873,154 +2873,158 @@ with tab8:
         )
 
     # --------------------------------------------------------------------------
-    # 7) EXPORTAÇÃO + SINCRONIZAÇÃO (mantendo lógica NOVA que deu certo)
-    # --------------------------------------------------------------------------
+# 7) EXPORTAÇÃO + SINCRONIZAÇÃO
+# --------------------------------------------------------------------------
     st.divider()
     st.markdown("#### 📤 Exportação e Sincronização")
 
+    # Verifica se existe conteúdo para exportar
     if not d.get("ia_sugestao"):
         st.info("Gere o Plano na aba **Consultoria IA** para liberar PDF, Word e Sincronização.")
-        st.stop()
+        # Se estiver dentro de uma função ou loop, use return. Se for script corrido, st.stop() funciona.
+        # st.stop() 
+    else:
+        # --- CORREÇÃO DO ERRO: CRIAR AS COLUNAS AQUI ---
+        col_docs, col_backup, col_sys = st.columns(3)
 
-    col_docs, col_backup, col_sys = st.columns(3)
+        # ---------------- DOCS (PDF/WORD) ----------------
+        with col_docs:
+            st.caption("📄 Documentos")
 
-    # ---------------- DOCS ----------------
-    with col_docs:
-        st.caption("📄 Documentos")
-
-        pdf_bytes = None
-        try:
-            pdf_bytes = gerar_pdf_final(d, len(st.session_state.get("pdf_text","")) > 0)
-        except TypeError:
+            pdf_bytes = None
             try:
-                pdf_bytes = gerar_pdf_final(d)
-            except Exception as e:
-                st.error(f"Não foi possível gerar PDF: {e}")
-
-        if pdf_bytes:
-            st.download_button(
-                "Baixar PDF Oficial",
-                pdf_bytes,
-                f"PEI_{d.get('nome','Aluno')}.pdf",
-                "application/pdf",
-                use_container_width=True
-            )
-
-        try:
-            docx = gerar_docx_final(d)
-            st.download_button(
-                "Baixar Word Editável",
-                docx,
-                f"PEI_{d.get('nome','Aluno')}.docx",
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                use_container_width=True
-            )
-        except Exception as e:
-            st.error(f"Não foi possível gerar Word: {e}")
-
-    # ---------------- BACKUP (LOCAL) ----------------
-    with col_backup:
-        st.caption("💾 Backup (JSON)")
-        st.markdown(
-            "<div style='font-size:.85rem; color:#4A5568; margin-bottom:8px;'>"
-            "<b>O que é o JSON?</b> É um backup completo do PEI (campos, seleções e textos) "
-            "para salvar na sua máquina e reabrir depois."
-            "</div>",
-            unsafe_allow_html=True
-        )
-        st.download_button(
-            "Salvar Arquivo .JSON",
-            json.dumps(d, default=str, ensure_ascii=False),
-            f"PEI_{d.get('nome','Aluno')}.json",
-            "application/json",
-            use_container_width=True
-        )
-
-    # ---------------- CLOUD (SINCRONIZAÇÃO COMPLETA) ----------------
-    with col_sys:
-        st.caption("🌐 Omnisfera Cloud")
-        st.markdown(
-            "<div style='font-size:.85rem; color:#4A5568; margin-bottom:8px;'>"
-            "Sincroniza o cadastro e <b>salva todo o conteúdo do PEI</b> na nuvem (coluna pei_data)."
-            "</div>",
-            unsafe_allow_html=True
-        )
-
-        def _cloud_ready_check():
-            try:
-                url = str(st.secrets.get("SUPABASE_URL", "")).strip()
-                key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "") or st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
-                return bool(url and key)
-            except:
-                return False
-
-        if st.button("🔗 Sincronizar Tudo", type="primary", use_container_width=True, key="btn_sync_full_final"):
-            if not _cloud_ready_check():
-                st.error("⚠️ Configure os Secrets do Supabase.")
-            else:
+                # Tenta gerar PDF com texto extraído se houver
+                texto_pdf = st.session_state.get("pdf_text", "")
+                pdf_bytes = gerar_pdf_final(d, len(texto_pdf) > 0)
+            except TypeError:
                 try:
-                    with st.spinner("Sincronizando dados completos..."):
-                        # 1. Tratar datas para o cadastro básico
-                        nasc_iso = d.get("nasc").isoformat() if hasattr(d.get("nasc"), "isoformat") else None
-                        
-                        # 2. Dados Básicos (Colunas fixas da tabela)
-                        student_payload = {
-                            "name": d.get("nome"),
-                            "birth_date": nasc_iso,
-                            "grade": d.get("serie"),
-                            "class_group": d.get("turma") or None,
-                            "diagnosis": d.get("diagnostico") or None,
-                            "workspace_id": st.session_state.get("workspace_id"),
-                        }
-                        
-                        # 3. Identificar ou Criar o Aluno
-                        sid = st.session_state.get("selected_student_id")
-                        
-                        # Se já existe ID na sessão, tentamos atualizar o básico primeiro, senão cria
-                        if not sid:
-                            # Tenta criar
-                            created = db_create_student(student_payload)
-                            if created and isinstance(created, dict):
-                                sid = created.get("id")
-                                st.session_state["selected_student_id"] = sid
-                        else:
-                            # Se já tem ID, atualiza os dados básicos também (opcional, mas recomendado)
-                            db_update_student(sid, student_payload)
-
-                        # 4. SALVAMENTO CRÍTICO: O CONTEÚDO COMPLETO (JSONB)
-                        if sid:
-                            # Aqui salvamos o dicionário 'd' inteiro na coluna 'pei_data'
-                            # Certifique-se de ter adicionado a função db_update_pei_content ao código principal!
-                            db_update_pei_content(sid, d)
-                            
-                            # 5. Preparar Backup Local
-                            st.session_state["ultimo_backup_json"] = json.dumps(d, default=str, ensure_ascii=False)
-                            st.session_state["sync_sucesso"] = True
-                            
-                            st.toast("PEI completo salvo na nuvem com sucesso!", icon="☁️")
-                            st.rerun()
-                        else:
-                            st.error("Erro: Não foi possível obter o ID do estudante no banco.")
-
+                    pdf_bytes = gerar_pdf_final(d)
                 except Exception as e:
-                    st.error(f"Erro na sincronização: {e}")
+                    st.error(f"Erro ao gerar PDF: {e}")
 
-        # Se deu certo, mostra o botão de download
-        if st.session_state.get("sync_sucesso"):
-            st.success("✅ Tudo salvo no Supabase!")
-            
-            timestamp = datetime.now().strftime("%d-%m_%Hh%M")
-            nome_clean = (d.get('nome') or 'Aluno').replace(' ', '_')
-            
-            st.download_button(
-                label="📂 BAIXAR BACKUP (.JSON)",
-                data=st.session_state["ultimo_backup_json"],
-                file_name=f"PEI_{nome_clean}_{timestamp}.json",
-                mime="application/json",
-                type="secondary",
-                use_container_width=True,
-                key="btn_post_sync_download_final"
+            if pdf_bytes:
+                st.download_button(
+                    "Baixar PDF Oficial",
+                    pdf_bytes,
+                    f"PEI_{d.get('nome','Aluno')}.pdf",
+                    "application/pdf",
+                    use_container_width=True
+                )
+
+            try:
+                docx = gerar_docx_final(d)
+                st.download_button(
+                    "Baixar Word Editável",
+                    docx,
+                    f"PEI_{d.get('nome','Aluno')}.docx",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
+                )
+            except Exception as e:
+                # Botão desativado visualmente se der erro
+                st.button("Baixar Word (Erro)", disabled=True, use_container_width=True)
+
+        # ---------------- BACKUP (LOCAL) ----------------
+        with col_backup:
+            st.caption("💾 Backup (JSON)")
+            st.markdown(
+                "<div style='font-size:.85rem; color:#4A5568; margin-bottom:8px;'>"
+                "Salva um arquivo no seu computador para garantir que nada se perca."
+                "</div>",
+                unsafe_allow_html=True
             )
+            st.download_button(
+                "Salvar Arquivo .JSON",
+                json.dumps(d, default=str, ensure_ascii=False),
+                f"PEI_{d.get('nome','Aluno')}.json",
+                "application/json",
+                use_container_width=True
+            )
+
+        # ---------------- CLOUD (SUPABASE COMPLETO) ----------------
+        with col_sys:
+            st.caption("🌐 Omnisfera Cloud")
+            st.markdown(
+                "<div style='font-size:.85rem; color:#4A5568; margin-bottom:8px;'>"
+                "Sincroniza cadastro e <b>salva o conteúdo completo</b> na nuvem."
+                "</div>",
+                unsafe_allow_html=True
+            )
+
+            # Checagem rápida de credenciais
+            def _cloud_ready_check():
+                try:
+                    url = str(st.secrets.get("SUPABASE_URL", "")).strip()
+                    key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "") or st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+                    return bool(url and key)
+                except:
+                    return False
+
+            if st.button("🔗 Sincronizar Tudo", type="primary", use_container_width=True, key="btn_sync_full_final"):
+                if not _cloud_ready_check():
+                    st.error("⚠️ Configure os Secrets do Supabase.")
+                else:
+                    try:
+                        with st.spinner("Sincronizando dados completos..."):
+                            # 1. Tratar datas
+                            nasc_iso = d.get("nasc").isoformat() if hasattr(d.get("nasc"), "isoformat") else None
+                            
+                            # 2. Dados Básicos (Cadastro)
+                            student_payload = {
+                                "name": d.get("nome"),
+                                "birth_date": nasc_iso,
+                                "grade": d.get("serie"),
+                                "class_group": d.get("turma") or None,
+                                "diagnosis": d.get("diagnostico") or None,
+                                "workspace_id": st.session_state.get("workspace_id"),
+                            }
+                            
+                            # 3. Identificar ou Criar
+                            sid = st.session_state.get("selected_student_id")
+                            
+                            if not sid:
+                                # Tenta criar novo
+                                created = db_create_student(student_payload)
+                                if created and isinstance(created, dict):
+                                    sid = created.get("id")
+                                    st.session_state["selected_student_id"] = sid
+                            else:
+                                # Atualiza cadastro existente
+                                db_update_student(sid, student_payload)
+
+                            # 4. SALVAR CONTEÚDO COMPLETO (JSONB)
+                            if sid:
+                                # Chama a função nova que você adicionou
+                                db_update_pei_content(sid, d)
+                                
+                                # Prepara backup para download imediato
+                                st.session_state["ultimo_backup_json"] = json.dumps(d, default=str, ensure_ascii=False)
+                                st.session_state["sync_sucesso"] = True
+                                
+                                st.toast("PEI salvo na nuvem com sucesso!", icon="☁️")
+                                st.rerun()
+                            else:
+                                st.error("Erro ao identificar ID do aluno.")
+
+                    except Exception as e:
+                        st.error(f"Erro na sincronização: {e}")
+
+            # Feedback de sucesso + Download
+            if st.session_state.get("sync_sucesso"):
+                st.success("✅ Tudo salvo no Supabase!")
+                
+                timestamp = datetime.now().strftime("%d-%m_%Hh%M")
+                nome_clean = (d.get('nome') or 'Aluno').replace(' ', '_')
+                
+                st.download_button(
+                    label="📂 BAIXAR BACKUP AGORA (.JSON)",
+                    data=st.session_state["ultimo_backup_json"],
+                    file_name=f"PEI_{nome_clean}_{timestamp}.json",
+                    mime="application/json",
+                    type="secondary",
+                    use_container_width=True,
+                    key="btn_post_sync_download_final"
+                )
 
 # ==============================================================================
 # ABA — JORNADA GAMIFICADA (BLOCO COMPLETO)
