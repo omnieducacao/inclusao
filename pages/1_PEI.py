@@ -1987,8 +1987,6 @@ with tab1:
                 if c_btn.button("Excluir", key=f"del_med_{i}"):
                     st.session_state.dados["lista_medicamentos"].pop(i)
                     st.rerun()
-
-
 # ==============================================================================
 # 13. ABA EVIDÊNCIAS (COMPLETA)
 # ==============================================================================
