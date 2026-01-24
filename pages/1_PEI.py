@@ -258,6 +258,33 @@ def db_list_students(search: str | None = None):
     data = r.json()
     return data if isinstance(data, list) else []
 
+def db_update_pei_content(student_id: str, pei_dict: dict):
+    """
+    Salva o dicionário completo do PEI na coluna 'pei_data' do Supabase.
+    """
+    # URL para atualizar o aluno específico
+    url = f"{_sb_url()}/rest/v1/students?id=eq.{student_id}"
+    
+    h = _headers()
+    h["Prefer"] = "return=representation"
+    
+    # Prepara o JSON. Convertemos para string/dict puro para garantir que datas não quebrem
+    import json
+    payload_json = json.loads(json.dumps(pei_dict, default=str))
+    
+    # Envia apenas o campo pei_data e a data de atualização
+    body = {
+        "pei_data": payload_json,
+        "updated_at": datetime.now().isoformat()
+    }
+    
+    r = requests.patch(url, headers=h, json=body, timeout=20)
+    
+    if r.status_code >= 400:
+        raise RuntimeError(f"Erro ao salvar conteúdo do PEI: {r.text}")
+        
+    return r.json()
+
 # ==============================================================================
 # 3. BLOCO VISUAL (badge / logo)
 # ==============================================================================
@@ -1606,56 +1633,91 @@ with tab0:
                     st.session_state["local_json_name"] = ""
                     st.rerun()
 
-        # ------------------------------------------------------------------
-        # (2) (Opcional) OUTROS CONTROLES LOCAIS AQUI
-        # ------------------------------------------------------------------
+    
+        # ---------------- CLOUD (SINCRONIZAÇÃO COMPLETA) ----------------
+    with col_sys:
+        st.caption("🌐 Omnisfera Cloud")
+        st.markdown(
+            "<div style='font-size:.85rem; color:#4A5568; margin-bottom:8px;'>"
+            "Sincroniza o cadastro e <b>salva todo o conteúdo do PEI</b> na nuvem (coluna pei_data)."
+            "</div>",
+            unsafe_allow_html=True
+        )
 
-        # ------------------------------------------------------------------
-        # (3) SINCRONIZAR: criar aluno na nuvem (somente quando você quiser)
-        # ------------------------------------------------------------------
-        with st.container(border=True):
-            st.markdown("##### 🔗 Sincronizar aluno (criar e vincular na nuvem)")
-            st.caption("Cria o aluno na tabela **students** e libera salvar/carregar PEI na nuvem.")
+        def _cloud_ready_check():
+            try:
+                url = str(st.secrets.get("SUPABASE_URL", "")).strip()
+                key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "") or st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+                return bool(url and key)
+            except:
+                return False
 
-            if not _cloud_ready():
-                st.info("Nuvem indisponível: faça login e valide workspace.")
+        if st.button("🔗 Sincronizar Tudo", type="primary", use_container_width=True, key="btn_sync_full_final"):
+            if not _cloud_ready_check():
+                st.error("⚠️ Configure os Secrets do Supabase.")
             else:
-                if st.session_state.get("selected_student_id"):
-                    st.success("Este aluno já está sincronizado ✅")
-                else:
-                    btn_sync = st.button(
-                        "🔗 Sincronizar agora",
-                        type="primary",
-                        use_container_width=True,
-                        key="inicio_btn_sync_nuvem",
-                    )
-                    if btn_sync:
-                        if not st.session_state.dados.get("nome"):
-                            st.warning("Preencha o NOME do estudante na aba Estudante antes de sincronizar.")
-                        elif not st.session_state.dados.get("serie"):
-                            st.warning("Selecione a SÉRIE/Ano na aba Estudante antes de sincronizar.")
+                try:
+                    with st.spinner("Sincronizando dados completos..."):
+                        # 1. Tratar datas para o cadastro básico
+                        nasc_iso = d.get("nasc").isoformat() if hasattr(d.get("nasc"), "isoformat") else None
+                        
+                        # 2. Dados Básicos (Colunas fixas da tabela)
+                        student_payload = {
+                            "name": d.get("nome"),
+                            "birth_date": nasc_iso,
+                            "grade": d.get("serie"),
+                            "class_group": d.get("turma") or None,
+                            "diagnosis": d.get("diagnostico") or None,
+                            "workspace_id": st.session_state.get("workspace_id"),
+                        }
+                        
+                        # 3. Identificar ou Criar o Aluno
+                        sid = st.session_state.get("selected_student_id")
+                        
+                        # Se já existe ID na sessão, tentamos atualizar o básico primeiro, senão cria
+                        if not sid:
+                            # Tenta criar
+                            created = db_create_student(student_payload)
+                            if created and isinstance(created, dict):
+                                sid = created.get("id")
+                                st.session_state["selected_student_id"] = sid
                         else:
-                            try:
-                                created = db_create_student({
-                                    "name": st.session_state.dados.get("nome"),
-                                    "birth_date": (
-                                        st.session_state.dados.get("nasc").isoformat()
-                                        if hasattr(st.session_state.dados.get("nasc"), "isoformat")
-                                        else None
-                                    ),
-                                    "grade": st.session_state.dados.get("serie"),
-                                    "class_group": st.session_state.dados.get("turma") or None,
-                                    "diagnosis": st.session_state.dados.get("diagnostico") or None,
-                                })
-                                if created and created.get("id"):
-                                    st.session_state["selected_student_id"] = created["id"]
-                                    st.session_state["selected_student_name"] = created.get("name") or ""
-                                    st.success("Sincronizado ✅ Agora você pode salvar/carregar PEI na nuvem.")
-                                    st.rerun()
-                                else:
-                                    st.error("Falha ao criar aluno. Verifique RLS/policies no Supabase.")
-                            except Exception as e:
-                                st.error(f"Erro ao sincronizar: {e}")
+                            # Se já tem ID, atualiza os dados básicos também (opcional, mas recomendado)
+                            db_update_student(sid, student_payload)
+
+                        # 4. SALVAMENTO CRÍTICO: O CONTEÚDO COMPLETO (JSONB)
+                        if sid:
+                            # Aqui salvamos o dicionário 'd' inteiro na coluna 'pei_data'
+                            db_update_pei_content(sid, d)
+                            
+                            # 5. Preparar Backup Local
+                            st.session_state["ultimo_backup_json"] = json.dumps(d, default=str, ensure_ascii=False)
+                            st.session_state["sync_sucesso"] = True
+                            
+                            st.toast("PEI completo salvo na nuvem com sucesso!", icon="☁️")
+                            st.rerun()
+                        else:
+                            st.error("Erro: Não foi possível obter o ID do estudante no banco.")
+
+                except Exception as e:
+                    st.error(f"Erro na sincronização: {e}")
+
+        # Se deu certo, mostra o botão de download
+        if st.session_state.get("sync_sucesso"):
+            st.success("✅ Tudo salvo no Supabase!")
+            
+            timestamp = datetime.now().strftime("%d-%m_%Hh%M")
+            nome_clean = (d.get('nome') or 'Aluno').replace(' ', '_')
+            
+            st.download_button(
+                label="📂 BAIXAR BACKUP (.JSON)",
+                data=st.session_state["ultimo_backup_json"],
+                file_name=f"PEI_{nome_clean}_{timestamp}.json",
+                mime="application/json",
+                type="secondary",
+                use_container_width=True,
+                key="btn_post_sync_download_final"
+            )
 # ==============================================================================
 # 12. ABA ESTUDANTE
 # ==============================================================================
