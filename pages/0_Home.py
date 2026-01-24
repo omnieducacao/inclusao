@@ -6,7 +6,7 @@ import os
 # ==============================================================================
 # 1. CONFIGURAÇÃO INICIAL
 # ==============================================================================
-APP_VERSION = "v3.2 - UI Split Compact"
+APP_VERSION = "v3.3 - UI Colorida"
 
 try:
     IS_TEST_ENV = st.secrets.get("ENV", "PRODUCAO") == "TESTE"
@@ -24,7 +24,7 @@ if "aba_ativa" not in st.session_state:
     st.session_state.aba_ativa = "INÍCIO"
 
 # ==============================================================================
-# 2. CSS & DESIGN SYSTEM (UI ACHATADA / SPLIT)
+# 2. CSS & DESIGN SYSTEM (CORES VARIÁVEIS)
 # ==============================================================================
 st.markdown(
     """
@@ -81,23 +81,21 @@ html, body, [class*="css"] {
 .hero-text { font-size: 0.95rem; opacity: 0.95; max-width: 800px; font-weight: 500; }
 .hero-icon { opacity: 0.8; font-size: 3rem; z-index: 1; position: relative; }
 
-/* --- NOVO MENU ACHATADO (SPLIT) --- */
+/* --- MENU COLORIDO (SPLIT) --- */
 .nav-split-container {
     position: relative;
-    height: 55px; /* Altura achatada */
+    height: 55px; 
     margin-bottom: 12px;
 }
 
 .nav-split-card {
     background: white;
-    border-radius: 10px; /* Bordas levemente arredondadas */
+    border-radius: 10px;
     border: 1px solid #E2E8F0;
-    
     display: flex;
-    flex-direction: row; /* Ícone | Texto */
+    flex-direction: row;
     align-items: center;
-    
-    padding: 4px; /* Padding interno pequeno */
+    padding: 4px; 
     gap: 8px;
     width: 100%; height: 100%;
     transition: all 0.2s ease;
@@ -105,54 +103,92 @@ html, body, [class*="css"] {
     cursor: pointer;
 }
 
-.nav-split-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    border-color: #C4B5FD;
-}
+.nav-split-card:hover { transform: translateY(-2px); }
 
-/* O quadrado do ícone (A "divisão" visual) */
+/* Ícone Base */
 .nav-icon-box {
     width: 45px; height: 45px;
-    background: #F8FAFC;
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    color: #64748B;
     font-size: 1.2rem;
     transition: all 0.2s;
+    background: #F1F5F9; color: #64748B; /* Padrão neutro */
 }
 
-/* O texto */
 .nav-split-title {
-    font-size: 0.7rem; font-weight: 800; color: #64748B; 
+    font-size: 0.65rem; font-weight: 800; color: #64748B; 
     text-transform: uppercase; letter-spacing: 0.5px; 
     line-height: 1; flex-grow: 1; text-align: center;
     padding-right: 4px;
 }
 
-/* --- ESTADO ATIVO (ROXO) --- */
-.nav-active {
-    background: white !important;
-    border-color: #7C3AED !important;
-    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.15) !important;
-}
+/* --- TEMAS DE CORES (CLASSES ESPECÍFICAS) --- */
 
-/* Quando ativo, o ícone fica roxo preenchido */
-.nav-active .nav-icon-box {
-    background: #7C3AED !important;
-    color: white !important;
-}
+/* Purple (Início) */
+.t-purple .nav-icon-box { background: #F5F3FF; color: #7C3AED; }
+.t-purple.nav-active { border-color: #7C3AED !important; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2) !important; }
+.t-purple.nav-active .nav-icon-box { background: #7C3AED; color: white; }
+.t-purple.nav-active .nav-split-title { color: #7C3AED; }
 
-/* Quando ativo, o texto fica roxo */
-.nav-active .nav-split-title {
-    color: #7C3AED !important;
-}
+/* Indigo (Estudante) */
+.t-indigo .nav-icon-box { background: #EEF2FF; color: #4F46E5; }
+.t-indigo.nav-active { border-color: #4F46E5 !important; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2) !important; }
+.t-indigo.nav-active .nav-icon-box { background: #4F46E5; color: white; }
+.t-indigo.nav-active .nav-split-title { color: #4F46E5; }
 
-/* --- TRUQUE DO BOTÃO INVISÍVEL (INTEGRAÇÃO PERFEITA) --- */
+/* Cyan (Evidências) */
+.t-cyan .nav-icon-box { background: #E0F2FE; color: #0284C7; }
+.t-cyan.nav-active { border-color: #0284C7 !important; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2) !important; }
+.t-cyan.nav-active .nav-icon-box { background: #0284C7; color: white; }
+.t-cyan.nav-active .nav-split-title { color: #0284C7; }
+
+/* Blue (Rede) */
+.t-blue .nav-icon-box { background: #EFF6FF; color: #2563EB; }
+.t-blue.nav-active { border-color: #2563EB !important; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2) !important; }
+.t-blue.nav-active .nav-icon-box { background: #2563EB; color: white; }
+.t-blue.nav-active .nav-split-title { color: #2563EB; }
+
+/* Teal (Mapa) */
+.t-teal .nav-icon-box { background: #F0FDFA; color: #0D9488; }
+.t-teal.nav-active { border-color: #0D9488 !important; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.2) !important; }
+.t-teal.nav-active .nav-icon-box { background: #0D9488; color: white; }
+.t-teal.nav-active .nav-split-title { color: #0D9488; }
+
+/* Orange (Ação) */
+.t-orange .nav-icon-box { background: #FFF7ED; color: #EA580C; }
+.t-orange.nav-active { border-color: #EA580C !important; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.2) !important; }
+.t-orange.nav-active .nav-icon-box { background: #EA580C; color: white; }
+.t-orange.nav-active .nav-split-title { color: #EA580C; }
+
+/* Rose (Monitor) */
+.t-rose .nav-icon-box { background: #FFF1F2; color: #E11D48; }
+.t-rose.nav-active { border-color: #E11D48 !important; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.2) !important; }
+.t-rose.nav-active .nav-icon-box { background: #E11D48; color: white; }
+.t-rose.nav-active .nav-split-title { color: #E11D48; }
+
+/* Violet (IA) */
+.t-violet .nav-icon-box { background: #F5F3FF; color: #8B5CF6; }
+.t-violet.nav-active { border-color: #8B5CF6 !important; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.2) !important; }
+.t-violet.nav-active .nav-icon-box { background: #8B5CF6; color: white; }
+.t-violet.nav-active .nav-split-title { color: #8B5CF6; }
+
+/* Slate (Dash) */
+.t-slate .nav-icon-box { background: #F1F5F9; color: #475569; }
+.t-slate.nav-active { border-color: #475569 !important; box-shadow: 0 4px 10px rgba(71, 85, 105, 0.2) !important; }
+.t-slate.nav-active .nav-icon-box { background: #475569; color: white; }
+.t-slate.nav-active .nav-split-title { color: #475569; }
+
+/* Fuchsia (Game) */
+.t-fuchsia .nav-icon-box { background: #FDF4FF; color: #C026D3; }
+.t-fuchsia.nav-active { border-color: #C026D3 !important; box-shadow: 0 4px 10px rgba(192, 38, 211, 0.2) !important; }
+.t-fuchsia.nav-active .nav-icon-box { background: #C026D3; color: white; }
+.t-fuchsia.nav-active .nav-split-title { color: #C026D3; }
+
+/* Botão invisível */
 div[data-testid="column"] button {
     position: absolute !important; top: 0 !important; left: 0 !important;
-    width: 100% !important; height: 55px !important; /* Mesma altura do card */
-    margin-top: -62px !important; /* PUXA O BOTÃO PRA CIMA (55px + margens) */
+    width: 100% !important; height: 55px !important;
+    margin-top: -62px !important;
     opacity: 0 !important; z-index: 5 !important;
     border: none !important;
 }
@@ -185,7 +221,7 @@ def get_user_initials(nome: str):
 # 4. COMPONENTE: HEADER & MENU UNIFICADO
 # ==============================================================================
 def render_header_unified():
-    # --- 1. TOPBAR FIXA ---
+    # --- 1. TOPBAR ---
     icone_b64 = get_base64_image("omni_icone.png")
     texto_b64 = get_base64_image("omni_texto.png")
     workspace = escola_vinculada()
@@ -213,18 +249,18 @@ def render_header_unified():
     
     st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
-    # --- 2. MENU ACHATADO (SPLIT) ---
+    # --- 2. MENU COLORIDO ---
     menu_items = [
-        {"id": "INÍCIO", "icon": "ri-home-smile-2-fill", "label": "Início"},
-        {"id": "ESTUDANTE", "icon": "ri-user-smile-fill", "label": "Aluno"},
-        {"id": "EVIDÊNCIAS", "icon": "ri-search-eye-line", "label": "Evid."},
-        {"id": "REDE", "icon": "ri-team-fill", "label": "Rede"},
-        {"id": "MAPEAMENTO", "icon": "ri-radar-line", "label": "Mapa"},
-        {"id": "AÇÃO", "icon": "ri-tools-fill", "label": "Ação"},
-        {"id": "MONITOR", "icon": "ri-line-chart-fill", "label": "Monit."},
-        {"id": "IA", "icon": "ri-robot-2-fill", "label": "IA"},
-        {"id": "DASH", "icon": "ri-file-chart-fill", "label": "Docs"},
-        {"id": "GAME", "icon": "ri-gamepad-fill", "label": "Game"},
+        {"id": "INÍCIO", "icon": "ri-home-smile-2-fill", "label": "Início", "theme": "t-purple"},
+        {"id": "ESTUDANTE", "icon": "ri-user-smile-fill", "label": "Aluno", "theme": "t-indigo"},
+        {"id": "EVIDÊNCIAS", "icon": "ri-search-eye-line", "label": "Evid.", "theme": "t-cyan"},
+        {"id": "REDE", "icon": "ri-team-fill", "label": "Rede", "theme": "t-blue"},
+        {"id": "MAPEAMENTO", "icon": "ri-radar-line", "label": "Mapa", "theme": "t-teal"},
+        {"id": "AÇÃO", "icon": "ri-tools-fill", "label": "Ação", "theme": "t-orange"},
+        {"id": "MONITOR", "icon": "ri-line-chart-fill", "label": "Monit.", "theme": "t-rose"},
+        {"id": "IA", "icon": "ri-robot-2-fill", "label": "IA", "theme": "t-violet"},
+        {"id": "DASH", "icon": "ri-file-chart-fill", "label": "Docs", "theme": "t-slate"},
+        {"id": "GAME", "icon": "ri-gamepad-fill", "label": "Game", "theme": "t-fuchsia"},
     ]
     
     cols = st.columns(10, gap="small")
@@ -233,12 +269,13 @@ def render_header_unified():
         with cols[i]:
             is_active = (st.session_state.aba_ativa == item["id"])
             active_class = "nav-active" if is_active else ""
+            theme_class = item["theme"]
             
-            # HTML Visual (Card Achatado)
+            # HTML Visual (Card com Tema)
             st.markdown(
                 f"""
                 <div class="nav-split-container">
-                    <div class="nav-split-card {active_class}">
+                    <div class="nav-split-card {theme_class} {active_class}">
                         <div class="nav-icon-box"><i class="{item['icon']}"></i></div>
                         <div class="nav-split-title">{item['label']}</div>
                     </div>
@@ -247,12 +284,12 @@ def render_header_unified():
                 unsafe_allow_html=True
             )
             
-            # Botão Funcional Invisível (Overlay puxado com margin-top negativo)
+            # Botão Overlay
             if st.button(" ", key=f"nav_{item['id']}", use_container_width=True):
                 st.session_state.aba_ativa = item["id"]
                 st.rerun()
 
-    # --- 3. HERO CARD (CONTEXTUAL) ---
+    # --- 3. HERO CARD ---
     hero_data = {
         "INÍCIO": ("Bem-vindo ao PEI 360°", "Central de gestão e fundamentos do planejamento inclusivo."),
         "ESTUDANTE": ("Dossiê do Estudante", "Identificação, histórico escolar e contexto familiar."),
@@ -282,14 +319,13 @@ def render_header_unified():
     )
 
 # ==============================================================================
-# 5. EXECUÇÃO DO CONTEÚDO (ROTEAMENTO)
+# 5. EXECUÇÃO
 # ==============================================================================
 
 render_header_unified()
 
 aba = st.session_state.aba_ativa
 
-# CONTAINER PRINCIPAL
 with st.container():
     if aba == "INÍCIO":
         st.info("Conteúdo da aba Início.")
@@ -325,9 +361,6 @@ with st.container():
     elif aba == "GAME":
         st.write("### 🎮 Jornada Gamificada")
 
-# ==============================================================================
-# RODAPÉ
-# ==============================================================================
 st.markdown("---")
 st.markdown(
     f"""
