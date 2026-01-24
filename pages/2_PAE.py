@@ -366,7 +366,7 @@ st.markdown(
 )
 
 # ==============================================================================
-# FUNÇÕES DE ACESSO AO SUPABASE (REST API) - Padrão da página de Alunos
+# FUNÇÕES DE ACESSO AO SUPABASE (MESMA LÓGICA DA PÁGINA DE ALUNOS)
 # ==============================================================================
 def _sb_url() -> str:
     url = str(st.secrets.get("SUPABASE_URL", "")).strip()
@@ -391,71 +391,95 @@ def _headers() -> dict:
     }
 
 def _http_error(prefix: str, r: requests.Response):
-    raise RuntimeError(f"{prefix}: {r.status_code} {r.text}")
+    st.error(f"{prefix}: {r.status_code} {r.text}")
+    return []
 
+# ==============================================================================
+# CARREGAR ESTUDANTES DO SUPABASE (USANDO STUDENTS TABELA)
+# ==============================================================================
 @st.cache_data(ttl=10, show_spinner=False)
-def list_planos_pei_rest(workspace: str, responsavel: str):
-    """Busca planos PEI do Supabase usando a mesma lógica da página Alunos"""
-    # CORREÇÃO: Usando o nome correto da tabela sem acento
-    base = (
-        f"{_sb_url()}/rest/v1/planos_pei"
-        f"?select=id,nome_aluno,serie,hiperfoco,conteudo_gerado,responsavel,workspace,created_at"
-        f"&workspace=eq.{workspace}"
-        f"&responsavel=eq.{responsavel}"
-        f"&order=created_at.desc"
-    )
-    r = requests.get(base, headers=_headers(), timeout=20)
-    if r.status_code >= 400:
-        # Se falhar, tentar tabela alternativa
-        try:
-            base_alt = (
-                f"{_sb_url()}/rest/v1/pei_plans"
-                f"?select=id,nome_aluno,serie,hiperfoco,conteudo_gerado,responsavel,workspace,created_at"
-                f"&workspace=eq.{workspace}"
-                f"&responsavel=eq.{responsavel}"
-                f"&order=created_at.desc"
-            )
-            r_alt = requests.get(base_alt, headers=_headers(), timeout=20)
-            if r_alt.status_code >= 400:
-                _http_error("List planos_pei falhou (tentou 'planos_pei' e 'pei_plans')", r)
-            data = r_alt.json()
-        except:
-            _http_error("List planos_pei falhou", r)
-    else:
-        data = r.json()
-    return data if isinstance(data, list) else []
-
-# ==============================================================================
-# CARREGAR ESTUDANTES DO SUPABASE
-# ==============================================================================
-def carregar_estudantes_supabase():
-    """Carrega estudantes do Supabase baseado no workspace e usuário logado"""
-    workspace_atual = st.session_state.get("workspace_name", "")
-    usuario_atual = st.session_state.get("usuario_nome", "")
+def list_students_rest():
+    """Busca estudantes do Supabase - MESMA LÓGICA DA PÁGINA DE ALUNOS"""
+    WORKSPACE_ID = st.session_state.get("workspace_id")
     
-    if not workspace_atual or not usuario_atual:
-        st.error("Workspace ou usuário não identificado na sessão.")
+    if not WORKSPACE_ID:
+        st.error("Workspace ID não encontrado na sessão.")
         return []
     
     try:
-        dados = list_planos_pei_rest(workspace_atual, usuario_atual)
-        estudantes = []
-        for plano in dados:
-            estudante = {
-                'nome': plano.get('nome_aluno', ''),
-                'serie': plano.get('serie', ''),
-                'hiperfoco': plano.get('hiperfoco', ''),
-                'ia_sugestao': plano.get('conteudo_gerado', ''),
-                'responsavel': plano.get('responsavel', ''),
-                'workspace': plano.get('workspace', ''),
-                'created_at': plano.get('created_at', ''),
-                'id': plano.get('id', '')
-            }
-            estudantes.append(estudante)
-        return estudantes
+        # Tenta a tabela 'students' primeiro (padrão da página Alunos)
+        base = (
+            f"{_sb_url()}/rest/v1/students"
+            f"?select=id,name,grade,class_group,diagnosis,created_at"
+            f"&workspace_id=eq.{WORKSPACE_ID}"
+            f"&order=created_at.desc"
+        )
+        r = requests.get(base, headers=_headers(), timeout=20)
+        
+        if r.status_code == 200:
+            data = r.json()
+            return data if isinstance(data, list) else []
+        else:
+            # Tenta tabela alternativa 'planos_pei' se 'students' falhar
+            st.warning(f"Tabela 'students' não encontrada (status {r.status_code}). Tentando 'planos_pei'...")
+            
+            # Usando o usuário atual para filtrar
+            usuario_atual = st.session_state.get("usuario_nome", "")
+            if usuario_atual:
+                base_alt = (
+                    f"{_sb_url()}/rest/v1/planos_pei"
+                    f"?select=id,nome_aluno,serie,hiperfoco,conteudo_gerado,responsavel,created_at"
+                    f"&responsavel=eq.{usuario_atual}"
+                    f"&order=created_at.desc"
+                )
+                r_alt = requests.get(base_alt, headers=_headers(), timeout=20)
+                
+                if r_alt.status_code == 200:
+                    data = r_alt.json()
+                    return data if isinstance(data, list) else []
+                else:
+                    return _http_error("List planos_pei falhou", r_alt)
+            else:
+                st.error("Usuário não identificado na sessão.")
+                return []
+                
     except Exception as e:
-        st.error(f"Erro ao carregar estudantes do Supabase: {e}")
+        st.error(f"Erro na requisição: {e}")
         return []
+
+def carregar_estudantes_supabase():
+    """Carrega estudantes do Supabase convertendo para formato esperado"""
+    dados = list_students_rest()
+    
+    estudantes = []
+    for item in dados:
+        # Verifica se vem da tabela 'students' ou 'planos_pei'
+        if 'name' in item:  # Tabela 'students'
+            estudante = {
+                'nome': item.get('name', ''),
+                'serie': item.get('grade', ''),
+                'hiperfoco': item.get('diagnosis', ''),
+                'ia_sugestao': f"Série: {item.get('grade', '')} | Turma: {item.get('class_group', '')} | Diagnóstico: {item.get('diagnosis', '')}",
+                'responsavel': st.session_state.get("usuario_nome", ""),
+                'id': item.get('id', ''),
+                'created_at': item.get('created_at', '')
+            }
+        else:  # Tabela 'planos_pei'
+            estudante = {
+                'nome': item.get('nome_aluno', ''),
+                'serie': item.get('serie', ''),
+                'hiperfoco': item.get('hiperfoco', ''),
+                'ia_sugestao': item.get('conteudo_gerado', ''),
+                'responsavel': item.get('responsavel', ''),
+                'id': item.get('id', ''),
+                'created_at': item.get('created_at', '')
+            }
+        
+        # Só adiciona se tiver nome
+        if estudante['nome']:
+            estudantes.append(estudante)
+    
+    return estudantes
 
 # ==============================================================================
 # CARREGAMENTO DOS DADOS
@@ -464,8 +488,15 @@ if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estu
     with st.spinner("🔄 Carregando estudantes do Supabase..."):
         st.session_state.banco_estudantes = carregar_estudantes_supabase()
 
+# Se não houver estudantes, mostra opção para ir ao PEI
 if not st.session_state.banco_estudantes:
-    st.warning("⚠️ Nenhum aluno encontrado para o seu usuário. Cadastre estudantes no módulo PEI primeiro.")
+    st.warning("⚠️ Nenhum aluno encontrado. Você precisa criar Planos Educacionais Individualizados (PEI) primeiro.")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("📘 Ir para o módulo PEI", type="primary", use_container_width=True):
+            st.switch_page("pages/1_PEI.py")
+    
     st.stop()
 
 # --- SELEÇÃO DE ALUNO ---
