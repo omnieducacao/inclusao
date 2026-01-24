@@ -1,23 +1,25 @@
 # ==============================================================================
-# PARTE 1/4: CONFIGURAÇÕES, ESTILOS E AUTENTICAÇÃO
+# DIÁRIO DE BORDO PAEE - SUPABASE INTEGRATION
 # ==============================================================================
 
 import streamlit as st
 import os
 import json
 import pandas as pd
-from datetime import datetime, date
-import time
-from google.oauth2.service_account import Credentials
+from datetime import datetime, date, timedelta
 import base64
 import requests
+import time
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # ==============================================================================
 # 1. CONFIGURAÇÃO E SEGURANÇA
 # ==============================================================================
 st.set_page_config(
-    page_title="Diário & Feedback | Omnisfera", 
-    page_icon="📝", 
+    page_title="Diário de Bordo PAEE | Omnisfera", 
+    page_icon="📘", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -78,29 +80,99 @@ st.markdown(f"""
     .mod-desc {{ font-size: 0.8rem; color: #64748B; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }}
 
     /* CORES */
-    .c-blue {{ background: #3B82F6 !important; }}
-    .bg-blue-soft {{ background: transparent !important; color: #3B82F6 !important; }}
+    .c-teal {{ background: #0D9488 !important; }}
+    .bg-teal-soft {{ background: transparent !important; color: #0D9488 !important; }}
 
-    /* FORM STYLES */
-    .form-container {{ 
-        background: #F8FAFC; 
-        border: 1px solid #E2E8F0; 
-        border-radius: 12px; 
-        padding: 25px; 
-        margin-bottom: 25px; 
+    /* CARD DE DIÁRIO */
+    .diario-card {{
+        background: white;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.2s ease;
     }}
-    .log-entry {{ 
-        background: white; 
-        border: 1px solid #E2E8F0; 
-        border-radius: 8px; 
-        padding: 15px; 
-        margin-bottom: 10px; 
+    .diario-card:hover {{
+        border-color: #0D9488;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
+    }}
+    
+    /* BADGES */
+    .badge-individual {{ background: #DBEAFE; color: #1E40AF; }}
+    .badge-grupo {{ background: #D1FAE5; color: #065F46; }}
+    .badge-observacao {{ background: #FEF3C7; color: #92400E; }}
+    
+    /* PROGRESS BAR */
+    .prog-bar-bg {{ 
+        width: 100%; 
+        height: 8px; 
+        background: #E2E8F0; 
+        border-radius: 4px; 
+        overflow: hidden; 
+        margin-top: 8px; 
+    }}
+    .prog-bar-fill {{ 
+        height: 100%; 
+        background: linear-gradient(90deg, #0D9488, #14B8A6); 
+        transition: width 1s; 
+    }}
+    
+    /* STATS CARDS */
+    .stat-card {{
+        background: white;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }}
+    .stat-value {{
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0D9488;
+        margin-bottom: 5px;
+    }}
+    .stat-label {{
+        font-size: 0.85rem;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }}
+    
+    /* FORM STYLES */
+    .form-section {{
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }}
+    
+    /* TIMELINE */
+    .timeline-item {{
+        position: relative;
+        padding-left: 30px;
+        margin-bottom: 20px;
+    }}
+    .timeline-dot {{
+        position: absolute;
+        left: 0;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #0D9488;
+    }}
+    .timeline-content {{
+        background: white;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding: 15px;
     }}
 </style>
 
 <div class="omni-badge">
     <img src="{src_logo_giratoria}" class="omni-logo-spin">
-    <span class="omni-text">OMNISFERA</span>
+    <span class="omni-text">OMNISFERA PAEE</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -122,20 +194,21 @@ hora = datetime.now().hour
 saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
 USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
 WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
+USER_ID = st.session_state.get("user_id", "")
 
 st.markdown(
     f"""
     <div class="mod-card-wrapper">
         <div class="mod-card-rect">
-            <div class="mod-bar c-blue"></div>
-            <div class="mod-icon-area bg-blue-soft">
+            <div class="mod-bar c-teal"></div>
+            <div class="mod-icon-area bg-teal-soft">
                 <i class="ri-book-2-fill"></i>
             </div>
             <div class="mod-content">
-                <div class="mod-title">Diário de Bordo & Feedback</div>
+                <div class="mod-title">Diário de Bordo PAEE</div>
                 <div class="mod-desc">
-                    {saudacao}, <strong>{USUARIO_NOME}</strong>! Registre atividades, avalie resultados e vincule ao PEI dos estudantes.
-                    Sistema integrado para acompanhamento contínuo no workspace <strong>{WORKSPACE_NAME}</strong>.
+                    {saudacao}, <strong>{USUARIO_NOME}</strong>! Registre sessões, acompanhe progresso e documente intervenções
+                    no workspace <strong>{WORKSPACE_NAME}</strong>. Sistema integrado para registro profissional do Atendimento Educacional Especializado.
                 </div>
             </div>
         </div>
@@ -143,10 +216,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
-# ==============================================================================
-# PARTE 2/4: CONEXÃO COM SUPABASE (CARREGAMENTO DE ALUNOS)
-# ==============================================================================
 
 # ==============================================================================
 # FUNÇÕES SUPABASE (REST)
@@ -168,469 +237,838 @@ def _headers() -> dict:
     return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
 
 # ==============================================================================
-# CARREGAR ESTUDANTES DO SUPABASE
+# FUNÇÕES DO DIÁRIO DE BORDO
 # ==============================================================================
-@st.cache_data(ttl=10, show_spinner=False)
-def list_students_rest():
-    """Busca estudantes do Supabase incluindo o campo PEI_DATA"""
+def carregar_alunos_workspace():
+    """Carrega alunos do workspace atual"""
     WORKSPACE_ID = st.session_state.get("workspace_id")
     if not WORKSPACE_ID: 
         return []
     
     try:
-        base = (
-            f"{_sb_url()}/rest/v1/students"
-            f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data"
-            f"&workspace_id=eq.{WORKSPACE_ID}"
-            f"&order=created_at.desc"
-        )
-        r = requests.get(base, headers=_headers(), timeout=20)
-        return r.json() if r.status_code == 200 else []
+        url = f"{_sb_url()}/rest/v1/students"
+        params = {
+            "select": "id,name,grade,class_group,diagnosis,created_at,pei_data",
+            "workspace_id": f"eq.{WORKSPACE_ID}",
+            "order": "name.asc"
+        }
+        
+        response = requests.get(url, headers=_headers(), params=params, timeout=20)
+        if response.status_code == 200:
+            return response.json()
+        return []
     except Exception as e:
         st.error(f"Erro ao carregar alunos: {str(e)}")
         return []
 
-def carregar_estudantes_supabase():
-    """Carrega e processa, extraindo dados ricos do PEI"""
-    dados = list_students_rest()
-    estudantes = []
-    
-    for item in dados:
-        pei_completo = item.get('pei_data') or {}
-        contexto_ia = pei_completo.get('ia_sugestao', '')
+def salvar_registro_diario(registro):
+    """Salva um registro no diário de bordo"""
+    try:
+        url = f"{_sb_url()}/rest/v1/diario_bordo"
         
-        if not contexto_ia:
-            diag = item.get('diagnosis', 'Não informado')
-            serie = item.get('grade', '')
-            contexto_ia = f"Aluno: {item.get('name')}. Série: {serie}. Diagnóstico: {diag}."
-
-        estudante = {
-            'nome': item.get('name', ''),
-            'serie': item.get('grade', ''),
-            'turma': item.get('class_group', ''),
-            'diagnostico': item.get('diagnosis', ''),
-            'ia_sugestao': contexto_ia,
-            'id': item.get('id', ''),
-            'pei_data': pei_completo
-        }
-        if estudante['nome']:
-            estudantes.append(estudante)
-            
-    return estudantes
-
-# ==============================================================================
-# CARREGAMENTO DOS DADOS DOS ALUNOS
-# ==============================================================================
-if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estudantes:
-    with st.spinner("🔄 Lendo dados da nuvem..."):
-        st.session_state.banco_estudantes = carregar_estudantes_supabase()
-
-if not st.session_state.banco_estudantes:
-    st.warning("⚠️ Nenhum aluno encontrado.")
-    if st.button("📘 Ir para o módulo PEI", type="primary"): 
-        st.switch_page("pages/1_PEI.py")
-    st.stop()
-
-# ==============================================================================
-# PARTE 3/4: CONEXÃO COM GOOGLE SHEETS (DIÁRIO DE BORDO)
-# ==============================================================================
-
-@st.cache_resource
-def conectar_banco():
-    """Conecta ao Google Sheets com tratamento de erro"""
-    try:
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        credentials = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
-        client = gspread.authorize(credentials)
-        return client.open("Omnisfera_Dados")
+        # Garantir que o workspace_id está no registro
+        registro['workspace_id'] = st.session_state.get("workspace_id")
+        registro['professor_id'] = USER_ID
+        
+        response = requests.post(url, headers=_headers(), json=registro, timeout=20)
+        
+        if response.status_code in [200, 201]:
+            return {"sucesso": True, "id": response.json().get('id')}
+        else:
+            return {"sucesso": False, "erro": f"HTTP {response.status_code}: {response.text}"}
     except Exception as e:
-        st.error(f"Erro fatal de conexão: {e}")
-        return None
+        return {"sucesso": False, "erro": str(e)}
 
-def preparar_aba_diario(sh):
-    """Prepara a aba de destino garantindo que ela aceita os dados"""
+def atualizar_registro_diario(registro_id, dados):
+    """Atualiza um registro existente"""
     try:
-        return sh.worksheet("Diario_Bordo")
-    except:
-        # Se não existir, cria com as colunas exatas que vamos usar
-        ws = sh.add_worksheet("Diario_Bordo", rows=1000, cols=12)
-        ws.append_row([
-            "ID", "Data_Hora", "Professor", "Aluno_ID", "Aluno_Nome", "Turma", 
-            "Serie", "Diagnostico", "Meta_PEI", "Estrategia_Base", "Atividade_Hub", 
-            "Avaliacao_Suporte", "Observacao", "Status_Integracao"
-        ])
-        return ws
+        url = f"{_sb_url()}/rest/v1/diario_bordo"
+        params = {"id": f"eq.{registro_id}"}
+        
+        response = requests.patch(url, headers=_headers(), params=params, json=dados, timeout=20)
+        return response.status_code in [200, 204]
+    except Exception as e:
+        st.error(f"Erro ao atualizar registro: {str(e)}")
+        return False
+
+def carregar_registros_aluno(aluno_id, limite=50):
+    """Carrega registros de um aluno específico"""
+    try:
+        url = f"{_sb_url()}/rest/v1/diario_bordo"
+        params = {
+            "select": "*",
+            "aluno_id": f"eq.{aluno_id}",
+            "order": "data_sessao.desc",
+            "limit": str(limite)
+        }
+        
+        response = requests.get(url, headers=_headers(), params=params, timeout=20)
+        if response.status_code == 200:
+            return response.json()
+        return []
+    except Exception as e:
+        st.error(f"Erro ao carregar registros: {str(e)}")
+        return []
+
+def carregar_todos_registros(limite=100):
+    """Carrega todos os registros do workspace"""
+    WORKSPACE_ID = st.session_state.get("workspace_id")
+    if not WORKSPACE_ID: 
+        return []
+    
+    try:
+        url = f"{_sb_url()}/rest/v1/diario_bordo"
+        params = {
+            "select": "*,students(name,grade,class_group)",
+            "workspace_id": f"eq.{WORKSPACE_ID}",
+            "order": "data_sessao.desc,created_at.desc",
+            "limit": str(limite)
+        }
+        
+        response = requests.get(url, headers=_headers(), params=params, timeout=20)
+        if response.status_code == 200:
+            return response.json()
+        return []
+    except Exception as e:
+        st.error(f"Erro ao carregar registros: {str(e)}")
+        return []
+
+def excluir_registro_diario(registro_id):
+    """Exclui um registro do diário"""
+    try:
+        url = f"{_sb_url()}/rest/v1/diario_bordo"
+        params = {"id": f"eq.{registro_id}"}
+        
+        response = requests.delete(url, headers=_headers(), params=params, timeout=20)
+        return response.status_code in [200, 204]
+    except Exception as e:
+        st.error(f"Erro ao excluir registro: {str(e)}")
+        return False
 
 # ==============================================================================
-# PARTE 4/4: INTERFACE DO DIÁRIO DE BORDO
+# SIDEBAR - FILTROS E NAVEGAÇÃO
 # ==============================================================================
-
-# --- SIDEBAR ---
 with st.sidebar:
     try: 
         st.image("ominisfera.png", width=150)
     except: 
-        st.write("🌐 OMNISFERA")
-    st.markdown("---")
-    
-    if st.button("🏠 Voltar para Home", use_container_width=True): 
-        st.switch_page("Home.py")
-    
-    if st.button("📋 Ir para PAE (Planejamento)", use_container_width=True):
-        st.switch_page("pages/2_PAE.py")
+        st.markdown("### 🌐 OMNISFERA PAEE")
     
     st.markdown("---")
     
-    # Identificação do Professor
-    st.header("👤 Identificação")
-    if "prof_nome" not in st.session_state: 
-        st.session_state["prof_nome"] = st.session_state.get("usuario_nome", "")
+    # Navegação
+    col_nav1, col_nav2 = st.columns(2)
+    with col_nav1:
+        if st.button("🏠 Home", use_container_width=True):
+            st.switch_page("Home.py")
+    with col_nav2:
+        if st.button("📋 PAE", use_container_width=True):
+            st.switch_page("pages/2_PAE.py")
     
-    st.session_state["prof_nome"] = st.text_input(
-        "Educador:", 
-        value=st.session_state["prof_nome"]
+    st.markdown("---")
+    
+    # Filtros
+    st.markdown("### 🔍 Filtros")
+    
+    # Carregar alunos
+    if 'alunos_cache' not in st.session_state:
+        with st.spinner("Carregando alunos..."):
+            st.session_state.alunos_cache = carregar_alunos_workspace()
+    
+    alunos = st.session_state.alunos_cache
+    
+    if not alunos:
+        st.warning("Nenhum aluno encontrado.")
+        st.stop()
+    
+    # Filtro por aluno
+    nomes_alunos = [f"{a['name']} ({a.get('grade', 'N/I')})" for a in alunos]
+    aluno_filtro = st.selectbox("Aluno:", ["Todos"] + nomes_alunos)
+    
+    # Filtro por período
+    periodo = st.selectbox("Período:", 
+                          ["Últimos 7 dias", "Últimos 30 dias", "Este mês", "Mês passado", "Personalizado", "Todos"])
+    
+    if periodo == "Personalizado":
+        col_data1, col_data2 = st.columns(2)
+        with col_data1:
+            data_inicio = st.date_input("De:", value=date.today() - timedelta(days=30))
+        with col_data2:
+            data_fim = st.date_input("Até:", value=date.today())
+    
+    # Filtro por modalidade
+    modalidade = st.multiselect(
+        "Modalidade:",
+        ["individual", "grupo", "observacao_sala", "consultoria"],
+        default=["individual", "grupo"]
     )
     
-    # Estatísticas Rápidas
     st.markdown("---")
+    
+    # Estatísticas rápidas
     st.markdown("### 📊 Estatísticas")
-    total_alunos = len(st.session_state.banco_estudantes)
-    st.metric("Total de Alunos", total_alunos)
-
-# --- CONEXÃO COM GOOGLE SHEETS ---
-sh = conectar_banco()
-if not sh: 
-    st.error("Não foi possível conectar ao banco de dados.")
-    st.stop()
-
-ws_diario = preparar_aba_diario(sh)
-
-# --- SELEÇÃO DE ALUNO ---
-st.markdown("### 👨‍🎓 Seleção do Aluno")
-
-# Criar lista de alunos com informações completas
-alunos_opcoes = []
-for aluno in st.session_state.banco_estudantes:
-    label = f"{aluno['nome']}"
-    if aluno.get('serie'):
-        label += f" | {aluno['serie']}"
-    if aluno.get('turma'):
-        label += f" | {aluno['turma']}"
-    alunos_opcoes.append((label, aluno))
-
-# Selectbox para escolha do aluno
-aluno_selecionado_label = st.selectbox(
-    "Selecione o aluno:",
-    options=[a[0] for a in alunos_opcoes],
-    index=0 if alunos_opcoes else None
-)
-
-# Obter dados do aluno selecionado
-aluno_selecionado = None
-for label, aluno in alunos_opcoes:
-    if label == aluno_selecionado_label:
-        aluno_selecionado = aluno
-        break
-
-if not aluno_selecionado:
-    st.error("Aluno não encontrado.")
-    st.stop()
-
-# Mostrar informações do aluno
-col_info1, col_info2, col_info3 = st.columns(3)
-with col_info1:
-    st.metric("Nome", aluno_selecionado['nome'])
-with col_info2:
-    st.metric("Série", aluno_selecionado.get('serie', 'Não informada'))
-with col_info3:
-    st.metric("Turma", aluno_selecionado.get('turma', 'Não informada'))
-
-st.divider()
-
-# --- ÁREA DO PEI DO ALUNO ---
-st.markdown("### 📋 Contexto do PEI")
-
-# Extrair metas do PEI (simplificado)
-def extrair_metas_do_pei(texto_pei):
-    """Extrai metas de um texto de PEI formatado"""
-    if not texto_pei:
-        return ["Meta não especificada"]
     
-    metas = []
-    linhas = texto_pei.split('\n')
+    # Carregar registros para estatísticas
+    registros = carregar_todos_registros(limite=500)
     
-    for linha in linhas:
-        linha = linha.strip()
-        if linha.startswith(("Meta:", "Objetivo:", "- ", "* ", "• ")):
-            # Remove marcadores
-            if linha.startswith("Meta:"):
-                meta = linha.replace("Meta:", "").strip()
-            elif linha.startswith("Objetivo:"):
-                meta = linha.replace("Objetivo:", "").strip()
-            else:
-                meta = linha[2:].strip() if len(linha) > 2 else linha
+    if registros:
+        total_registros = len(registros)
+        registros_ultimos_30 = len([r for r in registros 
+                                  if datetime.fromisoformat(r['created_at'].replace('Z', '+00:00')).date() > date.today() - timedelta(days=30)])
+        
+        col_stat1, col_stat2 = st.columns(2)
+        with col_stat1:
+            st.metric("Total", total_registros)
+        with col_stat2:
+            st.metric("Últimos 30d", registros_ultimos_30)
+    else:
+        st.info("Nenhum registro encontrado.")
+
+# ==============================================================================
+# ABA PRINCIPAL - DIÁRIO DE BORDO
+# ==============================================================================
+
+# Criar abas
+tab_novo, tab_lista, tab_relatorios, tab_config = st.tabs([
+    "📝 Novo Registro", "📋 Lista de Registros", "📊 Relatórios", "⚙️ Configurações"
+])
+
+# ==============================================================================
+# ABA 1: NOVO REGISTRO
+# ==============================================================================
+with tab_novo:
+    st.markdown("### 📝 Nova Sessão de AEE")
+    
+    with st.form("form_nova_sessao", clear_on_submit=True):
+        st.markdown("<div class='form-section'>", unsafe_allow_html=True)
+        
+        # Seção 1: Informações básicas
+        st.markdown("#### 1. Informações da Sessão")
+        
+        col_info1, col_info2, col_info3 = st.columns(3)
+        
+        with col_info1:
+            # Seleção do aluno
+            aluno_options = {f"{a['name']} ({a.get('grade', 'N/I')})": a for a in alunos}
+            aluno_selecionado_label = st.selectbox(
+                "Aluno *",
+                options=list(aluno_options.keys()),
+                help="Selecione o aluno atendido"
+            )
             
-            if meta and meta not in metas:
-                metas.append(meta)
-    
-    return metas if metas else ["Desenvolver habilidades específicas conforme necessidade"]
-
-# Extrair estratégias do PEI
-def extrair_estrategias_do_pei(texto_pei):
-    """Extrai estratégias do texto do PEI"""
-    if not texto_pei:
-        return ["Estratégia não especificada"]
-    
-    estrategias = []
-    linhas = texto_pei.split('\n')
-    
-    for linha in linhas:
-        linha = linha.strip()
-        if any(term in linha.lower() for term in ["estratégia", "recurso", "adaptação", "método"]):
-            if linha not in estrategias:
-                estrategias.append(linha)
-    
-    return estrategias if estrategias else ["Uso de recursos visuais e adaptações conforme necessário"]
-
-# Obter texto do PEI
-texto_pei = aluno_selecionado.get('ia_sugestao', '')
-metas = extrair_metas_do_pei(texto_pei)
-estrategias = extrair_estrategias_do_pei(texto_pei)
-
-# Mostrar PEI em colunas
-col_meta, col_estrategia = st.columns(2)
-
-with col_meta:
-    st.markdown("**Metas do PEI:**")
-    for i, meta in enumerate(metas[:3], 1):
-        st.markdown(f"{i}. {meta}")
-
-with col_estrategia:
-    st.markdown("**Estratégias do PEI:**")
-    for i, estrategia in enumerate(estrategias[:3], 1):
-        st.markdown(f"{i}. {estrategia}")
-
-# Expander com PEI completo
-with st.expander("📄 Ver PEI Completo"):
-    st.text_area("Conteúdo do PEI", texto_pei, height=200, disabled=True)
-
-st.divider()
-
-# --- FORMULÁRIO DE REGISTRO DO DIÁRIO ---
-st.markdown("### 📝 Registro da Atividade")
-
-with st.form("form_diario", clear_on_submit=True):
-    st.markdown("<div class='form-container'>", unsafe_allow_html=True)
-    
-    col_atv, col_aval = st.columns([2, 1])
-    
-    with col_atv:
-        # Campo para descrever a atividade
-        atividade_desc = st.text_area(
-            "**Descrição da Atividade Realizada:**",
+            aluno_selecionado = aluno_options[aluno_selecionado_label]
+            aluno_id = aluno_selecionado['id']
+        
+        with col_info2:
+            data_sessao = st.date_input(
+                "Data da Sessão *",
+                value=date.today(),
+                help="Data em que a sessão foi realizada"
+            )
+            
+            duracao = st.number_input(
+                "Duração (minutos) *",
+                min_value=15,
+                max_value=240,
+                value=45,
+                step=15,
+                help="Duração da sessão em minutos"
+            )
+        
+        with col_info3:
+            modalidade = st.selectbox(
+                "Modalidade *",
+                options=[
+                    ("individual", "Individual"),
+                    ("grupo", "Grupo"),
+                    ("observacao_sala", "Observação em Sala"),
+                    ("consultoria", "Consultoria")
+                ],
+                format_func=lambda x: x[1],
+                help="Modalidade de atendimento"
+            )[0]
+            
+            engajamento = st.slider(
+                "Engajamento do Aluno",
+                min_value=1,
+                max_value=5,
+                value=3,
+                help="1 = Baixo engajamento, 5 = Alto engajamento"
+            )
+        
+        st.divider()
+        
+        # Seção 2: Conteúdo da sessão
+        st.markdown("#### 2. Conteúdo da Sessão")
+        
+        atividade = st.text_area(
+            "Atividade Principal *",
+            height=100,
+            placeholder="Descreva a atividade principal realizada...",
+            help="Ex: Jogo de memória com figuras geométricas, leitura compartilhada, exercício de coordenação motora..."
+        )
+        
+        col_conteudo1, col_conteudo2 = st.columns(2)
+        
+        with col_conteudo1:
+            objetivos = st.text_area(
+                "Objetivos Trabalhados *",
+                height=120,
+                placeholder="Quais objetivos foram trabalhados nesta sessão?",
+                help="Ex: Desenvolver atenção sustentada, melhorar coordenação visomotora, ampliar vocabulário..."
+            )
+        
+        with col_conteudo2:
+            estrategias = st.text_area(
+                "Estratégias Utilizadas *",
+                height=120,
+                placeholder="Quais estratégias pedagógicas foram utilizadas?",
+                help="Ex: Modelagem, dicas visuais, fragmentação da tarefa, reforço positivo..."
+            )
+        
+        recursos = st.text_input(
+            "Recursos e Materiais",
+            placeholder="Recursos utilizados (separados por vírgula)",
+            help="Ex: Tablets, jogos pedagógicos, materiais concretos, recursos visuais..."
+        )
+        
+        st.divider()
+        
+        # Seção 3: Avaliação e observações
+        st.markdown("#### 3. Avaliação e Observações")
+        
+        col_avaliacao1, col_avaliacao2 = st.columns(2)
+        
+        with col_avaliacao1:
+            nivel_dificuldade = st.selectbox(
+                "Nível de Dificuldade",
+                options=[
+                    ("muito_facil", "Muito Fácil"),
+                    ("facil", "Fácil"),
+                    ("adequado", "Adequado"),
+                    ("desafiador", "Desafiador"),
+                    ("muito_dificil", "Muito Difícil")
+                ],
+                format_func=lambda x: x[1],
+                index=2
+            )[0]
+        
+        with col_avaliacao2:
+            competencias = st.multiselect(
+                "Competências Trabalhadas",
+                options=[
+                    "atenção", "memória", "raciocínio", "linguagem",
+                    "socialização", "autonomia", "motricidade", "percepção",
+                    "organização", "regulação emocional"
+                ],
+                default=["atenção", "memória"]
+            )
+        
+        col_obs1, col_obs2 = st.columns(2)
+        
+        with col_obs1:
+            pontos_positivos = st.text_area(
+                "Pontos Positivos",
+                height=100,
+                placeholder="O que funcionou bem?",
+                help="Registre os aspectos positivos da sessão"
+            )
+        
+        with col_obs2:
+            dificuldades = st.text_area(
+                "Dificuldades Identificadas",
+                height=100,
+                placeholder="Quais dificuldades foram observadas?",
+                help="Registre desafios encontrados durante a sessão"
+            )
+        
+        observacoes = st.text_area(
+            "Observações Gerais",
             height=120,
-            placeholder="Descreva detalhadamente a atividade:\n• O que foi feito?\n• Quais recursos foram utilizados?\n• Como foi conduzida?",
-            help="Seja específico sobre a atividade realizada com o aluno."
+            placeholder="Outras observações relevantes...",
+            help="Registre qualquer informação adicional importante"
         )
         
-        # Seleção de meta do PEI vinculada
-        meta_selecionada = st.selectbox(
-            "**Meta do PEI Relacionada:**",
-            options=metas,
-            index=0 if metas else None,
-            help="Selecione a meta do PEI que esta atividade ajudou a desenvolver."
+        st.divider()
+        
+        # Seção 4: Próximos passos
+        st.markdown("#### 4. Próximos Passos")
+        
+        proximos_passos = st.text_area(
+            "Plano para Próxima Sessão",
+            height=100,
+            placeholder="O que planejar para a próxima sessão?",
+            help="Sugestões e planejamento para continuidade do trabalho"
         )
         
-        # Seleção de estratégia
-        estrategia_selecionada = st.selectbox(
-            "**Estratégia Utilizada:**",
-            options=estrategias,
-            index=0 if estrategias else None,
-            help="Selecione a estratégia do PEI utilizada nesta atividade."
-        )
-    
-    with col_aval:
-        # Avaliação do desempenho
-        avaliacao = st.select_slider(
-            "**Nível de Desempenho do Aluno:**",
-            options=[
-                "🔴 Não engajou/Dificuldade extrema",
-                "🟠 Engajou com ajuda intensiva",
-                "🟡 Engajou com ajuda moderada", 
-                "🟢 Engajou com ajuda mínima",
-                "🔵 Engajou com autonomia"
-            ],
-            value="🟡 Engajou com ajuda moderada",
-            help="Avalie como o aluno respondeu à atividade."
+        encaminhamentos = st.text_input(
+            "Encaminhamentos Necessários",
+            placeholder="Encaminhamentos para outros profissionais",
+            help="Ex: Encaminhar para fonoaudiólogo, solicitar avaliação psicológica..."
         )
         
-        # Dificuldades observadas
-        dificuldades = st.multiselect(
-            "**Dificuldades Observadas:**",
-            options=[
-                "Atenção", "Compreensão", "Memória", 
-                "Motivação", "Comunicação", "Motor Fino",
-                "Organização", "Socialização", "Outra"
-            ],
-            default=[],
-            help="Selecione as dificuldades observadas durante a atividade."
-        )
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Botões de ação
+        col_botoes1, col_botoes2, col_botoes3 = st.columns([1, 1, 1])
+        
+        with col_botoes2:
+            salvar = st.form_submit_button(
+                "💾 Salvar Registro",
+                type="primary",
+                use_container_width=True
+            )
+        
+        if salvar:
+            # Validações
+            if not atividade or not objetivos or not estrategias:
+                st.error("Por favor, preencha os campos obrigatórios (*)")
+            else:
+                # Preparar registro
+                registro = {
+                    "aluno_id": aluno_id,
+                    "data_sessao": data_sessao.isoformat(),
+                    "duracao_minutos": duracao,
+                    "modalidade_atendimento": modalidade,
+                    "atividade_principal": atividade,
+                    "objetivos_trabalhados": objetivos,
+                    "estrategias_utilizadas": estrategias,
+                    "recursos_materiais": recursos,
+                    "engajamento_aluno": engajamento,
+                    "nivel_dificuldade": nivel_dificuldade,
+                    "competencias_trabalhadas": competencias,
+                    "pontos_positivos": pontos_positivos,
+                    "dificuldades_identificadas": dificuldades,
+                    "observacoes": observacoes,
+                    "proximos_passos": proximos_passos,
+                    "encaminhamentos": encaminhamentos,
+                    "status": "finalizado",
+                    "tags": competencias  # Usar competências como tags
+                }
+                
+                # Salvar no Supabase
+                with st.spinner("Salvando registro..."):
+                    resultado = salvar_registro_diario(registro)
+                    
+                    if resultado["sucesso"]:
+                        st.success("✅ Registro salvo com sucesso!")
+                        
+                        # Mostrar resumo
+                        with st.expander("📋 Ver Resumo do Registro", expanded=True):
+                            col_resumo1, col_resumo2 = st.columns(2)
+                            with col_resumo1:
+                                st.markdown(f"**Aluno:** {aluno_selecionado_label}")
+                                st.markdown(f"**Data:** {data_sessao.strftime('%d/%m/%Y')}")
+                                st.markdown(f"**Duração:** {duracao} minutos")
+                                st.markdown(f"**Modalidade:** {modalidade}")
+                            
+                            with col_resumo2:
+                                st.markdown(f"**Engajamento:** {'⭐' * engajamento}")
+                                st.markdown(f"**Competências:** {', '.join(competencias)}")
+                                st.markdown(f"**ID do Registro:** {resultado.get('id', 'N/A')}")
+                        
+                        time.sleep(2)
+                        st.rerun()
+                    else:
+                        st.error(f"❌ Erro ao salvar: {resultado.get('erro', 'Erro desconhecido')}")
+
+# ==============================================================================
+# ABA 2: LISTA DE REGISTROS
+# ==============================================================================
+with tab_lista:
+    st.markdown("### 📋 Registros de Atendimento")
     
-    # Campo para observações adicionais
-    observacoes = st.text_area(
-        "**Observações Adicionais / Insights:**",
-        height=80,
-        placeholder="Registre observações importantes, reações do aluno, sugestões para próximas atividades...",
-        help="Quaisquer observações qualitativas que possam ajudar no acompanhamento."
-    )
+    # Carregar registros com filtros
+    todos_registros = carregar_todos_registros(limite=200)
     
-    # Campo para próximos passos
-    proximos_passos = st.text_input(
-        "**Próximos Passos Sugeridos:**",
-        placeholder="O que fazer na próxima sessão?",
-        help="Sugestão para continuidade do trabalho."
-    )
+    if not todos_registros:
+        st.info("Nenhum registro encontrado. Crie seu primeiro registro na aba 'Novo Registro'.")
+    else:
+        # Aplicar filtros
+        registros_filtrados = todos_registros.copy()
+        
+        # Filtro por aluno
+        if aluno_filtro != "Todos":
+            aluno_nome = aluno_filtro.split("(")[0].strip()
+            registros_filtrados = [r for r in registros_filtrados 
+                                 if r.get('students', {}).get('name') == aluno_nome]
+        
+        # Filtro por período
+        if periodo != "Todos":
+            hoje = date.today()
+            if periodo == "Últimos 7 dias":
+                data_corte = hoje - timedelta(days=7)
+                registros_filtrados = [r for r in registros_filtrados 
+                                     if datetime.fromisoformat(r['data_sessao']).date() >= data_corte]
+            elif periodo == "Últimos 30 dias":
+                data_corte = hoje - timedelta(days=30)
+                registros_filtrados = [r for r in registros_filtrados 
+                                     if datetime.fromisoformat(r['data_sessao']).date() >= data_corte]
+            elif periodo == "Este mês":
+                registros_filtrados = [r for r in registros_filtrados 
+                                     if datetime.fromisoformat(r['data_sessao']).date().month == hoje.month]
+            elif periodo == "Mês passado":
+                mes_passado = hoje.month - 1 if hoje.month > 1 else 12
+                registros_filtrados = [r for r in registros_filtrados 
+                                     if datetime.fromisoformat(r['data_sessao']).date().month == mes_passado]
+            elif periodo == "Personalizado":
+                registros_filtrados = [r for r in registros_filtrados 
+                                     if data_inicio <= datetime.fromisoformat(r['data_sessao']).date() <= data_fim]
+        
+        # Filtro por modalidade
+        if modalidade:
+            registros_filtrados = [r for r in registros_filtrados 
+                                 if r.get('modalidade_atendimento') in modalidade]
+        
+        # Estatísticas dos filtrados
+        col_stats1, col_stats2, col_stats3, col_stats4 = st.columns(4)
+        with col_stats1:
+            st.metric("Total Filtrado", len(registros_filtrados))
+        with col_stats2:
+            total_minutos = sum(r.get('duracao_minutos', 0) for r in registros_filtrados)
+            st.metric("Horas de Atendimento", f"{total_minutos // 60}h")
+        with col_stats3:
+            media_engajamento = sum(r.get('engajamento_aluno', 0) for r in registros_filtrados) / len(registros_filtrados) if registros_filtrados else 0
+            st.metric("Engajamento Médio", f"{media_engajamento:.1f}/5")
+        with col_stats4:
+            if registros_filtrados:
+                ultimo_registro = max(registros_filtrados, key=lambda x: x['data_sessao'])
+                st.metric("Última Sessão", datetime.fromisoformat(ultimo_registro['data_sessao']).strftime('%d/%m'))
+        
+        st.divider()
+        
+        # Exibir registros
+        for registro in registros_filtrados:
+            aluno_nome = registro.get('students', {}).get('name', 'Aluno não encontrado')
+            data_formatada = datetime.fromisoformat(registro['data_sessao']).strftime('%d/%m/%Y')
+            
+            # Determinar classe CSS baseada na modalidade
+            modalidade_classe = {
+                'individual': 'badge-individual',
+                'grupo': 'badge-grupo',
+                'observacao_sala': 'badge-observacao'
+            }.get(registro.get('modalidade_atendimento'), '')
+            
+            with st.expander(f"📅 {data_formatada} | {aluno_nome} | {registro.get('atividade_principal', '')[:50]}...", expanded=False):
+                col_reg1, col_reg2 = st.columns([3, 1])
+                
+                with col_reg1:
+                    st.markdown(f"**Atividade:** {registro.get('atividade_principal', '')}")
+                    st.markdown(f"**Objetivos:** {registro.get('objetivos_trabalhados', '')}")
+                    st.markdown(f"**Estratégias:** {registro.get('estrategias_utilizadas', '')}")
+                    
+                    if registro.get('observacoes'):
+                        st.markdown(f"**Observações:** {registro.get('observacoes')}")
+                    
+                    if registro.get('proximos_passos'):
+                        st.markdown(f"**Próximos Passos:** {registro.get('proximos_passos')}")
+                
+                with col_reg2:
+                    st.markdown(f"<span class='{modalidade_classe}' style='padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;'>{registro.get('modalidade_atendimento', '').replace('_', ' ').title()}</span>", unsafe_allow_html=True)
+                    st.markdown(f"**Duração:** {registro.get('duracao_minutos', 0)} min")
+                    st.markdown(f"**Engajamento:** {'⭐' * registro.get('engajamento_aluno', 0)}")
+                    
+                    if registro.get('competencias_trabalhadas'):
+                        competencias = ', '.join(registro.get('competencias_trabalhadas', []))
+                        st.markdown(f"**Competências:** {competencias}")
+                    
+                    # Botões de ação
+                    col_btn1, col_btn2 = st.columns(2)
+                    with col_btn1:
+                        if st.button("✏️ Editar", key=f"edit_{registro['id']}", use_container_width=True):
+                            st.session_state.editar_registro_id = registro['id']
+                            st.switch_page("#")  # Poderia abrir modal de edição
+                    
+                    with col_btn2:
+                        if st.button("🗑️ Excluir", key=f"del_{registro['id']}", type="secondary", use_container_width=True):
+                            if excluir_registro_diario(registro['id']):
+                                st.success("Registro excluído!")
+                                time.sleep(1)
+                                st.rerun()
+                            else:
+                                st.error("Erro ao excluir registro")
+        
+        # Paginação (simplificada)
+        if len(registros_filtrados) > 10:
+            st.markdown(f"**Mostrando {min(10, len(registros_filtrados))} de {len(registros_filtrados)} registros**")
+
+# ==============================================================================
+# ABA 3: RELATÓRIOS
+# ==============================================================================
+with tab_relatorios:
+    st.markdown("### 📊 Relatórios e Análises")
     
-    st.markdown("</div>", unsafe_allow_html=True)
+    # Carregar dados
+    registros = carregar_todos_registros(limite=500)
     
-    # Botão de envio
-    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-    with col_btn2:
-        enviar = st.form_submit_button(
-            "💾 **Salvar Registro no Diário**", 
-            type="primary", 
-            use_container_width=True
-        )
-    
-    if enviar:
-        # Validações
-        if not st.session_state["prof_nome"]:
-            st.error("Por favor, identifique-se na barra lateral.")
-        elif not atividade_desc:
-            st.error("Por favor, descreva a atividade realizada.")
-        else:
-            with st.spinner("Salvando registro no diário..."):
-                try:
-                    # Preparar dados para envio
-                    registro_data = {
-                        "ID": str(datetime.now().timestamp()),
-                        "Data_Hora": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                        "Professor": str(st.session_state["prof_nome"]),
-                        "Aluno_ID": str(aluno_selecionado['id']),
-                        "Aluno_Nome": str(aluno_selecionado['nome']),
-                        "Turma": str(aluno_selecionado.get('turma', '')),
-                        "Serie": str(aluno_selecionado.get('serie', '')),
-                        "Diagnostico": str(aluno_selecionado.get('diagnostico', '')),
-                        "Meta_PEI": str(meta_selecionada),
-                        "Estrategia_Base": str(estrategia_selecionada),
-                        "Atividade_Hub": str(atividade_desc),
-                        "Avaliacao_Suporte": str(avaliacao),
-                        "Dificuldades": ", ".join(dificuldades) if dificuldades else "Nenhuma",
-                        "Observacao": str(observacoes),
-                        "Proximos_Passos": str(proximos_passos) if proximos_passos else "",
-                        "Status_Integracao": "Integrado"
+    if not registros:
+        st.info("Nenhum dado disponível para gerar relatórios.")
+    else:
+        # Converter para DataFrame
+        df = pd.DataFrame(registros)
+        
+        # Converter datas
+        df['data_sessao'] = pd.to_datetime(df['data_sessao'])
+        df['mes'] = df['data_sessao'].dt.to_period('M')
+        
+        col_rel1, col_rel2 = st.columns(2)
+        
+        with col_rel1:
+            # Gráfico de atendimentos por mês
+            st.markdown("#### 📅 Atendimentos por Mês")
+            atendimentos_mes = df.groupby('mes').size().reset_index(name='count')
+            atendimentos_mes['mes'] = atendimentos_mes['mes'].astype(str)
+            
+            fig1 = px.bar(
+                atendimentos_mes,
+                x='mes',
+                y='count',
+                title="Quantidade de Atendimentos por Mês",
+                color='count',
+                color_continuous_scale='teal'
+            )
+            fig1.update_layout(showlegend=False, height=300)
+            st.plotly_chart(fig1, use_container_width=True)
+        
+        with col_rel2:
+            # Distribuição por modalidade
+            st.markdown("#### 📊 Distribuição por Modalidade")
+            modalidade_counts = df['modalidade_atendimento'].value_counts().reset_index()
+            modalidade_counts.columns = ['modalidade', 'count']
+            
+            fig2 = px.pie(
+                modalidade_counts,
+                values='count',
+                names='modalidade',
+                title="Distribuição por Modalidade de Atendimento",
+                color_discrete_sequence=px.colors.sequential.Teal
+            )
+            fig2.update_layout(showlegend=True, height=300)
+            st.plotly_chart(fig2, use_container_width=True)
+        
+        # Gráfico de engajamento ao longo do tempo
+        st.markdown("#### 📈 Evolução do Engajamento")
+        
+        if 'aluno_id' in df.columns:
+            # Selecionar aluno específico para análise
+            alunos_unicos = df['aluno_id'].unique()
+            if len(alunos_unicos) > 0:
+                aluno_selecionado_id = st.selectbox(
+                    "Selecione o aluno para análise:",
+                    options=alunos_unicos,
+                    format_func=lambda x: alunos_dict.get(x, f"Aluno {x[:8]}") if 'alunos_dict' in locals() else f"Aluno {x[:8]}"
+                )
+                
+                # Filtrar dados do aluno
+                df_aluno = df[df['aluno_id'] == aluno_selecionado_id].sort_values('data_sessao')
+                
+                if len(df_aluno) > 1:
+                    fig3 = px.line(
+                        df_aluno,
+                        x='data_sessao',
+                        y='engajamento_aluno',
+                        title=f"Evolução do Engajamento - {alunos_dict.get(aluno_selecionado_id, 'Aluno')}",
+                        markers=True,
+                        line_shape='spline'
+                    )
+                    fig3.update_layout(height=400)
+                    st.plotly_chart(fig3, use_container_width=True)
+                    
+                    # Estatísticas do aluno
+                    col_aluno1, col_aluno2, col_aluno3, col_aluno4 = st.columns(4)
+                    with col_aluno1:
+                        st.metric("Total Sessões", len(df_aluno))
+                    with col_aluno2:
+                        st.metric("Engajamento Médio", f"{df_aluno['engajamento_aluno'].mean():.1f}/5")
+                    with col_aluno3:
+                        st.metric("Duração Média", f"{df_aluno['duracao_minutos'].mean():.0f} min")
+                    with col_aluno4:
+                        ultima_sessao = df_aluno.iloc[0]['data_sessao']
+                        st.metric("Última Sessão", ultima_sessao.strftime('%d/%m'))
+        
+        # Competências mais trabalhadas
+        st.markdown("#### 🎯 Competências Trabalhadas")
+        
+        # Extrair todas as competências
+        todas_competencias = []
+        for competencias in df['competencias_trabalhadas']:
+            if competencias:
+                todas_competencias.extend(competencias)
+        
+        if todas_competencias:
+            competencias_df = pd.DataFrame({'competencia': todas_competencias})
+            competencias_counts = competencias_df['competencia'].value_counts().reset_index()
+            competencias_counts.columns = ['competencia', 'count']
+            
+            fig4 = px.bar(
+                competencias_counts.head(10),
+                x='count',
+                y='competencia',
+                orientation='h',
+                title="Top 10 Competências Trabalhadas",
+                color='count',
+                color_continuous_scale='teal'
+            )
+            fig4.update_layout(height=400)
+            st.plotly_chart(fig4, use_container_width=True)
+        
+        # Exportar dados
+        st.divider()
+        st.markdown("#### 📥 Exportar Dados")
+        
+        col_exp1, col_exp2, col_exp3 = st.columns(3)
+        
+        with col_exp1:
+            # Exportar como CSV
+            csv = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📄 Exportar CSV",
+                data=csv,
+                file_name=f"diario_bordo_{date.today()}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+        
+        with col_exp2:
+            # Exportar como JSON
+            json_data = df.to_json(orient='records', indent=2, force_ascii=False)
+            st.download_button(
+                label="📋 Exportar JSON",
+                data=json_data,
+                file_name=f"diario_bordo_{date.today()}.json",
+                mime="application/json",
+                use_container_width=True
+            )
+        
+        with col_exp3:
+            # Gerar relatório resumido
+            if st.button("📊 Gerar Relatório Resumido", use_container_width=True):
+                with st.spinner("Gerando relatório..."):
+                    # Criar relatório resumido
+                    relatorio = {
+                        "data_geracao": datetime.now().isoformat(),
+                        "total_registros": len(df),
+                        "periodo_analisado": f"{df['data_sessao'].min().date()} a {df['data_sessao'].max().date()}",
+                        "total_alunos": df['aluno_id'].nunique(),
+                        "total_horas": int(df['duracao_minutos'].sum() / 60),
+                        "engajamento_medio": float(df['engajamento_aluno'].mean()),
+                        "modalidades": df['modalidade_atendimento'].value_counts().to_dict(),
+                        "top_competencias": competencias_counts.head(5).to_dict('records') if 'competencias_counts' in locals() else []
                     }
                     
-                    # Converter para lista na ordem correta das colunas
-                    nova_linha = [
-                        registro_data["ID"],
-                        registro_data["Data_Hora"],
-                        registro_data["Professor"],
-                        registro_data["Aluno_ID"],
-                        registro_data["Aluno_Nome"],
-                        registro_data["Turma"],
-                        registro_data["Serie"],
-                        registro_data["Diagnostico"],
-                        registro_data["Meta_PEI"],
-                        registro_data["Estrategia_Base"],
-                        registro_data["Atividade_Hub"],
-                        registro_data["Avaliacao_Suporte"],
-                        f"Dificuldades: {registro_data['Dificuldades']}. Obs: {registro_data['Observacao']}. Próximos: {registro_data['Proximos_Passos']}"
-                    ]
-                    
-                    # Enviar para Google Sheets
-                    ws_diario.append_row(nova_linha)
-                    
-                    st.success("✅ Registro salvo com sucesso no diário de bordo!")
-                    time.sleep(1.5)
-                    st.rerun()
-                    
-                except Exception as e:
-                    st.error(f"Erro ao salvar: {str(e)}")
-                    st.info("Verifique a conexão com o Google Sheets ou entre em contato com o suporte.")
+                    st.json(relatorio)
 
-st.divider()
-
-# --- HISTÓRICO DE REGISTROS ---
-st.markdown(f"### 📚 Histórico de Registros: {aluno_selecionado['nome']}")
-
-try:
-    # Ler todos os registros
-    todos_registros = ws_diario.get_all_records()
-    df_registros = pd.DataFrame(todos_registros)
+# ==============================================================================
+# ABA 4: CONFIGURAÇÕES
+# ==============================================================================
+with tab_config:
+    st.markdown("### ⚙️ Configurações do Diário")
     
-    if not df_registros.empty and "Aluno_Nome" in df_registros.columns:
-        # Filtrar registros do aluno selecionado
-        registros_aluno = df_registros[
-            df_registros["Aluno_Nome"] == aluno_selecionado['nome']
-        ].sort_values("Data_Hora", ascending=False)
+    col_config1, col_config2 = st.columns(2)
+    
+    with col_config1:
+        st.markdown("#### 📋 Configurações de Registro")
         
-        if registros_aluno.empty:
-            st.info("Nenhum registro encontrado para este aluno.")
-        else:
-            # Mostrar últimos 5 registros
-            for _, registro in registros_aluno.head(5).iterrows():
-                # Determinar cor baseada na avaliação
-                cor_borda = "#E2E8F0"  # padrão
-                if "🔴" in str(registro.get("Avaliacao_Suporte", "")):
-                    cor_borda = "#EF4444"
-                elif "🟢" in str(registro.get("Avaliacao_Suporte", "")) or "🔵" in str(registro.get("Avaliacao_Suporte", "")):
-                    cor_borda = "#10B981"
-                
-                st.markdown(f"""
-                <div class="log-entry" style="border-left: 4px solid {cor_borda};">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div style="flex-grow: 1;">
-                            <div style="font-weight: 700; color: #1E293B; margin-bottom: 5px;">
-                                {registro.get('Data_Hora', '')} | {registro.get('Meta_PEI', '')[:50]}...
-                            </div>
-                            <div style="font-size: 0.9rem; color: #4B5563; margin-bottom: 8px;">
-                                <strong>Atividade:</strong> {registro.get('Atividade_Hub', '')[:150]}...
-                            </div>
-                            <div style="display: flex; gap: 15px; font-size: 0.85rem;">
-                                <span><strong>Avaliação:</strong> {registro.get('Avaliacao_Suporte', '')}</span>
-                                <span><strong>Professor:</strong> {registro.get('Professor', '')}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Mostrar estatísticas
-            col_stats1, col_stats2, col_stats3 = st.columns(3)
-            with col_stats1:
-                st.metric("Total de Registros", len(registros_aluno))
-            with col_stats2:
-                registros_mes = len([r for r in registros_aluno.itertuples() 
-                                   if datetime.now().month == datetime.strptime(r.Data_Hora, "%d/%m/%Y %H:%M").month])
-                st.metric("Este Mês", registros_mes)
-            with col_stats3:
-                if not registros_aluno.empty:
-                    ultimo_registro = registros_aluno.iloc[0]
-                    st.metric("Última Avaliação", ultimo_registro.get("Avaliacao_Suporte", "N/A"))
-            
-            # Botão para exportar
-            if st.button("📥 Exportar Histórico Completo (CSV)", use_container_width=True):
-                csv = registros_aluno.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="Clique para baixar",
-                    data=csv,
-                    file_name=f"Historico_{aluno_selecionado['nome']}_{date.today()}.csv",
-                    mime="text/csv"
-                )
+        # Configurações padrão
+        if 'config_diario' not in st.session_state:
+            st.session_state.config_diario = {
+                'duracao_padrao': 45,
+                'modalidade_padrao': 'individual',
+                'competencias_padrao': ['atenção', 'memória'],
+                'notificacoes': True
+            }
+        
+        duracao_padrao = st.number_input(
+            "Duração Padrão (minutos)",
+            min_value=15,
+            max_value=120,
+            value=st.session_state.config_diario['duracao_padrao'],
+            step=15
+        )
+        
+        modalidade_padrao = st.selectbox(
+            "Modalidade Padrão",
+            options=['individual', 'grupo', 'observacao_sala', 'consultoria'],
+            index=['individual', 'grupo', 'observacao_sala', 'consultoria'].index(
+                st.session_state.config_diario['modalidade_padrao']
+            )
+        )
+        
+        competencias_padrao = st.multiselect(
+            "Competências Padrão",
+            options=['atenção', 'memória', 'raciocínio', 'linguagem', 'socialização', 
+                    'autonomia', 'motricidade', 'percepção', 'organização', 'regulação emocional'],
+            default=st.session_state.config_diario['competencias_padrao']
+        )
+        
+        notificacoes = st.toggle(
+            "Receber lembretes de registro",
+            value=st.session_state.config_diario['notificacoes']
+        )
     
-except Exception as e:
-    st.info("Nenhum histórico disponível ou erro ao carregar.")
+    with col_config2:
+        st.markdown("#### 🔧 Configurações de Exportação")
+        
+        formato_export = st.selectbox(
+            "Formato Padrão de Exportação",
+            options=['CSV', 'JSON', 'PDF', 'Excel']
+        )
+        
+        incluir_dados = st.multiselect(
+            "Campos para Exportação",
+            options=['dados_aluno', 'conteudo_sessao', 'avaliacoes', 'observacoes', 'proximos_passos'],
+            default=['dados_aluno', 'conteudo_sessao', 'avaliacoes']
+        )
+        
+        auto_backup = st.toggle("Backup Automático", value=True)
+        
+        if auto_backup:
+            freq_backup = st.selectbox(
+                "Frequência do Backup",
+                options=['Diário', 'Semanal', 'Mensal']
+            )
+    
+    st.divider()
+    
+    # Botões de ação
+    col_save, col_reset, col_help = st.columns(3)
+    
+    with col_save:
+        if st.button("💾 Salvar Configurações", type="primary", use_container_width=True):
+            st.session_state.config_diario = {
+                'duracao_padrao': duracao_padrao,
+                'modalidade_padrao': modalidade_padrao,
+                'competencias_padrao': competencias_padrao,
+                'notificacoes': notificacoes
+            }
+            st.success("Configurações salvas com sucesso!")
+    
+    with col_reset:
+        if st.button("🔄 Restaurar Padrões", type="secondary", use_container_width=True):
+            st.session_state.config_diario = {
+                'duracao_padrao': 45,
+                'modalidade_padrao': 'individual',
+                'competencias_padrao': ['atenção', 'memória'],
+                'notificacoes': True
+            }
+            st.success("Configurações restauradas para os padrões!")
+            st.rerun()
+    
+    with col_help:
+        if st.button("❓ Ajuda", use_container_width=True):
+            st.info("""
+            **Guia de Uso do Diário de Bordo:**
+            
+            1. **Novo Registro:** Preencha todos os campos obrigatórios (*) para criar um registro
+            2. **Lista de Registros:** Visualize, filtre e gerencie todos os registros
+            3. **Relatórios:** Acompanhe métricas e gere análises
+            4. **Configurações:** Personalize o comportamento do sistema
+            
+            **Dicas:**
+            - Use tags e competências para facilitar buscas
+            - Exporte regularmente seus dados
+            - Mantenha observações detalhadas para acompanhamento longitudinal
+            """)
 
 # ==============================================================================
 # RODAPÉ
@@ -638,8 +1076,8 @@ except Exception as e:
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #64748B; font-size: 0.9rem; padding: 20px;">
-    <p>📝 <strong>Diário de Bordo Pedagógico</strong> | Sistema Integrado Omnisfera</p>
-    <p>💡 <strong>Dica:</strong> Registre após cada atendimento para construir um histórico rico do desenvolvimento do aluno.</p>
-    <p>🔗 <strong>Integração:</strong> Os registros são automaticamente vinculados ao PEI do aluno.</p>
+    <p>📘 <strong>Diário de Bordo PAEE - Sistema Profissional de Registro</strong> | Omnisfera Educação Inclusiva</p>
+    <p>💡 <strong>Dica:</strong> Registre imediatamente após cada sessão para maior precisão. Use as tags para organizar por competências.</p>
+    <p>🔒 <strong>Segurança:</strong> Todos os dados são criptografados e armazenados em conformidade com a LGPD.</p>
 </div>
 """, unsafe_allow_html=True)
