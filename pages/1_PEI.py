@@ -69,52 +69,6 @@ def verificar_login_supabase():
 verificar_login_supabase()
 OWNER_ID = st.session_state.get("supabase_user_id", "")
 
-# ✅ Sidebar UNIFICADA (navegação + sessão + salvar/carregar + sync)
-with st.sidebar:
-    st.markdown("### 🧭 Navegação")
-    if st.button("🏠 Home", key="pei_nav_home", use_container_width=True):
-        st.switch_page("streamlit_app.py")  # se sua home for pages/0_Home.py, troque aqui
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.button("📘 PEI", key="pei_nav_pei", use_container_width=True, disabled=True)
-    with col2:
-        if st.button("🧩 PAEE", key="pei_nav_paee", use_container_width=True):
-            st.switch_page("pages/2_PAE.py")
-
-    if st.button("🚀 Hub", key="pei_nav_hub", use_container_width=True):
-        st.switch_page("pages/3_Hub_Inclusao.py")
-
-    st.markdown("---")
-    st.markdown("### 👤 Sessão")
-    st.caption(f"Usuário: **{st.session_state.get('usuario_nome','')}**")
-    st.caption(f"Workspace: **{st.session_state.get('workspace_name','')}**")
-
-    st.markdown("---")
-    st.markdown("### 🔑 OpenAI")
-    if 'OPENAI_API_KEY' in st.secrets:
-        api_key = st.secrets['OPENAI_API_KEY']
-        st.success("✅ OpenAI OK")
-    else:
-        api_key = st.text_input("Chave OpenAI:", type="password", key="pei_openai_key")
-
-    st.markdown("---")
-    st.markdown("### 🧾 Status do Aluno (Supabase)")
-    st.session_state.setdefault("selected_student_id", None)
-    st.session_state.setdefault("selected_student_name", "")
-
-    student_id = st.session_state.get("selected_student_id")
-    if student_id:
-        st.success("✅ Vinculado ao Supabase")
-        st.caption(f"student_id: {student_id[:8]}...")
-    else:
-        st.warning("📝 Rascunho (ainda não salvo no Supabase)")
-
-    # Aviso se supabase não estiver pronto
-    if sb is None:
-        st.info("Supabase não inicializado (sb=None). O PEI funciona em rascunho, mas não salva/carrega.")
-
-    st.markdown("---")
 
 # ==============================================================================
 # 1. GUARDAS (LOGIN + SUPABASE)
