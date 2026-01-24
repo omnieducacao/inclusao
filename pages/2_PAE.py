@@ -392,6 +392,76 @@ with st.expander("📄 Ver PEI Completo e Contexto", expanded=False):
         for meta in st.session_state.metas_extraidas[:5]:  # Mostrar apenas 5 principais
             st.markdown(f"- **{meta['tipo']}**: {meta['descricao']}")
 
+
+# ==============================================================================
+# FUNÇÕES AUXILIARES
+# ==============================================================================
+
+def extrair_metas_do_pei(texto_pei):
+    """
+    Extrai metas de um texto de PEI formatado.
+    Retorna lista de dicionários com 'tipo' e 'descricao'
+    """
+    if not texto_pei:
+        return []
+    
+    metas = []
+    linhas = texto_pei.split('\n')
+    
+    tipos_meta = [
+        "HABILIDADES SOCIAIS",
+        "COMUNICAÇÃO", 
+        "ACADÊMICO",
+        "COMPORTAMENTAL",
+        "COGNITIVO",
+        "MOTOR",
+        "AUTONOMIA"
+    ]
+    
+    for linha in linhas:
+        linha = linha.strip()
+        for tipo in tipos_meta:
+            if linha.startswith(tipo + ":") or linha.startswith(tipo + ":"):
+                # Extrair a descrição após os dois pontos
+                partes = linha.split(":", 1)
+                if len(partes) == 2:
+                    metas.append({
+                        'tipo': tipo,
+                        'descricao': partes[1].strip()
+                    })
+    
+    # Se não encontrou metas estruturadas, tenta extrair de outra forma
+    if not metas:
+        # Tenta encontrar metas em formato de lista
+        for linha in linhas:
+            linha = linha.strip()
+            if linha.startswith("- ") or linha.startswith("* "):
+                # Remove o marcador
+                descricao = linha[2:].strip()
+                if descricao:
+                    # Tenta inferir o tipo
+                    tipo_inferido = "GERAL"
+                    for tipo in tipos_meta:
+                        if tipo.lower() in descricao.lower():
+                            tipo_inferido = tipo
+                            break
+                    
+                    metas.append({
+                        'tipo': tipo_inferido,
+                        'descricao': descricao
+                    })
+    
+    # Se ainda não encontrou, usa o texto completo como uma meta
+    if not metas and texto_pei:
+        # Limita o texto a um tamanho razoável
+        texto_limitado = texto_pei[:500] + ("..." if len(texto_pei) > 500 else "")
+        metas.append({
+            'tipo': 'PEI COMPLETO',
+            'descricao': texto_limitado
+        })
+    
+    return metas            
+
 # ==============================================================================
 # FUNÇÕES DE EXTRACTION (SIMPLIFICADAS PARA AGORA)
 # ==============================================================================
