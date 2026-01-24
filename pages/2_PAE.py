@@ -915,6 +915,10 @@ tab1, tab2, tab3 = st.tabs([
 # ABA 1: PLANEJAMENTO DO CICLO
 # ==============================================================================
 with tab1:
+    # Declaração global movida para o início do escopo
+    global sistema_execucao
+    sistema_execucao = None  # Inicializar como None
+    
     st.markdown("### 📅 Planejamento do Ciclo de AEE")
     
     col_config, col_info = st.columns([1, 1])
@@ -960,7 +964,6 @@ with tab1:
                         st.session_state['aluno_cronograma'] = aluno['id']
                         
                         # Inicializar sistema de execução
-                        global sistema_execucao
                         sistema_execucao = SistemaExecucao(aluno['id'], cronograma)
                         
                         st.success(f"✅ Cronograma gerado com {duracao_semanas} semanas!")
@@ -987,6 +990,10 @@ with tab1:
     # SEÇÃO: CRONOGRAMA GERADO
     if 'cronograma_atual' in st.session_state and st.session_state['aluno_cronograma'] == aluno['id']:
         cronograma = st.session_state['cronograma_atual']
+        
+        # Verificar se sistema_execucao já foi inicializado
+        if 'sistema_execucao' not in locals() and 'sistema_execucao' not in globals():
+            sistema_execucao = SistemaExecucao(aluno['id'], cronograma)
         
         st.markdown("---")
         st.markdown(f"### 🗓️ Cronograma Gerado ({cronograma.get('total_semanas', 0)} semanas)")
