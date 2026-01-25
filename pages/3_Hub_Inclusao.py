@@ -161,6 +161,83 @@ TAXONOMIA_BLOOM = {
     "6. Criar": ["Compor", "Construir", "Criar", "Desenhar", "Desenvolver", "Formular", "Investigar", "Planejar", "Produzir", "Propor"]
 }
 
+# ==============================================================================
+# CARREGAR ALUNOS DO SUPABASE (igual ao PAEE) + fallback local opcional
+# ==============================================================================
+
+@st.cache_data(ttl=10, show_spinner=False)
+def list_students_rest():
+    WORKSPACE_ID = st.session_state.get("workspace_id")
+    if not WORKSPACE_ID:
+        return []
+
+    try:
+        base = (
+            f"{_sb_url()}/rest/v1/students"
+            f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data"
+            f"&workspace_id=eq.{WORKSPACE_ID}"
+            f"&order=created_at.desc"
+        )
+        r = requests.get(base, headers=_headers(), timeout=20)
+        return r.json() if r.status_code == 200 else []
+    except:
+        return []
+
+def carregar_estudantes_supabase():
+    dados = list_students_rest()
+    estudantes = []
+
+    for item in dados:
+        pei_completo = item.get("pei_data") or {}
+        contexto_ia = pei_completo.get("ia_sugestao", "")
+
+        if not contexto_ia:
+            diag = item.get("diagnosis", "Não informado")
+            serie = item.get("grade", "")
+            contexto_ia = f"Aluno: {item.get('name')}. Série: {serie}. Diagnóstico: {diag}."
+
+        estudante = {
+            "nome": item.get("name", ""),
+            "serie": item.get("grade", ""),
+            "hiperfoco": item.get("diagnosis", ""),
+            "ia_sugestao": contexto_ia,
+            "id": item.get("id", ""),
+            "pei_data": pei_completo
+        }
+        if estudante["nome"]:
+            estudantes.append(estudante)
+
+    return estudantes
+
+# --- fallback local (opcional, se você quiser manter) ---
+ARQUIVO_DB = "banco_alunos.json"
+
+def carregar_banco_local():
+    usuario_atual = st.session_state.get("usuario_nome", "")
+    if os.path.exists(ARQUIVO_DB):
+        try:
+            with open(ARQUIVO_DB, "r", encoding="utf-8") as f:
+                todos_alunos = json.load(f)
+            return [a for a in todos_alunos if a.get("responsavel") == usuario_atual]
+        except:
+            return []
+    return []
+
+# --- inicialização do banco_estudantes (Supabase primeiro) ---
+if "banco_estudantes" not in st.session_state or not st.session_state.banco_estudantes:
+    alunos_sb = []
+    try:
+        if _sb_url() and _sb_key():
+            with st.spinner("🔄 Lendo alunos da nuvem..."):
+                alunos_sb = carregar_estudantes_supabase()
+    except:
+        alunos_sb = []
+
+    st.session_state.banco_estudantes = alunos_sb if alunos_sb else carregar_banco_local()
+
+
+
+
 # --- BANCO DE DADOS ---
 ARQUIVO_DB = "banco_alunos.json"
 
