@@ -17,7 +17,7 @@ st.set_page_config(
     page_title="Omnisfera - Plataforma de Inclusão Educacional",
     page_icon="🌐" if not os.path.exists("omni_icone.png") else "omni_icone.png",
     layout="wide",
-    initial_sidebar_state="auto",
+    initial_sidebar_state="collapsed",
     menu_items=None
 )
 
