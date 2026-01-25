@@ -27,26 +27,6 @@ def get_base64_image(filename: str) -> str:
             return base64.b64encode(f.read()).decode()
     return ""
 
-# ==============================================================================
-# BLOCO A — TOPBAR FIXA FINA COM LOGO GIRANDO (OCULTA HEADER NATIVO)
-# ==============================================================================
-def get_user_initials(nome: str) -> str:
-    """Extrai as iniciais do nome do usuário"""
-    if not nome:
-        return "U"
-    parts = nome.strip().split()
-    if len(parts) >= 2:
-        return f"{parts[0][0]}{parts[-1][0]}".upper()
-    return parts[0][:2].upper()
-
-def get_user_first_name() -> str:
-    """Extrai o primeiro nome do usuário"""
-    return (st.session_state.get("usuario_nome", "Visitante").strip().split() or ["Visitante"])[0]
-
-def get_workspace_short(max_len: int = 20) -> str:
-    """Formata o nome do workspace com truncagem se necessário"""
-    ws = st.session_state.get("workspace_name", "") or ""
-    return (ws[:max_len] + "...") if len(ws) > max_len else ws
 
 def render_thin_topbar_with_spinning_logo():
     """Renderiza a barra superior fixa FINA (65px) com logo giratória"""
@@ -83,124 +63,184 @@ def render_thin_topbar_with_spinning_logo():
         unsafe_allow_html=True,
     )
 
-# ==============================================================================
-# BLOCO B — MENU DE ACESSO RÁPIDO COM CORES (MODIFICADO)
-# ==============================================================================
-def render_colored_quick_access_bar():
+def render_pill_navigation_bar():
     """
-    Menu compacto com botões coloridos logo abaixo do topo.
-    Cada botão tem uma cor de fundo sólida (não apenas borda).
+    Menu de navegação em formato de pílula, centralizado, com cores e links funcionais.
     """
-    # CSS com cores sólidas para os botões
+    # CSS específico para o menu de pílulas
     st.markdown("""
     <style>
-        .qa-btn-colored button {
-            font-weight: 800 !important;
-            border-radius: 8px !important;
-            padding: 8px 0 !important;
+        /* Container do menu de pílulas */
+        .pill-nav-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 5px;  /* Reduzido o espaço acima */
+            margin-bottom: 15px;  /* Reduzido o espaço abaixo */
+            padding: 0 10px;
+        }
+        
+        /* Estilo para cada pílula */
+        .pill-nav-btn {
+            border-radius: 50px !important;
+            font-weight: 700 !important;
             font-size: 0.75rem !important;
-            text-transform: uppercase !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-            min-height: 36px !important;
+            padding: 6px 16px !important;
+            min-height: 32px !important;
             height: auto !important;
             border: none !important;
             color: white !important;
             transition: all 0.2s ease !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            margin: 0 3px !important; /* Espaçamento entre pílulas */
+            flex-shrink: 0;
         }
-
-        .qa-btn-colored button:hover {
+        
+        .pill-nav-btn:hover {
             transform: translateY(-2px) !important;
             box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
         }
-
-        /* 1. INÍCIO - Cinza escuro */
-        div[data-testid="column"]:nth-of-type(1) .qa-btn-colored button { 
+        
+        /* Cores para cada pílula */
+        .pill-nav-btn.pill-inicio { 
             background: linear-gradient(135deg, #475569, #334155) !important;
         }
-        div[data-testid="column"]:nth-of-type(1) .qa-btn-colored button:hover { 
+        .pill-nav-btn.pill-inicio:hover { 
             background: linear-gradient(135deg, #334155, #1E293B) !important;
         }
-
-        /* 2. ESTUDANTES - Índigo */
-        div[data-testid="column"]:nth-of-type(2) .qa-btn-colored button { 
+        
+        .pill-nav-btn.pill-estudantes { 
             background: linear-gradient(135deg, #4F46E5, #4338CA) !important;
         }
-        div[data-testid="column"]:nth-of-type(2) .qa-btn-colored button:hover { 
+        .pill-nav-btn.pill-estudantes:hover { 
             background: linear-gradient(135deg, #4338CA, #3730A3) !important;
         }
-
-        /* 3. PEI - Azul */
-        div[data-testid="column"]:nth-of-type(3) .qa-btn-colored button { 
+        
+        .pill-nav-btn.pill-pei { 
             background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
         }
-        div[data-testid="column"]:nth-of-type(3) .qa-btn-colored button:hover { 
+        .pill-nav-btn.pill-pei:hover { 
             background: linear-gradient(135deg, #1D4ed8, #1E40AF) !important;
         }
-
-        /* 4. AEE - Roxo */
-        div[data-testid="column"]:nth-of-type(4) .qa-btn-colored button { 
+        
+        .pill-nav-btn.pill-aee { 
             background: linear-gradient(135deg, #7C3AED, #6D28D9) !important;
         }
-        div[data-testid="column"]:nth-of-type(4) .qa-btn-colored button:hover { 
+        .pill-nav-btn.pill-aee:hover { 
             background: linear-gradient(135deg, #6D28D9, #5B21B6) !important;
         }
-
-        /* 5. RECURSOS - Verde água */
-        div[data-testid="column"]:nth-of-type(5) .qa-btn-colored button { 
+        
+        .pill-nav-btn.pill-recursos { 
             background: linear-gradient(135deg, #0D9488, #0F766E) !important;
         }
-        div[data-testid="column"]:nth-of-type(5) .qa-btn-colored button:hover { 
+        .pill-nav-btn.pill-recursos:hover { 
             background: linear-gradient(135deg, #0F766E, #115E59) !important;
         }
-
-        /* 6. DIÁRIO - Rosa */
-        div[data-testid="column"]:nth-of-type(6) .qa-btn-colored button { 
+        
+        .pill-nav-btn.pill-diario { 
             background: linear-gradient(135deg, #E11D48, #BE123C) !important;
         }
-        div[data-testid="column"]:nth-of-type(6) .qa-btn-colored button:hover { 
+        .pill-nav-btn.pill-diario:hover { 
             background: linear-gradient(135deg, #BE123C, #9F1239) !important;
         }
-
-        /* 7. DADOS - Azul claro */
-        div[data-testid="column"]:nth-of-type(7) .qa-btn-colored button { 
+        
+        .pill-nav-btn.pill-dados { 
             background: linear-gradient(135deg, #0284C7, #0369A1) !important;
         }
-        div[data-testid="column"]:nth-of-type(7) .qa-btn-colored button:hover { 
+        .pill-nav-btn.pill-dados:hover { 
             background: linear-gradient(135deg, #0369A1, #075985) !important;
         }
     </style>
     """, unsafe_allow_html=True)
 
-    # 7 colunas do menu
-    c1, c2, c3, c4, c5, c6, c7 = st.columns(7, gap="small")
-
-    def _wrap_button(label: str, on_click):
-        """Wrapper para botões com cores sólidas"""
-        st.markdown('<div class="qa-btn-colored">', unsafe_allow_html=True)
-        st.button(label, use_container_width=True, on_click=on_click)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with c1:
-        _wrap_button("INÍCIO", on_click=lambda: st.switch_page("pages/0_Home.py"))
-
-    with c2:
-        _wrap_button("ESTUDANTES", on_click=lambda: st.rerun())
-
-    with c3:
-        _wrap_button("PEI", on_click=lambda: st.switch_page("pages/1_PEI.py"))
-
-    with c4:
-        _wrap_button("AEE", on_click=lambda: st.switch_page("pages/2_PAE.py"))
-
-    with c5:
-        _wrap_button("RECURSOS", on_click=lambda: st.switch_page("pages/3_Hub_Inclusao.py"))
-
-    with c6:
-        _wrap_button("DIÁRIO", on_click=lambda: st.switch_page("pages/4_Diario_de_Bordo.py"))
-
-    with c7:
-        _wrap_button("DADOS", on_click=lambda: st.switch_page("pages/5_Monitoramento_Avaliacao.py"))
-
+    # Container principal para centralizar
+    st.markdown('<div class="pill-nav-container">', unsafe_allow_html=True)
+    
+    # Criar as pílulas com botões que redirecionam
+    # Note: como o Streamlit não permite colocar botões dentro de markdown, vamos usar uma abordagem com colunas
+    # Vamos criar 7 colunas, mas centralizadas
+    
+    # Definir a largura das colunas para centralizar
+    col1, col2, col3, col4, col5, col6, col7 = st.columns([1,1,1,1,1,1,1], gap="small")
+    
+    with col1:
+        if st.button("INÍCIO", key="pill_inicio", help="Ir para a página inicial"):
+            st.switch_page("pages/0_Home.py")
+    
+    with col2:
+        if st.button("ESTUDANTES", key="pill_estudantes", help="Ir para gestão de estudantes"):
+            st.switch_page("pages/Alunos.py")
+    
+    with col3:
+        if st.button("PEI", key="pill_pei", help="Ir para PEI"):
+            st.switch_page("pages/1_PEI.py")
+    
+    with col4:
+        if st.button("AEE", key="pill_aee", help="Ir para AEE"):
+            st.switch_page("pages/2_PAE.py")
+    
+    with col5:
+        if st.button("RECURSOS", key="pill_recursos", help="Ir para Hub de Recursos"):
+            st.switch_page("pages/3_Hub_Inclusao.py")
+    
+    with col6:
+        if st.button("DIÁRIO", key="pill_diario", help="Ir para Diário de Bordo"):
+            st.switch_page("pages/4_Diario_de_Bordo.py")
+    
+    with col7:
+        if st.button("DADOS", key="pill_dados", help="Ir para Dashboard"):
+            st.switch_page("pages/5_Monitoramento_Avaliacao.py")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Adicionar JavaScript para aplicar as classes de cor aos botões
+    st.markdown("""
+    <script>
+    // Aplicar classes de cor aos botões das pílulas
+    document.addEventListener('DOMContentLoaded', function() {
+        // Botão INÍCIO
+        const btnInicio = document.querySelector('button[data-testid="baseButton-secondary"][id^="pill_inicio"]');
+        if (btnInicio) {
+            btnInicio.classList.add('pill-nav-btn', 'pill-inicio');
+        }
+        
+        // Botão ESTUDANTES
+        const btnEstudantes = document.querySelector('button[data-testid="baseButton-secondary"][id^="pill_estudantes"]');
+        if (btnEstudantes) {
+            btnEstudantes.classList.add('pill-nav-btn', 'pill-estudantes');
+        }
+        
+        // Botão PEI
+        const btnPei = document.querySelector('button[data-testid="baseButton-secondary"][id^="pill_pei"]');
+        if (btnPei) {
+            btnPei.classList.add('pill-nav-btn', 'pill-pei');
+        }
+        
+        // Botão AEE
+        const btnAee = document.querySelector('button[data-testid="baseButton-secondary"][id^="pill_aee"]');
+        if (btnAee) {
+            btnAee.classList.add('pill-nav-btn', 'pill-aee');
+        }
+        
+        // Botão RECURSOS
+        const btnRecursos = document.querySelector('button[data-testid="baseButton-secondary"][id^="pill_recursos"]');
+        if (btnRecursos) {
+            btnRecursos.classList.add('pill-nav-btn', 'pill-recursos');
+        }
+        
+        // Botão DIÁRIO
+        const btnDiario = document.querySelector('button[data-testid="baseButton-secondary"][id^="pill_diario"]');
+        if (btnDiario) {
+            btnDiario.classList.add('pill-nav-btn', 'pill-diario');
+        }
+        
+        // Botão DADOS
+        const btnDados = document.querySelector('button[data-testid="baseButton-secondary"][id^="pill_dados"]');
+        if (btnDados) {
+            btnDados.classList.add('pill-nav-btn', 'pill-dados');
+        }
+    });
+    </script>
+    """, unsafe_allow_html=True)
 # ==============================================================================
 # 🔷 DESIGN SYSTEM COM TOPBAR FINA E MENU COLORIDO
 # ==============================================================================
