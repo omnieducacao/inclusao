@@ -14,6 +14,8 @@ import json
 import requests
 from PIL import Image
 from streamlit_cropper import st_cropper
+from datetime import date, datetime
+
 
 # ==============================================================================
 # 1. CONFIGURAÇÃO E SEGURANÇA
