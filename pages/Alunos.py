@@ -398,6 +398,122 @@ html, body, [class*="css"] {
 
 _ui_home_block()
 
+
+
+
+# ==============================================================================
+# BLOCO A — TOPBAR COMPLETA (Logo + Workspace + Usuário + Avatar)
+# ==============================================================================
+
+def get_user_initials(nome: str) -> str:
+    if not nome:
+        return "U"
+    parts = nome.strip().split()
+    if len(parts) >= 2:
+        return f"{parts[0][0]}{parts[-1][0]}".upper()
+    return parts[0][:2].upper()
+
+def get_user_first_name() -> str:
+    return (st.session_state.get("usuario_nome", "Visitante").strip().split() or ["Visitante"])[0]
+
+def get_workspace_short(max_len: int = 20) -> str:
+    ws = st.session_state.get("workspace_name", "") or ""
+    return (ws[:max_len] + "...") if len(ws) > max_len else ws
+
+def render_topbar():
+    icone_b64 = get_base64_image("omni_icone.png")
+    texto_b64 = get_base64_image("omni_texto.png")
+
+    img_logo = f'<img src="data:image/png;base64,{icone_b64}" class="brand-logo">' if icone_b64 else "🌐"
+    img_text = f'<img src="data:image/png;base64,{texto_b64}" class="brand-img-text">' if texto_b64 else "<span style='font-weight:800;color:#2B3674;'>OMNISFERA</span>"
+
+    user_full = st.session_state.get("usuario_nome", "Visitante")
+    user_first = get_user_first_name()
+    initials = get_user_initials(user_full)
+    ws_name = get_workspace_short()
+
+    st.markdown(
+        f"""
+        <div class="topbar">
+            <div class="brand-box">
+                {img_logo}
+                {img_text}
+            </div>
+
+            <div class="brand-box" style="gap:10px;">
+                <div class="user-badge">{ws_name}</div>
+                <div class="user-badge">{user_first}</div>
+                <div class="apple-avatar">{initials}</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# ==============================================================================
+# BLOCO B — MENU DE ACESSO RÁPIDO (botões compactos por módulo)
+# Reuso: cole este bloco em qualquer page e chame render_quick_access_bar()
+# ==============================================================================
+
+def render_quick_access_bar():
+    """
+    Menu compacto com botões coloridos logo abaixo do topo.
+    Observação: o CSS usa nth-of-type por coluna (1..7).
+    """
+
+    st.markdown("""
+    <style>
+        .qa-btn button {
+            font-weight: 800 !important;
+            border-radius: 6px !important;
+            padding: 4px 0 !important;
+            font-size: 0.7rem !important;
+            text-transform: uppercase !important;
+            box-shadow: none !important;
+            min-height: 32px !important;
+            height: auto !important;
+            border-width: 1px !important;
+        }
+
+        div[data-testid="column"]:nth-of-type(1) .qa-btn button { border-color:#64748B !important; color:#64748B !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(1) .qa-btn button:hover { background-color:#F1F5F9 !important; }
+
+        div[data-testid="column"]:nth-of-type(2) .qa-btn button { border-color:#4F46E5 !important; color:#4F46E5 !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(2) .qa-btn button:hover { background-color:#F1F5F9 !important; }
+
+        div[data-testid="column"]:nth-of-type(3) .qa-btn button { border-color:#2563EB !important; color:#2563EB !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(3) .qa-btn button:hover { background-color:#F1F5F9 !important; }
+
+        div[data-testid="column"]:nth-of-type(4) .qa-btn button { border-color:#7C3AED !important; color:#7C3AED !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(4) .qa-btn button:hover { background-color:#F1F5F9 !important; }
+
+        div[data-testid="column"]:nth-of-type(5) .qa-btn button { border-color:#0D9488 !important; color:#0D9488 !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(5) .qa-btn button:hover { background-color:#F1F5F9 !important; }
+
+        div[data-testid="column"]:nth-of-type(6) .qa-btn button { border-color:#E11D48 !important; color:#E11D48 !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(6) .qa-btn button:hover { background-color:#F1F5F9 !important; }
+
+        div[data-testid="column"]:nth-of-type(7) .qa-btn button { border-color:#0284C7 !important; color:#0284C7 !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(7) .qa-btn button:hover { background-color:#F1F5F9 !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    c1, c2, c3, c4, c5, c6, c7 = st.columns(7, gap="small")
+
+    def _wrap_button(label: str, on_click):
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        st.button(label, use_container_width=True, on_click=on_click)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with c1: _wrap_button("INÍCIO", lambda: st.rerun())
+    with c2: _wrap_button("ESTUDANTES", lambda: st.switch_page("pages/Alunos.py"))
+    with c3: _wrap_button("PEI", lambda: st.switch_page("pages/1_PEI.py"))
+    with c4: _wrap_button("AEE", lambda: st.switch_page("pages/2_PAE.py"))
+    with c5: _wrap_button("RECURSOS", lambda: st.switch_page("pages/3_Hub_Inclusao.py"))
+    with c6: _wrap_button("DIÁRIO", lambda: st.switch_page("pages/4_Diario_de_Bordo.py"))
+    with c7: _wrap_button("DADOS", lambda: st.switch_page("pages/5_Monitoramento_Avaliacao.py"))
+
 # ==============================================================================
 # ### BLOCO VISUAL INTELIGENTE: HEADER OMNISFERA & ALERTA DE TESTE ###
 # ==============================================================================
