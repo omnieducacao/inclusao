@@ -235,8 +235,9 @@ def verificar_acesso():
     st.markdown("""<style>footer {visibility: hidden !important;} [data-testid="stHeader"] {visibility: visible !important; background-color: transparent !important;} .block-container {padding-top: 2rem !important;}</style>""", unsafe_allow_html=True)
 
 verificar_acesso()
+
 # ==============================================================================
-# CARD HERO PARA HUB (MESMO DESIGN DOS ESTUDANTES)
+# CARD HERO PRINCIPAL
 # ==============================================================================
 hora = datetime.now().hour
 saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
@@ -247,12 +248,12 @@ st.markdown(
     f"""
     <div class="mod-card-wrapper">
         <div class="mod-card-rect">
-            <div class="mod-bar c-blue"></div>
-            <div class="mod-icon-area bg-blue-soft">
-                <i class="ri-book-open-fill"></i>
+            <div class="mod-bar c-teal"></div>
+            <div class="mod-icon-area bg-teal-soft">
+                <i class="ri-settings-5-fill"></i>
             </div>
             <div class="mod-content">
-                <div class="mod-title">Hub de Recursos</div>
+                <div class="mod-title">Hub de atividades inclusivas</div>
                 <div class="mod-desc">
                     {saudacao}, <strong>{USUARIO_NOME}</strong>! Crie atividades adaptadas, experiências lúdicas,
             recursos visuais e estratégias inclusivas para estudantes da escola <strong>{WORKSPACE_NAME}</strong>. alinhadas à BNCC e ao DUA.
@@ -263,7 +264,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 
 # ==============================================================================
