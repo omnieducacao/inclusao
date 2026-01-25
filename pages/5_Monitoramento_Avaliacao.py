@@ -18,7 +18,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-APP_VERSION = "v3.4 - Menu Ajustado Próximo à Barra"
+APP_VERSION = "v3.5 - Menu Próximo à Barra"
 
 # ==============================================================================
 # 2. CABEÇALHO FIXO (TOP BAR)
@@ -87,9 +87,9 @@ def render_omnisfera_header():
         /* AJUSTE RESPONSIVO */
         @media (max-width: 768px) { .topbar-thin { padding: 0 1rem; } }
         
-        /* MENU MAIS PRÓXIMO DA BARRA - CONTEÚDO DESCE MENOS */
+        /* MENU BEM PRÓXIMO DA BARRA - ESPAÇO MÍNIMO */
         .block-container { 
-            padding-top: 4.5rem !important; /* REDUZIDO: De 8rem para 4.5rem (72px) */
+            padding-top: 3rem !important; /* REDUZIDO: De 4.5rem para 3rem (48px) */
             padding-bottom: 3rem; 
         }
     </style>
@@ -119,7 +119,7 @@ def render_omnisfera_header():
         </div>
     """, unsafe_allow_html=True)
 
-# Renderizar o cabeçalho fixo (APENAS ISSO É NOVO!)
+# Renderizar o cabeçalho fixo
 render_omnisfera_header()
 
 # ==============================================================================
@@ -128,7 +128,6 @@ render_omnisfera_header()
 st.markdown("""
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <style>
-    /* --- REMOVENDO O PADDING-TOP AQUI POIS JÁ FOI DEFINIDO NO HEADER --- */
     /* Remove a barra de topo padrão do Streamlit visualmente */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
