@@ -328,28 +328,16 @@ def render_topbar():
     )
 
 # ==============================================================================
-# BLOCO B — MENU DE ACESSO RÁPIDO (FIXO abaixo da Topbar)
+# BLOCO B — MENU DE ACESSO RÁPIDO (FUNCIONAL / Streamlit-safe)
 # Reuso: cole este bloco em qualquer page e chame render_quick_access_bar()
 # ==============================================================================
 
 def render_quick_access_bar():
+    # CSS do menu rápido (aplica no botão que vem LOGO DEPOIS do "marcador")
     st.markdown("""
     <style>
-      /* barra fixa logo abaixo da topbar */
-      .qa-bar {
-        position: fixed;
-        top: 74px; /* mesma altura da topbar */
-        left: 0; right: 0;
-        z-index: 9998;
-        background: rgba(248, 250, 252, 0.92);
-        border-bottom: 1px solid #E2E8F0;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        padding: 10px 1rem;
-      }
-
-      /* deixa os botões compactos (sem depender de nth-of-type global) */
-      .qa-btn button {
+      /* base do botão */
+      .qa-marker + div button {
         font-weight: 800 !important;
         border-radius: 8px !important;
         padding: 6px 0 !important;
@@ -360,39 +348,68 @@ def render_quick_access_bar():
         border-width: 1px !important;
         background: white !important;
       }
+      .qa-marker + div button:hover { background:#F1F5F9 !important; }
 
-      /* cores por botão via classes (mais confiável que nth-of-type) */
-      .qa-gray  button { border-color:#64748B !important; color:#64748B !important; }
-      .qa-indigo button { border-color:#4F46E5 !important; color:#4F46E5 !important; }
-      .qa-blue  button { border-color:#2563EB !important; color:#2563EB !important; }
-      .qa-purple button { border-color:#7C3AED !important; color:#7C3AED !important; }
-      .qa-teal  button { border-color:#0D9488 !important; color:#0D9488 !important; }
-      .qa-rose  button { border-color:#E11D48 !important; color:#E11D48 !important; }
-      .qa-sky   button { border-color:#0284C7 !important; color:#0284C7 !important; }
+      /* cores por marcador (bem confiável no DOM do Streamlit) */
+      .qa-gray   + div button { border-color:#64748B !important; color:#64748B !important; }
+      .qa-indigo + div button { border-color:#4F46E5 !important; color:#4F46E5 !important; }
+      .qa-blue   + div button { border-color:#2563EB !important; color:#2563EB !important; }
+      .qa-purple + div button { border-color:#7C3AED !important; color:#7C3AED !important; }
+      .qa-teal   + div button { border-color:#0D9488 !important; color:#0D9488 !important; }
+      .qa-rose   + div button { border-color:#E11D48 !important; color:#E11D48 !important; }
+      .qa-sky    + div button { border-color:#0284C7 !important; color:#0284C7 !important; }
 
-      .qa-btn button:hover { background:#F1F5F9 !important; }
+      /* espaçamento do menu */
+      .qa-wrap { margin-top: 6px; margin-bottom: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
-    # container fixo (HTML) para o menu
-    st.markdown('<div class="qa-bar">', unsafe_allow_html=True)
+    st.markdown('<div class="qa-wrap"></div>', unsafe_allow_html=True)
 
     c1, c2, c3, c4, c5, c6, c7 = st.columns(7, gap="small")
 
-    def _wrap_button(label: str, css_class: str, on_click):
-        st.markdown(f'<div class="qa-btn {css_class}">', unsafe_allow_html=True)
-        st.button(label, use_container_width=True, on_click=on_click)
-        st.markdown('</div>', unsafe_allow_html=True)
+    # INÍCIO
+    with c1:
+        st.markdown('<div class="qa-marker qa-gray"></div>', unsafe_allow_html=True)
+        if st.button("INÍCIO", use_container_width=True, key="qa_inicio"):
+            st.switch_page("pages/0_Home.py")
 
-    with c1: _wrap_button("INÍCIO",      "qa-gray",   lambda: st.switch_page("pages/0_Home.py"))
-    with c2: _wrap_button("ESTUDANTES",  "qa-indigo", lambda: st.rerun())
-    with c3: _wrap_button("PEI",         "qa-blue",   lambda: st.switch_page("pages/1_PEI.py"))
-    with c4: _wrap_button("AEE",         "qa-purple", lambda: st.switch_page("pages/2_PAE.py"))
-    with c5: _wrap_button("RECURSOS",    "qa-teal",   lambda: st.switch_page("pages/3_Hub_Inclusao.py"))
-    with c6: _wrap_button("DIÁRIO",      "qa-rose",   lambda: st.switch_page("pages/4_Diario_de_Bordo.py"))
-    with c7: _wrap_button("DADOS",       "qa-sky",    lambda: st.switch_page("pages/5_Monitoramento_Avaliacao.py"))
+    # ESTUDANTES (página atual -> rerun)
+    with c2:
+        st.markdown('<div class="qa-marker qa-indigo"></div>', unsafe_allow_html=True)
+        if st.button("ESTUDANTES", use_container_width=True, key="qa_estudantes"):
+            st.rerun()
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    # PEI
+    with c3:
+        st.markdown('<div class="qa-marker qa-blue"></div>', unsafe_allow_html=True)
+        if st.button("PEI", use_container_width=True, key="qa_pei"):
+            st.switch_page("pages/1_PEI.py")
+
+    # AEE / Plano de Ação
+    with c4:
+        st.markdown('<div class="qa-marker qa-purple"></div>', unsafe_allow_html=True)
+        if st.button("AEE", use_container_width=True, key="qa_aee"):
+            st.switch_page("pages/2_PAE.py")
+
+    # Recursos
+    with c5:
+        st.markdown('<div class="qa-marker qa-teal"></div>', unsafe_allow_html=True)
+        if st.button("RECURSOS", use_container_width=True, key="qa_recursos"):
+            st.switch_page("pages/3_Hub_Inclusao.py")
+
+    # Diário
+    with c6:
+        st.markdown('<div class="qa-marker qa-rose"></div>', unsafe_allow_html=True)
+        if st.button("DIÁRIO", use_container_width=True, key="qa_diario"):
+            st.switch_page("pages/4_Diario_de_Bordo.py")
+
+    # Dados
+    with c7:
+        st.markdown('<div class="qa-marker qa-sky"></div>', unsafe_allow_html=True)
+        if st.button("DADOS", use_container_width=True, key="qa_dados"):
+            st.switch_page("pages/5_Monitoramento_Avaliacao.py")
+
 
 # ==============================================================================
 # 🔒 VERIFICAÇÃO DE ACESSO (mantive sua lógica)
