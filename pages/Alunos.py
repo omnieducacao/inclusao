@@ -84,33 +84,57 @@ def render_thin_topbar_with_spinning_logo():
     )
 
 # ==============================================================================
-# BLOCO B — MENU DE ACESSO RÁPIDO COM CORES (MODIFICADO)
+# BLOCO B — MENU DE ACESSO RÁPIDO FIXO COM CORES (MODIFICADO)
 # ==============================================================================
 def render_colored_quick_access_bar():
     """
-    Menu compacto com botões coloridos logo abaixo do topo.
-    Cada botão tem uma cor de fundo sólida (não apenas borda).
+    Menu FIXO com botões coloridos abaixo do topo.
+    Cada botão tem uma cor de fundo sólida e navegação funcional.
     """
-    # CSS com cores sólidas para os botões
+    # CSS com menu FIXO
     st.markdown("""
     <style>
+        /* Container FIXO do menu */
+        .fixed-nav-container {
+            position: fixed;
+            top: 60px; /* Abaixo da topbar */
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-bottom: 1px solid #E2E8F0;
+            z-index: 9998;
+            padding: 5px 15px;
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        /* Ajustar conteúdo principal para não ficar atrás do menu fixo */
+        .block-container {
+            padding-top: 100px !important;
+        }
+        
+        /* Botões MENORES */
         .qa-btn-colored button {
             font-weight: 800 !important;
-            border-radius: 8px !important;
-            padding: 8px 0 !important;
-            font-size: 0.75rem !important;
+            border-radius: 6px !important;
+            padding: 6px 0 !important;
+            font-size: 0.7rem !important;
             text-transform: uppercase !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-            min-height: 36px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+            min-height: 30px !important;
             height: auto !important;
             border: none !important;
             color: white !important;
             transition: all 0.2s ease !important;
+            letter-spacing: 0.3px !important;
         }
 
         .qa-btn-colored button:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15) !important;
         }
 
         /* 1. INÍCIO - Cinza escuro */
@@ -134,7 +158,7 @@ def render_colored_quick_access_bar():
             background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
         }
         div[data-testid="column"]:nth-of-type(3) .qa-btn-colored button:hover { 
-            background: linear-gradient(135deg, #1D4ed8, #1E40AF) !important;
+            background: linear-gradient(135deg, #1D4ED8, #1E40AF) !important;
         }
 
         /* 4. AEE - Roxo */
@@ -170,36 +194,51 @@ def render_colored_quick_access_bar():
         }
     </style>
     """, unsafe_allow_html=True)
-
-    # 7 colunas do menu
+    
+    # Container FIXO para o menu
+    st.markdown('<div class="fixed-nav-container">', unsafe_allow_html=True)
+    
+    # 7 colunas do menu DENTRO do container fixo
     c1, c2, c3, c4, c5, c6, c7 = st.columns(7, gap="small")
 
-    def _wrap_button(label: str, on_click):
-        """Wrapper para botões com cores sólidas"""
+    def _wrap_button(label: str, page_path: str, key_suffix: str):
+        """Wrapper para botões com navegação FUNCIONAL"""
         st.markdown('<div class="qa-btn-colored">', unsafe_allow_html=True)
-        st.button(label, use_container_width=True, on_click=on_click)
+        
+        # Botão com navegação correta
+        if st.button(label, 
+                    use_container_width=True, 
+                    key=f"nav_{key_suffix}"):
+            try:
+                st.switch_page(page_path)
+            except:
+                # Fallback em caso de erro
+                st.rerun()
+                
         st.markdown('</div>', unsafe_allow_html=True)
 
     with c1:
-        _wrap_button("INÍCIO", on_click=lambda: st.switch_page("pages/0_Home.py"))
+        _wrap_button("INÍCIO", "pages/0_Home.py", "home")
 
     with c2:
-        _wrap_button("ESTUDANTES", on_click=lambda: st.rerun())
+        _wrap_button("ESTUDANTES", "pages/Alunos.py", "estudantes")
 
     with c3:
-        _wrap_button("PEI", on_click=lambda: st.switch_page("pages/1_PEI.py"))
+        _wrap_button("PEI", "pages/1_PEI.py", "pei")
 
     with c4:
-        _wrap_button("AEE", on_click=lambda: st.switch_page("pages/2_PAE.py"))
+        _wrap_button("AEE", "pages/2_PAE.py", "aee")
 
     with c5:
-        _wrap_button("RECURSOS", on_click=lambda: st.switch_page("pages/3_Hub_Inclusao.py"))
+        _wrap_button("RECURSOS", "pages/3_Hub_Inclusao.py", "recursos")
 
     with c6:
-        _wrap_button("DIÁRIO", on_click=lambda: st.switch_page("pages/4_Diario_de_Bordo.py"))
+        _wrap_button("DIÁRIO", "pages/4_Diario_de_Bordo.py", "diario")
 
     with c7:
-        _wrap_button("DADOS", on_click=lambda: st.switch_page("pages/5_Monitoramento_Avaliacao.py"))
+        _wrap_button("DADOS", "pages/5_Monitoramento_Avaliacao.py", "dados")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ==============================================================================
 # 🔷 DESIGN SYSTEM COM TOPBAR FINA E MENU COLORIDO
