@@ -6,7 +6,7 @@ import os
 # ==============================================================================
 # 1. CONFIGURAÇÃO INICIAL
 # ==============================================================================
-APP_VERSION = "v2.2 - Layout Ajustado"
+APP_VERSION = "v2.3 - Botões Compactos"
 
 try:
     IS_TEST_ENV = st.secrets.get("ENV", "PRODUCAO") == "TESTE"
@@ -36,12 +36,12 @@ html, body, [class*="css"] {
     background-color: #F8FAFC !important;
 }
 
-/* OCULTAR ELEMENTOS NATIVOS */
+/* OCULTAR SIDEBAR E HEADER NATIVOS */
 [data-testid="stSidebarNav"], [data-testid="stHeader"], footer { display: none !important; }
 
-/* AJUSTE DE ESPAÇAMENTO PARA "GRUDAR" NO TOPO */
+/* AJUSTE DE ESPAÇAMENTO GERAL */
 .block-container {
-    padding-top: 90px !important; /* Reduzi para subir o conteúdo */
+    padding-top: 90px !important;
     padding-bottom: 4rem !important;
     max-width: 95% !important;
     padding-left: 1rem !important;
@@ -72,7 +72,7 @@ html, body, [class*="css"] {
     box-shadow: 0 20px 40px -10px rgba(30, 58, 138, 0.3);
     display: flex; align-items: center; justify-content: space-between;
     min-height: 200px;
-    margin-top: 10px; /* Pequeno espaço entre botões e banner */
+    margin-top: 5px; /* Espaço mínimo após os botões compactos */
 }
 .hero-wrapper::before {
     content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -113,8 +113,7 @@ html, body, [class*="css"] {
 .c-sky { background: #0284C7 !important; }
 .bg-sky-soft { background: #F0F9FF !important; color: #0369A1 !important; }
 
-/* --- BOTOES EMBAIXO DO CARD (ESTILO RESTAURADO) --- */
-/* Força o botão a ter bordas arredondadas apenas embaixo e parecer conectado */
+/* --- BOTOES ACESSO (Restaurado para Cards) --- */
 div[data-testid="column"] .stButton button {
     border-radius: 0 0 16px 16px !important;
     border: 1px solid #E2E8F0 !important;
@@ -125,8 +124,9 @@ div[data-testid="column"] .stButton button {
     font-size: 0.75rem !important;
     padding: 10px !important;
     text-transform: uppercase !important;
-    margin-top: -5px !important; /* Puxa pra cima pra grudar no HTML */
+    margin-top: -5px !important;
     box-shadow: 0 4px 6px rgba(0,0,0,0.02) !important;
+    min-height: 40px !important;
 }
 div[data-testid="column"] .stButton button:hover {
     background: #F1F5F9 !important;
@@ -163,6 +163,13 @@ div[data-testid="column"] .stButton button:hover {
 .rc-rose .res-icon { background: #FFE4E6; color: #E11D48; }
 .rc-orange { background: #FFF7ED; color: #EA580C; border-color: #FDBA74; }
 .rc-orange .res-icon { background: #FFEDD5; color: #EA580C; }
+
+.metric-card { background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #E2E8F0; text-align: center; }
+.metric-value { font-size: 2rem; font-weight: 800; color: #1E293B; }
+.metric-label { font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; display: block; }
+.metric-change { font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.metric-up { color: #059669 !important; }
+.metric-neutral { color: #64748B !important; }
 
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 @media (max-width: 768px) { .topbar { padding: 0 1rem; } .mod-card-rect { height: auto; flex-direction: column; padding: 15px; } .mod-icon-area { width: 100%; height: 50px; border-right: none; border-bottom: 1px solid #F1F5F9; margin-bottom: 10px; } }
@@ -232,72 +239,88 @@ def render_topbar():
     """, unsafe_allow_html=True)
 
 def render_quick_access_bar():
-    """Barra de botões coloridos logo abaixo da Topbar"""
+    """Barra de botões coloridos compactos e com nome completo"""
     
-    # CSS para colorir os botões (Fundo Branco + Borda Colorida + Hover Cheio)
+    # CSS Específico para esta barra (Botões pequenos)
     st.markdown("""
     <style>
-        /* Home (Cinza) */
-        div[data-testid="column"]:nth-of-type(1) .stButton button { background: white !important; border: 2px solid #64748B !important; color: #64748B !important; }
-        div[data-testid="column"]:nth-of-type(1) .stButton button:hover { background: #64748B !important; color: white !important; }
-
-        /* Alunos (Indigo) */
-        div[data-testid="column"]:nth-of-type(2) .stButton button { background: white !important; border: 2px solid #4F46E5 !important; color: #4F46E5 !important; }
-        div[data-testid="column"]:nth-of-type(2) .stButton button:hover { background: #4F46E5 !important; color: white !important; }
-        
-        /* PEI (Blue) */
-        div[data-testid="column"]:nth-of-type(3) .stButton button { background: white !important; border: 2px solid #2563EB !important; color: #2563EB !important; }
-        div[data-testid="column"]:nth-of-type(3) .stButton button:hover { background: #2563EB !important; color: white !important; }
-
-        /* PAEE (Purple) */
-        div[data-testid="column"]:nth-of-type(4) .stButton button { background: white !important; border: 2px solid #7C3AED !important; color: #7C3AED !important; }
-        div[data-testid="column"]:nth-of-type(4) .stButton button:hover { background: #7C3AED !important; color: white !important; }
-
-        /* Hub (Teal) */
-        div[data-testid="column"]:nth-of-type(5) .stButton button { background: white !important; border: 2px solid #0D9488 !important; color: #0D9488 !important; }
-        div[data-testid="column"]:nth-of-type(5) .stButton button:hover { background: #0D9488 !important; color: white !important; }
-
-        /* Diário (Rose) */
-        div[data-testid="column"]:nth-of-type(6) .stButton button { background: white !important; border: 2px solid #E11D48 !important; color: #E11D48 !important; }
-        div[data-testid="column"]:nth-of-type(6) .stButton button:hover { background: #E11D48 !important; color: white !important; }
-
-        /* Dados (Sky) */
-        div[data-testid="column"]:nth-of-type(7) .stButton button { background: white !important; border: 2px solid #0284C7 !important; color: #0284C7 !important; }
-        div[data-testid="column"]:nth-of-type(7) .stButton button:hover { background: #0284C7 !important; color: white !important; }
-        
-        /* Estilo base para todos os botões dessa barra */
-        .stButton button {
-            font-weight: 800 !important;
-            border-radius: 8px !important;
-            padding: 8px 0 !important;
-            font-size: 0.75rem !important;
+        /* Base para os botões do menu superior */
+        .qa-btn button {
+            font-weight: 700 !important;
+            border-radius: 6px !important;
+            padding: 4px 0 !important; /* Mais fino verticalmente */
+            font-size: 0.7rem !important; /* Fonte menor */
             text-transform: uppercase !important;
             box-shadow: none !important;
+            min-height: 32px !important; /* Altura forçada menor */
+            height: auto !important;
+            border-width: 1px !important;
         }
+
+        /* 1. Home (Cinza) */
+        div[data-testid="column"]:nth-of-type(1) .qa-btn button { background: white !important; border-color: #64748B !important; color: #64748B !important; }
+        div[data-testid="column"]:nth-of-type(1) .qa-btn button:hover { background: #64748B !important; color: white !important; }
+
+        /* 2. Estudantes (Indigo) */
+        div[data-testid="column"]:nth-of-type(2) .qa-btn button { background: white !important; border-color: #4F46E5 !important; color: #4F46E5 !important; }
+        div[data-testid="column"]:nth-of-type(2) .qa-btn button:hover { background: #4F46E5 !important; color: white !important; }
+        
+        /* 3. PEI (Blue) */
+        div[data-testid="column"]:nth-of-type(3) .qa-btn button { background: white !important; border-color: #2563EB !important; color: #2563EB !important; }
+        div[data-testid="column"]:nth-of-type(3) .qa-btn button:hover { background: #2563EB !important; color: white !important; }
+
+        /* 4. PAEE (Purple) */
+        div[data-testid="column"]:nth-of-type(4) .qa-btn button { background: white !important; border-color: #7C3AED !important; color: #7C3AED !important; }
+        div[data-testid="column"]:nth-of-type(4) .qa-btn button:hover { background: #7C3AED !important; color: white !important; }
+
+        /* 5. Recursos (Teal) */
+        div[data-testid="column"]:nth-of-type(5) .qa-btn button { background: white !important; border-color: #0D9488 !important; color: #0D9488 !important; }
+        div[data-testid="column"]:nth-of-type(5) .qa-btn button:hover { background: #0D9488 !important; color: white !important; }
+
+        /* 6. Diário (Rose) */
+        div[data-testid="column"]:nth-of-type(6) .qa-btn button { background: white !important; border-color: #E11D48 !important; color: #E11D48 !important; }
+        div[data-testid="column"]:nth-of-type(6) .qa-btn button:hover { background: #E11D48 !important; color: white !important; }
+
+        /* 7. Dados (Sky) */
+        div[data-testid="column"]:nth-of-type(7) .qa-btn button { background: white !important; border-color: #0284C7 !important; color: #0284C7 !important; }
+        div[data-testid="column"]:nth-of-type(7) .qa-btn button:hover { background: #0284C7 !important; color: white !important; }
     </style>
     """, unsafe_allow_html=True)
 
-    # 7 Colunas para os botões
     c1, c2, c3, c4, c5, c6, c7 = st.columns(7, gap="small")
     
+    # Adicionando classe wrapper para isolar o estilo
     with c1:
-        if st.button("🏠 HOME", use_container_width=True): st.rerun()
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        if st.button("INÍCIO", use_container_width=True): st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
     with c2:
-        if st.button("👥 ALUNOS", use_container_width=True): st.switch_page("pages/Alunos.py")
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        if st.button("ESTUDANTES", use_container_width=True): st.switch_page("pages/Alunos.py")
+        st.markdown('</div>', unsafe_allow_html=True)
     with c3:
-        if st.button("📘 PEI", use_container_width=True): st.switch_page("pages/1_PEI.py")
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        if st.button("PEI", use_container_width=True): st.switch_page("pages/1_PEI.py")
+        st.markdown('</div>', unsafe_allow_html=True)
     with c4:
-        if st.button("🧩 AEE", use_container_width=True): st.switch_page("pages/2_PAE.py")
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        if st.button("PAEE", use_container_width=True): st.switch_page("pages/2_PAE.py")
+        st.markdown('</div>', unsafe_allow_html=True)
     with c5:
-        if st.button("🚀 HUB", use_container_width=True): st.switch_page("pages/3_Hub_Inclusao.py")
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        if st.button("RECURSOS", use_container_width=True): st.switch_page("pages/3_Hub_Inclusao.py")
+        st.markdown('</div>', unsafe_allow_html=True)
     with c6:
-        if st.button("📓 DIÁRIO", use_container_width=True): st.switch_page("pages/4_Diario_de_Bordo.py")
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        if st.button("DIÁRIO", use_container_width=True): st.switch_page("pages/4_Diario_de_Bordo.py")
+        st.markdown('</div>', unsafe_allow_html=True)
     with c7:
-        if st.button("📊 DADOS", use_container_width=True): st.switch_page("pages/5_Monitoramento_Avaliacao.py")
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        if st.button("DADOS", use_container_width=True): st.switch_page("pages/5_Monitoramento_Avaliacao.py")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 def create_module_card_with_button(title, desc, icon, color_cls, bg_cls, page, key):
-    """Cria card de módulo com o botão EMBAIXO (restaurado)"""
-    # 1. HTML do Card (Topo)
+    """Cria card de módulo com botão ACESSAR embaixo"""
     st.markdown(
         f"""
         <div class="mod-card-wrapper">
@@ -316,8 +339,6 @@ def create_module_card_with_button(title, desc, icon, color_cls, bg_cls, page, k
         unsafe_allow_html=True,
     )
     
-    # 2. Botão nativo do Streamlit (Embaixo)
-    # O CSS injetado lá em cima ajusta ele para parecer colado
     if st.button(f"ACESSAR {title.split()[0].upper()}", key=key, use_container_width=True):
         st.switch_page(page)
 
@@ -350,15 +371,29 @@ def render_info_cards():
         with cols[idx]:
             st.markdown(f"""<div class="info-card {c['c']}"><div class="info-card-header"><div class="info-card-icon"><i class="{c['i']}"></i></div><h3 class="info-card-title">{c['t']}</h3></div><div class="info-card-content"><p>{c['txt']}</p></div></div>""", unsafe_allow_html=True)
 
+def render_metrics():
+    m_data = [
+        {"l":"Alunos Ativos", "v":"12", "c":"+2", "t":"up"},
+        {"l":"PEIs Ativos", "v":"8", "c":"+1", "t":"up"},
+        {"l":"Evidências Hoje", "v":"3", "c":"0", "t":"neu"},
+        {"l":"Meta Mensal", "v":"75%", "c":"+5%", "t":"up"}
+    ]
+    cols = st.columns(4, gap="medium")
+    for idx, m in enumerate(m_data):
+        color = "metric-up" if m['t'] == "up" else "metric-neutral"
+        icon = "↗️" if m['t'] == "up" else "➡️"
+        with cols[idx]:
+            st.markdown(f"""<div class="metric-card"><span class="metric-label">{m['l']}</span><div class="metric-value">{m['v']}</div><div class="metric-change {color}">{icon} {m['c']}</div></div>""", unsafe_allow_html=True)
+
 # ==============================================================================
-# 6. EXECUÇÃO DO APP
+# 6. APP EXECUTION
 # ==============================================================================
 render_topbar()
 
-# 1. BARRA DE ACESSO RÁPIDO (7 Botões, Coloridos, Sem Título)
+# 1. BARRA DE ACESSO RÁPIDO (7 Botões, Pequenos, Texto Puro)
 render_quick_access_bar()
 
-# 2. HERO (Logado)
+# 2. HERO
 nome_user = st.session_state.get("usuario_nome", "Visitante").split()[0]
 saudacao = "Bom dia" if 5 <= datetime.now().hour < 12 else "Boa tarde" if 12 <= datetime.now().hour < 18 else "Boa noite"
 st.markdown(f"""
@@ -371,7 +406,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# 3. MÓDULOS (Grid com Botões Restaurados Embaixo)
+# 3. MÓDULOS
 st.markdown("### 🧩 Módulos do Sistema")
 modules = [
     {"t": "Estudantes", "d": "Gestão completa de alunos.", "i": "ri-group-fill", "c": "c-indigo", "b": "bg-indigo-soft", "p": "pages/Alunos.py", "k": "btn_mod_1"},
@@ -391,6 +426,9 @@ st.markdown("<div style='height:30px'></div>", unsafe_allow_html=True)
 # 4. EXTRAS
 st.markdown("### 📚 Recursos Externos")
 render_resources()
+
+st.markdown("<div style='height:40px'></div>", unsafe_allow_html=True)
+render_metrics()
 
 st.markdown("---")
 st.markdown("## 📘 Guia Prático")
