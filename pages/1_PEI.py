@@ -13,15 +13,13 @@ import os
 import time
 import re
 from datetime import date, datetime
-
+import base64
+from streamlit_option_menu import option_menu
 
 # ==============================================================================
 # CABEÇALHO + MENU FIXO (COPIAR ESTE BLOCO PARA TODAS AS PÁGINAS)
 # ==============================================================================
-import streamlit as st
-import base64
-import os
-from streamlit_option_menu import option_menu
+
 
 # FUNÇÃO DO CABEÇALHO
 def _render_header():
