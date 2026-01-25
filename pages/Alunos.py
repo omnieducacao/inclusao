@@ -15,7 +15,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-APP_VERSION = "v2.0 - Gestão de Estudantes"
+APP_VERSION = "v2.1 - Gestão de Estudantes com Perfil"
 
 # ==============================================================================
 # 🔷 DESIGN SYSTEM COM SIDEBAR E BADGE FLUTUANTE
@@ -63,7 +63,7 @@ html, body, [class*="css"] {
     display: flex;
     flex-direction: row;
     align-items: center;
-    height: 130px;
+    min-height: 130px; /* Alterado para min-height para acomodar conteúdo variável */
     width: 100%;
     position: relative;
     overflow: hidden;
@@ -78,13 +78,16 @@ html, body, [class*="css"] {
 
 .mod-bar {
     width: 6px;
-    height: 100%;
-    flex-shrink: 0;
+    height: 100%; /* Vai esticar com o pai */
+    position: absolute; /* Fixa na esquerda */
+    left: 0;
+    top: 0;
+    bottom: 0;
 }
 
 .mod-icon-area {
     width: 90px;
-    height: 100%;
+    /* height removido para flexbox cuidar do alinhamento */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -93,6 +96,8 @@ html, body, [class*="css"] {
     background: #FAFAFA;
     border-right: 1px solid #F1F5F9;
     transition: all 0.3s ease;
+    align-self: stretch; /* Estica verticalmente */
+    margin-left: 6px; /* Espaço para a barra colorida */
 }
 
 .mod-card-rect:hover .mod-icon-area {
@@ -102,9 +107,9 @@ html, body, [class*="css"] {
 
 .mod-content {
     flex-grow: 1;
-    padding: 0 24px;
+    padding: 1.5rem 24px; /* Mais padding vertical */
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Conteúdo em coluna (Título + Descrição) */
     justify-content: center;
 }
 
@@ -125,11 +130,56 @@ html, body, [class*="css"] {
     font-size: 0.8rem;
     color: #64748B;
     line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    /* display: -webkit-box; ... REMOVIDO para mostrar todo texto se necessário */
 }
+
+/* NOVO: ÁREA DO PERFIL DENTRO DO HERO */
+.hero-profile-container {
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    border-left: 1px solid #E2E8F0;
+    margin-left: 20px;
+    min-width: 250px; /* Garante largura mínima para o perfil */
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-name {
+    font-weight: 700;
+    color: #334155;
+    font-size: 0.95rem;
+}
+
+.profile-role {
+    font-size: 0.75rem;
+    color: #64748B;
+    background: #F1F5F9;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.profile-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4F46E5, #7C3AED);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    margin-right: 12px;
+    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+}
+
 
 /* CORES DOS CARDS - MESMA DA HOME */
 .c-sky { background: #0284C7 !important; }
@@ -340,27 +390,41 @@ html, body, [class*="css"] {
 /* ===== RESPONSIVIDADE ===== */
 @media (max-width: 1024px) {
     .student-header, .student-row { grid-template-columns: 2.5fr 1fr 1fr 2fr 1fr; }
-    .mod-card-rect { height: 120px; }
-    .mod-icon-area { width: 80px; }
+    .mod-card-rect { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        padding-bottom: 1.5rem;
+    }
+    .mod-icon-area { 
+        width: 100%; 
+        height: 80px; 
+        border-right: none; 
+        border-bottom: 1px solid #F1F5F9; 
+        margin-left: 0;
+    }
+    .mod-bar {
+        width: 100%;
+        height: 6px;
+        top: 0;
+        bottom: auto;
+    }
+    .mod-content { 
+        width: 100%;
+        padding: 1rem 1.5rem;
+    }
+    .hero-profile-container {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid #E2E8F0;
+        margin-left: 0;
+        padding: 1rem 1.5rem 0 1.5rem;
+        margin-top: 0;
+    }
 }
 
 @media (max-width: 768px) {
     .student-header, .student-row { grid-template-columns: 1fr; gap: 12px; }
     .student-header { display: none; }
-    .mod-card-rect { 
-        height: 110px;
-        flex-direction: column;
-        height: auto;
-        padding: 16px;
-    }
-    .mod-bar { width: 100%; height: 6px; }
-    .mod-icon-area { 
-        width: 100%; 
-        height: 60px; 
-        border-right: none;
-        border-bottom: 1px solid #F1F5F9;
-    }
-    .mod-content { padding: 16px 0 0 0; }
 }
 
 /* ===== BANNER DE CONFIRMAÇÃO DE EXCLUSÃO ===== */
@@ -534,7 +598,9 @@ if not st.session_state.get("workspace_id"):
 
 WORKSPACE_ID = st.session_state.get("workspace_id")
 WORKSPACE_NAME = st.session_state.get("workspace_name") or f"{str(WORKSPACE_ID)[:8]}…"
-USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
+USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante")
+USUARIO_PRIMEIRO_NOME = USUARIO_NOME.split()[0]
+USUARIO_INICIAIS = "".join([n[0] for n in USUARIO_NOME.split()[:2]]).upper()
 
 # ==============================================================================
 # SIDEBAR PERSONALIZADA
@@ -586,7 +652,7 @@ with st.sidebar:
         st.switch_page("streamlit_app.py")
 
 # ==============================================================================
-# CARD HERO (ESTILO EXATO DA HOME COM HOVER)
+# CARD HERO COM PERFIL INTEGRADO (PIM)
 # ==============================================================================
 hora = datetime.now().hour
 saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
@@ -599,13 +665,23 @@ st.markdown(
             <div class="mod-icon-area bg-sky-soft">
                 <i class="ri-group-fill"></i>
             </div>
+            
             <div class="mod-content">
                 <div class="mod-title">Gestão de Estudantes</div>
                 <div class="mod-desc">
-                    {saudacao}, <strong>{USUARIO_NOME}</strong>! Aqui você gerencia todos os estudantes do workspace 
-                    <strong>{WORKSPACE_NAME}</strong>. Visualize, busque e administre os dados dos alunos vinculados aos PEIs.
+                    {saudacao}, aqui você gerencia todos os estudantes do workspace.
+                    Visualize, busque e administre os dados dos alunos vinculados aos PEIs.
                 </div>
             </div>
+
+            <div class="hero-profile-container">
+                <div class="profile-avatar">{USUARIO_INICIAIS}</div>
+                <div class="profile-info">
+                    <div class="profile-name">{USUARIO_NOME}</div>
+                    <div class="profile-role">Especialista Pedagógico</div>
+                </div>
+            </div>
+
         </div>
     </div>
     """,
@@ -752,7 +828,7 @@ st.caption(f"**{len(alunos)}** estudante(s) encontrado(s)")
 # Linhas dos estudantes
 for a in alunos:
     sid = a.get("id")
-    nome = a.get("name") or "—"
+    name = a.get("name") or "—"
     serie = a.get("grade") or "—"
     turma = a.get("class_group") or "—"
     diag = a.get("diagnosis") or "—"
@@ -765,7 +841,7 @@ for a in alunos:
     st.markdown(
         f"""
         <div class="student-row">
-            <div class="student-name">{nome}</div>
+            <div class="student-name">{name}</div>
             <div><span class="badge-grade">{serie}</span></div>
             <div><span class="badge-class">{turma}</span></div>
             <div class="student-meta">{diag}</div>
@@ -780,7 +856,7 @@ for a in alunos:
         with col1:
             # Botão de lixeira estilizado
             if st.button("🗑️", key=f"del_{sid}", help="Apagar estudante", 
-                         use_container_width=True):
+                          use_container_width=True):
                 st.session_state[confirm_key] = True
                 st.rerun()
     else:
@@ -788,7 +864,7 @@ for a in alunos:
         st.markdown(f"""
         <div class="delete-confirm-banner">
             <i class="ri-alert-fill"></i>
-            <div>Confirmar exclusão de <strong>{nome}</strong>?</div>
+            <div>Confirmar exclusão de <strong>{name}</strong>?</div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -800,7 +876,7 @@ for a in alunos:
                     delete_student_rest(sid, WORKSPACE_ID)
                     list_students_rest.clear()
                     st.session_state[confirm_key] = False
-                    st.toast(f"✅ Estudante '{nome}' removido com sucesso!", icon="🗑️")
+                    st.toast(f"✅ Estudante '{name}' removido com sucesso!", icon="🗑️")
                     st.rerun()
                 except Exception as e:
                     st.session_state[confirm_key] = False
