@@ -158,6 +158,141 @@ footer {
         """,
         unsafe_allow_html=True,
     )
+
+
+
+
+def _ui_compact_design():
+    st.markdown(
+        """
+<style>
+/* ===== RESET & BASE ===== */
+html, body, [class*="css"] {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    color: #1E293B !important;
+    background-color: #F8FAFC !important;
+}
+
+/* --- OCULTAR HEADER NATIVO DO STREAMLIT --- */
+[data-testid="stSidebarNav"],
+[data-testid="stHeader"],
+[data-testid="stToolbar"],
+[data-testid="collapsedControl"],
+footer {
+    display: none !important;
+}
+
+/* --- TOPBAR FINA (60px) - ESPAÇO REDUZIDO --- */
+.topbar-thin {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid #E2E8F0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 0 !important;
+}
+
+.brand-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-logo {
+    height: 36px !important;
+    width: auto !important;
+    animation: spin 40s linear infinite;
+    filter: brightness(1.1);
+}
+
+.brand-img-text {
+    height: 20px !important;
+    width: auto;
+    margin-left: 8px;
+}
+
+.user-badge-thin {
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.3px;
+}
+
+.apple-avatar-thin {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4F46E5, #7C3AED);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.75rem;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+}
+
+/* Ajustar padding para compensar a topbar fixa - REDUZIDO */
+.block-container {
+    padding-top: 75px !important; /* REDUZIDO */
+    padding-bottom: 2rem !important;
+    max-width: 95% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+/* --- ANIMAÇÕES --- */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+    .topbar-thin { 
+        padding: 0 1rem !important; 
+        height: 55px !important;
+    }
+    .brand-logo { height: 32px !important; }
+    .brand-img-text { display: none; }
+    .user-badge-thin { 
+        font-size: 0.65rem !important; 
+        padding: 3px 8px !important;
+    }
+    .apple-avatar-thin { 
+        width: 28px !important; 
+        height: 28px !important; 
+        font-size: 0.7rem !important;
+    }
+    .block-container { 
+        padding-top: 70px !important;
+    }
+    
+    .pill-nav-btn button {
+        font-size: 0.65rem !important;
+        padding: 4px 8px !important;
+        min-height: 26px !important;
+        margin: 0 2px !important;
+    }
+}
+</style>
+        """,
+        unsafe_allow_html=True,
+    )
 # ==============================================================================
 # 🔷 DESIGN SYSTEM COM TOPBAR FINA E MENU COLORIDO
 # ==============================================================================
