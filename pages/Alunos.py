@@ -1,10 +1,10 @@
 # pages/Alunos.py
 import streamlit as st
+import streamlit.components.v1 as components
 import requests
 from datetime import datetime
 import base64
 import os
-import streamlit.components.v1 as components
 
 # ==============================================================================
 # CONFIG
@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-APP_VERSION = "v2.6 - Menu Real Dentro da Topbar (HTML + ?go=)"
+APP_VERSION = "v2.7 - Topbar HTML (components) + Menu Real"
 
 # ==============================================================================
 # NAVEGAÇÃO VIA QUERY PARAM (?go=) -> switch_page
@@ -32,7 +32,7 @@ def handle_go_param():
         if isinstance(go, list):
             go = go[0] if go else None
         if go:
-            # limpa o param para não ficar "preso" em reruns
+            # limpa o param para não ficar preso em reruns
             try:
                 st.query_params.clear()
             except Exception:
@@ -81,6 +81,7 @@ html, body, [class*="css"] {
 
 :root { --topbar-h: 64px; }
 
+/* Reserva espaço para a topbar */
 .block-container {
     padding-top: calc(var(--topbar-h) + 16px) !important;
     padding-bottom: 2rem !important;
@@ -124,7 +125,7 @@ html, body, [class*="css"] {
     font-size: 0.75rem;
 }
 
-/* MENU CENTRAL DENTRO DA TOPBAR (HTML) */
+/* MENU CENTRAL DENTRO DA TOPBAR */
 .topbar-menu {
     position: absolute;
     left: 50%;
@@ -211,7 +212,7 @@ html, body, [class*="css"] {
     .tb-link{ padding: 0 10px; font-size: 0.60rem; height: 34px; }
 }
 @media (max-width: 768px){
-    .topbar-menu{ display: none; } /* no mobile: oculta menu para não quebrar */
+    .topbar-menu{ display: none; }
     .student-header { display: none; }
     .student-row { grid-template-columns: 1fr; gap: 8px; border-bottom: 2px solid #F1F5F9; }
 }
@@ -221,7 +222,7 @@ html, body, [class*="css"] {
 )
 
 # ==============================================================================
-# TOPBAR (COM MENU EMBUTIDO EM HTML)
+# TOPBAR (HTML PURO VIA components.html)
 # ==============================================================================
 def render_thin_topbar_with_menu():
     icone = get_base64_image("omni_icone.png")
@@ -236,37 +237,31 @@ def render_thin_topbar_with_menu():
         else "<span style='font-weight:900;color:#2B3674;'>OMNISFERA</span>"
     )
 
-    # página atual (para destacar)
     active = "students"
-
-    # links via ?go=
     home_target = "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "0_Home.py"
 
-    menu_html = f"""
-      <div class="topbar-menu">
-        <a class="tb-link tb-home" href="?go={home_target}">INÍCIO</a>
-        <a class="tb-link tb-students {'active' if active=='students' else ''}" href="?go=pages/Alunos.py">ESTUDANTES</a>
-        <a class="tb-link tb-pei" href="?go=pages/1_PEI.py">PEI</a>
-        <a class="tb-link tb-aee" href="?go=pages/2_PAE.py">AEE</a>
-        <a class="tb-link tb-rec" href="?go=pages/3_Hub_Inclusao.py">RECURSOS</a>
-        <a class="tb-link tb-diario" href="?go=pages/4_Diario_de_Bordo.py">DIÁRIO</a>
-        <a class="tb-link tb-dados" href="?go=pages/5_Monitoramento_Avaliacao.py">DADOS</a>
-      </div>
-    """
+    html = f"""
+    <div class="topbar-thin">
+        <div class="brand-box">{img_logo}{img_text}</div>
 
-    st.markdown(
-        f"""
-        <div class="topbar-thin">
-            <div class="brand-box">{img_logo}{img_text}</div>
-            {menu_html}
-            <div class="brand-box">
-                <div class="user-badge-thin">{ws_name}</div>
-                <div class="apple-avatar-thin">{get_user_initials(user_name)}</div>
-            </div>
+        <div class="topbar-menu">
+            <a class="tb-link tb-home" href="?go={home_target}">INÍCIO</a>
+            <a class="tb-link tb-students {'active' if active=='students' else ''}" href="?go=pages/Alunos.py">ESTUDANTES</a>
+            <a class="tb-link tb-pei" href="?go=pages/1_PEI.py">PEI</a>
+            <a class="tb-link tb-aee" href="?go=pages/2_PAE.py">AEE</a>
+            <a class="tb-link tb-rec" href="?go=pages/3_Hub_Inclusao.py">RECURSOS</a>
+            <a class="tb-link tb-diario" href="?go=pages/4_Diario_de_Bordo.py">DIÁRIO</a>
+            <a class="tb-link tb-dados" href="?go=pages/5_Monitoramento_Avaliacao.py">DADOS</a>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
+
+        <div class="brand-box">
+            <div class="user-badge-thin">{ws_name}</div>
+            <div class="apple-avatar-thin">{get_user_initials(user_name)}</div>
+        </div>
+    </div>
+    """
+    # height=0 para não "empurrar" layout; a topbar é fixed via CSS
+    components.html(html, height=0, scrolling=False)
 
 render_thin_topbar_with_menu()
 
