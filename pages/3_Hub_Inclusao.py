@@ -421,119 +421,123 @@ TAXONOMIA_BLOOM = {
 # CARREGAR ALUNOS DO SUPABASE (igual ao PAEE) + fallback local opcional
 # ==============================================================================
 
+import json  # (garanta que existe no topo do arquivo)
+
+ARQUIVO_DB = "banco_alunos.json"
+
 @st.cache_data(ttl=10, show_spinner=False)
-def list_students_rest():
-    WORKSPACE_ID = st.session_state.get("workspace_id")
-    if not WORKSPACE_ID:
+def list_students_rest(workspace_id: str):
+    """Busca estudantes do Supabase via REST filtrando por workspace_id."""
+    if not workspace_id:
         return []
 
-    try:
-        base = (
-            f"{_sb_url()}/rest/v1/students"
-            f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data"
-            f"&workspace_id=eq.{WORKSPACE_ID}"
-            f"&order=created_at.desc"
-        )
-        r = requests.get(base, headers=_headers(), timeout=20)
-        return r.json() if r.status_code == 200 else []
-    except:
+    base = (
+        f"{_sb_url()}/rest/v1/students"
+        f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data"
+        f"&workspace_id=eq.{workspace_id}"
+        f"&order=created_at.desc"
+    )
+    r = requests.get(base, headers=_headers(), timeout=20)
+    if r.status_code >= 400:
         return []
+    data = r.json()
+    return data if isinstance(data, list) else []
 
-def carregar_estudantes_supabase():
-    dados = list_students_rest()
+def carregar_estudantes_supabase(workspace_id: str):
+    """Normaliza retorno do Supabase para o formato usado no app."""
+    dados = list_students_rest(workspace_id)
     estudantes = []
 
-    for item in dados:
+    for item in (dados or []):
         pei_completo = item.get("pei_data") or {}
-        contexto_ia = pei_completo.get("ia_sugestao", "")
+        contexto_ia = ""
 
+        # ✅ ia_sugestao pode estar direto no pei_data (dict) OU em outra chave
+        if isinstance(pei_completo, dict):
+            contexto_ia = pei_completo.get("ia_sugestao", "") or ""
+        else:
+            pei_completo = {}
+
+        # fallback de contexto
         if not contexto_ia:
             diag = item.get("diagnosis", "Não informado")
             serie = item.get("grade", "")
             contexto_ia = f"Aluno: {item.get('name')}. Série: {serie}. Diagnóstico: {diag}."
 
         estudante = {
-            "nome": item.get("name", ""),
-            "serie": item.get("grade", ""),
-            "hiperfoco": item.get("diagnosis", ""),
+            "nome": item.get("name", "") or "",
+            "serie": item.get("grade", "") or "",
+            "hiperfoco": item.get("diagnosis", "") or "",
             "ia_sugestao": contexto_ia,
-            "id": item.get("id", ""),
-            "pei_data": pei_completo
+            "id": item.get("id", "") or "",
+            "pei_data": pei_completo,
         }
+
         if estudante["nome"]:
             estudantes.append(estudante)
 
     return estudantes
 
-# --- fallback local (opcional, se você quiser manter) ---
-ARQUIVO_DB = "banco_alunos.json"
-
 def carregar_banco_local():
+    """Fallback local filtrado por usuário (opcional)."""
     usuario_atual = st.session_state.get("usuario_nome", "")
-    if os.path.exists(ARQUIVO_DB):
-        try:
-            with open(ARQUIVO_DB, "r", encoding="utf-8") as f:
-                todos_alunos = json.load(f)
-            return [a for a in todos_alunos if a.get("responsavel") == usuario_atual]
-        except:
+    if not os.path.exists(ARQUIVO_DB):
+        return []
+    try:
+        with open(ARQUIVO_DB, "r", encoding="utf-8") as f:
+            todos = json.load(f)
+        if not isinstance(todos, list):
             return []
-    return []
+        return [a for a in todos if a.get("responsavel") == usuario_atual]
+    except Exception:
+        return []
 
-# --- inicialização do banco_estudantes (Supabase primeiro) ---
-if "banco_estudantes" not in st.session_state or not st.session_state.banco_estudantes:
+def init_banco_estudantes():
+    """Inicializa st.session_state.banco_estudantes (Supabase primeiro; se vazio, local)."""
+    ws_id = st.session_state.get("workspace_id")
+
+    # se já existe e não está vazio, não mexe
+    if st.session_state.get("banco_estudantes"):
+        return
+
     alunos_sb = []
     try:
-        if _sb_url() and _sb_key():
+        # só tenta nuvem se tiver credenciais e workspace
+        if ws_id and _sb_url() and _sb_key():
             with st.spinner("🔄 Lendo alunos da nuvem..."):
-                alunos_sb = carregar_estudantes_supabase()
-    except:
+                alunos_sb = carregar_estudantes_supabase(ws_id)
+    except Exception:
         alunos_sb = []
 
-    st.session_state.banco_estudantes = alunos_sb if alunos_sb else carregar_banco_local()
+    st.session_state["banco_estudantes"] = alunos_sb if alunos_sb else carregar_banco_local()
 
+# roda a init uma vez
+if "banco_estudantes" not in st.session_state or not st.session_state.get("banco_estudantes"):
+    init_banco_estudantes()
 
-serie_aluno = aluno.get('serie', '').lower()
-is_ei = "infantil" in serie_aluno or "creche" in serie_aluno or "pré" in serie_aluno
+# ==============================================================================
+# HEADER DO ALUNO (só chame quando você tiver um "aluno" selecionado)
+# ==============================================================================
 
-# NOVO: Extrair ano para BNCC
-ano_bncc = extrair_ano_serie(aluno.get('serie', ''))
-st.session_state['ano_bncc'] = ano_bncc  # Salvar para usar em todas as abas
+def render_student_header(aluno: dict):
+    serie_aluno = (aluno.get("serie") or "").lower()
+    is_ei = ("infantil" in serie_aluno) or ("creche" in serie_aluno) or ("pré" in serie_aluno)  # se você usa isso
 
-# Mostrar header do aluno (ATUALIZADO)
-st.markdown(f"""
-    <div class="student-header">
-        <div class="student-info-item"><div class="student-label">Nome</div><div class="student-value">{aluno.get('nome')}</div></div>
-        <div class="student-info-item"><div class="student-label">Série</div><div class="student-value">{aluno.get('serie', '-')}</div></div>
-        <div class="student-info-item"><div class="student-label">Ano BNCC</div><div class="student-value">{ano_bncc if ano_bncc else 'Não identificado'}</div></div>
-        <div class="student-info-item"><div class="student-label">Hiperfoco</div><div class="student-value">{aluno.get('hiperfoco', '-')}</div></div>
-    </div>
-""", unsafe_allow_html=True)
+    # extrai ano BNCC (garanta que extrair_ano_serie exista no seu código)
+    ano_bncc = extrair_ano_serie(aluno.get("serie", ""))
+    st.session_state["ano_bncc"] = ano_bncc
 
+    st.markdown(f"""
+        <div class="student-header">
+            <div class="student-info-item"><div class="student-label">Nome</div><div class="student-value">{aluno.get('nome','-')}</div></div>
+            <div class="student-info-item"><div class="student-label">Série</div><div class="student-value">{aluno.get('serie','-')}</div></div>
+            <div class="student-info-item"><div class="student-label">Ano BNCC</div><div class="student-value">{ano_bncc if ano_bncc else 'Não identificado'}</div></div>
+            <div class="student-info-item"><div class="student-label">Hiperfoco</div><div class="student-value">{aluno.get('hiperfoco','-')}</div></div>
+        </div>
+    """, unsafe_allow_html=True)
 
+    return is_ei  # se você usa isso adiante
 
-# --- BANCO DE DADOS ---
-ARQUIVO_DB = "banco_alunos.json"
-
-def carregar_banco():
-    # --- BLINDAGEM DE DADOS ---
-    usuario_atual = st.session_state.get("usuario_nome", "")
-    # --------------------------
-
-    if os.path.exists(ARQUIVO_DB):
-        try:
-            with open(ARQUIVO_DB, "r", encoding="utf-8") as f:
-                todos_alunos = json.load(f)
-                # FILTRAGEM: Retorna apenas alunos deste usuário
-                meus_alunos = [
-                    aluno for aluno in todos_alunos 
-                    if aluno.get('responsavel') == usuario_atual
-                ]
-                return meus_alunos
-        except: return []
-    return []
-
-if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estudantes:
-    st.session_state.banco_estudantes = carregar_banco()
 
    
 
