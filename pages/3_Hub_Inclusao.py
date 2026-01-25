@@ -19,104 +19,24 @@ from datetime import date, datetime
 
 
 
-# ✅ 1) set_page_config (UMA VEZ SÓ e sempre no topo)
-st.set_page_config(
-    page_title="Omnisfera | PEI",
-    page_icon="📘",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
-
-APP_VERSION = "v150.0 (SaaS Design)"
-
-# ✅ 2) UI lockdown (não quebra se faltar arquivo)
-try:
-    from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
-    hide_streamlit_chrome_if_needed()
-    hide_default_sidebar_nav()
-except Exception:
-    pass
-
-# ✅ 3) Flag de ambiente (opcional)
-try:
-    IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
-except Exception:
-    IS_TEST_ENV = False
-
-# ✅ 4) Gate mínimo: autenticado + workspace_id
-if not st.session_state.get("autenticado"):
-    st.error("🔒 Acesso negado. Faça login na Página Inicial.")
-    st.stop()
-
-ws_id = st.session_state.get("workspace_id")
-if not ws_id:
-    st.error("Workspace não definido. Volte ao Início e valide o PIN.")
-    if st.button("Voltar para Login", key="pei_btn_voltar_login", use_container_width=True):
-        for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "supabase_jwt", "supabase_user_id"]:
-            st.session_state.pop(k, None)
-        st.switch_page("streamlit_app.py")
-    st.stop()
-
-# ✅ 5) Supabase (opcional: não bloqueia PEI se der ruim)
-sb = None
-try:
-    from _client import get_supabase
-    sb = get_supabase()  # <-- cliente (não é função)
-except Exception:
-    sb = None
-
-# Guardas legadas (não travam)
-def verificar_login_supabase():
-    st.session_state.setdefault("supabase_jwt", "")
-    st.session_state.setdefault("supabase_user_id", "")
-
-verificar_login_supabase()
-OWNER_ID = st.session_state.get("supabase_user_id", "")
-
-# ==============================================================================
-# OPENAI
-# ==============================================================================
-api_key = st.secrets.get("OPENAI_API_KEY", "")
-
-
-# ==============================================================================
-# 1. GUARDAS (LOGIN + SUPABASE)
-# ==============================================================================
-def verificar_login_app():
-    if "autenticado" not in st.session_state or not st.session_state["autenticado"]:
-        st.error("🔒 Acesso Negado. Faça login na Página Inicial.")
-        st.stop()
-
-def verificar_login_supabase():
-    # Supabase é necessário para SALVAR/CARREGAR, mas o PEI pode abrir como rascunho.
-    # Então aqui só garantimos chaves mínimas (não bloqueia).
-    if "supabase_jwt" not in st.session_state:
-        st.session_state["supabase_jwt"] = ""
-    if "supabase_user_id" not in st.session_state:
-        st.session_state["supabase_user_id"] = ""
-
-verificar_login_app()
-verificar_login_supabase()
-
 # ==============================================================================
 # 1. CONFIGURAÇÃO E SEGURANÇA
 # ==============================================================================
-st.set_page_config(page_title="[TESTE] Omnisfera | Hub", page_icon="🚀", layout="wide")
+st.set_page_config(
+    page_title="PAEE & T.A. | Omnisfera", 
+    page_icon="🧩", 
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 # ==============================================================================
-# ### BLOCO VISUAL INTELIGENTE: HEADER OMNISFERA & ALERTA DE TESTE ###
+# BLOCO VISUAL INTELIGENTE: HEADER OMNISFERA
 # ==============================================================================
-import os
-import base64
-import streamlit as st
-
-# 1. Detecção Automática de Ambiente (Via st.secrets)
 try:
     IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
 except:
     IS_TEST_ENV = False
 
-# 2. Função para carregar a logo em Base64
 def get_logo_base64():
     caminhos = ["omni_icone.png", "logo.png", "iconeaba.png"]
     for c in caminhos:
@@ -127,119 +47,181 @@ def get_logo_base64():
 
 src_logo_giratoria = get_logo_base64()
 
-# 3. Definição Dinâmica de Cores (Card Branco ou Amarelo)
 if IS_TEST_ENV:
-    # Amarelo Vibrante (Aviso de Teste)
     card_bg = "rgba(255, 220, 50, 0.95)" 
     card_border = "rgba(200, 160, 0, 0.5)"
 else:
-    # Branco Gelo Transparente (Original)
     card_bg = "rgba(255, 255, 255, 0.85)"
     card_border = "rgba(255, 255, 255, 0.6)"
 
-# 4. Renderização do CSS Global e Header Flutuante
 st.markdown(f"""
-<style>
-    
-    /* -------------------------------------------- */
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
 
+<style>
     /* CARD FLUTUANTE (OMNISFERA) */
-    .omni-badge {{
-        position: fixed;
-        top: 15px; 
-        right: 15px;
-        
-        /* COR DINÂMICA (Mudança aqui) */
-        background: {card_bg};
-        border: 1px solid {card_border};
-        
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        
-        /* Dimensões: Fino e Largo */
-        padding: 4px 30px;
-        min-width: 260px;
-        justify-content: center;
-        
-        border-radius: 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        z-index: 999990; /* Acima do conteúdo */
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        pointer-events: none; /* Deixa passar clique se necessário */
-    }}
-
-    .omni-text {{
-        font-family: 'Nunito', sans-serif;
-        font-weight: 800;
-        font-size: 0.9rem;
-        color: #2D3748;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }}
-
-    @keyframes spin-slow {{
-        from {{ transform: rotate(0deg); }}
-        to {{ transform: rotate(360deg); }}
-    }}
-    
-    .omni-logo-spin {{
-        height: 26px; width: 26px; 
-        animation: spin-slow 10s linear infinite;
-    }}
-
-</style>
-
-<div class="omni-badge">
-    <img src="{src_logo_giratoria}" class="omni-logo-spin">
-    <span class="omni-text">OMNISFERA</span>
-</div>
-""", unsafe_allow_html=True)
-# ==============================================================================
-# ### FIM BLOCO VISUAL INTELIGENTE ###
-# ==============================================================================
-
-
-# ==============================================================================
-# 3. BLOCO VISUAL (badge / logo)
-# ==============================================================================
-def get_logo_base64():
-    caminhos = ["omni_icone.png", "logo.png", "iconeaba.png", "omni.png", "ominisfera.png"]
-    for c in caminhos:
-        if os.path.exists(c):
-            with open(c, "rb") as f:
-                return f"data:image/png;base64,{base64.b64encode(f.read()).decode()}"
-    # fallback
-    return "https://cdn-icons-png.flaticon.com/512/1183/1183672.png"
-
-src_logo_giratoria = get_logo_base64()
-
-if IS_TEST_ENV:
-    card_bg = "rgba(255, 220, 50, 0.95)"
-    card_border = "rgba(200, 160, 0, 0.5)"
-else:
-    card_bg = "rgba(255, 255, 255, 0.85)"
-    card_border = "rgba(255, 255, 255, 0.6)"
-
-st.markdown(f"""
-<style>
     .omni-badge {{
         position: fixed; top: 15px; right: 15px;
         background: {card_bg}; border: 1px solid {card_border};
-        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-        padding: 4px 30px; min-width: 260px; justify-content: center;
+        backdrop-filter: blur(8px); padding: 4px 30px;
+        min-width: 260px; justify-content: center;
         border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         z-index: 999990; display: flex; align-items: center; gap: 10px;
         pointer-events: none;
     }}
-    .omni-text {{
-        font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.9rem;
-        color: #2D3748; letter-spacing: 1px; text-transform: uppercase;
-    }}
+    .omni-text {{ font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 0.9rem; color: #2D3748; letter-spacing: 1px; text-transform: uppercase; }}
     @keyframes spin-slow {{ from {{ transform: rotate(0deg); }} to {{ transform: rotate(360deg); }} }}
     .omni-logo-spin {{ height: 26px; width: 26px; animation: spin-slow 10s linear infinite; }}
+
+    /* CARD HERO */
+    .mod-card-wrapper {{ display: flex; flex-direction: column; margin-bottom: 20px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02); }}
+    .mod-card-rect {{ background: white; border-radius: 16px 16px 0 0; padding: 0; border: 1px solid #E2E8F0; border-bottom: none; display: flex; flex-direction: row; align-items: center; height: 130px; width: 100%; position: relative; overflow: hidden; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }}
+    .mod-card-rect:hover {{ transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08); border-color: #CBD5E1; }}
+    .mod-bar {{ width: 6px; height: 100%; flex-shrink: 0; }}
+    .mod-icon-area {{ width: 90px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; background: transparent !important; border-right: 1px solid #F1F5F9; transition: all 0.3s ease; }}
+    .mod-card-rect:hover .mod-icon-area {{ transform: scale(1.05); }}
+    .mod-content {{ flex-grow: 1; padding: 0 24px; display: flex; flex-direction: column; justify-content: center; }}
+    .mod-title {{ font-weight: 800; font-size: 1.1rem; color: #1E293B; margin-bottom: 6px; letter-spacing: -0.3px; transition: color 0.2s; }}
+    .mod-card-rect:hover .mod-title {{ color: #0D9488; }}
+    .mod-desc {{ font-size: 0.8rem; color: #64748B; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }}
+
+    /* CORES */
+    .c-teal {{ background: #0D9488 !important; }}
+    .bg-teal-soft {{ background: transparent !important; color: #0D9488 !important; }}
+    .c-purple {{ background: #8B5CF6 !important; }}
+    .bg-purple-soft {{ background: transparent !important; color: #8B5CF6 !important; }}
+
+    /* ABAS */
+    .stTabs [data-baseweb="tab-list"] {{ 
+        gap: 2px !important; 
+        background-color: transparent !important; 
+        padding: 0 !important; 
+        border-radius: 0 !important; 
+        margin-top: 24px !important; 
+        border-bottom: 2px solid #E2E8F0 !important; 
+        flex-wrap: wrap !important; 
+    }}
+    .stTabs [data-baseweb="tab"] {{ 
+        height: 36px !important; 
+        white-space: nowrap !important; 
+        background-color: transparent !important; 
+        border-radius: 8px 8px 0 0 !important; 
+        padding: 0 20px !important; 
+        color: #64748B !important; 
+        font-weight: 600 !important; 
+        font-size: 0.85rem !important; 
+        text-transform: uppercase !important; 
+        letter-spacing: 0.3px !important; 
+        transition: all 0.2s ease !important; 
+        border: none !important; 
+        margin: 0 2px 0 0 !important; 
+        position: relative !important;
+    }}
+    .stTabs [aria-selected="true"] {{ 
+        background-color: transparent !important; 
+        color: #0D9488 !important; 
+        font-weight: 700 !important; 
+        border: none !important; 
+        box-shadow: none !important; 
+    }}
+    .stTabs [aria-selected="true"]::after {{
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background-color: #0D9488;
+        border-radius: 2px 2px 0 0;
+    }}
+    .stTabs [data-baseweb="tab"]:not([aria-selected="true"]) {{ 
+        background-color: transparent !important; 
+    }}
+    .stTabs [data-baseweb="tab"]:hover:not([aria-selected="true"]) {{ 
+        background-color: #F8FAFC !important; 
+        color: #475569 !important; 
+    }}
+    .stTabs [data-baseweb="tab"]::before, .stTabs [aria-selected="true"]::before {{ 
+        display: none !important; 
+    }}
+
+    /* PEDAGOGIA BOX */
+    .pedagogia-box {{ background-color: #F8FAFC; border-left: 4px solid #CBD5E1; padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 25px; font-size: 0.95rem; color: #4A5568; }}
+
+    /* RESOURCE BOX */
+    .resource-box {{ 
+        background: #F8FAFC; 
+        border: 1px solid #E2E8F0; 
+        border-radius: 12px; 
+        padding: 20px; 
+        margin: 15px 0; 
+    }}
+    
+    /* ACTION BUTTONS */
+    .action-buttons {{ 
+        display: flex; 
+        gap: 10px; 
+        margin-top: 20px; 
+        flex-wrap: wrap; 
+    }}
+    
+    /* TIMELINE STYLES */
+    .timeline-header {{ 
+        background: white; 
+        border-radius: 12px; 
+        padding: 20px;
+        margin-bottom: 20px; 
+        border: 1px solid #E2E8F0;
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+    }}
+    .prog-bar-bg {{ 
+        width: 100%; 
+        height: 8px; 
+        background: #E2E8F0; 
+        border-radius: 4px; 
+        overflow: hidden; 
+        margin-top: 8px; 
+    }}
+    .prog-bar-fill {{ 
+        height: 100%; 
+        background: linear-gradient(90deg, #0D9488, #14B8A6); 
+        transition: width 1s; 
+    }}
+    
+    /* BOTÕES PERSONALIZADOS */
+    .stButton > button {{
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        transition: all 0.2s ease !important;
+    }}
+    .stButton > button[kind="primary"] {{
+        background: linear-gradient(135deg, #0D9488, #14B8A6) !important;
+        border: none !important;
+    }}
+    .stButton > button[kind="primary"]:hover {{
+        background: linear-gradient(135deg, #0F766E, #0D9488) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2) !important;
+    }}
+    .stButton > button[kind="secondary"] {{
+        background: white !important;
+        color: #0D9488 !important;
+        border: 1px solid #0D9488 !important;
+    }}
+    .stButton > button[kind="secondary"]:hover {{
+        background: #F0FDFA !important;
+        border-color: #0D9488 !important;
+    }}
+    
+    /* RESPONSIVIDADE */
+    @media (max-width: 768px) {{ 
+        .mod-card-rect {{ height: auto; flex-direction: column; padding: 16px; }} 
+        .mod-icon-area {{ width: 100%; height: 60px; border-right: none; border-bottom: 1px solid #F1F5F9; }} 
+        .mod-content {{ padding: 16px 0 0 0; }} 
+    }}
 </style>
+
 <div class="omni-badge">
     <img src="{src_logo_giratoria}" class="omni-logo-spin">
     <span class="omni-text">OMNISFERA</span>
@@ -250,32 +232,9 @@ def verificar_acesso():
     if "autenticado" not in st.session_state or not st.session_state["autenticado"]:
         st.error("🔒 Acesso Negado. Por favor, faça login na Página Inicial.")
         st.stop()
-    
-    st.markdown("""
-        <style>
-            footer {visibility: hidden !important;}
-            [data-testid="stHeader"] {
-                visibility: visible !important;
-                background-color: transparent !important;
-            }
-            .block-container {padding-top: 2rem !important;}
-        </style>
-    """, unsafe_allow_html=True)
+    st.markdown("""<style>footer {visibility: hidden !important;} [data-testid="stHeader"] {visibility: visible !important; background-color: transparent !important;} .block-container {padding-top: 2rem !important;}</style>""", unsafe_allow_html=True)
 
 verificar_acesso()
-
-# --- BARRA LATERAL COM NAVEGAÇÃO ---
-with st.sidebar:
-    try:
-        st.image("ominisfera.png", width=150)
-    except:
-        st.write("🌐 OMNISFERA")
-        
-    st.markdown("---")
-    if st.button("🏠 Voltar para Home", use_container_width=True):
-        st.switch_page("Home.py")
-    st.markdown("---")
-
 # ==============================================================================
 # CARD HERO PARA HUB (MESMO DESIGN DOS ESTUDANTES)
 # ==============================================================================
