@@ -20,7 +20,7 @@ st.set_page_config(
     page_title="Omnisfera | Ecossistema",
     page_icon="🌐",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # Esconde chrome só fora do TESTE
