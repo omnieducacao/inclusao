@@ -223,61 +223,6 @@ _check_auth()  # ← REMOVA OU COMENTE ESTA LINHA NA PÁGINA Home.py/0_Home.py
 
 
 
-
-# ✅ 1) set_page_config (UMA VEZ SÓ e sempre no topo)
-st.set_page_config(
-    page_title="Omnisfera | PEI",
-    page_icon="📘",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
-
-APP_VERSION = "v150.0 (SaaS Design)"
-
-# ✅ 2) UI lockdown (não quebra se faltar arquivo)
-try:
-    from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
-    hide_streamlit_chrome_if_needed()
-    hide_default_sidebar_nav()
-except Exception:
-    pass
-
-# ✅ 3) Flag de ambiente (opcional)
-try:
-    IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
-except Exception:
-    IS_TEST_ENV = False
-
-# ✅ 4) Gate mínimo: autenticado + workspace_id
-if not st.session_state.get("autenticado"):
-    st.error("🔒 Acesso negado. Faça login na Página Inicial.")
-    st.stop()
-
-ws_id = st.session_state.get("workspace_id")
-if not ws_id:
-    st.error("Workspace não definido. Volte ao Início e valide o PIN.")
-    if st.button("Voltar para Login", key="pei_btn_voltar_login", use_container_width=True):
-        for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "supabase_jwt", "supabase_user_id"]:
-            st.session_state.pop(k, None)
-        st.switch_page("streamlit_app.py")
-    st.stop()
-
-# ✅ 5) Supabase (opcional: não bloqueia PEI se der ruim)
-sb = None
-try:
-    from _client import get_supabase
-    sb = get_supabase()  # <-- cliente (não é função)
-except Exception:
-    sb = None
-
-# Guardas legadas (não travam)
-def verificar_login_supabase():
-    st.session_state.setdefault("supabase_jwt", "")
-    st.session_state.setdefault("supabase_user_id", "")
-
-verificar_login_supabase()
-OWNER_ID = st.session_state.get("supabase_user_id", "")
-
 # ==============================================================================
 # OPENAI
 # ==============================================================================
@@ -527,50 +472,6 @@ def db_update_pei_content(student_id: str, pei_dict: dict):
     r = requests.patch(api_url, headers=headers, json=body, timeout=20)
     return r.json() if r.status_code < 400 else None
 
-# ==============================================================================
-# 3. BLOCO VISUAL (badge / logo)
-# ==============================================================================
-def get_logo_base64():
-    caminhos = ["omni_icone.png", "logo.png", "iconeaba.png", "omni.png", "ominisfera.png"]
-    for c in caminhos:
-        if os.path.exists(c):
-            with open(c, "rb") as f:
-                return f"data:image/png;base64,{base64.b64encode(f.read()).decode()}"
-    # fallback
-    return "https://cdn-icons-png.flaticon.com/512/1183/1183672.png"
-
-src_logo_giratoria = get_logo_base64()
-
-if IS_TEST_ENV:
-    card_bg = "rgba(255, 220, 50, 0.95)"
-    card_border = "rgba(200, 160, 0, 0.5)"
-else:
-    card_bg = "rgba(255, 255, 255, 0.85)"
-    card_border = "rgba(255, 255, 255, 0.6)"
-
-st.markdown(f"""
-<style>
-    .omni-badge {{
-        position: fixed; top: 15px; right: 15px;
-        background: {card_bg}; border: 1px solid {card_border};
-        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-        padding: 4px 30px; min-width: 260px; justify-content: center;
-        border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        z-index: 999990; display: flex; align-items: center; gap: 10px;
-        pointer-events: none;
-    }}
-    .omni-text {{
-        font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.9rem;
-        color: #2D3748; letter-spacing: 1px; text-transform: uppercase;
-    }}
-    @keyframes spin-slow {{ from {{ transform: rotate(0deg); }} to {{ transform: rotate(360deg); }} }}
-    .omni-logo-spin {{ height: 26px; width: 26px; animation: spin-slow 10s linear infinite; }}
-</style>
-<div class="omni-badge">
-    <img src="{src_logo_giratoria}" class="omni-logo-spin">
-    <span class="omni-text">OMNISFERA</span>
-</div>
-""", unsafe_allow_html=True)
 
 
 # ==============================================================================
