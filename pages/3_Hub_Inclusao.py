@@ -1698,195 +1698,154 @@ else:
             pdf_bytes = criar_pdf_generico(res['txt'])
             c_down2.download_button("📕 BAIXAR PDF (Só Atividade)", pdf_bytes, "Atividade.pdf", mime="application/pdf", type="secondary")
 
-# ==============================================================================
-# BLOCO BNCC COMPLETA - 5 DROPDOWNS CONECTADOS
-# ==============================================================================
-import pandas as pd
-import os
 
-@st.cache_data
-def carregar_bncc_completa():
-    """Carrega o CSV da BNCC com todas as colunas necessárias"""
-    try:
-        # Verificar se arquivo existe
-        if not os.path.exists('bncc.csv'):
-            st.sidebar.warning("📄 Arquivo 'bncc.csv' não encontrado na pasta do script")
-            return None
-        
-        # Tentar ler o arquivo
-        try:
-            df = pd.read_csv('bncc.csv', delimiter=',', encoding='utf-8')
-        except:
-            try:
-                df = pd.read_csv('bncc.csv', delimiter=';', encoding='utf-8')
-            except Exception as e:
-                st.sidebar.error(f"❌ Erro ao ler CSV: {str(e)[:100]}")
-                return None
-        
-        # Mostrar informações de debug
-        st.sidebar.success(f"✅ CSV carregado: {len(df)} linhas")
-        st.sidebar.info(f"📋 Colunas: {list(df.columns)}")
-        
-        # Verificar colunas necessárias
-        colunas_necessarias = ['Ano', 'Disciplina', 'Unidade Temática', 
-                              'Objeto do Conhecimento', 'Habilidade']
-        
-        # Verificar se as colunas existem (com nomes exatos)
-        colunas_faltando = []
-        for col in colunas_necessarias:
-            if col not in df.columns:
-                colunas_faltando.append(col)
-        
-        if colunas_faltando:
-            st.sidebar.error(f"❌ Colunas faltando: {colunas_faltando}")
-            return None
-        
-        # Limpar dados
-        df = df.dropna(subset=['Ano', 'Disciplina', 'Objeto do Conhecimento'])
-        df['Ano'] = df['Ano'].astype(str).str.strip()
-        
-        return df
+           
+    # 3. CRIAR DO ZERO
+    with tabs[2]:
+    st.markdown("""
+    <div class="pedagogia-box">
+        <div class="pedagogia-title"><i class="ri-magic-line"></i> Criação com DUA</div>
+        Crie atividades do zero alinhadas ao PEI. A IA gera questões contextualizadas, 
+        usa o hiperfoco para engajamento e cria imagens ilustrativas automaticamente.
+    </div>
+    """, unsafe_allow_html=True)
     
-    except Exception as e:
-        st.sidebar.error(f"❌ Erro: {str(e)[:100]}")
-        return None
+    # --- BNCC DROPDOWNS COMPLETOS (NOVO) ---
+    st.markdown("### 📚 Selecione pela BNCC")
+    
+    # Chamar a função com todos os dropdowns
+    ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidade_bncc = criar_dropdowns_bncc_completos()
+    
+    # Mostrar resumo das seleções
+    if unidade_bncc and objeto_bncc:
+        with st.expander("📋 Resumo da seleção BNCC"):
+            st.write(f"**Ano:** {ano_bncc}")
+            st.write(f"**Disciplina:** {disciplina_bncc}")
+            st.write(f"**Unidade Temática:** {unidade_bncc}")
+            st.write(f"**Objeto do Conhecimento:** {objeto_bncc}")
+            if habilidade_bncc:
+                st.write(f"**Habilidade:** {habilidade_bncc}")
+    
+    # Usar os valores selecionados
+    mat_c = disciplina_bncc
+    obj_c = objeto_bncc
+    
+    # --- RESTO DO CÓDIGO DA ABA CONTINUA IGUAL ---
+    cc3, cc4 = st.columns(2)
+    qtd_c = cc3.slider("Qtd Questões", 1, 10, 5, key="cq")
+    
+    # --- MUDANÇA: REMOVIDA OPÇÃO 'MISTA' ---
+    tipo_quest = cc4.selectbox("Tipo", ["Objetiva", "Discursiva"], key="ctq")
+    
+    col_img_opt, col_img_pct = st.columns([1, 2])
+    usar_img = col_img_opt.checkbox("📸 Incluir Imagens?", value=True)
+    
+    # MUDANÇA: Slider numérico (0 até Qtd Questões)
+    qtd_img_sel = col_img_pct.slider("Quantas questões terão imagens?", 0, qtd_c, int(qtd_c/2), disabled=not usar_img)
+    
+    # --- BLOOM SECTION ---
+    st.write("---")
+    st.markdown("#### 🧠 Intencionalidade Pedagógica (Taxonomia de Bloom)")
+    usar_bloom = st.checkbox("🎯 Usar Taxonomia de Bloom (Revisada)")
+    
+    # Inicializa memória de seleção no session state se não existir
+    if 'bloom_memoria' not in st.session_state:
+        st.session_state.bloom_memoria = {cat: [] for cat in TAXONOMIA_BLOOM.keys()}
 
-def criar_dropdowns_bncc_completos():
-    """
-    Cria 5 dropdowns hierárquicos conectados:
-    1. Ano
-    2. Disciplina (filtrado por Ano)
-    3. Unidade Temática (filtrado por Ano e Disciplina)
-    4. Objeto do Conhecimento (filtrado por Ano, Disciplina e Unidade)
-    5. Habilidade (filtrado pelos anteriores)
-    """
-    
-    # Carregar dados se necessário
-    if 'bncc_df_completo' not in st.session_state:
-        st.session_state.bncc_df_completo = carregar_bncc_completa()
-    
-    dados = st.session_state.bncc_df_completo
-    
-    # Se não tem dados, mostrar campos básicos
-    if dados is None or dados.empty:
-        st.warning("⚠️ BNCC não carregada. Usando campos básicos.")
+    verbos_finais_para_ia = []
+
+    if usar_bloom:
+        col_b1, col_b2 = st.columns(2)
         
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            ano = st.selectbox("Ano", ["5", "6", "7", "8", "9"], key="ano_basico")
-        with col2:
-            disciplina = st.selectbox("Disciplina", 
-                ["Matemática", "Português", "Ciências", "História", "Geografia"], 
-                key="disc_basico")
-        with col3:
-            objeto = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
-                                  key="obj_basico")
+        # 1. Seleciona a Categoria (Gaveta)
+        cat_atual = col_b1.selectbox("Categoria Cognitiva:", list(TAXONOMIA_BLOOM.keys()))
         
-        # Campos extras para unidade e habilidade
-        col4, col5 = st.columns(2)
-        with col4:
-            unidade = st.text_input("Unidade Temática (opcional)", placeholder="Ex: Números", 
-                                   key="unid_basico")
-        with col5:
-            habilidade = st.text_input("Habilidade (opcional)", placeholder="Código BNCC", 
-                                      key="hab_basico")
+        # 2. Mostra Multiselect apenas para essa categoria, carregando o que já estava na memória
+        selecao_atual = col_b2.multiselect(
+            f"Verbos de '{cat_atual}':", 
+            TAXONOMIA_BLOOM[cat_atual],
+            default=st.session_state.bloom_memoria[cat_atual],
+            key=f"ms_bloom_{cat_atual}" # Chave única para o widget
+        )
         
-        return ano, disciplina, unidade, objeto, habilidade
-    
-    # TEMOS DADOS - criar dropdowns conectados
-    
-    # Linha 1: Ano, Disciplina, Unidade Temática
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        # 1. ANO
-        anos = sorted(dados['Ano'].dropna().unique())
-        ano_selecionado = st.selectbox("Ano", anos, key="ano_bncc_completo")
-    
-    with col2:
-        # 2. DISCIPLINA (filtrado por ano)
-        if ano_selecionado:
-            disc_filtradas = dados[dados['Ano'] == ano_selecionado]
-            disciplinas = sorted(disc_filtradas['Disciplina'].dropna().unique())
-            disciplina_selecionada = st.selectbox("Disciplina", disciplinas, 
-                                                 key="disc_bncc_completo")
+        # 3. Atualiza a memória com o que o usuário acabou de mexer
+        st.session_state.bloom_memoria[cat_atual] = selecao_atual
+        
+        # 4. Agrega tudo para mostrar ao usuário e enviar para a IA
+        for cat in st.session_state.bloom_memoria:
+            verbos_finais_para_ia.extend(st.session_state.bloom_memoria[cat])
+        
+        if verbos_finais_para_ia:
+            st.info(f"**Verbos Tagueados (Total):** {', '.join(verbos_finais_para_ia)}")
         else:
-            disciplina_selecionada = None
-    
-    with col3:
-        # 3. UNIDADE TEMÁTICA (filtrado por ano e disciplina)
-        if ano_selecionado and disciplina_selecionada:
-            unid_filtradas = dados[
-                (dados['Ano'] == ano_selecionado) & 
-                (dados['Disciplina'] == disciplina_selecionada)
-            ]
-            unidades = sorted(unid_filtradas['Unidade Temática'].dropna().unique())
-            unidade_selecionada = st.selectbox("Unidade Temática", unidades, 
-                                              key="unid_bncc_completo")
-        else:
-            unidade_selecionada = None
-    
-    # Linha 2: Objeto do Conhecimento, Habilidade
-    col4, col5 = st.columns(2)
-    
-    with col4:
-        # 4. OBJETO DO CONHECIMENTO (filtrado por ano, disciplina e unidade)
-        if ano_selecionado and disciplina_selecionada and unidade_selecionada:
-            obj_filtrados = dados[
-                (dados['Ano'] == ano_selecionado) & 
-                (dados['Disciplina'] == disciplina_selecionada) & 
-                (dados['Unidade Temática'] == unidade_selecionada)
-            ]
-            objetos = sorted(obj_filtrados['Objeto do Conhecimento'].dropna().unique())
+            st.caption("Nenhum verbo selecionado ainda.")
+    # ---------------------
+
+    if st.button("✨ CRIAR ATIVIDADE", type="primary", key="btn_c"):
+        with st.spinner("Elaborando..."):
+            qtd_final = qtd_img_sel if usar_img else 0
             
-            if objetos:
-                objeto_selecionado = st.selectbox("Objeto do Conhecimento", objetos, 
-                                                 key="obj_bncc_completo")
-            else:
-                objeto_selecionado = st.text_input("Objeto do Conhecimento", 
-                                                  placeholder="Não encontrado, digite", 
-                                                  key="obj_input_bncc")
-        else:
-            objeto_selecionado = st.text_input("Objeto do Conhecimento", 
-                                              placeholder="Selecione primeiro", 
-                                              key="obj_wait_bncc")
-    
-    with col5:
-        # 5. HABILIDADE (filtrado pelos 4 anteriores)
-        if (ano_selecionado and disciplina_selecionada and 
-            unidade_selecionada and objeto_selecionado and 
-            isinstance(objeto_selecionado, str) and not objeto_selecionado.startswith("Selecione")):
+            # Passamos a lista agregada 'verbos_finais_para_ia'
+            rac, txt = criar_profissional(api_key, aluno, mat_c, obj_c, qtd_c, tipo_quest, qtd_final, verbos_bloom=verbos_finais_para_ia if usar_bloom else None)
             
-            hab_filtradas = dados[
-                (dados['Ano'] == ano_selecionado) & 
-                (dados['Disciplina'] == disciplina_selecionada) & 
-                (dados['Unidade Temática'] == unidade_selecionada) & 
-                (dados['Objeto do Conhecimento'] == objeto_selecionado)
-            ]
-            habilidades = sorted(hab_filtradas['Habilidade'].dropna().unique())
-            
-            if habilidades:
-                # Mostrar como selectbox se tiver poucas, senão como multiselect
-                if len(habilidades) <= 10:
-                    habilidade_selecionada = st.selectbox("Habilidade BNCC", habilidades, 
-                                                         key="hab_bncc_completo")
-                else:
-                    st.info(f"🔍 {len(habilidades)} habilidades encontradas")
-                    habilidades_selecionadas = st.multiselect("Selecione as habilidades", 
-                                                             habilidades, 
-                                                             key="hab_multi_bncc")
-                    habilidade_selecionada = ", ".join(habilidades_selecionadas) if habilidades_selecionadas else ""
-            else:
-                habilidade_selecionada = st.text_input("Habilidade (opcional)", 
-                                                      placeholder="Digite a habilidade", 
-                                                      key="hab_input_bncc")
+            novo_map = {}; count = 0
+            tags = re.findall(r'\[\[GEN_IMG: (.*?)\]\]', txt)
+            for p in tags:
+                count += 1
+                # MUDANÇA: Prioridade BANCO, depois IA
+                url = gerar_imagem_inteligente(api_key, p, unsplash_key, prioridade="BANCO")
+                if url:
+                    io = baixar_imagem_url(url)
+                    if io: novo_map[count] = io.getvalue()
+            txt_fin = txt
+            for i in range(1, count + 1): 
+                txt_fin = re.sub(r'\[\[GEN_IMG: .*?\]\]', f"[[IMG_G{i}]]", txt_fin, count=1)
+            st.session_state['res_create'] = {'rac': rac, 'txt': txt_fin, 'map': novo_map, 'valid': False}
+            st.rerun()
+
+    if 'res_create' in st.session_state:
+        res = st.session_state['res_create']
+        if res.get('valid'):
+            st.markdown("<div class='validado-box'>✅ VALIDADO!</div>", unsafe_allow_html=True)
         else:
-            habilidade_selecionada = st.text_input("Habilidade (opcional)", 
-                                                  placeholder="Complete os campos acima", 
-                                                  key="hab_wait_bncc")
-    
-    return (ano_selecionado, disciplina_selecionada, unidade_selecionada, 
-            objeto_selecionado, habilidade_selecionada)
+            col_v, col_r = st.columns([1, 1])
+            if col_v.button("✅ Validar", key="val_c"): st.session_state['res_create']['valid'] = True; st.rerun()
+            if col_r.button("🧠 Refazer (+Profundo)", key="redo_c"):
+                with st.spinner("Refazendo..."):
+                    qtd_final = qtd_img_sel if usar_img else 0
+                    # Mesmo aqui, passamos a lista agregada atualizada
+                    verbos_profundos = []
+                    if usar_bloom:
+                         for cat in st.session_state.bloom_memoria:
+                            verbos_profundos.extend(st.session_state.bloom_memoria[cat])
+
+                    rac, txt = criar_profissional(api_key, aluno, mat_c, obj_c, qtd_c, tipo_quest, qtd_final, verbos_bloom=verbos_profundos if usar_bloom else None, modo_profundo=True)
+                    st.session_state['res_create']['rac'] = rac
+                    st.session_state['res_create']['txt'] = txt
+                    st.session_state['res_create']['valid'] = False
+                    st.rerun()
+
+        st.markdown(f"<div class='analise-box'><div class='analise-title'>🧠 Análise Pedagógica</div>{res['rac']}</div>", unsafe_allow_html=True)
+        with st.container(border=True):
+            partes = re.split(r'(\[\[IMG_G\d+\]\])', res['txt'])
+            for p in partes:
+                tag = re.search(r'\[\[IMG_G(\d+)\]\]', p)
+                if tag:
+                    i = int(tag.group(1))
+                    im = res['map'].get(i)
+                    if im: st.image(im, width=300)
+                elif p.strip(): st.markdown(p.strip())
+        
+        c_down1, c_down2 = st.columns(2)
+        docx = construir_docx_final(res['txt'], aluno, mat_c, {}, None, "Criada")
+        c_down1.download_button("📥 DOCX", docx, "Criada.docx", "primary")
+        
+        pdf_bytes = criar_pdf_generico(res['txt'])
+        c_down2.download_button("📕 BAIXAR PDF (Só Atividade)", pdf_bytes, "Criada.pdf", mime="application/pdf", type="secondary")
+
+
+
+
     # 4. ESTÚDIO VISUAL (ATUALIZADO COM FEEDBACK)
     with tabs[3]:
         st.markdown("""
