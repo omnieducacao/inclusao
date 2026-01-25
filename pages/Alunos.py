@@ -18,83 +18,6 @@ st.set_page_config(
 APP_VERSION = "v2.0 - Gestão de Estudantes"
 
 
-# ==============================================================================
-# BLOCO A — TOPBAR COMPLETA (Logo + Workspace + Usuário + Avatar)
-# Reuso: cole este bloco em qualquer page e chame render_topbar()
-# ==============================================================================
-
-def get_base64_image(image_path: str) -> str:
-    """Lê imagem local e retorna base64 (string vazia se não existir)."""
-    if not os.path.exists(image_path):
-        return ""
-    try:
-        with open(image_path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    except Exception:
-        return ""
-
-def get_user_initials(nome: str) -> str:
-    """Retorna iniciais do usuário (ex: 'Rodrigo Amorim' -> 'RA')."""
-    if not nome:
-        return "U"
-    parts = nome.strip().split()
-    if len(parts) >= 2:
-        return f"{parts[0][0]}{parts[-1][0]}".upper()
-    return parts[0][:2].upper()
-
-def get_user_first_name() -> str:
-    """Primeiro nome do usuário."""
-    return (st.session_state.get("usuario_nome", "Visitante").strip().split() or ["Visitante"])[0]
-
-def get_workspace_short(max_len: int = 20) -> str:
-    """Nome curto da escola/workspace para badge."""
-    ws = st.session_state.get("workspace_name", "") or ""
-    return (ws[:max_len] + "...") if len(ws) > max_len else ws
-
-def render_topbar():
-    """
-    Renderiza a Topbar fixa com:
-    - Logo girando (omni_icone.png)
-    - Logo texto (omni_texto.png)
-    - Badge da escola/workspace
-    - Nome do usuário
-    - Avatar com iniciais (estilo Apple-like)
-    """
-
-    icone_b64 = get_base64_image("omni_icone.png")
-    texto_b64 = get_base64_image("omni_texto.png")
-
-    img_logo = (
-        f'<img src="data:image/png;base64,{icone_b64}" class="brand-logo">'
-        if icone_b64 else "🌐"
-    )
-    img_text = (
-        f'<img src="data:image/png;base64,{texto_b64}" class="brand-img-text">'
-        if texto_b64 else "<span style='font-weight:800;color:#2B3674;'>OMNISFERA</span>"
-    )
-
-    user_full = st.session_state.get("usuario_nome", "Visitante")
-    user_first = get_user_first_name()
-    initials = get_user_initials(user_full)
-    ws_name = get_workspace_short()
-
-    st.markdown(
-        f"""
-        <div class="topbar">
-            <!-- ESQUERDA: MARCA -->
-            <div class="brand-box">
-                {img_logo}
-                {img_text}
-            </div>
-
-            <!-- DIREITA: CONTEXTO DO USUÁRIO -->
-            <div class="brand-box" style="gap:10px;">
-                <div class="user-badge">{ws_name}</div>
-                <div class="user-badge">{user_first}</div>
-                <div class="apple-avatar">{initials}</div>
-            </div>
-
-
 
 # ==============================================================================
 # 🔷 DESIGN SYSTEM COM SIDEBAR E BADGE FLUTUANTE
@@ -464,94 +387,81 @@ html, body, [class*="css"] {
 _ui_home_block()
 
 # ==============================================================================
-# ### BLOCO VISUAL INTELIGENTE: HEADER OMNISFERA & ALERTA DE TESTE ###
+# BLOCO A — TOPBAR COMPLETA (Logo + Workspace + Usuário + Avatar)
+# Reuso: cole este bloco em qualquer page e chame render_topbar()
 # ==============================================================================
-# 1. Detecção Automática de Ambiente (Via st.secrets)
-try:
-    IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
-except:
-    IS_TEST_ENV = False
 
-# 2. Função para carregar a logo em Base64
-def get_logo_base64():
-    caminhos = ["omni_icone.png", "logo.png", "iconeaba.png"]
-    for c in caminhos:
-        if os.path.exists(c):
-            with open(c, "rb") as f:
-                return f"data:image/png;base64,{base64.b64encode(f.read()).decode()}"
-    return "https://cdn-icons-png.flaticon.com/512/1183/1183672.png"
+def get_base64_image(image_path: str) -> str:
+    """Lê imagem local e retorna base64 (string vazia se não existir)."""
+    if not os.path.exists(image_path):
+        return ""
+    try:
+        with open(image_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except Exception:
+        return ""
 
-src_logo_giratoria = get_logo_base64()
+def get_user_initials(nome: str) -> str:
+    """Retorna iniciais do usuário (ex: 'Rodrigo Amorim' -> 'RA')."""
+    if not nome:
+        return "U"
+    parts = nome.strip().split()
+    if len(parts) >= 2:
+        return f"{parts[0][0]}{parts[-1][0]}".upper()
+    return parts[0][:2].upper()
 
-# 3. Definição Dinâmica de Cores (Card Branco ou Amarelo)
-if IS_TEST_ENV:
-    # Amarelo Vibrante (Aviso de Teste)
-    card_bg = "rgba(255, 220, 50, 0.95)" 
-    card_border = "rgba(200, 160, 0, 0.5)"
-else:
-    # Branco Gelo Transparente (Original)
-    card_bg = "rgba(255, 255, 255, 0.85)"
-    card_border = "rgba(255, 255, 255, 0.6)"
+def get_user_first_name() -> str:
+    """Primeiro nome do usuário."""
+    return (st.session_state.get("usuario_nome", "Visitante").strip().split() or ["Visitante"])[0]
 
-# 4. Renderização do CSS Global e Header Flutuante
-st.markdown(f"""
-<style>
-    /* CARD FLUTUANTE (OMNISFERA) */
-    .omni-badge {{
-        position: fixed;
-        top: 15px; 
-        right: 15px;
-        
-        /* COR DINÂMICA */
-        background: {card_bg};
-        border: 1px solid {card_border};
-        
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        
-        /* Dimensões: Fino e Largo */
-        padding: 4px 30px;
-        min-width: 260px;
-        justify-content: center;
-        
-        border-radius: 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        z-index: 999990;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        pointer-events: none;
-    }}
+def get_workspace_short(max_len: int = 20) -> str:
+    """Nome curto da escola/workspace para badge."""
+    ws = st.session_state.get("workspace_name", "") or ""
+    return (ws[:max_len] + "...") if len(ws) > max_len else ws
 
-    .omni-text {{
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-weight: 800;
-        font-size: 0.9rem;
-        color: #2D3748;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }}
+def render_topbar():
+    """
+    Renderiza a Topbar fixa com:
+    - Logo girando (omni_icone.png)
+    - Logo texto (omni_texto.png)
+    - Badge da escola/workspace
+    - Nome do usuário
+    - Avatar com iniciais (estilo Apple-like)
+    """
 
-    @keyframes spin-slow {{
-        from {{ transform: rotate(0deg); }}
-        to {{ transform: rotate(360deg); }}
-    }}
-    
-    .omni-logo-spin {{
-        height: 26px;
-        width: 26px;
-        animation: spin-slow 10s linear infinite;
-    }}
-</style>
+    icone_b64 = get_base64_image("omni_icone.png")
+    texto_b64 = get_base64_image("omni_texto.png")
 
-<div class="omni-badge">
-    <img src="{src_logo_giratoria}" class="omni-logo-spin">
-    <span class="omni-text">OMNISFERA</span>
-</div>
-""", unsafe_allow_html=True)
-# ==============================================================================
-# ### FIM BLOCO VISUAL INTELIGENTE ###
-# ==============================================================================
+    img_logo = (
+        f'<img src="data:image/png;base64,{icone_b64}" class="brand-logo">'
+        if icone_b64 else "🌐"
+    )
+    img_text = (
+        f'<img src="data:image/png;base64,{texto_b64}" class="brand-img-text">'
+        if texto_b64 else "<span style='font-weight:800;color:#2B3674;'>OMNISFERA</span>"
+    )
+
+    user_full = st.session_state.get("usuario_nome", "Visitante")
+    user_first = get_user_first_name()
+    initials = get_user_initials(user_full)
+    ws_name = get_workspace_short()
+
+    st.markdown(
+        f"""
+        <div class="topbar">
+            <!-- ESQUERDA: MARCA -->
+            <div class="brand-box">
+                {img_logo}
+                {img_text}
+            </div>
+
+            <!-- DIREITA: CONTEXTO DO USUÁRIO -->
+            <div class="brand-box" style="gap:10px;">
+                <div class="user-badge">{ws_name}</div>
+                <div class="user-badge">{user_first}</div>
+                <div class="apple-avatar">{initials}</div>
+            </div>
+
 
 # ==============================================================================
 # 🔒 VERIFICAÇÃO DE ACESSO
