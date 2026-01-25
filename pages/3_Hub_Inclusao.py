@@ -267,6 +267,183 @@ st.markdown(
 
 
 # ==============================================================================
+# BLOCO BNCC SIMPLIFICADO - DROPDOWNS INDEPENDENTES
+# ==============================================================================
+import pandas as pd
+
+@st.cache_data
+def carregar_bncc_simplificada():
+    """Carrega o CSV da BNCC e retorna estrutura para dropdowns"""
+    try:
+        # Tenta ler o CSV
+        try:
+            df = pd.read_csv('bncc.csv', delimiter=',', encoding='utf-8')
+        except:
+            df = pd.read_csv('bncc.csv', delimiter=';', encoding='utf-8')
+        
+        # Padronizar colunas
+        df.columns = [col.strip() for col in df.columns]
+        
+        # Criar estrutura ordenada
+        estrutura = {
+            'anos': sorted(df['Ano'].unique().tolist()),
+            'disciplinas_por_ano': {},
+            'objetos_por_disciplina': {},
+            'habilidades_por_objeto': {}
+        }
+        
+        # Para cada ano, coletar disciplinas
+        for ano in estrutura['anos']:
+            df_ano = df[df['Ano'] == ano]
+            disciplinas = sorted(df_ano['Disciplina'].unique().tolist())
+            estrutura['disciplinas_por_ano'][str(ano)] = disciplinas
+            
+            # Para cada disciplina no ano, coletar objetos
+            for disc in disciplinas:
+                df_disc = df_ano[df_ano['Disciplina'] == disc]
+                chave = f"{ano}_{disc}"
+                
+                # Agrupar por Unidade Temática e Objeto
+                objetos_agrupados = {}
+                for _, row in df_disc.iterrows():
+                    unidade = row['Unidade Temática']
+                    objeto = row['Objeto do Conhecimento']
+                    habilidade = row['Habilidade']
+                    
+                    if unidade not in objetos_agrupados:
+                        objetos_agrupados[unidade] = {}
+                    
+                    if objeto not in objetos_agrupados[unidade]:
+                        objetos_agrupados[unidade][objeto] = []
+                    
+                    objetos_agrupados[unidade][objeto].append(habilidade)
+                
+                estrutura['objetos_por_disciplina'][chave] = objetos_agrupados
+        
+        return estrutura
+        
+    except Exception as e:
+        st.sidebar.error(f"Erro ao carregar BNCC: {str(e)[:100]}")
+        return None
+
+def criar_dropdowns_bncc(col1, col2, col3, col4, chave_unica=""):
+    """
+    Cria 4 dropdowns hierárquicos para selecionar:
+    1. Ano (col1)
+    2. Disciplina (col2) 
+    3. Objeto do Conhecimento (col3)
+    4. Habilidade (col4)
+    
+    Retorna: (ano, disciplina, objeto, habilidade)
+    """
+    
+    # Carregar BNCC se necessário
+    if 'BNCC_SIMPLES' not in st.session_state:
+        st.session_state.BNCC_SIMPLES = carregar_bncc_simplificada()
+    
+    bncc = st.session_state.BNCC_SIMPLES
+    
+    # Fallback se não carregar BNCC
+    if bncc is None:
+        st.warning("BNCC não carregada. Usando campos de texto simples.")
+        ano = col1.text_input("Ano", key=f"ano_txt_{chave_unica}")
+        disciplina = col2.text_input("Disciplina", key=f"disc_txt_{chave_unica}")
+        objeto = col3.text_input("Objeto", key=f"obj_txt_{chave_unica}")
+        habilidade = col4.text_input("Habilidade", key=f"hab_txt_{chave_unica}")
+        return ano, disciplina, objeto, habilidade
+    
+    # 1. DROPDOWN ANO
+    anos_opcoes = bncc['anos']
+    ano_selecionado = col1.selectbox(
+        "Ano",
+        anos_opcoes,
+        key=f"ano_select_{chave_unica}"
+    )
+    
+    # 2. DROPDOWN DISCIPLINA (baseado no ano)
+    disc_opcoes = bncc['disciplinas_por_ano'].get(str(ano_selecionado), [])
+    if not disc_opcoes:
+        disc_opcoes = ["Disciplina não encontrada"]
+    
+    disciplina_selecionada = col2.selectbox(
+        "Disciplina",
+        disc_opcoes,
+        key=f"disc_select_{chave_unica}"
+    )
+    
+    # 3. DROPDOWN OBJETO (baseado no ano e disciplina)
+    chave_disciplina = f"{ano_selecionado}_{disciplina_selecionada}"
+    objetos_data = bncc['objetos_por_disciplina'].get(chave_disciplina, {})
+    
+    # Criar lista de objetos formatados
+    opcoes_objetos = []
+    objeto_para_habilidades = {}
+    
+    for unidade, objetos in objetos_data.items():
+        for obj, habilidades in objetos.items():
+            opcao_formatada = f"[{unidade}] {obj}"
+            opcoes_objetos.append(opcao_formatada)
+            objeto_para_habilidades[opcao_formatada] = habilidades
+    
+    if not opcoes_objetos:
+        opcoes_objetos = ["Objeto não encontrado"]
+    
+    objeto_selecionado_str = col3.selectbox(
+        "Objeto do Conhecimento",
+        opcoes_objetos,
+        key=f"obj_select_{chave_unica}"
+    )
+    
+    # Extrair nome limpo do objeto
+    objeto_selecionado = objeto_selecionado_str.split("] ", 1)[1] if "] " in objeto_selecionado_str else objeto_selecionado_str
+    
+    # 4. DROPDOWN HABILIDADE (baseado no objeto)
+    habilidades_opcoes = objeto_para_habilidades.get(objeto_selecionado_str, [])
+    
+    if habilidades_opcoes:
+        # Limitar a 5 habilidades para dropdown
+        if len(habilidades_opcoes) > 5:
+            habilidades_display = habilidades_opcoes[:5] + ["Ver mais..."]
+        else:
+            habilidades_display = habilidades_opcoes
+        
+        habilidade_selecionada = col4.selectbox(
+            "Habilidade BNCC",
+            habilidades_display,
+            key=f"hab_select_{chave_unica}"
+        )
+        
+        # Se selecionou "Ver mais...", mostrar expander
+        if habilidade_selecionada == "Ver mais...":
+            with col4.expander("Todas as habilidades"):
+                for hab in habilidades_opcoes:
+                    st.caption(f"• {hab}")
+            habilidade_selecionada = habilidades_opcoes[0]
+    else:
+        habilidade_selecionada = col4.text_input(
+            "Habilidade (digite)",
+            key=f"hab_input_{chave_unica}"
+        )
+    
+    return ano_selecionado, disciplina_selecionada, objeto_selecionado, habilidade_selecionada
+
+def debug_bncc_simples():
+    """Mostra info da BNCC carregada"""
+    with st.sidebar:
+        st.markdown("---")
+        st.caption("📚 **BNCC Simplificada**")
+        
+        if 'BNCC_SIMPLES' in st.session_state:
+            bncc = st.session_state.BNCC_SIMPLES
+            if bncc:
+                st.success(f"✅ {len(bncc['anos'])} anos carregados")
+                for ano in bncc['anos'][:3]:  # Mostra 3 primeiros anos
+                    disc = bncc['disciplinas_por_ano'].get(str(ano), [])
+                    st.caption(f"**{ano}:** {len(disc)} disciplinas")
+            else:
+                st.warning("BNCC não carregada")
+
+# ==============================================================================
 # 2. O CÓDIGO DO HUB DE INCLUSÃO
 # ==============================================================================
 
