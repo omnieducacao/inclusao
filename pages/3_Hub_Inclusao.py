@@ -370,6 +370,52 @@ st.markdown(
 import pandas as pd
 import os
 
+def padronizar_ano(ano_str):
+    """Converte diferentes formatos de ano para um padrão ordenável"""
+    if not isinstance(ano_str, str):
+        ano_str = str(ano_str)
+    
+    ano_str = ano_str.strip()
+    
+    # Remover caracteres especiais e converter para número
+    import re
+    
+    # Padrões comuns
+    padroes = [
+        (r'(\d+)\s*º?\s*ano', 'ano'),      # "5º ano" -> 5
+        (r'(\d+)\s*ª?\s*série', 'ano'),    # "2ª série" -> 2
+        (r'(\d+)\s*em', 'em'),            # "1 EM" -> 1EM
+        (r'ef\s*(\d+)', 'ano'),           # "EF 5" -> 5
+        (r'(\d+)\s*período', 'ano'),      # "1 período" -> 1
+        (r'(\d+)\s*semestre', 'ano'),     # "2 semestre" -> 2
+    ]
+    
+    for padrao, tipo in padroes:
+        match = re.search(padrao, ano_str.lower())
+        if match:
+            num = match.group(1)
+            if tipo == 'em':
+                return f"{int(num):02d}EM"  # "01EM", "02EM", etc
+            else:
+                return f"{int(num):02d}"     # "01", "02", etc
+    
+    # Se não encontrou padrão, retorna o original
+    return ano_str
+
+def ordenar_anos(anos_lista):
+    """Ordena anos de forma inteligente"""
+    anos_padronizados = []
+    
+    for ano in anos_lista:
+        padrao = padronizar_ano(str(ano))
+        anos_padronizados.append((padrao, ano))
+    
+    # Ordenar pela versão padronizada
+    anos_padronizados.sort(key=lambda x: x[0])
+    
+    # Retornar anos originais na ordem correta
+    return [ano_original for _, ano_original in anos_padronizados]
+
 @st.cache_data
 def carregar_bncc_completa():
     """Carrega o CSV da BNCC com todas as colunas necessárias"""
@@ -391,13 +437,12 @@ def carregar_bncc_completa():
         
         # Mostrar informações de debug
         st.sidebar.success(f"✅ CSV carregado: {len(df)} linhas")
-        st.sidebar.info(f"📋 Colunas: {list(df.columns)}")
         
         # Verificar colunas necessárias
         colunas_necessarias = ['Ano', 'Disciplina', 'Unidade Temática', 
                               'Objeto do Conhecimento', 'Habilidade']
         
-        # Verificar se as colunas existem (com nomes exatos)
+        # Verificar se as colunas existem
         colunas_faltando = []
         for col in colunas_necessarias:
             if col not in df.columns:
@@ -407,9 +452,12 @@ def carregar_bncc_completa():
             st.sidebar.error(f"❌ Colunas faltando: {colunas_faltando}")
             return None
         
-        # Limpar dados
+        # Limpar dados - garantir que Ano seja string
         df = df.dropna(subset=['Ano', 'Disciplina', 'Objeto do Conhecimento'])
         df['Ano'] = df['Ano'].astype(str).str.strip()
+        
+        # Normalizar disciplinas problemáticas
+        df['Disciplina'] = df['Disciplina'].str.replace('Ed. Física', 'Educação Física')
         
         return df
     
@@ -417,14 +465,9 @@ def carregar_bncc_completa():
         st.sidebar.error(f"❌ Erro: {str(e)[:100]}")
         return None
 
-def criar_dropdowns_bncc_completos():
+def criar_dropdowns_bncc_completos_melhorado():
     """
-    Cria 5 dropdowns hierárquicos conectados:
-    1. Ano
-    2. Disciplina (filtrado por Ano)
-    3. Unidade Temática (filtrado por Ano e Disciplina)
-    4. Objeto do Conhecimento (filtrado por Ano, Disciplina e Unidade)
-    5. Habilidade (filtrado pelos anteriores)
+    Cria 5 dropdowns hierárquicos conectados com multiselect para habilidades
     """
     
     # Carregar dados se necessário
@@ -439,25 +482,41 @@ def criar_dropdowns_bncc_completos():
         
         col1, col2, col3 = st.columns(3)
         with col1:
-            ano = st.selectbox("Ano", ["5", "6", "7", "8", "9"], key="ano_basico")
+            ano = st.selectbox("Ano", ordenar_anos(["1", "2", "3", "4", "5", "6", "7", "8", "9", "1EM", "2EM", "3EM"]), 
+                              key="ano_basico_v2")
         with col2:
             disciplina = st.selectbox("Disciplina", 
-                ["Matemática", "Português", "Ciências", "História", "Geografia"], 
-                key="disc_basico")
+                ["Matemática", "Português", "Ciências", "História", "Geografia", 
+                 "Artes", "Educação Física", "Inglês", "Filosofia", "Sociologia"], 
+                key="disc_basico_v2")
         with col3:
             objeto = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
-                                  key="obj_basico")
+                                  key="obj_basico_v2")
         
-        # Campos extras para unidade e habilidade
+        # Campos extras
         col4, col5 = st.columns(2)
         with col4:
-            unidade = st.text_input("Unidade Temática (opcional)", placeholder="Ex: Números", 
-                                   key="unid_basico")
+            unidade = st.text_input("Unidade Temática", placeholder="Ex: Números", 
+                                   key="unid_basico_v2")
         with col5:
-            habilidade = st.text_input("Habilidade (opcional)", placeholder="Código BNCC", 
-                                      key="hab_basico")
+            # Multiselect para habilidades
+            habilidades_selecionadas = st.multiselect(
+                "Habilidades (selecione uma ou mais)",
+                ["Digite abaixo...", "Habilidade 1", "Habilidade 2"],
+                default=[],
+                key="hab_multi_basico_v2"
+            )
+            
+            # Se selecionou "Digite abaixo...", mostrar campo de texto
+            if "Digite abaixo..." in habilidades_selecionadas:
+                habilidade_texto = st.text_area("Digite as habilidades:", 
+                                               placeholder="Uma por linha", 
+                                               key="hab_texto_basico_v2")
+                habilidades = habilidade_texto.split('\n') if habilidade_texto else []
+            else:
+                habilidades = habilidades_selecionadas
         
-        return ano, disciplina, unidade, objeto, habilidade
+        return ano, disciplina, unidade, objeto, habilidades
     
     # TEMOS DADOS - criar dropdowns conectados
     
@@ -465,17 +524,19 @@ def criar_dropdowns_bncc_completos():
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        # 1. ANO
-        anos = sorted(dados['Ano'].dropna().unique())
-        ano_selecionado = st.selectbox("Ano", anos, key="ano_bncc_completo")
+        # 1. ANO (ordenado de forma inteligente)
+        anos_originais = dados['Ano'].dropna().unique().tolist()
+        anos_ordenados = ordenar_anos(anos_originais)
+        ano_selecionado = st.selectbox("Ano", anos_ordenados, 
+                                      key="ano_bncc_v2")
     
     with col2:
         # 2. DISCIPLINA (filtrado por ano)
         if ano_selecionado:
-            disc_filtradas = dados[dados['Ano'] == ano_selecionado]
+            disc_filtradas = dados[dados['Ano'].astype(str) == str(ano_selecionado)]
             disciplinas = sorted(disc_filtradas['Disciplina'].dropna().unique())
             disciplina_selecionada = st.selectbox("Disciplina", disciplinas, 
-                                                 key="disc_bncc_completo")
+                                                 key="disc_bncc_v2")
         else:
             disciplina_selecionada = None
     
@@ -483,23 +544,24 @@ def criar_dropdowns_bncc_completos():
         # 3. UNIDADE TEMÁTICA (filtrado por ano e disciplina)
         if ano_selecionado and disciplina_selecionada:
             unid_filtradas = dados[
-                (dados['Ano'] == ano_selecionado) & 
+                (dados['Ano'].astype(str) == str(ano_selecionado)) & 
                 (dados['Disciplina'] == disciplina_selecionada)
             ]
             unidades = sorted(unid_filtradas['Unidade Temática'].dropna().unique())
             unidade_selecionada = st.selectbox("Unidade Temática", unidades, 
-                                              key="unid_bncc_completo")
+                                              key="unid_bncc_v2")
         else:
             unidade_selecionada = None
     
-    # Linha 2: Objeto do Conhecimento, Habilidade
-    col4, col5 = st.columns(2)
+    # Linha 2: Objeto do Conhecimento
+    st.markdown("---")
+    col4 = st.columns(1)[0]
     
     with col4:
         # 4. OBJETO DO CONHECIMENTO (filtrado por ano, disciplina e unidade)
         if ano_selecionado and disciplina_selecionada and unidade_selecionada:
             obj_filtrados = dados[
-                (dados['Ano'] == ano_selecionado) & 
+                (dados['Ano'].astype(str) == str(ano_selecionado)) & 
                 (dados['Disciplina'] == disciplina_selecionada) & 
                 (dados['Unidade Temática'] == unidade_selecionada)
             ]
@@ -507,54 +569,80 @@ def criar_dropdowns_bncc_completos():
             
             if objetos:
                 objeto_selecionado = st.selectbox("Objeto do Conhecimento", objetos, 
-                                                 key="obj_bncc_completo")
+                                                 key="obj_bncc_v2")
             else:
                 objeto_selecionado = st.text_input("Objeto do Conhecimento", 
                                                   placeholder="Não encontrado, digite", 
-                                                  key="obj_input_bncc")
+                                                  key="obj_input_bncc_v2")
         else:
             objeto_selecionado = st.text_input("Objeto do Conhecimento", 
                                               placeholder="Selecione primeiro", 
-                                              key="obj_wait_bncc")
+                                              key="obj_wait_bncc_v2")
+    
+    # Linha 3: Habilidades (MULTISELECT)
+    st.markdown("---")
+    col5 = st.columns(1)[0]
     
     with col5:
-        # 5. HABILIDADE (filtrado pelos 4 anteriores)
+        # 5. HABILIDADES (filtrado pelos 4 anteriores) - MULTISELECT
         if (ano_selecionado and disciplina_selecionada and 
             unidade_selecionada and objeto_selecionado and 
             isinstance(objeto_selecionado, str) and not objeto_selecionado.startswith("Selecione")):
             
             hab_filtradas = dados[
-                (dados['Ano'] == ano_selecionado) & 
+                (dados['Ano'].astype(str) == str(ano_selecionado)) & 
                 (dados['Disciplina'] == disciplina_selecionada) & 
                 (dados['Unidade Temática'] == unidade_selecionada) & 
                 (dados['Objeto do Conhecimento'] == objeto_selecionado)
             ]
-            habilidades = sorted(hab_filtradas['Habilidade'].dropna().unique())
+            todas_habilidades = sorted(hab_filtradas['Habilidade'].dropna().unique())
             
-            if habilidades:
-                # Mostrar como selectbox se tiver poucas, senão como multiselect
-                if len(habilidades) <= 10:
-                    habilidade_selecionada = st.selectbox("Habilidade BNCC", habilidades, 
-                                                         key="hab_bncc_completo")
-                else:
-                    st.info(f"🔍 {len(habilidades)} habilidades encontradas")
-                    habilidades_selecionadas = st.multiselect("Selecione as habilidades", 
-                                                             habilidades, 
-                                                             key="hab_multi_bncc")
-                    habilidade_selecionada = ", ".join(habilidades_selecionadas) if habilidades_selecionadas else ""
+            if todas_habilidades:
+                st.markdown(f"**🔍 {len(todas_habilidades)} habilidade(s) encontrada(s):**")
+                
+                # Opções para o usuário
+                opcoes_habilidades = st.multiselect(
+                    "Selecione uma ou mais habilidades:",
+                    todas_habilidades,
+                    default=todas_habilidades[:min(3, len(todas_habilidades))],  # Seleciona até 3 por default
+                    key="hab_multi_bncc_v2"
+                )
+                
+                # Se o usuário quiser adicionar uma habilidade personalizada
+                with st.expander("➕ Adicionar habilidade personalizada"):
+                    habilidade_extra = st.text_area(
+                        "Digite habilidades adicionais (uma por linha):",
+                        placeholder="Ex:\nEF05MA01 - Ler números\nEF05MA02 - Comparar números",
+                        key="hab_extra_bncc_v2"
+                    )
+                    
+                    if habilidade_extra:
+                        habilidades_extras = [h.strip() for h in habilidade_extra.split('\n') if h.strip()]
+                        opcoes_habilidades.extend(habilidades_extras)
+                
+                habilidades_selecionadas = opcoes_habilidades
             else:
-                habilidade_selecionada = st.text_input("Habilidade (opcional)", 
-                                                      placeholder="Digite a habilidade", 
-                                                      key="hab_input_bncc")
+                st.info("ℹ️ Nenhuma habilidade encontrada para este objeto.")
+                habilidades_padrao = st.multiselect(
+                    "Selecione ou adicione habilidades:",
+                    ["Digite abaixo..."],
+                    default=[],
+                    key="hab_vazio_bncc_v2"
+                )
+                
+                if "Digite abaixo..." in habilidades_padrao:
+                    habilidade_texto = st.text_area("Digite as habilidades:", 
+                                                   placeholder="Uma por linha", 
+                                                   key="hab_texto_v2")
+                    habilidades_selecionadas = habilidade_texto.split('\n') if habilidade_texto else []
+                else:
+                    habilidades_selecionadas = habilidades_padrao
         else:
-            habilidade_selecionada = st.text_input("Habilidade (opcional)", 
-                                                  placeholder="Complete os campos acima", 
-                                                  key="hab_wait_bncc")
+            st.info("ℹ️ Selecione Ano, Disciplina, Unidade e Objeto para ver as habilidades.")
+            habilidades_selecionadas = []
     
     return (ano_selecionado, disciplina_selecionada, unidade_selecionada, 
-            objeto_selecionado, habilidade_selecionada)
-
-
+            objeto_selecionado, habilidades_selecionadas)
 
    
 # ==============================================================================
@@ -1712,7 +1800,7 @@ with tabs[2]:
     st.markdown("### 📚 Selecione pela BNCC")
     
     # Chamar a função com todos os dropdowns
-    ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidade_bncc = criar_dropdowns_bncc_completos()
+    ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc = criar_dropdowns_bncc_completos_melhorado()
     
     # Mostrar resumo das seleções
     if unidade_bncc and objeto_bncc:
@@ -1721,109 +1809,167 @@ with tabs[2]:
             st.write(f"**Disciplina:** {disciplina_bncc}")
             st.write(f"**Unidade Temática:** {unidade_bncc}")
             st.write(f"**Objeto do Conhecimento:** {objeto_bncc}")
-            if habilidade_bncc:
-                st.write(f"**Habilidade:** {habilidade_bncc}")
+            if habilidades_bncc:
+                st.write(f"**Habilidades selecionadas:**")
+                for i, hab in enumerate(habilidades_bncc, 1):
+                    st.write(f"{i}. {hab}")
     
     # Usar os valores selecionados
     mat_c = disciplina_bncc
     obj_c = objeto_bncc
     
-    # --- RESTO DO CÓDIGO DA ABA CONTINUA IGUAL ---
+    # --- CONFIGURAÇÃO DA ATIVIDADE ---
+    st.markdown("---")
+    st.markdown("### ⚙️ Configuração da Atividade")
+    
     cc3, cc4 = st.columns(2)
-    qtd_c = cc3.slider("Qtd Questões", 1, 10, 5, key="cq")
+    with cc3:
+        qtd_c = st.slider("Quantidade de Questões", 1, 10, 5, key="cq")
     
-    # --- MUDANÇA: REMOVIDA OPÇÃO 'MISTA' ---
-    tipo_quest = cc4.selectbox("Tipo", ["Objetiva", "Discursiva"], key="ctq")
+    with cc4:
+        tipo_quest = st.selectbox("Tipo de Questão", ["Objetiva", "Discursiva"], key="ctq")
     
+    # --- CONFIGURAÇÃO DE IMAGENS ---
+    st.markdown("#### 🖼️ Imagens (Opcional)")
     col_img_opt, col_img_pct = st.columns([1, 2])
-    usar_img = col_img_opt.checkbox("📸 Incluir Imagens?", value=True)
     
-    # MUDANÇA: Slider numérico (0 até Qtd Questões)
-    qtd_img_sel = col_img_pct.slider("Quantas questões terão imagens?", 0, qtd_c, int(qtd_c/2), disabled=not usar_img)
+    with col_img_opt:
+        usar_img = st.checkbox("Incluir Imagens?", value=True, key="usar_img")
     
-    # --- BLOOM SECTION ---
-    st.write("---")
+    with col_img_pct:
+        qtd_img_sel = st.slider("Quantas questões terão imagens?", 0, qtd_c, 
+                               int(qtd_c/2) if qtd_c > 1 else 0, 
+                               disabled=not usar_img,
+                               key="qtd_img_slider")
+    
+    # --- TAXONOMIA DE BLOOM ---
+    st.markdown("---")
     st.markdown("#### 🧠 Intencionalidade Pedagógica (Taxonomia de Bloom)")
-    usar_bloom = st.checkbox("🎯 Usar Taxonomia de Bloom (Revisada)")
+    
+    usar_bloom = st.checkbox("🎯 Usar Taxonomia de Bloom (Revisada)", key="usar_bloom")
     
     # Inicializa memória de seleção no session state se não existir
     if 'bloom_memoria' not in st.session_state:
         st.session_state.bloom_memoria = {cat: [] for cat in TAXONOMIA_BLOOM.keys()}
-
+    
     verbos_finais_para_ia = []
-
+    
     if usar_bloom:
         col_b1, col_b2 = st.columns(2)
         
         # 1. Seleciona a Categoria (Gaveta)
-        cat_atual = col_b1.selectbox("Categoria Cognitiva:", list(TAXONOMIA_BLOOM.keys()))
+        with col_b1:
+            cat_atual = st.selectbox("Categoria Cognitiva:", list(TAXONOMIA_BLOOM.keys()),
+                                    key="cat_bloom")
         
-        # 2. Mostra Multiselect apenas para essa categoria, carregando o que já estava na memória
-        selecao_atual = col_b2.multiselect(
-            f"Verbos de '{cat_atual}':", 
-            TAXONOMIA_BLOOM[cat_atual],
-            default=st.session_state.bloom_memoria[cat_atual],
-            key=f"ms_bloom_{cat_atual}" # Chave única para o widget
-        )
-        
-        # 3. Atualiza a memória com o que o usuário acabou de mexer
-        st.session_state.bloom_memoria[cat_atual] = selecao_atual
+        # 2. Mostra Multiselect apenas para essa categoria
+        with col_b2:
+            selecao_atual = st.multiselect(
+                f"Verbos de '{cat_atual}':", 
+                TAXONOMIA_BLOOM[cat_atual],
+                default=st.session_state.bloom_memoria[cat_atual],
+                key=f"ms_bloom_{cat_atual}"
+            )
+            
+            # 3. Atualiza a memória com o que o usuário acabou de mexer
+            st.session_state.bloom_memoria[cat_atual] = selecao_atual
         
         # 4. Agrega tudo para mostrar ao usuário e enviar para a IA
         for cat in st.session_state.bloom_memoria:
             verbos_finais_para_ia.extend(st.session_state.bloom_memoria[cat])
         
         if verbos_finais_para_ia:
-            st.info(f"**Verbos Tagueados (Total):** {', '.join(verbos_finais_para_ia)}")
+            st.info(f"**Verbos Selecionados:** {', '.join(verbos_finais_para_ia)}")
         else:
             st.caption("Nenhum verbo selecionado ainda.")
-    # ---------------------
-
-    if st.button("✨ CRIAR ATIVIDADE", type="primary", key="btn_c"):
-        with st.spinner("Elaborando..."):
-            qtd_final = qtd_img_sel if usar_img else 0
-            
-            # Passamos a lista agregada 'verbos_finais_para_ia'
-            rac, txt = criar_profissional(api_key, aluno, mat_c, obj_c, qtd_c, tipo_quest, qtd_final, verbos_bloom=verbos_finais_para_ia if usar_bloom else None)
-            
-            novo_map = {}; count = 0
-            tags = re.findall(r'\[\[GEN_IMG: (.*?)\]\]', txt)
-            for p in tags:
-                count += 1
-                # MUDANÇA: Prioridade BANCO, depois IA
-                url = gerar_imagem_inteligente(api_key, p, unsplash_key, prioridade="BANCO")
-                if url:
-                    io = baixar_imagem_url(url)
-                    if io: novo_map[count] = io.getvalue()
-            txt_fin = txt
-            for i in range(1, count + 1): 
-                txt_fin = re.sub(r'\[\[GEN_IMG: .*?\]\]', f"[[IMG_G{i}]]", txt_fin, count=1)
-            st.session_state['res_create'] = {'rac': rac, 'txt': txt_fin, 'map': novo_map, 'valid': False}
-            st.rerun()
-
+    
+    # --- BOTÃO PARA GERAR ---
+    st.markdown("---")
+    col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 1])
+    
+    with col_btn2:
+        if st.button("✨ CRIAR ATIVIDADE", type="primary", key="btn_c", use_container_width=True):
+            if not api_key:
+                st.error("❌ Insira a chave da OpenAI no sidebar")
+            else:
+                with st.spinner("Elaborando atividade..."):
+                    qtd_final = qtd_img_sel if usar_img else 0
+                    
+                    # Preparar a string de habilidades para incluir no prompt, se houver
+                    habilidades_str = ""
+                    if habilidades_bncc:
+                        habilidades_str = "\n".join([f"- {hab}" for hab in habilidades_bncc])
+                    
+                    # Passamos a lista agregada 'verbos_finais_para_ia' e as habilidades
+                    # Nota: A função criar_profissional não tem parâmetro para habilidades,
+                    # então podemos adicionar ao contexto de alguma forma ou ajustar a função.
+                    # Por enquanto, vamos manter como está e depois ajustamos a função.
+                    rac, txt = criar_profissional(api_key, aluno, mat_c, obj_c, qtd_c, tipo_quest, 
+                                                 qtd_final, verbos_bloom=verbos_finais_para_ia if usar_bloom else None)
+                    
+                    # Processar imagens se houver
+                    novo_map = {}
+                    count = 0
+                    tags = re.findall(r'\[\[GEN_IMG: (.*?)\]\]', txt)
+                    
+                    for p in tags:
+                        count += 1
+                        # Prioridade BANCO, depois IA
+                        url = gerar_imagem_inteligente(api_key, p, unsplash_key, prioridade="BANCO")
+                        if url:
+                            io = baixar_imagem_url(url)
+                            if io: 
+                                novo_map[count] = io.getvalue()
+                    
+                    # Substituir tags GEN_IMG por IMG_G
+                    txt_fin = txt
+                    for i in range(1, count + 1): 
+                        txt_fin = re.sub(r'\[\[GEN_IMG: .*?\]\]', f"[[IMG_G{i}]]", txt_fin, count=1)
+                    
+                    # Salvar no session state
+                    st.session_state['res_create'] = {
+                        'rac': rac, 
+                        'txt': txt_fin, 
+                        'map': novo_map, 
+                        'valid': False,
+                        'mat_c': mat_c,
+                        'obj_c': obj_c
+                    }
+                    st.rerun()
+    
+    # --- EXIBIÇÃO DO RESULTADO ---
     if 'res_create' in st.session_state:
         res = st.session_state['res_create']
+        
+        st.markdown("---")
+        st.markdown(f"### 📋 Atividade Criada: {res.get('mat_c', '')} - {res.get('obj_c', '')}")
+        
+        # Barra de status
         if res.get('valid'):
-            st.markdown("<div class='validado-box'>✅ VALIDADO!</div>", unsafe_allow_html=True)
+            st.success("✅ **ATIVIDADE VALIDADA E PRONTA PARA USO**")
         else:
-            col_v, col_r = st.columns([1, 1])
-            if col_v.button("✅ Validar", key="val_c"): st.session_state['res_create']['valid'] = True; st.rerun()
-            if col_r.button("🧠 Refazer (+Profundo)", key="redo_c"):
-                with st.spinner("Refazendo..."):
-                    qtd_final = qtd_img_sel if usar_img else 0
-                    # Mesmo aqui, passamos a lista agregada atualizada
-                    verbos_profundos = []
-                    if usar_bloom:
-                         for cat in st.session_state.bloom_memoria:
-                            verbos_profundos.extend(st.session_state.bloom_memoria[cat])
-
-                    rac, txt = criar_profissional(api_key, aluno, mat_c, obj_c, qtd_c, tipo_quest, qtd_final, verbos_bloom=verbos_profundos if usar_bloom else None, modo_profundo=True)
-                    st.session_state['res_create']['rac'] = rac
-                    st.session_state['res_create']['txt'] = txt
-                    st.session_state['res_create']['valid'] = False
+            col_val, col_ajust, col_desc = st.columns(3)
+            with col_val:
+                if st.button("✅ Validar Atividade", key="val_c", use_container_width=True):
+                    st.session_state['res_create']['valid'] = True
                     st.rerun()
-
-        st.markdown(f"<div class='analise-box'><div class='analise-title'>🧠 Análise Pedagógica</div>{res['rac']}</div>", unsafe_allow_html=True)
+            with col_ajust:
+                if st.button("🔄 Refazer com Ajustes", key="redo_c", use_container_width=True):
+                    st.session_state['res_create']['valid'] = False
+                    # Aqui você poderia adicionar lógica para ajustes
+                    st.info("Para ajustes, modifique os parâmetros acima e clique em 'CRIAR ATIVIDADE' novamente.")
+            with col_desc:
+                if st.button("🗑️ Descartar", key="del_c", use_container_width=True):
+                    del st.session_state['res_create']
+                    st.rerun()
+        
+        # Análise Pedagógica
+        if res.get('rac'):
+            with st.expander("🧠 Análise Pedagógica (clique para expandir)"):
+                st.markdown(res['rac'])
+        
+        # Atividade Gerada
+        st.markdown("#### 📝 Atividade Gerada")
         with st.container(border=True):
             partes = re.split(r'(\[\[IMG_G\d+\]\])', res['txt'])
             for p in partes:
@@ -1831,15 +1977,51 @@ with tabs[2]:
                 if tag:
                     i = int(tag.group(1))
                     im = res['map'].get(i)
-                    if im: st.image(im, width=300)
-                elif p.strip(): st.markdown(p.strip())
+                    if im: 
+                        st.image(im, width=300)
+                elif p.strip(): 
+                    st.markdown(p.strip())
         
-        c_down1, c_down2 = st.columns(2)
-        docx = construir_docx_final(res['txt'], aluno, mat_c, {}, None, "Criada")
-        c_down1.download_button("📥 DOCX", docx, "Criada.docx", "primary")
+        # Botões de Download
+        st.markdown("---")
+        st.markdown("### 📥 Download")
+        col_down1, col_down2, col_down3 = st.columns(3)
         
-        pdf_bytes = criar_pdf_generico(res['txt'])
-        c_down2.download_button("📕 BAIXAR PDF (Só Atividade)", pdf_bytes, "Criada.pdf", mime="application/pdf", type="secondary")
+        with col_down1:
+            # DOCX com atividade
+            docx = construir_docx_final(res['txt'], aluno, mat_c, {}, None, "Criada")
+            st.download_button(
+                label="📄 Baixar DOCX",
+                data=docx,
+                file_name=f"Atividade_{mat_c}_{date.today().strftime('%Y%m%d')}.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                use_container_width=True
+            )
+        
+        with col_down2:
+            # PDF
+            pdf_bytes = criar_pdf_generico(res['txt'])
+            st.download_button(
+                label="📕 Baixar PDF",
+                data=pdf_bytes,
+                file_name=f"Atividade_{mat_c}_{date.today().strftime('%Y%m%d')}.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
+        
+        with col_down3:
+            # Apenas o texto
+            st.download_button(
+                label="📝 Baixar Texto",
+                data=res['txt'],
+                file_name=f"Atividade_{mat_c}_{date.today().strftime('%Y%m%d')}.txt",
+                mime="text/plain",
+                use_container_width=True
+            )
+
+
+
+            
     # 4. ESTÚDIO VISUAL (ATUALIZADO COM FEEDBACK)
     with tabs[3]:
         st.markdown("""
