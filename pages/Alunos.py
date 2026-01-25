@@ -92,7 +92,7 @@ html, body, [class*="css"] {
 /* ===== CONTAINER =====
    Ajuste: agora o conteúdo desce o suficiente para não ficar embaixo da Topbar + Menu rápido */
 .block-container {
-    padding-top: 160px !important; /* topbar (74) + menu rápido (40~50) + folga */
+    padding-top: 120px !important; /* era 3.5rem; aqui resolve topbar + quick access */
     padding-bottom: 3rem !important;
     max-width: 95% !important;
     padding-left: 1rem !important;
@@ -328,88 +328,99 @@ def render_topbar():
     )
 
 # ==============================================================================
-# BLOCO B — MENU DE ACESSO RÁPIDO (FUNCIONAL / Streamlit-safe)
-# Reuso: cole este bloco em qualquer page e chame render_quick_access_bar()
+# 🟢 BLOCO: MENU DE ACESSO RÁPIDO (ISOLADO)
 # ==============================================================================
-
 def render_quick_access_bar():
-    # CSS do menu rápido (aplica no botão que vem LOGO DEPOIS do "marcador")
+    """
+    Este bloco define os botões pequenos e coloridos que ficam
+    logo abaixo do topo da página.
+    """
+    
+    # CSS EXCLUSIVO PARA O MENU RÁPIDO
     st.markdown("""
     <style>
-      /* base do botão */
-      .qa-marker + div button {
-        font-weight: 800 !important;
-        border-radius: 8px !important;
-        padding: 6px 0 !important;
-        font-size: 0.68rem !important;
-        text-transform: uppercase !important;
-        box-shadow: none !important;
-        min-height: 34px !important;
-        border-width: 1px !important;
-        background: white !important;
-      }
-      .qa-marker + div button:hover { background:#F1F5F9 !important; }
+        /* Estilo base dos botões: Compactos, Texto Puro, Caixa Alta */
+        .qa-btn button {
+            font-weight: 800 !important;
+            border-radius: 6px !important;
+            padding: 4px 0 !important;
+            font-size: 0.7rem !important;
+            text-transform: uppercase !important;
+            box-shadow: none !important;
+            min-height: 32px !important;
+            height: auto !important;
+            border-width: 1px !important;
+        }
 
-      /* cores por marcador (bem confiável no DOM do Streamlit) */
-      .qa-gray   + div button { border-color:#64748B !important; color:#64748B !important; }
-      .qa-indigo + div button { border-color:#4F46E5 !important; color:#4F46E5 !important; }
-      .qa-blue   + div button { border-color:#2563EB !important; color:#2563EB !important; }
-      .qa-purple + div button { border-color:#7C3AED !important; color:#7C3AED !important; }
-      .qa-teal   + div button { border-color:#0D9488 !important; color:#0D9488 !important; }
-      .qa-rose   + div button { border-color:#E11D48 !important; color:#E11D48 !important; }
-      .qa-sky    + div button { border-color:#0284C7 !important; color:#0284C7 !important; }
+        /* 1. Início (Cinza) */
+        div[data-testid="column"]:nth-of-type(1) .qa-btn button { border-color: #64748B !important; color: #64748B !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(1) .qa-btn button:hover { background-color: #F1F5F9 !important; }
 
-      /* espaçamento do menu */
-      .qa-wrap { margin-top: 6px; margin-bottom: 10px; }
+        /* 2. Estudantes (Indigo) */
+        div[data-testid="column"]:nth-of-type(2) .qa-btn button { border-color: #4F46E5 !important; color: #4F46E5 !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(2) .qa-btn button:hover { background-color: #F1F5F9 !important; }
+        
+        /* 3. PEI (Blue) */
+        div[data-testid="column"]:nth-of-type(3) .qa-btn button { border-color: #2563EB !important; color: #2563EB !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(3) .qa-btn button:hover { background-color: #F1F5F9 !important; }
+
+        /* 4. AEE (Purple) */
+        div[data-testid="column"]:nth-of-type(4) .qa-btn button { border-color: #7C3AED !important; color: #7C3AED !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(4) .qa-btn button:hover { background-color: #F1F5F9 !important; }
+
+        /* 5. Recursos (Teal) */
+        div[data-testid="column"]:nth-of-type(5) .qa-btn button { border-color: #0D9488 !important; color: #0D9488 !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(5) .qa-btn button:hover { background-color: #F1F5F9 !important; }
+
+        /* 6. Diário (Rose) */
+        div[data-testid="column"]:nth-of-type(6) .qa-btn button { border-color: #E11D48 !important; color: #E11D48 !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(6) .qa-btn button:hover { background-color: #F1F5F9 !important; }
+
+        /* 7. Dados (Sky) */
+        div[data-testid="column"]:nth-of-type(7) .qa-btn button { border-color: #0284C7 !important; color: #0284C7 !important; background:white !important;}
+        div[data-testid="column"]:nth-of-type(7) .qa-btn button:hover { background-color: #F1F5F9 !important; }
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="qa-wrap"></div>', unsafe_allow_html=True)
-
+    # Criação das 7 colunas
     c1, c2, c3, c4, c5, c6, c7 = st.columns(7, gap="small")
-
-    # INÍCIO
-    with c1:
-        st.markdown('<div class="qa-marker qa-gray"></div>', unsafe_allow_html=True)
-        if st.button("INÍCIO", use_container_width=True, key="qa_inicio"):
-            st.switch_page("pages/0_Home.py")
-
-    # ESTUDANTES (página atual -> rerun)
-    with c2:
-        st.markdown('<div class="qa-marker qa-indigo"></div>', unsafe_allow_html=True)
-        if st.button("ESTUDANTES", use_container_width=True, key="qa_estudantes"):
-            st.rerun()
-
-    # PEI
-    with c3:
-        st.markdown('<div class="qa-marker qa-blue"></div>', unsafe_allow_html=True)
-        if st.button("PEI", use_container_width=True, key="qa_pei"):
-            st.switch_page("pages/1_PEI.py")
-
-    # AEE / Plano de Ação
-    with c4:
-        st.markdown('<div class="qa-marker qa-purple"></div>', unsafe_allow_html=True)
-        if st.button("AEE", use_container_width=True, key="qa_aee"):
-            st.switch_page("pages/2_PAE.py")
-
-    # Recursos
-    with c5:
-        st.markdown('<div class="qa-marker qa-teal"></div>', unsafe_allow_html=True)
-        if st.button("RECURSOS", use_container_width=True, key="qa_recursos"):
-            st.switch_page("pages/3_Hub_Inclusao.py")
-
-    # Diário
-    with c6:
-        st.markdown('<div class="qa-marker qa-rose"></div>', unsafe_allow_html=True)
-        if st.button("DIÁRIO", use_container_width=True, key="qa_diario"):
-            st.switch_page("pages/4_Diario_de_Bordo.py")
-
-    # Dados
-    with c7:
-        st.markdown('<div class="qa-marker qa-sky"></div>', unsafe_allow_html=True)
-        if st.button("DADOS", use_container_width=True, key="qa_dados"):
-            st.switch_page("pages/5_Monitoramento_Avaliacao.py")
-
+    
+    # Renderização dos Botões
+    # Cada botão está envolto numa div '.qa-btn' para o CSS funcionar
+    with c1: 
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        st.button("INÍCIO", use_container_width=True, on_click=lambda: st.rerun())
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with c2: 
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        st.button("ESTUDANTES", use_container_width=True, on_click=lambda: st.switch_page("pages/Alunos.py"))
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    with c3: 
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        st.button("PEI", use_container_width=True, on_click=lambda: st.switch_page("pages/1_PEI.py"))
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    with c4: 
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        st.button("AEE", use_container_width=True, on_click=lambda: st.switch_page("pages/2_PAE.py"))
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    with c5: 
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        st.button("RECURSOS", use_container_width=True, on_click=lambda: st.switch_page("pages/3_Hub_Inclusao.py"))
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    with c6: 
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        st.button("DIÁRIO", use_container_width=True, on_click=lambda: st.switch_page("pages/4_Diario_de_Bordo.py"))
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    with c7: 
+        st.markdown('<div class="qa-btn">', unsafe_allow_html=True)
+        st.button("DADOS", use_container_width=True, on_click=lambda: st.switch_page("pages/5_Monitoramento_Avaliacao.py"))
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # ==============================================================================
 # 🔒 VERIFICAÇÃO DE ACESSO (mantive sua lógica)
