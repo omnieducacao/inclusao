@@ -15,7 +15,32 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-APP_VERSION = "v2.5 - Menu Dentro da Topbar"
+APP_VERSION = "v2.6 - Menu Real Dentro da Topbar (HTML + ?go=)"
+
+# ==============================================================================
+# NAVEGAÇÃO VIA QUERY PARAM (?go=) -> switch_page
+# ==============================================================================
+def handle_go_param():
+    """
+    Links HTML na topbar apontam para ?go=pages/...
+    Aqui capturamos e redirecionamos com st.switch_page.
+    """
+    try:
+        qp = st.query_params
+        go = qp.get("go", None)
+        if isinstance(go, list):
+            go = go[0] if go else None
+        if go:
+            # limpa o param para não ficar "preso" em reruns
+            try:
+                st.query_params.clear()
+            except Exception:
+                pass
+            st.switch_page(go)
+    except Exception:
+        pass
+
+handle_go_param()
 
 # ==============================================================================
 # FUNÇÕES AUXILIARES
@@ -37,7 +62,7 @@ def get_workspace_short(max_len: int = 20) -> str:
     return (ws[:max_len] + "...") if len(ws) > max_len else ws
 
 # ==============================================================================
-# CSS E DESIGN SYSTEM (MENU DENTRO DA TOPBAR)
+# CSS E DESIGN SYSTEM (TOPBAR COM MENU EMBUTIDO)
 # ==============================================================================
 st.markdown(
     """
@@ -45,22 +70,18 @@ st.markdown(
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import url("https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css");
 
-/* RESET */
 html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     color: #1E293B !important;
     background-color: #F8FAFC !important;
 }
 
-/* OCULTAR NATIVOS */
 [data-testid="stSidebarNav"], [data-testid="stHeader"], footer { display: none !important; }
 
-/* --- ALTURA REAL DA TOPBAR (AJUSTE AQUI) --- */
 :root { --topbar-h: 64px; }
 
-/* CONTAINER PRINCIPAL */
 .block-container {
-    padding-top: var(--topbar-h) !important;  /* igual à topbar */
+    padding-top: calc(var(--topbar-h) + 16px) !important;
     padding-bottom: 2rem !important;
     max-width: 98% !important;
     padding-left: 0.5rem !important;
@@ -83,7 +104,6 @@ html, body, [class*="css"] {
 .brand-logo { height: 32px !important; width: auto !important; animation: spin 60s linear infinite; }
 .brand-img-text { height: 20px !important; width: auto; margin-left: 6px; }
 
-/* BADGES TOPO */
 .user-badge-thin {
     background: #F1F5F9;
     border: 1px solid #E2E8F0;
@@ -103,160 +123,96 @@ html, body, [class*="css"] {
     font-size: 0.75rem;
 }
 
-/* ==========================================================
-   MENU CENTRAL DENTRO DA TOPBAR (FIXO, CENTRALIZADO)
-   ========================================================== */
+/* MENU CENTRAL DENTRO DA TOPBAR (HTML) */
 .topbar-menu {
-    position: fixed;
-    top: 0;
+    position: absolute;
     left: 50%;
     transform: translateX(-50%);
     height: var(--topbar-h);
     display: flex;
     align-items: center;
-    z-index: 10000; /* acima da topbar */
-    width: min(860px, 62vw);
-    pointer-events: none; /* evita zona morta; liberamos nos botões */
-}
-.topbar-menu * { pointer-events: auto; }
-
-/* melhora alinhamento das colunas/linha do streamlit */
-.topbar-menu div[data-testid="stHorizontalBlock"]{
-    align-items: center !important;
-    gap: 6px !important;
+    gap: 10px;
+    width: min(980px, 62vw);
+    justify-content: center;
 }
 
-/* wrapper dos botões */
-.qa-container { margin: 0 !important; }
-
-/* BOTÕES MAIS COMPACTOS PARA CABER NA TOPBAR */
-.qa-btn-colored button{
-    font-weight: 900 !important;
-    border-radius: 10px !important;
-    padding: 6px 10px !important;
-    font-size: 0.62rem !important;
-    letter-spacing: 0.04em !important;
-    text-transform: uppercase !important;
-    min-height: 34px !important;
-    height: auto !important;
-    border: none !important;
-    color: white !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.06) !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
-    white-space: nowrap !important;
-}
-.qa-btn-colored button:hover{
-    transform: translateY(-1px) !important;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.10) !important;
-}
-
-/* Cores Específicas dos Botões (na ordem das colunas) */
-div[data-testid="column"]:nth-of-type(1) .qa-btn-colored button { background: linear-gradient(135deg, #64748B, #475569) !important; } /* Início */
-div[data-testid="column"]:nth-of-type(2) .qa-btn-colored button { background: linear-gradient(135deg, #4F46E5, #4338CA) !important; } /* Alunos */
-div[data-testid="column"]:nth-of-type(3) .qa-btn-colored button { background: linear-gradient(135deg, #2563EB, #1D4ED8) !important; } /* PEI */
-div[data-testid="column"]:nth-of-type(4) .qa-btn-colored button { background: linear-gradient(135deg, #7C3AED, #6D28D9) !important; } /* AEE */
-div[data-testid="column"]:nth-of-type(5) .qa-btn-colored button { background: linear-gradient(135deg, #0D9488, #0F766E) !important; } /* Recursos */
-div[data-testid="column"]:nth-of-type(6) .qa-btn-colored button { background: linear-gradient(135deg, #E11D48, #BE123C) !important; } /* Diário */
-div[data-testid="column"]:nth-of-type(7) .qa-btn-colored button { background: linear-gradient(135deg, #0284C7, #0369A1) !important; } /* Dados */
-
-/* CARD HERO */
-.mod-card-wrapper {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 15px;
+.tb-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding: 0 14px;
     border-radius: 12px;
+    font-weight: 900;
+    font-size: 0.64rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none !important;
+    color: white !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    white-space: nowrap;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.tb-link:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.10); filter: brightness(1.02); }
+.tb-link.active { outline: 2px solid rgba(79,70,229,0.20); filter: saturate(1.1); }
+
+/* CORES */
+.tb-home     { background: linear-gradient(135deg, #64748B, #475569); }
+.tb-students { background: linear-gradient(135deg, #4F46E5, #4338CA); }
+.tb-pei      { background: linear-gradient(135deg, #2563EB, #1D4ED8); }
+.tb-aee      { background: linear-gradient(135deg, #7C3AED, #6D28D9); }
+.tb-rec      { background: linear-gradient(135deg, #0D9488, #0F766E); }
+.tb-diario   { background: linear-gradient(135deg, #E11D48, #BE123C); }
+.tb-dados    { background: linear-gradient(135deg, #0284C7, #0369A1); }
+
+/* HERO */
+.mod-card-wrapper {
+    display: flex; flex-direction: column;
+    margin-bottom: 15px; border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     margin-top: 0px;
 }
 .mod-card-rect {
-    background: white;
-    padding: 0;
+    background: white; padding: 0;
     border: 1px solid #E2E8F0;
-    display: flex;
-    align-items: center;
+    display: flex; align-items: center;
     height: 80px;
 }
 .mod-bar { width: 5px; height: 100%; flex-shrink: 0; }
 .mod-icon-area {
     width: 60px; height: 100%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.4rem;
-    background: #FAFAFA;
+    font-size: 1.4rem; background: #FAFAFA;
     border-right: 1px solid #F1F5F9;
 }
 .mod-content { flex-grow: 1; padding: 0 16px; }
 .mod-title { font-weight: 900; font-size: 0.95rem; color: #1E293B; margin-bottom: 2px; }
 .mod-desc { font-size: 0.7rem; color: #64748B; }
 
-/* TABELA */
-.student-table {
-    background: white;
-    border-radius: 12px;
-    border: 1px solid #E2E8F0;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    margin-top: 10px;
-}
-.student-header {
-    display: grid;
-    grid-template-columns: 3fr 1fr 1fr 2fr 1fr;
-    background: #F8FAFC;
-    padding: 10px 20px;
-    border-bottom: 1px solid #E2E8F0;
-    font-weight: 900;
-    color: #475569;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-}
-.student-row {
-    display: grid;
-    grid-template-columns: 3fr 1fr 1fr 2fr 1fr;
-    padding: 12px 20px;
-    border-bottom: 1px solid #F1F5F9;
-    align-items: center;
-    background: white;
-}
-.student-row:hover { background: #F8FAFC; }
-
-.badge-grade {
-    background: #F0F9FF;
-    color: #0369A1;
-    padding: 2px 8px;
-    border-radius: 8px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    border: 1px solid #BAE6FD;
-}
-.badge-class {
-    background: #F0FDF4;
-    color: #15803D;
-    padding: 2px 8px;
-    border-radius: 8px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    border: 1px solid #BBF7D0;
-}
-
-/* Cores Cards */
 .c-sky { background: #0284C7 !important; }
 .bg-sky-soft { background: #F0F9FF !important; color: #0284C7 !important; }
 
+/* TABELA */
+.student-table { background: white; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-top: 10px; }
+.student-header { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; background: #F8FAFC; padding: 10px 20px; border-bottom: 1px solid #E2E8F0; font-weight: 900; color: #475569; font-size: 0.75rem; text-transform: uppercase; }
+.student-row { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; padding: 12px 20px; border-bottom: 1px solid #F1F5F9; align-items: center; background: white; }
+.student-row:hover { background: #F8FAFC; }
+
+.badge-grade { background: #F0F9FF; color: #0369A1; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; border: 1px solid #BAE6FD; }
+.badge-class { background: #F0FDF4; color: #15803D; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; border: 1px solid #BBF7D0; }
+
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
-@media (max-width: 1100px){
-    .topbar-menu{ width: min(820px, 72vw); }
-    .qa-btn-colored button{ padding: 6px 8px !important; font-size: 0.60rem !important; }
+@media (max-width: 900px){
+    .topbar-menu{ width: 80vw; gap: 8px; }
+    .tb-link{ padding: 0 10px; font-size: 0.60rem; height: 34px; }
 }
-@media (max-width: 768px) {
-    .topbar-thin { padding: 0 1rem; }
-    .topbar-menu { display: none; } /* no mobile: oculta menu na barra (evita quebrar) */
+@media (max-width: 768px){
+    .topbar-menu{ display: none; } /* no mobile: oculta menu para não quebrar */
     .student-header { display: none; }
-    .student-row {
-        grid-template-columns: 1fr;
-        gap: 8px;
-        border-bottom: 2px solid #F1F5F9;
-    }
+    .student-row { grid-template-columns: 1fr; gap: 8px; border-bottom: 2px solid #F1F5F9; }
 }
 </style>
 """,
@@ -264,11 +220,9 @@ div[data-testid="column"]:nth-of-type(7) .qa-btn-colored button { background: li
 )
 
 # ==============================================================================
-# RENDERIZAÇÃO
+# TOPBAR (COM MENU EMBUTIDO EM HTML)
 # ==============================================================================
-
-# --- 1) TOPBAR FIXA ---
-def render_thin_topbar():
+def render_thin_topbar_with_menu():
     icone = get_base64_image("omni_icone.png")
     texto = get_base64_image("omni_texto.png")
     ws_name = get_workspace_short()
@@ -281,10 +235,29 @@ def render_thin_topbar():
         else "<span style='font-weight:900;color:#2B3674;'>OMNISFERA</span>"
     )
 
+    # página atual (para destacar)
+    active = "students"
+
+    # links via ?go=
+    home_target = "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "0_Home.py"
+
+    menu_html = f"""
+      <div class="topbar-menu">
+        <a class="tb-link tb-home" href="?go={home_target}">INÍCIO</a>
+        <a class="tb-link tb-students {'active' if active=='students' else ''}" href="?go=pages/Alunos.py">ESTUDANTES</a>
+        <a class="tb-link tb-pei" href="?go=pages/1_PEI.py">PEI</a>
+        <a class="tb-link tb-aee" href="?go=pages/2_PAE.py">AEE</a>
+        <a class="tb-link tb-rec" href="?go=pages/3_Hub_Inclusao.py">RECURSOS</a>
+        <a class="tb-link tb-diario" href="?go=pages/4_Diario_de_Bordo.py">DIÁRIO</a>
+        <a class="tb-link tb-dados" href="?go=pages/5_Monitoramento_Avaliacao.py">DADOS</a>
+      </div>
+    """
+
     st.markdown(
         f"""
         <div class="topbar-thin">
             <div class="brand-box">{img_logo}{img_text}</div>
+            {menu_html}
             <div class="brand-box">
                 <div class="user-badge-thin">{ws_name}</div>
                 <div class="apple-avatar-thin">{get_user_initials(user_name)}</div>
@@ -294,68 +267,11 @@ def render_thin_topbar():
         unsafe_allow_html=True,
     )
 
-# --- 2) MENU CENTRAL DENTRO DA TOPBAR ---
-def render_menu_inside_topbar():
-    st.markdown('<div class="topbar-menu">', unsafe_allow_html=True)
+render_thin_topbar_with_menu()
 
-    c1, c2, c3, c4, c5, c6, c7 = st.columns(7, gap="small")
-
-    with c1:
-        st.markdown('<div class="qa-container qa-btn-colored">', unsafe_allow_html=True)
-        if st.button("INÍCIO", use_container_width=True):
-            # melhor prática: preferir pages/0_Home.py quando existir
-            if os.path.exists("pages/0_Home.py"):
-                st.switch_page("pages/0_Home.py")
-            elif os.path.exists("0_Home.py"):
-                st.switch_page("0_Home.py")
-            else:
-                # fallback genérico (evita quebrar)
-                st.switch_page("pages/0_Home.py")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with c2:
-        st.markdown('<div class="qa-container qa-btn-colored">', unsafe_allow_html=True)
-        if st.button("ESTUDANTES", use_container_width=True):
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with c3:
-        st.markdown('<div class="qa-container qa-btn-colored">', unsafe_allow_html=True)
-        if st.button("PEI", use_container_width=True):
-            st.switch_page("pages/1_PEI.py")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with c4:
-        st.markdown('<div class="qa-container qa-btn-colored">', unsafe_allow_html=True)
-        if st.button("AEE", use_container_width=True):
-            st.switch_page("pages/2_PAE.py")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with c5:
-        st.markdown('<div class="qa-container qa-btn-colored">', unsafe_allow_html=True)
-        if st.button("RECURSOS", use_container_width=True):
-            st.switch_page("pages/3_Hub_Inclusao.py")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with c6:
-        st.markdown('<div class="qa-container qa-btn-colored">', unsafe_allow_html=True)
-        if st.button("DIÁRIO", use_container_width=True):
-            st.switch_page("pages/4_Diario_de_Bordo.py")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with c7:
-        st.markdown('<div class="qa-container qa-btn-colored">', unsafe_allow_html=True)
-        if st.button("DADOS", use_container_width=True):
-            st.switch_page("pages/5_Monitoramento_Avaliacao.py")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# Render topo + menu
-render_thin_topbar()
-render_menu_inside_topbar()
-
-# --- 3) CARD HERO ---
+# ==============================================================================
+# HERO
+# ==============================================================================
 user_first = (st.session_state.get("usuario_nome", "Visitante") or "Visitante").split()[0]
 saudacao = "Bom dia" if 5 <= datetime.now().hour < 12 else "Boa tarde"
 st.markdown(
@@ -374,7 +290,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# --- 4) CONTROLES E BUSCA ---
+# ==============================================================================
+# CONTROLES E BUSCA
+# ==============================================================================
 col1, col2 = st.columns([3, 1], gap="medium")
 with col1:
     q = st.text_input("Buscar por nome", placeholder="Digite o nome...", label_visibility="collapsed", key="search")
@@ -384,7 +302,7 @@ with col2:
         st.rerun()
 
 # ==============================================================================
-# LÓGICA SUPABASE (REST)
+# SUPABASE (REST)
 # ==============================================================================
 def _sb_headers():
     key = st.secrets.get("SUPABASE_SERVICE_KEY") or st.secrets.get("SUPABASE_ANON_KEY")
@@ -407,7 +325,6 @@ def delete_student_rest(sid, wid):
     except Exception:
         pass
 
-# Carrega Dados
 ws_id = st.session_state.get("workspace_id")
 if not ws_id:
     st.info("Nenhum workspace selecionado.")
@@ -422,7 +339,7 @@ if q:
     alunos = [a for a in alunos if q.lower() in (a.get("name") or "").lower()]
 
 # ==============================================================================
-# TABELA DE ALUNOS
+# TABELA
 # ==============================================================================
 if not alunos:
     st.info("Nenhum estudante encontrado.")
@@ -467,7 +384,9 @@ else:
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-# Rodapé
+# ==============================================================================
+# RODAPÉ
+# ==============================================================================
 st.markdown(
     f"<div style='text-align:center;color:#94A3B8;font-size:0.7rem;padding:20px;margin-top:20px;'>{len(alunos)} estudantes registrados • {APP_VERSION}</div>",
     unsafe_allow_html=True,
