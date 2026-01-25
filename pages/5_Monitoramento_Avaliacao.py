@@ -4,7 +4,8 @@ from datetime import datetime, date
 import base64
 import os
 
-# BIBLIOTECA DE MENU
+# BIBLIOTECA DE MENU (Essencial)
+# Certifique-se de que 'streamlit-option-menu' está no requirements.txt
 from streamlit_option_menu import option_menu 
 
 # ==============================================================================
@@ -17,192 +18,77 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-APP_VERSION = "v3.3 - Topbar Personalizada + OptionMenu"
+APP_VERSION = "v3.0 - Menu OptionMenu Completo"
 
 # ==============================================================================
-# 2. FUNÇÕES AUXILIARES (IMAGENS & USER)
-# ==============================================================================
-def get_base64_image(filename: str) -> str:
-    if os.path.exists(filename):
-        with open(filename, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    return ""
-
-def get_user_initials(nome: str) -> str:
-    if not nome: return "U"
-    parts = nome.strip().split()
-    return f"{parts[0][0]}{parts[-1][0]}".upper() if len(parts) >= 2 else parts[0][:2].upper()
-
-def get_workspace_short(max_len: int = 20) -> str:
-    ws = st.session_state.get("workspace_name", "") or ""
-    return (ws[:max_len] + "...") if len(ws) > max_len else ws
-
-# ==============================================================================
-# 3. DESIGN SYSTEM & CSS (SEU CÓDIGO INTEGRADO)
+# 2. DESIGN & CSS
 # ==============================================================================
 st.markdown("""
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    /* Ajuste de Espaçamento Superior */
+    .block-container { padding-top: 1rem !important; padding-bottom: 3rem; }
+    
+    /* Esconder elementos nativos */
+    [data-testid="stSidebarNav"], footer { display: none !important; }
 
-/* ===== RESET & BASE ===== */
-html, body, [class*="css"] {
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-    color: #1E293B !important;
-    background-color: #F8FAFC !important;
-}
+    /* CARD HERO */
+    .mod-card-wrapper { display: flex; flex-direction: column; margin-bottom: 20px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; margin-top: 10px;}
+    .mod-card-rect { background: white; padding: 0; display: flex; align-items: center; height: 90px; position: relative; }
+    .mod-bar { width: 6px; height: 100%; position: absolute; left: 0; background-color: #0284C7; }
+    .mod-icon-area { width: 80px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; background: #F0F9FF; color: #0284C7; margin-left: 6px; }
+    .mod-content { flex-grow: 1; padding: 0 20px; display: flex; flex-direction: column; justify-content: center; }
+    .mod-title { font-weight: 800; font-size: 1.1rem; color: #1E293B; margin-bottom: 4px; }
+    .mod-desc { font-size: 0.8rem; color: #64748B; }
 
-/* --- OCULTAR HEADER NATIVO DO STREAMLIT --- */
-[data-testid="stSidebarNav"],
-[data-testid="stHeader"],
-[data-testid="stToolbar"],
-[data-testid="collapsedControl"],
-footer {
-    display: none !important;
-}
-
-/* --- AJUSTE DE ESPAÇAMENTO PARA O CONTEÚDO --- */
-.block-container {
-    padding-top: 5rem !important; /* Espaço para Topbar + Menu */
-    padding-bottom: 3rem !important;
-    max-width: 95% !important;
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-}
-
-/* --- TOPBAR FINA (65px) COM LOGO GRANDE --- */
-.topbar-thin {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 65px !important;
-    background: rgba(255, 255, 255, 0.97) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-    border-bottom: 1px solid #E2E8F0;
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 1.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.brand-box { display: flex; align-items: center; gap: 10px; }
-
-.brand-logo {
-    height: 40px !important;
-    width: auto !important;
-    animation: spin 40s linear infinite;
-    filter: brightness(1.1);
-}
-
-.brand-img-text {
-    height: 22px !important;
-    width: auto;
-    margin-left: 8px;
-}
-
-.user-badge-thin {
-    background: #F1F5F9;
-    border: 1px solid #E2E8F0;
-    padding: 5px 12px;
-    border-radius: 16px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #475569;
-    letter-spacing: 0.3px;
-}
-
-.apple-avatar-thin {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #4F46E5, #7C3AED);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 0.8rem;
-    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
-}
-
-/* CARD HERO */
-.mod-card-wrapper { display: flex; flex-direction: column; margin-bottom: 20px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; margin-top: 15px;}
-.mod-card-rect { background: white; padding: 0; display: flex; align-items: center; height: 90px; position: relative; }
-.mod-bar { width: 6px; height: 100%; position: absolute; left: 0; background-color: #0284C7; }
-.mod-icon-area { width: 80px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; background: #F0F9FF; color: #0284C7; margin-left: 6px; }
-.mod-content { flex-grow: 1; padding: 0 20px; display: flex; flex-direction: column; justify-content: center; }
-.mod-title { font-weight: 800; font-size: 1.1rem; color: #1E293B; margin-bottom: 4px; }
-.mod-desc { font-size: 0.8rem; color: #64748B; }
-
-/* TABELA DE ALUNOS */
-.student-table { background: white; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-top: 20px; }
-.student-header { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-weight: 800; color: #475569; font-size: 0.8rem; text-transform: uppercase; }
-.student-row { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; padding: 12px 20px; border-bottom: 1px solid #F1F5F9; align-items: center; background: white; }
-.student-row:hover { background: #F8FAFC; }
-
-/* OUTROS */
-.badge-grade { background: #F0F9FF; color: #0369A1; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; border: 1px solid #BAE6FD; }
-.badge-class { background: #F0FDF4; color: #15803D; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; border: 1px solid #BBF7D0; }
-.delete-confirm-banner { background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 8px; padding: 8px 12px; margin-top: 4px; font-size: 0.8rem; color: #92400E; display: flex; align-items: center; gap: 8px; }
-
-@keyframes spin { 100% { transform: rotate(360deg); } }
+    /* TABELA DE ALUNOS */
+    .student-table { background: white; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-top: 20px; }
+    .student-header { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-weight: 800; color: #475569; font-size: 0.8rem; text-transform: uppercase; }
+    .student-row { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; padding: 12px 20px; border-bottom: 1px solid #F1F5F9; align-items: center; background: white; }
+    .student-row:hover { background: #F8FAFC; }
+    
+    /* BADGES */
+    .badge-grade { background: #F0F9FF; color: #0369A1; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; border: 1px solid #BAE6FD; }
+    .badge-class { background: #F0FDF4; color: #15803D; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; border: 1px solid #BBF7D0; }
+    
+    /* MODAL DELETAR */
+    .delete-confirm-banner { background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 8px; padding: 8px 12px; margin-top: 4px; font-size: 0.8rem; color: #92400E; display: flex; align-items: center; gap: 8px; }
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 4. RENDERIZAÇÃO DA TOPBAR (FIXA)
-# ==============================================================================
-def render_thin_topbar():
-    # Carrega imagens se existirem
-    icone_b64 = get_base64_image("omni_icone.png")
-    texto_b64 = get_base64_image("omni_texto.png")
-    
-    # Dados do Usuário
-    ws_name = get_workspace_short()
-    user_name = st.session_state.get("usuario_nome", "Visitante")
-    initials = get_user_initials(user_name)
-    user_first = user_name.split()[0]
-    
-    # Elementos HTML
-    img_logo = f'<img src="data:image/png;base64,{icone_b64}" class="brand-logo" alt="Logo">' if icone_b64 else "🌐"
-    img_text = f'<img src="data:image/png;base64,{texto_b64}" class="brand-img-text" alt="Omnisfera">' if texto_b64 else "<span style='font-weight:800; color:#2B3674; margin-left:10px;'>OMNISFERA</span>"
-    
-    st.markdown(f"""
-        <div class="topbar-thin">
-            <div class="brand-box">
-                {img_logo}
-                {img_text}
-            </div>
-            <div class="brand-box" style="gap: 12px;">
-                <div class="user-badge-thin">{ws_name}</div>
-                <div class="user-badge-thin">{user_first}</div>
-                <div class="apple-avatar-thin">{initials}</div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
-# Renderiza a barra fixa no topo
-render_thin_topbar()
-
-# ==============================================================================
-# 5. MENU DE NAVEGAÇÃO (OPTION MENU)
+# 3. NAVEGAÇÃO (COM NOMES COMPLETOS)
 # ==============================================================================
 def render_navbar():
-    opcoes = ["Início", "Estudantes", "Estratégias & PEI", "Plano de Ação (AEE)", "Hub de Recursos", "Diário de Bordo", "Evolução & Dados"]
-    icones = ["house", "people", "book", "puzzle", "rocket", "journal", "bar-chart"]
+    # Lista exata dos seus menus
+    opcoes = [
+        "Início", 
+        "Estudantes", 
+        "Estratégias & PEI", 
+        "Plano de Ação (AEE)", 
+        "Hub de Recursos", 
+        "Diário de Bordo", 
+        "Evolução & Dados"
+    ]
+    
+    icones = [
+        "house", 
+        "people", 
+        "book", 
+        "puzzle", 
+        "rocket", 
+        "journal", 
+        "bar-chart"
+    ]
 
     selected = option_menu(
         menu_title=None, 
         options=opcoes,
         icons=icones,
-        default_index=1, # Aba 'Estudantes' selecionada
+        default_index=1, # Índice 1 = Estudantes (Começa em 0)
         orientation="horizontal",
         styles={
-            "container": {"padding": "0!important", "background-color": "#ffffff", "border": "1px solid #E2E8F0", "border-radius": "10px", "margin-bottom": "10px"},
+            "container": {"padding": "0!important", "background-color": "#ffffff", "border": "1px solid #E2E8F0", "border-radius": "10px"},
             "icon": {"color": "#64748B", "font-size": "14px"}, 
             "nav-link": {"font-size": "11px", "text-align": "center", "margin": "0px", "--hover-color": "#F1F5F9", "color": "#475569", "white-space": "nowrap"},
             "nav-link-selected": {"background-color": "#0284C7", "color": "white", "font-weight": "600"},
@@ -219,14 +105,15 @@ def render_navbar():
     elif selected == "Hub de Recursos": st.switch_page("pages/3_Hub_Inclusao.py")
     elif selected == "Diário de Bordo": st.switch_page("pages/4_Diario_de_Bordo.py")
     elif selected == "Evolução & Dados": st.switch_page("pages/5_Monitoramento_Avaliacao.py")
+    # Se for "Estudantes", fica aqui.
 
-# Renderiza o menu logo abaixo da barra fixa (graças ao padding-top do body)
 render_navbar()
 
 # ==============================================================================
-# 6. LÓGICA DE DADOS (SUPABASE)
+# 4. LÓGICA DE DADOS (SUPABASE)
 # ==============================================================================
 
+# Autenticação Básica
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
@@ -234,12 +121,19 @@ if not st.session_state.autenticado:
     st.warning("🔒 Acesso restrito.")
     st.stop()
 
+# Helpers
+def get_user_initials(nome):
+    if not nome: return "U"
+    parts = nome.strip().split()
+    return f"{parts[0][0]}{parts[-1][0]}".upper() if len(parts) >= 2 else parts[0][:2].upper()
+
 def _sb_headers():
     try:
         key = st.secrets.get("SUPABASE_SERVICE_KEY") or st.secrets.get("SUPABASE_ANON_KEY")
         return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
     except: return {}
 
+# Funções de API
 @st.cache_data(ttl=10, show_spinner=False)
 def list_students_rest(workspace_id):
     try:
@@ -257,17 +151,21 @@ def delete_student_rest(sid, wid):
     except: return False
 
 # ==============================================================================
-# 7. ÁREA DE TRABALHO
+# 5. ÁREA DE TRABALHO
 # ==============================================================================
 
+# Variáveis de Sessão
 ws_id = st.session_state.get("workspace_id")
-user_first = st.session_state.get("usuario_nome", "Visitante").split()[0]
+user_name = st.session_state.get("usuario_nome", "Visitante")
+user_first = user_name.split()[0]
 saudacao = "Bom dia" if 5 <= datetime.now().hour < 12 else "Boa tarde"
 
+# Refresh manual ou automático
 if st.session_state.get("force_refresh"):
     list_students_rest.clear()
     st.session_state["force_refresh"] = False
 
+# Carregar Alunos
 if not ws_id:
     st.error("Nenhum workspace selecionado.")
     st.stop()
@@ -302,7 +200,7 @@ if q:
     alunos = [a for a in alunos if q.lower() in (a.get("name") or "").lower()]
 
 # ==============================================================================
-# 8. TABELA DE ALUNOS
+# 6. TABELA DE ALUNOS
 # ==============================================================================
 if not alunos:
     st.info("Nenhum estudante encontrado.")
@@ -319,10 +217,12 @@ else:
         turma = a.get("class_group", "—")
         diag = a.get("diagnosis", "—")
         
+        # Chave única para o estado de exclusão deste aluno
         confirm_key = f"confirm_del_{sid}"
         if confirm_key not in st.session_state:
             st.session_state[confirm_key] = False
         
+        # Linha HTML (Estática)
         st.markdown(f"""
         <div class="student-row">
             <div style="font-weight:700; color:#1E293B;">{nome}</div>
@@ -332,6 +232,7 @@ else:
             <div>
         """, unsafe_allow_html=True)
         
+        # Lógica de Botões (Streamlit)
         if not st.session_state[confirm_key]:
             col_btn, _ = st.columns([1, 4])
             with col_btn:
@@ -339,6 +240,7 @@ else:
                     st.session_state[confirm_key] = True
                     st.rerun()
         else:
+            # Estado de Confirmação
             st.markdown(f"""<div class="delete-confirm-banner"><i class="ri-alert-fill"></i> Excluir <b>{nome}</b>?</div>""", unsafe_allow_html=True)
             c_sim, c_nao = st.columns(2)
             with c_sim:
