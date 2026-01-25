@@ -13,7 +13,8 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt, Inches
 from PIL import Image
 
-# Importação da biblioteca que resolve o menu (Seu arquivo enviado)
+# --- BIBLIOTECA DE MENU (NOVA) ---
+# Certifique-se de instalar: pip install streamlit-option-menu
 from streamlit_option_menu import option_menu 
 
 # Tratamento para bibliotecas opcionais
@@ -70,10 +71,10 @@ st.markdown("""
 # ==============================================================================
 # 3. NAVEGAÇÃO SUPERIOR (A SOLUÇÃO DEFINITIVA)
 # ==============================================================================
-# Aqui usamos a biblioteca sugerida no seu arquivo
 def render_navbar():
+    # Definição do Menu Horizontal
     selected = option_menu(
-        menu_title=None, # Esconde o título do menu para ficar mais limpo
+        menu_title=None, # Esconde o título para ficar limpo
         options=["Início", "Estudantes", "PEI", "AEE", "Hub", "Diário", "Dados"],
         icons=["house", "people", "book", "puzzle", "rocket", "journal", "bar-chart"],
         default_index=4, # Índice 4 = Hub (começa em 0)
@@ -88,10 +89,14 @@ def render_navbar():
     
     # Lógica de Redirecionamento (Nomes de arquivos corrigidos)
     if selected == "Início":
-        # Tenta encontrar o arquivo correto da Home
-        target = "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "0_Home.py"
-        if not os.path.exists(target): target = "Home.py" # Última tentativa
-        st.switch_page(target)
+        # Tenta nomes comuns para a Home para evitar erros
+        if os.path.exists("0_Home.py"):
+            st.switch_page("0_Home.py")
+        elif os.path.exists("Home.py"):
+            st.switch_page("Home.py")
+        else:
+            st.error("Arquivo Home não encontrado. Verifique se é '0_Home.py' ou 'Home.py'")
+            
     elif selected == "Estudantes": st.switch_page("pages/Alunos.py")
     elif selected == "PEI": st.switch_page("pages/1_PEI.py")
     elif selected == "AEE": st.switch_page("pages/2_PAE.py")
@@ -102,7 +107,7 @@ def render_navbar():
 render_navbar()
 
 # ==============================================================================
-# 4. CARREGAMENTO DE DADOS & UTILS (LÓGICA PRESERVADA)
+# 4. CARREGAMENTO DE DADOS & UTILS
 # ==============================================================================
 
 # API Keys (Sidebar simplificada apenas para config)
@@ -129,7 +134,7 @@ def _sb_headers():
         return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
     except: return {}
 
-# Carregar Alunos
+# Carregar Alunos (Lógica corrigida para não quebrar indentação)
 if "banco_estudantes" not in st.session_state or not st.session_state.banco_estudantes:
     try:
         url = st.secrets.get("SUPABASE_URL").rstrip("/") + "/rest/v1/students"
@@ -158,25 +163,30 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Seleção de Aluno
+# Seleção de Aluno com Verificação de Segurança
 if st.session_state.banco_estudantes:
     nomes = [a['nome'] for a in st.session_state.banco_estudantes]
     col_sel, _ = st.columns([1, 2])
     nome_aluno = col_sel.selectbox("Trabalhar para:", nomes)
-    aluno = next(a for a in st.session_state.banco_estudantes if a['nome'] == nome_aluno)
+    # Busca segura do aluno selecionado
+    aluno = next((a for a in st.session_state.banco_estudantes if a['nome'] == nome_aluno), None)
     
-    # Detector de Nível
-    serie_lower = str(aluno.get('serie', '')).lower()
-    is_ei = any(x in serie_lower for x in ['infantil', 'creche', 'maternal', 'pré'])
+    if aluno:
+        # Detector de Nível
+        serie_lower = str(aluno.get('serie', '')).lower()
+        is_ei = any(x in serie_lower for x in ['infantil', 'creche', 'maternal', 'pré'])
+    else:
+        st.error("Erro ao selecionar aluno.")
+        st.stop()
 else:
-    st.warning("Nenhum aluno carregado. Verifique a conexão.")
+    st.warning("Nenhum aluno carregado. Verifique a conexão com o banco ou cadastre um aluno na página 'Estudantes'.")
     st.stop()
 
 # ==============================================================================
 # 6. CONTEÚDO DAS ABAS (LÓGICA PRINCIPAL)
 # ==============================================================================
 
-# Funções de IA (Indentação Corrigida)
+# Funções de IA (Simples e Diretas)
 def gerar_ia(prompt):
     if not api_key: return "⚠️ Configure a API Key."
     client = OpenAI(api_key=api_key)
@@ -203,7 +213,7 @@ def gerar_imagem(prompt):
         return resp.data[0].url
     except: return None
 
-# Abas Dinâmicas
+# Renderização das Abas
 if is_ei:
     abas = st.tabs(["🧸 Experiência (BNCC)", "🎨 Estúdio Visual", "📝 Rotina"])
     
