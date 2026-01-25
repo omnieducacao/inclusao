@@ -187,3 +187,134 @@ div[data-testid="column"] .stButton button:not(.qa-btn button):hover {
 @keyframes spin { 100% { transform: rotate(360deg); } }
 </style>
 """, unsafe_allow_html=True)
+
+# ==============================================================================
+# 3. HELPERS
+# ==============================================================================
+def get_base64_image(image_path):
+    if not os.path.exists(image_path): return ""
+    try:
+        with open(image_path, "rb") as f: return base64.b64encode(f.read()).decode()
+    except: return ""
+
+def get_user_initials(nome):
+    if not nome: return "U"
+    parts = nome.split()
+    return (f"{parts[0][0]}{parts[-1][0]}".upper() if len(parts) >= 2 else nome[:2].upper())
+
+# ==============================================================================
+# 4. INICIALIZAÇÃO
+# ==============================================================================
+if "usuario_nome" not in st.session_state: st.session_state.usuario_nome = "Visitante"
+if "autenticado" not in st.session_state: st.session_state.autenticado = False # Para teste, mude se tiver logica de login
+
+# Se quiser gate de login, descomente abaixo
+# if not st.session_state.get("autenticado"): ...
+
+# ==============================================================================
+# 5. RENDERIZAÇÃO DO HEADER INTEGRADO
+# ==============================================================================
+# Fundo branco fixo via CSS (.fixed-header-bg).
+# Agora vamos renderizar as colunas que "flutuam" sobre esse fundo.
+
+st.markdown('<div class="fixed-header-bg"></div>', unsafe_allow_html=True)
+
+# Container que segura os itens do header
+header_cols = st.columns([1.2, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 1], gap="small")
+
+# 1. Logo (Esquerda)
+with header_cols[0]:
+    icone = get_base64_image("omni_icone.png")
+    texto = get_base64_image("omni_texto.png")
+    img_logo = f'<img src="data:image/png;base64,{icone}" class="logo-img">' if icone else "🌐"
+    img_text = f'<img src="data:image/png;base64,{texto}" class="logo-text">' if texto else "<span style='font-weight:800;color:#2B3674;font-size:1rem;'>OMNISFERA</span>"
+    st.markdown(f'<div class="logo-container">{img_logo}{img_text}</div>', unsafe_allow_html=True)
+
+# 2. Navegação (Centro - 7 Botões)
+# Usamos a classe .nav-btn no wrapper para o CSS pegar
+with header_cols[1]:
+    st.markdown('<div class="nav-btn qa-btn">', unsafe_allow_html=True)
+    st.button("INÍCIO", use_container_width=True, on_click=lambda: st.rerun())
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with header_cols[2]:
+    st.markdown('<div class="nav-btn qa-btn">', unsafe_allow_html=True)
+    st.button("ALUNOS", use_container_width=True, on_click=lambda: st.switch_page("pages/Alunos.py"))
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with header_cols[3]:
+    st.markdown('<div class="nav-btn qa-btn">', unsafe_allow_html=True)
+    st.button("PEI", use_container_width=True, on_click=lambda: st.switch_page("pages/1_PEI.py"))
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with header_cols[4]:
+    st.markdown('<div class="nav-btn qa-btn">', unsafe_allow_html=True)
+    st.button("AEE", use_container_width=True, on_click=lambda: st.switch_page("pages/2_PAE.py"))
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with header_cols[5]:
+    st.markdown('<div class="nav-btn qa-btn">', unsafe_allow_html=True)
+    st.button("HUB", use_container_width=True, on_click=lambda: st.switch_page("pages/3_Hub_Inclusao.py"))
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with header_cols[6]:
+    st.markdown('<div class="nav-btn qa-btn">', unsafe_allow_html=True)
+    st.button("DIÁRIO", use_container_width=True, on_click=lambda: st.switch_page("pages/4_Diario_de_Bordo.py"))
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with header_cols[7]:
+    st.markdown('<div class="nav-btn qa-btn">', unsafe_allow_html=True)
+    st.button("DADOS", use_container_width=True, on_click=lambda: st.switch_page("pages/5_Monitoramento_Avaliacao.py"))
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# 3. Usuário (Direita)
+with header_cols[8]:
+    initials = get_user_initials(st.session_state.usuario_nome)
+    nome = st.session_state.usuario_nome.split()[0]
+    st.markdown(f"""
+        <div class="user-container">
+            <span class="user-name">{nome}</span>
+            <div class="user-avatar">{initials}</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+
+# ==============================================================================
+# 6. CONTEÚDO DA PÁGINA (HERO + CARDS)
+# ==============================================================================
+
+# Hero
+user = st.session_state.usuario_nome.split()[0]
+saudacao = "Bom dia" if 5 <= datetime.now().hour < 12 else "Boa tarde"
+st.markdown(f"""
+    <div class="hero-wrapper">
+        <div class="hero-content"><div class="hero-greet">{saudacao}, {user}!</div><div class="hero-text">"A inclusão acontece quando aprendemos com as diferenças."</div></div>
+        <div class="hero-icon"><i class="ri-heart-pulse-fill"></i></div>
+    </div>
+""", unsafe_allow_html=True)
+
+# Cards Módulos
+st.markdown("### 🧩 Módulos do Sistema")
+cols = st.columns(3, gap="medium")
+modules = [
+    {"t":"Estudantes", "d":"Gestão e histórico.", "i":"ri-group-fill", "c":"c-indigo", "b":"bg-indigo-soft", "p":"pages/Alunos.py", "k":"m1"},
+    {"t":"Estratégias & PEI", "d":"Plano Educacional.", "i":"ri-book-open-fill", "c":"c-blue", "b":"bg-blue-soft", "p":"pages/1_PEI.py", "k":"m2"},
+    {"t":"Plano de Ação", "d":"AEE e Intervenção.", "i":"ri-settings-5-fill", "c":"c-purple", "b":"bg-purple-soft", "p":"pages/2_PAE.py", "k":"m3"},
+    {"t":"Hub de Recursos", "d":"Biblioteca e IA.", "i":"ri-rocket-2-fill", "c":"c-teal", "b":"bg-teal-soft", "p":"pages/3_Hub_Inclusao.py", "k":"m4"},
+    {"t":"Diário de Bordo", "d":"Registro diário.", "i":"ri-file-list-3-fill", "c":"c-rose", "b":"bg-rose-soft", "p":"pages/4_Diario_de_Bordo.py", "k":"m5"},
+    {"t":"Evolução & Dados", "d":"Indicadores.", "i":"ri-bar-chart-box-fill", "c":"c-sky", "b":"bg-sky-soft", "p":"pages/5_Monitoramento_Avaliacao.py", "k":"m6"}
+]
+
+for i, m in enumerate(modules):
+    with cols[i%3]:
+        # Card Visual
+        st.markdown(f"""<div class="mod-card-wrapper"><div class="mod-card-rect"><div class="mod-bar {m['c']}"></div><div class="mod-icon-area {m['b']}"><i class="{m['i']}"></i></div><div class="mod-content"><div class="mod-title">{m['t']}</div><div class="mod-desc">{m['d']}</div></div></div></div>""", unsafe_allow_html=True)
+        # Botão Acessar
+        if st.button(f"ACESSAR {m['t'].split()[0].upper()}", key=m['k'], use_container_width=True):
+            st.switch_page(m['p'])
+
+st.markdown("<div style='height:50px'></div>", unsafe_allow_html=True)
+
+# Rodapé simples
+st.markdown(f"""<div style='text-align:center;color:#94A3B8;font-size:0.7rem;padding:20px;margin-top:20px;'><strong>Omnisfera {APP_VERSION}</strong></div>""", unsafe_allow_html=True)
+        
