@@ -46,13 +46,13 @@ def render_omnisfera_header():
     # CSS específico do Header
     st.markdown("""
     <style>
-        /* TOPBAR FIXA */
+        /* TOPBAR FIXA - APENAS LOGO E INFO DO USUÁRIO */
         .topbar-thin {
             position: fixed; top: 0; left: 0; right: 0; height: 50px;
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid #E2E8F0;
-            z-index: 9999;
+            z-index: 9998;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 2rem;
             box-shadow: 0 1px 2px rgba(0,0,0,0.03);
@@ -86,8 +86,23 @@ def render_omnisfera_header():
         /* AJUSTE RESPONSIVO */
         @media (max-width: 768px) { .topbar-thin { padding: 0 1rem; } }
         
-        /* AJUSTE DO CONTEÚDO DA PÁGINA PARA NÃO FICAR ESCONDIDO ATRÁS DA BARRA */
-        .block-container { padding-top: 100px !important; }
+        /* MENU FIXO - ABAIXO DO CABEÇALHO */
+        .menu-fixed {
+            position: fixed; top: 50px; left: 0; right: 0; 
+            z-index: 9997;
+            background: white;
+            padding: 0 2rem 10px 2rem;
+            border-bottom: 1px solid #E2E8F0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        
+        /* AJUSTE DO CONTEÚDO DA PÁGINA PARA NÃO FICAR ESCONDIDO */
+        .block-container { padding-top: 120px !important; }
+        
+        /* AUMENTAR O Z-INDEX DO MENU DO STREAMLIT-OPTION-MENU */
+        div[data-testid="stHorizontalBlock"] {
+            z-index: 9999 !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -101,7 +116,7 @@ def render_omnisfera_header():
     img_logo = f'<img src="data:image/png;base64,{icone}" class="brand-logo">' if icone else "🌐"
     img_text = f'<img src="data:image/png;base64,{texto}" class="brand-img-text">' if texto else "<span style='font-weight:800;color:#2B3674;'>OMNISFERA</span>"
 
-    # Renderização HTML
+    # Renderização HTML do cabeçalho
     st.markdown(f"""
         <div class="topbar-thin">
             <div class="brand-box">
@@ -119,17 +134,84 @@ def render_omnisfera_header():
 render_omnisfera_header()
 
 # ==============================================================================
-# 3. DESIGN & CSS (AJUSTE DE POSIÇÃO)
+# 3. MENU FIXO HORIZONTAL
+# ==============================================================================
+# Adicionar container para o menu fixo
+st.markdown('<div class="menu-fixed">', unsafe_allow_html=True)
+
+def render_navbar():
+    opcoes = [
+        "Início", 
+        "Estudantes", 
+        "Estratégias & PEI", 
+        "Plano de Ação (AEE)", 
+        "Hub de Recursos", 
+        "Diário de Bordo", 
+        "Evolução & Dados"
+    ]
+    
+    icones = [
+        "house", 
+        "people", 
+        "book", 
+        "puzzle", 
+        "rocket", 
+        "journal", 
+        "bar-chart"
+    ]
+
+    selected = option_menu(
+        menu_title=None, 
+        options=opcoes,
+        icons=icones,
+        default_index=1, # Aba 'Estudantes' selecionada
+        orientation="horizontal",
+        styles={
+            "container": {
+                "padding": "0!important", 
+                "background-color": "#ffffff", 
+                "border": "1px solid #E2E8F0", 
+                "border-radius": "10px", 
+                "margin-bottom": "0px",
+                "margin-top": "10px"
+            },
+            "icon": {"color": "#64748B", "font-size": "14px"}, 
+            "nav-link": {
+                "font-size": "11px", 
+                "text-align": "center", 
+                "margin": "0px", 
+                "--hover-color": "#F1F5F9", 
+                "color": "#475569", 
+                "white-space": "nowrap"
+            },
+            "nav-link-selected": {
+                "background-color": "#0284C7", 
+                "color": "white", 
+                "font-weight": "600"
+            },
+        }
+    )
+    
+    # Navegação
+    if selected == "Início":
+        target = "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "0_Home.py"
+        if not os.path.exists(target): target = "Home.py"
+        st.switch_page(target)
+    elif selected == "Estratégias & PEI": st.switch_page("pages/1_PEI.py")
+    elif selected == "Plano de Ação (AEE)": st.switch_page("pages/2_PAE.py")
+    elif selected == "Hub de Recursos": st.switch_page("pages/3_Hub_Inclusao.py")
+    elif selected == "Diário de Bordo": st.switch_page("pages/4_Diario_de_Bordo.py")
+    elif selected == "Evolução & Dados": st.switch_page("pages/5_Monitoramento_Avaliacao.py")
+
+render_navbar()
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ==============================================================================
+# 4. DESIGN & CSS (AJUSTE DE POSIÇÃO DO CONTEÚDO)
 # ==============================================================================
 st.markdown("""
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <style>
-    /* --- REMOVE O PADDING TOP ORIGINAL E APENAS USA O DO HEADER --- */
-    .block-container { 
-        padding-top: 50px !important; /* Ajustado para compensar apenas o cabeçalho fixo */
-        padding-bottom: 3rem; 
-    }
-    
     /* Remove a barra de topo padrão do Streamlit visualmente */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
@@ -162,57 +244,6 @@ st.markdown("""
     .delete-confirm-banner { background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 8px; padding: 8px 12px; margin-top: 4px; font-size: 0.8rem; color: #92400E; display: flex; align-items: center; gap: 8px; }
 </style>
 """, unsafe_allow_html=True)
-
-# ==============================================================================
-# 4. NAVEGAÇÃO (MENU HORIZONTAL)
-# ==============================================================================
-def render_navbar():
-    opcoes = [
-        "Início", 
-        "Estudantes", 
-        "Estratégias & PEI", 
-        "Plano de Ação (AEE)", 
-        "Hub de Recursos", 
-        "Diário de Bordo", 
-        "Evolução & Dados"
-    ]
-    
-    icones = [
-        "house", 
-        "people", 
-        "book", 
-        "puzzle", 
-        "rocket", 
-        "journal", 
-        "bar-chart"
-    ]
-
-    selected = option_menu(
-        menu_title=None, 
-        options=opcoes,
-        icons=icones,
-        default_index=1, # Aba 'Estudantes' selecionada
-        orientation="horizontal",
-        styles={
-            "container": {"padding": "0!important", "background-color": "#ffffff", "border": "1px solid #E2E8F0", "border-radius": "10px", "margin-bottom": "10px", "margin-top": "60px"}, # Adicionado margin-top para descer o menu
-            "icon": {"color": "#64748B", "font-size": "14px"}, 
-            "nav-link": {"font-size": "11px", "text-align": "center", "margin": "0px", "--hover-color": "#F1F5F9", "color": "#475569", "white-space": "nowrap"},
-            "nav-link-selected": {"background-color": "#0284C7", "color": "white", "font-weight": "600"},
-        }
-    )
-    
-    # Navegação
-    if selected == "Início":
-        target = "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "0_Home.py"
-        if not os.path.exists(target): target = "Home.py"
-        st.switch_page(target)
-    elif selected == "Estratégias & PEI": st.switch_page("pages/1_PEI.py")
-    elif selected == "Plano de Ação (AEE)": st.switch_page("pages/2_PAE.py")
-    elif selected == "Hub de Recursos": st.switch_page("pages/3_Hub_Inclusao.py")
-    elif selected == "Diário de Bordo": st.switch_page("pages/4_Diario_de_Bordo.py")
-    elif selected == "Evolução & Dados": st.switch_page("pages/5_Monitoramento_Avaliacao.py")
-
-render_navbar()
 
 # ==============================================================================
 # 5. LÓGICA DE DADOS (SUPABASE)
