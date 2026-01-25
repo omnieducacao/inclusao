@@ -21,26 +21,23 @@ APP_VERSION = "v2.0 - Gestão de Estudantes"
 # FUNÇÕES AUXILIARES PARA IMAGENS
 # ==============================================================================
 def get_base64_image(filename: str) -> str:
-    """
-    Carrega uma imagem e converte para base64.
-    Retorna string vazia se o arquivo não existir.
-    """
+    """Carrega uma imagem e converte para base64"""
     if os.path.exists(filename):
         with open(filename, "rb") as f:
             return base64.b64encode(f.read()).decode()
     return ""
 
 def get_logo_base64():
-    """Função de fallback para a logo giratória"""
+    """Fallback para a logo giratória"""
     caminhos = ["omni_icone.png", "logo.png", "iconeaba.png"]
     for c in caminhos:
         if os.path.exists(c):
             with open(c, "rb") as f:
                 return f"data:image/png;base64,{base64.b64encode(f.read()).decode()}"
-    return "https://cdn-icons-png.flaticon.com/512/1183/1183672.png"
+    return ""
 
 # ==============================================================================
-# BLOCO A — TOPBAR COMPLETA (Logo + Workspace + Usuário + Avatar)
+# BLOCO A — TOPBAR COM LOGO GIRANDO
 # ==============================================================================
 def get_user_initials(nome: str) -> str:
     """Extrai as iniciais do nome do usuário"""
@@ -60,19 +57,37 @@ def get_workspace_short(max_len: int = 20) -> str:
     ws = st.session_state.get("workspace_name", "") or ""
     return (ws[:max_len] + "...") if len(ws) > max_len else ws
 
-def render_topbar():
-    """Renderiza a barra superior com logo, workspace e informações do usuário"""
+def escola_vinculada() -> str:
+    """Retorna nome da escola formatado"""
+    workspace_name = st.session_state.get("workspace_name", "")
+    workspace_id = st.session_state.get("workspace_id", "")
+    
+    if workspace_name:
+        return workspace_name[:20] + "..." if len(workspace_name) > 20 else workspace_name
+    elif workspace_id:
+        return f"ID: {workspace_id[:8]}..."
+    return "Sem Escola"
+
+def render_topbar_with_spinning_logo():
+    """Renderiza a barra superior fixa com logo giratória"""
     icone_b64 = get_base64_image("omni_icone.png")
     texto_b64 = get_base64_image("omni_texto.png")
-
-    img_logo = f'<img src="data:image/png;base64,{icone_b64}" class="brand-logo">' if icone_b64 else "🌐"
-    img_text = f'<img src="data:image/png;base64,{texto_b64}" class="brand-img-text">' if texto_b64 else "<span style='font-weight:800;color:#2B3674;'>OMNISFERA</span>"
-
-    user_full = st.session_state.get("usuario_nome", "Visitante")
-    user_first = get_user_first_name()
-    initials = get_user_initials(user_full)
-    ws_name = get_workspace_short()
-
+    workspace = escola_vinculada()
+    nome_user = get_user_first_name()
+    
+    # Avatar com iniciais
+    user_initials = get_user_initials(st.session_state.get("usuario_nome", "Visitante"))
+    
+    img_logo = (
+        f'<img src="data:image/png;base64,{icone_b64}" class="brand-logo" alt="Omnisfera Logo">'
+        if icone_b64 else "🌐"
+    )
+    
+    img_text = (
+        f'<img src="data:image/png;base64,{texto_b64}" class="brand-img-text" alt="Omnisfera">'
+        if texto_b64 else "<span style='font-weight:800; font-size:1.2rem; color:#2B3674;'>OMNISFERA</span>"
+    )
+    
     st.markdown(
         f"""
         <div class="topbar">
@@ -80,15 +95,33 @@ def render_topbar():
                 {img_logo}
                 {img_text}
             </div>
-
-            <div class="brand-box" style="gap:10px;">
-                <div class="user-badge">{ws_name}</div>
-                <div class="user-badge">{user_first}</div>
-                <div class="apple-avatar">{initials}</div>
+            <div class="brand-box" style="gap: 16px;">
+                <div class="user-badge">{workspace}</div>
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    font-weight: 700;
+                    color: #334155;
+                ">
+                    <div style="
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        background: linear-gradient(135deg, #4F46E5, #7C3AED);
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-weight: 800;
+                        font-size: 0.9rem;
+                    ">{user_initials}</div>
+                    <div>{nome_user}</div>
+                </div>
             </div>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 # ==============================================================================
@@ -191,66 +224,59 @@ html, body, [class*="css"] {
     background-color: #F8FAFC !important;
 }
 
-/* ===== TOPBAR (BLOCO A) ===== */
+/* --- TOPBAR FIXA COM LOGO GRANDE --- */
 .topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 24px;
-    background: white;
-    border-bottom: 1px solid #E2E8F0;
-    margin-bottom: 20px;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-bottom: 1px solid #E2E8F0;
     z-index: 9999;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .brand-box {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
 }
 
 .brand-logo {
-    height: 36px;
-    width: 36px;
-    object-fit: contain;
+    height: 55px !important;
+    width: auto !important;
+    animation: spin 45s linear infinite;
+    filter: brightness(1.1);
 }
 
 .brand-img-text {
-    height: 24px;
-    object-fit: contain;
+    height: 35px !important;
+    width: auto;
+    margin-left: 10px;
 }
 
 .user-badge {
     background: #F1F5F9;
-    color: #475569;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
     border: 1px solid #E2E8F0;
-}
-
-.apple-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #4F46E5, #7C3AED);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 0.8rem;
     font-weight: 700;
-    font-size: 0.9rem;
-    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+    color: #64748B;
+    letter-spacing: 0.5px;
 }
 
-/* ===== CONTAINER COM TOPBAR VISÍVEL ===== */
+/* Ajustar padding para compensar a topbar fixa */
 .block-container {
-    padding-top: 1.5rem !important;
-    padding-bottom: 3rem !important;
+    padding-top: 100px !important;
+    padding-bottom: 4rem !important;
     max-width: 95% !important;
     padding-left: 1rem !important;
     padding-right: 1rem !important;
@@ -549,11 +575,32 @@ html, body, [class*="css"] {
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
 }
 
+/* ===== BANNER DE CONFIRMAÇÃO DE EXCLUSÃO ===== */
+.delete-confirm-banner {
+    background: #FEF3C7;
+    border: 1px solid #FDE68A;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: #92400E;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- ANIMAÇÕES --- */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* ===== RESPONSIVIDADE ===== */
 @media (max-width: 1024px) {
     .student-header, .student-row { grid-template-columns: 2.5fr 1fr 1fr 2fr 1fr; }
     .mod-card-rect { height: 120px; }
     .mod-icon-area { width: 80px; }
+    .topbar { padding: 0 1.5rem; }
 }
 
 @media (max-width: 768px) {
@@ -573,20 +620,9 @@ html, body, [class*="css"] {
         border-bottom: 1px solid #F1F5F9;
     }
     .mod-content { padding: 16px 0 0 0; }
-}
-
-/* ===== BANNER DE CONFIRMAÇÃO DE EXCLUSÃO ===== */
-.delete-confirm-banner {
-    background: #FEF3C7;
-    border: 1px solid #FDE68A;
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin-top: 4px;
-    font-size: 0.8rem;
-    color: #92400E;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    .topbar { padding: 0 1rem; }
+    .brand-img-text { display: none; }
+    .user-badge { display: none; }
 }
 </style>
         """,
@@ -661,7 +697,7 @@ USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
 # ==============================================================================
 # ✅ RENDERIZAÇÃO DOS BLOCOS A e B
 # ==============================================================================
-render_topbar()  # Bloco A - Topbar completa
+render_topbar_with_spinning_logo()  # Bloco A - Topbar com logo girando
 render_quick_access_bar()  # Bloco B - Menu de acesso rápido
 
 # ==============================================================================
