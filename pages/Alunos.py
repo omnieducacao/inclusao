@@ -34,6 +34,20 @@ html, body, [class*="css"] {
     background-color: #F8FAFC !important;
 }
 
+/* AVATAR (iniciais) — usado pela topbar completa */
+.apple-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #2563EB, #1E40AF);
+    color: white;
+    font-weight: 800;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 
 /* ===== CONTAINER COM SIDEBAR VISÍVEL ===== */
 .block-container {
