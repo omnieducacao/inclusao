@@ -413,6 +413,75 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+def render_hub_recurso_visual(titulo, subtitulo, conteudo_md, chave_base):
+    """
+    Wrapper visual para qualquer saída gerada no Hub.
+    Você controla o 'estado' com st.session_state usando a chave_base:
+      - status_{chave_base}: 'rascunho' | 'revisao' | 'ajustando' | 'aprovado'
+      - feedback_{chave_base}: texto
+    """
+
+    status_key = f"status_{chave_base}"
+    feedback_key = f"feedback_{chave_base}"
+
+    if status_key not in st.session_state:
+        st.session_state[status_key] = "revisao" if conteudo_md else "rascunho"
+    if feedback_key not in st.session_state:
+        st.session_state[feedback_key] = ""
+
+    status = st.session_state[status_key]
+
+    st.markdown("<div class='resource-box'>", unsafe_allow_html=True)
+    st.markdown(f"<h3 class='resource-title'>{titulo}</h3>", unsafe_allow_html=True)
+    if subtitulo:
+        st.markdown(f"<p class='resource-subtle'>{subtitulo}</p>", unsafe_allow_html=True)
+
+    if not conteudo_md:
+        st.info("Gere um conteúdo nesta aba para aparecer aqui.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return {"status": status, "feedback": st.session_state[feedback_key]}
+
+    if status in ("revisao", "aprovado"):
+        if status == "aprovado":
+            st.success("✅ Recurso validado e pronto para uso")
+
+        st.markdown(conteudo_md)
+
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            if st.button("✅ Validar", type="primary", use_container_width=True, key=f"validar_{chave_base}"):
+                st.session_state[status_key] = "aprovado"
+                st.rerun()
+        with c2:
+            if st.button("🔄 Solicitar ajustes", use_container_width=True, key=f"ajustar_{chave_base}"):
+                st.session_state[status_key] = "ajustando"
+                st.rerun()
+        with c3:
+            if st.button("🗑️ Descartar", use_container_width=True, key=f"descartar_{chave_base}"):
+                st.session_state[status_key] = "rascunho"
+                st.session_state[feedback_key] = ""
+                st.rerun()
+
+    elif status == "ajustando":
+        st.warning("✏️ Modo de ajuste ativo")
+        fb = st.text_area(
+            "Descreva os ajustes necessários:",
+            value=st.session_state[feedback_key],
+            height=140,
+            key=f"fb_{chave_base}"
+        )
+        st.session_state[feedback_key] = fb
+
+        c1, c2 = st.columns(2)
+        with c1:
+            st.button("↩️ Voltar", use_container_width=True, key=f"voltar_{chave_base}",
+                      on_click=lambda: st.session_state.__setitem__(status_key, "revisao"))
+        with c2:
+            st.info("Quando você clicar no seu botão de 'Regerar', passe esse feedback para a IA.")
+            # aqui você não altera sua lógica: só lê o feedback e usa no seu prompt
+
+    st.markdown("</div>", unsafe_allow_html=True)
+    return {"status": st.session_state[status_key], "feedback": st.session_state[feedback_key]}
 
 
 
@@ -852,22 +921,7 @@ with st.sidebar:
             if key not in ['banco_estudantes', 'OPENAI_API_KEY', 'UNSPLASH_ACCESS_KEY', 'autenticado']: del st.session_state[key]
         st.rerun()
 
-# --- HEADER COM LOGO HUB E APENAS SUBTÍTULO ---
 
-img_hub_html = get_img_tag("hub.png", "220") 
-
-st.markdown(f"""
-    <div class="header-hub">
-        <div style="flex-shrink: 0;">
-            {img_hub_html}
-        </div>
-        <div style="flex-grow: 1; text-align: center;">
-            <p style="margin:0; color:#2C5282; font-size: 1.3rem; font-weight: 700;">
-                Adaptação de Materiais & Criação
-            </p>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
 
 
 if not st.session_state.banco_estudantes:
