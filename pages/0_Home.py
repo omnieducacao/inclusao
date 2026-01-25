@@ -6,7 +6,7 @@ import os
 # ==============================================================================
 # 1. CONFIGURAÇÃO INICIAL
 # ==============================================================================
-APP_VERSION = "v2.1 - Navegação Superior"
+APP_VERSION = "v2.2 - Layout Ajustado"
 
 try:
     IS_TEST_ENV = st.secrets.get("ENV", "PRODUCAO") == "TESTE"
@@ -36,17 +36,12 @@ html, body, [class*="css"] {
     background-color: #F8FAFC !important;
 }
 
-/* OCULTAR SIDEBAR E HEADER NATIVOS */
-[data-testid="stSidebarNav"],
-[data-testid="stHeader"],
-[data-testid="stToolbar"],
-[data-testid="collapsedControl"],
-footer {
-    display: none !important;
-}
+/* OCULTAR ELEMENTOS NATIVOS */
+[data-testid="stSidebarNav"], [data-testid="stHeader"], footer { display: none !important; }
 
+/* AJUSTE DE ESPAÇAMENTO PARA "GRUDAR" NO TOPO */
 .block-container {
-    padding-top: 100px !important;
+    padding-top: 90px !important; /* Reduzi para subir o conteúdo */
     padding-bottom: 4rem !important;
     max-width: 95% !important;
     padding-left: 1rem !important;
@@ -56,28 +51,28 @@ footer {
 /* HEADER FIXO */
 .topbar {
     position: fixed; top: 0; left: 0; right: 0; height: 80px;
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(12px) !important;
+    background: rgba(255, 255, 255, 0.98) !important;
     border-bottom: 1px solid #E2E8F0;
     z-index: 9999;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 2.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .brand-box { display: flex; align-items: center; gap: 12px; }
-.brand-logo { height: 55px !important; width: auto !important; animation: spin 45s linear infinite; }
-.brand-img-text { height: 35px !important; width: auto; margin-left: 10px; }
+.brand-logo { height: 50px !important; width: auto !important; animation: spin 45s linear infinite; }
+.brand-img-text { height: 32px !important; width: auto; margin-left: 10px; }
 .user-badge { background: #F1F5F9; border: 1px solid #E2E8F0; padding: 6px 14px; border-radius: 99px; font-size: 0.8rem; font-weight: 700; color: #64748B; }
 
 /* HERO SECTION */
 .hero-wrapper {
     background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
-    border-radius: 20px; padding: 3rem; color: white;
+    border-radius: 20px; padding: 2.5rem; color: white;
     margin-bottom: 40px; position: relative; overflow: hidden;
     box-shadow: 0 20px 40px -10px rgba(30, 58, 138, 0.3);
     display: flex; align-items: center; justify-content: space-between;
-    min-height: 220px;
+    min-height: 200px;
+    margin-top: 10px; /* Pequeno espaço entre botões e banner */
 }
 .hero-wrapper::before {
     content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -85,24 +80,24 @@ footer {
     opacity: 0.3;
 }
 .hero-content { z-index: 2; position: relative; }
-.hero-greet { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; line-height: 1.2; }
+.hero-greet { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem; line-height: 1.2; }
 .hero-text { font-size: 1.1rem; opacity: 0.95; max-width: 800px; line-height: 1.6; font-weight: 500; }
-.hero-icon { opacity: 0.8; font-size: 4rem; z-index: 1; position: relative; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1)); }
+.hero-icon { opacity: 0.8; font-size: 3.5rem; z-index: 1; position: relative; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1)); }
 
-/* MODULE CARDS */
-.mod-card-wrapper { display: flex; flex-direction: column; margin-bottom: 20px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02); }
+/* MODULE CARDS (HTML) */
+.mod-card-wrapper { display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02); height: 100%; }
 .mod-card-rect {
-    background: white; border-radius: 16px; padding: 0;
+    background: white; border-radius: 16px 16px 0 0; padding: 0;
     border: 1px solid #E2E8F0; display: flex; flex-direction: row; align-items: center;
     height: 120px; width: 100%; position: relative; overflow: hidden;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.mod-card-rect:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08); border-color: #CBD5E1; }
+.mod-card-rect:hover { transform: translateY(-2px); border-color: #CBD5E1; }
 .mod-bar { width: 6px; height: 100%; flex-shrink: 0; }
-.mod-icon-area { width: 90px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; background: #FAFAFA; border-right: 1px solid #F1F5F9; }
-.mod-content { flex-grow: 1; padding: 0 24px; display: flex; flex-direction: column; justify-content: center; }
-.mod-title { font-weight: 800; font-size: 1.1rem; color: #1E293B; margin-bottom: 6px; }
-.mod-desc { font-size: 0.8rem; color: #64748B; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mod-icon-area { width: 80px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; background: #FAFAFA; border-right: 1px solid #F1F5F9; }
+.mod-content { flex-grow: 1; padding: 0 20px; display: flex; flex-direction: column; justify-content: center; }
+.mod-title { font-weight: 800; font-size: 1rem; color: #1E293B; margin-bottom: 4px; }
+.mod-desc { font-size: 0.75rem; color: #64748B; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* CORES */
 .c-indigo { background: #4F46E5 !important; }
@@ -118,31 +113,59 @@ footer {
 .c-sky { background: #0284C7 !important; }
 .bg-sky-soft { background: #F0F9FF !important; color: #0369A1 !important; }
 
-/* RECURSOS E INFO CARDS (Mantidos do original para compactar CSS visualmente aqui) */
-.res-card { background: white; border-radius: 14px; padding: 20px; border: 1px solid #E2E8F0; display: flex; align-items: center; gap: 16px; transition: all 0.25s; min-height: 96px; }
-.res-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); }
-.res-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
-.res-name { font-weight: 700; color: #1E293B; }
-.res-meta { font-size: 0.75rem; color: #64748B; }
-.info-card { background: white; border-radius: 16px; padding: 24px; border: 1px solid #E2E8F0; min-height: 320px; }
-.metric-card { background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #E2E8F0; text-align: center; }
-.metric-value { font-size: 2rem; font-weight: 800; color: #1E293B; }
+/* --- BOTOES EMBAIXO DO CARD (ESTILO RESTAURADO) --- */
+/* Força o botão a ter bordas arredondadas apenas embaixo e parecer conectado */
+div[data-testid="column"] .stButton button {
+    border-radius: 0 0 16px 16px !important;
+    border: 1px solid #E2E8F0 !important;
+    border-top: none !important;
+    background: #F8FAFC !important;
+    color: #475569 !important;
+    font-weight: 700 !important;
+    font-size: 0.75rem !important;
+    padding: 10px !important;
+    text-transform: uppercase !important;
+    margin-top: -5px !important; /* Puxa pra cima pra grudar no HTML */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02) !important;
+}
+div[data-testid="column"] .stButton button:hover {
+    background: #F1F5F9 !important;
+    color: #1E293B !important;
+    border-color: #CBD5E1 !important;
+}
 
-/* --- CORES RECURSOS --- */
-.rc-sky { background: #F0F9FF !important; color: #0284C7 !important; border-color: #BAE6FD !important; }
-.rc-sky .res-icon { background: #F0F9FF !important; border: 1px solid #BAE6FD !important; }
-.rc-green { background: #F0FDF4 !important; color: #16A34A !important; border-color: #BBF7D0 !important; }
-.rc-green .res-icon { background: #F0FDF4 !important; border: 1px solid #BBF7D0 !important; }
-.rc-rose { background: #FFF1F2 !important; color: #E11D48 !important; border-color: #FECDD3 !important; }
-.rc-rose .res-icon { background: #FFF1F2 !important; border: 1px solid #FECDD3 !important; }
-.rc-orange { background: #FFF7ED !important; color: #EA580C !important; border-color: #FDBA74 !important; }
-.rc-orange .res-icon { background: #FFF7ED !important; border: 1px solid #FDBA74 !important; }
+/* --- RECURSOS E INFO CARDS --- */
+.res-card { background: white; border-radius: 14px; padding: 16px; border: 1px solid #E2E8F0; display: flex; align-items: center; gap: 12px; transition: all 0.25s; min-height: 80px; text-decoration: none !important; }
+.res-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+.res-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+.res-name { font-weight: 700; color: #1E293B; font-size: 0.9rem; margin:0; }
+.res-meta { font-size: 0.7rem; color: #64748B; margin:0; }
+.res-card-link { text-decoration: none !important; }
 
-/* ANIMAÇÃO */
+.info-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #E2E8F0; min-height: 300px; display:flex; flex-direction:column; }
+.info-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #F1F5F9; }
+.info-card-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+.info-card-title { font-size: 1rem; font-weight: 800; color: #1E293B; margin: 0; }
+.info-card-content p { font-size: 0.8rem; color: #475569; line-height: 1.5; margin-bottom: 8px; }
+.info-card-content ul { font-size: 0.8rem; color: #475569; margin-left: 14px; }
+
+/* CORES INFO CARDS */
+.info-card-orange { border-left: 4px solid #EA580C; } .info-card-orange .info-card-icon { background: #FFF7ED; color: #EA580C; }
+.info-card-blue { border-left: 4px solid #3B82F6; } .info-card-blue .info-card-icon { background: #EFF6FF; color: #3B82F6; }
+.info-card-purple { border-left: 4px solid #8B5CF6; } .info-card-purple .info-card-icon { background: #F5F3FF; color: #8B5CF6; }
+
+/* CORES RECURSOS */
+.rc-sky { background: #F0F9FF; color: #0284C7; border-color: #BAE6FD; }
+.rc-sky .res-icon { background: #E0F2FE; color: #0284C7; }
+.rc-green { background: #F0FDF4; color: #16A34A; border-color: #BBF7D0; }
+.rc-green .res-icon { background: #DCFCE7; color: #16A34A; }
+.rc-rose { background: #FFF1F2; color: #E11D48; border-color: #FECDD3; }
+.rc-rose .res-icon { background: #FFE4E6; color: #E11D48; }
+.rc-orange { background: #FFF7ED; color: #EA580C; border-color: #FDBA74; }
+.rc-orange .res-icon { background: #FFEDD5; color: #EA580C; }
+
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-/* RESPONSIVIDADE */
-@media (max-width: 768px) { .topbar { padding: 0 1rem; } .mod-card-rect { height: 110px; } }
+@media (max-width: 768px) { .topbar { padding: 0 1rem; } .mod-card-rect { height: auto; flex-direction: column; padding: 15px; } .mod-icon-area { width: 100%; height: 50px; border-right: none; border-bottom: 1px solid #F1F5F9; margin-bottom: 10px; } }
 </style>
 """,
     unsafe_allow_html=True,
@@ -167,7 +190,7 @@ def get_user_initials(nome: str) -> str:
     return (f"{parts[0][0]}{parts[-1][0]}".upper() if len(parts) >= 2 else nome[:2].upper())
 
 # ==============================================================================
-# 4. INICIALIZAÇÃO E AUTH
+# 4. INICIALIZAÇÃO
 # ==============================================================================
 def initialize_session_state():
     defaults = {"autenticado": False, "workspace_id": None, "usuario_nome": "Visitante", "workspace_name": "Escola Modelo", "dados": {"nome": "", "nasc": date(2015, 1, 1), "serie": None}}
@@ -208,59 +231,73 @@ def render_topbar():
         </div>
     """, unsafe_allow_html=True)
 
-def render_quick_access():
-    """Renderiza a barra de botões coloridos acima do banner"""
-    st.markdown("### ⚡ Acesso Rápido")
+def render_quick_access_bar():
+    """Barra de botões coloridos logo abaixo da Topbar"""
     
-    # CSS Específico para colorir os botões desta seção
-    # 1:Indigo, 2:Blue, 3:Purple, 4:Teal, 5:Rose, 6:Sky
+    # CSS para colorir os botões (Fundo Branco + Borda Colorida + Hover Cheio)
     st.markdown("""
     <style>
-        /* Botão 1 - Estudantes */
-        div[data-testid="column"]:nth-of-type(1) .stButton button { border: 2px solid #4F46E5 !important; color: #4F46E5 !important; background: white !important; font-weight: 800 !important; }
-        div[data-testid="column"]:nth-of-type(1) .stButton button:hover { background: #4F46E5 !important; color: white !important; }
+        /* Home (Cinza) */
+        div[data-testid="column"]:nth-of-type(1) .stButton button { background: white !important; border: 2px solid #64748B !important; color: #64748B !important; }
+        div[data-testid="column"]:nth-of-type(1) .stButton button:hover { background: #64748B !important; color: white !important; }
+
+        /* Alunos (Indigo) */
+        div[data-testid="column"]:nth-of-type(2) .stButton button { background: white !important; border: 2px solid #4F46E5 !important; color: #4F46E5 !important; }
+        div[data-testid="column"]:nth-of-type(2) .stButton button:hover { background: #4F46E5 !important; color: white !important; }
         
-        /* Botão 2 - PEI */
-        div[data-testid="column"]:nth-of-type(2) .stButton button { border: 2px solid #2563EB !important; color: #2563EB !important; background: white !important; font-weight: 800 !important; }
-        div[data-testid="column"]:nth-of-type(2) .stButton button:hover { background: #2563EB !important; color: white !important; }
+        /* PEI (Blue) */
+        div[data-testid="column"]:nth-of-type(3) .stButton button { background: white !important; border: 2px solid #2563EB !important; color: #2563EB !important; }
+        div[data-testid="column"]:nth-of-type(3) .stButton button:hover { background: #2563EB !important; color: white !important; }
 
-        /* Botão 3 - PAEE */
-        div[data-testid="column"]:nth-of-type(3) .stButton button { border: 2px solid #7C3AED !important; color: #7C3AED !important; background: white !important; font-weight: 800 !important; }
-        div[data-testid="column"]:nth-of-type(3) .stButton button:hover { background: #7C3AED !important; color: white !important; }
+        /* PAEE (Purple) */
+        div[data-testid="column"]:nth-of-type(4) .stButton button { background: white !important; border: 2px solid #7C3AED !important; color: #7C3AED !important; }
+        div[data-testid="column"]:nth-of-type(4) .stButton button:hover { background: #7C3AED !important; color: white !important; }
 
-        /* Botão 4 - Hub */
-        div[data-testid="column"]:nth-of-type(4) .stButton button { border: 2px solid #0D9488 !important; color: #0D9488 !important; background: white !important; font-weight: 800 !important; }
-        div[data-testid="column"]:nth-of-type(4) .stButton button:hover { background: #0D9488 !important; color: white !important; }
+        /* Hub (Teal) */
+        div[data-testid="column"]:nth-of-type(5) .stButton button { background: white !important; border: 2px solid #0D9488 !important; color: #0D9488 !important; }
+        div[data-testid="column"]:nth-of-type(5) .stButton button:hover { background: #0D9488 !important; color: white !important; }
 
-        /* Botão 5 - Diário */
-        div[data-testid="column"]:nth-of-type(5) .stButton button { border: 2px solid #E11D48 !important; color: #E11D48 !important; background: white !important; font-weight: 800 !important; }
-        div[data-testid="column"]:nth-of-type(5) .stButton button:hover { background: #E11D48 !important; color: white !important; }
+        /* Diário (Rose) */
+        div[data-testid="column"]:nth-of-type(6) .stButton button { background: white !important; border: 2px solid #E11D48 !important; color: #E11D48 !important; }
+        div[data-testid="column"]:nth-of-type(6) .stButton button:hover { background: #E11D48 !important; color: white !important; }
 
-        /* Botão 6 - Dados */
-        div[data-testid="column"]:nth-of-type(6) .stButton button { border: 2px solid #0284C7 !important; color: #0284C7 !important; background: white !important; font-weight: 800 !important; }
-        div[data-testid="column"]:nth-of-type(6) .stButton button:hover { background: #0284C7 !important; color: white !important; }
+        /* Dados (Sky) */
+        div[data-testid="column"]:nth-of-type(7) .stButton button { background: white !important; border: 2px solid #0284C7 !important; color: #0284C7 !important; }
+        div[data-testid="column"]:nth-of-type(7) .stButton button:hover { background: #0284C7 !important; color: white !important; }
+        
+        /* Estilo base para todos os botões dessa barra */
+        .stButton button {
+            font-weight: 800 !important;
+            border-radius: 8px !important;
+            padding: 8px 0 !important;
+            font-size: 0.75rem !important;
+            text-transform: uppercase !important;
+            box-shadow: none !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3, c4, c5, c6 = st.columns(6, gap="small")
+    # 7 Colunas para os botões
+    c1, c2, c3, c4, c5, c6, c7 = st.columns(7, gap="small")
     
     with c1:
-        if st.button("👥 ALUNOS", use_container_width=True): st.switch_page("pages/Alunos.py")
+        if st.button("🏠 HOME", use_container_width=True): st.rerun()
     with c2:
-        if st.button("📘 PEI", use_container_width=True): st.switch_page("pages/1_PEI.py")
+        if st.button("👥 ALUNOS", use_container_width=True): st.switch_page("pages/Alunos.py")
     with c3:
-        if st.button("🧩 PAEE", use_container_width=True): st.switch_page("pages/2_PAE.py")
+        if st.button("📘 PEI", use_container_width=True): st.switch_page("pages/1_PEI.py")
     with c4:
-        if st.button("🚀 HUB", use_container_width=True): st.switch_page("pages/3_Hub_Inclusao.py")
+        if st.button("🧩 AEE", use_container_width=True): st.switch_page("pages/2_PAE.py")
     with c5:
-        if st.button("📓 DIÁRIO", use_container_width=True): st.switch_page("pages/4_Diario_de_Bordo.py")
+        if st.button("🚀 HUB", use_container_width=True): st.switch_page("pages/3_Hub_Inclusao.py")
     with c6:
+        if st.button("📓 DIÁRIO", use_container_width=True): st.switch_page("pages/4_Diario_de_Bordo.py")
+    with c7:
         if st.button("📊 DADOS", use_container_width=True): st.switch_page("pages/5_Monitoramento_Avaliacao.py")
-    
-    st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
 
-def create_module_card_simple(title, desc, icon, color_cls, bg_cls):
-    """Cria apenas o visual do card, sem botão (já que o botão subiu)"""
+def create_module_card_with_button(title, desc, icon, color_cls, bg_cls, page, key):
+    """Cria card de módulo com o botão EMBAIXO (restaurado)"""
+    # 1. HTML do Card (Topo)
     st.markdown(
         f"""
         <div class="mod-card-wrapper">
@@ -278,6 +315,11 @@ def create_module_card_simple(title, desc, icon, color_cls, bg_cls):
         """,
         unsafe_allow_html=True,
     )
+    
+    # 2. Botão nativo do Streamlit (Embaixo)
+    # O CSS injetado lá em cima ajusta ele para parecer colado
+    if st.button(f"ACESSAR {title.split()[0].upper()}", key=key, use_container_width=True):
+        st.switch_page(page)
 
 def render_resources():
     res_data = [
@@ -297,22 +339,7 @@ def render_resources():
                     </div>
                 </a>""", unsafe_allow_html=True)
 
-def render_metrics():
-    m_data = [
-        {"l":"Alunos Ativos", "v":"12", "c":"+2", "t":"up"},
-        {"l":"PEIs Ativos", "v":"8", "c":"+1", "t":"up"},
-        {"l":"Evidências Hoje", "v":"3", "c":"0", "t":"neu"},
-        {"l":"Meta Mensal", "v":"75%", "c":"+5%", "t":"up"}
-    ]
-    cols = st.columns(4, gap="medium")
-    for idx, m in enumerate(m_data):
-        color = "metric-up" if m['t'] == "up" else "metric-neutral"
-        icon = "↗️" if m['t'] == "up" else "➡️"
-        with cols[idx]:
-            st.markdown(f"""<div class="metric-card"><span class="metric-label">{m['l']}</span><div class="metric-value">{m['v']}</div><div class="metric-change {color}">{icon} {m['c']}</div></div>""", unsafe_allow_html=True)
-
 def render_info_cards():
-    # Simplificado para brevidade, mantendo estrutura visual
     cards = [
         {"t": "Acolhimento", "i": "ri-heart-line", "c": "info-card-orange", "txt": "O primeiro passo para a inclusão efetiva."},
         {"t": "Gestão (PGEI)", "i": "ri-strategy-line", "c": "info-card-blue", "txt": "Organização macro da escola."},
@@ -324,14 +351,14 @@ def render_info_cards():
             st.markdown(f"""<div class="info-card {c['c']}"><div class="info-card-header"><div class="info-card-icon"><i class="{c['i']}"></i></div><h3 class="info-card-title">{c['t']}</h3></div><div class="info-card-content"><p>{c['txt']}</p></div></div>""", unsafe_allow_html=True)
 
 # ==============================================================================
-# 6. APP EXECUTION
+# 6. EXECUÇÃO DO APP
 # ==============================================================================
 render_topbar()
 
-# 1. BARRA DE ACESSO RÁPIDO (NOVA)
-render_quick_access()
+# 1. BARRA DE ACESSO RÁPIDO (7 Botões, Coloridos, Sem Título)
+render_quick_access_bar()
 
-# 2. HERO
+# 2. HERO (Logado)
 nome_user = st.session_state.get("usuario_nome", "Visitante").split()[0]
 saudacao = "Bom dia" if 5 <= datetime.now().hour < 12 else "Boa tarde" if 12 <= datetime.now().hour < 18 else "Boa noite"
 st.markdown(f"""
@@ -344,29 +371,26 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# 3. MÓDULOS (Visual apenas, botões subiram)
-st.markdown("### 🧩 Detalhes dos Módulos")
+# 3. MÓDULOS (Grid com Botões Restaurados Embaixo)
+st.markdown("### 🧩 Módulos do Sistema")
 modules = [
-    {"t": "Estudantes", "d": "Gestão completa de alunos.", "i": "ri-group-fill", "c": "c-indigo", "b": "bg-indigo-soft"},
-    {"t": "Estratégias & PEI", "d": "Plano Educacional Individual.", "i": "ri-book-open-fill", "c": "c-blue", "b": "bg-blue-soft"},
-    {"t": "Plano de Ação", "d": "Atendimento Especializado.", "i": "ri-settings-5-fill", "c": "c-purple", "b": "bg-purple-soft"},
-    {"t": "Hub de Recursos", "d": "Biblioteca e IA.", "i": "ri-rocket-2-fill", "c": "c-teal", "b": "bg-teal-soft"},
-    {"t": "Diário de Bordo", "d": "Registro de evidências.", "i": "ri-file-list-3-fill", "c": "c-rose", "b": "bg-rose-soft"},
-    {"t": "Evolução & Dados", "d": "Indicadores de progresso.", "i": "ri-bar-chart-box-fill", "c": "c-sky", "b": "bg-sky-soft"},
+    {"t": "Estudantes", "d": "Gestão completa de alunos.", "i": "ri-group-fill", "c": "c-indigo", "b": "bg-indigo-soft", "p": "pages/Alunos.py", "k": "btn_mod_1"},
+    {"t": "Estratégias & PEI", "d": "Plano Educacional Individual.", "i": "ri-book-open-fill", "c": "c-blue", "b": "bg-blue-soft", "p": "pages/1_PEI.py", "k": "btn_mod_2"},
+    {"t": "Plano de Ação", "d": "Atendimento Especializado.", "i": "ri-settings-5-fill", "c": "c-purple", "b": "bg-purple-soft", "p": "pages/2_PAE.py", "k": "btn_mod_3"},
+    {"t": "Hub de Recursos", "d": "Biblioteca e IA.", "i": "ri-rocket-2-fill", "c": "c-teal", "b": "bg-teal-soft", "p": "pages/3_Hub_Inclusao.py", "k": "btn_mod_4"},
+    {"t": "Diário de Bordo", "d": "Registro de evidências.", "i": "ri-file-list-3-fill", "c": "c-rose", "b": "bg-rose-soft", "p": "pages/4_Diario_de_Bordo.py", "k": "btn_mod_5"},
+    {"t": "Evolução & Dados", "d": "Indicadores de progresso.", "i": "ri-bar-chart-box-fill", "c": "c-sky", "b": "bg-sky-soft", "p": "pages/5_Monitoramento_Avaliacao.py", "k": "btn_mod_6"},
 ]
 cols = st.columns(3, gap="medium")
 for i, m in enumerate(modules):
     with cols[i % 3]:
-        create_module_card_simple(m["t"], m["d"], m["i"], m["c"], m["b"])
+        create_module_card_with_button(m["t"], m["d"], m["i"], m["c"], m["b"], m["p"], m["k"])
 
 st.markdown("<div style='height:30px'></div>", unsafe_allow_html=True)
 
 # 4. EXTRAS
 st.markdown("### 📚 Recursos Externos")
 render_resources()
-
-st.markdown("<div style='height:40px'></div>", unsafe_allow_html=True)
-render_metrics()
 
 st.markdown("---")
 st.markdown("## 📘 Guia Prático")
