@@ -2584,7 +2584,7 @@ def render_aba_ei_inclusao_brincar(aluno, api_key):
                         st.rerun()
 
 # ==============================================================================
-# FUNÇÃO PRINCIPAL
+# EXECUÇÃO PRINCIPAL
 # ==============================================================================
 
 def main():
@@ -2641,9 +2641,31 @@ def main():
         st.error("Aluno não encontrado")
         st.stop()
     
-    # Renderizar cabeçalho do aluno
+    # --- ÁREA DO ALUNO (Visual + Expander) ---
+    
+    # 1. Cabeçalho Visual (Nome e Série - Mantém visível para contexto rápido)
     render_cabecalho_aluno(aluno)
     
+    # 2. PEI RETRÁTIL (Aqui está a mudança solicitada)
+    # Mostra os detalhes pesados apenas se o usuário clicar
+    with st.expander(f"📄 Ver Detalhes do PEI e Diagnóstico de {aluno['nome'].split()[0]}", expanded=False):
+        
+        c_diag, c_hip = st.columns(2)
+        with c_diag:
+            st.markdown(f"**🏥 Diagnóstico/CID:**")
+            st.info(aluno.get('diagnosis', 'Não informado'))
+            
+        with c_hip:
+            st.markdown(f"**🎯 Hiperfoco/Interesses:**")
+            st.success(aluno.get('hiperfoco', 'Geral'))
+            
+        st.markdown("---")
+        st.markdown("**🧠 Resumo das Estratégias (IA):**")
+        # Mostra o texto da IA (ia_sugestao) formatado
+        st.write(aluno.get('ia_sugestao', 'Sem resumo disponível.'))
+
+    # --- FIM DA ÁREA DO ALUNO ---
+
     # Detector de Educação Infantil
     serie_aluno = aluno.get('serie', '').lower()
     is_ei = any(termo in serie_aluno for termo in ["infantil", "creche", "pré", "pre", "maternal", "berçário"])
@@ -2713,12 +2735,8 @@ def main():
         with tabs[7]:
             render_aba_plano_aula(aluno, api_key)
 
-# ==============================================================================
-# EXECUÇÃO PRINCIPAL
-# ==============================================================================
 if __name__ == "__main__":
     main()
-
 
 
 
