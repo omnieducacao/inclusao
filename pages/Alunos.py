@@ -50,12 +50,17 @@ st.markdown("""
         border: 1px solid #E2E8F0; 
         margin-top: 5px; /* Bem colado no menu */
     }
-    .mod-card-rect { background: white; padding: 0; display: flex; align-items: center; height: 80px; /* Altura reduzida de 90 para 80px */ position: relative; }
-    .mod-bar { width: 6px; height: 100%; position: absolute; left: 0; background-color: #0284C7; }
-    .mod-icon-area { width: 70px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; background: #F0F9FF; color: #0284C7; margin-left: 6px; }
-    .mod-content { flex-grow: 1; padding: 0 20px; display: flex; flex-direction: column; justify-content: center; }
-    .mod-title { font-weight: 800; font-size: 1.1rem; color: #1E293B; margin-bottom: 2px; }
-    .mod-desc { font-size: 0.8rem; color: #64748B; }
+    .mod-card-wrapper {{ display: flex; flex-direction: column; margin-bottom: 20px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02); }}
+    .mod-card-rect {{ background: white; border-radius: 16px 16px 0 0; padding: 0; border: 1px solid #E2E8F0; border-bottom: none; display: flex; flex-direction: row; align-items: center; height: 130px; width: 100%; position: relative; overflow: hidden; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }}
+    .mod-card-rect:hover {{ transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08); border-color: #CBD5E1; }}
+    .mod-bar {{ width: 6px; height: 100%; flex-shrink: 0; }}
+    .mod-icon-area {{ width: 90px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; background: transparent !important; border-right: 1px solid #F1F5F9; transition: all 0.3s ease; }}
+    .mod-card-rect:hover .mod-icon-area {{ transform: scale(1.05); }}
+    .mod-content {{ flex-grow: 1; padding: 0 24px; display: flex; flex-direction: column; justify-content: center; }}
+    .mod-title {{ font-weight: 800; font-size: 1.1rem; color: #1E293B; margin-bottom: 6px; letter-spacing: -0.3px; transition: color 0.2s; }}
+    .mod-card-rect:hover .mod-title {{ color: #0D9488; }}
+    .mod-desc {{ font-size: 0.8rem; color: #64748B; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }}
+
 
     /* TABELA DE ALUNOS - Mais compacta */
     .student-table { background: white; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-top: 10px; }
