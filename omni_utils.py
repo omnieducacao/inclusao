@@ -173,7 +173,7 @@ def render_omnisfera_header():
 def render_navbar(active_tab: str = "Início"):
     """
     Menu horizontal (option_menu) com espaço MÍNIMO entre o menu e o conteúdo seguinte.
-    ✅ Resolve o “vão” que aparece entre NAVBAR e o card/hero/conteúdo.
+    ✅ Reduzido drasticamente o espaço abaixo do navbar.
     """
     ensure_state()
 
@@ -187,32 +187,44 @@ def render_navbar(active_tab: str = "Início"):
 
     st.markdown("""
     <style>
-      /* 1) Cola o bloco do option_menu no conteúdo seguinte */
+      /* 1) Container principal - reduz todas as margens */
       div[data-testid="stHorizontalBlock"],
-      .stHorizontalBlock{
-        margin-top: 6px !important;
-        margin-bottom: 0px !important;
+      .stHorizontalBlock {
+        margin-top: 4px !important;
+        margin-bottom: -8px !important;  /* Negativo para "puxar" o conteúdo para cima */
         padding-bottom: 0px !important;
       }
 
-      /* 2) Zera margens internas comuns do nav/ul */
+      /* 2) Remove completamente margens do option_menu */
       div[data-testid="stHorizontalBlock"] ul,
-      div[data-testid="stHorizontalBlock"] nav{
+      div[data-testid="stHorizontalBlock"] nav {
         margin: 0 !important;
         padding: 0 !important;
       }
 
-      /* 3) Alguns temas colocam respiro no container do elemento */
-      div[data-testid="stHorizontalBlock"] .element-container{
+      /* 3) Container do Streamlit */
+      div[data-testid="stHorizontalBlock"] .element-container {
         margin: 0 !important;
         padding: 0 !important;
       }
 
-      /* 4) Âncora: puxa o conteúdo logo abaixo do menu */
-      .after-navbar-anchor{
-        margin-top: +5px !important;   /* AJUSTE FINO: -12 / -16 / -22 / -28 */
+      /* 4) Container do option_menu - compacto */
+      div[data-testid="stHorizontalBlock"] > div {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+      }
+
+      /* 5) Reduz o padding dos botões do menu */
+      .st-emotion-cache-1aw8i8e {
+        padding: 2px 6px !important;
+      }
+
+      /* 6) Âncora - espaço mínimo após o navbar */
+      .after-navbar-anchor {
+        margin-top: -12px !important;  /* Reduzido pela metade */
         padding-top: 0 !important;
         height: 0 !important;
+        display: block;
       }
     </style>
     """, unsafe_allow_html=True)
@@ -226,33 +238,42 @@ def render_navbar(active_tab: str = "Início"):
         styles={
             "container": {
                 "padding": "0!important",
+                "margin": "0!important",
                 "background-color": "#ffffff",
                 "border": "1px solid #E2E8F0",
                 "border-radius": "10px",
-                "margin": "0px",
                 "box-shadow": "0 1px 3px rgba(0,0,0,0.05)",
             },
-            "icon": {"color": "#64748B", "font-size": "14px"},
+            "icon": {
+                "color": "#64748B", 
+                "font-size": "14px",
+                "margin-right": "4px",
+            },
             "nav-link": {
                 "font-size": "11px",
                 "text-align": "center",
                 "margin": "0px",
-                "padding": "10px 12px",
+                "padding": "8px 10px",  # Reduzido
                 "--hover-color": "#F1F5F9",
                 "color": "#475569",
                 "white-space": "nowrap",
                 "border-radius": "8px",
+                "min-height": "36px",  # Altura reduzida
+                "display": "flex",
+                "align-items": "center",
+                "justify-content": "center",
             },
             "nav-link-selected": {
                 "background-color": "#0284C7",
                 "color": "white",
                 "font-weight": "600",
                 "border": "none",
+                "padding": "8px 10px",
             },
         },
     )
 
-    # ✅ cola o que vem depois
+    # Âncora para fixar próximo do conteúdo
     st.markdown('<div class="after-navbar-anchor"></div>', unsafe_allow_html=True)
 
     # Redirecionamento
