@@ -1,3 +1,4 @@
+# omni_utils.py
 import os
 import base64
 import json
@@ -6,8 +7,10 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 
 # =============================================================================
-# 1. ESTADO E CONFIGURAÇÃO INICIAL
+# 1) ESTADO E CONFIGURAÇÃO INICIAL
 # =============================================================================
+APP_VERSION = "omni_utils v2.0 (Topbar + Navbar compacto)"
+
 def ensure_state():
     if "autenticado" not in st.session_state:
         st.session_state.autenticado = False
@@ -24,9 +27,8 @@ def ensure_state():
     if "view" not in st.session_state:
         st.session_state.view = "login"
 
-
 # =============================================================================
-# 2. UI COMPONENTS (HEADER & NAVBAR) - CORRIGIDO E SIMPLIFICADO
+# 2) UI COMPONENTS (HEADER & NAVBAR)
 # =============================================================================
 def get_base64_image(path: str) -> str | None:
     if not os.path.exists(path):
@@ -34,12 +36,14 @@ def get_base64_image(path: str) -> str | None:
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode("utf-8")
 
-
 def render_omnisfera_header():
     """
-    Topbar fixa + CSS agressivo (sem sidebar/nav padrão).
-    Ajuste principal: padding-top do app para caber a topbar.
+    Topbar fixa (logo + texto + workspace + avatar).
+    Importante:
+    - Ajusta padding-top do app para NÃO esmagar o conteúdo.
+    - Esconde header/menu/footer do Streamlit (quando aplicável).
     """
+    ensure_state()
 
     def _get_initials(nome: str) -> str:
         if not nome:
@@ -51,148 +55,129 @@ def render_omnisfera_header():
         ws = st.session_state.get("workspace_name", "") or "Workspace"
         return (ws[:max_len] + "...") if len(ws) > max_len else ws
 
-    st.markdown(
-        """
-<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-<style>
-/* Reserva espaço para a topbar fixa */
-div[data-testid="stAppViewContainer"] > div:first-child{
-    padding-top: 62px !important;  /* menor que 70px para ficar mais “colado” */
-}
+    # altura real da topbar (mantém consistente com padding-top do app)
+    TOPBAR_H = 52
 
-/* Remove header nativo */
-.stApp > header{ display:none !important; }
+    st.markdown(f"""
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        /* Empurra o conteúdo para baixo da topbar fixa */
+        div[data-testid="stAppViewContainer"] > div:first-child {{
+            padding-top: {TOPBAR_H + 14}px !important;
+        }}
 
-/* Esconde sidebar/nav/rodapé */
-[data-testid="stSidebarNav"],
-section[data-testid="stSidebar"],
-button[data-testid="collapsedControl"],
-footer{ display:none !important; }
+        /* Some com o header padrão do Streamlit */
+        .stApp > header {{ display: none !important; }}
+        #MainMenu {{ visibility: hidden; }}
+        footer {{ visibility: hidden; }}
+        section[data-testid="stSidebar"] {{ display: none !important; }}
+        [data-testid="stSidebarNav"] {{ display: none !important; }}
+        button[data-testid="collapsedControl"] {{ display: none !important; }}
 
-/* Ajuste geral do container (menos respiro) */
-.block-container{
-    padding-top: 8px !important;
-    padding-bottom: 16px !important;
-    max-width: 100% !important;
-}
-.main .block-container{
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-}
+        /* Container principal */
+        .block-container {{
+            padding-top: 8px !important;
+            padding-bottom: 16px !important;
+            max-width: 100% !important;
+        }}
+        .main .block-container {{
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }}
 
-/* TOPBAR fixa */
-.omni-topbar{
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: 50px !important;
-    background: #fff !important;
-    border-bottom: 1px solid #E2E8F0 !important;
-    z-index: 999999 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 0 18px !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
-}
-
-.omni-brand{
-    display:flex !important;
-    align-items:center !important;
-    gap:10px !important;
-}
-
-.omni-logo{
-    height: 28px !important;
-    width: 28px !important;
-    border-radius: 8px !important;
-}
-
-.omni-user-info{
-    display:flex !important;
-    align-items:center !important;
-    gap:10px !important;
-}
-
-.omni-workspace{
-    background: #F1F5F9 !important;
-    border: 1px solid #E2E8F0 !important;
-    padding: 4px 12px !important;
-    border-radius: 10px !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    color: #64748B !important;
-    max-width: 150px !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-}
-
-.omni-avatar{
-    width: 28px !important;
-    height: 28px !important;
-    border-radius: 50% !important;
-    background: linear-gradient(135deg, #4F46E5, #7C3AED) !important;
-    color: #fff !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    font-weight: 800 !important;
-    font-size: 11px !important;
-}
-</style>
-        """,
-        unsafe_allow_html=True,
-    )
+        /* TOPBAR FIXA */
+        .omni-topbar {{
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: {TOPBAR_H}px !important;
+            background: white !important;
+            border-bottom: 1px solid #E2E8F0 !important;
+            z-index: 999999 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 0 18px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+        }}
+        .omni-brand {{
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            min-width: 0 !important;
+        }}
+        .omni-logo {{
+            height: 28px !important;
+            width: 28px !important;
+        }}
+        .omni-user-info {{
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+        }}
+        .omni-workspace {{
+            background: #F1F5F9 !important;
+            border: 1px solid #E2E8F0 !important;
+            padding: 4px 12px !important;
+            border-radius: 10px !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            color: #64748B !important;
+            max-width: 180px !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+        }}
+        .omni-avatar {{
+            width: 28px !important;
+            height: 28px !important;
+            border-radius: 50% !important;
+            background: linear-gradient(135deg, #4F46E5, #7C3AED) !important;
+            color: white !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-weight: 800 !important;
+            font-size: 11px !important;
+            letter-spacing: .02em !important;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
 
     icone = get_base64_image("omni_icone.png")
     texto = get_base64_image("omni_texto.png")
     ws_name = _get_ws_short()
     user_name = st.session_state.get("usuario_nome", "Visitante")
 
-    img_logo = (
-        f'<img src="data:image/png;base64,{icone}" class="omni-logo">'
-        if icone
-        else '<div class="omni-logo" style="display:flex;align-items:center;justify-content:center;">🌐</div>'
-    )
+    img_logo = f'<img src="data:image/png;base64,{icone}" class="omni-logo">' if icone else '<div class="omni-logo">🌐</div>'
     img_text = (
-        f'<img src="data:image/png;base64,{texto}" style="height: 16px; margin-left: 4px;">'
-        if texto
-        else '<span style="font-weight:900;color:#2B3674;font-size:14px;letter-spacing:.02em;">OMNISFERA</span>'
+        f'<img src="data:image/png;base64,{texto}" style="height:16px;margin-left:4px;">'
+        if texto else
+        '<span style="font-weight:900;color:#2B3674;font-size:14px;letter-spacing:.02em;">OMNISFERA</span>'
     )
 
-    st.markdown(
-        f"""
-<div class="omni-topbar">
-  <div class="omni-brand">
-    {img_logo}
-    {img_text}
-  </div>
-  <div class="omni-user-info">
-    <div class="omni-workspace" title="{ws_name}">{ws_name}</div>
-    <div class="omni-avatar">{_get_initials(user_name)}</div>
-  </div>
-</div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    st.markdown(f"""
+        <div class="omni-topbar">
+            <div class="omni-brand">
+                {img_logo}
+                {img_text}
+            </div>
+            <div class="omni-user-info">
+                <div class="omni-workspace" title="{ws_name}">{ws_name}</div>
+                <div class="omni-avatar">{_get_initials(user_name)}</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
 def render_navbar(active_tab: str = "Início"):
     """
-    Navbar horizontal com option_menu.
-    Ajuste principal: remover espaçador e reduzir margin-bottom do bloco horizontal.
+    Menu horizontal (option_menu) com espaço MÍNIMO entre o menu e o conteúdo seguinte.
+    ✅ Resolve o “vão” que aparece entre NAVBAR e o card/hero/conteúdo.
     """
-    opcoes = [
-        "Início",
-        "Estudantes",
-        "Estratégias & PEI",
-        "Plano de Ação (AEE)",
-        "Hub de Recursos",
-        "Diário de Bordo",
-        "Evolução & Dados",
-    ]
+    ensure_state()
+
+    opcoes = ["Início", "Estudantes", "Estratégias & PEI", "Plano de Ação (AEE)", "Hub de Recursos", "Diário de Bordo", "Evolução & Dados"]
     icones = ["house", "people", "book", "puzzle", "rocket", "journal", "bar-chart"]
 
     try:
@@ -200,34 +185,37 @@ def render_navbar(active_tab: str = "Início"):
     except ValueError:
         default_idx = 0
 
-    # CSS para “colar” menu e conteúdo
-    st.markdown(
-        """
-<style>
-/* Cola o bloco do navbar no conteúdo seguinte */
-div[data-testid="stHorizontalBlock"],
-.stHorizontalBlock{
-    margin-top: 6px !important;
-    margin-bottom: 6px !important;   /* ERA 20px */
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-}
+    st.markdown("""
+    <style>
+      /* 1) Cola o bloco do option_menu no conteúdo seguinte */
+      div[data-testid="stHorizontalBlock"],
+      .stHorizontalBlock{
+        margin-top: 6px !important;
+        margin-bottom: 0px !important;
+        padding-bottom: 0px !important;
+      }
 
-/* zera UL interno do option_menu */
-div[data-testid="stHorizontalBlock"] ul{
-    margin: 0 !important;
-    padding: 0 !important;
-}
+      /* 2) Zera margens internas comuns do nav/ul */
+      div[data-testid="stHorizontalBlock"] ul,
+      div[data-testid="stHorizontalBlock"] nav{
+        margin: 0 !important;
+        padding: 0 !important;
+      }
 
-/* reduz o respiro do bloco imediatamente após o menu */
-div[data-testid="stHorizontalBlock"] + div{
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-}
-</style>
-        """,
-        unsafe_allow_html=True,
-    )
+      /* 3) Alguns temas colocam respiro no container do elemento */
+      div[data-testid="stHorizontalBlock"] .element-container{
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      /* 4) Âncora: puxa o conteúdo logo abaixo do menu */
+      .after-navbar-anchor{
+        margin-top: -22px !important;   /* AJUSTE FINO: -12 / -16 / -22 / -28 */
+        padding-top: 0 !important;
+        height: 0 !important;
+      }
+    </style>
+    """, unsafe_allow_html=True)
 
     selected = option_menu(
         menu_title=None,
@@ -237,11 +225,11 @@ div[data-testid="stHorizontalBlock"] + div{
         orientation="horizontal",
         styles={
             "container": {
-                "padding": "0px!important",
-                "margin": "0px!important",
+                "padding": "0!important",
                 "background-color": "#ffffff",
                 "border": "1px solid #E2E8F0",
                 "border-radius": "10px",
+                "margin": "0px",
                 "box-shadow": "0 1px 3px rgba(0,0,0,0.05)",
             },
             "icon": {"color": "#64748B", "font-size": "14px"},
@@ -264,6 +252,9 @@ div[data-testid="stHorizontalBlock"] + div{
         },
     )
 
+    # ✅ cola o que vem depois
+    st.markdown('<div class="after-navbar-anchor"></div>', unsafe_allow_html=True)
+
     # Redirecionamento
     if selected != active_tab:
         if selected == "Início":
@@ -284,9 +275,8 @@ div[data-testid="stHorizontalBlock"] + div{
         elif selected == "Evolução & Dados":
             st.switch_page("pages/5_Monitoramento_Avaliacao.py")
 
-
 # =============================================================================
-# 3. UI HELPERS (LEGADO / LOGIN) - MANTIDO IGUAL
+# 3) CSS BÁSICO (LOGIN / HOME / ETC.) - LEGADO
 # =============================================================================
 def inject_base_css():
     st.markdown(
@@ -304,25 +294,21 @@ def inject_base_css():
   margin: 0 auto;
   margin-top: 30px;
 }
-
 .login-logo {
   height: 80px;
   margin-bottom: 16px;
 }
-
 .login-manifesto {
   font-style: italic;
   color: #718096;
   margin-bottom: 22px;
   font-size: 0.95rem;
 }
-
 .stTextInput input {
   border-radius: 10px !important;
   border: 1px solid #E2E8F0 !important;
   height: 46px !important;
 }
-
 .termo-box {
   background-color: #F8FAFC;
   padding: 15px;
@@ -335,71 +321,35 @@ def inject_base_css():
   text-align: justify;
   color: #4A5568;
 }
-
-/* HOME COMPONENTS */
-.header-lite {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border: 1px solid #E2E8F0;
-  background: rgba(255,255,255,0.85);
-  border-radius: 16px;
-  padding: 18px 20px;
-  margin-bottom: 18px;
-}
-
-.h-title {
-  font-size: 1.35rem;
-  font-weight: 900;
-  color:#1A202C;
-}
-
-.h-sub {
-  font-size: .95rem;
-  font-weight: 600;
-  color:#718096;
-  margin-top: 2px;
-}
-
-.h-badge {
-  border: 1px solid #E2E8F0;
-  background:#F7FAFC;
-  color:#4A5568;
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-weight: 900;
-  font-size: .75rem;
-  letter-spacing: .08em;
-}
 </style>
         """,
         unsafe_allow_html=True,
     )
 
-
 # =============================================================================
-# 4. SUPABASE REST HELPERS
+# 4) SUPABASE REST HELPERS (RPC / INSERT / UPSERT)
 # =============================================================================
 def _sb_url() -> str:
-    url = st.secrets.get("SUPABASE_URL", "").strip()
+    url = str(st.secrets.get("SUPABASE_URL", "")).strip()
     if not url:
         raise RuntimeError("SUPABASE_URL não encontrado nos secrets.")
     return url.rstrip("/")
 
-
 def _sb_key() -> str:
-    key = st.secrets.get("SUPABASE_SERVICE_KEY", "").strip()
+    key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "")).strip()
     if not key:
-        key = st.secrets.get("SUPABASE_ANON_KEY", "").strip()
+        key = str(st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
     if not key:
         raise RuntimeError("SUPABASE_SERVICE_KEY/ANON_KEY não encontrado nos secrets.")
     return key
 
-
 def _headers() -> dict:
     key = _sb_key()
-    return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-
+    return {
+        "apikey": key,
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+    }
 
 def supabase_rpc(fn_name: str, payload: dict):
     url = f"{_sb_url()}/rest/v1/rpc/{fn_name}"
@@ -407,7 +357,6 @@ def supabase_rpc(fn_name: str, payload: dict):
     if r.status_code >= 400:
         raise RuntimeError(f"RPC {fn_name} falhou: {r.status_code} {r.text}")
     return r.json()
-
 
 def supabase_insert(table: str, row: dict):
     url = f"{_sb_url()}/rest/v1/{table}"
@@ -417,7 +366,6 @@ def supabase_insert(table: str, row: dict):
     if r.status_code >= 400:
         raise RuntimeError(f"Insert em {table} falhou: {r.status_code} {r.text}")
     return r.json()
-
 
 def supabase_upsert(table: str, row: dict, on_conflict: str):
     url = f"{_sb_url()}/rest/v1/{table}?on_conflict={on_conflict}"
@@ -431,11 +379,15 @@ def supabase_upsert(table: str, row: dict, on_conflict: str):
         return data[0]
     return data if isinstance(data, dict) else None
 
-
+# =============================================================================
+# 5) WORKSPACE PIN / LOGS / CLOUD READY
+# =============================================================================
 def supabase_workspace_from_pin(pin: str) -> str | None:
     pin = (pin or "").strip()
     if not pin:
         return None
+
+    # tenta alguns payloads comuns
     for payload in ({"pin": pin}, {"p_pin": pin}, {"pincode": pin}):
         try:
             data = supabase_rpc("workspace_from_pin", payload)
@@ -447,34 +399,46 @@ def supabase_workspace_from_pin(pin: str) -> str | None:
                     return first["workspace_id"]
         except Exception:
             continue
+
     return None
 
-
 def supabase_log_access(workspace_id: str, nome: str, cargo: str, event: str, app_version: str = ""):
-    ua = st.context.headers.get("User-Agent", "") if hasattr(st, "context") else ""
+    # user-agent (quando disponível)
+    ua = ""
+    try:
+        ua = st.context.headers.get("User-Agent", "")
+    except Exception:
+        ua = ""
+
     row = {
         "workspace_id": workspace_id,
         "nome": (nome or "").strip(),
         "cargo": (cargo or "").strip(),
         "event": (event or "").strip(),
-        "user_agent": ua[:500],
+        "user_agent": (ua or "")[:500],
         "app_version": (app_version or "").strip(),
     }
     return supabase_insert("access_logs", row)
 
-
 def _cloud_ready(debug: bool = False):
     details = {}
+
     try:
         supabase_url = str(st.secrets.get("SUPABASE_URL", "")).strip()
     except Exception:
         supabase_url = ""
+
     try:
         service_key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "")).strip()
     except Exception:
         service_key = ""
 
-    has_key = bool(service_key) or bool(st.secrets.get("SUPABASE_ANON_KEY", ""))
+    try:
+        anon_key = str(st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+    except Exception:
+        anon_key = ""
+
+    has_key = bool(service_key or anon_key)
     ws_id = st.session_state.get("workspace_id")
     auth = st.session_state.get("autenticado", False)
 
@@ -482,18 +446,22 @@ def _cloud_ready(debug: bool = False):
     details["has_supabase_key"] = bool(has_key)
     details["has_workspace_id"] = bool(ws_id)
     details["autenticado"] = bool(auth)
+
     ok = all(details.values())
     if debug:
         details["missing"] = [k for k, v in details.items() if v is False]
     return ok, details
 
-
+# =============================================================================
+# 6) SALVAR PEI (exemplo: tabela peis com on_conflict=student_id)
+# =============================================================================
 def supa_save_pei(student_id: str, dados: dict, pdf_text: str = ""):
     if not student_id:
         raise RuntimeError("student_id vazio.")
     ws_id = st.session_state.get("workspace_id")
     if not ws_id:
         raise RuntimeError("workspace_id não encontrado.")
+
     row = {
         "student_id": student_id,
         "workspace_id": ws_id,
