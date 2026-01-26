@@ -19,7 +19,7 @@ def ensure_state():
         st.session_state.view = "login"
 
 # =============================================================================
-# 2. UI COMPONENTS (HEADER & NAVBAR) - CORRIGIDO E SIMPLIFICADO
+# 2. UI COMPONENTS (HEADER & NAVBAR) - ULTRA COMPACTO
 # =============================================================================
 
 def get_base64_image(path: str) -> str | None:
@@ -30,7 +30,7 @@ def get_base64_image(path: str) -> str | None:
 
 def render_omnisfera_header():
     """
-    Renderiza o Topbar com CSS simplificado e que funciona
+    Renderiza o Topbar ULTRA COMPACTO
     """
     def _get_initials(nome: str) -> str:
         if not nome: return "U"
@@ -41,77 +41,67 @@ def render_omnisfera_header():
         ws = st.session_state.get("workspace_name", "") or "Workspace"
         return (ws[:max_len] + "...") if len(ws) > max_len else ws
 
-    # CSS simplificado e mais agressivo
+    # CSS ULTRA COMPACTO - ESPAÇO MÍNIMO
     st.markdown("""
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
-        /* CSS MAIS AGUESSIVO - prioridade máxima */
-        div[data-testid="stAppViewContainer"] > div:first-child {
-            padding-top: 70px !important;
+        /* RESET COMPLETO E AGUESSIVO */
+        * {
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
         }
         
-        .stApp > header {
-            display: none !important;
-        }
-        
-        [data-testid="stSidebarNav"],
-        footer,
-        section[data-testid="stSidebar"],
-        button[data-testid="collapsedControl"] {
-            display: none !important;
-        }
-        
-        /* TOPBAR FIXA SIMPLES */
+        /* TOPBAR FIXA - SUPER COMPACTA */
         .omni-topbar {
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
             right: 0 !important;
-            height: 50px !important;
+            height: 40px !important;  /* REDUZIDO DE 50px */
             background: white !important;
             border-bottom: 1px solid #E2E8F0 !important;
             z-index: 999999 !important;
             display: flex !important;
             align-items: center !important;
             justify-content: space-between !important;
-            padding: 0 20px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+            padding: 0 12px !important;  /* REDUZIDO DE 20px */
         }
         
         .omni-brand {
             display: flex !important;
             align-items: center !important;
-            gap: 10px !important;
+            gap: 6px !important;  /* REDUZIDO DE 10px */
         }
         
         .omni-logo {
-            height: 28px !important;
-            width: 28px !important;
+            height: 22px !important;  /* REDUZIDO DE 28px */
+            width: 22px !important;
         }
         
         .omni-user-info {
             display: flex !important;
             align-items: center !important;
-            gap: 10px !important;
+            gap: 6px !important;  /* REDUZIDO DE 10px */
         }
         
         .omni-workspace {
             background: #F1F5F9 !important;
             border: 1px solid #E2E8F0 !important;
-            padding: 4px 12px !important;
-            border-radius: 10px !important;
-            font-size: 12px !important;
+            padding: 2px 8px !important;  /* REDUZIDO */
+            border-radius: 6px !important;
+            font-size: 10px !important;  /* REDUZIDO DE 12px */
             font-weight: 600 !important;
             color: #64748B !important;
-            max-width: 150px !important;
+            max-width: 100px !important;  /* REDUZIDO DE 150px */
             overflow: hidden !important;
             text-overflow: ellipsis !important;
             white-space: nowrap !important;
         }
         
         .omni-avatar {
-            width: 28px !important;
-            height: 28px !important;
+            width: 22px !important;  /* REDUZIDO DE 28px */
+            height: 22px !important;
             border-radius: 50% !important;
             background: linear-gradient(135deg, #4F46E5, #7C3AED) !important;
             color: white !important;
@@ -119,20 +109,51 @@ def render_omnisfera_header():
             align-items: center !important;
             justify-content: center !important;
             font-weight: 700 !important;
-            font-size: 11px !important;
+            font-size: 9px !important;  /* REDUZIDO DE 11px */
         }
         
-        /* CORREÇÃO DO LAYOUT PRINCIPAL */
+        /* AQUI ESTÁ A CORREÇÃO CRÍTICA - ESPAÇO MÍNIMO */
+        div[data-testid="stAppViewContainer"] > div:first-child {
+            padding-top: 42px !important;  /* REDUZIDO DE 70px - apenas 2px a mais que a topbar */
+        }
+        
+        /* REMOVER TODOS OS ELEMENTOS DO STREAMLIT */
+        .stApp > header,
+        [data-testid="stSidebarNav"],
+        footer,
+        section[data-testid="stSidebar"],
+        button[data-testid="collapsedControl"] {
+            display: none !important;
+        }
+        
+        /* CONTAINER DE CONTEÚDO - ZERO ESPAÇO */
         .block-container {
-            padding-top: 20px !important;
-            padding-bottom: 20px !important;
+            padding-top: 0.05rem !important;  /* MÍNIMO ABSOLUTO */
+            padding-bottom: 1rem !important;
             max-width: 100% !important;
         }
         
-        /* REMOVER MARGENS E PADDINGS EXCESSIVOS */
         .main .block-container {
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            padding-top: 0.05rem !important;
+        }
+        
+        /* REMOVER QUALQUER MARGEM/ESPAÇO EXTRA */
+        div[data-testid="stVerticalBlock"] > div:first-child {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        
+        /* FORÇAR LAYOUT COMPACTO */
+        .stApp {
+            overflow-x: hidden !important;
+        }
+        
+        /* CORREÇÃO EXTRA - REMOVER ESPAÇO DO NAVBAR */
+        .stHorizontalBlock {
+            margin-top: 0 !important;
+            margin-bottom: 0.1rem !important;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -142,9 +163,8 @@ def render_omnisfera_header():
     ws_name = _get_ws_short()
     user_name = st.session_state.get("usuario_nome", "Visitante")
     
-    # Usar fallback se as imagens não existirem
     img_logo = f'<img src="data:image/png;base64,{icone}" class="omni-logo">' if icone else '<div class="omni-logo">🌐</div>'
-    img_text = f'<img src="data:image/png;base64,{texto}" style="height: 16px; margin-left: 5px;">' if texto else '<span style="font-weight:800;color:#2B3674;font-size:14px;">OMNISFERA</span>'
+    img_text = f'<img src="data:image/png;base64,{texto}" style="height: 12px; margin-left: 3px;">' if texto else '<span style="font-weight:800;color:#2B3674;font-size:12px;">OMNISFERA</span>'
 
     st.markdown(f"""
         <div class="omni-topbar">
@@ -162,7 +182,7 @@ def render_omnisfera_header():
 
 def render_navbar(active_tab: str = "Início"):
     """
-    Renderiza o menu horizontal - versão simplificada
+    Renderiza o menu horizontal - ULTRA COMPACTO
     """
     opcoes = ["Início", "Estudantes", "Estratégias & PEI", "Plano de Ação (AEE)", "Hub de Recursos", "Diário de Bordo", "Evolução & Dados"]
     icones = ["house", "people", "book", "puzzle", "rocket", "journal", "bar-chart"]
@@ -172,13 +192,20 @@ def render_navbar(active_tab: str = "Início"):
     except ValueError: 
         default_idx = 0
 
-    # CSS específico para o navbar
+    # CSS PARA NAVBAR COMPACTA - JÁ INCLUÍDO NO HEADER, MAS ADICIONANDO AJUSTES
     st.markdown("""
     <style>
-    /* CONTAINER DO NAVBAR */
+    /* NAVBAR ULTRA COMPACTA */
     .stHorizontalBlock {
-        margin-top: 10px !important;
-        margin-bottom: 20px !important;
+        margin-top: 0 !important;
+        margin-bottom: 0.1rem !important;
+        padding-top: 0 !important;
+    }
+    
+    /* Container da option_menu */
+    .st-emotion-cache-1r4qj8v {
+        margin-top: 0 !important;
+        margin-bottom: 0.1rem !important;
     }
     
     /* REMOVER EFEITOS DO STREAMLIT */
@@ -186,14 +213,18 @@ def render_navbar(active_tab: str = "Início"):
         background: none !important;
         border: none !important;
     }
+    
+    /* CORREÇÃO PARA OPTION_MENU */
+    [data-testid="stHorizontalBlock"] > div {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-    # Usar container para melhor controle
+    # Container SEM espaço extra
     with st.container():
-        # Adicionar um pouco de espaço acima do menu
-        st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
-        
+        # NÃO adicionar espaço acima do menu
         selected = option_menu(
             menu_title=None, 
             options=opcoes,
@@ -205,23 +236,23 @@ def render_navbar(active_tab: str = "Início"):
                     "padding": "0!important", 
                     "background-color": "#ffffff",
                     "border": "1px solid #E2E8F0",
-                    "border-radius": "10px",
+                    "border-radius": "6px",  # REDUZIDO
                     "margin": "0px",
-                    "box-shadow": "0 1px 3px rgba(0,0,0,0.05)"
+                    "box-shadow": "0 1px 2px rgba(0,0,0,0.02)"
                 },
                 "icon": {
                     "color": "#64748B", 
-                    "font-size": "14px"
+                    "font-size": "11px"  # REDUZIDO
                 }, 
                 "nav-link": {
-                    "font-size": "11px", 
+                    "font-size": "9px",  # REDUZIDO
                     "text-align": "center", 
                     "margin": "0px",
-                    "padding": "10px 12px",
+                    "padding": "4px 6px",  # REDUZIDO
                     "--hover-color": "#F1F5F9",
                     "color": "#475569",
                     "white-space": "nowrap",
-                    "border-radius": "8px"
+                    "border-radius": "4px"  # REDUZIDO
                 },
                 "nav-link-selected": {
                     "background-color": "#0284C7",
