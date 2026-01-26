@@ -2141,51 +2141,30 @@ with tabs[2]:
 
     # 5. ROTEIRO DE AULA INDIVIDUAL
     with tabs[4]:
-    st.markdown("""
-    <div class="pedagogia-box">
-        <div class="pedagogia-title"><i class="ri-user-follow-line"></i> Roteiro de Aula Individualizado</div>
-        Crie um passo a passo de aula <strong>específico para este estudante</strong> do PEI. 
-        A IA usará o hiperfoco como chave de acesso para o conteúdo.
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # --- BNCC DROPDOWNS COMPLETOS ---
-    st.markdown("### 📚 Selecione pela BNCC")
-    
-    # Chamar a função com todos os dropdowns, usando um sufixo de chave
-    ano_bncc_rot, disciplina_bncc_rot, unidade_bncc_rot, objeto_bncc_rot, habilidades_bncc_rot = criar_dropdowns_bncc_completos_melhorado(key_suffix="_rot")
-    
-    # Mostrar resumo das seleções
-    if unidade_bncc_rot and objeto_bncc_rot:
-        with st.expander("📋 Resumo da seleção BNCC"):
-            st.write(f"**Ano:** {ano_bncc_rot}")
-            st.write(f"**Disciplina:** {disciplina_bncc_rot}")
-            st.write(f"**Unidade Temática:** {unidade_bncc_rot}")
-            st.write(f"**Objeto do Conhecimento:** {objeto_bncc_rot}")
-            if habilidades_bncc_rot:
-                st.write(f"**Habilidades selecionadas:**")
-                for i, hab in enumerate(habilidades_bncc_rot, 1):
-                    st.write(f"{i}. {hab}")
-    
-    # --- CONFIGURAÇÃO DO ROTEIRO ---
-    st.markdown("---")
-    st.markdown("### ⚙️ Configuração do Roteiro")
-    
-    c1, c2 = st.columns(2)
-    with c1:
-        tema_rotina = st.text_input("Assunto/Tema da Aula:", key="rot_tema", placeholder="Ex: Ciclo da Água")
-    
-    # Botão para gerar
-    if st.button("📝 GERAR ROTEIRO INDIVIDUAL", type="primary"): 
-        if tema_rotina and habilidades_bncc_rot:
-            # Passar as habilidades para a função de geração
-            res = gerar_roteiro_aula(api_key, aluno, disciplina_bncc_rot, tema_rotina, habilidades_bncc_rot)
-            st.session_state['res_roteiro'] = res
-        else:
-            st.warning("Preencha o Assunto/Tema e selecione pelo menos uma habilidade.")
-    
-    # Exibir resultado e opções de download (mantido igual)
-    ...
+        st.markdown("""
+        <div class="pedagogia-box">
+            <div class="pedagogia-title"><i class="ri-user-follow-line"></i> Roteiro de Aula Individualizado</div>
+            Crie um passo a passo de aula <strong>específico para este estudante</strong> do PEI. 
+            A IA usará o hiperfoco como chave de acesso para o conteúdo.
+        </div>
+        """, unsafe_allow_html=True)
+        
+        c1, c2 = st.columns(2)
+        materia_rotina = c1.selectbox("Componente Curricular", discip, key="rot_materia")
+        tema_rotina = c2.text_input("Assunto/Tema da Aula:", key="rot_tema", placeholder="Ex: Ciclo da Água")
+        
+        if st.button("📝 GERAR ROTEIRO INDIVIDUAL", type="primary"): 
+            if tema_rotina:
+                res = gerar_roteiro_aula(api_key, aluno, materia_rotina, tema_rotina)
+                st.session_state['res_roteiro'] = res
+            else:
+                st.warning("Preencha o Assunto/Tema.")
+        
+        if 'res_roteiro' in st.session_state:
+            st.markdown(st.session_state['res_roteiro'])
+            c_d1, c_d2 = st.columns(2)
+            c_d1.download_button("📥 DOCX", criar_docx_simples(st.session_state['res_roteiro'], "Roteiro Individual"), "Roteiro.docx", "primary")
+            c_d2.download_button("📕 PDF", criar_pdf_generico(st.session_state['res_roteiro']), "Roteiro.pdf", mime="application/pdf", type="secondary")
 
     # 6. PAPO DE MESTRE (QUEBRA-GELO DUA)
     with tabs[5]:
@@ -2220,107 +2199,70 @@ with tabs[2]:
 
     # 7. DINÂMICA INCLUSIVA
     with tabs[6]:
-    st.markdown("""
-    <div class="pedagogia-box">
-        <div class="pedagogia-title"><i class="ri-group-line"></i> Dinâmica Inclusiva</div>
-        Atividades em grupo onde todos participam, respeitando as singularidades.
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # --- BNCC DROPDOWNS COMPLETOS ---
-    st.markdown("### 📚 Selecione pela BNCC")
-    
-    ano_bncc_din, disciplina_bncc_din, unidade_bncc_din, objeto_bncc_din, habilidades_bncc_din = criar_dropdowns_bncc_completos_melhorado(key_suffix="_din")
-    
-    # Mostrar resumo das seleções
-    if unidade_bncc_din and objeto_bncc_din:
-        with st.expander("📋 Resumo da seleção BNCC"):
-            st.write(f"**Ano:** {ano_bncc_din}")
-            st.write(f"**Disciplina:** {disciplina_bncc_din}")
-            st.write(f"**Unidade Temática:** {unidade_bncc_din}")
-            st.write(f"**Objeto do Conhecimento:** {objeto_bncc_din}")
-            if habilidades_bncc_din:
-                st.write(f"**Habilidades selecionadas:**")
-                for i, hab in enumerate(habilidades_bncc_din, 1):
-                    st.write(f"{i}. {hab}")
-    
-    # --- CONFIGURAÇÃO DA DINÂMICA ---
-    st.markdown("---")
-    st.markdown("### ⚙️ Configuração da Dinâmica")
-    
-    c1, c2 = st.columns(2)
-    with c1:
-        qtd_alunos = st.number_input("Número de Alunos:", min_value=5, max_value=50, value=25, key="din_qtd")
-    with c2:
-        carac_turma = st.text_input("Características da Turma (Opcional):", placeholder="Ex: Turma agitada, gostam de competição...", key="din_carac")
-    
-    # Botão para gerar
-    if st.button("🤝 CRIAR DINÂMICA", type="primary"): 
-        if habilidades_bncc_din:
-            # Passar as habilidades para a função de geração
-            res = gerar_dinamica_inclusiva(api_key, aluno, disciplina_bncc_din, assunto_din, qtd_alunos, carac_turma, habilidades_bncc_din)
-            st.session_state['res_dinamica'] = res
-        else:
-            st.warning("Selecione pelo menos uma habilidade.")
-    
-    # Exibir resultado e opções de download (mantido igual)
-    ...
+        st.markdown("""
+        <div class="pedagogia-box">
+            <div class="pedagogia-title"><i class="ri-group-line"></i> Dinâmica Inclusiva</div>
+            Atividades em grupo onde todos participam, respeitando as singularidades.
+        </div>
+        """, unsafe_allow_html=True)
+        
+        c1, c2 = st.columns(2)
+        materia_din = c1.selectbox("Componente", discip, key="din_mat")
+        assunto_din = c2.text_input("Assunto:", key="din_ass")
+        
+        c3, c4 = st.columns(2)
+        qtd_alunos = c3.number_input("Número de Alunos:", min_value=5, max_value=50, value=25, key="din_qtd")
+        carac_turma = c4.text_input("Características da Turma (Opcional):", placeholder="Ex: Turma agitada, gostam de competição...", key="din_carac")
+        
+        if st.button("🤝 CRIAR DINÂMICA", type="primary"): 
+            if assunto_din:
+                res = gerar_dinamica_inclusiva(api_key, aluno, materia_din, assunto_din, qtd_alunos, carac_turma)
+                st.session_state['res_dinamica'] = res
+            else:
+                st.warning("Preencha o Assunto.")
+        
+        if 'res_dinamica' in st.session_state:
+            st.markdown(st.session_state['res_dinamica'])
+            c_d1, c_d2 = st.columns(2)
+            c_d1.download_button("📥 DOCX", criar_docx_simples(st.session_state['res_dinamica'], "Dinâmica Inclusiva"), "Dinamica.docx", "primary")
+            c_d2.download_button("📕 PDF", criar_pdf_generico(st.session_state['res_dinamica']), "Dinamica.pdf", mime="application/pdf", type="secondary")
 
     # 8. NOVO: PLANO DE AULA DUA
     with tabs[7]:
-    st.markdown("""
-    <div class="pedagogia-box">
-        <div class="pedagogia-title"><i class="ri-book-open-line"></i> Plano de Aula DUA</div>
-        Gere um planejamento completo alinhado à BNCC, selecionando metodologias ativas e recursos.
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # --- BNCC DROPDOWNS COMPLETOS ---
-    st.markdown("### 📚 Selecione pela BNCC")
-    
-    ano_bncc_plano, disciplina_bncc_plano, unidade_bncc_plano, objeto_bncc_plano, habilidades_bncc_plano = criar_dropdowns_bncc_completos_melhorado(key_suffix="_plano")
-    
-    # Mostrar resumo das seleções
-    if unidade_bncc_plano and objeto_bncc_plano:
-        with st.expander("📋 Resumo da seleção BNCC"):
-            st.write(f"**Ano:** {ano_bncc_plano}")
-            st.write(f"**Disciplina:** {disciplina_bncc_plano}")
-            st.write(f"**Unidade Temática:** {unidade_bncc_plano}")
-            st.write(f"**Objeto do Conhecimento:** {objeto_bncc_plano}")
-            if habilidades_bncc_plano:
-                st.write(f"**Habilidades selecionadas:**")
-                for i, hab in enumerate(habilidades_bncc_plano, 1):
-                    st.write(f"{i}. {hab}")
-    
-    # --- CONFIGURAÇÃO DO PLANO ---
-    st.markdown("---")
-    st.markdown("### ⚙️ Configuração do Plano")
-    
-    c1, c2 = st.columns(2)
-    with c1:
-        metodologia = st.selectbox("Metodologia", ["Aula Expositiva Dialogada", "Metodologia Ativa"], key="plano_met")
-    with c2:
+        st.markdown("""
+        <div class="pedagogia-box">
+            <div class="pedagogia-title"><i class="ri-book-open-line"></i> Plano de Aula DUA</div>
+            Gere um planejamento completo alinhado à BNCC, selecionando metodologias ativas e recursos.
+        </div>
+        """, unsafe_allow_html=True)
+        
+        c1, c2 = st.columns(2)
+        materia_plano = c1.selectbox("Componente Curricular", discip, key="plano_mat")
+        assunto_plano = c2.text_input("Assunto/Tema:", key="plano_ass")
+        
+        c3, c4 = st.columns(2)
+        metodologia = c3.selectbox("Metodologia", ["Aula Expositiva Dialogada", "Metodologia Ativa"], key="plano_met")
+        
         tecnica_ativa = ""
         if metodologia == "Metodologia Ativa":
-            tecnica_ativa = st.selectbox("Técnica Ativa", ["Gamificação", "Sala de Aula Invertida", "Aprendizagem Baseada em Projetos (PBL)", "Rotação por Estações", "Peer Instruction"], key="plano_tec")
+            tecnica_ativa = c4.selectbox("Técnica Ativa", ["Gamificação", "Sala de Aula Invertida", "Aprendizagem Baseada em Projetos (PBL)", "Rotação por Estações", "Peer Instruction"], key="plano_tec")
         else:
-            st.info("Metodologia tradicional selecionada.")
-    
-    c3, c4 = st.columns(2)
-    with c3:
-        qtd_alunos_plano = st.number_input("Qtd Alunos:", min_value=1, value=30, key="plano_qtd")
-    with c4:
-        recursos_plano = st.multiselect("Recursos Disponíveis:", ["Quadro/Giz", "Projetor/Datashow", "Lousa Digital", "Tablets/Celulares", "Internet", "Materiais Maker (Papel, Cola, etc)", "Jogos de Tabuleiro"], key="plano_rec")
-    
-    # Botão para gerar
-    if st.button("📅 GERAR PLANO DE AULA", type="primary"):
-        if habilidades_bncc_plano:
-            with st.spinner("Consultando BNCC e planejando..."):
-                # Passar as habilidades para a função de geração
-                res = gerar_plano_aula_bncc(api_key, disciplina_bncc_plano, assunto_plano, metodologia, tecnica_ativa, qtd_alunos_plano, recursos_plano, habilidades_bncc_plano)
-                st.session_state['res_plano'] = res
-        else:
-            st.warning("Selecione pelo menos uma habilidade.")
-    
-    # Exibir resultado e opções de download (mantido igual)
-    ...
+            c4.info("Metodologia tradicional selecionada.")
+
+        c5, c6 = st.columns(2)
+        qtd_alunos_plano = c5.number_input("Qtd Alunos:", min_value=1, value=30, key="plano_qtd")
+        recursos_plano = c6.multiselect("Recursos Disponíveis:", ["Quadro/Giz", "Projetor/Datashow", "Lousa Digital", "Tablets/Celulares", "Internet", "Materiais Maker (Papel, Cola, etc)", "Jogos de Tabuleiro"], key="plano_rec")
+        
+        if st.button("📅 GERAR PLANO DE AULA", type="primary"):
+            if assunto_plano:
+                with st.spinner("Consultando BNCC e planejando..."):
+                    res = gerar_plano_aula_bncc(api_key, materia_plano, assunto_plano, metodologia, tecnica_ativa, qtd_alunos_plano, recursos_plano)
+                    st.session_state['res_plano'] = res
+            else:
+                st.warning("Preencha o Assunto.")
+        
+        if 'res_plano' in st.session_state:
+            st.markdown(st.session_state['res_plano'])
+            c_d1, c_d2 = st.columns(2)
+            c_d1.download_button("📥 DOCX", criar_docx_simples(st.session_state['res_plano'], "Plano de Aula DUA"), "Plano_Aula.docx", "primary")
+            c_d2.download_button("📕 PDF", criar_pdf_generico(st.session_state['res_plano']), "Plano_Aula.pdf", mime="application/pdf", type="secondary")
