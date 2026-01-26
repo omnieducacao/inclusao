@@ -500,6 +500,68 @@ st.session_state.setdefault("selected_student_name", "")
 # ==============================================================================
 # 7. UTILITÁRIOS
 # ==============================================================================
+def calcular_progresso():
+    if st.session_state.dados.get('ia_sugestao'):
+        return 100
+    pontos = 0
+    total = 7
+    d = st.session_state.dados
+    if d.get('nome'):
+        pontos += 1
+    if d.get('serie'):
+        pontos += 1
+    if d.get('nivel_alfabetizacao') and d.get('nivel_alfabetizacao') != 'Não se aplica (Educação Infantil)':
+        pontos += 1
+    if any(d.get('checklist_evidencias', {}).values()):
+        pontos += 1
+    if d.get('hiperfoco'):
+        pontos += 1
+    if any(d.get('barreiras_selecionadas', {}).values()):
+        pontos += 1
+    if d.get('estrategias_ensino'):
+        pontos += 1
+    return int((pontos / total) * 90)
+
+def finding_logo():
+    possiveis = ["360.png", "360.jpg", "logo.png", "logo.jpg", "iconeaba.png"]
+    for nome in possiveis:
+        if os.path.exists(nome):
+            return nome
+    return None
+
+def get_base64_image(image_path):
+    if not image_path or not os.path.exists(image_path):
+        return ""
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+def ler_pdf(arquivo):
+    try:
+        reader = PdfReader(arquivo)
+        texto = ""
+        for i, page in enumerate(reader.pages):
+            if i >= 6:
+                break
+            texto += (page.extract_text() or "") + "\n"
+        return texto
+    except:
+        return ""
+
+def render_progresso():
+    p = calcular_progresso()
+    icon_html = f'<img src="{src_logo_giratoria}" class="omni-logo-spin" style="width: 25px; height: 25px;">'
+    bar_color = "linear-gradient(90deg, #FF6B6B 0%, #FF8E53 100%)"
+    if p >= 100:
+        bar_color = "linear-gradient(90deg, #00C6FF 0%, #0072FF 100%)"
+    st.markdown(
+        f"""<div style="width:100%; margin: 0 0 20px 0;">
+              <div style="width:100%; height:3px; background:#E2E8F0; border-radius:2px; position:relative;">
+                <div style="height:3px; width:{p}%; background:{bar_color}; border-radius:2px;"></div>
+                <div style="position:absolute; top:-14px; left:{p}%; transform:translateX(-50%);">{icon_html}</div>
+              </div>
+            </div>""",
+        unsafe_allow_html=True
+        
 
 # ==============================================================================
 # 7B. UTILITÁRIOS AVANÇADOS (idade, segmento, metas, radar, etc.)
