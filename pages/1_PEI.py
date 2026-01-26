@@ -1389,11 +1389,12 @@ abas = [
     "PLANO DE AÇÃO", "MONITORAMENTO", "CONSULTORIA IA", "DASHBOARD & DOCS", "JORNADA GAMIFICADA"
 ]
 
-tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab_9= st.tabs(abas)
+tabs = st.tabs(abas)
+tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = tabs
 
-# --- Barra de progresso: aparece em todas, exceto Início ---
-for i in range(1, len(tabs)):   # começa no 1 (pula Início)
-    with tabs[i]:
+# --- Barra de progresso: aparece em todas, exceto INÍCIO ---
+for t in tabs[1:]:
+    with t:
         render_progresso()
 # ==============================================================================
 # 11. ABA INÍCIO — CENTRAL (Gestão de Alunos + Backups)
