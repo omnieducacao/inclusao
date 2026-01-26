@@ -20,7 +20,7 @@ import omni_utils as ou  # módulo atualizado
 
 # ✅ set_page_config UMA VEZ SÓ, SEMPRE no topo
 st.set_page_config(
-    page_title="Omnisfera | HUB_Inclusao",
+    page_title="Omnisfera | PEI",
     page_icon="📘",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -38,11 +38,11 @@ except Exception:
 
 # ✅ Header + Navbar (depois do page_config)
 ou.render_omnisfera_header()
-ou.render_navbar(active_tab="Hub de Recusos")
+ou.render_navbar(active_tab="Estratégias & PEI")
 
 
 st.set_page_config(
-    page_title="Omnisfera | Hub_inclusao",
+    page_title="Omnisfera | PEI",
     page_icon="📘",
     layout="wide",
     initial_sidebar_state="collapsed",
