@@ -714,14 +714,35 @@ def list_students_rest():
     except:
         return []
 
+@st.cache_data(ttl=10, show_spinner=False)
+def list_students_rest():
+    WORKSPACE_ID = st.session_state.get("workspace_id")
+    if not WORKSPACE_ID:
+        return []
+
+    try:
+        # ALTERAÇÃO AQUI: Adicionei 'pei_data' explicitamente na query
+        base = (
+            f"{_sb_url()}/rest/v1/students"
+            f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data" 
+            f"&workspace_id=eq.{WORKSPACE_ID}"
+            f"&order=created_at.desc"
+        )
+        r = requests.get(base, headers=_headers(), timeout=20)
+        return r.json() if r.status_code == 200 else []
+    except:
+        return []
+
 def carregar_estudantes_supabase():
     dados = list_students_rest()
     estudantes = []
 
     for item in dados:
+        # ALTERAÇÃO AQUI: Prioridade total para o pei_data (JSON)
         pei_completo = item.get("pei_data") or {}
+        
+        # Tenta pegar o resumo da IA dentro do JSON, senão monta um básico
         contexto_ia = pei_completo.get("ia_sugestao", "")
-
         if not contexto_ia:
             diag = item.get("diagnosis", "Não informado")
             serie = item.get("grade", "")
@@ -730,10 +751,11 @@ def carregar_estudantes_supabase():
         estudante = {
             "nome": item.get("name", ""),
             "serie": item.get("grade", ""),
-            "hiperfoco": item.get("diagnosis", ""),
+            # Aqui mantemos o diagnosis visual, mas o pei_data guarda a inteligência
+            "hiperfoco": item.get("diagnosis", ""), 
             "ia_sugestao": contexto_ia,
             "id": item.get("id", ""),
-            "pei_data": pei_completo
+            "pei_data": pei_completo # Guardamos o objeto todo
         }
         if estudante["nome"]:
             estudantes.append(estudante)
