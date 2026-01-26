@@ -2594,7 +2594,7 @@ def render_aba_ei_inclusao_brincar(aluno, api_key):
                         )
                         st.rerun()
 
-    # ==============================================================================
+# ==============================================================================
 # FUNÇÃO PRINCIPAL
 # ==============================================================================
 
@@ -2707,4 +2707,34 @@ def main():
             render_aba_adaptar_atividade(aluno, api_key)
         
         with tabs[2]:
-            render_aba_criar_do_zero(aluno, api
+            render_aba_criar_do_zero(aluno, api_key, unsplash_key)
+
+        with tabs[3]:
+            render_aba_estudio_visual(aluno, api_key, unsplash_key)
+
+        with tabs[4]:
+            render_aba_roteiro_individual(aluno, api_key)
+
+        with tabs[5]:
+            render_aba_papo_mestre(aluno, api_key)
+
+        with tabs[6]:
+            render_aba_dinamica_inclusiva(aluno, api_key)
+
+        with tabs[7]:
+            render_aba_plano_aula(aluno, api_key)
+
+# ==============================================================================
+# EXECUÇÃO PRINCIPAL
+# ==============================================================================
+if __name__ == "__main__":
+    main()
+
+
+
+
+
+
+
+
+    
