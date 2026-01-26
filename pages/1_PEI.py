@@ -1642,7 +1642,7 @@ with tab0:
 # ==============================================================================
 # 12. ABA ESTUDANTE
 # ==============================================================================
-  
+  with tab1:
 
     # Garantias (caso algo não tenha entrado no default_state)
     st.session_state.dados.setdefault("matricula", "")
