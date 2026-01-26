@@ -15,7 +15,16 @@ import re
 from datetime import date, datetime
 import omni_utils as ou # Importa o módulo atualizado
 
-# ✅ 1) set_page_config DEVE SER A PRIMEIRA COISA
+st.set_page_config(page_title="Omnisfera", layout="wide", initial_sidebar_state="collapsed")
+
+# 1. Renderiza o Header (Logo + Usuário)
+ou.render_omnisfera_header()
+
+# 2. Renderiza o Menu (Navbar)
+ou.render_navbar(active_tab="Estratégias & PEI") # Mude o nome conforme a página
+
+
+# ✅ 1) set_page_config (UMA VEZ SÓ e sempre no topo)
 st.set_page_config(
     page_title="Omnisfera | PEI",
     page_icon="📘",
@@ -23,57 +32,21 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ✅ 2) CSS EXTRA PARA COMPACTAR AINDA MAIS - COLOCAR IMEDIATAMENTE APÓS
-st.markdown("""
-<style>
-/* REMOVER QUALQUER ESPAÇO RESTANTE */
-div[data-testid="stAppViewContainer"] > div:first-child {
-    padding-top: 40px !important;  /* Reduzido para combinar com topbar */
-}
+APP_VERSION = "v150.0 (SaaS Design)"
 
-.block-container {
-    padding-top: 0rem !important;
-    padding-bottom: 1rem !important;
-}
+# ✅ 2) UI lockdown (não quebra se faltar arquivo)
+try:
+    from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
+    hide_streamlit_chrome_if_needed()
+    hide_default_sidebar_nav()
+except Exception:
+    pass
 
-/* CARD HERO COMPACTADO */
-.mod-card-wrapper {
-    margin-top: 0.1rem !important;
-    margin-bottom: 0.5rem !important;
-}
-
-.mod-card-rect {
-    height: 100px !important;
-    border-radius: 12px !important;
-}
-
-/* COMPACTAR PROGRESS BAR */
-.progress-container {
-    margin: 0.2rem 0 0.5rem 0 !important;
-}
-
-/* REMOVER MARGENS DE TODOS OS ELEMENTOS */
-div[data-testid="stVerticalBlock"] {
-    gap: 0.1rem !important;
-}
-
-/* TABS COMPACTOS */
-.stTabs [data-baseweb="tab-list"] {
-    padding: 5px 3px !important;
-    margin-bottom: 0.3rem !important;
-}
-
-.stTabs [data-baseweb="tab"] {
-    height: 34px !important;
-    font-size: 0.7rem !important;
-    padding: 0 14px !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ✅ 3) Renderizar header e navbar
-ou.render_omnisfera_header()
-ou.render_navbar(active_tab="Estratégias & PEI")
+# ✅ 3) Flag de ambiente (opcional)
+try:
+    IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
+except Exception:
+    IS_TEST_ENV = False
 
 # ✅ 4) Gate mínimo: autenticado + workspace_id
 if not st.session_state.get("autenticado"):
