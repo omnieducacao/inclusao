@@ -1472,65 +1472,6 @@ lista = [a['nome'] for a in st.session_state.banco_estudantes]
 nome_aluno = st.selectbox("📂 Selecione o Estudante:", lista)
 aluno = next(a for a in st.session_state.banco_estudantes if a['nome'] == nome_aluno)
 
-# ... (código anterior onde você seleciona o aluno) ...
-# aluno = next(a for a in st.session_state.banco_estudantes if a['nome'] == nome_aluno)
-
-# =========================================================
-# AQUI COMEÇA O BLOCO VISUAL DO PEI (A PARTE QUE EXIBE)
-# =========================================================
-
-# 1. HEADER FIXO (Resumo visual rápido)
-st.markdown(f"""
-    <div class="student-header">
-        <div class="student-info-item"><div class="student-label">Nome</div><div class="student-value">{aluno.get('nome')}</div></div>
-        <div class="student-info-item"><div class="student-label">Série</div><div class="student-value">{aluno.get('serie', '-')}</div></div>
-        <div class="student-info-item"><div class="student-label">Diagnóstico/Perfil</div><div class="student-value">{aluno.get('hiperfoco', '-')}</div></div>
-    </div>
-""", unsafe_allow_html=True)
-
-# 2. O EXPANDER RETRÁTIL (ISSO É O QUE VOCÊ PEDIU)
-with st.expander("📄 Ver PEI Completo e Estratégias (Clique para abrir)", expanded=False):
-    # Pega o JSON completo que a sua função (list_students_rest) carregou
-    pei_data = aluno.get("pei_data") or {}
-
-    if not pei_data:
-        st.info("⚠️ Este aluno possui apenas cadastro básico. Gere um PEI completo no módulo 'PEI' para ver detalhes aqui.")
-        st.write(f"**Resumo:** {aluno.get('ia_sugestao', 'Sem dados.')}")
-    else:
-        # Layout de duas colunas
-        c_pei1, c_pei2 = st.columns(2)
-
-        with c_pei1:
-            st.markdown("#### 🌟 Habilidades & Potencialidades")
-            potencias = pei_data.get("habilidades_potenciais", [])
-            # Renderiza como tags bonitinhas
-            if isinstance(potencias, list) and potencias:
-                html_tags = "".join([f"<span class='pei-tag'>{p}</span>" for p in potencias])
-                st.markdown(html_tags, unsafe_allow_html=True)
-            else:
-                st.write(str(potencias) if potencias else "Não informado.")
-
-        with c_pei2:
-            st.markdown("#### ⚠️ Barreiras/Desafios")
-            barreiras = pei_data.get("barreiras", []) or pei_data.get("desafios", [])
-            if isinstance(barreiras, list) and barreiras:
-                for b in barreiras:
-                    st.markdown(f"- {b}")
-            else:
-                st.write(str(barreiras) if barreiras else "Não informado.")
-
-        st.markdown("---")
-        
-        st.markdown("#### 🎯 Estratégias de Ensino Sugeridas")
-        estrat = pei_data.get("estrategias_sugeridas", "")
-        if estrat:
-            # Estilo verde para estratégias
-            st.markdown(f"<div style='background-color:#F0FDFA; border-left:4px solid #0D9488; padding:12px; color:#134E4A; border-radius:0 8px 8px 0;'>{estrat}</div>", unsafe_allow_html=True)
-        else:
-            st.caption("Nenhuma estratégia específica registrada.")
-
-
-
 # --- DETECTOR DE EDUCAÇÃO INFANTIL ---
 serie_aluno = aluno.get('serie', '').lower()
 is_ei = "infantil" in serie_aluno or "creche" in serie_aluno or "pré" in serie_aluno
