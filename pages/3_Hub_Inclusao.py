@@ -716,51 +716,39 @@ def _headers() -> dict:
     return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
 
 # ==============================================================================
-# FUNÇÕES SUPABASE & GESTÃO DE ESTUDANTES (VERSÃO OTIMIZADA)
-# ==============================================================================
-
-import requests
-import uuid
-from datetime import datetime
-import streamlit as st
-
-# --- HELPERS DE CONEXÃO ---
-def _sb_url() -> str:
-    url = str(st.secrets.get("SUPABASE_URL", "")).strip()
-    return url.rstrip("/") if url else ""
-
-def _sb_key() -> str:
-    return str(st.secrets.get("SUPABASE_SERVICE_KEY", "") or st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
-
-def _headers() -> dict:
-    key = _sb_key()
-    return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-
-# ==============================================================================
 # CARREGAR ESTUDANTES DO SUPABASE
 # ==============================================================================
 @st.cache_data(ttl=10, show_spinner=False)
 def list_students_rest():
-    """Busca estudantes do Supabase incluindo o campo pei_data completo."""
+    """
+    Busca estudantes do Supabase incluindo o campo pei_data e paee_ciclos.
+    Traz todo o contexto necessário para o Hub.
+    """
     WORKSPACE_ID = st.session_state.get("workspace_id")
-    if not WORKSPACE_ID or not _sb_url() or not _sb_key():
+    # Se não tiver workspace definido, não busca nada
+    if not WORKSPACE_ID:
         return []
 
     try:
+        # Verifica se tem URL e Key antes de tentar
+        if not _sb_url() or not _sb_key():
+            return []
+
         base = (
             f"{_sb_url()}/rest/v1/students"
-            f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data"
+            f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data,paee_ciclos,planejamento_ativo"
             f"&workspace_id=eq.{WORKSPACE_ID}"
             f"&order=created_at.desc"
         )
         r = requests.get(base, headers=_headers(), timeout=20)
         return r.json() if r.status_code == 200 else []
     except Exception as e:
-        st.error(f"Erro de conexão: {str(e)}")
+        # Silencia erro visual para não poluir a tela, mas retorna lista vazia
+        print(f"Erro ao carregar alunos: {str(e)}")
         return []
 
 def carregar_estudantes_supabase():
-    """Processa os alunos e extrai o contexto rico do PEI (JSON)."""
+    """Carrega e processa estudantes, extraindo contexto rico do PEI."""
     dados = list_students_rest()
     estudantes = []
 
@@ -768,11 +756,11 @@ def carregar_estudantes_supabase():
         pei_completo = item.get("pei_data") or {}
         contexto_ia = ""
 
-        # Tenta extrair o resumo da IA de dentro do JSON
+        # Tenta pegar texto de contexto da IA dentro do JSON do PEI
         if isinstance(pei_completo, dict):
-            contexto_ia = pei_completo.get("ia_sugestao", "")
+            contexto_ia = pei_completo.get("ia_sugestao", "") or ""
         
-        # Se não tiver resumo, cria um básico
+        # Se não tiver resumo da IA, monta um básico com os dados cadastrais
         if not contexto_ia:
             diag = item.get("diagnosis", "Não informado")
             serie = item.get("grade", "")
@@ -781,10 +769,10 @@ def carregar_estudantes_supabase():
         estudante = {
             "nome": item.get("name", ""),
             "serie": item.get("grade", ""),
-            "hiperfoco": item.get("diagnosis", ""), # Usamos o diagnóstico como perfil base visual
-            "ia_sugestao": contexto_ia, # O texto rico para a IA usar
+            "hiperfoco": item.get("diagnosis", ""), # Usamos diagnosis como perfil base
+            "ia_sugestao": contexto_ia,
             "id": item.get("id", ""),
-            "pei_data": pei_completo, # O Objeto completo para o expander
+            "pei_data": pei_completo, # JSON completo disponível para uso
         }
         
         if estudante["nome"]:
@@ -793,11 +781,34 @@ def carregar_estudantes_supabase():
     return estudantes
 
 # ==============================================================================
-# INICIALIZAÇÃO DO BANCO
+# PEI DO ALUNO (Função Auxiliar para Recarregar Específico)
+# ==============================================================================
+def carregar_pei_aluno(aluno_id):
+    """Carrega o PEI atualizado de um aluno específico."""
+    try:
+        url = f"{_sb_url()}/rest/v1/students"
+        params = {"select": "id,pei_data", "id": f"eq.{aluno_id}"}
+        r = requests.get(url, headers=_headers(), params=params, timeout=15)
+        if r.status_code == 200 and r.json():
+            return r.json()[0].get("pei_data", {}) or {}
+        return {}
+    except Exception:
+        return {}
+
+# ==============================================================================
+# INICIALIZAÇÃO DO BANCO DE DADOS NA SESSÃO
 # ==============================================================================
 if "banco_estudantes" not in st.session_state or not st.session_state.banco_estudantes:
     with st.spinner("🔄 Conectando à base de alunos..."):
         st.session_state.banco_estudantes = carregar_estudantes_supabase()
+
+# --- ESTILO VISUAL (CSS) ---
+st.markdown("""
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+
+<style>
+  html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; color: #1E293B; }
+
   /* ========================================================= */
   /* HEADER / HERO (estilo PAEE) */
   /* ========================================================= */
