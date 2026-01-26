@@ -1044,21 +1044,6 @@ def limpar_formulario():
 # ==============================================================================
 st.markdown("""
 <style>
-    /* NAVBAR COMPACTADA AO MÁXIMO */
-    .stHorizontalBlock {
-        margin-top: 0 !important;
-        margin-bottom: 0.1rem !important;
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-    
-    /* Container da option_menu */
-    div[class*="st-emotion-cache"] {
-        margin-bottom: 0 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-<style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
     html, body, [class*="css"] { font-family: 'Nunito', sans-serif; color: #2D3748; background-color: #F7FAFC; }
     .block-container { padding-top: 1.5rem !important; padding-bottom: 5rem !important; }
