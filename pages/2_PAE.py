@@ -35,7 +35,7 @@ except Exception:
 
 # ✅ Header + Navbar (depois do page_config)
 ou.render_omnisfera_header()
-ou.render_navbar(active_tab="Estratégias & PEI")
+ou.render_navbar(active_tab="Plano de Ação (AEE)")
 
 
 st.set_page_config(
