@@ -1,3 +1,4 @@
+# omni_utils.py
 import os
 import base64
 import requests
@@ -7,7 +8,7 @@ from streamlit_option_menu import option_menu
 # =============================================================================
 # 1) ESTADO E CONFIGURAÇÃO INICIAL
 # =============================================================================
-APP_VERSION = "omni_utils v2.2 (Design Clean & Premium)"
+APP_VERSION = "omni_utils v2.3 (Gap Zero + Premium Design)"
 
 def ensure_state():
     if "autenticado" not in st.session_state:
@@ -26,7 +27,7 @@ def ensure_state():
         st.session_state.view = "login"
 
 # =============================================================================
-# 2) UI COMPONENTS (SMART HEADER & NAVBAR)
+# 2) UI COMPONENTS (HEADER & NAVBAR)
 # =============================================================================
 def get_base64_image(path: str) -> str | None:
     if not os.path.exists(path):
@@ -36,8 +37,8 @@ def get_base64_image(path: str) -> str | None:
 
 def render_omnisfera_header():
     """
-    Topbar fixa inteligente.
-    Remove UI nativa do Streamlit e gerencia o layout do topo.
+    Topbar fixa.
+    Ajuste v2.3: Padding milimétrico para remover espaço em branco abaixo da barra.
     """
     ensure_state()
 
@@ -50,14 +51,14 @@ def render_omnisfera_header():
         ws = st.session_state.get("workspace_name", "") or "Workspace"
         return (ws[:max_len] + "...") if len(ws) > max_len else ws
 
-    # Configuração de Altura
+    # Altura fixa da barra
     TOPBAR_H = 56 
 
     st.markdown(f"""
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
-        /* --- BLOQUEIO DA UI NATIVA DO STREAMLIT --- */
+        /* Oculta UI nativa do Streamlit */
         header[data-testid="stHeader"], 
         [data-testid="stToolbar"], 
         [data-testid="stSidebar"],
@@ -68,23 +69,23 @@ def render_omnisfera_header():
             height: 0 !important;
         }}
 
-        /* --- AJUSTE DO CONTAINER PRINCIPAL --- */
+        /* Ajuste do container principal para colar na barra */
         .main .block-container {{
-            padding-top: {TOPBAR_H + 10}px !important;
+            padding-top: {TOPBAR_H + 1}px !important; /* Apenas 1px de respiro */
             padding-bottom: 2rem !important;
             padding-left: 2rem !important;
             padding-right: 2rem !important;
             max-width: 100% !important;
         }}
 
-        /* --- TOPBAR FIXA PERSONALIZADA --- */
+        /* Estilo da Topbar */
         .omni-topbar {{
             position: fixed !important;
             top: 0 !important; left: 0 !important; right: 0 !important;
             height: {TOPBAR_H}px !important;
             background: #ffffff !important;
             border-bottom: 1px solid #E2E8F0 !important;
-            z-index: 999999 !important; /* Acima de tudo */
+            z-index: 999999 !important;
             display: flex !important;
             align-items: center !important;
             justify-content: space-between !important;
@@ -151,8 +152,8 @@ def render_omnisfera_header():
 
 def render_navbar(active_tab: str = "Início"):
     """
-    Menu horizontal otimizado.
-    Estilo selecionado: Cinza claro discreto com texto escuro (Design Premium).
+    Navbar Horizontal.
+    Ajuste v2.3: Margem negativa agressiva para eliminar o gap superior.
     """
     ensure_state()
 
@@ -166,8 +167,9 @@ def render_navbar(active_tab: str = "Início"):
 
     st.markdown("""
     <style>
+      /* Margem negativa puxa o menu para cima, contra o padding do container */
       div[data-testid="stHorizontalBlock"], .stHorizontalBlock {
-        margin-top: 0px !important;
+        margin-top: -20px !important; 
         margin-bottom: -10px !important;
         padding-bottom: 0px !important;
       }
@@ -199,20 +201,20 @@ def render_navbar(active_tab: str = "Início"):
                 "font-size": "12px",
                 "text-align": "center",
                 "margin": "0px",
-                "padding": "8px 10px",
+                "padding": "8px 10px", # Padding padrão centralizado
                 "--hover-color": "#F8FAFC",
-                "color": "#64748B", # Cor padrão do texto (cinza médio)
+                "color": "#64748B", 
                 "white-space": "nowrap",
                 "border-radius": "8px",
-                "min-height": "36px",
+                "min-height": "40px",
                 "display": "flex", "align-items": "center", "justify-content": "center",
-                "border": "1px solid transparent", # Para não pular quando selecionado
+                "border": "1px solid transparent",
             },
             "nav-link-selected": {
-                "background-color": "#F1F5F9", # <-- CINZA CLARO DISCRETO (Slate 100)
-                "color": "#0F172A",            # <-- TEXTO ESCURO PARA CONTRASTE
-                "font-weight": "700",          # <-- PESO PARA DESTAQUE
-                "border": "1px solid #E2E8F0", # <-- BORDA SUTIL (PREMIUM)
+                "background-color": "#F1F5F9", # Cinza Claro (Slate 100)
+                "color": "#0F172A",            # Texto Escuro
+                "font-weight": "700",
+                "border": "1px solid #E2E8F0", # Borda sutil
             },
         },
     )
@@ -236,7 +238,7 @@ def render_navbar(active_tab: str = "Início"):
             st.switch_page(target)
 
 # =============================================================================
-# 3) SUPABASE & UTILS (PRESERVADO)
+# 3) SUPABASE & UTILS (LÓGICA PRESERVADA)
 # =============================================================================
 def _sb_url() -> str:
     url = str(st.secrets.get("SUPABASE_URL", "")).strip()
