@@ -19,11 +19,10 @@ def ensure_state():
         st.session_state.view = "login"
 
 # =============================================================================
-# 2. UI COMPONENTS (HEADER & NAVBAR) - NOVO!
+# 2. UI COMPONENTS (HEADER & NAVBAR) - AJUSTADO (FULL WIDTH & TIGHT)
 # =============================================================================
 
 def get_base64_image(path: str) -> str | None:
-    """Helper para converter imagens locais para Base64."""
     if not os.path.exists(path):
         return None
     with open(path, "rb") as f:
@@ -31,10 +30,8 @@ def get_base64_image(path: str) -> str | None:
 
 def render_omnisfera_header():
     """
-    Renderiza o Topbar fixo e injeta o CSS global essencial.
-    Deve ser chamado no início de cada página.
+    Renderiza o Topbar e define o CSS para layout COMPACTO e LARGURA TOTAL.
     """
-    # Helpers internos para dados do usuário
     def _get_initials(nome: str) -> str:
         if not nome: return "U"
         parts = nome.strip().split()
@@ -44,7 +41,6 @@ def render_omnisfera_header():
         ws = st.session_state.get("workspace_name", "") or "Workspace"
         return (ws[:max_len] + "...") if len(ws) > max_len else ws
 
-    # CSS Global do Header e Ajustes de Layout
     st.markdown("""
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
@@ -56,12 +52,12 @@ def render_omnisfera_header():
             border-bottom: 1px solid #E2E8F0;
             z-index: 9999;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 2rem;
+            padding: 0 1.5rem; /* Padding lateral menor */
             box-shadow: 0 1px 2px rgba(0,0,0,0.03);
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
         
-        /* BRANDING */
+        /* ELEMENTOS DA MARCA */
         .brand-box { display: flex; align-items: center; gap: 8px; }
         .brand-logo { height: 28px !important; width: auto !important; animation: spin-logo 60s linear infinite; }
         .brand-img-text { height: 16px !important; width: auto; margin-left: 6px; }
@@ -70,28 +66,26 @@ def render_omnisfera_header():
         .user-badge-thin { background: #F1F5F9; border: 1px solid #E2E8F0; padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: 700; color: #64748B; }
         .apple-avatar-thin { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #4F46E5, #7C3AED); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.65rem; }
 
-        /* ANIMAÇÃO */
         @keyframes spin-logo { 100% { transform: rotate(360deg); } }
         
-        /* AJUSTES GERAIS DE LAYOUT (GLOBAL) */
-        @media (max-width: 768px) { .topbar-thin { padding: 0 1rem; } }
+        /* --- AQUI ESTÁ A MÁGICA DO LAYOUT --- */
         
-        /* Espaçamento essencial para o conteúdo não ficar atrás do menu */
+        /* 1. Sobe o conteúdo para colar na barra (era 5rem, agora 3.5rem) */
+        /* 2. Remove limite de largura (max-width: 100%) para ocupar a tela toda */
         .block-container { 
-            padding-top: 5rem !important; 
-            padding-bottom: 3rem; 
-            max-width: 1200px;
+            padding-top: 3.8rem !important; 
+            padding-bottom: 2rem; 
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            max-width: 100% !important; 
         }
 
-        /* Limpeza do Streamlit Nativo */
+        /* Limpeza do Streamlit */
         header[data-testid="stHeader"] { background-color: transparent !important; z-index: 1; }
-        [data-testid="stSidebarNav"], footer { display: none !important; }
-        section[data-testid="stSidebar"] { display: none !important; }
-        button[data-testid="collapsedControl"] { display: none !important; }
+        [data-testid="stSidebarNav"], footer, section[data-testid="stSidebar"], button[data-testid="collapsedControl"] { display: none !important; }
     </style>
     """, unsafe_allow_html=True)
 
-    # Renderização HTML
     icone = get_base64_image("omni_icone.png")
     texto = get_base64_image("omni_texto.png")
     ws_name = _get_ws_short()
@@ -113,16 +107,13 @@ def render_omnisfera_header():
 
 def render_navbar(active_tab: str = "Início"):
     """
-    Renderiza o menu horizontal de navegação.
-    :param active_tab: Nome exato da aba que deve aparecer selecionada.
+    Renderiza o menu horizontal.
     """
     opcoes = ["Início", "Estudantes", "Estratégias & PEI", "Plano de Ação (AEE)", "Hub de Recursos", "Diário de Bordo", "Evolução & Dados"]
     icones = ["house", "people", "book", "puzzle", "rocket", "journal", "bar-chart"]
 
-    try:
-        default_idx = opcoes.index(active_tab)
-    except ValueError:
-        default_idx = 0
+    try: default_idx = opcoes.index(active_tab)
+    except ValueError: default_idx = 0
 
     selected = option_menu(
         menu_title=None, 
@@ -131,14 +122,15 @@ def render_navbar(active_tab: str = "Início"):
         default_index=default_idx,
         orientation="horizontal",
         styles={
-            "container": {"padding": "0!important", "background-color": "#ffffff", "border": "1px solid #E2E8F0", "border-radius": "10px", "margin-bottom": "10px"},
+            # MARGIN-BOTTOM reduzido para 5px (era 10px ou mais) para colar no conteúdo abaixo
+            "container": {"padding": "0!important", "background-color": "#ffffff", "border": "1px solid #E2E8F0", "border-radius": "10px", "margin-bottom": "5px"},
             "icon": {"color": "#64748B", "font-size": "14px"}, 
             "nav-link": {"font-size": "11px", "text-align": "center", "margin": "0px", "--hover-color": "#F1F5F9", "color": "#475569", "white-space": "nowrap"},
             "nav-link-selected": {"background-color": "#0284C7", "color": "white", "font-weight": "600"},
         }
     )
     
-    # Lógica de Redirecionamento
+    # Redirecionamento (Mantenha igual)
     if selected != active_tab:
         if selected == "Início":
             target = "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "0_Home.py"
