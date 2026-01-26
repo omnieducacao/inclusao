@@ -54,15 +54,7 @@ except Exception:
     pass
 
 
-# ==============================================================================
-# 1. CONFIGURAÇÃO E SEGURANÇA
-# ==============================================================================
-st.set_page_config(
-    page_title="PAEE & T.A. | Omnisfera", 
-    page_icon="🧩", 
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+
 
 # ==============================================================================
 # BLOCO VISUAL INTELIGENTE: HEADER OMNISFERA
