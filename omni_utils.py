@@ -19,7 +19,7 @@ def ensure_state():
         st.session_state.view = "login"
 
 # =============================================================================
-# 2. UI COMPONENTS (HEADER & NAVBAR) - ULTRA COMPACTO
+# 2. UI COMPONENTS (HEADER & NAVBAR) - CORRIGIDO
 # =============================================================================
 
 def get_base64_image(path: str) -> str | None:
@@ -30,7 +30,7 @@ def get_base64_image(path: str) -> str | None:
 
 def render_omnisfera_header():
     """
-    Renderiza o Topbar ULTRA COMPACTO
+    Renderiza o Topbar CORRIGIDO com layout compacto.
     """
     def _get_initials(nome: str) -> str:
         if not nome: return "U"
@@ -41,119 +41,139 @@ def render_omnisfera_header():
         ws = st.session_state.get("workspace_name", "") or "Workspace"
         return (ws[:max_len] + "...") if len(ws) > max_len else ws
 
-    # CSS ULTRA COMPACTO - ESPAÇO MÍNIMO
     st.markdown("""
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
-        /* RESET COMPLETO E AGUESSIVO */
+        /* RESET E GLOBAL */
         * {
-            margin: 0 !important;
-            padding: 0 !important;
-            box-sizing: border-box !important;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        /* TOPBAR FIXA - SUPER COMPACTA */
-        .omni-topbar {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            height: 40px !important;  /* REDUZIDO DE 50px */
-            background: white !important;
-            border-bottom: 1px solid #E2E8F0 !important;
-            z-index: 999999 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            padding: 0 12px !important;  /* REDUZIDO DE 20px */
+        /* TOPBAR FIXA - CORRIGIDA */
+        .topbar-thin {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            height: 50px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #E2E8F0;
+            z-index: 9999;
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
         
-        .omni-brand {
-            display: flex !important;
-            align-items: center !important;
-            gap: 6px !important;  /* REDUZIDO DE 10px */
+        /* ELEMENTOS DA MARCA */
+        .brand-box { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+        .brand-logo { 
+            height: 28px !important; 
+            width: 28px !important; 
+            animation: spin-logo 60s linear infinite; 
+        }
+        .brand-img-text { 
+            height: 16px !important; 
+            width: auto; 
+            margin-left: 6px; 
+        }
+
+        /* USER INFO */
+        .user-badge-thin { 
+            background: #F1F5F9; 
+            border: 1px solid #E2E8F0; 
+            padding: 4px 12px; 
+            border-radius: 10px; 
+            font-size: 0.7rem; 
+            font-weight: 700; 
+            color: #64748B; 
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+        .apple-avatar-thin { 
+            width: 28px; 
+            height: 28px; 
+            border-radius: 50%; 
+            background: linear-gradient(135deg, #4F46E5, #7C3AED); 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 700; 
+            font-size: 0.7rem; 
+            flex-shrink: 0;
+        }
+
+        @keyframes spin-logo { 
+            100% { transform: rotate(360deg); } 
         }
         
-        .omni-logo {
-            height: 22px !important;  /* REDUZIDO DE 28px */
-            width: 22px !important;
-        }
-        
-        .omni-user-info {
-            display: flex !important;
-            align-items: center !important;
-            gap: 6px !important;  /* REDUZIDO DE 10px */
-        }
-        
-        .omni-workspace {
-            background: #F1F5F9 !important;
-            border: 1px solid #E2E8F0 !important;
-            padding: 2px 8px !important;  /* REDUZIDO */
-            border-radius: 6px !important;
-            font-size: 10px !important;  /* REDUZIDO DE 12px */
-            font-weight: 600 !important;
-            color: #64748B !important;
-            max-width: 100px !important;  /* REDUZIDO DE 150px */
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-        }
-        
-        .omni-avatar {
-            width: 22px !important;  /* REDUZIDO DE 28px */
-            height: 22px !important;
-            border-radius: 50% !important;
-            background: linear-gradient(135deg, #4F46E5, #7C3AED) !important;
-            color: white !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            font-weight: 700 !important;
-            font-size: 9px !important;  /* REDUZIDO DE 11px */
-        }
-        
-        /* AQUI ESTÁ A CORREÇÃO CRÍTICA - ESPAÇO MÍNIMO */
-        div[data-testid="stAppViewContainer"] > div:first-child {
-            padding-top: 42px !important;  /* REDUZIDO DE 70px - apenas 2px a mais que a topbar */
-        }
-        
-        /* REMOVER TODOS OS ELEMENTOS DO STREAMLIT */
-        .stApp > header,
-        [data-testid="stSidebarNav"],
-        footer,
-        section[data-testid="stSidebar"],
-        button[data-testid="collapsedControl"] {
-            display: none !important;
-        }
-        
-        /* CONTAINER DE CONTEÚDO - ZERO ESPAÇO */
-        .block-container {
-            padding-top: 0.05rem !important;  /* MÍNIMO ABSOLUTO */
-            padding-bottom: 1rem !important;
+        /* CONTAINER PRINCIPAL - CORRIGIDO */
+        .main.appview-container .main .block-container {
+            padding-top: 4.5rem !important;
+            padding-bottom: 2rem !important;
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
             max-width: 100% !important;
         }
         
-        .main .block-container {
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
-            padding-top: 0.05rem !important;
-        }
-        
-        /* REMOVER QUALQUER MARGEM/ESPAÇO EXTRA */
-        div[data-testid="stVerticalBlock"] > div:first-child {
-            margin-top: 0 !important;
-            padding-top: 0 !important;
-        }
-        
-        /* FORÇAR LAYOUT COMPACTO */
+        /* CORREÇÃO DO OVERFLOW */
         .stApp {
-            overflow-x: hidden !important;
+            overflow: hidden !important;
         }
         
-        /* CORREÇÃO EXTRA - REMOVER ESPAÇO DO NAVBAR */
-        .stHorizontalBlock {
-            margin-top: 0 !important;
-            margin-bottom: 0.1rem !important;
+        .block-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
+        }
+        
+        /* CORREÇÃO DO NAVBAR POSITION */
+        .stApp > header {
+            display: none !important;
+        }
+        
+        /* LIMPEZA DO STREAMLIT */
+        header[data-testid="stHeader"] { 
+            display: none !important; 
+        }
+        
+        [data-testid="stSidebarNav"], 
+        footer, 
+        section[data-testid="stSidebar"], 
+        button[data-testid="collapsedControl"] { 
+            display: none !important; 
+        }
+        
+        /* CORREÇÃO PARA ELEMENTOS STREAMLIT */
+        .stButton > button {
+            width: auto !important;
+        }
+        
+        /* PREVENIR EXPANSÃO EXCESSIVA */
+        div[data-testid="column"] {
+            max-width: 100% !important;
+        }
+        
+        /* NAVBAR CONTAINER - CORREÇÃO DE POSIÇÃO */
+        .st-emotion-cache-1r4qj8v {
+            position: relative !important;
+            top: 0 !important;
+            margin-top: 0.5rem !important;
+            margin-bottom: 1.5rem !important;
+            width: 100% !important;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -163,18 +183,15 @@ def render_omnisfera_header():
     ws_name = _get_ws_short()
     user_name = st.session_state.get("usuario_nome", "Visitante")
     
-    img_logo = f'<img src="data:image/png;base64,{icone}" class="omni-logo">' if icone else '<div class="omni-logo">🌐</div>'
-    img_text = f'<img src="data:image/png;base64,{texto}" style="height: 12px; margin-left: 3px;">' if texto else '<span style="font-weight:800;color:#2B3674;font-size:12px;">OMNISFERA</span>'
+    img_logo = f'<img src="data:image/png;base64,{icone}" class="brand-logo">' if icone else "🌐"
+    img_text = f'<img src="data:image/png;base64,{texto}" class="brand-img-text">' if texto else "<span style='font-weight:800;color:#2B3674;'>OMNISFERA</span>"
 
     st.markdown(f"""
-        <div class="omni-topbar">
-            <div class="omni-brand">
-                {img_logo}
-                {img_text}
-            </div>
-            <div class="omni-user-info">
-                <div class="omni-workspace" title="{ws_name}">{ws_name}</div>
-                <div class="omni-avatar">{_get_initials(user_name)}</div>
+        <div class="topbar-thin">
+            <div class="brand-box">{img_logo}{img_text}</div>
+            <div class="brand-box" style="gap: 10px;">
+                <div class="user-badge-thin" title="{ws_name}">{ws_name}</div>
+                <div class="apple-avatar-thin">{_get_initials(user_name)}</div>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -182,7 +199,7 @@ def render_omnisfera_header():
 
 def render_navbar(active_tab: str = "Início"):
     """
-    Renderiza o menu horizontal - ULTRA COMPACTO
+    Renderiza o menu horizontal CORRIGIDO.
     """
     opcoes = ["Início", "Estudantes", "Estratégias & PEI", "Plano de Ação (AEE)", "Hub de Recursos", "Diário de Bordo", "Evolução & Dados"]
     icones = ["house", "people", "book", "puzzle", "rocket", "journal", "bar-chart"]
@@ -192,76 +209,49 @@ def render_navbar(active_tab: str = "Início"):
     except ValueError: 
         default_idx = 0
 
-    # CSS PARA NAVBAR COMPACTA - JÁ INCLUÍDO NO HEADER, MAS ADICIONANDO AJUSTES
-    st.markdown("""
-    <style>
-    /* NAVBAR ULTRA COMPACTA */
-    .stHorizontalBlock {
-        margin-top: 0 !important;
-        margin-bottom: 0.1rem !important;
-        padding-top: 0 !important;
-    }
-    
-    /* Container da option_menu */
-    .st-emotion-cache-1r4qj8v {
-        margin-top: 0 !important;
-        margin-bottom: 0.1rem !important;
-    }
-    
-    /* REMOVER EFEITOS DO STREAMLIT */
-    div[data-testid="stHorizontalBlock"] {
-        background: none !important;
-        border: none !important;
-    }
-    
-    /* CORREÇÃO PARA OPTION_MENU */
-    [data-testid="stHorizontalBlock"] > div {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # Container SEM espaço extra
+    # Container para posicionamento correto
     with st.container():
-        # NÃO adicionar espaço acima do menu
-        selected = option_menu(
-            menu_title=None, 
-            options=opcoes,
-            icons=icones,
-            default_index=default_idx,
-            orientation="horizontal",
-            styles={
-                "container": {
-                    "padding": "0!important", 
-                    "background-color": "#ffffff",
-                    "border": "1px solid #E2E8F0",
-                    "border-radius": "6px",  # REDUZIDO
-                    "margin": "0px",
-                    "box-shadow": "0 1px 2px rgba(0,0,0,0.02)"
-                },
-                "icon": {
-                    "color": "#64748B", 
-                    "font-size": "11px"  # REDUZIDO
-                }, 
-                "nav-link": {
-                    "font-size": "9px",  # REDUZIDO
-                    "text-align": "center", 
-                    "margin": "0px",
-                    "padding": "4px 6px",  # REDUZIDO
-                    "--hover-color": "#F1F5F9",
-                    "color": "#475569",
-                    "white-space": "nowrap",
-                    "border-radius": "4px"  # REDUZIDO
-                },
-                "nav-link-selected": {
-                    "background-color": "#0284C7",
-                    "color": "white",
-                    "font-weight": "600",
-                    "border": "none"
-                },
-            }
-        )
+        col1, col2, col3 = st.columns([1, 6, 1])
+        with col2:
+            selected = option_menu(
+                menu_title=None, 
+                options=opcoes,
+                icons=icones,
+                default_index=default_idx,
+                orientation="horizontal",
+                styles={
+                    # CONTAINER CORRIGIDO - sem margens excessivas
+                    "container": {
+                        "padding": "0!important", 
+                        "background-color": "#ffffff", 
+                        "border": "1px solid #E2E8F0", 
+                        "border-radius": "10px", 
+                        "margin": "0.5rem 0 1.5rem 0",
+                        "width": "100%",
+                        "box-shadow": "0 1px 3px rgba(0,0,0,0.05)"
+                    },
+                    "icon": {
+                        "color": "#64748B", 
+                        "font-size": "14px"
+                    }, 
+                    "nav-link": {
+                        "font-size": "11px", 
+                        "text-align": "center", 
+                        "margin": "0px", 
+                        "padding": "8px 12px",
+                        "--hover-color": "#F1F5F9", 
+                        "color": "#475569", 
+                        "white-space": "nowrap",
+                        "border-radius": "8px"
+                    },
+                    "nav-link-selected": {
+                        "background-color": "#0284C7", 
+                        "color": "white", 
+                        "font-weight": "600",
+                        "border": "none"
+                    },
+                }
+            )
     
     # Redirecionamento
     if selected != active_tab:
@@ -283,7 +273,7 @@ def render_navbar(active_tab: str = "Início"):
             st.switch_page("pages/5_Monitoramento_Avaliacao.py")
 
 # =============================================================================
-# 3. UI HELPERS (LEGADO / LOGIN) - MANTIDO IGUAL
+# 3. UI HELPERS (LEGADO / LOGIN)
 # =============================================================================
 def inject_base_css():
     """
@@ -292,6 +282,13 @@ def inject_base_css():
     st.markdown(
         """
 <style>
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 /* LOGIN e GERAIS */
 .login-box {
   background: white; 
@@ -321,6 +318,7 @@ def inject_base_css():
   border-radius: 10px !important; 
   border: 1px solid #E2E8F0 !important; 
   height: 46px !important; 
+  width: 100% !important;
 }
 
 .termo-box {
@@ -334,9 +332,10 @@ def inject_base_css():
   margin-bottom: 14px;
   text-align: justify; 
   color: #4A5568;
+  width: 100%;
 }
 
-/* HOME COMPONENTS */
+/* HOME COMPONENTS - CORRIGIDO */
 .header-lite {
   display:flex; 
   justify-content:space-between; 
@@ -346,6 +345,8 @@ def inject_base_css():
   border-radius: 16px; 
   padding: 18px 20px; 
   margin-bottom: 18px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .h-title { 
@@ -370,6 +371,19 @@ def inject_base_css():
   font-weight: 900; 
   font-size: .75rem;
   letter-spacing: .08em;
+  white-space: nowrap;
+}
+
+/* CORREÇÃO GERAL DE LARGURA */
+.stApp {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+}
+
+.main .block-container {
+    max-width: 100% !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
 }
 </style>
         """,
@@ -377,7 +391,7 @@ def inject_base_css():
     )
 
 # =============================================================================
-# RESTANTE DO CÓDIGO (MANTIDO IGUAL)
+# 4. SUPABASE (REST CORE) - MANTIDO IGUAL
 # =============================================================================
 def _sb_url() -> str:
     url = st.secrets.get("SUPABASE_URL", "").strip()
@@ -418,6 +432,9 @@ def supabase_upsert(table: str, row: dict, on_conflict: str):
     if isinstance(data, list) and len(data) > 0: return data[0]
     return data if isinstance(data, dict) else None
 
+# =============================================================================
+# 5. LOGIC HELPERS (Workspace, Logs, PEI) - MANTIDO IGUAL
+# =============================================================================
 def supabase_workspace_from_pin(pin: str) -> str | None:
     pin = (pin or "").strip()
     if not pin: return None
