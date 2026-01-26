@@ -1082,6 +1082,97 @@ src_logo_giratoria = get_logo_base64()
 # ------------------------------------------------------------------------------
 # CSS COMPACTADO - ESPAÇO MÍNIMO ENTRE MENU E CARD HERO
 # ------------------------------------------------------------------------------
+
+st.markdown("""
+<style>
+    /* REMOVER TODOS OS ESPAÇOS ENTRE NAVBAR E CARD HERO */
+    .block-container {
+        padding-top: 0rem !important;
+        padding-bottom: 0rem !important;
+    }
+    
+    /* CARD HERO - COLADO NO NAVBAR */
+    .mod-card-wrapper {
+        margin-top: 0px !important;  /* ZERO margem superior */
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* COMPACTAR AINDA MAIS O CARD HERO */
+    .mod-card-rect {
+        height: 110px !important;  /* Mais baixo */
+        padding: 0 !important;
+    }
+    
+    .mod-icon-area {
+        width: 70px !important;  /* Mais estreito */
+        font-size: 1.4rem !important;
+    }
+    
+    .mod-content {
+        padding: 0 16px !important;  /* Menos padding lateral */
+    }
+    
+    .mod-title {
+        font-size: 1rem !important;
+        margin-bottom: 3px !important;
+    }
+    
+    .mod-desc {
+        font-size: 0.75rem !important;
+        line-height: 1.2 !important;
+        -webkit-line-clamp: 2 !important;
+    }
+    
+    /* REMOVER QUALQUER ESPAÇO RESIDUAL */
+    div[data-testid="stVerticalBlock"] > div:first-child {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    
+    .st-emotion-cache-1r4qj8v,
+    .st-emotion-cache-keje6w {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    
+    /* OPCIONAL: Se ainda houver espaço, use este hack */
+    div[data-testid="stAppViewContainer"] > div:first-child {
+        padding-top: 0 !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ==============================================================================
+# CARD HERO - RENDERIZAÇÃO DIRETA SEM ESPAÇO
+# ==============================================================================
+hora = datetime.now().hour
+saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
+USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
+WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
+
+# Container ultra compacto - sem margens
+with st.container():
+    # Sem espaço artificial
+    st.markdown(f"""
+    <div class="mod-card-wrapper">
+        <div class="mod-card-rect">
+            <div class="mod-bar c-blue"></div>
+            <div class="mod-icon-area bg-blue-soft">
+                <i class="ri-book-open-fill"></i>
+            </div>
+            <div class="mod-content">
+                <div class="mod-title">Plano Educacional Individualizado (PEI)</div>
+                <div class="mod-desc">
+                    {saudacao}, <strong>{USUARIO_NOME}</strong>! Crie e gerencie Planos Educacionais Individualizados 
+                    para estudantes do workspace <strong>{WORKSPACE_NAME}</strong>. 
+                    Desenvolva estratégias personalizadas e acompanhe o progresso de cada aluno.
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
