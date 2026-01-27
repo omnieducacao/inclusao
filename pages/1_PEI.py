@@ -79,9 +79,9 @@ forcar_layout_hub()
 # Cole logo após o header/navbar
 # ==============================================================================
 
-PEI_ACCENT = "#64748B"       # slate-500 (azul acinzentado claro)
-PEI_ACCENT_DARK = "#475569"  # slate-600
-PEI_ACCENT_SOFT = "#F8FAFC"  # fundo bem leve
+PEI_ACCENT = "#94A3B8"       # slate-400
+PEI_ACCENT_DARK = "#64748B"  # slate-500
+PEI_ACCENT_SOFT = "#F8FAFC"
 
 st.markdown(f"""
 <style>
