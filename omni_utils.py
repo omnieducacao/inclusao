@@ -80,10 +80,9 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
   [data-testid="stSidebar"] {{ display: none !important; }}
   [data-testid="stSidebar"] * {{ display: none !important; }}
 
-  /* 🔥 CONTEÚDO: começa logo abaixo de topbar (navbar agora está dentro da topbar) */
-  /* Nota: padding-top será sobrescrito por forcar_layout_hub() nas páginas */
+  /* 🔥 CONTEÚDO: começa logo abaixo de topbar+navbar, com gap mínimo */
   .main .block-container {{
-    padding-top: var(--topbar-h) !important; /* Altura total da topbar (88px) */
+    padding-top: calc(var(--topbar-h) + var(--navbar-h) + var(--content-gap)) !important;
     padding-bottom: 2rem !important;
     padding-left: 2rem !important;
     padding-right: 2rem !important;
@@ -97,7 +96,7 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
     padding-top: 0 !important;
   }}
 
-  /* TOPBAR - Agora contém navbar dentro */
+  /* TOPBAR */
   .omni-topbar {{
     position: fixed !important;
     top: 0 !important; left: 0 !important; right: 0 !important;
@@ -106,19 +105,10 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
     border-bottom: 1px solid #E2E8F0 !important;
     z-index: 999999 !important;
     display: flex !important;
-    flex-direction: column !important;
-    padding: 0 !important;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
-  }}
-  
-  /* Topbar superior (logo + user) */
-  .omni-topbar-header {{
-    display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 8px 24px !important;
-    height: 40px !important;
-    flex-shrink: 0 !important;
+    padding: 0 24px !important;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
   }}
   .omni-brand {{
     display:flex !important;
@@ -162,33 +152,17 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
     box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25) !important;
   }}
 
-  /* NAVBAR WRAPPER - Agora dentro da topbar */
-  .omni-topbar-nav {{
-    position: fixed !important;
-    top: 40px !important; /* Logo abaixo do header da topbar */
-    left: 0 !important;
-    right: 0 !important;
-    height: calc(var(--topbar-h) - 40px) !important;
-    background: #ffffff !important;
-    border-bottom: 1px solid #E2E8F0 !important;
-    z-index: 1000000 !important; /* Maior que topbar para ficar visível */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 4px 24px 8px 24px !important;
-    box-shadow: 0 2px 4px -1px rgba(0,0,0,0.03) !important;
-  }}
+  /* NAVBAR WRAPPER */
   .omni-navbar {{
     position: relative !important;
-    height: auto !important;
+    height: var(--navbar-h) !important;
     background: transparent !important;
     z-index: 999998 !important;
     display:flex !important;
     align-items:center !important;
     justify-content:center !important;
     pointer-events: none;
-    padding: 0 !important;
-    width: 100% !important;
+    padding: 4px 0 !important; /* Espaço mínimo entre topbar e navbar */
   }}
   .omni-navbar-inner {{
     width: min(1200px, calc(100% - 48px));
@@ -208,12 +182,6 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
       padding-right: 1rem !important;
     }}
     .omni-workspace {{ display:none !important; }}
-    .omni-topbar-header {{
-      padding: 8px 16px !important;
-    }}
-    .omni-topbar-nav {{
-      padding: 4px 16px 8px 16px !important;
-    }}
   }}
 </style>
         """,
@@ -324,10 +292,10 @@ def render_omnisfera_header():
     """
     ensure_state()
 
-    TOPBAR_H = 88  # Aumentado para acomodar navbar dentro (40px header + 48px navbar)
-    NAVBAR_H = 0   # Navbar agora está dentro da topbar, não precisa de altura separada
+    TOPBAR_H = 56
+    NAVBAR_H = 52
 
-    # 🔥 MUITO PERTO: content_gap=0 (espaço mínimo entre topbar e hero)
+    # 🔥 MUITO PERTO: content_gap=0 (espaço mínimo entre navbar e hero)
     inject_layout_css(topbar_h=TOPBAR_H, navbar_h=NAVBAR_H, content_gap=0)
 
     icone = get_base64_image("omni_icone.png")
@@ -351,15 +319,13 @@ def render_omnisfera_header():
     st.markdown(
         f"""
 <div class="omni-topbar">
-  <div class="omni-topbar-header">
-    <div class="omni-brand">
-      {img_logo}
-      {img_text}
-    </div>
-    <div class="omni-user-info">
-      <div class="omni-workspace" title="{ws_name}">{ws_name}</div>
-      <div class="omni-avatar" title="{user_name}">{_get_initials(user_name)}</div>
-    </div>
+  <div class="omni-brand">
+    {img_logo}
+    {img_text}
+  </div>
+  <div class="omni-user-info">
+    <div class="omni-workspace" title="{ws_name}">{ws_name}</div>
+    <div class="omni-avatar" title="{user_name}">{_get_initials(user_name)}</div>
   </div>
 </div>
         """,
@@ -388,7 +354,7 @@ def render_navbar(active_tab: str = "Início"):
     except ValueError:
         default_idx = 0
 
-    st.markdown('<div class="omni-topbar-nav"><div class="omni-navbar"><div class="omni-navbar-inner">', unsafe_allow_html=True)
+    st.markdown('<div class="omni-navbar"><div class="omni-navbar-inner">', unsafe_allow_html=True)
 
     selected = option_menu(
         menu_title=None,
@@ -431,7 +397,7 @@ def render_navbar(active_tab: str = "Início"):
         },
     )
 
-    st.markdown("</div></div></div>", unsafe_allow_html=True)
+    st.markdown("</div></div>", unsafe_allow_html=True)
     
     # Adiciona CSS para cor específica da página no navbar selecionado
     page_colors = {
