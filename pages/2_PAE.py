@@ -114,10 +114,7 @@ def inject_paee_css(theme: str = "teal"):
  /* ===============================
     AJUSTE ENTRE MENU SUPERIOR E HERO (PADRONIZADO)
  ================================ */
-.block-container {{
-   padding-top: 0.3rem !important;
-}}
-
+/* O padding-top é controlado pela função forcar_layout_hub() (1rem) - não sobrescrever aqui */
 .mod-card-wrapper {{
     margin-top: 0 !important;
     margin-bottom: 20px !important;
