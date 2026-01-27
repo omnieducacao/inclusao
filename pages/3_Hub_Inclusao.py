@@ -55,6 +55,39 @@ ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Hub de Recursos")
 
 # ==============================================================================
+# AJUSTE FINO DE LAYOUT (Igual ao PEI - PADRONIZADO)
+# ==============================================================================
+def forcar_layout_hub():
+    st.markdown("""
+        <style>
+            /* 1. Remove o cabeçalho padrão do Streamlit e a linha colorida */
+            header[data-testid="stHeader"] {
+                visibility: hidden !important;
+                height: 0px !important;
+            }
+
+            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
+            .block-container {
+                padding-top: 1rem !important; /* Padronizado: mesma distância do PEI */
+                padding-bottom: 1rem !important;
+                margin-top: 0px !important;
+            }
+
+            /* 3. Remove padding extra se houver container de navegação */
+            div[data-testid="stVerticalBlock"] > div:first-child {
+                padding-top: 0px !important;
+            }
+            
+            /* 4. Esconde o menu hambúrguer e rodapé */
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+        </style>
+    """, unsafe_allow_html=True)
+
+# CHAME ESTA FUNÇÃO LOGO NO INÍCIO DO CÓDIGO
+forcar_layout_hub()
+
+# ==============================================================================
 # CONSTANTES E DADOS GLOBAIS
 # ==============================================================================
 
@@ -1447,7 +1480,7 @@ def verificar_acesso():
     if "autenticado" not in st.session_state or not st.session_state["autenticado"]:
         st.error("🔒 Acesso Negado. Por favor, faça login na Página Inicial.")
         st.stop()
-    st.markdown("""<style>footer {visibility: hidden !important;} [data-testid="stHeader"] {visibility: visible !important; background-color: transparent !important;} .block-container {padding-top: 0.3rem !important;}</style>""", unsafe_allow_html=True)
+    # CSS removido - agora controlado pela função forcar_layout_hub() (1rem padronizado)
 
     # ==============================================================================
 # FUNÇÕES DAS ABAS PRINCIPAIS
