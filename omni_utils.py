@@ -636,49 +636,56 @@ def inject_hero_card_css():
 
 def inject_hero_card_colors():
     """
-    Injeta as classes de cores dos hero cards (mesmas da Home).
+    Injeta as classes de cores dos hero cards (paleta vibrante que dialoga com vermelho do Streamlit).
     Cada página deve usar sua cor específica no hero card.
+    Nova paleta: azuis mais vivos que complementam o vermelho dos seletores do Streamlit.
     """
     st.markdown(
         """
 <style>
 /* ===============================
-   CORES DOS CARDS DE MÓDULO (MESMAS DA HOME)
+   CORES DOS CARDS DE MÓDULO (PALETA VIBRANTE - AZUIS QUE DIALOGAM COM VERMELHO)
 ================================ */
-.c-indigo { background: #4F46E5 !important; }
+/* Estudantes - Azul Índigo Vibrante */
+.c-indigo { background: #2563EB !important; }
 .bg-indigo-soft { 
-    background: #EEF2FF !important; 
-    color: #4F46E5 !important;
+    background: #DBEAFE !important; 
+    color: #1E40AF !important;
 }
 
-.c-blue { background: #3B82F6 !important; }
+/* PEI - Azul Céu Vibrante */
+.c-blue { background: #0EA5E9 !important; }
 .bg-blue-soft { 
-    background: #EFF6FF !important;
-    color: #2563EB !important;
+    background: #E0F2FE !important;
+    color: #0284C7 !important;
 }
 
-.c-purple { background: #8B5CF6 !important; }
+/* PAEE - Roxo Vibrante */
+.c-purple { background: #A855F7 !important; }
 .bg-purple-soft { 
-    background: #F5F3FF !important;
-    color: #7C3AED !important;
+    background: #F3E8FF !important;
+    color: #9333EA !important;
 }
 
-.c-teal { background: #14B8A6 !important; }
+/* Hub - Verde Água Vibrante */
+.c-teal { background: #06B6D4 !important; }
 .bg-teal-soft { 
-    background: #F0FDFA !important;
-    color: #0D9488 !important;
+    background: #CFFAFE !important;
+    color: #0891B2 !important;
 }
 
-.c-rose { background: #E11D48 !important; }
+/* Diário - Rosa Vibrante */
+.c-rose { background: #F43F5E !important; }
 .bg-rose-soft { 
-    background: #FFF1F2 !important;
-    color: #BE123C !important;
+    background: #FFE4E6 !important;
+    color: #E11D48 !important;
 }
 
-.c-sky { background: #0284C7 !important; }
+/* Monitoramento - Azul Oceano Vibrante */
+.c-sky { background: #0C4A6E !important; }
 .bg-sky-soft { 
-    background: #F0F9FF !important;
-    color: #0369A1 !important;
+    background: #BAE6FD !important;
+    color: #075985 !important;
 }
 
 /* ===============================
@@ -715,17 +722,24 @@ def inject_hero_card_colors():
 def inject_unified_ui_css():
     """
     CSS padronizado para toda a UI: abas (pílulas), botões, selects, checkboxes, radio, tags, multiselect, slider.
-    Usa cor neutra (#64748B - slate-500) que funciona com todas as cores dos cards da Home.
+    Usa azul vibrante (#2563EB) que dialoga com o vermelho dos seletores do Streamlit.
     """
     st.markdown(
         """
 <style>
 :root {
-    --ui-neutral: #64748B;        /* slate-500 - cor neutra principal */
-    --ui-neutral-dark: #475569;   /* slate-600 - mais escuro */
-    --ui-neutral-light: #94A3B8;  /* slate-400 - mais claro */
-    --ui-neutral-soft: #F1F5F9;   /* slate-100 - fundo suave */
-    --ui-neutral-border: #E2E8F0; /* slate-200 - bordas */
+    --ui-primary: #2563EB;        /* blue-600 - azul vibrante que dialoga com vermelho */
+    --ui-primary-dark: #1E40AF;   /* blue-800 - mais escuro */
+    --ui-primary-light: #3B82F6;  /* blue-500 - mais claro */
+    --ui-primary-soft: #DBEAFE;   /* blue-100 - fundo suave */
+    --ui-primary-border: #93C5FD; /* blue-300 - bordas */
+    
+    /* Mantém variáveis neutras para compatibilidade */
+    --ui-neutral: #2563EB;        /* usa azul vibrante */
+    --ui-neutral-dark: #1E40AF;   
+    --ui-neutral-light: #3B82F6;  
+    --ui-neutral-soft: #DBEAFE;   
+    --ui-neutral-border: #93C5FD; 
 }
 
 /* ===============================
@@ -751,29 +765,29 @@ div[data-baseweb="tab-highlight"] {
     height: 38px !important;
     border-radius: 20px !important;  /* PÍLULAS - estilo PEI */
     background-color: #FFFFFF !important;
-    border: 1px solid var(--ui-neutral-border) !important;
-    color: var(--ui-neutral) !important;
+    border: 1px solid var(--ui-primary-border) !important;
+    color: var(--ui-primary) !important;
     font-weight: 700 !important;
     font-size: 0.75rem !important;
     padding: 0 18px !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+    box-shadow: 0 1px 2px rgba(37,99,235,0.1) !important;
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
     transition: all 0.2s ease !important;
 }
 
 .stTabs [data-baseweb="tab"]:hover:not([aria-selected="true"]) { 
-    border-color: var(--ui-neutral-light) !important; 
-    color: var(--ui-neutral-dark) !important; 
-    background-color: var(--ui-neutral-soft) !important; 
+    border-color: var(--ui-primary-light) !important; 
+    color: var(--ui-primary-dark) !important; 
+    background-color: var(--ui-primary-soft) !important; 
 }
 
 .stTabs [aria-selected="true"] {
-    background-color: var(--ui-neutral-soft) !important; 
-    color: var(--ui-neutral-dark) !important;
-    border: 1px solid var(--ui-neutral) !important; 
+    background-color: var(--ui-primary-soft) !important; 
+    color: var(--ui-primary-dark) !important;
+    border: 1px solid var(--ui-primary) !important; 
     font-weight: 800 !important;
-    box-shadow: 0 2px 4px rgba(100,116,139,0.15) !important;
+    box-shadow: 0 2px 4px rgba(37,99,235,0.2) !important;
 }
 
 /* ===============================
@@ -786,27 +800,27 @@ div[data-baseweb="tab-highlight"] {
 }
 
 .stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, var(--ui-neutral), var(--ui-neutral-dark)) !important;
+    background: linear-gradient(135deg, var(--ui-primary), var(--ui-primary-dark)) !important;
     border: none !important;
     color: #ffffff !important;
 }
 
 .stButton > button[kind="primary"]:hover {
     transform: translateY(-1px) !important;
-    box-shadow: 0 10px 22px rgba(100,116,139,0.25) !important;
-    background: linear-gradient(135deg, var(--ui-neutral-dark), var(--ui-neutral)) !important;
+    box-shadow: 0 10px 22px rgba(37,99,235,0.3) !important;
+    background: linear-gradient(135deg, var(--ui-primary-dark), var(--ui-primary)) !important;
 }
 
 .stButton > button[kind="secondary"] {
     background: #ffffff !important;
-    color: var(--ui-neutral-dark) !important;
-    border: 1px solid var(--ui-neutral-border) !important;
+    color: var(--ui-primary-dark) !important;
+    border: 1px solid var(--ui-primary-border) !important;
 }
 
 .stButton > button[kind="secondary"]:hover {
-    background: var(--ui-neutral-soft) !important;
-    border-color: var(--ui-neutral) !important;
-    color: var(--ui-neutral-dark) !important;
+    background: var(--ui-primary-soft) !important;
+    border-color: var(--ui-primary) !important;
+    color: var(--ui-primary-dark) !important;
 }
 
 /* ===============================
@@ -814,12 +828,12 @@ div[data-baseweb="tab-highlight"] {
 ================================ */
 div[data-baseweb="select"] > div {
     border-radius: 8px !important;
-    border-color: var(--ui-neutral-border) !important;
+    border-color: var(--ui-primary-border) !important;
 }
 
 div[data-baseweb="select"] > div:focus-within {
-    border-color: var(--ui-neutral) !important;
-    box-shadow: 0 0 0 3px rgba(100,116,139,0.18) !important;
+    border-color: var(--ui-primary) !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.18) !important;
 }
 
 /* ===============================
@@ -827,12 +841,12 @@ div[data-baseweb="select"] > div:focus-within {
 ================================ */
 div[data-baseweb="select"][aria-multiselectable="true"] > div {
     border-radius: 8px !important;
-    border-color: var(--ui-neutral-border) !important;
+    border-color: var(--ui-primary-border) !important;
 }
 
 div[data-baseweb="select"][aria-multiselectable="true"] > div:focus-within {
-    border-color: var(--ui-neutral) !important;
-    box-shadow: 0 0 0 3px rgba(100,116,139,0.18) !important;
+    border-color: var(--ui-primary) !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.18) !important;
 }
 
 /* ===============================
@@ -844,33 +858,33 @@ div[data-baseweb="select"][aria-multiselectable="true"] > div:focus-within {
 
 /* Track do slider */
 .stSlider > div > div[data-baseweb="slider"] > div[data-baseweb="slider-track"] {
-    background-color: var(--ui-neutral-border) !important;
+    background-color: var(--ui-primary-border) !important;
 }
 
 /* Fill do slider (parte preenchida) */
 .stSlider > div > div[data-baseweb="slider"] > div[data-baseweb="slider-track"] > div[data-baseweb="slider-fill"] {
-    background: linear-gradient(135deg, var(--ui-neutral), var(--ui-neutral-dark)) !important;
+    background: linear-gradient(135deg, var(--ui-primary), var(--ui-primary-dark)) !important;
 }
 
 /* Thumb do slider (bolinha) */
 .stSlider > div > div[data-baseweb="slider"] > div[data-baseweb="slider-thumb"] {
-    background-color: var(--ui-neutral) !important;
-    border-color: var(--ui-neutral) !important;
+    background-color: var(--ui-primary) !important;
+    border-color: var(--ui-primary) !important;
 }
 
 .stSlider > div > div[data-baseweb="slider"] > div[data-baseweb="slider-thumb"]:hover {
-    background-color: var(--ui-neutral-dark) !important;
-    border-color: var(--ui-neutral-dark) !important;
+    background-color: var(--ui-primary-dark) !important;
+    border-color: var(--ui-primary-dark) !important;
 }
 
 /* Fallback para estrutura alternativa do slider */
 .stSlider div[data-baseweb="slider-thumb"] {
-    background-color: var(--ui-neutral) !important;
-    border-color: var(--ui-neutral) !important;
+    background-color: var(--ui-primary) !important;
+    border-color: var(--ui-primary) !important;
 }
 
 .stSlider div[data-baseweb="slider-fill"] {
-    background: linear-gradient(135deg, var(--ui-neutral), var(--ui-neutral-dark)) !important;
+    background: linear-gradient(135deg, var(--ui-primary), var(--ui-primary-dark)) !important;
 }
 
 /* ===============================
@@ -878,42 +892,42 @@ div[data-baseweb="select"][aria-multiselectable="true"] > div:focus-within {
 ================================ */
 div[role="checkbox"] {
     border-radius: 4px !important;
-    border-color: var(--ui-neutral-border) !important;
+    border-color: var(--ui-primary-border) !important;
 }
 
 div[role="checkbox"][aria-checked="true"] {
-    background-color: var(--ui-neutral) !important;
-    border-color: var(--ui-neutral) !important;
+    background-color: var(--ui-primary) !important;
+    border-color: var(--ui-primary) !important;
 }
 
 div[role="checkbox"]:hover {
-    border-color: var(--ui-neutral) !important;
+    border-color: var(--ui-primary) !important;
 }
 
 div[role="checkbox"][aria-checked="true"]:hover {
-    background-color: var(--ui-neutral-dark) !important;
-    border-color: var(--ui-neutral-dark) !important;
+    background-color: var(--ui-primary-dark) !important;
+    border-color: var(--ui-primary-dark) !important;
 }
 
 /* ===============================
    RADIO
 ================================ */
 div[role="radio"] {
-    border-color: var(--ui-neutral-border) !important;
+    border-color: var(--ui-primary-border) !important;
 }
 
 div[role="radio"][aria-checked="true"] {
-    background-color: var(--ui-neutral) !important;
-    border-color: var(--ui-neutral) !important;
+    background-color: var(--ui-primary) !important;
+    border-color: var(--ui-primary) !important;
 }
 
 div[role="radio"]:hover {
-    border-color: var(--ui-neutral) !important;
+    border-color: var(--ui-primary) !important;
 }
 
 div[role="radio"][aria-checked="true"]:hover {
-    background-color: var(--ui-neutral-dark) !important;
-    border-color: var(--ui-neutral-dark) !important;
+    background-color: var(--ui-primary-dark) !important;
+    border-color: var(--ui-primary-dark) !important;
 }
 
 /* ===============================
@@ -922,26 +936,26 @@ div[role="radio"][aria-checked="true"]:hover {
 .stTextInput input,
 .stTextArea textarea {
     border-radius: 8px !important;
-    border-color: var(--ui-neutral-border) !important;
+    border-color: var(--ui-primary-border) !important;
 }
 
 .stTextInput input:focus,
 .stTextArea textarea:focus {
-    border-color: var(--ui-neutral) !important;
-    box-shadow: 0 0 0 3px rgba(100,116,139,0.18) !important;
+    border-color: var(--ui-primary) !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.18) !important;
 }
 
 /* ===============================
    MULTISELECT TAGS / CHIPS
 ================================ */
 div[data-baseweb="tag"] {
-    background: var(--ui-neutral-soft) !important;
-    border: 1px solid var(--ui-neutral-border) !important;
+    background: var(--ui-primary-soft) !important;
+    border: 1px solid var(--ui-primary-border) !important;
     border-radius: 6px !important;
 }
 
 div[data-baseweb="tag"] span {
-    color: var(--ui-neutral-dark) !important;
+    color: var(--ui-primary-dark) !important;
     font-weight: 700 !important;
 }
 
@@ -957,7 +971,7 @@ div[data-baseweb="tag"] span {
    DIVIDERS
 ================================ */
 hr {
-    border-color: var(--ui-neutral-border) !important;
+    border-color: var(--ui-primary-border) !important;
 }
 
 /* ===============================
@@ -969,6 +983,24 @@ hr {
         padding: 0 14px !important;
         height: 36px !important;
     }
+    
+/* ===============================
+   SOBRESCREVER VERMELHO DO STREAMLIT
+================================ */
+/* Tenta sobrescrever cores vermelhas padrão do Streamlit */
+div[data-baseweb="select"] svg[fill="#FF0000"],
+div[data-baseweb="select"] svg[fill="red"],
+div[data-baseweb="select"] svg[fill="rgb(255, 0, 0)"] {
+    fill: var(--ui-primary) !important;
+}
+
+/* Inputs com foco vermelho */
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--ui-primary) !important;
+    outline-color: var(--ui-primary) !important;
+}
 }
 </style>
         """,
