@@ -1144,7 +1144,7 @@ st.markdown("""
       
     /* Remove espaço residual após o navbar */
     .after-navbar-anchor {
-        margin-top: -6px !important;
+        margin-top: 6px !important;
         height: 0 !important;
     }
     
