@@ -1199,19 +1199,7 @@ def aplicar_estilos():
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
     
     <style>
-        /* CARD FLUTUANTE (OMNISFERA) */
-        .omni-badge {{
-            position: fixed; top: 15px; right: 15px;
-            background: {card_bg}; border: 1px solid {card_border};
-            backdrop-filter: blur(8px); padding: 4px 30px;
-            min-width: 260px; justify-content: center;
-            border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            z-index: 999990; display: flex; align-items: center; gap: 10px;
-            pointer-events: none;
-        }}
-        .omni-text {{ font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 0.9rem; color: #2D3748; letter-spacing: 1px; text-transform: uppercase; }}
-        @keyframes spin-slow {{ from {{ transform: rotate(0deg); }} to {{ transform: rotate(360deg); }} }}
-        .omni-logo-spin {{ height: 26px; width: 26px; animation: spin-slow 10s linear infinite; }}
+        /* CARD FLUTUANTE REMOVIDO - pode interferir no menu superior */
     
         /* CARD HERO (PADRONIZADO) */
         .mod-card-wrapper {{ display: flex; flex-direction: column; margin-top: 0 !important; margin-bottom: 20px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02); }}
@@ -1310,10 +1298,7 @@ def aplicar_estilos():
         }}
     </style>
     
-    <div class="omni-badge">
-        <img src="{src_logo_giratoria}" class="omni-logo-spin">
-        <span class="omni-text">OMNISFERA</span>
-    </div>
+    <!-- Card flutuante removido - pode interferir no menu superior -->
     
     <div class="mod-card-wrapper">
         <div class="mod-card-rect">
@@ -2541,7 +2526,7 @@ def main():
 
                 /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
                 .block-container {
-                    padding-top: 1rem !important; /* Padronizado: mesma distância do PEI */
+                    padding-top: 0.3rem !important; /* Espaço mínimo entre navbar e hero */
                     padding-bottom: 1rem !important;
                     margin-top: 0px !important;
                 }
