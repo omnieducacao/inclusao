@@ -188,20 +188,21 @@ st.markdown("""
 # FUNÇÃO DE VERIFICAÇÃO DE ACESSO
 # ==============================================================================
 def verificar_acesso():
+    """Verifica se o usuário está autenticado (sem quebrar layout do omni_utils)."""
     if not st.session_state.get("autenticado"):
         st.error("🔒 Acesso Negado. Por favor, faça login na Página Inicial.")
         st.stop()
 
-    # Não mexe no .block-container (senão quebra o padding do ou.inject_layout_css)
-    st.markdown("""
-    <style>
-      footer {visibility: hidden !important;}
-      header[data-testid="stHeader"] {display:none !important;}
-      [data-testid="stToolbar"] {display:none !important;}
-    </style>
-    """, unsafe_allow_html=True)
-
-verificar_acesso()
+    # Só garante que não apareça footer/menu, mas NÃO altera .block-container
+    st.markdown(
+        """
+        <style>
+          footer {visibility: hidden !important;}
+          #MainMenu {visibility: hidden !important;}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # ==============================================================================
