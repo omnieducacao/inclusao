@@ -1306,10 +1306,11 @@ div[data-baseweb="tab-highlight"] {
     display: flex;
     flex-wrap: wrap !important;
     gap: 6px;
-    padding: 4px 4px;              /* faixa das abas mais fina */
+    padding: 3px 3px;
     width: 100%;
-    margin-top: 4px !important;    /* 🔽 bem próximo do HERO */
-    margin-bottom: 0.2rem !important;
+    margin-top: 0px !important;    /* 🔽 ENCOSTADO */
+    margin-bottom: 0.15rem !important;
+
 }
 
 
