@@ -39,38 +39,9 @@ except Exception:
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Estratégias & PEI")
 ou.inject_compact_app_css()
-ou.inject_hero_card_colors()  # Cores dos hero cards (mesmas da Home)
-ou.inject_unified_ui_css()  # CSS padronizado: abas (pílulas), botões, selects, etc.
 
 # ==============================================================================
-# HERO - PEI (ÚNICO)
-# ==============================================================================
-hora = datetime.now().hour
-saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
-USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
-WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
-
-st.markdown(f"""
-<div class="mod-card-wrapper">
-    <div class="mod-card-rect">
-        <div class="mod-bar c-blue"></div>
-        <div class="mod-icon-area bg-blue-soft">
-            <i class="ri-book-open-fill"></i>
-        </div>
-        <div class="mod-content">
-            <div class="mod-title">Plano Educacional Individualizado (PEI)</div>
-            <div class="mod-desc">
-                {saudacao}, <strong>{USUARIO_NOME}</strong>! Crie e gerencie Planos Educacionais Individualizados 
-                para estudantes do workspace <strong>{WORKSPACE_NAME}</strong>. 
-                Desenvolva estratégias personalizadas e acompanhe o progresso de cada aluno.
-            </div>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ==============================================================================
-# AJUSTE FINO DE LAYOUT (Igual ao Hub)
+# AJUSTE FINO DE LAYOUT (ANTES DO HERO - PADRONIZADO)
 # ==============================================================================
 def forcar_layout_hub():
     st.markdown("""
@@ -83,7 +54,7 @@ def forcar_layout_hub():
 
             /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
             .block-container {
-                padding-top: 1rem !important; /* No Hub é 2rem, tente 1rem se quiser mais colado */
+                padding-top: 1rem !important; /* Padronizado: mesma distância */
                 padding-bottom: 1rem !important;
                 margin-top: 0px !important;
             }
@@ -99,16 +70,40 @@ def forcar_layout_hub():
         </style>
     """, unsafe_allow_html=True)
 
-# CHAME ESTA FUNÇÃO LOGO NO INÍCIO DO CÓDIGO
+# CHAME ESTA FUNÇÃO ANTES DO HERO CARD
 forcar_layout_hub()
-# ==============================================================================
-# THEME — PEI (accent por página: botões + tabs + foco + chips/tags)
-# Azul acinzentado, elegante, SEM underline nas tabs
-# Cole logo após o header/navbar
-# ==============================================================================
 
-# CSS padronizado aplicado via omni_utils
+# Cores dos hero cards (paleta vibrante)
+ou.inject_hero_card_colors()
+# CSS padronizado: abas (pílulas), botões, selects, etc.
 ou.inject_unified_ui_css()
+
+# ==============================================================================
+# HERO - PEI (ÚNICO)
+# ==============================================================================
+hora = datetime.now().hour
+saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
+USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
+WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
+
+st.markdown(f"""
+<div class="mod-card-wrapper">
+    <div class="mod-card-rect">
+        <div class="mod-bar c-blue"></div>
+        <div class="mod-icon-area bg-blue-soft">
+            <i class="ri-book-3-fill"></i>
+        </div>
+        <div class="mod-content">
+            <div class="mod-title">Plano Educacional Individualizado (PEI)</div>
+            <div class="mod-desc">
+                {saudacao}, <strong>{USUARIO_NOME}</strong>! Crie e gerencie Planos Educacionais Individualizados 
+                para estudantes do workspace <strong>{WORKSPACE_NAME}</strong>. 
+                Desenvolva estratégias personalizadas e acompanhe o progresso de cada aluno.
+            </div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 
 
