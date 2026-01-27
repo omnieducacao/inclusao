@@ -111,18 +111,6 @@ def inject_paee_css(theme: str = "teal"):
     f"""
 <style>
 
- /* ===============================
-    AJUSTE ENTRE MENU SUPERIOR E HERO (PAE/PAEE)
- ================================ */
-.block-container {{
-   padding-top: 0.3rem !important;  /* teste: 0.2rem / 0.1rem / 0 */
-}}
-
-.mod-card-wrapper {{
-    margin-top: 0 !important;
-    margin-bottom: 14px !important;  /* era 20px; teste 12px/10px */
-}}
-
 
  /* ============================
      COMPONENTES BASE (REUSO)
