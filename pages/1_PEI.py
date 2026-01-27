@@ -1207,7 +1207,7 @@ html, body, [class*="css"] {
    HERO CARD — PADRÃO OMNISFERA
 ================================ */
 .mod-card-wrapper {
-    margin-bottom: 20px;
+    margin-bottom: 4px;
     border-radius: 16px;
     overflow: hidden;
 }
