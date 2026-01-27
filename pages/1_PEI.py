@@ -1123,41 +1123,31 @@ st.markdown("""
         padding: 0 !important; 
     }
     
-    /* HACK ESPECÍFICO PARA REMOVER ESPAÇO ENTRE NAVBAR E CARD */
-    /* Remove espaço do container principal do Streamlit */
-    div[data-testid="stAppViewContainer"] > div:first-child {
-        padding-top: 0 !important;
-    }
-    
-    /* Remove espaço do block-container */
-    .block-container { 
-        padding-top: 0rem !important;  
-        padding-bottom: 1.5rem !important;
-    }
-    
-    /* Remove margem do container principal */
-    .main .block-container {
-        padding-left: 0.8rem !important;
-        padding-right: 0.8rem !important;
-        padding-top: 0rem !important;
-    }
-      
-    /* Remove espaço residual após o navbar */
-    .after-navbar-anchor {
-        margin-top: 6px !important;
-        height: 0 !important;
-    }
-    
-    /* CARD HERO - TAMANHO ORIGINAL, SEM MARGEM SUPERIOR */
-    .mod-card-wrapper {
-        display: flex;
-        flex-direction: column;
-        margin-top: 0px !important;  /* ZERO MARGEM SUPERIOR */
-        margin-bottom: 1rem !important;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-    }
+    /* HACK CONTROLADO — ESPAÇO ENTRE NAVBAR E CARD */
+
+/* Remove sobra padrão do Streamlit */
+div[data-testid="stAppViewContainer"] > div:first-child {
+    padding-top: 0 !important;
+}
+
+/* Container principal */
+.block-container { 
+    padding-top: 0rem !important;  
+    padding-bottom: 1.5rem !important;
+}
+
+.main .block-container {
+    padding-left: 0.8rem !important;
+    padding-right: 0.8rem !important;
+    padding-top: 0rem !important;
+}
+
+/* 🎯 CONTROLE FINO DO ESPAÇO APÓS NAVBAR */
+.after-navbar-anchor {
+    margin-top: 6px !important;   /* AJUSTE AQUI */
+    height: 0 !important;
+}
+
     
     /* CARD HERO TAMANHO ORIGINAL */
     .mod-card-rect {
