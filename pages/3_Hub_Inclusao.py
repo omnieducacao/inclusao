@@ -958,7 +958,7 @@ def carregar_bncc_completa():
     """Carrega o CSV da BNCC com todas as colunas necessárias"""
     try:
         if not os.path.exists('bncc.csv'):
-            st.sidebar.warning("📄 Arquivo 'bncc.csv' não encontrado na pasta do script")
+            st.warning("📄 Arquivo 'bncc.csv' não encontrado na pasta do script")
             return None
         
         try:
@@ -967,7 +967,7 @@ def carregar_bncc_completa():
             try:
                 df = pd.read_csv('bncc.csv', delimiter=';', encoding='utf-8')
             except Exception as e:
-                st.sidebar.error(f"❌ Erro ao ler CSV: {str(e)[:100]}")
+                st.error(f"❌ Erro ao ler CSV: {str(e)[:100]}")
                 return None
         
         colunas_necessarias = ['Ano', 'Disciplina', 'Unidade Temática', 
@@ -979,7 +979,7 @@ def carregar_bncc_completa():
                 colunas_faltando.append(col)
         
         if colunas_faltando:
-            st.sidebar.error(f"❌ Colunas faltando: {colunas_faltando}")
+            st.error(f"❌ Colunas faltando: {colunas_faltando}")
             return None
         
         df = df.dropna(subset=['Ano', 'Disciplina', 'Objeto do Conhecimento'])
@@ -989,7 +989,7 @@ def carregar_bncc_completa():
         return df
     
     except Exception as e:
-        st.sidebar.error(f"❌ Erro: {str(e)[:100]}")
+        st.error(f"❌ Erro: {str(e)[:100]}")
         return None
 
 def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=True):
@@ -1682,7 +1682,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
     with col_btn2:
         if st.button("✨ CRIAR ATIVIDADE", type="primary", key="btn_c", use_container_width=True):
             if not api_key:
-                st.error("❌ Insira a chave da OpenAI no sidebar")
+                st.error("❌ Insira a chave da OpenAI nas configurações")
             else:
                 with st.spinner("Elaborando atividade..."):
                     qtd_final = qtd_img_sel if usar_img else 0
@@ -2545,22 +2545,35 @@ def main():
     # CHAME ESTA FUNÇÃO DEPOIS DO HERO CARD (igual ao PEI)
     forcar_layout_hub()
     
-    # Configurar sidebar
-    with st.sidebar:
-        if 'OPENAI_API_KEY' in st.secrets:
-            api_key = st.secrets['OPENAI_API_KEY']
-            st.success("✅ OpenAI OK")
-        else:
-            api_key = st.text_input("Chave OpenAI:", type="password")
+    # Inicializar api_key antes de usar
+    if 'OPENAI_API_KEY' in st.secrets:
+        api_key = st.secrets['OPENAI_API_KEY']
+    elif 'OPENAI_API_KEY' in st.session_state:
+        api_key = st.session_state['OPENAI_API_KEY']
+    else:
+        api_key = None
+    
+    # Configurações de API (movidas da sidebar para expander no conteúdo principal)
+    with st.expander("⚙️ Configurações de API", expanded=False):
+        col_api1, col_api2 = st.columns(2)
+        with col_api1:
+            if 'OPENAI_API_KEY' in st.secrets:
+                st.success("✅ OpenAI OK")
+            else:
+                api_key_input = st.text_input("Chave OpenAI:", type="password", key="openai_key")
+                if api_key_input:
+                    api_key = api_key_input
+                    st.session_state['OPENAI_API_KEY'] = api_key
         
-        st.markdown("---")
-        if 'UNSPLASH_ACCESS_KEY' in st.secrets:
-            unsplash_key = st.secrets['UNSPLASH_ACCESS_KEY']
-            st.success("✅ Unsplash OK")
-        else:
-            unsplash_key = st.text_input("Chave Unsplash (Opcional):", type="password")
+        with col_api2:
+            if 'UNSPLASH_ACCESS_KEY' in st.secrets:
+                unsplash_key = st.secrets['UNSPLASH_ACCESS_KEY']
+                st.success("✅ Unsplash OK")
+            else:
+                unsplash_key = st.text_input("Chave Unsplash (Opcional):", type="password", key="unsplash_key")
+                if unsplash_key:
+                    st.session_state['UNSPLASH_ACCESS_KEY'] = unsplash_key
         
-        st.markdown("---")
         if st.button("🧹 Limpar Tudo e Reiniciar", type="secondary"):
             for key in list(st.session_state.keys()):
                 if key not in ['banco_estudantes', 'OPENAI_API_KEY', 'UNSPLASH_ACCESS_KEY', 'autenticado']:
