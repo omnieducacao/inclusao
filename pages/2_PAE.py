@@ -35,7 +35,7 @@ except Exception:
 
 # 3. HEADER E NAVBAR (do omni_utils)
 ou.render_omnisfera_header()
-ou.render_navbar(active_tab="PAEE")
+ou.render_navbar(active_tab="Plano de Ação (AEE)")
 
 # 4. CSS ESPECÍFICO DO MÓDULO (versão simplificada)
 def inject_modulo_css(theme="teal"):
