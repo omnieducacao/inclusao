@@ -41,6 +41,8 @@ html, body, [class*="css"] {
 [data-testid="stHeader"],
 [data-testid="stToolbar"],
 [data-testid="collapsedControl"],
+[data-testid="stSidebar"],
+section[data-testid="stSidebar"],
 footer {
     display: none !important;
 }
@@ -723,16 +725,20 @@ if not st.session_state.get("autenticado") or not st.session_state.get("workspac
             '>
                 <div style='font-size: 4rem; margin-bottom: 1rem;'>🔐</div>
                 <h3 style='color: #1E293B; margin-bottom: 1rem;'>Acesso Restrito</h3>
-                <p style='color: #64748B;'>Sessão inválida ou expirada. Por favor, faça login novamente.</p>
+                <p style='color: #64748B; margin-bottom: 1.5rem;'>Sessão inválida ou expirada. Por favor, faça login novamente.</p>
             </div>
             """,
             unsafe_allow_html=True,
         )
         
-        if st.button("🔓 Ir para Login", use_container_width=True, type="primary"):
-            st.session_state.autenticado = False
-            st.session_state.workspace_id = None
-            st.rerun()
+        col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+        with col_btn2:
+            if st.button("🔓 Fazer Login", use_container_width=True, type="primary"):
+                # Limpa toda a sessão
+                for key in list(st.session_state.keys()):
+                    del st.session_state[key]
+                # Redireciona para o login
+                st.switch_page("streamlit_app.py")
     st.stop()
 
 # ==============================================================================
