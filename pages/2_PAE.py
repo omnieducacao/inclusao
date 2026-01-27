@@ -233,7 +233,7 @@ st.markdown(
         <div class="mod-card-rect">
             <div class="mod-bar c-purple"></div>
             <div class="mod-icon-area bg-purple-soft">
-                <i class="ri-settings-5-fill"></i>
+                <i class="ri-tools-fill"></i>
             </div>
             <div class="mod-content">
                 <div class="mod-title">Atendimento Educacional Especializado (AEE) & Tecnologia Assistiva</div>
