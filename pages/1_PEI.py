@@ -1306,11 +1306,12 @@ div[data-baseweb="tab-highlight"] {
     display: flex;
     flex-wrap: wrap !important;
     gap: 8px;
-    padding: 10px 5px;
+    padding: 6px 4px;          /* menor altura da faixa */
     width: 100%;
-    margin-top: 24px !important;     /* 🔒 ENCAIXE HERO → ABAS */
-    margin-bottom: 0.5rem !important;
+    margin-top: 8px !important;     /* 👈 aproxima do HERO */
+    margin-bottom: 0.25rem !important;
 }
+
 
 .stTabs [data-baseweb="tab"] {
     height: 38px;
