@@ -13,34 +13,45 @@ import requests
 import time
 import uuid
 
-import omni_utils as ou
-# ... outros imports (pandas, requests, etc) mantêm igual ...
+import omni_utils as ou  # módulo atualizado
 
-# 1. CONFIGURAÇÃO (MANTÉM ISSO NO TOPO)
+# 1. CONFIGURAÇÃO INICIAL (topo absoluto)
 st.set_page_config(
-    page_title="Omnisfera | Plano de Ação",
-    page_icon="🧩",
+    page_title="Omnisfera | Nome da Página",
+    page_icon="📘",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
-# 2. HEADER E NAVBAR (PADRÃO)
+APP_VERSION = "v150.0 (SaaS Design)"
+
+# 2. UI LOCKDOWN (opcional)
+try:
+    from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
+    hide_streamlit_chrome_if_needed()
+    hide_default_sidebar_nav()
+except Exception:
+    pass
+
+# 3. HEADER E NAVBAR (do omni_utils)
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Plano de Ação (AEE)")
 
-# 3. HERO INTELIGENTE (SUBSTITUI O HTML MANUAL E O CSS)
-# page_key="pae" -> Vai puxar a cor VERDE automaticamente
-ou.render_hero(
-    page_key="pae",
-    icon="ri-puzzle-fill", 
-    title="Atendimento Educacional Especializado (AEE)",
-    description="Bom dia, <strong>{usuario}</strong>! Planeje estratégias no workspace <strong>{workspace}</strong>."
-)
+# 4. CSS ESPECÍFICO DO MÓDULO (versão simplificada)
+def inject_modulo_css(theme="teal"):
+    # Usar o CSS simplificado que mostrei acima
+    pass
 
-# 4. VERIFICAÇÃO DE ACESSO (MANTÉM)
-if not st.session_state.get("autenticado"):
-    st.error("🔒 Acesso Negado.")
-    st.stop()
+inject_modulo_css(theme="teal")
+
+# 5. VERIFICAÇÃO DE ACESSO (sem CSS)
+def verificar_acesso():
+    if not st.session_state.get("autenticado"):
+        st.error("🔒 Acesso Negado.")
+        st.stop()
+
+verificar_acesso()
+
 
 # ==============================================================================
 # AJUSTE FINO DE LAYOUT (Igual ao Hub)
