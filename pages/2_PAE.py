@@ -37,6 +37,9 @@ except Exception:
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Plano de Ação (AEE)")
 
+# Adiciona classe no body para cores específicas das abas
+st.markdown("<script>document.body.classList.add('page-purple');</script>", unsafe_allow_html=True)
+
 # 4. VERIFICAÇÃO DE ACESSO (sem CSS)
 def verificar_acesso():
     if not st.session_state.get("autenticado"):
@@ -130,11 +133,14 @@ def inject_paee_css(theme: str = "teal"):
       background:white !important;
       transform:scale(1.05) !important;
   }}
-  .mod-content {{ transform:scale(1.05); }}
   .mod-content {{
       flex-grow:1;
       padding:0 24px;
-      display:flex; flex-direction:column; justify-content:center;
+      display:flex; 
+      flex-direction:column; 
+      justify-content:center;
+      align-items:flex-start;
+      min-width:0; /* Previne overflow */
   }}
   .mod-title {{
       font-weight:800;
