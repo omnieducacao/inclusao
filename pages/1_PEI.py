@@ -1305,11 +1305,11 @@ div[data-baseweb="tab-highlight"] {
 .stTabs [data-baseweb="tab-list"] {
     display: flex;
     flex-wrap: wrap !important;
-    gap: 8px;
-    padding: 6px 4px;          /* menor altura da faixa */
+    gap: 6px;
+    padding: 4px 4px;              /* faixa das abas mais fina */
     width: 100%;
-    margin-top: 8px !important;     /* 👈 aproxima do HERO */
-    margin-bottom: 0.25rem !important;
+    margin-top: 4px !important;    /* 🔽 bem próximo do HERO */
+    margin-bottom: 0.2rem !important;
 }
 
 
