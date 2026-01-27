@@ -39,6 +39,7 @@ except Exception:
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Estratégias & PEI")
 ou.inject_compact_app_css()
+ou.inject_hero_card_colors()  # Cores dos hero cards (mesmas da Home)
 ou.inject_unified_ui_css()  # CSS padronizado: abas (pílulas), botões, selects, etc.
 
 # ==============================================================================
@@ -1087,9 +1088,9 @@ html, body, [class*="css"] {
 }
 
 .mod-card-rect:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    border-color: #CBD5E1;
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08) !important;
+    border-color: #CBD5E1 !important;
 }
 
 .mod-bar {
@@ -1106,8 +1107,14 @@ html, body, [class*="css"] {
     justify-content: center;
     font-size: 1.8rem;
     flex-shrink: 0;
-    background: transparent;
+    background: #FAFAFA !important;
     border-right: 1px solid #F1F5F9;
+    transition: all 0.3s ease;
+}
+
+.mod-card-rect:hover .mod-icon-area {
+    background: white !important;
+    transform: scale(1.05) !important;
 }
 
 .mod-content {
