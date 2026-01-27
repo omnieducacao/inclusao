@@ -1,359 +1,228 @@
-# pages/Alunos.py
 import streamlit as st
+import pandas as pd
 import requests
-from datetime import datetime, date
-import base64
-import os
-
-# BIBLIOTECA DE MENU
-from streamlit_option_menu import option_menu 
+import json
+from datetime import datetime
 
 # ==============================================================================
-# 1. CONFIGURAÇÃO
+# 1. FUNÇÕES DO NÚCLEO (Reutilizando seu código base)
 # ==============================================================================
-st.set_page_config(
-    page_title="Omnisfera • Estudantes",
-    page_icon="👥",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
 
-APP_VERSION = "v3.5 - Menu Próximo à Barra"
+def _sb_url() -> str:
+    url = str(st.secrets.get("SUPABASE_URL", "")).strip()
+    if not url:
+        raise RuntimeError("SUPABASE_URL missing")
+    return url.rstrip("/")
 
-# ==============================================================================
-# 2. CABEÇALHO FIXO (TOP BAR)
-# ==============================================================================
-def render_omnisfera_header():
-    """
-    Renderiza o cabeçalho fixo (Topbar) com CSS injetado localmente.
-    """
-    
-    # Funções auxiliares internas
-    def _get_img_b64(filename: str) -> str:
-        if os.path.exists(filename):
-            with open(filename, "rb") as f:
-                return base64.b64encode(f.read()).decode()
-        return ""
+def _sb_key() -> str:
+    key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "") or st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+    if not key:
+        raise RuntimeError("SUPABASE_KEY missing")
+    return key
 
-    def _get_initials(nome: str) -> str:
-        if not nome: return "U"
-        parts = nome.strip().split()
-        return f"{parts[0][0]}{parts[-1][0]}".upper() if len(parts) >= 2 else parts[0][:2].upper()
+def _headers() -> dict:
+    key = _sb_key()
+    return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
 
-    def _get_ws_short(max_len: int = 20) -> str:
-        ws = st.session_state.get("workspace_name", "") or "Workspace"
-        return (ws[:max_len] + "...") if len(ws) > max_len else ws
+# --- Carregamento de Alunos (Sua função original integrada) ---
+@st.cache_data(ttl=60, show_spinner=False)
+def list_students_rest():
+    """Busca estudantes do Supabase incluindo o campo pei_data."""
+    WORKSPACE_ID = st.session_state.get("workspace_id") # Garanta que isso existe na session
+    if not WORKSPACE_ID:
+        # Fallback para teste se não tiver workspace definido ainda
+        # st.warning("Workspace não definido, buscando todos (modo dev)") 
+        pass 
 
-    # CSS específico do Header
-    st.markdown("""
-    <style>
-        /* TOPBAR FIXA - APENAS LOGO E INFO DO USUÁRIO */
-        .topbar-thin {
-            position: fixed; top: 0; left: 0; right: 0; height: 50px;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid #E2E8F0;
-            z-index: 9999;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 2rem;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
+    try:
+        # URL baseada no seu código anterior
+        base = (
+            f"{_sb_url()}/rest/v1/students"
+            f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data"
+            # f"&workspace_id=eq.{WORKSPACE_ID}" # Descomente quando tiver o workspace ativo
+            f"&order=created_at.desc"
+        )
+        r = requests.get(base, headers=_headers(), timeout=20)
+        return r.json() if r.status_code == 200 else []
+    except Exception as e:
+        st.error(f"Erro ao carregar alunos: {str(e)}")
+        return []
+
+def carregar_estudantes_formatados():
+    """Processa a lista crua usando sua lógica de prioridade do pei_data."""
+    dados = list_students_rest()
+    estudantes = []
+
+    for item in dados:
+        pei_completo = item.get("pei_data") or {}
         
-        /* ELEMENTOS DA MARCA */
-        .brand-box { display: flex; align-items: center; gap: 8px; }
-        .brand-logo { 
-            height: 28px !important; width: auto !important; 
-            animation: spin-logo 60s linear infinite; 
-        }
-        .brand-img-text { height: 16px !important; width: auto; margin-left: 6px; }
-
-        /* BADGES DO USUÁRIO */
-        .user-badge-thin { 
-            background: #F1F5F9; border: 1px solid #E2E8F0; 
-            padding: 2px 8px; border-radius: 10px; 
-            font-size: 0.65rem; font-weight: 700; color: #64748B; 
-        }
-        .apple-avatar-thin { 
-            width: 26px; height: 26px; border-radius: 50%; 
-            background: linear-gradient(135deg, #4F46E5, #7C3AED); 
-            color: white; display: flex; align-items: center; 
-            justify-content: center; font-weight: 700; font-size: 0.65rem; 
-        }
-
-        /* ANIMAÇÃO */
-        @keyframes spin-logo { 100% { transform: rotate(360deg); } }
+        # Tenta pegar contexto da IA ou monta fallback
+        contexto_ia = ""
+        if isinstance(pei_completo, dict):
+            contexto_ia = pei_completo.get("ia_sugestao", "")
         
-        /* AJUSTE RESPONSIVO */
-        @media (max-width: 768px) { .topbar-thin { padding: 0 1rem; } }
-        
-        /* MENU BEM PRÓXIMO DA BARRA - ESPAÇO MÍNIMO (será sobrescrito por forcar_layout_hub) */
-        .block-container { 
-            padding-top: 0.3rem !important; /* Espaço mínimo entre navbar e hero */
-            padding-bottom: 1rem; 
+        if not contexto_ia:
+            diag = item.get("diagnosis", "Não informado")
+            serie = item.get("grade", "")
+            contexto_ia = f"Aluno: {item.get('name')}. Série: {serie}. Diagnóstico: {diag}."
+
+        estudante = {
+            "nome": item.get("name", ""),
+            "serie": item.get("grade", ""),
+            "id": item.get("id", ""),
+            "pei_data": pei_completo, # Objeto completo para usar na rubrica
+            "diagnosis": item.get("diagnosis", "")
         }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # Lógica de dados
-    icone = _get_img_b64("omni_icone.png")
-    texto = _get_img_b64("omni_texto.png")
-    ws_name = _get_ws_short()
-    user_name = st.session_state.get("usuario_nome", "Visitante")
-    
-    # Fallbacks caso não tenha imagem
-    img_logo = f'<img src="data:image/png;base64,{icone}" class="brand-logo">' if icone else "🌐"
-    img_text = f'<img src="data:image/png;base64,{texto}" class="brand-img-text">' if texto else "<span style='font-weight:800;color:#2B3674;'>OMNISFERA</span>"
-
-    # Renderização HTML do cabeçalho
-    st.markdown(f"""
-        <div class="topbar-thin">
-            <div class="brand-box">
-                {img_logo}
-                {img_text}
-            </div>
-            <div class="brand-box">
-                <div class="user-badge-thin">{ws_name}</div>
-                <div class="apple-avatar-thin">{_get_initials(user_name)}</div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
-# Renderizar o cabeçalho fixo
-render_omnisfera_header()
+        if estudante["nome"]:
+            estudantes.append(estudante)
+            
+    return estudantes
 
 # ==============================================================================
-# 3. DESIGN & CSS (MANTENDO O RESTANTE DO CSS ORIGINAL)
+# 2. FUNÇÕES ESPECÍFICAS DO MONITORAMENTO (Novas)
 # ==============================================================================
-st.markdown("""
-<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-<style>
-    /* Remove a barra de topo padrão do Streamlit visualmente */
-    header[data-testid="stHeader"] {
-        background-color: transparent !important;
-        z-index: 1;
+
+def get_student_logs(student_id, limit=5):
+    """Busca evidências no Diário de Bordo para confrontar com o PEI."""
+    try:
+        # Ajuste o nome da tabela 'daily_logs' se for diferente no seu Supabase
+        url = (
+            f"{_sb_url()}/rest/v1/daily_logs"
+            f"?student_id=eq.{student_id}"
+            f"&select=created_at,content,tags,sentiment"
+            f"&order=created_at.desc&limit={limit}"
+        )
+        r = requests.get(url, headers=_headers())
+        return r.json() if r.status_code == 200 else []
+    except:
+        return []
+
+def save_assessment(student_id, rubric_data, observation):
+    """Salva a avaliação consolidada."""
+    payload = {
+        "student_id": student_id,
+        "date_assessed": datetime.now().isoformat(),
+        "rubric_data": rubric_data,
+        "observation": observation,
+        "evaluator_id": st.session_state.get("user_id", "anon") 
     }
     
-    /* Esconder elementos nativos desnecessários */
-    [data-testid="stSidebarNav"], footer { display: none !important; }
+    # POST na tabela 'monitoring_assessments' (Criar essa tabela se não existir)
+    url = f"{_sb_url()}/rest/v1/monitoring_assessments"
+    r = requests.post(url, headers=_headers(), json=payload)
+    return r.status_code in [200, 201]
 
-    /* CARD HERO - PADRÃO VIA omni_utils.inject_hero_card_colors() */
-    /* Estilos de hero card são aplicados via função padronizada */
+# ==============================================================================
+# 3. INTERFACE (STREAMLIT)
+# ==============================================================================
 
-    /* TABELA DE ALUNOS */
-    .student-table { background: white; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-top: 20px; }
-    .student-header { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-weight: 800; color: #475569; font-size: 0.8rem; text-transform: uppercase; }
-    .student-row { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; padding: 12px 20px; border-bottom: 1px solid #F1F5F9; align-items: center; background: white; }
-    .student-row:hover { background: #F8FAFC; }
-    
-    /* BADGES */
-    .badge-grade { background: #F0F9FF; color: #0369A1; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; border: 1px solid #BAE6FD; }
-    .badge-class { background: #F0FDF4; color: #15803D; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; border: 1px solid #BBF7D0; }
-    
-    /* MODAL DELETAR */
-    .delete-confirm-banner { background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 8px; padding: 8px 12px; margin-top: 4px; font-size: 0.8rem; color: #92400E; display: flex; align-items: center; gap: 8px; }
+# Configuração de Estilo para ficar igual sua imagem (Vermelho)
+st.markdown("""
+<style>
+    .stSlider [data-baseweb="slider"] div[class*="css"] { background-color: #FF4B4B !important; }
+    .stButton>button { border-color: #FF4B4B; color: #FF4B4B; }
+    .stButton>button:hover { background-color: #FF4B4B; color: white; }
+    div[data-testid="stSelectbox"] > div > div { border-color: #FF4B4B; }
 </style>
 """, unsafe_allow_html=True)
 
-# ==============================================================================
-# 4. NAVEGAÇÃO (MENU - TUDO IGUAL AO QUE VOCÊ JÁ TEM!)
-# ==============================================================================
-def render_navbar():
-    opcoes = [
-        "Início", 
-        "Estudantes", 
-        "Estratégias & PEI", 
-        "Plano de Ação (AEE)", 
-        "Hub de Recursos", 
-        "Diário de Bordo", 
-        "Evolução & Dados"
-    ]
-    
-    icones = [
-        "house", 
-        "people", 
-        "book", 
-        "puzzle", 
-        "rocket", 
-        "journal", 
-        "bar-chart"
-    ]
+st.title("📊 Monitoramento & Avaliação")
+st.markdown("Consolidação de dados do **PEI** com evidências do **Diário de Bordo**.")
 
-    selected = option_menu(
-        menu_title=None, 
-        options=opcoes,
-        icons=icones,
-        default_index=1, # Aba 'Estudantes' selecionada
-        orientation="horizontal",
-        styles={
-            "container": {"padding": "0!important", "background-color": "#ffffff", "border": "1px solid #E2E8F0", "border-radius": "10px", "margin-bottom": "10px"},
-            "icon": {"color": "#64748B", "font-size": "14px"}, 
-            "nav-link": {"font-size": "11px", "text-align": "center", "margin": "0px", "--hover-color": "#F1F5F9", "color": "#475569", "white-space": "nowrap"},
-            "nav-link-selected": {"background-color": "#0284C7", "color": "white", "font-weight": "600"},
-        }
-    )
-    
-    # Navegação
-    if selected == "Início":
-        target = "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "0_Home.py"
-        if not os.path.exists(target): target = "Home.py"
-        st.switch_page(target)
-    elif selected == "Estratégias & PEI": st.switch_page("pages/1_PEI.py")
-    elif selected == "Plano de Ação (AEE)": st.switch_page("pages/2_PAE.py")
-    elif selected == "Hub de Recursos": st.switch_page("pages/3_Hub_Inclusao.py")
-    elif selected == "Diário de Bordo": st.switch_page("pages/4_Diario_de_Bordo.py")
-    elif selected == "Evolução & Dados": st.switch_page("pages/5_Monitoramento_Avaliacao.py")
+# --- SELETOR DE ESTUDANTE (SIDEBAR OU TOPO) ---
+lista_alunos = carregar_estudantes_formatados()
+opcoes = {a['nome']: a for a in lista_alunos}
 
-render_navbar()
-
-# Adiciona classe no body para cores específicas das abas
-st.markdown("<script>document.body.classList.add('page-sky');</script>", unsafe_allow_html=True)
-
-# Cores dos hero cards (mesmas da Home)
-ou.inject_hero_card_colors()
-# CSS padronizado: abas (pílulas), botões, selects, etc.
-ou.inject_unified_ui_css()
-
-# ==============================================================================
-# 5. LÓGICA DE DADOS (SUPABASE)
-# ==============================================================================
-
-# Autenticação
-if "autenticado" not in st.session_state:
-    st.session_state.autenticado = False
-
-if not st.session_state.autenticado:
-    st.warning("🔒 Acesso restrito. Faça login na Home.")
+if not opcoes:
+    st.warning("Nenhum aluno encontrado ou erro na conexão.")
     st.stop()
 
-# Helpers
-def _sb_headers():
-    try:
-        key = st.secrets.get("SUPABASE_SERVICE_KEY") or st.secrets.get("SUPABASE_ANON_KEY")
-        return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-    except: return {}
+col_sel, col_blank = st.columns([1, 2])
+with col_sel:
+    nome_selecionado = st.selectbox("Selecione o Estudante:", ["Selecione..."] + list(opcoes.keys()))
 
-# Funções API
-@st.cache_data(ttl=10, show_spinner=False)
-def list_students_rest(workspace_id):
-    try:
-        url = st.secrets.get("SUPABASE_URL").rstrip("/") + "/rest/v1/students"
-        params = f"?select=id,name,grade,class_group,diagnosis&workspace_id=eq.{workspace_id}&order=created_at.desc"
-        r = requests.get(url + params, headers=_sb_headers(), timeout=10)
-        return r.json() if r.status_code == 200 else []
-    except: return []
-
-def delete_student_rest(sid, wid):
-    try:
-        url = st.secrets.get("SUPABASE_URL").rstrip("/") + f"/rest/v1/students?id=eq.{sid}&workspace_id=eq.{wid}"
-        requests.delete(url, headers=_sb_headers())
-        return True
-    except: return False
-
-# ==============================================================================
-# 6. ÁREA DE TRABALHO
-# ==============================================================================
-
-# Variáveis
-ws_id = st.session_state.get("workspace_id")
-user_name = st.session_state.get("usuario_nome", "Visitante")
-user_first = user_name.split()[0]
-saudacao = "Bom dia" if 5 <= datetime.now().hour < 12 else "Boa tarde"
-
-# Refresh
-if st.session_state.get("force_refresh"):
-    list_students_rest.clear()
-    st.session_state["force_refresh"] = False
-
-if not ws_id:
-    st.error("Nenhum workspace selecionado.")
-    st.stop()
-
-alunos = list_students_rest(ws_id)
-
-# Card Hero
-st.markdown(f"""
-    <div class="mod-card-wrapper">
-        <div class="mod-card-rect">
-            <div class="mod-bar c-sky"></div>
-            <div class="mod-icon-area bg-sky-soft">
-                <i class="ri-line-chart-fill"></i>
-            </div>
-            <div class="mod-content">
-                <div class="mod-title">Evolução & Dados</div>
-                <div class="mod-desc">{saudacao}, <strong>{user_first}</strong>! Acompanhe indicadores, gráficos e relatórios de progresso dos alunos neste workspace.</div>
-            </div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
-# Controles
-c1, c2 = st.columns([3, 1])
-with c1:
-    q = st.text_input("Buscar por nome", placeholder="Digite o nome...", label_visibility="collapsed")
-with c2:
-    if st.button("🔄 Atualizar Lista", use_container_width=True):
-        st.session_state["force_refresh"] = True
-        st.rerun()
-
-# Filtragem
-if q:
-    alunos = [a for a in alunos if q.lower() in (a.get("name") or "").lower()]
-
-# ==============================================================================
-# 7. TABELA DE ALUNOS
-# ==============================================================================
-if not alunos:
-    st.info("Nenhum estudante encontrado.")
-else:
-    st.markdown("""
-    <div class="student-table">
-        <div class="student-header"><div>Nome</div><div>Série</div><div>Turma</div><div>Diagnóstico</div><div>Ações</div></div>
-    """, unsafe_allow_html=True)
+if nome_selecionado != "Selecione...":
+    aluno = opcoes[nome_selecionado]
+    student_id = aluno['id']
+    pei = aluno['pei_data'] if isinstance(aluno['pei_data'], dict) else {}
     
-    for a in alunos:
-        sid = a.get("id")
-        nome = a.get("name", "—")
-        serie = a.get("grade", "—")
-        turma = a.get("class_group", "—")
-        diag = a.get("diagnosis", "—")
+    # Busca evidências reais
+    logs = get_student_logs(student_id)
+
+    st.divider()
+
+    # --- ÁREA DE CONFRONTO (PEI vs DIÁRIO) ---
+    c1, c2 = st.columns(2)
+    
+    with c1:
+        st.subheader("🎯 Expectativa (PEI)")
+        st.caption("Objetivos cadastrados no Plano de Ensino")
         
-        confirm_key = f"confirm_del_{sid}"
-        if confirm_key not in st.session_state:
-            st.session_state[confirm_key] = False
+        # Tenta extrair dados estruturados do seu JSON pei_data
+        objetivos = pei.get('objetivos', []) or pei.get('goals', [])
         
-        st.markdown(f"""
-        <div class="student-row">
-            <div style="font-weight:700; color:#1E293B;">{nome}</div>
-            <div><span class="badge-grade">{serie}</span></div>
-            <div><span class="badge-class">{turma}</span></div>
-            <div style="font-size:0.8rem; color:#64748B;">{diag}</div>
-            <div>
-        """, unsafe_allow_html=True)
-        
-        if not st.session_state[confirm_key]:
-            col_btn, _ = st.columns([1, 4])
-            with col_btn:
-                if st.button("🗑️", key=f"btn_del_{sid}", help="Excluir"):
-                    st.session_state[confirm_key] = True
-                    st.rerun()
+        if objetivos:
+            for obj in objetivos:
+                st.info(f"📍 {obj}")
         else:
-            st.markdown(f"""<div class="delete-confirm-banner"><i class="ri-alert-fill"></i> Excluir <b>{nome}</b>?</div>""", unsafe_allow_html=True)
-            c_sim, c_nao = st.columns(2)
-            with c_sim:
-                if st.button("✅", key=f"yes_{sid}", type="primary"):
-                    delete_student_rest(sid, ws_id)
-                    list_students_rest.clear()
-                    st.session_state[confirm_key] = False
-                    st.rerun()
-            with c_nao:
-                if st.button("❌", key=f"no_{sid}"):
-                    st.session_state[confirm_key] = False
-                    st.rerun()
+            # Se não tiver estrutura, mostra o diagnóstico
+            st.info(f"**Diagnóstico Base:** {aluno['diagnosis']}")
+            st.write("Sem objetivos específicos estruturados no JSON.")
 
-        st.markdown("</div></div>", unsafe_allow_html=True)
+    with c2:
+        st.subheader("📝 Realidade (Diário)")
+        st.caption("Últimos registros de atividades")
+        
+        if logs:
+            for log in logs:
+                data = datetime.fromisoformat(log['created_at']).strftime("%d/%m")
+                # Cardzinho estilo 'timeline'
+                st.markdown(f"""
+                <div style="border-left: 3px solid #FF4B4B; padding-left: 10px; margin-bottom: 10px;">
+                    <small style="color:gray">{data}</small><br>
+                    {log.get('content', '')}
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.warning("Nenhum registro encontrado no diário para este aluno.")
+
+    st.divider()
+
+    # --- RUBRICA DE AVALIAÇÃO ---
+    st.subheader("🧩 Rubrica de Desenvolvimento")
     
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# Rodapé
-st.markdown(f"<div style='text-align:center;color:#94A3B8;font-size:0.7rem;padding:20px;margin-top:20px;'>{len(alunos)} estudantes • {APP_VERSION}</div>", unsafe_allow_html=True)
+    with st.form("avaliacao_rubrica"):
+        # Critérios da Rubrica
+        criterios = {
+            "autonomia": "Nível de Autonomia",
+            "social": "Interação Social",
+            "conteudo": "Apropriação do Conteúdo (PEI)",
+            "comportamento": "Regulação Comportamental"
+        }
+        
+        respostas = {}
+        cols = st.columns(2)
+        i = 0
+        
+        # Cria os sliders vermelhos dinamicamente
+        for chave, titulo in criterios.items():
+            col_atual = cols[i % 2]
+            with col_atual:
+                respostas[chave] = st.select_slider(
+                    f"**{titulo}**",
+                    options=["Não Iniciado", "Iniciado", "Em Desenvolvimento", "Consolidado"],
+                    value="Em Desenvolvimento"
+                )
+            i += 1
+            
+        st.write("")
+        obs = st.text_area("Observação Final da Avaliação", height=100)
+        
+        btn_salvar = st.form_submit_button("💾 Salvar Monitoramento", type="primary")
+        
+        if btn_salvar:
+            sucesso = save_assessment(student_id, respostas, obs)
+            if sucesso:
+                st.success("Avaliação salva com sucesso no banco de dados!")
+            else:
+                st.error("Erro ao salvar. Verifique a tabela 'monitoring_assessments' no Supabase.")
