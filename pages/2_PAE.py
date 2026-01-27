@@ -24,7 +24,6 @@ st.set_page_config(
 )
 
 
-
 APP_VERSION = "v150.0 (SaaS Design)"
 
 # ✅ UI lockdown (não quebra se faltar)
@@ -38,6 +37,18 @@ except Exception:
 # ✅ Header + Navbar (depois do page_config)
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Plano de Ação (AEE)")
+
+def gap_hub():
+    """Respiro padrão do Hub (mesmo feeling de distâncias)."""
+    st.markdown(
+        """
+        <style>
+          .omni-page-gap { height: 14px; }
+        </style>
+        <div class="omni-page-gap"></div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # ==============================================================================
