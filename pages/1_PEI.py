@@ -17,8 +17,19 @@ from datetime import date, datetime
 import omni_utils as ou  # módulo atualizado
 
 
+# ==============================================================================
+# BLOCO INICIAL PADRÃO — PEI (SAFE)
+# - 1x set_page_config
+# - ui_lockdown (se existir)
+# - gate autenticação
+# - header + navbar (omni_utils)
+# - NÃO altera .block-container
+# ==============================================================================
 
-# ✅ set_page_config UMA VEZ SÓ, SEMPRE no topo
+import streamlit as st
+import omni_utils as ou
+
+# 1) CONFIG (UMA VEZ SÓ, SEM DUPLICAR)
 st.set_page_config(
     page_title="Omnisfera | PEI",
     page_icon="📘",
@@ -26,9 +37,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-APP_VERSION = "v150.0 (SaaS Design)"
-
-# ✅ UI lockdown (não quebra se faltar)
+# 2) UI LOCKDOWN (opcional)
 try:
     from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
     hide_streamlit_chrome_if_needed()
@@ -36,43 +45,27 @@ try:
 except Exception:
     pass
 
-# ✅ Header + Navbar (depois do page_config)
+# 3) ESTADO BASE (se seu PEI usa session_state)
+try:
+    ou.ensure_state()
+except Exception:
+    pass
+
+# 4) GATE (não mexe no layout)
+def verificar_acesso_padrao():
+    if not st.session_state.get("autenticado"):
+        st.error("🔒 Acesso Negado. Por favor, faça login na Página Inicial.")
+        st.stop()
+
+verificar_acesso_padrao()
+
+# 5) HEADER + NAVBAR (padrão)
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Estratégias & PEI")
-ou.inject_compact_app_css()
 
-# ==============================================================================
-# AJUSTE FINO DE LAYOUT (Igual ao Hub)
-# ==============================================================================
-def forcar_layout_hub():
-    st.markdown("""
-        <style>
-            /* 1. Remove o cabeçalho padrão do Streamlit e a linha colorida */
-            header[data-testid="stHeader"] {
-                visibility: hidden !important;
-                height: 0px !important;
-            }
+# 6) ESPAÇADOR PEQUENO (opcional)
+st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
-            .block-container {
-                padding-top: 1rem !important; /* No Hub é 2rem, tente 1rem se quiser mais colado */
-                padding-bottom: 1rem !important;
-                margin-top: 0px !important;
-            }
-
-            /* 3. Remove padding extra se houver container de navegação */
-            div[data-testid="stVerticalBlock"] > div:first-child {
-                padding-top: 0px !important;
-            }
-            
-            /* 4. Esconde o menu hambúrguer e rodapé */
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-        </style>
-    """, unsafe_allow_html=True)
-
-# CHAME ESTA FUNÇÃO LOGO NO INÍCIO DO CÓDIGO
-forcar_layout_hub()
 # ==============================================================================
 # THEME — PEI (accent por página: botões + tabs + foco + chips/tags)
 # Cole logo após o header/navbar
