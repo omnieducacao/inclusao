@@ -83,6 +83,9 @@ def forcar_layout_hub():
 # CHAME ESTA FUNÇÃO LOGO NO INÍCIO DO CÓDIGO
 forcar_layout_hub()
 
+# CSS padronizado: abas (pílulas), botões, selects, etc.
+ou.inject_unified_ui_css()
+
 # 2. CSS Específico desta página (Cards e Tabelas)
 st.markdown("""
 <style>
