@@ -274,7 +274,7 @@ st.markdown(f"""
         <div class="mod-card-rect">
             <div class="mod-bar c-sky"></div>
             <div class="mod-icon-area bg-sky-soft">
-                <i class="ri-bar-chart-box-fill"></i>
+                <i class="ri-line-chart-fill"></i>
             </div>
             <div class="mod-content">
                 <div class="mod-title">Evolução & Dados</div>
