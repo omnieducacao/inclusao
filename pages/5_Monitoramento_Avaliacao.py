@@ -12,7 +12,7 @@ from streamlit_option_menu import option_menu
 # 1. CONFIGURAÇÃO
 # ==============================================================================
 st.set_page_config(
-    page_title="Omnisfera • Estudantes",
+    page_title="Omnisfera • Monitoramento e Avaliação",
     page_icon="👥",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -89,7 +89,7 @@ def render_omnisfera_header():
         
         /* MENU BEM PRÓXIMO DA BARRA - ESPAÇO MÍNIMO (será sobrescrito por forcar_layout_hub) */
         .block-container { 
-            padding-top: 1rem !important; /* Padronizado: mesma distância do PEI */
+            padding-top: 0.3rem !important; /* Espaço mínimo entre navbar e hero */
             padding-bottom: 1rem; 
         }
     </style>
