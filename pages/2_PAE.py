@@ -37,54 +37,13 @@ except Exception:
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Plano de Ação (AEE)")
 
-# 4. CSS ESPECÍFICO DO MÓDULO (versão simplificada)
-def inject_modulo_css(theme="teal"):
-    # Usar o CSS simplificado que mostrei acima
-    pass
-
-inject_modulo_css(theme="teal")
-
-# 5. VERIFICAÇÃO DE ACESSO (sem CSS)
+# 4. VERIFICAÇÃO DE ACESSO (sem CSS)
 def verificar_acesso():
     if not st.session_state.get("autenticado"):
         st.error("🔒 Acesso Negado.")
         st.stop()
 
 verificar_acesso()
-
-
-# ==============================================================================
-# AJUSTE FINO DE LAYOUT (Igual ao Hub)
-# ==============================================================================
-def forcar_layout_hub():
-    st.markdown("""
-        <style>
-            /* 1. Remove o cabeçalho padrão do Streamlit e a linha colorida */
-            header[data-testid="stHeader"] {
-                visibility: hidden !important;
-                height: 0px !important;
-            }
-
-            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
-            .block-container {
-                padding-top: 1rem !important; /* No Hub é 2rem, tente 1rem se quiser mais colado */
-                padding-bottom: 1rem !important;
-                margin-top: 0px !important;
-            }
-
-            /* 3. Remove padding extra se houver container de navegação */
-            div[data-testid="stVerticalBlock"] > div:first-child {
-                padding-top: 0px !important;
-            }
-            
-            /* 4. Esconde o menu hambúrguer e rodapé */
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-        </style>
-    """, unsafe_allow_html=True)
-
-# CHAME ESTA FUNÇÃO LOGO NO INÍCIO DO CÓDIGO
-forcar_layout_hub()
 
 
 # ==============================================================================
@@ -332,10 +291,6 @@ def verificar_acesso():
     )
 
 
-# Chamar sempre no topo da página (depois do header/navbar do omni_utils)
-inject_paee_css(theme="teal")
-verificar_acesso()
-
 # ==============================================================================
 # CARD HERO PRINCIPAL
 # ==============================================================================
@@ -365,6 +320,42 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+# ==============================================================================
+# AJUSTE FINO DE LAYOUT (Igual ao PEI - PADRONIZADO)
+# ==============================================================================
+def forcar_layout_hub():
+    st.markdown("""
+        <style>
+            /* 1. Remove o cabeçalho padrão do Streamlit e a linha colorida */
+            header[data-testid="stHeader"] {
+                visibility: hidden !important;
+                height: 0px !important;
+            }
+
+            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
+            .block-container {
+                padding-top: 1rem !important; /* Padronizado: mesma distância do PEI */
+                padding-bottom: 1rem !important;
+                margin-top: 0px !important;
+            }
+
+            /* 3. Remove padding extra se houver container de navegação */
+            div[data-testid="stVerticalBlock"] > div:first-child {
+                padding-top: 0px !important;
+            }
+            
+            /* 4. Esconde o menu hambúrguer e rodapé */
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+        </style>
+    """, unsafe_allow_html=True)
+
+# CHAME ESTA FUNÇÃO DEPOIS DO HERO CARD (igual ao PEI)
+forcar_layout_hub()
+
+# Chamar CSS do módulo (depois do layout)
+inject_paee_css(theme="teal")
 
 # ==============================================================================
 # PARTE 2/4: CONEXÃO COM BANCO DE DADOS E CARREGAMENTO DE ALUNOS
