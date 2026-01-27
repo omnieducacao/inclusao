@@ -138,7 +138,7 @@ st.markdown(
         <div class="mod-card-rect">
             <div class="mod-bar c-rose"></div>
             <div class="mod-icon-area bg-rose-soft">
-                <i class="ri-book-2-fill"></i>
+                <i class="ri-edit-box-fill"></i>
             </div>
             <div class="mod-content">
                 <div class="mod-title">Diário de Bordo PAEE</div>
