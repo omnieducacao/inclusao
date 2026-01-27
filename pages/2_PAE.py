@@ -36,9 +36,6 @@ except Exception:
 # 3. HEADER E NAVBAR (do omni_utils)
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Plano de Ação (AEE)")
-ou.inject_compact_app_css(accent="#0D9488")  # teal do PAEE
-inject_paee_css(theme="teal")
-verificar_acesso()
 
 # 4. CSS ESPECÍFICO DO MÓDULO (versão simplificada)
 def inject_modulo_css(theme="teal"):
@@ -56,6 +53,67 @@ def verificar_acesso():
 verificar_acesso()
 
 
+# ==============================================================================
+# HERO - PEI (ÚNICO)
+# ==============================================================================
+hora = datetime.now().hour
+saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
+USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
+WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
+
+st.markdown(f"""
+<div class="mod-card-wrapper">
+    <div class="mod-card-rect">
+        <div class="mod-bar c-blue"></div>
+        <div class="mod-icon-area bg-blue-soft">
+            <i class="ri-book-open-fill"></i>
+        </div>
+        <div class="mod-content">
+            <div class="mod-title">Plano Educacional Individualizado (PEI)</div>
+            <div class="mod-desc">
+                {saudacao}, <strong>{USUARIO_NOME}</strong>! Crie e gerencie Planos Educacionais Individualizados 
+                para estudantes do workspace <strong>{WORKSPACE_NAME}</strong>. 
+                Desenvolva estratégias personalizadas e acompanhe o progresso de cada aluno.
+            </div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+
+
+# ==============================================================================
+# AJUSTE FINO DE LAYOUT (Igual ao Hub)
+# ==============================================================================
+def forcar_layout_hub():
+    st.markdown("""
+        <style>
+            /* 1. Remove o cabeçalho padrão do Streamlit e a linha colorida */
+            header[data-testid="stHeader"] {
+                visibility: hidden !important;
+                height: 0px !important;
+            }
+
+            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
+            .block-container {
+                padding-top: 1rem !important; /* No Hub é 2rem, tente 1rem se quiser mais colado */
+                padding-bottom: 1rem !important;
+                margin-top: 0px !important;
+            }
+
+            /* 3. Remove padding extra se houver container de navegação */
+            div[data-testid="stVerticalBlock"] > div:first-child {
+                padding-top: 0px !important;
+            }
+            
+            /* 4. Esconde o menu hambúrguer e rodapé */
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+        </style>
+    """, unsafe_allow_html=True)
+
+# CHAME ESTA FUNÇÃO LOGO NO INÍCIO DO CÓDIGO
+forcar_layout_hub()
 
 
 # ==============================================================================
