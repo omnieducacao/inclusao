@@ -250,23 +250,7 @@ def criar_pdf_generico(texto):
 # ==============================================================================
 # FUNÇÕES DE CONEXÃO COM SUPABASE (CORRIGIDO PARA SEPARAR DIAGNÓSTICO DE HIPERFOCO)
 # ==============================================================================
-
-def _sb_url() -> str:
-    """Retorna a URL do Supabase"""
-    url = str(st.secrets.get("SUPABASE_URL", "")).strip()
-    if not url:
-        return ""
-    return url.rstrip("/")
-
-def _sb_key() -> str:
-    """Retorna a chave do Supabase"""
-    key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "") or st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
-    return key
-
-def _headers() -> dict:
-    """Retorna headers para requisições HTTP"""
-    key = _sb_key()
-    return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+# Funções _sb_url(), _sb_key(), _headers() removidas - usar ou._sb_url(), ou._sb_key(), ou._headers() do omni_utils
 
 @st.cache_data(ttl=10, show_spinner=False)
 def list_students_rest():
@@ -280,16 +264,13 @@ def list_students_rest():
         return []
 
     try:
-        if not _sb_url() or not _sb_key():
-            return []
-
         base = (
-            f"{_sb_url()}/rest/v1/students"
+            f"{ou._sb_url()}/rest/v1/students"
             f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data,paee_ciclos,planejamento_ativo"
             f"&workspace_id=eq.{WORKSPACE_ID}"
             f"&order=created_at.desc"
         )
-        r = requests.get(base, headers=_headers(), timeout=20)
+        r = requests.get(base, headers=ou._headers(), timeout=20)
         return r.json() if r.status_code == 200 else []
     except Exception as e:
         print(f"Erro ao carregar alunos: {str(e)}")
