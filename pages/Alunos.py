@@ -67,20 +67,31 @@ def forcar_layout_hub():
                 height: 0px !important;
             }
 
-            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
+            /* 2. Garante que navbar fique visível (z-index maior) */
+            .omni-topbar-nav {
+                z-index: 1000000 !important;
+            }
+
+            /* 3. Puxa todo o conteúdo para cima - começa logo após topbar (88px) */
             .main .block-container,
             .block-container {
-                padding-top: 0rem !important; /* Espaço mínimo entre topbar e hero */
+                padding-top: 88px !important; /* Altura total da topbar (40px header + 48px navbar) */
                 padding-bottom: 1rem !important;
+                margin-top: 0px !important;
+                margin-bottom: 0px !important;
+            }
+            
+            /* 4. Remove qualquer margem do hero card */
+            .mod-card-wrapper {
                 margin-top: 0px !important;
             }
 
-            /* 3. Remove padding extra se houver container de navegação */
+            /* 4. Remove padding extra se houver container de navegação */
             div[data-testid="stVerticalBlock"] > div:first-child {
                 padding-top: 0px !important;
             }
             
-            /* 4. Esconde o menu hambúrguer e rodapé */
+            /* 5. Esconde o menu hambúrguer e rodapé */
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
         </style>
