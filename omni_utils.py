@@ -83,7 +83,7 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
   /* 🔥 CONTEÚDO: começa logo abaixo de topbar (navbar agora está dentro da topbar) */
   /* Nota: padding-top será sobrescrito por forcar_layout_hub() nas páginas */
   .main .block-container {{
-    padding-top: calc(var(--topbar-h) + var(--content-gap)) !important;
+    padding-top: var(--topbar-h) !important; /* Altura total da topbar (88px) */
     padding-bottom: 2rem !important;
     padding-left: 2rem !important;
     padding-right: 2rem !important;
@@ -119,16 +119,6 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
     padding: 8px 24px !important;
     height: 40px !important;
     flex-shrink: 0 !important;
-  }}
-  
-  /* Navbar dentro da topbar */
-  .omni-topbar-nav {{
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 4px 24px 8px 24px !important;
-    height: calc(var(--topbar-h) - 40px) !important;
-    border-top: 1px solid #F1F5F9 !important;
   }}
   .omni-brand {{
     display:flex !important;
@@ -181,7 +171,7 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
     height: calc(var(--topbar-h) - 40px) !important;
     background: #ffffff !important;
     border-bottom: 1px solid #E2E8F0 !important;
-    z-index: 999998 !important;
+    z-index: 1000000 !important; /* Maior que topbar para ficar visível */
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
