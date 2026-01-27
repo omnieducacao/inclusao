@@ -1451,8 +1451,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Renderizar progresso (se necessário)
-render_progresso()
+# ✅ NÃO renderizar progresso aqui (vamos colocar abaixo das abas)
+# render_progresso()
+
 # ==============================================================================
 # ABAS DO PEI (TEXTO EM MAIÚSCULAS, SEM EMOJIS)
 # ==============================================================================
@@ -1461,7 +1462,11 @@ abas = [
     "PLANO DE AÇÃO", "MONITORAMENTO", "CONSULTORIA IA", "DASHBOARD & DOCS", "JORNADA GAMIFICADA"
 ]
 
-tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab_9= st.tabs(abas)
+tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab_9 = st.tabs(abas)
+
+# ✅ AGORA SIM: progresso logo abaixo das abas (e acima do conteúdo da aba)
+render_progresso()
+
 # ==============================================================================
 # 11. ABA INÍCIO — CENTRAL (Gestão de Alunos + Backups)
 # ==============================================================================
