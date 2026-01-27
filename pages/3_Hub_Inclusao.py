@@ -1219,7 +1219,7 @@ def aplicar_estilos():
         .mod-card-rect:hover .mod-icon-area {{ transform: scale(1.05); }}
         .mod-content {{ flex-grow: 1; padding: 0 24px; display: flex; flex-direction: column; justify-content: center; }}
         .mod-title {{ font-weight: 800; font-size: 1.1rem; color: #1E293B; margin-bottom: 6px; letter-spacing: -0.3px; transition: color 0.2s; }}
-        .mod-card-rect:hover .mod-title {{ color: #0D9488; }}
+        .mod-card-rect:hover .mod-title {{ color: #64748B; }}
         .mod-desc {{ font-size: 0.8rem; color: #64748B; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }}
     
         /* CORES */
@@ -1228,59 +1228,8 @@ def aplicar_estilos():
         .c-purple {{ background: #8B5CF6 !important; }}
         .bg-purple-soft {{ background: transparent !important; color: #8B5CF6 !important; }}
     
-        /* ABAS */
-        .stTabs [data-baseweb="tab-list"] {{ 
-            gap: 2px !important; 
-            background-color: transparent !important; 
-            padding: 0 !important; 
-            border-radius: 0 !important; 
-            margin-top: 24px !important; 
-            border-bottom: 2px solid #E2E8F0 !important; 
-            flex-wrap: wrap !important; 
-        }}
-        .stTabs [data-baseweb="tab"] {{ 
-            height: 36px !important; 
-            white-space: nowrap !important; 
-            background-color: transparent !important; 
-            border-radius: 8px 8px 0 0 !important; 
-            padding: 0 20px !important; 
-            color: #64748B !important; 
-            font-weight: 600 !important; 
-            font-size: 0.85rem !important; 
-            text-transform: uppercase !important; 
-            letter-spacing: 0.3px !important; 
-            transition: all 0.2s ease !important; 
-            border: none !important; 
-            margin: 0 2px 0 0 !important; 
-            position: relative !important;
-        }}
-        .stTabs [aria-selected="true"] {{ 
-            background-color: transparent !important; 
-            color: #0D9488 !important; 
-            font-weight: 700 !important; 
-            border: none !important; 
-            box-shadow: none !important; 
-        }}
-        .stTabs [aria-selected="true"]::after {{
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background-color: #0D9488;
-            border-radius: 2px 2px 0 0;
-        }}
-        .stTabs [data-baseweb="tab"]:not([aria-selected="true"]) {{ 
-            background-color: transparent !important; 
-        }}
-        .stTabs [data-baseweb="tab"]:hover:not([aria-selected="true"]) {{ 
-            background-color: #F8FAFC !important; 
-            color: #475569 !important; 
-        }}
-        .stTabs [data-baseweb="tab"]::before, .stTabs [aria-selected="true"]::before {{ 
-            display: none !important; 
-        }}
+        /* ABAS — PADRÃO VIA omni_utils.inject_unified_ui_css() */
+        /* Estilos de tabs são aplicados via função padronizada */
     
         /* PEDAGOGIA BOX */
         .pedagogia-box {{ background-color: #F8FAFC; border-left: 4px solid #CBD5E1; padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 25px; font-size: 0.95rem; color: #4A5568; }}
@@ -1327,30 +1276,8 @@ def aplicar_estilos():
             transition: width 1s; 
         }}
         
-        /* BOTÕES PERSONALIZADOS */
-        .stButton > button {{
-            border-radius: 8px !important;
-            font-weight: 600 !important;
-            transition: all 0.2s ease !important;
-        }}
-        .stButton > button[kind="primary"] {{
-            background: linear-gradient(135deg, #0D9488, #14B8A6) !important;
-            border: none !important;
-        }}
-        .stButton > button[kind="primary"]:hover {{
-            background: linear-gradient(135deg, #0F766E, #0D9488) !important;
-            transform: translateY(-1px) !important;
-            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2) !important;
-        }}
-        .stButton > button[kind="secondary"] {{
-            background: white !important;
-            color: #0D9488 !important;
-            border: 1px solid #0D9488 !important;
-        }}
-        .stButton > button[kind="secondary"]:hover {{
-            background: #F0FDFA !important;
-            border-color: #0D9488 !important;
-        }}
+        /* BOTÕES — PADRÃO VIA omni_utils.inject_unified_ui_css() */
+        /* Estilos de botões são aplicados via função padronizada */
         
         /* HEADER DO ALUNO */
         .student-header {{
@@ -2588,6 +2515,9 @@ def main():
     
     # Aplicar estilos (inclui hero card)
     aplicar_estilos()
+    
+    # CSS padronizado: abas (pílulas), botões, selects, etc.
+    ou.inject_unified_ui_css()
     
     # ==============================================================================
     # AJUSTE FINO DE LAYOUT (Igual ao PEI - PADRONIZADO)
