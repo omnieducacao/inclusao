@@ -41,28 +41,34 @@ ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Estratégias & PEI")
 ou.inject_compact_app_css()
 
+from datetime import datetime
+
 # ==============================================================================
-# HERO — PEI (ALTURA PADRÃO OMNISFERA)
+# HERO - PEI (ÚNICO)
 # ==============================================================================
+hora = datetime.now().hour
+saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
+USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
+WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
 
 st.markdown(f"""
 <div class="mod-card-wrapper">
     <div class="mod-card-rect">
         <div class="mod-bar c-blue"></div>
-        <div class="mod-icon-area">
+        <div class="mod-icon-area bg-blue-soft">
             <i class="ri-book-open-fill"></i>
         </div>
         <div class="mod-content">
             <div class="mod-title">Plano Educacional Individualizado (PEI)</div>
             <div class="mod-desc">
-                Criação, acompanhamento e registro do Plano Educacional Individualizado
-                do estudante, alinhado à BNCC, DUA e à legislação vigente.
+                {saudacao}, <strong>{USUARIO_NOME}</strong>! Crie e gerencie Planos Educacionais Individualizados 
+                para estudantes do workspace <strong>{WORKSPACE_NAME}</strong>. 
+                Desenvolva estratégias personalizadas e acompanhe o progresso de cada aluno.
             </div>
         </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
-
 
 # ==============================================================================
 # AJUSTE FINO DE LAYOUT (Igual ao Hub)
@@ -1451,36 +1457,6 @@ def render_progresso():
     </div>
     """, unsafe_allow_html=True)
 
-# ==============================================================================
-# 10. CARD HERO - RENDERIZAÇÃO DIRETA SEM ESPAÇO
-# ==============================================================================
-hora = datetime.now().hour
-saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
-USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
-WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
-
-# Container ultra compacto - sem margens
-st.markdown(f"""
-<div class="mod-card-wrapper">
-    <div class="mod-card-rect">
-        <div class="mod-bar c-blue"></div>
-        <div class="mod-icon-area bg-blue-soft">
-            <i class="ri-book-open-fill"></i>
-        </div>
-        <div class="mod-content">
-            <div class="mod-title">Plano Educacional Individualizado (PEI)</div>
-            <div class="mod-desc">
-                {saudacao}, <strong>{USUARIO_NOME}</strong>! Crie e gerencie Planos Educacionais Individualizados 
-                para estudantes do workspace <strong>{WORKSPACE_NAME}</strong>. 
-                Desenvolva estratégias personalizadas e acompanhe o progresso de cada aluno.
-            </div>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ✅ NÃO renderizar progresso aqui (vamos colocar abaixo das abas)
-# render_progresso()
 
 # ==============================================================================
 # ABAS DO PEI (TEXTO EM MAIÚSCULAS, SEM EMOJIS)
