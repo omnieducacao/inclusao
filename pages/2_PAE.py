@@ -121,12 +121,16 @@ def inject_paee_css(theme: str = "teal"):
       display:flex; align-items:center; justify-content:center;
       font-size:1.8rem;
       flex-shrink:0;
-      background:transparent !important;
+      background:#FAFAFA !important;
       border-right:1px solid #F1F5F9;
       transition:all .3s ease;
       color:{ACCENT} !important;
   }}
-  .mod-card-rect:hover .mod-icon-area {{ transform:scale(1.05); }}
+  .mod-card-rect:hover .mod-icon-area {{
+      background:white !important;
+      transform:scale(1.05) !important;
+  }}
+  .mod-content {{ transform:scale(1.05); }}
   .mod-content {{
       flex-grow:1;
       padding:0 24px;
@@ -227,8 +231,8 @@ st.markdown(
     f"""
     <div class="mod-card-wrapper">
         <div class="mod-card-rect">
-            <div class="mod-bar c-teal"></div>
-            <div class="mod-icon-area bg-teal-soft">
+            <div class="mod-bar c-purple"></div>
+            <div class="mod-icon-area bg-purple-soft">
                 <i class="ri-settings-5-fill"></i>
             </div>
             <div class="mod-content">
@@ -280,6 +284,8 @@ forcar_layout_hub()
 
 # Chamar CSS do módulo (depois do layout)
 inject_paee_css(theme="teal")
+# Cores dos hero cards (mesmas da Home)
+ou.inject_hero_card_colors()
 # CSS padronizado: abas (pílulas), botões, selects, etc.
 ou.inject_unified_ui_css()
 
