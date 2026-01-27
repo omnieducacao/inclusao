@@ -88,29 +88,6 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
     padding-right: 2rem !important;
     max-width: 100% !important;
     font-family: 'Inter', sans-serif !important;
-    position: relative !important;
-  }}
-  
-  /* Garante que o navbar fica acima do conteúdo */
-  .omni-navbar {{
-    position: fixed !important;
-    top: var(--topbar-h) !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    height: var(--navbar-h) !important;
-    background: rgba(255, 255, 255, 0.98) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-    z-index: 999998 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    pointer-events: none !important;
-    padding: 4px 0 !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-    will-change: transform !important;
-    transform: translateZ(0) !important; /* Força aceleração de hardware */
   }}
 
   /* (opcional) reduz margens padrão do primeiro elemento dentro do main */
@@ -175,30 +152,17 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
     box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25) !important;
   }}
 
-  /* NAVBAR WRAPPER (fixa abaixo da topbar - SEMPRE FIXA) */
+  /* NAVBAR WRAPPER */
   .omni-navbar {{
-    position: fixed !important;
-    top: var(--topbar-h) !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
+    position: relative !important;
     height: var(--navbar-h) !important;
-    background: rgba(255, 255, 255, 0.98) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    background: transparent !important;
     z-index: 999998 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    pointer-events: none !important;
-    padding: 4px 0 !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-    /* Garante que fica fixo mesmo ao rolar - força aceleração de hardware */
-    will-change: transform !important;
-    transform: translateZ(0) !important;
-    /* Remove qualquer transformação que possa interferir */
-    margin: 0 !important;
-    border: none !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    pointer-events: none;
+    padding: 4px 0 !important; /* Espaço mínimo entre topbar e navbar */
   }}
   .omni-navbar-inner {{
     width: min(1200px, calc(100% - 48px));
@@ -390,11 +354,7 @@ def render_navbar(active_tab: str = "Início"):
     except ValueError:
         default_idx = 0
 
-    # Renderiza o navbar fixo fora do fluxo normal
-    st.markdown("""
-    <div class="omni-navbar" style="position: fixed !important; top: var(--topbar-h) !important; left: 0 !important; right: 0 !important; z-index: 999998 !important;">
-        <div class="omni-navbar-inner">
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="omni-navbar"><div class="omni-navbar-inner">', unsafe_allow_html=True)
 
     selected = option_menu(
         menu_title=None,
@@ -438,39 +398,6 @@ def render_navbar(active_tab: str = "Início"):
     )
 
     st.markdown("</div></div>", unsafe_allow_html=True)
-    
-    # Script para garantir que o navbar fique fixo
-    st.markdown("""
-    <script>
-    (function() {
-        // Garante que o navbar está fixo após o carregamento
-        function fixNavbar() {
-            const navbar = document.querySelector('.omni-navbar');
-            if (navbar) {
-                navbar.style.position = 'fixed';
-                navbar.style.top = 'var(--topbar-h)';
-                navbar.style.left = '0';
-                navbar.style.right = '0';
-                navbar.style.zIndex = '999998';
-                navbar.style.width = '100%';
-            }
-        }
-        
-        // Executa imediatamente
-        fixNavbar();
-        
-        // Executa após o carregamento completo
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', fixNavbar);
-        } else {
-            fixNavbar();
-        }
-        
-        // Executa após um pequeno delay para garantir
-        setTimeout(fixNavbar, 100);
-    })();
-    </script>
-    """, unsafe_allow_html=True)
     
     # Adiciona CSS para cor específica da página no navbar selecionado
     page_colors = {
