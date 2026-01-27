@@ -1392,37 +1392,78 @@ def get_logo_base64() -> str | None:
 src_logo_giratoria = get_logo_base64()
 
 def calcular_progresso() -> int:
-    """Calcula o progresso do formulário"""
-    try:
-        dados = st.session_state.get("dados", {}) or {}
-        campos = ["nome", "nasc", "turma", "ano"]
-        total = len(campos)
-        ok = sum(1 for c in campos if dados.get(c))
-        return int(round((ok / total) * 100)) if total else 0
-    except Exception:
-        return 0
+    d = st.session_state.get("dados", {}) or {}
+
+    total_abas = 7  # quantas abas contam no progresso
+    feitas = 0
+
+    # 1️⃣ ESTUDANTE
+    if d.get("nome"):
+        feitas += 1
+
+    # 2️⃣ EVIDÊNCIAS
+    if d.get("checklist_evidencias") or d.get("orientacoes_especialistas"):
+        feitas += 1
+
+    # 3️⃣ REDE DE APOIO
+    if d.get("rede_apoio") or d.get("orientacoes_por_profissional"):
+        feitas += 1
+
+    # 4️⃣ MAPEAMENTO
+    if d.get("barreiras_selecionadas") or d.get("potencias") or d.get("hiperfoco"):
+        feitas += 1
+
+    # 5️⃣ PLANO DE AÇÃO
+    if (
+        d.get("estrategias_acesso")
+        or d.get("estrategias_ensino")
+        or d.get("estrategias_avaliacao")
+    ):
+        feitas += 1
+
+    # 6️⃣ MONITORAMENTO
+    if d.get("status_meta") and d.get("monitoramento_data"):
+        feitas += 1
+
+    # 7️⃣ CONSULTORIA IA (gerado)
+    if d.get("ia_sugestao"):
+        feitas += 1
+
+    progresso = int(round((feitas / total_abas) * 100))
+    return max(0, min(100, progresso))
+
 
 def render_progresso():
-    """Renderiza a barra de progresso compacta"""
-    p = max(0, min(100, int(calcular_progresso())))
-    icon_html = ""
-    
-    if src_logo_giratoria:
-        icon_html = f'<img src="{src_logo_giratoria}" class="omni-logo-spin" style="width:25px;height:25px;">'
-    
-    bar_color = "linear-gradient(90deg, #FF6B6B 0%, #FF8E53 100%)"
-    if p >= 100:
-        bar_color = "linear-gradient(90deg, #00C6FF 0%, #0072FF 100%)"
-    
-    st.markdown(f"""
-    <div class="progress-container">
-        <div style="width:100%; height:3px; background:#E2E8F0; border-radius:2px; position:relative;">
-            <div style="height:3px; width:{p}%; background:{bar_color}; border-radius:2px;"></div>
-            <div style="position:absolute; top:-14px; left:{p}%; transform:translateX(-50%);">{icon_html}</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    p = calcular_progresso()
 
+    if p == 0:
+        status = "Início"
+    elif p < 40:
+        status = "Dados iniciais"
+    elif p < 70:
+        status = "Mapeamento em construção"
+    elif p < 100:
+        status = "Quase pronto"
+    else:
+        status = "PEI concluído"
+
+    st.markdown(
+        f"""
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            font-weight:800;
+            margin:6px 0 4px 0;
+        ">
+            <span>Progresso do PEI</span>
+            <span>{status} • {p}%</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.progress(p / 100)
 # ==============================================================================
 # 10. CARD HERO - RENDERIZAÇÃO DIRETA SEM ESPAÇO
 # ==============================================================================
