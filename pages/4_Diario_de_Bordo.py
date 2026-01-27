@@ -86,34 +86,43 @@ st.set_page_config(
 # ==============================================================================
 # BLOCO VISUAL INTELIGENTE: HEADER OMNISFERA
 # ==============================================================================
-try:
-    IS_TEST_ENV = st.secrets.get("ENV") == "TESTE"
-except:
-    IS_TEST_ENV = False
-
-def get_logo_base64():
-    caminhos = ["omni_icone.png", "logo.png", "iconeaba.png"]
-    for c in caminhos:
-        if os.path.exists(c):
-            with open(c, "rb") as f:
-                return f"data:image/png;base64,{base64.b64encode(f.read()).decode()}"
-    return "https://cdn-icons-png.flaticon.com/512/1183/1183672.png"
-
-src_logo_giratoria = get_logo_base64()
-
-if IS_TEST_ENV:
-    card_bg = "rgba(255, 220, 50, 0.95)" 
-    card_border = "rgba(200, 160, 0, 0.5)"
-else:
-    card_bg = "rgba(255, 255, 255, 0.85)"
-    card_border = "rgba(255, 255, 255, 0.6)"
-
+# ==============================================================================
+# BLOCO VISUAL INTELIGENTE: HEADER OMNISFERA + CSS CORRIGIDO
+# ==============================================================================
 st.markdown("""
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
 
 <style>
-    /* CARD HERO */
-    .mod-card-wrapper { display: flex; flex-direction: column; margin-bottom: 20px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02); }
+    /* --- 1. CORREÇÃO ESTRUTURAL ( IGUAL AO HUB/ALUNOS ) --- */
+    
+    /* Remove cabeçalho padrão e sobe o conteúdo */
+    [data-testid="stHeader"] {
+        visibility: visible !important;
+        background-color: transparent !important;
+    }
+    
+    .block-container {
+        padding-top: 2rem !important; /* Cola o conteúdo no topo */
+        padding-bottom: 1rem !important;
+        margin-top: 0px !important;
+    }
+    
+    footer { visibility: hidden !important; }
+    #MainMenu { visibility: hidden !important; }
+
+    /* --- 2. ESTILOS DO CARD HERO (COM O MARGIN-TOP CORRIGIDO) --- */
+    
+    .mod-card-wrapper { 
+        display: flex; 
+        flex-direction: column; 
+        margin-bottom: 20px; 
+        /* AQUI ESTÁ A MÁGICA DO ALINHAMENTO COM A PÁGINA ALUNOS: */
+        margin-top: 15px !important;  
+        border-radius: 16px; 
+        overflow: hidden; 
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02); 
+    }
+
     .mod-card-rect { background: white; border-radius: 16px 16px 0 0; padding: 0; border: 1px solid #E2E8F0; border-bottom: none; display: flex; flex-direction: row; align-items: center; height: 130px; width: 100%; position: relative; overflow: hidden; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
     .mod-card-rect:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08); border-color: #CBD5E1; }
     .mod-bar { width: 6px; height: 100%; flex-shrink: 0; }
@@ -128,91 +137,21 @@ st.markdown("""
     .c-teal { background: #0D9488 !important; }
     .bg-teal-soft { background: transparent !important; color: #0D9488 !important; }
 
-    /* CARD DE DIÁRIO */
-    .diario-card {
-        background: white;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 15px;
-        transition: all 0.2s ease;
-    }
-    .diario-card:hover {
-        border-color: #0D9488;
-        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
-    }
-
-    /* BADGES */
+    /* Demais estilos mantidos... */
+    .diario-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; margin-bottom: 15px; transition: all 0.2s ease; }
+    .diario-card:hover { border-color: #0D9488; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1); }
     .badge-individual { background: #DBEAFE; color: #1E40AF; }
     .badge-grupo { background: #D1FAE5; color: #065F46; }
     .badge-observacao { background: #FEF3C7; color: #92400E; }
-
-    /* PROGRESS BAR */
-    .prog-bar-bg {
-        width: 100%;
-        height: 8px;
-        background: #E2E8F0;
-        border-radius: 4px;
-        overflow: hidden;
-        margin-top: 8px;
-    }
-    .prog-bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #0D9488, #14B8A6);
-        transition: width 1s;
-    }
-
-    /* STATS CARDS */
-    .stat-card {
-        background: white;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-    }
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 800;
-        color: #0D9488;
-        margin-bottom: 5px;
-    }
-    .stat-label {
-        font-size: 0.85rem;
-        color: #64748B;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    /* FORM STYLES */
-    .form-section {
-        background: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        padding: 25px;
-        margin-bottom: 20px;
-    }
-
-    /* TIMELINE */
-    .timeline-item {
-        position: relative;
-        padding-left: 30px;
-        margin-bottom: 20px;
-    }
-    .timeline-dot {
-        position: absolute;
-        left: 0;
-        top: 5px;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: #0D9488;
-    }
-    .timeline-content {
-        background: white;
-        border: 1px solid #E2E8F0;
-        border-radius: 8px;
-        padding: 15px;
-    }
+    .prog-bar-bg { width: 100%; height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+    .prog-bar-fill { height: 100%; background: linear-gradient(90deg, #0D9488, #14B8A6); transition: width 1s; }
+    .stat-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; text-align: center; }
+    .stat-value { font-size: 2rem; font-weight: 800; color: #0D9488; margin-bottom: 5px; }
+    .stat-label { font-size: 0.85rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-section { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+    .timeline-item { position: relative; padding-left: 30px; margin-bottom: 20px; }
+    .timeline-dot { position: absolute; left: 0; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: #0D9488; }
+    .timeline-content { background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 15px; }
 </style>
 """, unsafe_allow_html=True)
 
