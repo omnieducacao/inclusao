@@ -178,6 +178,109 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
         unsafe_allow_html=True,
     )
 
+def inject_compact_app_css(accent: str = "#0D9488"):
+    """
+    CSS do app (páginas internas) para:
+    - botões menores e consistentes
+    - tabs compactas e bonitas
+    IMPORTANTE: não altera inputs globalmente.
+    """
+    st.markdown(
+        f"""
+<style>
+  /* =========================
+     BOTÕES (compactos)
+     ========================= */
+  .stButton > button,
+  .stDownloadButton > button {{
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    padding: 0.38rem 0.85rem !important;
+    min-height: 36px !important;
+    line-height: 1 !important;
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease !important;
+  }}
+
+  /* Primary */
+  .stButton > button[kind="primary"],
+  .stDownloadButton > button[kind="primary"] {{
+    background: linear-gradient(135deg, {accent}, #14B8A6) !important;
+    border: none !important;
+  }}
+  .stButton > button[kind="primary"]:hover,
+  .stDownloadButton > button[kind="primary"]:hover {{
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(13,148,136,.18) !important;
+  }}
+
+  /* Secondary */
+  .stButton > button[kind="secondary"],
+  .stDownloadButton > button[kind="secondary"] {{
+    background: #ffffff !important;
+    color: {accent} !important;
+    border: 1px solid {accent} !important;
+  }}
+  .stButton > button[kind="secondary"]:hover,
+  .stDownloadButton > button[kind="secondary"]:hover {{
+    background: rgba(13,148,136,.06) !important;
+  }}
+
+  /* Evita botões gigantes quando alguém usa use_container_width=True
+     (o botão pode ocupar a largura, mas não fica “alto/gordo”) */
+  .stButton, .stDownloadButton {{
+    margin: 0.15rem 0 !important;
+  }}
+
+  /* =========================
+     TABS (compactas)
+     ========================= */
+  .stTabs [data-baseweb="tab-list"] {{
+    gap: 2px !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border-bottom: 2px solid #E2E8F0 !important;
+    flex-wrap: wrap !important;
+    margin-top: 18px !important;
+  }}
+  .stTabs [data-baseweb="tab"] {{
+    height: 34px !important;
+    padding: 0 16px !important;
+    border-radius: 10px 10px 0 0 !important;
+    font-size: 0.80rem !important;
+    font-weight: 700 !important;
+    letter-spacing: .3px !important;
+    color: #64748B !important;
+    border: none !important;
+    background: transparent !important;
+    position: relative !important;
+  }}
+  .stTabs [aria-selected="true"] {{
+    color: {accent} !important;
+  }}
+  .stTabs [aria-selected="true"]::after {{
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 0; right: 0;
+    height: 3px;
+    background: {accent};
+    border-radius: 3px 3px 0 0;
+  }}
+  .stTabs [data-baseweb="tab"]:hover:not([aria-selected="true"]) {{
+    background: #F8FAFC !important;
+    color: #475569 !important;
+  }}
+
+  /* =========================
+     Pequenos refinamentos
+     ========================= */
+  .stDivider {{ margin: 0.75rem 0 !important; }}
+</style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_omnisfera_header():
     """
     Topbar fixa (apenas render).
