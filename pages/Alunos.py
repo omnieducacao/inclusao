@@ -50,6 +50,9 @@ ou.ensure_state()
 # 1. Renderiza o Cabeçalho (Logo + Usuário)
 ou.render_omnisfera_header()
 
+# Adiciona classe no body para cores específicas das abas
+st.markdown("<script>document.body.classList.add('page-indigo');</script>", unsafe_allow_html=True)
+
 # 2. Renderiza o Menu de Navegação (Aba Ativa: Estudantes) - ANTES DO HERO
 ou.render_navbar(active_tab="Estudantes")
 
@@ -95,7 +98,66 @@ ou.inject_unified_ui_css()
 st.markdown("""
 <style>
     /* CARD HERO - PADRÃO VIA omni_utils.inject_hero_card_colors() */
-    /* Estilos de hero card são aplicados via função padronizada */
+    .mod-card-wrapper { 
+        display: flex; 
+        flex-direction: column; 
+        margin-bottom: 20px; 
+        border-radius: 16px; 
+        overflow: hidden; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
+        margin-top: 0 !important; 
+    }
+    .mod-card-rect { 
+        background: white; 
+        border-radius: 16px 16px 0 0; 
+        padding: 0; 
+        border: 1px solid #E2E8F0; 
+        border-bottom: none; 
+        display: flex; 
+        flex-direction: row; 
+        align-items: center; 
+        height: 130px !important; 
+        width: 100%; 
+        position: relative; 
+        overflow: hidden; 
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .mod-bar { 
+        width: 6px; 
+        height: 100%; 
+        flex-shrink: 0; 
+    }
+    .mod-icon-area { 
+        width: 90px; 
+        height: 100%; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 1.8rem; 
+        flex-shrink: 0; 
+        background: #FAFAFA !important; 
+        border-right: 1px solid #F1F5F9; 
+        transition: all 0.3s ease; 
+    }
+    .mod-content { 
+        flex-grow: 1; 
+        padding: 0 24px; 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center; 
+    }
+    .mod-title { 
+        font-weight: 800; 
+        font-size: 1.1rem; 
+        color: #1E293B; 
+        margin-bottom: 6px; 
+        letter-spacing: -0.3px; 
+    }
+    .mod-desc { 
+        font-size: 0.8rem; 
+        color: #64748B; 
+        line-height: 1.4; 
+    }
 
     /* TABELA DE ALUNOS */
     .student-table { background: white; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-top: 20px; }
