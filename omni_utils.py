@@ -410,6 +410,88 @@ def render_navbar(active_tab: str = "Início"):
             if selected == "Início" and not os.path.exists(target):
                 target = "Home.py"
             st.switch_page(target)
+import streamlit as st
+
+# ==============================================================================
+# OMNI THEME — Mapa central de cores por página/módulo
+# ==============================================================================
+OMNI_PAGE_COLORS = {
+    "home":  {"name": "Home",                "accent": "#2563EB"},
+    "alunos":{"name": "Estudantes",          "accent": "#0EA5E9"},
+    "pei":   {"name": "PEI",                 "accent": "#7C3AED"},
+    "pae":   {"name": "Plano de Ação / PAE", "accent": "#10B981"},
+    "hub":   {"name": "Hub de Inclusão",     "accent": "#F59E0B"},
+    "diario":{"name": "Diário de Bordo",     "accent": "#EF4444"},
+    "monitor":{"name":"Monitoramento",       "accent": "#06B6D4"},
+}
+
+def apply_page_theme(page_key: str, *, show_top_badge: bool = True, override_accent: str | None = None):
+    """
+    Aplica tema da página de forma segura:
+    - mexe só nos botões (.stButton)
+    - não altera inputs globalmente
+    - mostra um badge no topo com nome + hex (opcional)
+    """
+    cfg = OMNI_PAGE_COLORS.get(page_key, {"name": page_key, "accent": "#2563EB"})
+    page_name = cfg["name"]
+    accent = override_accent or cfg["accent"]
+
+    if show_top_badge:
+        st.markdown(
+            f"""
+            <div style="
+                display:flex; align-items:center; justify-content:space-between;
+                padding:10px 12px; border-radius:12px;
+                border:1px solid rgba(0,0,0,.06);
+                background:rgba(255,255,255,.65);
+                backdrop-filter: blur(6px);
+                margin: 4px 0 10px 0;
+            ">
+                <div style="font-weight:700; font-size:14px;">🎛️ Tema da Página — {page_name}</div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas;
+                                font-size:12px; opacity:.75;">{accent}</div>
+                    <div style="width:18px; height:18px; border-radius:6px;
+                                background:{accent};
+                                border:1px solid rgba(0,0,0,.12);"></div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    # CSS: escopo APENAS botões
+    st.markdown(
+        f"""
+        <style>
+          .stButton > button[kind="primary"]{{
+            background: {accent} !important;
+            border: 1px solid {accent} !important;
+            color: #fff !important;
+            font-weight: 650 !important;
+            border-radius: 10px !important;
+            transition: transform .12s ease, filter .12s ease !important;
+          }}
+          .stButton > button[kind="primary"]:hover{{
+            filter: brightness(.92) !important;
+            transform: translateY(-1px) !important;
+          }}
+
+          .stButton > button[kind="secondary"]{{
+            background: transparent !important;
+            color: {accent} !important;
+            border: 1px solid rgba(0,0,0,.14) !important;
+            font-weight: 650 !important;
+            border-radius: 10px !important;
+          }}
+          .stButton > button[kind="secondary"]:hover{{
+            border-color: {accent} !important;
+            filter: brightness(.98) !important;
+          }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
 # =============================================================================
 # 3) SUPABASE & UTILS (LÓGICA PRESERVADA)
