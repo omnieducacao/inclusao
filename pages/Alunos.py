@@ -47,17 +47,16 @@ def gap_hub():
 # Garante que o estado de sessão (login, workspace) existe
 ou.ensure_state()
 
-# 1. Renderiza o Cabeçalho (Logo + Usuário)
+# ✅ Header + Navbar (depois do page_config)
 ou.render_omnisfera_header()
+ou.render_navbar(active_tab="Estudantes")
+ou.inject_compact_app_css()
 
 # Adiciona classe no body para cores específicas das abas
 st.markdown("<script>document.body.classList.add('page-indigo');</script>", unsafe_allow_html=True)
 
-# 2. Renderiza o Menu de Navegação (Aba Ativa: Estudantes) - ANTES DO HERO
-ou.render_navbar(active_tab="Estudantes")
-
 # ==============================================================================
-# AJUSTE FINO DE LAYOUT (Igual ao PEI - PADRONIZADO)
+# AJUSTE FINO DE LAYOUT (ANTES DO HERO - PADRONIZADO)
 # ==============================================================================
 def forcar_layout_hub():
     st.markdown("""
@@ -86,10 +85,10 @@ def forcar_layout_hub():
         </style>
     """, unsafe_allow_html=True)
 
-# CHAME ESTA FUNÇÃO DEPOIS DO NAVBAR E ANTES DO HERO
+# CHAME ESTA FUNÇÃO ANTES DO HERO CARD (igual ao PEI)
 forcar_layout_hub()
 
-# Cores dos hero cards (mesmas da Home)
+# Cores dos hero cards (paleta vibrante)
 ou.inject_hero_card_colors()
 # CSS padronizado: abas (pílulas), botões, selects, etc.
 ou.inject_unified_ui_css()
@@ -204,12 +203,38 @@ def delete_student_rest(sid, wid):
     except: return False
 
 # ==============================================================================
-# 4. APLICAÇÃO PRINCIPAL
+# HERO - ESTUDANTES
+# ==============================================================================
+hora = datetime.now().hour
+saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
+USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
+WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
+
+st.markdown(f"""
+<div class="mod-card-wrapper">
+    <div class="mod-card-rect">
+        <div class="mod-bar c-indigo"></div>
+        <div class="mod-icon-area bg-indigo-soft">
+            <i class="ri-user-star-fill"></i>
+        </div>
+        <div class="mod-content">
+            <div class="mod-title">Gestão de Estudantes</div>
+            <div class="mod-desc">
+                {saudacao}, <strong>{USUARIO_NOME}</strong>! Gerencie os dados dos alunos vinculados aos PEIs 
+                no workspace <strong>{WORKSPACE_NAME}</strong>.
+            </div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# Espaçamento após hero card
+st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+
+# ==============================================================================
+# VERIFICAÇÃO DE ACESSO E DADOS
 # ==============================================================================
 ws_id = st.session_state.get("workspace_id")
-user_name = st.session_state.get("usuario_nome", "Visitante")
-user_first = user_name.split()[0]
-saudacao = "Bom dia" if 5 <= datetime.now().hour < 12 else "Boa tarde"
 
 # Lógica de Refresh
 if st.session_state.get("force_refresh"):
@@ -222,22 +247,6 @@ if not ws_id:
 
 # Busca Alunos
 alunos = list_students_rest(ws_id)
-
-# Renderiza Hero Card
-st.markdown(f"""
-    <div class="mod-card-wrapper">
-        <div class="mod-card-rect">
-            <div class="mod-bar c-indigo"></div>
-            <div class="mod-icon-area bg-indigo-soft">
-                <i class="ri-user-star-fill"></i>
-            </div>
-            <div class="mod-content">
-                <div class="mod-title">Gestão de Estudantes</div>
-                <div class="mod-desc">{saudacao}, <strong>{user_first}</strong>! Gerencie os dados dos alunos vinculados aos PEIs neste workspace.</div>
-            </div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
 
 # Controles de Busca
 c1, c2 = st.columns([3, 1])
