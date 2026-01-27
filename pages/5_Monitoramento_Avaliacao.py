@@ -206,6 +206,9 @@ def render_navbar():
 
 render_navbar()
 
+# Adiciona classe no body para cores específicas das abas
+st.markdown("<script>document.body.classList.add('page-sky');</script>", unsafe_allow_html=True)
+
 # Cores dos hero cards (mesmas da Home)
 ou.inject_hero_card_colors()
 # CSS padronizado: abas (pílulas), botões, selects, etc.
