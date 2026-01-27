@@ -40,7 +40,6 @@ except Exception:
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Estratégias & PEI")
 
-st.markdown("<div class='after-navbar-anchor'></div>", unsafe_allow_html=True)
 
 
 # ==============================================================================
@@ -1125,32 +1124,6 @@ st.markdown("""
         margin: 0 !important; 
         padding: 0 !important; 
     }
-    
-    /* HACK CONTROLADO — ESPAÇO ENTRE NAVBAR E CARD */
-
-/* Remove sobra padrão do Streamlit */
-div[data-testid="stAppViewContainer"] > div:first-child {
-    padding-top: 0 !important;
-}
-
-/* Container principal */
-.block-container { 
-    padding-top: 0rem !important;  
-    padding-bottom: 1.5rem !important;
-}
-
-.main .block-container {
-    padding-left: 0.8rem !important;
-    padding-right: 0.8rem !important;
-    padding-top: 0rem !important;
-}
-
-/* 🎯 CONTROLE FINO DO ESPAÇO APÓS NAVBAR */
-.after-navbar-anchor {
-    margin-top: 6px !important;   /* AJUSTE AQUI */
-    height: 0 !important;
-}
-
     
     /* CARD HERO TAMANHO ORIGINAL */
     .mod-card-rect {
