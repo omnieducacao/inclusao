@@ -75,7 +75,7 @@ def forcar_layout_hub():
         </style>
     """, unsafe_allow_html=True)
 
-# CHAME ESTA FUNÇÃO ANTES DO HERO CARD
+# CHAME ESTA FUNÇÃO ANTES DO HERO CARD (igual ao PEI)
 forcar_layout_hub()
 
 # Cores dos hero cards (paleta vibrante)
@@ -100,7 +100,10 @@ st.markdown(f"""
         </div>
         <div class="mod-content">
             <div class="mod-title">Evolução & Dados</div>
-            <div class="mod-desc">{saudacao}, <strong>{USUARIO_NOME}</strong>! Consolide dados do PEI com evidências do Diário de Bordo e acompanhe o progresso dos alunos.</div>
+            <div class="mod-desc">
+                {saudacao}, <strong>{USUARIO_NOME}</strong>! Consolide dados do PEI com evidências do Diário de Bordo 
+                e acompanhe o progresso dos alunos do workspace <strong>{WORKSPACE_NAME}</strong>.
+            </div>
         </div>
     </div>
 </div>
@@ -220,6 +223,9 @@ def save_assessment(student_id, rubric_data, observation):
 if not st.session_state.get("autenticado") or not st.session_state.get("workspace_id"):
     st.warning("🔒 Acesso restrito. Faça login na Home.")
     st.stop()
+
+# Espaçamento após hero card
+st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
 st.markdown("### 📊 Consolidação de Dados")
 st.markdown("Consolidação de dados do **PEI** com evidências do **Diário de Bordo**.")
