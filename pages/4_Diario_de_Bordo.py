@@ -76,12 +76,7 @@ forcar_layout_hub()
 # ==============================================================================
 # 1. CONFIGURAÇÃO E SEGURANÇA
 # ==============================================================================
-st.set_page_config(
-    page_title="Diário de Bordo PAEE | Omnisfera", 
-    page_icon="📘", 
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# st.set_page_config já foi chamado na linha 21 - REMOVIDO DUPLICADO
 
 # ==============================================================================
 # BLOCO VISUAL INTELIGENTE: HEADER OMNISFERA
@@ -218,22 +213,7 @@ st.markdown(
 # ==============================================================================
 # FUNÇÕES SUPABASE (REST)
 # ==============================================================================
-def _sb_url() -> str:
-    url = str(st.secrets.get("SUPABASE_URL", "")).strip()
-    if not url: 
-        raise RuntimeError("SUPABASE_URL missing")
-    return url.rstrip("/")
-
-def _sb_key() -> str:
-    key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "") or st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
-    if not key: 
-        raise RuntimeError("SUPABASE_KEY missing")
-    return key
-
-def _headers() -> dict:
-    key = _sb_key()
-    return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-
+# Funções _sb_url(), _sb_key(), _headers() removidas - usar ou._sb_url(), ou._sb_key(), ou._headers() do omni_utils
 # ==============================================================================
 # FUNÇÕES DO DIÁRIO DE BORDO
 # ==============================================================================
@@ -244,14 +224,14 @@ def carregar_alunos_workspace():
         return []
     
     try:
-        url = f"{_sb_url()}/rest/v1/students"
+        url = f"{ou._sb_url()}/rest/v1/students"
         params = {
             "select": "id,name,grade,class_group,diagnosis,created_at,pei_data",
             "workspace_id": f"eq.{WORKSPACE_ID}",
             "order": "name.asc"
         }
         
-        response = requests.get(url, headers=_headers(), params=params, timeout=20)
+        response = requests.get(url, headers=ou._headers(), params=params, timeout=20)
         if response.status_code == 200:
             return response.json()
         return []
@@ -262,13 +242,13 @@ def carregar_alunos_workspace():
 def salvar_registro_diario(registro):
     """Salva um registro no diário de bordo"""
     try:
-        url = f"{_sb_url()}/rest/v1/diario_bordo"
+        url = f"{ou._sb_url()}/rest/v1/diario_bordo"
         
         # Garantir que o workspace_id está no registro
         registro['workspace_id'] = st.session_state.get("workspace_id")
         registro['professor_id'] = USER_ID
         
-        response = requests.post(url, headers=_headers(), json=registro, timeout=20)
+        response = requests.post(url, headers=ou._headers(), json=registro, timeout=20)
         
         if response.status_code in [200, 201]:
             return {"sucesso": True, "id": response.json().get('id')}
@@ -280,10 +260,10 @@ def salvar_registro_diario(registro):
 def atualizar_registro_diario(registro_id, dados):
     """Atualiza um registro existente"""
     try:
-        url = f"{_sb_url()}/rest/v1/diario_bordo"
+        url = f"{ou._sb_url()}/rest/v1/diario_bordo"
         params = {"id": f"eq.{registro_id}"}
         
-        response = requests.patch(url, headers=_headers(), params=params, json=dados, timeout=20)
+        response = requests.patch(url, headers=ou._headers(), params=params, json=dados, timeout=20)
         return response.status_code in [200, 204]
     except Exception as e:
         st.error(f"Erro ao atualizar registro: {str(e)}")
@@ -292,7 +272,7 @@ def atualizar_registro_diario(registro_id, dados):
 def carregar_registros_aluno(aluno_id, limite=50):
     """Carrega registros de um aluno específico"""
     try:
-        url = f"{_sb_url()}/rest/v1/diario_bordo"
+        url = f"{ou._sb_url()}/rest/v1/diario_bordo"
         params = {
             "select": "*",
             "aluno_id": f"eq.{aluno_id}",
@@ -300,7 +280,7 @@ def carregar_registros_aluno(aluno_id, limite=50):
             "limit": str(limite)
         }
         
-        response = requests.get(url, headers=_headers(), params=params, timeout=20)
+        response = requests.get(url, headers=ou._headers(), params=params, timeout=20)
         if response.status_code == 200:
             return response.json()
         return []
@@ -315,7 +295,7 @@ def carregar_todos_registros(limite=100):
         return []
     
     try:
-        url = f"{_sb_url()}/rest/v1/diario_bordo"
+        url = f"{ou._sb_url()}/rest/v1/diario_bordo"
         params = {
             "select": "*,students(name,grade,class_group)",
             "workspace_id": f"eq.{WORKSPACE_ID}",
@@ -323,7 +303,7 @@ def carregar_todos_registros(limite=100):
             "limit": str(limite)
         }
         
-        response = requests.get(url, headers=_headers(), params=params, timeout=20)
+        response = requests.get(url, headers=ou._headers(), params=params, timeout=20)
         if response.status_code == 200:
             return response.json()
         return []
@@ -334,10 +314,10 @@ def carregar_todos_registros(limite=100):
 def excluir_registro_diario(registro_id):
     """Exclui um registro do diário"""
     try:
-        url = f"{_sb_url()}/rest/v1/diario_bordo"
+        url = f"{ou._sb_url()}/rest/v1/diario_bordo"
         params = {"id": f"eq.{registro_id}"}
         
-        response = requests.delete(url, headers=_headers(), params=params, timeout=20)
+        response = requests.delete(url, headers=ou._headers(), params=params, timeout=20)
         return response.status_code in [200, 204]
     except Exception as e:
         st.error(f"Erro ao excluir registro: {str(e)}")
