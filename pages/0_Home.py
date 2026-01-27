@@ -259,41 +259,47 @@ footer {
     overflow: hidden;
 }
 
-/* --- CORES DOS CARDS DE MÓDULO (RESTAURADAS) --- */
-.c-indigo { background: #4F46E5 !important; }
+/* --- CORES DOS CARDS DE MÓDULO (PALETA VIBRANTE - AZUIS QUE DIALOGAM COM VERMELHO) --- */
+/* Estudantes - Azul Índigo Vibrante */
+.c-indigo { background: #2563EB !important; }
 .bg-indigo-soft { 
-    background: #EEF2FF !important; 
-    color: #4F46E5 !important;
+    background: #DBEAFE !important; 
+    color: #1E40AF !important;
 }
 
-.c-blue { background: #3B82F6 !important; }
+/* PEI - Azul Céu Vibrante */
+.c-blue { background: #0EA5E9 !important; }
 .bg-blue-soft { 
-    background: #EFF6FF !important;
-    color: #2563EB !important;
+    background: #E0F2FE !important;
+    color: #0284C7 !important;
 }
 
-.c-purple { background: #8B5CF6 !important; }
+/* PAEE - Roxo Vibrante */
+.c-purple { background: #A855F7 !important; }
 .bg-purple-soft { 
-    background: #F5F3FF !important;
-    color: #7C3AED !important;
+    background: #F3E8FF !important;
+    color: #9333EA !important;
 }
 
-.c-teal { background: #14B8A6 !important; }
+/* Hub - Verde Água Vibrante */
+.c-teal { background: #06B6D4 !important; }
 .bg-teal-soft { 
-    background: #F0FDFA !important;
-    color: #0D9488 !important;
+    background: #CFFAFE !important;
+    color: #0891B2 !important;
 }
 
-.c-rose { background: #E11D48 !important; }
+/* Diário - Rosa Vibrante */
+.c-rose { background: #F43F5E !important; }
 .bg-rose-soft { 
-    background: #FFF1F2 !important;
-    color: #BE123C !important;
+    background: #FFE4E6 !important;
+    color: #E11D48 !important;
 }
 
-.c-sky { background: #0284C7 !important; }
+/* Monitoramento - Azul Oceano Vibrante */
+.c-sky { background: #0C4A6E !important; }
 .bg-sky-soft { 
-    background: #F0F9FF !important;
-    color: #0369A1 !important;
+    background: #BAE6FD !important;
+    color: #075985 !important;
 }
 
 /* --- BOTÕES STREAMLIT --- */
@@ -1083,7 +1089,7 @@ modules_data = [
     {
         "title": "Estudantes",
         "desc": "Gestão completa de alunos, histórico e acompanhamento individualizado.",
-        "icon": "ri-group-fill",
+        "icon": "ri-user-star-fill",  # Ícone mais bonito
         "color_cls": "c-indigo",
         "bg_cls": "bg-indigo-soft",
         "page": "pages/Alunos.py",
@@ -1092,7 +1098,7 @@ modules_data = [
     {
         "title": "Estratégias & PEI",
         "desc": "Plano Educacional Individual com objetivos, avaliações e acompanhamento.",
-        "icon": "ri-book-open-fill",
+        "icon": "ri-book-3-fill",  # Ícone mais bonito
         "color_cls": "c-blue",
         "bg_cls": "bg-blue-soft",
         "page": "pages/1_PEI.py",
@@ -1101,7 +1107,7 @@ modules_data = [
     {
         "title": "Plano de Ação / PAEE",
         "desc": "Plano de Atendimento Educacional Especializado e sala de recursos.",
-        "icon": "ri-settings-5-fill",  # Ícone alterado
+        "icon": "ri-tools-fill",  # Ícone mais bonito
         "color_cls": "c-purple",
         "bg_cls": "bg-purple-soft",
         "page": "pages/2_PAE.py",
@@ -1110,7 +1116,7 @@ modules_data = [
     {
         "title": "Hub de Recursos",
         "desc": "Biblioteca de materiais, modelos e inteligência artificial para apoio.",
-        "icon": "ri-rocket-2-fill",
+        "icon": "ri-lightbulb-flash-fill",  # Ícone mais bonito
         "color_cls": "c-teal",
         "bg_cls": "bg-teal-soft",
         "page": "pages/3_Hub_Inclusao.py",
@@ -1119,7 +1125,7 @@ modules_data = [
     {
         "title": "Diário de Bordo",
         "desc": "Registro diário de observações, evidências e intervenções.",
-        "icon": "ri-file-list-3-fill",
+        "icon": "ri-edit-box-fill",  # Ícone mais bonito
         "color_cls": "c-rose",
         "bg_cls": "bg-rose-soft",
         "page": "pages/4_Diario_de_Bordo.py",
@@ -1128,7 +1134,7 @@ modules_data = [
     {
         "title": "Evolução & Dados",
         "desc": "Indicadores, gráficos e relatórios de progresso dos alunos.",
-        "icon": "ri-bar-chart-box-fill",
+        "icon": "ri-line-chart-fill",  # Ícone mais bonito
         "color_cls": "c-sky",
         "bg_cls": "bg-sky-soft",
         "page": "pages/5_Monitoramento_Avaliacao.py",
