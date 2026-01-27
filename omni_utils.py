@@ -505,7 +505,137 @@ def supa_save_pei(student_id: str, dados: dict, pdf_text: str = ""):
     return supabase_upsert("peis", row, on_conflict="student_id")
 
 # =============================================================================
-# 4) CSS DO LOGIN (ESCOPADO) — NÃO AFETA O APP TODO
+# 4) CSS PADRONIZADO DO HERO CARD (TODAS AS PÁGINAS)
+# =============================================================================
+def inject_hero_card_css():
+    """
+    CSS padronizado para o card hero em todas as páginas.
+    Garante distância consistente do menu e altura fixa do hero.
+    """
+    st.markdown(
+        """
+<style>
+/* ===============================
+   PADRONIZAÇÃO: DISTÂNCIA MENU → HERO
+================================ */
+.block-container {
+    padding-top: 0.3rem !important;
+}
+
+/* ===============================
+   PADRONIZAÇÃO: HERO CARD
+================================ */
+.mod-card-wrapper {
+    margin-top: 0 !important;
+    margin-bottom: 20px !important;
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+.mod-card-rect {
+    background: white;
+    border-radius: 16px 16px 0 0;
+    padding: 0;
+    border: 1px solid #E2E8F0;
+    border-bottom: none;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 130px !important;  /* 🔒 ALTURA FIXA PADRONIZADA */
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mod-card-rect:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    border-color: #CBD5E1;
+}
+
+.mod-bar {
+    width: 6px;
+    height: 100%;
+    flex-shrink: 0;
+}
+
+.mod-icon-area {
+    width: 90px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    background: transparent !important;
+    border-right: 1px solid #F1F5F9;
+    transition: all 0.3s ease;
+}
+
+.mod-card-rect:hover .mod-icon-area {
+    transform: scale(1.05);
+}
+
+.mod-content {
+    flex-grow: 1;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.mod-title {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #1E293B;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+    transition: color 0.2s;
+}
+
+.mod-card-rect:hover .mod-title {
+    color: #4F46E5;
+}
+
+.mod-desc {
+    font-size: 0.8rem;
+    color: #64748B;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .mod-card-rect {
+        height: auto !important;
+        flex-direction: column;
+        padding: 16px;
+    }
+    .mod-bar {
+        width: 100%;
+        height: 4px;
+    }
+    .mod-icon-area {
+        width: 100%;
+        height: 50px;
+        border-right: none;
+        border-bottom: 1px solid #F1F5F9;
+    }
+}
+</style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+# =============================================================================
+# 5) CSS DO LOGIN (ESCOPADO) — NÃO AFETA O APP TODO
 # =============================================================================
 def inject_base_css():
     """
