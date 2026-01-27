@@ -1400,6 +1400,22 @@ div[data-baseweb="tab-highlight"] {
     .mod-content {
         padding: 12px 0 0 0;
     }
+
+    
+}
+
+/* ===============================
+AJUSTE ENTRE MENU SUPERIOR E HERO
+================================ */
+
+/* reduz o espaçamento padrão do Streamlit */
+.block-container {
+    padding-top: 0.3rem !important;   /* teste: 0.2rem ou 0rem se quiser mais colado */
+}
+
+/* garante que o HERO não empurre para baixo */
+.mod-card-wrapper {
+    margin-top: 0 !important;
 }
 
 /* ===============================
