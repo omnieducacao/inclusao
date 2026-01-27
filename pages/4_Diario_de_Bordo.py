@@ -57,7 +57,7 @@ def forcar_layout_hub():
 
             /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
             .block-container {
-                padding-top: 0.3rem !important; /* Espaço mínimo entre navbar e hero */
+                padding-top: 0.1rem !important; /* Espaço mínimo entre navbar e hero */
                 padding-bottom: 1rem !important;
                 margin-top: 0px !important;
             }
@@ -115,6 +115,27 @@ st.markdown(
 # ==============================================================================
 st.markdown("""
 <style>
+    /* CORES ESPECÍFICAS ROSE - Garantir que o ícone tenha cor correta */
+    .c-rose { background: #E11D48 !important; }
+    .bg-rose-soft {
+        background: #FDF2F8 !important;
+        color: #E11D48 !important;
+    }
+    .mod-icon-area i { color: inherit !important; }
+    .bg-rose-soft i,
+    .mod-icon-area.bg-rose-soft i,
+    .mod-icon-area.bg-rose-soft i.ri-edit-box-fill {
+        color: #E11D48 !important;
+        font-size: 1.8rem !important;
+    }
+    .mod-content {
+        min-width: 0;
+        align-items: flex-start;
+    }
+    .mod-card-rect:hover .mod-title {
+        color: #E11D48; /* Specific hover color */
+    }
+    
     /* Estilos específicos do Diário de Bordo */
     .diario-card { 
         background: white; 
