@@ -634,6 +634,189 @@ def inject_hero_card_css():
         unsafe_allow_html=True,
     )
 
+def inject_unified_ui_css():
+    """
+    CSS padronizado para toda a UI: abas (pílulas), botões, selects, checkboxes, radio, tags.
+    Usa cor neutra (#64748B - slate-500) para combinar com o visual geral.
+    """
+    st.markdown(
+        """
+<style>
+:root {
+    --ui-neutral: #64748B;        /* slate-500 - cor neutra principal */
+    --ui-neutral-dark: #475569;   /* slate-600 - mais escuro */
+    --ui-neutral-light: #94A3B8;  /* slate-400 - mais claro */
+    --ui-neutral-soft: #F1F5F9;   /* slate-100 - fundo suave */
+    --ui-neutral-border: #E2E8F0; /* slate-200 - bordas */
+}
+
+/* ===============================
+   TABS - PÍLULAS PADRONIZADAS
+================================ */
+div[data-baseweb="tab-border"],
+div[data-baseweb="tab-highlight"] { 
+    display: none !important; 
+}
+
+.stTabs [data-baseweb="tab-list"] {
+    display: flex;
+    flex-wrap: wrap !important;
+    gap: 6px;
+    padding: 3px 3px;
+    width: 100%;
+    margin-top: 0px !important;
+    margin-bottom: 0.15rem !important;
+    border-bottom: none !important;
+}
+
+.stTabs [data-baseweb="tab"] {
+    height: 38px !important;
+    border-radius: 20px !important;  /* PÍLULAS - estilo PEI */
+    background-color: #FFFFFF !important;
+    border: 1px solid var(--ui-neutral-border) !important;
+    color: var(--ui-neutral) !important;
+    font-weight: 700 !important;
+    font-size: 0.75rem !important;
+    padding: 0 18px !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.2s ease !important;
+}
+
+.stTabs [data-baseweb="tab"]:hover:not([aria-selected="true"]) { 
+    border-color: var(--ui-neutral-light) !important; 
+    color: var(--ui-neutral-dark) !important; 
+    background-color: var(--ui-neutral-soft) !important; 
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: var(--ui-neutral-soft) !important; 
+    color: var(--ui-neutral-dark) !important;
+    border: 1px solid var(--ui-neutral) !important; 
+    font-weight: 800 !important;
+    box-shadow: 0 2px 4px rgba(100,116,139,0.15) !important;
+}
+
+/* ===============================
+   BOTÕES - COR NEUTRA
+================================ */
+.stButton > button {
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    transition: all 0.18s ease !important;
+}
+
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, var(--ui-neutral), var(--ui-neutral-dark)) !important;
+    border: none !important;
+    color: #ffffff !important;
+}
+
+.stButton > button[kind="primary"]:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 10px 22px rgba(100,116,139,0.25) !important;
+    background: linear-gradient(135deg, var(--ui-neutral-dark), var(--ui-neutral)) !important;
+}
+
+.stButton > button[kind="secondary"] {
+    background: #ffffff !important;
+    color: var(--ui-neutral-dark) !important;
+    border: 1px solid var(--ui-neutral-border) !important;
+}
+
+.stButton > button[kind="secondary"]:hover {
+    background: var(--ui-neutral-soft) !important;
+    border-color: var(--ui-neutral) !important;
+    color: var(--ui-neutral-dark) !important;
+}
+
+/* ===============================
+   SELECTS / DROPDOWNS
+================================ */
+div[data-baseweb="select"] > div {
+    border-radius: 8px !important;
+    border-color: var(--ui-neutral-border) !important;
+}
+
+div[data-baseweb="select"] > div:focus-within {
+    border-color: var(--ui-neutral) !important;
+    box-shadow: 0 0 0 3px rgba(100,116,139,0.18) !important;
+}
+
+/* ===============================
+   INPUTS / TEXTAREAS
+================================ */
+.stTextInput input,
+.stTextArea textarea {
+    border-radius: 8px !important;
+    border-color: var(--ui-neutral-border) !important;
+}
+
+.stTextInput input:focus,
+.stTextArea textarea:focus {
+    border-color: var(--ui-neutral) !important;
+    box-shadow: 0 0 0 3px rgba(100,116,139,0.18) !important;
+}
+
+/* ===============================
+   CHECKBOX / RADIO
+================================ */
+div[role="checkbox"][aria-checked="true"],
+div[role="radio"][aria-checked="true"] {
+    background-color: var(--ui-neutral) !important;
+    border-color: var(--ui-neutral) !important;
+}
+
+div[role="checkbox"]:hover,
+div[role="radio"]:hover {
+    border-color: var(--ui-neutral) !important;
+}
+
+/* ===============================
+   MULTISELECT TAGS / CHIPS
+================================ */
+div[data-baseweb="tag"] {
+    background: var(--ui-neutral-soft) !important;
+    border: 1px solid var(--ui-neutral-border) !important;
+    border-radius: 6px !important;
+}
+
+div[data-baseweb="tag"] span {
+    color: var(--ui-neutral-dark) !important;
+    font-weight: 700 !important;
+}
+
+/* ===============================
+   FOCUS RING (remove vermelho)
+================================ */
+*:focus,
+*:focus-visible {
+    outline: none !important;
+}
+
+/* ===============================
+   DIVIDERS
+================================ */
+hr {
+    border-color: var(--ui-neutral-border) !important;
+}
+
+/* ===============================
+   RESPONSIVIDADE
+================================ */
+@media (max-width: 768px) {
+    .stTabs [data-baseweb="tab"] {
+        font-size: 0.7rem !important;
+        padding: 0 14px !important;
+        height: 36px !important;
+    }
+}
+</style>
+        """,
+        unsafe_allow_html=True,
+    )
+
 # =============================================================================
 # 5) CSS DO LOGIN (ESCOPADO) — NÃO AFETA O APP TODO
 # =============================================================================
