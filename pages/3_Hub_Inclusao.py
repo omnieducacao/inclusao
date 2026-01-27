@@ -1316,7 +1316,7 @@ def aplicar_estilos():
         <div class="mod-card-rect">
             <div class="mod-bar c-teal"></div>
             <div class="mod-icon-area bg-teal-soft">
-                <i class="ri-settings-5-fill"></i>
+                <i class="ri-lightbulb-flash-fill"></i>
             </div>
             <div class="mod-content">
                 <div class="mod-title">Hub de atividades inclusivas</div>
