@@ -38,7 +38,20 @@ except Exception:
 # ✅ Header + Navbar (depois do page_config)
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Diário de Bordo")
+gap_hub()
 
+
+def gap_hub():
+    """Respiro padrão do Hub (mesmo feeling de distâncias)."""
+    st.markdown(
+        """
+        <style>
+          .omni-page-gap { height: 14px; }
+        </style>
+        <div class="omni-page-gap"></div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # ==============================================================================
 # 1. CONFIGURAÇÃO E SEGURANÇA
