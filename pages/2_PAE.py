@@ -23,6 +23,8 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+
+
 APP_VERSION = "v150.0 (SaaS Design)"
 
 # ✅ UI lockdown (não quebra se faltar)
@@ -37,6 +39,39 @@ except Exception:
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Plano de Ação (AEE)")
 
+
+# ==============================================================================
+# AJUSTE FINO DE LAYOUT (Igual ao Hub)
+# ==============================================================================
+def forcar_layout_hub():
+    st.markdown("""
+        <style>
+            /* 1. Remove o cabeçalho padrão do Streamlit e a linha colorida */
+            header[data-testid="stHeader"] {
+                visibility: hidden !important;
+                height: 0px !important;
+            }
+
+            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
+            .block-container {
+                padding-top: 1rem !important; /* No Hub é 2rem, tente 1rem se quiser mais colado */
+                padding-bottom: 1rem !important;
+                margin-top: 0px !important;
+            }
+
+            /* 3. Remove padding extra se houver container de navegação */
+            div[data-testid="stVerticalBlock"] > div:first-child {
+                padding-top: 0px !important;
+            }
+            
+            /* 4. Esconde o menu hambúrguer e rodapé */
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+        </style>
+    """, unsafe_allow_html=True)
+
+# CHAME ESTA FUNÇÃO LOGO NO INÍCIO DO CÓDIGO
+forcar_layout_hub()
 
 # ==============================================================================
 # BLOCO VISUAL (GLOBAL) — CSS DO MÓDULO + GATE (REAPROVEITÁVEL)
