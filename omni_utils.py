@@ -364,7 +364,7 @@ def render_navbar(active_tab: str = "Início"):
         orientation="horizontal",
         styles={
             "container": {
-                "padding": "6px 6px",
+                "padding": "2px 4px",
                 "margin": "0px",
                 "background-color": "#ffffff",
                 "border": "1px solid #E2E8F0",
@@ -376,12 +376,12 @@ def render_navbar(active_tab: str = "Início"):
                 "font-size": "12px",
                 "text-align": "center",
                 "margin": "0px",
-                "padding": "8px 10px",
+                "padding": "6px 8px",
                 "--hover-color": "#F8FAFC",
                 "color": "#64748B",
                 "white-space": "nowrap",
                 "border-radius": "10px",
-                "min-height": "38px",
+                "min-height": "32px",
                 "display": "flex",
                 "align-items": "center",
                 "justify-content": "center",
