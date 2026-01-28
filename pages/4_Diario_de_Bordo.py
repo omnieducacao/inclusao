@@ -421,13 +421,13 @@ with tab_filtros:
     with col_filtro1:
         nomes_alunos = [f"{a['name']} ({a.get('grade', 'N/I')})" for a in alunos]
         aluno_filtro = st.selectbox("Aluno:", ["Todos"] + nomes_alunos, key="filtro_aluno")
-        st.session_state['filtro_aluno'] = aluno_filtro
+        # O valor já é salvo automaticamente no session_state pelo key="filtro_aluno"
 
     with col_filtro2:
         periodo = st.selectbox("Período:", 
                               ["Últimos 7 dias", "Últimos 30 dias", "Este mês", "Mês passado", "Personalizado", "Todos"],
                               key="filtro_periodo")
-        st.session_state['filtro_periodo'] = periodo
+        # O valor já é salvo automaticamente no session_state pelo key="filtro_periodo"
 
     with col_filtro3:
         modalidade = st.multiselect(
@@ -436,17 +436,17 @@ with tab_filtros:
             default=["individual", "grupo"],
             key="filtro_modalidade"
         )
-        st.session_state['filtro_modalidade'] = modalidade
+        # O valor já é salvo automaticamente no session_state pelo key="filtro_modalidade"
 
     # Período personalizado
     if periodo == "Personalizado":
         col_data1, col_data2 = st.columns(2)
         with col_data1:
-            data_inicio = st.date_input("De:", value=date.today() - timedelta(days=30), key="data_inicio")
-            st.session_state['filtro_data_inicio'] = data_inicio
+            data_inicio = st.date_input("De:", value=date.today() - timedelta(days=30), key="filtro_data_inicio")
+            # O valor já é salvo automaticamente no session_state pelo key="filtro_data_inicio"
         with col_data2:
-            data_fim = st.date_input("Até:", value=date.today(), key="data_fim")
-            st.session_state['filtro_data_fim'] = data_fim
+            data_fim = st.date_input("Até:", value=date.today(), key="filtro_data_fim")
+            # O valor já é salvo automaticamente no session_state pelo key="filtro_data_fim"
 
     st.markdown("---")
     
