@@ -8,6 +8,7 @@ from openai import OpenAI
 import json
 import pandas as pd
 from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 import base64
 import requests
 import time
@@ -287,7 +288,7 @@ def verificar_acesso():
 # ==============================================================================
 # HERO - PAE
 # ==============================================================================
-hora = datetime.now().hour
+hora = datetime.now(ZoneInfo("America/Sao_Paulo")).hour
 saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
 USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
 WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
