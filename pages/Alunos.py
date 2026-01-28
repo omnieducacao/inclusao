@@ -194,6 +194,10 @@ st.markdown("""
     .student-header { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-weight: 800; color: #475569; font-size: 0.8rem; text-transform: uppercase; }
     .student-row { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; padding: 12px 20px; border-bottom: 1px solid #F1F5F9; align-items: center; background: white; }
     .student-row:hover { background: #F8FAFC; }
+    .student-row > div:last-child { display: flex; align-items: center; justify-content: center; }
+    /* Garantir que botões dentro da última coluna fiquem inline */
+    .student-row > div:last-child .stButton { margin: 0 !important; display: inline-block !important; }
+    .student-row > div:last-child button { margin: 0 !important; }
     
     /* BADGES */
     .badge-grade { background: #F0F9FF; color: #0369A1; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; border: 1px solid #BAE6FD; }
@@ -311,6 +315,7 @@ else:
         if confirm_key not in st.session_state:
             st.session_state[confirm_key] = False
         
+        # Coluna de Ações (Botão Python dentro do HTML Layout)
         st.markdown(f"""
         <div class="student-row">
             <div style="font-weight:700; color:#1E293B;">{nome}</div>
@@ -320,13 +325,10 @@ else:
             <div>
         """, unsafe_allow_html=True)
         
-        # Coluna de Ações (Botão Python dentro do HTML Layout)
         if not st.session_state[confirm_key]:
-            c_btn, _ = st.columns([1, 4])
-            with c_btn:
-                if st.button("🗑️", key=f"btn_del_{sid}", help="Excluir"):
-                    st.session_state[confirm_key] = True
-                    st.rerun()
+            if st.button("🗑️", key=f"btn_del_{sid}", help="Excluir"):
+                st.session_state[confirm_key] = True
+                st.rerun()
         else:
             st.markdown(f"""<div class="delete-confirm-banner"><i class="ri-alert-fill"></i> Excluir <b>{nome}</b>?</div>""", unsafe_allow_html=True)
             c_s, c_n = st.columns(2)
