@@ -298,7 +298,12 @@ def carregar_alunos_workspace():
         
         response = requests.get(url, headers=ou._headers(), params=params, timeout=20)
         if response.status_code == 200:
-            return response.json()
+            dados = response.json()
+            if isinstance(dados, list):
+                return dados
+            elif isinstance(dados, dict):
+                return [dados] if dados else []
+            return []
         return []
     except Exception as e:
         st.error(f"Erro ao carregar estudantes: {str(e)}")
@@ -444,11 +449,20 @@ def carregar_todos_registros(limite=100):
         response = requests.get(url, headers=ou._headers(), params=params, timeout=20)
         if response.status_code == 200:
             estudantes = response.json()
+            if not isinstance(estudantes, list):
+                return []
+            
             todos_registros = []
             
             for estudante in estudantes:
+                if not isinstance(estudante, dict):
+                    continue
                 registros = estudante.get("daily_logs") or []
+                if not isinstance(registros, list):
+                    continue
                 for registro in registros:
+                    if not isinstance(registro, dict):
+                        continue
                     # Adicionar informações do estudante ao registro
                     registro['student_id'] = estudante.get('id')
                     registro['students'] = {
@@ -506,14 +520,18 @@ def excluir_registro_diario(student_id, registro_id):
 # ==============================================================================
 
 # Carregar estudantes
-if 'alunos_cache' not in st.session_state:
-    with st.spinner("Carregando estudantes..."):
-        st.session_state.alunos_cache = carregar_alunos_workspace()
+try:
+    if 'alunos_cache' not in st.session_state:
+        with st.spinner("Carregando estudantes..."):
+            st.session_state.alunos_cache = carregar_alunos_workspace()
 
-alunos = st.session_state.alunos_cache
+    alunos = st.session_state.alunos_cache or []
 
-if not alunos:
-    st.warning("Nenhum estudante encontrado.")
+    if not alunos:
+        st.warning("Nenhum estudante encontrado.")
+        st.stop()
+except Exception as e:
+    st.error(f"Erro ao carregar estudantes: {str(e)}")
     st.stop()
 
 # ==============================================================================
@@ -533,8 +551,12 @@ with tab_filtros:
     col_filtro1, col_filtro2, col_filtro3 = st.columns(3)
 
     with col_filtro1:
-        nomes_alunos = [f"{a['name']} ({a.get('grade', 'N/I')})" for a in alunos]
-        aluno_filtro = st.selectbox("Estudante:", ["Todos"] + nomes_alunos, key="filtro_aluno")
+        try:
+            nomes_alunos = [f"{a.get('name', 'Sem nome')} ({a.get('grade', 'N/I')})" for a in alunos if a]
+            aluno_filtro = st.selectbox("Estudante:", ["Todos"] + nomes_alunos, key="filtro_aluno")
+        except Exception as e:
+            st.error(f"Erro ao carregar lista de estudantes: {str(e)}")
+            aluno_filtro = "Todos"
         # O valor já é salvo automaticamente no session_state pelo key="filtro_aluno"
 
     with col_filtro2:
@@ -566,12 +588,22 @@ with tab_filtros:
     
     # Estatísticas rápidas
     st.markdown("### 📊 Estatísticas")
-    registros = carregar_todos_registros(limite=500)
+    try:
+        registros = carregar_todos_registros(limite=500)
+    except Exception as e:
+        st.error(f"Erro ao carregar registros: {str(e)}")
+        registros = []
 
     if registros:
         total_registros = len(registros)
-        registros_ultimos_30 = len([r for r in registros 
-                                  if r.get('data_sessao') and datetime.fromisoformat(r['data_sessao']).date() > date.today() - timedelta(days=30)])
+        registros_ultimos_30 = 0
+        try:
+            registros_ultimos_30 = len([r for r in registros 
+                                      if r.get('data_sessao') and 
+                                      isinstance(r.get('data_sessao'), str) and
+                                      datetime.fromisoformat(r['data_sessao']).date() > date.today() - timedelta(days=30)])
+        except (ValueError, AttributeError, TypeError):
+            pass
         
         col_stat1, col_stat2, col_stat3 = st.columns(3)
         with col_stat1:
@@ -621,15 +653,23 @@ with tab_novo:
         
         with col_info1:
             # Seleção do estudante
-            aluno_options = {f"{a['name']} ({a.get('grade', 'N/I')})": a for a in alunos}
-            aluno_selecionado_label = st.selectbox(
-                "Estudante *",
-                options=list(aluno_options.keys()),
-                help="Selecione o estudante atendido"
-            )
-            
-            aluno_selecionado = aluno_options[aluno_selecionado_label]
-            aluno_id = aluno_selecionado['id']
+            try:
+                aluno_options = {f"{a.get('name', 'Sem nome')} ({a.get('grade', 'N/I')})": a for a in alunos if a}
+                if not aluno_options:
+                    st.error("Nenhum estudante disponível.")
+                    aluno_id = None
+                else:
+                    aluno_selecionado_label = st.selectbox(
+                        "Estudante *",
+                        options=list(aluno_options.keys()),
+                        help="Selecione o estudante atendido"
+                    )
+                    
+                    aluno_selecionado = aluno_options.get(aluno_selecionado_label)
+                    aluno_id = aluno_selecionado.get('id') if aluno_selecionado else None
+            except Exception as e:
+                st.error(f"Erro ao carregar estudantes: {str(e)}")
+                aluno_id = None
         
         with col_info2:
             data_sessao = st.date_input(
@@ -795,7 +835,9 @@ with tab_novo:
         
         if salvar:
             # Validações
-            if not atividade or not objetivos or not estrategias:
+            if not aluno_id:
+                st.error("Por favor, selecione um estudante.")
+            elif not atividade or not objetivos or not estrategias:
                 st.error("Por favor, preencha os campos obrigatórios (*)")
             else:
                 # Preparar registro
@@ -831,7 +873,8 @@ with tab_novo:
                         with st.expander("📋 Ver Resumo do Registro", expanded=True):
                             col_resumo1, col_resumo2 = st.columns(2)
                             with col_resumo1:
-                                st.markdown(f"**Estudante:** {aluno_selecionado_label}")
+                                aluno_label_display = aluno_selecionado_label if 'aluno_selecionado_label' in locals() else "Estudante selecionado"
+                                st.markdown(f"**Estudante:** {aluno_label_display}")
                                 st.markdown(f"**Data:** {data_sessao.strftime('%d/%m/%Y')}")
                                 st.markdown(f"**Duração:** {duracao} minutos")
                                 modalidade_display = modalidade_label
