@@ -22,7 +22,7 @@ except ImportError:
 # ✅ set_page_config UMA VEZ SÓ, SEMPRE no topo
 st.set_page_config(
     page_title="Omnisfera | Monitoramento",
-    page_icon="📊",
+    page_icon="omni_icone.png" if os.path.exists("omni_icone.png") else "📊",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -62,19 +62,39 @@ def forcar_layout_hub():
                 height: 0px !important;
             }
 
-            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
+            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) - ESPECIFICIDADE MÁXIMA */
+            body .main .block-container,
+            body .block-container,
+            .main .block-container,
             .block-container {
-                padding-top: 0.1rem !important; /* Espaço mínimo entre navbar e hero */
+                padding-top: 0px !important; /* SEM espaço entre navbar e hero */
                 padding-bottom: 1rem !important;
                 margin-top: 0px !important;
             }
-
-            /* 3. Remove padding extra se houver container de navegação */
-            div[data-testid="stVerticalBlock"] > div:first-child {
+            
+            /* 3. Remove qualquer espaçamento do Streamlit */
+            [data-testid="stVerticalBlock"],
+            div[data-testid="stVerticalBlock"] > div:first-child,
+            .main .block-container > div:first-child,
+            .main .block-container > *:first-child {
+                padding-top: 0px !important;
+                margin-top: 0px !important;
+            }
+            
+            /* 4. Remove espaçamento do stMarkdown que renderiza o hero */
+            .main .block-container > div:first-child .stMarkdown {
+                margin-top: 0px !important;
                 padding-top: 0px !important;
             }
             
-            /* 4. Esconde o menu hambúrguer e rodapé */
+            /* 5. Hero card colado no menu - margin negativo MUITO agressivo */
+            .mod-card-wrapper {
+                margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
+                position: relative;
+                z-index: 1;
+            }
+            
+            /* 6. Esconde o menu hambúrguer e rodapé */
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
         </style>
@@ -99,7 +119,9 @@ st.markdown("""
         border-radius: 16px; 
         overflow: hidden; 
         box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
-        margin-top: 0 !important; 
+        margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
+        position: relative;
+        z-index: 1;
     }
     .mod-card-rect { 
         background: white; 
@@ -245,7 +267,7 @@ def _headers() -> dict:
 # --- Carregamento de Alunos ---
 @st.cache_data(ttl=60, show_spinner=False)
 def list_students_rest():
-    """Busca estudantes do Supabase incluindo o campo pei_data."""
+    """Busca estudantes do Supabase incluindo pei_data, paee_ciclos e dados do Hub."""
     WORKSPACE_ID = st.session_state.get("workspace_id")
     if not WORKSPACE_ID:
         pass 
@@ -253,7 +275,7 @@ def list_students_rest():
     try:
         base = (
             f"{_sb_url()}/rest/v1/students"
-            f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data"
+            f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data,paee_ciclos,planejamento_ativo"
             f"&workspace_id=eq.{WORKSPACE_ID}"
             f"&order=created_at.desc"
         )
@@ -264,14 +286,24 @@ def list_students_rest():
         return []
 
 def carregar_estudantes_formatados():
-    """Processa a lista crua usando sua lógica de prioridade do pei_data."""
+    """Processa a lista crua incluindo dados do PEI, PAE e Hub."""
     dados = list_students_rest()
     estudantes = []
 
     for item in dados:
         pei_completo = item.get("pei_data") or {}
+        paee_ciclos = item.get("paee_ciclos") or []
+        planejamento_ativo = item.get("planejamento_ativo")
         
-        # Tenta pegar contexto da IA ou monta fallback
+        # Busca ciclo ativo do PAE
+        paee_ativo = None
+        if planejamento_ativo and paee_ciclos:
+            for ciclo in paee_ciclos:
+                if ciclo.get("ciclo_id") == planejamento_ativo:
+                    paee_ativo = ciclo
+                    break
+        
+        # Tenta pegar contexto da IA do PEI ou monta fallback
         contexto_ia = ""
         if isinstance(pei_completo, dict):
             contexto_ia = pei_completo.get("ia_sugestao", "")
@@ -285,7 +317,9 @@ def carregar_estudantes_formatados():
             "nome": item.get("name", ""),
             "serie": item.get("grade", ""),
             "id": item.get("id", ""),
-            "pei_data": pei_completo, # Objeto completo para usar na rubrica
+            "pei_data": pei_completo,  # Dados do PEI
+            "paee_ciclos": paee_ciclos,  # Dados do PAE
+            "paee_ativo": paee_ativo,  # Ciclo ativo do PAE
             "diagnosis": item.get("diagnosis", "")
         }
         if estudante["nome"]:
@@ -341,7 +375,7 @@ if not st.session_state.get("autenticado") or not st.session_state.get("workspac
 st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
 st.markdown("### 📊 Consolidação de Dados")
-st.markdown("Consolidação de dados do **PEI** com evidências do **Diário de Bordo**.")
+st.markdown("Consolidação de dados do **PEI**, **PAE** e **Hub** com evidências do **Diário de Bordo**.")
 
 # --- SELETOR DE ESTUDANTE ---
 lista_alunos = carregar_estudantes_formatados()
@@ -365,8 +399,8 @@ if nome_selecionado != "Selecione...":
 
     st.divider()
 
-    # --- ÁREA DE CONFRONTO (PEI vs DIÁRIO) ---
-    c1, c2 = st.columns(2)
+    # --- ÁREA DE CONFRONTO (PEI vs PAE vs DIÁRIO) ---
+    c1, c2, c3 = st.columns(3)
     
     with c1:
         st.subheader("🎯 Expectativa (PEI)")
@@ -382,8 +416,27 @@ if nome_selecionado != "Selecione...":
             # Se não tiver estrutura, mostra o diagnóstico
             st.info(f"**Diagnóstico Base:** {aluno['diagnosis']}")
             st.write("Sem objetivos específicos estruturados no JSON.")
-
+    
     with c2:
+        st.subheader("🔧 Planejamento (PAE)")
+        st.caption("Ciclos de AEE planejados")
+        
+        paee_ativo = aluno.get('paee_ativo')
+        if paee_ativo:
+            st.success("✅ Ciclo PAE Ativo")
+            if isinstance(paee_ativo, dict):
+                config = paee_ativo.get('config_ciclo', {})
+                if config:
+                    st.write(f"**Período:** {config.get('data_inicio', 'N/A')} a {config.get('data_fim', 'N/A')}")
+                    st.write(f"**Status:** {paee_ativo.get('status', 'N/A')}")
+        else:
+            paee_ciclos = aluno.get('paee_ciclos', [])
+            if paee_ciclos:
+                st.info(f"📋 {len(paee_ciclos)} ciclo(s) cadastrado(s), mas nenhum ativo")
+            else:
+                st.warning("⚠️ Nenhum ciclo PAE cadastrado")
+
+    with c3:
         st.subheader("📝 Realidade (Diário)")
         st.caption("Últimos registros de atividades")
         
@@ -399,6 +452,9 @@ if nome_selecionado != "Selecione...":
                 """, unsafe_allow_html=True)
         else:
             st.warning("Nenhum registro encontrado no diário para este aluno.")
+    
+    # Informação sobre Hub
+    st.info("💡 **Nota:** Recursos gerados no Hub de Inclusão são temporários e não são persistidos. Para acompanhar recursos utilizados, registre-os no Diário de Bordo.")
 
     st.divider()
 
@@ -442,19 +498,7 @@ if nome_selecionado != "Selecione...":
             else:
                 st.error("Erro ao salvar. Verifique a tabela 'monitoring_assessments' no Supabase.")
 
-# Rodapé
-st.markdown(
-    f"""
-    <div style='
-        text-align: center;
-        color: #64748B;
-        font-size: 0.75rem;
-        padding: 20px;
-        border-top: 1px solid #E2E8F0;
-        margin-top: 40px;
-    '>
-        <strong>Omnisfera {APP_VERSION}</strong> • Monitoramento & Avaliação
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+# ==============================================================================
+# RODAPÉ COM ASSINATURA
+# ==============================================================================
+ou.render_footer_assinatura()
