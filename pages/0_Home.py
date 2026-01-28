@@ -38,6 +38,8 @@ html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     color: #1E293B !important;
     background-color: #F8FAFC !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
 }
 
 /* --- OCULTAR SIDEBAR E HEADER NATIVOS DO STREAMLIT --- */
@@ -1004,12 +1006,70 @@ def render_central_conhecimento():
             display: none !important;
             border-bottom: none !important;
         }
+
+        /* Correção de quebra de texto nas abas */
+        .stTabs [data-baseweb="tab-panel"] {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            word-break: break-word !important;
+        }
+        
+        .stTabs [data-baseweb="tab-panel"] p,
+        .stTabs [data-baseweb="tab-panel"] div,
+        .stTabs [data-baseweb="tab-panel"] li,
+        .stTabs [data-baseweb="tab-panel"] span {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            word-break: break-word !important;
+            white-space: normal !important;
+            hyphens: auto !important;
+        }
+        
+        /* Garantir que textos longos quebrem corretamente */
+        .content-card p,
+        .manual-box p,
+        .manual-box li,
+        .glossary-item,
+        .term-good,
+        .term-bad,
+        .ai-box p {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            word-break: break-word !important;
+            white-space: normal !important;
+            line-height: 1.6 !important;
+        }
+        
+        /* Corrigir quebras em expanders */
+        .streamlit-expanderHeader p,
+        .streamlit-expanderContent p,
+        .streamlit-expanderContent li {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            word-break: break-word !important;
+            white-space: normal !important;
+        }
+        
+        /* Garantir que tabelas não quebrem layout */
+        .stTabs [data-baseweb="tab-panel"] table {
+            table-layout: auto !important;
+            width: 100% !important;
+            word-wrap: break-word !important;
+        }
+        
+        .stTabs [data-baseweb="tab-panel"] td,
+        .stTabs [data-baseweb="tab-panel"] th {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+            padding: 8px !important;
+        }
     </style>
     """, unsafe_allow_html=True)
     
     # Título elegante com ícone
     st.markdown(f"""
-    <div style="margin-bottom: 16px; margin-top: -8px;">
+    <div style="margin-bottom: 8px; margin-top: -32px;">
         <h2 style="font-size: 2rem; font-weight: 800; color: #1E293B; margin-bottom: 8px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 12px;">
             {get_icon("hub", 32, "#2563EB")}
             <span>Central de Inteligência Inclusiva</span>
