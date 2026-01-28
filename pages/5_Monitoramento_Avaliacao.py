@@ -234,7 +234,7 @@ st.markdown(f"""
             <div class="mod-title">Evolução & Dados</div>
             <div class="mod-desc">
                 {saudacao}, <strong>{USUARIO_NOME}</strong>! Consolide dados do PEI com evidências do Diário de Bordo 
-                e acompanhe o progresso dos alunos do workspace <strong>{WORKSPACE_NAME}</strong>.
+                e acompanhe o progresso dos estudantes do workspace <strong>{WORKSPACE_NAME}</strong>.
             </div>
         </div>
     </div>
@@ -282,7 +282,7 @@ def list_students_rest():
         r = requests.get(base, headers=_headers(), timeout=20)
         return r.json() if r.status_code == 200 else []
     except Exception as e:
-        st.error(f"Erro ao carregar alunos: {str(e)}")
+        st.error(f"Erro ao carregar estudantes: {str(e)}")
         return []
 
 def carregar_estudantes_formatados():
@@ -311,7 +311,7 @@ def carregar_estudantes_formatados():
         if not contexto_ia:
             diag = item.get("diagnosis", "Não informado")
             serie = item.get("grade", "")
-            contexto_ia = f"Aluno: {item.get('name')}. Série: {serie}. Diagnóstico: {diag}."
+            contexto_ia = f"Estudante: {item.get('name')}. Série: {serie}. Diagnóstico: {diag}."
 
         estudante = {
             "nome": item.get("name", ""),
@@ -382,7 +382,7 @@ lista_alunos = carregar_estudantes_formatados()
 opcoes = {a['nome']: a for a in lista_alunos}
 
 if not opcoes:
-    st.warning("Nenhum aluno encontrado ou erro na conexão.")
+    st.warning("Nenhum estudante encontrado ou erro na conexão.")
     st.stop()
 
 col_sel, col_blank = st.columns([1, 2])
@@ -451,7 +451,7 @@ if nome_selecionado != "Selecione...":
                 </div>
                 """, unsafe_allow_html=True)
         else:
-            st.warning("Nenhum registro encontrado no diário para este aluno.")
+            st.warning("Nenhum registro encontrado no diário para este estudante.")
     
     # Informação sobre Hub
     st.info("💡 **Nota:** Recursos gerados no Hub de Inclusão são temporários e não são persistidos. Para acompanhar recursos utilizados, registre-os no Diário de Bordo.")
