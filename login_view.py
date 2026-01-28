@@ -31,6 +31,9 @@ def hide_streamlit():
             footer { visibility: hidden !important; }
             header[data-testid="stHeader"] { display: none !important; }
             [data-testid="stToolbar"] { visibility: hidden !important; }
+            [data-testid="stDecoration"] { display: none !important; }
+            [data-testid="stStatusWidget"] { display: none !important; }
+            [data-testid="stDeployButton"] { display: none !important; }
             [data-testid="stSidebar"] { display: none !important; }
             section[data-testid="stSidebar"] { display: none !important; }
             [data-testid="stSidebarNav"] { display: none !important; }
@@ -72,7 +75,7 @@ def inject_css():
 
         /* Container Centralizado */
         .wrap {
-            max-width: 480px;
+            max-width: 620px;
             margin: auto;
             padding-top: 30px;
             padding-bottom: 40px;
@@ -81,7 +84,7 @@ def inject_css():
         /* Remove espaço extra do Streamlit */
         .block-container {
             padding-top: 1rem !important;
-            max-width: 480px !important;
+            max-width: 620px !important;
             margin: 0 auto !important;
         }
         
@@ -117,6 +120,23 @@ def inject_css():
             font-weight: 700;
             color: #64748B;
             font-size: 15px;
+        }
+
+        .welcome {
+            text-align: center;
+            margin: 6px auto 18px auto;
+            color: #334155;
+            font-size: 14px;
+            line-height: 1.5;
+            font-weight: 700;
+            max-width: 560px;
+        }
+
+        .welcome small {
+            display: block;
+            margin-top: 6px;
+            font-weight: 700;
+            color: #64748B;
         }
 
         /* Cartão de Login */
@@ -240,7 +260,11 @@ def render_login():
             <div class="logoSpin"><img src="data:image/png;base64,{ICON}"></div>
             <div class="logoText"><img src="data:image/png;base64,{TEXT}"></div>
         </div>
-        <div class="subtitle">Identifique-se para acessar seu workspace</div>
+        <div class="subtitle">Acesso seguro • Ambiente escolar</div>
+        <div class="welcome">
+            Olá, educador(a)! A Omnisfera foi desenvolvida com muito carinho com o objetivo de facilitar a inclusão na sua escola.
+            <small>Preencha os dados abaixo para continuar.</small>
+        </div>
         """,
         unsafe_allow_html=True
     )
@@ -251,7 +275,7 @@ def render_login():
     # Inputs
     nome = st.text_input("Seu nome", placeholder="Nome completo")
     cargo = st.text_input("Sua função", placeholder="Ex: Professor, Coordenador")
-    pin = st.text_input("PIN do Workspace", type="password", placeholder="****")
+    pin = st.text_input("PIN da Escola", type="password", placeholder="****")
 
     # 3. Termo de Confidencialidade
     st.markdown(
@@ -282,7 +306,7 @@ def render_login():
         ws = rpc_workspace_from_pin(pin)
 
         if not ws:
-            st.markdown("<div class='err'>PIN inválido ou workspace não encontrado.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='err'>PIN inválido ou escola não encontrada.</div>", unsafe_allow_html=True)
         else:
             # ✅ Sucesso (estado mínimo)
             st.session_state.usuario_nome = nome
