@@ -1,245 +1,504 @@
+# pages/5_Monitoramento_Avaliacao.py
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-import graphviz
+import requests
+import json
+from datetime import datetime
+import os
+import sys
 
 # ==============================================================================
-# 1. ESTILIZAÇÃO CUSTOMIZADA (CSS PREMIUM)
+# 0. IMPORTAÇÃO SEGURA DO OMNI_UTILS
 # ==============================================================================
+# Adiciona o diretório raiz ao path para conseguir importar omni_utils
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+try:
+    import omni_utils as ou
+except ImportError:
+    st.error("Erro crítico: O arquivo 'omni_utils.py' não foi encontrado na pasta raiz.")
+    st.stop()
+
+# ✅ set_page_config UMA VEZ SÓ, SEMPRE no topo
+st.set_page_config(
+    page_title="Omnisfera | Monitoramento",
+    page_icon="omni_icone.png" if os.path.exists("omni_icone.png") else "📊",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+APP_VERSION = "v150.0 (SaaS Design)"
+
+# ✅ UI lockdown (não quebra se faltar)
+try:
+    from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
+    hide_streamlit_chrome_if_needed()
+    hide_default_sidebar_nav()
+except Exception:
+    pass
+
+# ✅ Header + Navbar (depois do page_config)
+ou.render_omnisfera_header()
+ou.render_navbar(active_tab="Evolução & Dados")
+ou.inject_compact_app_css()
+
+# Garantir que RemixIcon está carregado
+st.markdown("""
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+""", unsafe_allow_html=True)
+
+# Adiciona classe no body para cores específicas das abas
+st.markdown("<script>document.body.classList.add('page-sky');</script>", unsafe_allow_html=True)
+
+# ==============================================================================
+# AJUSTE FINO DE LAYOUT (ANTES DO HERO - PADRONIZADO)
+# ==============================================================================
+def forcar_layout_hub():
+    st.markdown("""
+        <style>
+            /* 1. Remove o cabeçalho padrão do Streamlit e a linha colorida */
+            header[data-testid="stHeader"] {
+                visibility: hidden !important;
+                height: 0px !important;
+            }
+
+            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) - ESPECIFICIDADE MÁXIMA */
+            body .main .block-container,
+            body .block-container,
+            .main .block-container,
+            .block-container {
+                padding-top: 0px !important; /* SEM espaço entre navbar e hero */
+                padding-bottom: 1rem !important;
+                margin-top: 0px !important;
+            }
+            
+            /* 3. Remove qualquer espaçamento do Streamlit */
+            [data-testid="stVerticalBlock"],
+            div[data-testid="stVerticalBlock"] > div:first-child,
+            .main .block-container > div:first-child,
+            .main .block-container > *:first-child {
+                padding-top: 0px !important;
+                margin-top: 0px !important;
+            }
+            
+            /* 4. Remove espaçamento do stMarkdown que renderiza o hero */
+            .main .block-container > div:first-child .stMarkdown {
+                margin-top: 0px !important;
+                padding-top: 0px !important;
+            }
+            
+            /* 5. Hero card colado no menu - margin negativo MUITO agressivo */
+            .mod-card-wrapper {
+                margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
+                position: relative;
+                z-index: 1;
+            }
+            
+            /* 6. Esconde o menu hambúrguer e rodapé */
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+        </style>
+    """, unsafe_allow_html=True)
+
+# CHAME ESTA FUNÇÃO ANTES DO HERO CARD (igual ao PEI)
+forcar_layout_hub()
+
+# Cores dos hero cards (paleta vibrante)
+ou.inject_hero_card_colors()
+# CSS padronizado: abas (pílulas), botões, selects, etc.
+ou.inject_unified_ui_css()
+
+# CSS Específico desta página (Hero Card - igual ao Alunos)
 st.markdown("""
 <style>
-    /* Cards Flutuantes */
-    .stCard {
-        background-color: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        border-left: 5px solid #FF4B4B;
-        margin-bottom: 20px;
+    /* CARD HERO - PADRÃO VIA omni_utils.inject_hero_card_colors() */
+    .mod-card-wrapper { 
+        display: flex; 
+        flex-direction: column; 
+        margin-bottom: 20px; 
+        border-radius: 16px; 
+        overflow: hidden; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
+        margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
+        position: relative;
+        z-index: 1;
     }
-    .stCardBlue {
-        background-color: #F0F7FF;
-        padding: 20px;
-        border-radius: 12px;
-        border-left: 5px solid #0F52BA;
-        color: #0F52BA;
+    .mod-card-rect { 
+        background: white; 
+        border-radius: 16px 16px 0 0; 
+        padding: 0; 
+        border: 1px solid #E2E8F0; 
+        border-bottom: none; 
+        display: flex; 
+        flex-direction: row; 
+        align-items: center; 
+        height: 130px !important; 
+        width: 100%; 
+        position: relative; 
+        overflow: hidden; 
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .mod-card-rect:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        border-color: #CBD5E1;
+    }
+    .mod-bar { 
+        width: 6px; 
+        height: 100%; 
+        flex-shrink: 0; 
+    }
+    .mod-icon-area { 
+        width: 90px; 
+        height: 100%; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 1.8rem; 
+        flex-shrink: 0; 
+        background: #FAFAFA !important; 
+        border-right: 1px solid #F1F5F9; 
+        transition: all 0.3s ease; 
+    }
+    .mod-card-rect:hover .mod-icon-area {
+        background: white !important;
+        transform: scale(1.05) !important;
+    }
+    .mod-content { 
+        flex-grow: 1; 
+        padding: 0 24px; 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center;
+        min-width: 0;
+        align-items: flex-start;
+    }
+    .mod-title { 
+        font-weight: 800; 
+        font-size: 1.1rem; 
+        color: #1E293B; 
+        margin-bottom: 6px; 
+        letter-spacing: -0.3px; 
+        transition: color 0.2s;
+    }
+    .mod-card-rect:hover .mod-title {
+        color: #075985;
+    }
+    .mod-desc { 
+        font-size: 0.8rem; 
+        color: #64748B; 
+        line-height: 1.4; 
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
     
-    /* Títulos e Métricas */
-    h3 { color: #FF4B4B !important; }
-    div[data-testid="stMetricValue"] { color: #0F52BA !important; }
-    
-    /* Abas */
-    .stTabs [data-baseweb="tab-highlight"] { background-color: #FF4B4B; }
+    /* CORES ESPECÍFICAS SKY - Garantir que o ícone tenha cor correta */
+    .c-sky { 
+        background: #0C4A6E !important; 
+    }
+    .bg-sky-soft { 
+        background: #BAE6FD !important;
+        color: #075985 !important;
+    }
+    /* Garante que o ícone use a cor do bg-sky-soft */
+    .mod-icon-area i {
+        color: inherit !important;
+    }
+    .bg-sky-soft i,
+    .mod-icon-area.bg-sky-soft i,
+    .mod-icon-area.bg-sky-soft i.ri-line-chart-fill {
+        color: #075985 !important;
+        font-size: 1.8rem !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("📚 Guia de Práticas e Fundamentos")
-st.markdown("Base de conhecimento visual para suporte à gestão e prática da educação inclusiva.")
-
-# Abas
-tab1, tab2, tab3, tab4 = st.tabs([
-    "🏛️ Fundamentos & Legal", 
-    "📊 Gestão & Dados", 
-    "🧠 Prática Pedagógica",
-    "🤝 Equipe & Papéis"
-])
-
 # ==============================================================================
-# ABA 1: FUNDAMENTOS & TIMELINE INTERATIVA
+# HERO - MONITORAMENTO
 # ==============================================================================
-with tab1:
-    st.header("Filosofia e Legislação")
-    
-    # Bloco Conceitual (Cards Lado a Lado)
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown("""
-        <div class="stCardBlue">
-            <h4>💡 O Conceito de 'Outrar-se'</h4>
-            <p><em>"Sentir o mundo do outro como se fosse o seu... numa relação empática sem se envolver com os sentimentos da pessoa."</em></p>
-            <small>— Fernando Pessoa (Bernardo Soares)</small>
-            <br><br>
-            <strong>Aplicação:</strong> Empatia Técnica. Interpretar a necessidade sem perder a postura profissional.
+hora = datetime.now().hour
+saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
+USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
+WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
+
+st.markdown(f"""
+<div class="mod-card-wrapper">
+    <div class="mod-card-rect">
+        <div class="mod-bar c-sky"></div>
+        <div class="mod-icon-area bg-sky-soft">
+            <i class="ri-line-chart-fill"></i>
         </div>
-        """, unsafe_allow_html=True)
+        <div class="mod-content">
+            <div class="mod-title">Evolução & Dados</div>
+            <div class="mod-desc">
+                {saudacao}, <strong>{USUARIO_NOME}</strong>! Consolide dados do PEI com evidências do Diário de Bordo 
+                e acompanhe o progresso dos alunos do workspace <strong>{WORKSPACE_NAME}</strong>.
+            </div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# Espaçamento após hero card
+st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+
+# ==============================================================================
+# FUNÇÕES DO NÚCLEO (Supabase)
+# ==============================================================================
+
+def _sb_url() -> str:
+    url = str(st.secrets.get("SUPABASE_URL", "")).strip()
+    if not url:
+        raise RuntimeError("SUPABASE_URL missing")
+    return url.rstrip("/")
+
+def _sb_key() -> str:
+    key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "") or st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+    if not key:
+        raise RuntimeError("SUPABASE_KEY missing")
+    return key
+
+def _headers() -> dict:
+    key = _sb_key()
+    return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+
+# --- Carregamento de Alunos ---
+@st.cache_data(ttl=60, show_spinner=False)
+def list_students_rest():
+    """Busca estudantes do Supabase incluindo pei_data, paee_ciclos e dados do Hub."""
+    WORKSPACE_ID = st.session_state.get("workspace_id")
+    if not WORKSPACE_ID:
+        pass 
+
+    try:
+        base = (
+            f"{_sb_url()}/rest/v1/students"
+            f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data,paee_ciclos,planejamento_ativo"
+            f"&workspace_id=eq.{WORKSPACE_ID}"
+            f"&order=created_at.desc"
+        )
+        r = requests.get(base, headers=_headers(), timeout=20)
+        return r.json() if r.status_code == 200 else []
+    except Exception as e:
+        st.error(f"Erro ao carregar alunos: {str(e)}")
+        return []
+
+def carregar_estudantes_formatados():
+    """Processa a lista crua incluindo dados do PEI, PAE e Hub."""
+    dados = list_students_rest()
+    estudantes = []
+
+    for item in dados:
+        pei_completo = item.get("pei_data") or {}
+        paee_ciclos = item.get("paee_ciclos") or []
+        planejamento_ativo = item.get("planejamento_ativo")
+        
+        # Busca ciclo ativo do PAE
+        paee_ativo = None
+        if planejamento_ativo and paee_ciclos:
+            for ciclo in paee_ciclos:
+                if ciclo.get("ciclo_id") == planejamento_ativo:
+                    paee_ativo = ciclo
+                    break
+        
+        # Tenta pegar contexto da IA do PEI ou monta fallback
+        contexto_ia = ""
+        if isinstance(pei_completo, dict):
+            contexto_ia = pei_completo.get("ia_sugestao", "")
+        
+        if not contexto_ia:
+            diag = item.get("diagnosis", "Não informado")
+            serie = item.get("grade", "")
+            contexto_ia = f"Aluno: {item.get('name')}. Série: {serie}. Diagnóstico: {diag}."
+
+        estudante = {
+            "nome": item.get("name", ""),
+            "serie": item.get("grade", ""),
+            "id": item.get("id", ""),
+            "pei_data": pei_completo,  # Dados do PEI
+            "paee_ciclos": paee_ciclos,  # Dados do PAE
+            "paee_ativo": paee_ativo,  # Ciclo ativo do PAE
+            "diagnosis": item.get("diagnosis", "")
+        }
+        if estudante["nome"]:
+            estudantes.append(estudante)
+            
+    return estudantes
+
+# ==============================================================================
+# FUNÇÕES ESPECÍFICAS DO MONITORAMENTO
+# ==============================================================================
+
+def get_student_logs(student_id, limit=5):
+    """Busca evidências no Diário de Bordo para confrontar com o PEI."""
+    try:
+        # Ajuste o nome da tabela 'daily_logs' se for diferente no seu Supabase
+        url = (
+            f"{_sb_url()}/rest/v1/daily_logs"
+            f"?student_id=eq.{student_id}"
+            f"&select=created_at,content,tags,sentiment"
+            f"&order=created_at.desc&limit={limit}"
+        )
+        r = requests.get(url, headers=_headers())
+        return r.json() if r.status_code == 200 else []
+    except:
+        return []
+
+def save_assessment(student_id, rubric_data, observation):
+    """Salva a avaliação consolidada."""
+    payload = {
+        "student_id": student_id,
+        "date_assessed": datetime.now().isoformat(),
+        "rubric_data": rubric_data,
+        "observation": observation,
+        "evaluator_id": st.session_state.get("user_id", "anon"),
+        "workspace_id": st.session_state.get("workspace_id")
+    }
+    
+    # POST na tabela 'monitoring_assessments' (Criar essa tabela se não existir)
+    url = f"{_sb_url()}/rest/v1/monitoring_assessments"
+    r = requests.post(url, headers=_headers(), json=payload)
+    return r.status_code in [200, 201]
+
+# ==============================================================================
+# INTERFACE PRINCIPAL
+# ==============================================================================
+
+# Verificação de autenticação
+if not st.session_state.get("autenticado") or not st.session_state.get("workspace_id"):
+    st.warning("🔒 Acesso restrito. Faça login na Home.")
+    st.stop()
+
+# Espaçamento após hero card
+st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+
+st.markdown("### 📊 Consolidação de Dados")
+st.markdown("Consolidação de dados do **PEI**, **PAE** e **Hub** com evidências do **Diário de Bordo**.")
+
+# --- SELETOR DE ESTUDANTE ---
+lista_alunos = carregar_estudantes_formatados()
+opcoes = {a['nome']: a for a in lista_alunos}
+
+if not opcoes:
+    st.warning("Nenhum aluno encontrado ou erro na conexão.")
+    st.stop()
+
+col_sel, col_blank = st.columns([1, 2])
+with col_sel:
+    nome_selecionado = st.selectbox("Selecione o Estudante:", ["Selecione..."] + list(opcoes.keys()))
+
+if nome_selecionado != "Selecione...":
+    aluno = opcoes[nome_selecionado]
+    student_id = aluno['id']
+    pei = aluno['pei_data'] if isinstance(aluno['pei_data'], dict) else {}
+    
+    # Busca evidências reais
+    logs = get_student_logs(student_id)
+
+    st.divider()
+
+    # --- ÁREA DE CONFRONTO (PEI vs PAE vs DIÁRIO) ---
+    c1, c2, c3 = st.columns(3)
+    
+    with c1:
+        st.subheader("🎯 Expectativa (PEI)")
+        st.caption("Objetivos cadastrados no Plano de Ensino")
+        
+        # Tenta extrair dados estruturados do seu JSON pei_data
+        objetivos = pei.get('objetivos', []) or pei.get('goals', [])
+        
+        if objetivos:
+            for obj in objetivos:
+                st.info(f"📍 {obj}")
+        else:
+            # Se não tiver estrutura, mostra o diagnóstico
+            st.info(f"**Diagnóstico Base:** {aluno['diagnosis']}")
+            st.write("Sem objetivos específicos estruturados no JSON.")
     
     with c2:
-        st.markdown("""
-        <div class="stCard" style="border-left-color: #FF4B4B;">
-            <h4>🚫 Inimigo: Capacitismo</h4>
-            <p>Preconceito que pressupõe a deficiência como uma 'falta' ou 'diminuição'.</p>
-            <ul>
-                <li><strong>Físico:</strong> Falta de rampas, banheiros.</li>
-                <li><strong>Simbólico:</strong> Metáforas ("fingir de cego") e viés inconsciente.</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
+        st.subheader("🔧 Planejamento (PAE)")
+        st.caption("Ciclos de AEE planejados")
+        
+        paee_ativo = aluno.get('paee_ativo')
+        if paee_ativo:
+            st.success("✅ Ciclo PAE Ativo")
+            if isinstance(paee_ativo, dict):
+                config = paee_ativo.get('config_ciclo', {})
+                if config:
+                    st.write(f"**Período:** {config.get('data_inicio', 'N/A')} a {config.get('data_fim', 'N/A')}")
+                    st.write(f"**Status:** {paee_ativo.get('status', 'N/A')}")
+        else:
+            paee_ciclos = aluno.get('paee_ciclos', [])
+            if paee_ciclos:
+                st.info(f"📋 {len(paee_ciclos)} ciclo(s) cadastrado(s), mas nenhum ativo")
+            else:
+                st.warning("⚠️ Nenhum ciclo PAE cadastrado")
+
+    with c3:
+        st.subheader("📝 Realidade (Diário)")
+        st.caption("Últimos registros de atividades")
+        
+        if logs:
+            for log in logs:
+                data = datetime.fromisoformat(log['created_at'].replace('Z', '+00:00')).strftime("%d/%m")
+                # Cardzinho estilo 'timeline'
+                st.markdown(f"""
+                <div style="border-left: 3px solid #075985; padding-left: 10px; margin-bottom: 10px; background: #F8FAFC; padding: 10px; border-radius: 4px;">
+                    <small style="color:gray">{data}</small><br>
+                    {log.get('content', '')}
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.warning("Nenhum registro encontrado no diário para este aluno.")
+    
+    # Informação sobre Hub
+    st.info("💡 **Nota:** Recursos gerados no Hub de Inclusão são temporários e não são persistidos. Para acompanhar recursos utilizados, registre-os no Diário de Bordo.")
 
     st.divider()
-    st.subheader("📜 Evolução dos Marcos Legais")
-    
-    # CRIAÇÃO DA TIMELINE COM PLOTLY (Visual Gráfico)
-    timeline_data = [
-        dict(Ano="1988", Marco="Constituição Federal", Desc="Direito de todos"),
-        dict(Ano="1994", Marco="Declaração de Salamanca", Desc="Compromisso Global"),
-        dict(Ano="1996", Marco="LDB (Lei 9.394)", Desc="Obrig. Educação Especial"),
-        dict(Ano="2008", Marco="PNEEPEI", Desc="Política Nacional na Escola Comum"),
-        dict(Ano="2015", Marco="LBI (Lei 13.146)", Desc="Lei Brasileira de Inclusão")
-    ]
-    df_time = pd.DataFrame(timeline_data)
-    
-    fig_time = px.scatter(df_time, x="Ano", y=[1]*len(df_time), text="Marco", 
-                          hover_data=["Desc"], size=[30]*5, color="Marco")
-    
-    fig_time.update_traces(textposition='top center', marker=dict(symbol="circle", line=dict(width=2, color='DarkSlateGrey')))
-    fig_time.update_layout(
-        showlegend=False, 
-        height=250, 
-        yaxis=dict(visible=False),
-        xaxis=dict(type='category'),
-        margin=dict(l=20, r=20, t=20, b=20),
-        plot_bgcolor="white"
-    )
-    st.plotly_chart(fig_time, use_container_width=True)
-    
-    with st.expander("Ver detalhes da legislação"):
-        st.table(df_time[['Ano', 'Marco', 'Desc']])
 
-# ==============================================================================
-# ABA 2: GESTÃO & DADOS (Gráficos do IBGE citados no PDF)
-# ==============================================================================
-with tab2:
-    st.header("Gestão Estratégica Baseada em Dados")
-    st.caption("Dados extraídos do Cenário Brasileiro (IBGE) citados no material de referência.")
-
-    # KPI Cards
-    k1, k2, k3 = st.columns(3)
-    k1.metric("População PcD (Brasil)", "18.6 Mi", "8.9% da População")
-    k2.metric("Gap Analfabetismo", "19.5%", "vs 4.1% Geral")
-    k3.metric("Gap Trabalho Informal", "57.3%", "Maior Precarização")
-
-    st.markdown("---")
-
-    g1, g2 = st.columns([1, 1.5])
+    # --- RUBRICA DE AVALIAÇÃO ---
+    st.subheader("🧩 Rubrica de Desenvolvimento")
     
-    with g1:
-        st.subheader("🎓 Escolaridade")
-        # Gráfico de Rosca comparando Ensino Médio
-        labels = ['PcD', 'População Geral']
-        values = [25.6, 55] # Dados do PDF (Ensino Médio Completo)
+    with st.form("avaliacao_rubrica"):
+        # Critérios da Rubrica
+        criterios = {
+            "autonomia": "Nível de Autonomia",
+            "social": "Interação Social",
+            "conteudo": "Apropriação do Conteúdo (PEI)",
+            "comportamento": "Regulação Comportamental"
+        }
         
-        fig_educ = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.6, marker_colors=['#FF4B4B', '#0F52BA'])])
-        fig_educ.update_layout(title_text="Conclusão Ensino Médio (%)", height=300, margin=dict(t=30, b=0, l=0, r=0))
-        st.plotly_chart(fig_educ, use_container_width=True)
-        st.caption("*Apenas 25,6% das PcD concluem o Ensino Médio (IBGE).")
-
-    with g2:
-        st.subheader("📋 Checklist do PGEI")
-        st.markdown("Passo a passo para o **Plano Geral de Educação Inclusiva**:")
+        respostas = {}
+        cols = st.columns(2)
+        i = 0
         
-        # Barra de Progresso Visual (Steps)
-        steps = ["1. Censo Escolar", "2. Mapear Perfis", "3. Recursos Físicos", "4. Dimensionar Equipe"]
-        current = st.selectbox("Status da sua escola:", steps)
+        # Cria os sliders dinamicamente
+        for chave, titulo in criterios.items():
+            col_atual = cols[i % 2]
+            with col_atual:
+                respostas[chave] = st.select_slider(
+                    f"**{titulo}**",
+                    options=["Não Iniciado", "Iniciado", "Em Desenvolvimento", "Consolidado"],
+                    value="Em Desenvolvimento"
+                )
+            i += 1
+            
+        st.write("")
+        obs = st.text_area("Observação Final da Avaliação", height=100)
         
-        if current == steps[0]: prog = 25
-        elif current == steps[1]: prog = 50
-        elif current == steps[2]: prog = 75
-        else: prog = 100
+        btn_salvar = st.form_submit_button("💾 Salvar Monitoramento", type="primary")
         
-        st.progress(prog)
-        st.info(f"**Próxima Ação:** {current} - Garanta que estes dados estejam no sistema Omnisfera.")
+        if btn_salvar:
+            sucesso = save_assessment(student_id, respostas, obs)
+            if sucesso:
+                st.success("Avaliação salva com sucesso no banco de dados!")
+                st.rerun()
+            else:
+                st.error("Erro ao salvar. Verifique a tabela 'monitoring_assessments' no Supabase.")
 
 # ==============================================================================
-# ABA 3: PRÁTICA PEDAGÓGICA (Fluxogramas e Toolkit)
+# RODAPÉ COM ASSINATURA
 # ==============================================================================
-with tab3:
-    st.header("Toolkit Pedagógico")
-    
-    # 1. Fluxograma do PEI (Graphviz)
-    st.subheader("🔄 O Fluxo da Justiça Curricular")
-    
-    graph = graphviz.Digraph()
-    graph.attr(rankdir='LR', bgcolor='transparent')
-    graph.attr('node', shape='box', style='filled', fillcolor='white', color='#0F52BA', fontname='Nunito')
-    
-    graph.node('A', '1. COLETA\n(Laudos + Família)')
-    graph.node('B', '2. FILTRO\n(Equipe Multidisciplinar)')
-    graph.node('C', '3. AÇÃO\n(Adaptação Curricular)')
-    graph.node('D', 'ALUNO\n(Aprendizado Real)')
-    
-    graph.edge('A', 'B', label=' Sigilo')
-    graph.edge('B', 'C', label=' Tradução Pedagógica')
-    graph.edge('C', 'D', label=' Inclusão')
-    
-    st.graphviz_chart(graph)
-    
-    st.divider()
-    
-    # 2. Grid de Estratégias (Cards Coloridos)
-    st.subheader("🧠 Estratégias Neurocompatíveis (TDAH/Dislexia)")
-    
-    row1 = st.columns(4)
-    strategies = [
-        ("⏱️ Tempo", "Flexibilidade em provas e tarefas.", "⏳"),
-        ("🗣️ Consignas", "Instruções curtas e diretas.", "📢"),
-        ("📝 Avaliação", "Oral, projetos, múltipla escolha.", "✅"),
-        ("💡 Ambiente", "Longe de janelas/portas.", "🪑")
-    ]
-    
-    for col, (title, desc, icon) in zip(row1, strategies):
-        col.markdown(f"""
-        <div style="background:#f9f9f9; padding:15px; border-radius:10px; text-align:center; height:180px; border-top: 4px solid #FF4B4B;">
-            <div style="font-size:30px;">{icon}</div>
-            <div style="font-weight:bold; color:#333;">{title}</div>
-            <div style="font-size:12px; color:#666; margin-top:10px;">{desc}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-# ==============================================================================
-# ABA 4: EQUIPE (Comparativo Visual)
-# ==============================================================================
-with tab4:
-    st.header("Definição de Papéis")
-    st.warning("⚠️ Confusão comum: A escola contrata AT achando que é AP, ou vice-versa.")
-
-    col_at, col_ap = st.columns(2)
-    
-    # Card AT
-    with col_at:
-        st.markdown("""
-        <div style="background-color: #FFF5F5; border: 1px solid #FF4B4B; border-radius: 10px; padding: 20px;">
-            <h3 style="color:#FF4B4B; text-align:center;">AT</h3>
-            <p style="text-align:center; font-weight:bold;">Atendente Terapêutico</p>
-            <hr>
-            <ul style="list-style-type: none; padding: 0;">
-                <li>🏥 <strong>Foco:</strong> Clínico / Saúde</li>
-                <li>🔗 <strong>Vínculo:</strong> Família ou Estado</li>
-                <li>🎯 <strong>Missão:</strong> Manejo de comportamento e crises.</li>
-                <li>❌ <strong>Não faz:</strong> Adaptação de lição.</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Card AP
-    with col_ap:
-        st.markdown("""
-        <div style="background-color: #F0F7FF; border: 1px solid #0F52BA; border-radius: 10px; padding: 20px;">
-            <h3 style="color:#0F52BA; text-align:center;">AP</h3>
-            <p style="text-align:center; font-weight:bold;">Atendente Pedagógico</p>
-            <hr>
-            <ul style="list-style-type: none; padding: 0;">
-                <li>🏫 <strong>Foco:</strong> Escolar / Pedagógico</li>
-                <li>🔗 <strong>Vínculo:</strong> Escola</li>
-                <li>🎯 <strong>Missão:</strong> Acesso ao currículo e rotina.</li>
-                <li>✅ <strong>Faz:</strong> Auxílio na lancheira, materiais, interação.</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("---")
-    st.info("💡 **Dica do Diretor:** O Psicólogo Escolar **não faz clínica** (terapia) dentro da escola. Ele faz mediação institucional e suporte à equipe.")
-
-# Rodapé
-st.markdown("<br><br><div style='text-align:center; color:gray; font-size:0.8em;'>Omnisfera Learning Systems • Baseado na obra 'Inclusão Escolar: Gestão e Prática'</div>", unsafe_allow_html=True)
+ou.render_footer_assinatura()
