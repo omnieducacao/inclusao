@@ -165,7 +165,14 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
     pointer-events: none;
     padding: 0px 0 !important; /* SEM espaço entre topbar e navbar */
     margin-bottom: 0px !important;
+    margin-top: 0px !important;
   }}
+  
+  /* Remove espaçamento após navbar */
+  .omni-navbar + *,
+  .omni-navbar ~ * {
+    margin-top: 0px !important;
+  }
   .omni-navbar-inner {{
     width: min(1200px, calc(100% - 48px));
     pointer-events: auto;
@@ -176,6 +183,16 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
     margin: 0 !important;
     padding: 0 !important;
   }}
+  
+  /* Remove espaçamento após navbar no Streamlit */
+  .omni-navbar .stMarkdownContainer,
+  .omni-navbar + .element-container,
+  .omni-navbar ~ .element-container {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+  }
 
   /* Responsivo */
   @media (max-width: 900px) {{
@@ -295,7 +312,7 @@ def render_omnisfera_header():
     ensure_state()
 
     TOPBAR_H = 56
-    NAVBAR_H = 52
+    NAVBAR_H = 44  # Reduzido de 52 para 44 para diminuir espaço total
 
     # 🔥 MUITO PERTO: content_gap=0 (espaço mínimo entre navbar e hero)
     inject_layout_css(topbar_h=TOPBAR_H, navbar_h=NAVBAR_H, content_gap=0)
