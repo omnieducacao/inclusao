@@ -9,6 +9,7 @@ import pandas as pd
 from datetime import datetime, date, timedelta
 import requests
 import time
+import uuid
 import plotly.express as px
 import base64
 import plotly.graph_objects as go
@@ -309,7 +310,6 @@ def salvar_registro_diario(registro):
     Segue a mesma lógica do PEI (pei_data) e PAE (paee_ciclos).
     """
     try:
-        import uuid
         student_id = registro.get('student_id')
         if not student_id:
             return {"sucesso": False, "erro": "ID do estudante não fornecido"}
@@ -799,7 +799,7 @@ with tab_novo:
                 # Preparar registro
                 registro = {
                     "student_id": aluno_id,  # Necessário para salvar na coluna daily_logs do estudante
-                    "data_sessao": data_sessao.isoformat(),
+                    "data_sessao": data_sessao.isoformat() if hasattr(data_sessao, 'isoformat') else str(data_sessao),
                     "duracao_minutos": duracao,
                     "modalidade_atendimento": modalidade,
                     "atividade_principal": atividade,
