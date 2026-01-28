@@ -803,7 +803,7 @@ def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remove
     except Exception as e:
         return str(e), ""
 
-def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_atv, livro_professor, modo_profundo=False, checklist_adaptacao=None):
+def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_atv, livro_professor, modo_profundo=False, checklist_adaptacao=None, imagem_separada=None):
     """Adapta conteúdo de uma imagem para o estudante"""
     client = OpenAI(api_key=api_key)
     if not imagem_bytes:
@@ -815,6 +815,11 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
     
     # Buscar hiperfoco do aluno
     hiperfoco = aluno.get('hiperfoco', 'Geral') or 'Geral'
+    
+    # Instrução sobre imagem separada
+    instrucao_imagem_separada = ""
+    if imagem_separada:
+        instrucao_imagem_separada = "\n    - O professor recortou a imagem separadamente para melhor qualidade. Use a tag [[IMG_2]] para inserir esta imagem recortada no local apropriado da questão adaptada."
     
     # Montar instruções baseadas no checklist de adaptação (específico para questão única)
     instrucoes_checklist = ""
@@ -866,6 +871,7 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
     {instrucoes_checklist}
     4. REGRA ABSOLUTA DE IMAGEM: 
     - Se a questão original tinha imagem, detecte-a na imagem fornecida e insira a tag [[IMG_1]] no mesmo local onde estava.
+    {instrucao_imagem_separada}
     - MANTENHA AS IMAGENS NO MESMO LOCAL ONDE ESTAVAM NA QUESTÃO ORIGINAL.
     
     SAÍDA OBRIGATÓRIA (Respeite o divisor):
@@ -876,13 +882,28 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
     ...atividade...
     """
     
+    # Preparar mensagens com imagem(s)
+    content_msgs = [
+        {"type": "text", "text": prompt}, 
+        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
+    ]
+    
+    # Se houver imagem separada, adicionar também
+    if imagem_separada:
+        b64_separada = base64.b64encode(imagem_separada).decode('utf-8')
+        content_msgs.append({
+            "type": "text", 
+            "text": "IMAGEM RECORTADA SEPARADAMENTE PELO PROFESSOR (use tag [[IMG_2]] para inserir no local apropriado):"
+        })
+        content_msgs.append({
+            "type": "image_url", 
+            "image_url": {"url": f"data:image/jpeg;base64,{b64_separada}"}
+        })
+    
     msgs = [
         {
             "role": "user", 
-            "content": [
-                {"type": "text", "text": prompt}, 
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
-            ]
+            "content": content_msgs
         }
     ]
     
@@ -2142,16 +2163,36 @@ def render_aba_adaptar_atividade(aluno, api_key):
 
     # Processo de recorte
     cropped_res = None
+    imagem_recortada = None
     
     if st.session_state.img_raw:
-        st.markdown("### ✂️ Recortar a Questão")
-        st.info("💡 **Importante:** Recorte a área da questão. Se a questão tiver imagem, inclua-a no recorte. A IA detectará automaticamente e manterá no mesmo local.")
+        st.markdown("### ✂️ Passo 1: Recortar a Questão")
+        st.info("💡 **Importante:** Recorte a área da questão completa.")
         
         img_pil = Image.open(BytesIO(st.session_state.img_raw))
         img_pil.thumbnail((800, 800))
         cropped_res = st_cropper(img_pil, realtime_update=True, box_color='#FF0000', aspect_ratio=None, key="crop_i")
         if cropped_res:
             st.image(cropped_res, width=200, caption="Questão recortada")
+            
+            # Se a questão foi recortada, oferecer opção de recortar imagem separadamente
+            st.markdown("### 🖼️ Passo 2: Recortar Imagem (Opcional)")
+            st.caption("Se a questão tem imagem e você quer recortá-la separadamente para melhor qualidade, clique abaixo.")
+            
+            tem_imagem_na_questao = st.checkbox(
+                "A questão tem imagem e quero recortá-la separadamente",
+                value=False,
+                key="tem_imagem_separada"
+            )
+            
+            if tem_imagem_na_questao:
+                st.info("💡 Recorte apenas a área da imagem na questão. Esta imagem será inserida na questão adaptada.")
+                # Abrir a imagem original novamente para recortar só a imagem
+                img_pil_original = Image.open(BytesIO(st.session_state.img_raw))
+                img_pil_original.thumbnail((800, 800))
+                imagem_recortada = st_cropper(img_pil_original, realtime_update=True, box_color='#00FF00', aspect_ratio=None, key="crop_img_separada")
+                if imagem_recortada:
+                    st.image(imagem_recortada, width=200, caption="Imagem recortada separadamente")
 
     st.markdown("---")
     
@@ -2282,16 +2323,27 @@ def render_aba_adaptar_atividade(aluno, api_key):
             cropped_res.convert('RGB').save(buf_c, format="JPEG", quality=90)
             img_bytes = buf_c.getvalue()
             
+            # Processar imagem recortada separadamente se houver
+            img_separada_bytes = None
+            if imagem_recortada:
+                buf_img = BytesIO()
+                imagem_recortada.convert('RGB').save(buf_img, format="JPEG", quality=90)
+                img_separada_bytes = buf_img.getvalue()
+            
             # Salvar checklist no session_state para uso no refazer
             st.session_state['checklist_adaptacao_atividade'] = checklist_respostas
+            st.session_state['img_separada_atividade'] = img_separada_bytes
             
             rac, txt = adaptar_conteudo_imagem(
                 api_key, aluno, img_bytes, materia_i, tema_i, tipo_i, livro_prof, 
-                checklist_adaptacao=checklist_respostas
+                checklist_adaptacao=checklist_respostas,
+                imagem_separada=img_separada_bytes
             )
             
-            # Mapear imagem: 1 = questão recortada (com imagem se houver)
+            # Mapear imagens: 1 = questão recortada, 2 = imagem recortada separadamente (se houver)
             mapa_imgs = {1: img_bytes}
+            if img_separada_bytes:
+                mapa_imgs[2] = img_separada_bytes
             
             st.session_state['res_img'] = {'rac': rac, 'txt': txt, 'map': mapa_imgs, 'valid': False}
             st.rerun()
@@ -2308,11 +2360,12 @@ def render_aba_adaptar_atividade(aluno, api_key):
             if col_r.button("🧠 Refazer (+Profundo)", key="redo_i", use_container_width=True):
                 with st.spinner("Refazendo..."):
                     img_bytes = res['map'][1]
+                    img_separada_redo = res['map'].get(2)  # Recuperar imagem separada se houver
                     # Recuperar checklist do session_state se disponível
                     checklist_redo = st.session_state.get('checklist_adaptacao_atividade', {})
                     rac, txt = adaptar_conteudo_imagem(
                         api_key, aluno, img_bytes, materia_i, tema_i, tipo_i, livro_prof, 
-                        modo_profundo=True, checklist_adaptacao=checklist_redo
+                        modo_profundo=True, checklist_adaptacao=checklist_redo, imagem_separada=img_separada_redo
                     )
                     st.session_state['res_img'] = {'rac': rac, 'txt': txt, 'map': res['map'], 'valid': False}
                     st.rerun()
