@@ -3,6 +3,7 @@ import os
 import base64
 import requests
 import streamlit as st
+from streamlit_option_menu import option_menu
 
 # =============================================================================
 # 0) BIBLIOTECA DE ÍCONES FLAT (REMIXICON) - SISTEMA CENTRALIZADO
@@ -482,66 +483,56 @@ def render_navbar(active_tab: str = "Início"):
         "Diário de Bordo",
         "Evolução & Dados",
     ]
-    # Navbar nativo (sem streamlit_option_menu) para funcionar na Render e Streamlit Cloud
-    labels = {
-        "Início": "Início",
-        "Estudantes": "Estudantes",
-        "Estratégias & PEI": "Estratégias & PEI",
-        "Plano de Ação (AEE)": "Plano de Ação (AEE)",
-        "Hub de Recursos": "Hub de Recursos",
-        "Diário de Bordo": "Diário de Bordo",
-        "Evolução & Dados": "Evolução & Dados",
-    }
+    icones = ["house", "people", "book", "puzzle", "rocket", "journal", "bar-chart"]
 
     try:
         default_idx = opcoes.index(active_tab)
     except ValueError:
         default_idx = 0
 
-    st.markdown(
-        """
-        <style>
-          /* Navbar nativo via st.radio */
-          .omni-navbar .stRadio [role="radiogroup"]{
-            display:flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items:center;
-            justify-content:center;
-          }
-          .omni-navbar .stRadio label{
-            margin: 0 !important;
-          }
-          .omni-navbar .stRadio div[role="radio"]{
-            border: 1px solid #E2E8F0;
-            background: #ffffff;
-            border-radius: 999px;
-            padding: 6px 10px;
-            font-size: 12px;
-            color: #64748B;
-            line-height: 1;
-          }
-          .omni-navbar .stRadio div[role="radio"][aria-checked="true"]{
-            background: #F1F5F9;
-            color: #0F172A;
-            border-color: #CBD5E1;
-            font-weight: 800;
-          }
-        </style>
-        """,
-        unsafe_allow_html=True,
+    st.markdown('<div class="omni-navbar"><div class="omni-navbar-inner">', unsafe_allow_html=True)
+
+    selected = option_menu(
+        menu_title=None,
+        options=opcoes,
+        icons=icones,
+        default_index=default_idx,
+        orientation="horizontal",
+        styles={
+            "container": {
+                "padding": "2px 4px",
+                "margin": "0px",
+                "background-color": "#ffffff",
+                "border": "1px solid #E2E8F0",
+                "border-radius": "14px",
+                "box-shadow": "0 1px 2px rgba(0,0,0,0.03)",
+            },
+            "icon": {"color": "#64748B", "font-size": "15px"},
+            "nav-link": {
+                "font-size": "12px",
+                "text-align": "center",
+                "margin": "0px",
+                "padding": "6px 8px",
+                "--hover-color": "#F8FAFC",
+                "color": "#64748B",
+                "white-space": "nowrap",
+                "border-radius": "10px",
+                "min-height": "32px",
+                "display": "flex",
+                "align-items": "center",
+                "justify-content": "center",
+                "border": "1px solid transparent",
+                "gap": "6px",
+            },
+            "nav-link-selected": {
+                "background-color": "#F1F5F9",
+                "color": "#0F172A",
+                "font-weight": "700",
+                "border": "1px solid #E2E8F0",
+            },
+        },
     )
 
-    st.markdown('<div class="omni-navbar"><div class="omni-navbar-inner">', unsafe_allow_html=True)
-    selected = st.radio(
-        label="",
-        options=opcoes,
-        index=default_idx,
-        horizontal=True,
-        key="omni_nav_radio",
-        format_func=lambda x: labels.get(x, x),
-        label_visibility="collapsed",
-    )
     st.markdown("</div></div>", unsafe_allow_html=True)
     
     # Adiciona CSS para cor específica da página no navbar selecionado
@@ -560,7 +551,10 @@ def render_navbar(active_tab: str = "Início"):
         st.markdown(f"""
         <style>
         /* Aplica cor específica da página no navbar selecionado */
-        .omni-navbar .stRadio div[role="radio"][aria-checked="true"] {{
+        .omni-navbar .stMarkdownContainer div[role="button"][aria-selected="true"],
+        .omni-navbar button[aria-selected="true"],
+        .omni-navbar a[aria-selected="true"],
+        .omni-navbar [class*="nav-link-selected"] {{
             background-color: {color_info['bg']} !important;
             color: {color_info['color']} !important;
             border: 1px solid {color_info['color']} !important;
