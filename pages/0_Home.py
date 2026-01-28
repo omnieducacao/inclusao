@@ -3,6 +3,8 @@ from datetime import date, datetime
 import base64
 import os
 
+import omni_utils as ou
+
 # ==============================================================================
 # 1. CONFIGURAÇÃO INICIAL
 # ==============================================================================
@@ -803,33 +805,31 @@ def render_topbar():
 
 def create_module_card(title, desc, icon, color_cls, bg_cls, page, key):
     """Cria um card de módulo com botão de acesso"""
-    with st.container():
-        st.markdown(
-            f"""
-            <div class="mod-card-wrapper">
-                <div class="mod-card-rect">
-                    <div class="mod-bar {color_cls}"></div>
-                    <div class="mod-icon-area {bg_cls}">
-                        <i class="{icon}"></i>
-                    </div>
-                    <div class="mod-content">
-                        <div class="mod-title">{title}</div>
-                        <div class="mod-desc">{desc}</div>
-                    </div>
+    st.markdown(
+        f"""
+        <div class="mod-card-wrapper">
+            <div class="mod-card-rect">
+                <div class="mod-bar {color_cls}"></div>
+                <div class="mod-icon-area {bg_cls}">
+                    <i class="{icon}"></i>
                 </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        
-        if st.button(
-            f"📂 ACESSAR {title.split()[0].upper()}",
-            key=f"btn_{key}",
-            use_container_width=True,
-            help=f"Clique para acessar {title}",
-        ):
-            st.switch_page(page)
-        
-        st.markdown("</div>", unsafe_allow_html=True)
+                <div class="mod-content">
+                    <div class="mod-title">{title}</div>
+                    <div class="mod-desc">{desc}</div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    
+    if st.button(
+        f"📂 ACESSAR {title.split()[0].upper()}",
+        key=f"btn_{key}",
+        use_container_width=True,
+        help=f"Clique para acessar {title}",
+    ):
+        st.switch_page(page)
 
 
 def render_info_cards():
