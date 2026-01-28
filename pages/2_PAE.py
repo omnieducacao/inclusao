@@ -320,7 +320,7 @@ inject_paee_css(theme="purple")
 st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
 # ==============================================================================
-# PARTE 2/4: CONEXÃO COM BANCO DE DADOS E CARREGAMENTO DE ALUNOS
+# PARTE 2/4: CONEXÃO COM BANCO DE DADOS E CARREGAMENTO DE ESTUDANTES
 # ==============================================================================
 
 # Funções _sb_url(), _sb_key(), _headers() removidas - usar ou._sb_url(), ou._sb_key(), ou._headers() do omni_utils
@@ -330,7 +330,7 @@ st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 # PEI DO ALUNO
 # ==============================================================================
 def carregar_pei_aluno(aluno_id):
-    """Carrega o PEI do aluno do Supabase (campo pei_data na tabela students)."""
+    """Carrega o PEI do estudante do Supabase (campo pei_data na tabela students)."""
     try:
         url = f"{ou._sb_url()}/rest/v1/students"
         params = {"select": "id,pei_data", "id": f"eq.{aluno_id}"}
@@ -352,13 +352,13 @@ def salvar_paee_ciclo(aluno_id, ciclo_data):
     Mantém planejamento_ativo e status_planejamento.
     """
     try:
-        # 1) Buscar aluno atual
+        # 1) Buscar estudante atual
         url = f"{ou._sb_url()}/rest/v1/students"
         params_get = {"select": "id,paee_ciclos,planejamento_ativo", "id": f"eq.{aluno_id}"}
         r = requests.get(url, headers=ou._headers(), params=params_get, timeout=15)
 
         if not (r.status_code == 200 and r.json()):
-            return {"sucesso": False, "erro": "Aluno não encontrado"}
+            return {"sucesso": False, "erro": "Estudante não encontrado"}
 
         aluno_row = r.json()[0]
         ciclos_existentes = aluno_row.get("paee_ciclos") or []
@@ -437,7 +437,7 @@ def carregar_ciclo_ativo(aluno_id):
 # NOVO — HISTÓRICO DE CICLOS + DEFINIR ATIVO + HELPERS
 # ==============================================================================
 def listar_ciclos_aluno(aluno_id):
-    """Lista todos os ciclos PAEE do aluno (students.paee_ciclos) e retorna (ciclos_ordenados, ciclo_ativo_id)."""
+    """Lista todos os ciclos PAEE do estudante (students.paee_ciclos) e retorna (ciclos_ordenados, ciclo_ativo_id)."""
     try:
         url = f"{ou._sb_url()}/rest/v1/students"
         params = {"select": "id,paee_ciclos,planejamento_ativo", "id": f"eq.{aluno_id}"}
@@ -511,7 +511,7 @@ def list_students_rest():
         r = requests.get(base, headers=ou._headers(), timeout=20)
         return r.json() if r.status_code == 200 else []
     except Exception as e:
-        st.error(f"Erro ao carregar alunos: {str(e)}")
+        st.error(f"Erro ao carregar estudantes: {str(e)}")
         return []
 
 def carregar_estudantes_supabase():
@@ -526,7 +526,7 @@ def carregar_estudantes_supabase():
         if not contexto_ia:
             diag = item.get('diagnosis', 'Não informado')
             serie = item.get('grade', '')
-            contexto_ia = f"Aluno: {item.get('name')}. Série: {serie}. Diagnóstico: {diag}."
+            contexto_ia = f"Estudante: {item.get('name')}. Série: {serie}. Diagnóstico: {diag}."
 
         estudante = {
             'nome': item.get('name', ''),
@@ -545,7 +545,7 @@ def carregar_estudantes_supabase():
 # FUNÇÕES PARA PAEE NO SUPABASE
 # ==============================================================================
 def carregar_pei_aluno(aluno_id):
-    """Carrega o PEI do aluno do Supabase"""
+    """Carrega o PEI do estudante do Supabase"""
     try:
         url = f"{ou._sb_url()}/rest/v1/students"
         params = {
@@ -590,7 +590,7 @@ def salvar_paee_ciclo(aluno_id, ciclo_data):
                         ciclos_existentes[i]['versao'] = ciclo.get('versao', 1) + 1
                         break
             
-            # Atualiza o aluno
+            # Atualiza o estudante
             update_data = {
                 "paee_ciclos": ciclos_existentes,
                 "planejamento_ativo": ciclo_id,
@@ -621,7 +621,7 @@ def salvar_paee_ciclo(aluno_id, ciclo_data):
         return {"sucesso": False, "erro": str(e)}
 
 def carregar_ciclo_ativo(aluno_id):
-    """Carrega o ciclo ativo do aluno"""
+    """Carrega o ciclo ativo do estudante"""
     try:
         url = f"{ou._sb_url()}/rest/v1/students"
         params = {
@@ -645,14 +645,14 @@ def carregar_ciclo_ativo(aluno_id):
         return None
 
 # ==============================================================================
-# CARREGAMENTO DOS DADOS DOS ALUNOS
+# CARREGAMENTO DOS DADOS DOS ESTUDANTES
 # ==============================================================================
 if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estudantes:
     with st.spinner("🔄 Lendo dados da nuvem..."):
         st.session_state.banco_estudantes = carregar_estudantes_supabase()
 
 if not st.session_state.banco_estudantes:
-    st.warning("⚠️ Nenhum aluno encontrado.")
+    st.warning("⚠️ Nenhum estudante encontrado.")
     if st.button("📘 Ir para o módulo PEI", type="primary"): 
         st.switch_page("pages/1_PEI.py")
     st.stop()
@@ -666,14 +666,14 @@ with col_sel:
 aluno = next((a for a in st.session_state.banco_estudantes if a.get('nome') == nome_aluno), None)
 
 if not aluno: 
-    st.error("Aluno não encontrado")
+    st.error("Estudante não encontrado")
     st.stop()
 
 # --- DETECTOR DE EDUCAÇÃO INFANTIL ---
 serie_aluno = aluno.get('serie', '').lower()
 is_ei = any(term in serie_aluno for term in ["infantil", "creche", "pré", "maternal", "berçario", "jardim"])
 
-# --- HEADER DO ALUNO ---
+# --- HEADER DO ESTUDANTE ---
 st.markdown(f"""
     <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 20px 30px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
         <div><div style="font-size: 0.8rem; color: #64748B; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Nome</div><div style="font-size: 1.2rem; color: #1E293B; font-weight: 800;">{aluno.get('nome')}</div></div>
@@ -701,7 +701,7 @@ def gerar_diagnostico_barreiras(api_key, aluno, obs_prof, feedback=None):
     
     prompt = f"""
     ATUAR COMO: Especialista em AEE.
-    ALUNO: {aluno['nome']} | DIAGNÓSTICO: {aluno.get('hiperfoco')}
+    ESTUDANTE: {aluno['nome']} | DIAGNÓSTICO: {aluno.get('hiperfoco')}
     CONTEXTO DO PEI: {contexto[:2500]}
     OBSERVAÇÃO ATUAL: {obs_prof}
     """
@@ -742,7 +742,7 @@ def gerar_projetos_ei_bncc(api_key, aluno, campo_exp, feedback=None):
     
     prompt = f"""
     ATUAR COMO: Especialista em Ed. Infantil Inclusiva.
-    ALUNO: {aluno['nome']} | CONTEXTO PEI: {contexto[:2000]}
+    ESTUDANTE: {aluno['nome']} | CONTEXTO PEI: {contexto[:2000]}
     CAMPO DE EXPERIÊNCIA: "{campo_exp}".
     """
     
@@ -765,7 +765,7 @@ def gerar_projetos_ei_bncc(api_key, aluno, campo_exp, feedback=None):
     - Uso de interesses do aluno como motivação
     - Eliminação de barreiras sensoriais e comunicacionais
     - Atividades sensoriais e concretas
-    - Inclusão de todos os alunos da turma
+    - Inclusão de todos os estudantes da turma
     """
     
     try:
@@ -785,7 +785,7 @@ def gerar_plano_habilidades(api_key, aluno, foco_treino, feedback=None):
     prompt = f"""
     CRIE PLANO DE INTERVENÇÃO AEE.
     FOCO: {foco_treino}.
-    ALUNO: {aluno['nome']} | CONTEXTO PEI: {contexto[:2000]}
+    ESTUDANTE: {aluno['nome']} | CONTEXTO PEI: {contexto[:2000]}
     """
     
     if feedback:
@@ -830,7 +830,7 @@ def sugerir_tecnologia_assistiva(api_key, aluno, dificuldade, feedback=None):
     
     prompt = f"""
     SUGESTÃO DE TECNOLOGIA ASSISTIVA.
-    Aluno: {aluno['nome']} | Dificuldade: {dificuldade}.
+    Estudante: {aluno['nome']} | Dificuldade: {dificuldade}.
     Contexto PEI: {contexto[:1500]}
     """
     
@@ -882,7 +882,7 @@ def gerar_documento_articulacao(api_key, aluno, frequencia, acoes, feedback=None
     
     prompt = f"""
     CARTA DE ARTICULAÇÃO (AEE -> SALA REGULAR).
-    Aluno: {aluno['nome']}. 
+    Estudante: {aluno['nome']}. 
     Frequência no AEE: {frequencia}.
     Ações desenvolvidas no AEE: {acoes}.
     """
@@ -952,7 +952,7 @@ def gerar_cronograma_inteligente(api_key, aluno, semanas, foco, metas):
         prompt = f"""
         Crie um cronograma de {semanas} semanas para AEE.
         
-        ALUNO: {aluno['nome']}
+        ESTUDANTE: {aluno['nome']}
         DIAGNÓSTICO: {aluno.get('hiperfoco', '')}
         FOCO DO CICLO: {foco}
         
@@ -1317,7 +1317,7 @@ if is_ei:
             obs_aee = st.text_area(
                 "Observação do Brincar:", 
                 height=100,
-                placeholder="Descreva as observações sobre o brincar do aluno: interações, preferências, dificuldades..."
+                placeholder="Descreva as observações sobre o brincar do estudante: interações, preferências, dificuldades..."
             )
             
             if st.button("🔍 Mapear Barreiras", type="primary", use_container_width=True):
