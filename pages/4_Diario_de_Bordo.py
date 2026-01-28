@@ -451,10 +451,17 @@ def carregar_todos_registros(limite=100):
             try:
                 estudantes = response.json()
             except (ValueError, json.JSONDecodeError) as e:
-                st.error(f"Erro ao decodificar resposta JSON: {str(e)}")
+                # Erro silencioso - retornar lista vazia
+                return []
+            except Exception as e:
+                # Qualquer outro erro também retorna lista vazia
                 return []
             
             if not isinstance(estudantes, list):
+                return []
+            
+            # Se a lista estiver vazia, retornar vazio
+            if len(estudantes) == 0:
                 return []
             
             todos_registros = []
@@ -499,10 +506,17 @@ def carregar_todos_registros(limite=100):
                 todos_registros_ordenados = todos_registros[:limite]
             
             return todos_registros_ordenados
+        elif response.status_code == 404:
+            # Tabela ou coluna não encontrada - retornar vazio
+            return []
+        else:
+            # Outro erro HTTP - retornar vazio silenciosamente
+            return []
+    except requests.exceptions.RequestException as e:
+        # Erro de conexão/timeout - retornar vazio
         return []
     except Exception as e:
-        # Não mostrar erro na tela imediatamente para não quebrar a página
-        # O erro será tratado onde a função é chamada
+        # Qualquer outro erro - retornar vazio silenciosamente
         return []
 
 def excluir_registro_diario(student_id, registro_id):
@@ -606,18 +620,26 @@ with tab_filtros:
 
     st.markdown("---")
     
-    # Estatísticas rápidas
+    # Estatísticas rápidas (carregamento sob demanda)
     st.markdown("### 📊 Estatísticas")
-    registros = []
-    try:
-        with st.spinner("Carregando registros..."):
-            registros = carregar_todos_registros(limite=500)
-            if not isinstance(registros, list):
-                registros = []
-    except Exception as e:
-        # Mostrar erro de forma mais amigável
-        st.warning(f"Não foi possível carregar os registros. Tente novamente mais tarde.")
+    
+    # Botão para carregar estatísticas
+    if st.button("📊 Carregar Estatísticas", type="primary", use_container_width=True):
         registros = []
+        try:
+            with st.spinner("Carregando registros..."):
+                registros = carregar_todos_registros(limite=500)
+                if not isinstance(registros, list):
+                    registros = []
+        except Exception as e:
+            st.warning(f"Não foi possível carregar os registros. Tente novamente mais tarde.")
+            registros = []
+        
+        # Salvar no session_state para não precisar recarregar
+        st.session_state['registros_estatisticas'] = registros
+    else:
+        # Usar cache se disponível
+        registros = st.session_state.get('registros_estatisticas', [])
 
     if registros:
         total_registros = len(registros)
@@ -659,7 +681,10 @@ with tab_filtros:
                 with cols[idx]:
                     st.metric(mods_display.get(mod, mod), count)
     else:
-        st.info("Nenhum registro encontrado.")
+        if 'registros_estatisticas' not in st.session_state:
+            st.info("Clique no botão acima para carregar as estatísticas.")
+        else:
+            st.info("Nenhum registro encontrado.")
 
 # ==============================================================================
 # ==============================================================================
