@@ -242,9 +242,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Espaçamento após hero card
-st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
-
 # ==============================================================================
 # FUNÇÕES DO NÚCLEO (Supabase)
 # ==============================================================================
@@ -372,8 +369,8 @@ if not st.session_state.get("autenticado") or not st.session_state.get("workspac
     st.warning("🔒 Acesso restrito. Faça login na Home.")
     st.stop()
 
-# Espaçamento após hero card
-st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+# Espaçamento após hero card (reduzido para aproximar conteúdo)
+st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
 st.markdown(f"### {icon_title('Consolidação de Dados', 'monitoramento', 24, '#0C4A6E')}", unsafe_allow_html=True)
 st.markdown("Consolidação de dados do **PEI**, **PAE** e **Hub** com evidências do **Diário de Bordo**.")
