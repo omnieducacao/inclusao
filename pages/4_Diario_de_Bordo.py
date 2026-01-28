@@ -448,7 +448,12 @@ def carregar_todos_registros(limite=100):
         
         response = requests.get(url, headers=ou._headers(), params=params, timeout=20)
         if response.status_code == 200:
-            estudantes = response.json()
+            try:
+                estudantes = response.json()
+            except (ValueError, json.JSONDecodeError) as e:
+                st.error(f"Erro ao decodificar resposta JSON: {str(e)}")
+                return []
+            
             if not isinstance(estudantes, list):
                 return []
             
@@ -457,32 +462,47 @@ def carregar_todos_registros(limite=100):
             for estudante in estudantes:
                 if not isinstance(estudante, dict):
                     continue
-                registros = estudante.get("daily_logs") or []
-                if not isinstance(registros, list):
-                    continue
-                for registro in registros:
-                    if not isinstance(registro, dict):
+                try:
+                    registros = estudante.get("daily_logs")
+                    # daily_logs pode ser None, lista vazia, ou uma lista
+                    if registros is None:
                         continue
-                    # Adicionar informações do estudante ao registro
-                    registro['student_id'] = estudante.get('id')
-                    registro['students'] = {
-                        'name': estudante.get('name'),
-                        'grade': estudante.get('grade'),
-                        'class_group': estudante.get('class_group')
-                    }
-                    todos_registros.append(registro)
+                    if not isinstance(registros, list):
+                        # Se não for lista, tentar converter ou pular
+                        continue
+                    for registro in registros:
+                        if not isinstance(registro, dict):
+                            continue
+                        # Criar cópia do registro para não modificar o original
+                        registro_copy = registro.copy()
+                        # Adicionar informações do estudante ao registro
+                        registro_copy['student_id'] = estudante.get('id')
+                        registro_copy['students'] = {
+                            'name': estudante.get('name'),
+                            'grade': estudante.get('grade'),
+                            'class_group': estudante.get('class_group')
+                        }
+                        todos_registros.append(registro_copy)
+                except Exception as e:
+                    # Se houver erro ao processar um estudante, continuar com os próximos
+                    continue
             
             # Ordenar por data_sessao (mais recente primeiro) e limitar
-            todos_registros_ordenados = sorted(
-                todos_registros,
-                key=lambda x: x.get('data_sessao', ''),
-                reverse=True
-            )[:limite]
+            try:
+                todos_registros_ordenados = sorted(
+                    todos_registros,
+                    key=lambda x: x.get('data_sessao', '') or '',
+                    reverse=True
+                )[:limite]
+            except Exception as e:
+                # Se houver erro na ordenação, retornar sem ordenar
+                todos_registros_ordenados = todos_registros[:limite]
             
             return todos_registros_ordenados
         return []
     except Exception as e:
-        st.error(f"Erro ao carregar registros: {str(e)}")
+        # Não mostrar erro na tela imediatamente para não quebrar a página
+        # O erro será tratado onde a função é chamada
         return []
 
 def excluir_registro_diario(student_id, registro_id):
@@ -588,10 +608,15 @@ with tab_filtros:
     
     # Estatísticas rápidas
     st.markdown("### 📊 Estatísticas")
+    registros = []
     try:
-        registros = carregar_todos_registros(limite=500)
+        with st.spinner("Carregando registros..."):
+            registros = carregar_todos_registros(limite=500)
+            if not isinstance(registros, list):
+                registros = []
     except Exception as e:
-        st.error(f"Erro ao carregar registros: {str(e)}")
+        # Mostrar erro de forma mais amigável
+        st.warning(f"Não foi possível carregar os registros. Tente novamente mais tarde.")
         registros = []
 
     if registros:
@@ -897,7 +922,12 @@ with tab_lista:
     st.markdown("### 📋 Registros de Atendimento")
     
     # Carregar registros com filtros
-    todos_registros = carregar_todos_registros(limite=200)
+    try:
+        todos_registros = carregar_todos_registros(limite=200)
+        if not isinstance(todos_registros, list):
+            todos_registros = []
+    except Exception:
+        todos_registros = []
     
     if not todos_registros:
         st.info("Nenhum registro encontrado. Crie seu primeiro registro na aba 'Novo Registro'.")
@@ -1061,7 +1091,12 @@ with tab_relatorios:
     st.markdown("### 📊 Relatórios e Análises")
     
     # Carregar dados
-    registros = carregar_todos_registros(limite=500)
+    try:
+        registros = carregar_todos_registros(limite=500)
+        if not isinstance(registros, list):
+            registros = []
+    except Exception:
+        registros = []
     
     if not registros:
         st.info("Nenhum dado disponível para gerar relatórios.")
