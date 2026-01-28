@@ -7,15 +7,17 @@ RPC_NAME = "workspace_from_pin"
 
 
 def _get_secret(name: str) -> str | None:
-    """Lê secrets (Streamlit Cloud) e fallback para env var."""
+    """Lê env var (Render) e fallback para secrets (Streamlit Cloud)."""
+    v = os.environ.get(name)
+    if v:
+        return str(v).strip()
     try:
         v = st.secrets.get(name)
         if v:
             return str(v).strip()
     except Exception:
         pass
-    v = os.getenv(name)
-    return str(v).strip() if v else None
+    return None
 
 
 @st.cache_resource(show_spinner=False)
