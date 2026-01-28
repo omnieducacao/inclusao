@@ -2297,9 +2297,11 @@ def render_aba_adaptar_atividade(aluno, api_key):
             "compreende_figuras_linguagem": compreende_figuras == "Sim",
             "descricao_imagens": precisa_descricao_img == "Sim"
         }
-    else:
-        # Se expander não foi usado, usar valores padrão ou do session_state
-        checklist_respostas = st.session_state.get('checklist_adaptacao_atividade', {})
+        # Salvar no session_state para uso posterior
+        st.session_state['checklist_adaptacao_atividade'] = checklist_respostas
+    
+    # Inicializar checklist_respostas se não foi definido dentro do expander
+    checklist_respostas = st.session_state.get('checklist_adaptacao_atividade', {})
 
     st.markdown("---")
 
