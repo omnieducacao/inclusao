@@ -137,7 +137,7 @@ st.markdown(f"""
     <div class="mod-card-rect">
         <div class="mod-bar c-teal"></div>
         <div class="mod-icon-area bg-teal-soft">
-            <i class="ri-lightbulb-flash-fill"></i>
+            <i class="ri-rocket-fill"></i>
         </div>
         <div class="mod-content">
             <div class="mod-title">Hub de Recursos & Inteligência Artificial</div>
@@ -242,7 +242,7 @@ st.markdown("""
     .mod-icon-area i { color: inherit !important; }
     .bg-teal-soft i,
     .mod-icon-area.bg-teal-soft i,
-    .mod-icon-area.bg-teal-soft i.ri-lightbulb-flash-fill {
+    .mod-icon-area.bg-teal-soft i.ri-rocket-fill {
         color: #0D9488 !important;
         font-size: 1.8rem !important;
     }
