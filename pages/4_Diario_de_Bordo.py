@@ -648,17 +648,18 @@ with tab_novo:
             )
         
         with col_info3:
-            modalidade = st.selectbox(
+            modalidade_opcoes = {
+                "Individual": "individual",
+                "Grupo": "grupo",
+                "Observação em Sala": "observacao_sala",
+                "Consultoria": "consultoria"
+            }
+            modalidade_label = st.selectbox(
                 "Modalidade *",
-                options=[
-                    ("individual", "Individual"),
-                    ("grupo", "Grupo"),
-                    ("observacao_sala", "Observação em Sala"),
-                    ("consultoria", "Consultoria")
-                ],
-                format_func=lambda x: x[1],
+                options=list(modalidade_opcoes.keys()),
                 help="Modalidade de atendimento"
-            )[0]
+            )
+            modalidade = modalidade_opcoes[modalidade_label]
             
             engajamento = st.slider(
                 "Engajamento do Estudante",
@@ -712,18 +713,19 @@ with tab_novo:
         col_avaliacao1, col_avaliacao2 = st.columns(2)
         
         with col_avaliacao1:
-            nivel_dificuldade = st.selectbox(
+            nivel_opcoes = {
+                "Muito Fácil": "muito_facil",
+                "Fácil": "facil",
+                "Adequado": "adequado",
+                "Desafiador": "desafiador",
+                "Muito Difícil": "muito_dificil"
+            }
+            nivel_label = st.selectbox(
                 "Nível de Dificuldade",
-                options=[
-                    ("muito_facil", "Muito Fácil"),
-                    ("facil", "Fácil"),
-                    ("adequado", "Adequado"),
-                    ("desafiador", "Desafiador"),
-                    ("muito_dificil", "Muito Difícil")
-                ],
-                format_func=lambda x: x[1],
+                options=list(nivel_opcoes.keys()),
                 index=2
-            )[0]
+            )
+            nivel_dificuldade = nivel_opcoes[nivel_label]
         
         with col_avaliacao2:
             competencias = st.multiselect(
@@ -832,12 +834,13 @@ with tab_novo:
                                 st.markdown(f"**Estudante:** {aluno_selecionado_label}")
                                 st.markdown(f"**Data:** {data_sessao.strftime('%d/%m/%Y')}")
                                 st.markdown(f"**Duração:** {duracao} minutos")
-                                st.markdown(f"**Modalidade:** {modalidade}")
+                                modalidade_display = modalidade_label
+                                st.markdown(f"**Modalidade:** {modalidade_display}")
                             
                             with col_resumo2:
                                 st.markdown(f"**Engajamento:** {'⭐' * engajamento}")
                                 st.markdown(f"**Competências:** {', '.join(competencias)}")
-                                st.markdown(f"**ID do Registro:** {resultado.get('id', 'N/A')}")
+                                st.markdown(f"**ID do Registro:** {resultado.get('registro_id', 'N/A')}")
                         
                         time.sleep(2)
                         st.rerun()
