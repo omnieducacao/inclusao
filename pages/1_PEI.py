@@ -80,9 +80,9 @@ def forcar_layout_hub():
                 padding-top: 0px !important;
             }
             
-            /* 5. Hero card colado no menu - margin negativo MUITO agressivo */
+            /* 5. Hero card colado no menu - margin negativo (ajustado para não ficar muito colado) */
             .mod-card-wrapper {
-                margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
+                margin-top: -96px !important; /* Puxa o hero para cima, mas não tanto quanto Alunos */
                 position: relative;
                 z-index: 1;
             }
@@ -1088,9 +1088,7 @@ html, body, [class*="css"] {
     margin-bottom: 4px;
     border-radius: 16px;
     overflow: hidden;
-    margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
-    position: relative;
-    z-index: 1;
+    /* margin-top já aplicado no forcar_layout_hub() - não duplicar aqui */
 }
 
 .mod-card-rect {
@@ -1250,11 +1248,7 @@ html, body, [class*="css"] {
 /* ===============================
 AJUSTE ENTRE MENU SUPERIOR E HERO (PADRONIZADO)
 ================================ */
-.mod-card-wrapper {
-    margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
-    position: relative;
-    z-index: 1;
-}
+/* margin-top já aplicado no forcar_layout_hub() - não duplicar aqui */
 
 /* ===============================
    ESCONDER HEADER STREAMLIT
