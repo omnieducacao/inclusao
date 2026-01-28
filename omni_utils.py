@@ -81,6 +81,7 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
   [data-testid="stSidebar"] * {{ display: none !important; }}
 
   /* 🔥 CONTEÚDO: começa logo abaixo de topbar+navbar, com gap mínimo */
+  /* Nota: padding-top será sobrescrito por forcar_layout_hub() nas páginas */
   .main .block-container {{
     padding-top: calc(var(--topbar-h) + var(--navbar-h) + var(--content-gap)) !important;
     padding-bottom: 2rem !important;
@@ -162,7 +163,8 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
     align-items:center !important;
     justify-content:center !important;
     pointer-events: none;
-    padding: 4px 0 !important; /* Espaço mínimo entre topbar e navbar */
+    padding: 0px 0 !important; /* SEM espaço entre topbar e navbar */
+    margin-bottom: 0px !important;
   }}
   .omni-navbar-inner {{
     width: min(1200px, calc(100% - 48px));
