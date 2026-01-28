@@ -1466,15 +1466,17 @@ def gerar_mensagem_boas_vindas_ia(api_key: str, nome_user: str, dia_semana: str,
         - Horário: {hora}h ({saudacao})
         - Plataforma: Omnisfera - Ecossistema de Inclusão Educacional
         
-        DIRETRIZES:
-        - Seja acolhedor e inspirador
+        DIRETRIZES IMPORTANTES:
+        - NÃO inclua saudações como "Bom dia", "Boa tarde" ou "Boa noite" na mensagem (isso já aparece separadamente)
+        - SEMPRE mencione inclusão escolar ou educação inclusiva de forma natural
         - Mencione o dia da semana de forma natural (ex: "Nesta segunda-feira", "Neste fim de semana")
         - Adapte o tom ao horário (manhã = energia, tarde = produtividade, noite = reflexão)
         - Mantenha o foco na inclusão e no impacto positivo na educação
         - Seja breve (máximo 2 frases)
         - Use linguagem calorosa mas profissional
+        - A mensagem deve inspirar e motivar para o trabalho com inclusão escolar
         
-        Retorne APENAS a mensagem, sem aspas ou formatação adicional.
+        Retorne APENAS a mensagem, sem aspas ou formatação adicional, SEM incluir saudações.
         """
         
         response = client.chat.completions.create(
