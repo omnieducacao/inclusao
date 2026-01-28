@@ -1105,6 +1105,25 @@ select:focus {
     )
 
 # =============================================================================
+# 4.5) RODAPÉ COM ASSINATURA
+# =============================================================================
+def render_footer_assinatura():
+    """Renderiza rodapé com assinatura em todas as páginas"""
+    st.markdown("""
+    <div style="
+        text-align: center;
+        padding: 24px 0;
+        margin-top: 40px;
+        border-top: 1px solid #E2E8F0;
+        color: #94A3B8;
+        font-size: 0.75rem;
+        font-weight: 500;
+    ">
+        Criado e desenvolvido por <strong style="color: #64748B;">Rodrigo A. Queiroz</strong>
+    </div>
+    """, unsafe_allow_html=True)
+
+# =============================================================================
 # 5) CSS DO LOGIN (ESCOPADO) — NÃO AFETA O APP TODO
 # =============================================================================
 def inject_base_css():
