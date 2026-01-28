@@ -1665,28 +1665,35 @@ def render_aba_adaptar_prova(aluno, api_key):
 
     st.markdown("---")
     
-    # Buscar checklist de adaptação do PEI
-    pei_data = aluno.get('pei_data', {}) or {}
-    checklist_evidencias = {}
-    if isinstance(pei_data, dict):
-        checklist_evidencias = pei_data.get('checklist_evidencias', {}) or {}
+    # Checklist de Adaptação e Acessibilidade (baseado no padrão do PEI)
+    checklist_adaptacao = {
+        "A. Mediação (Triângulo de Ouro)": [
+            "Instruções passo a passo em todas as atividades",
+            "Fragmentação de tarefas para melhor processamento",
+            "Scaffolding com suporte docente constante"
+        ],
+        "B. Acessibilidade": [
+            "Reduzir inferências e figuras de linguagem",
+            "Descrição de imagens durante as atividades",
+            "Adaptação visual (fontes claras e espaçamento apropriado)",
+            "Adequação dos desafios para inclusão e motivação"
+        ]
+    }
     
-    # Filtrar apenas os itens marcados como True
-    necessidades_especificas = [k for k, v in checklist_evidencias.items() if v] if isinstance(checklist_evidencias, dict) else []
+    # Lista plana de todas as necessidades
+    todas_necessidades = []
+    for categoria, itens in checklist_adaptacao.items():
+        todas_necessidades.extend([f"{categoria}: {item}" for item in itens])
     
-    # Seletor de necessidades específicas (baseado no checklist do PEI)
-    if necessidades_especificas:
-        st.markdown("#### 🎯 Necessidades Específicas (do PEI)")
-        st.caption("Selecione quais necessidades específicas devem ser priorizadas na adaptação. A IA escolherá as mais relevantes para não sobrecarregar as questões.")
-        necessidades_selecionadas = st.multiselect(
-            "Necessidades a considerar na adaptação:",
-            necessidades_especificas,
-            default=necessidades_especificas[:3] if len(necessidades_especificas) > 3 else necessidades_especificas,
-            help="A IA usará apenas as necessidades selecionadas para adaptar a prova, evitando sobrecarga."
-        )
-    else:
-        necessidades_selecionadas = []
-        st.info("💡 Nenhuma necessidade específica encontrada no PEI. A adaptação será feita de forma geral.")
+    # Seletor de necessidades específicas
+    st.markdown("#### 🎯 Checklist de Adaptação e Acessibilidade (PEI)")
+    st.caption("Selecione quais necessidades específicas devem ser priorizadas na adaptação. A IA escolherá as mais relevantes para cada questão, evitando sobrecarga.")
+    necessidades_selecionadas = st.multiselect(
+        "Necessidades a considerar na adaptação:",
+        todas_necessidades,
+        default=todas_necessidades[:3] if len(todas_necessidades) > 3 else todas_necessidades,
+        help="A IA usará apenas as necessidades selecionadas para adaptar a prova, escolhendo as mais relevantes para cada questão."
+    )
 
     st.markdown("---")
 
@@ -2789,13 +2796,20 @@ aplicar_estilos()
 def main():
     """Função principal da aplicação - executa a lógica do Hub"""
     
-    # Inicializar api_key antes de usar
+    # Inicializar api_key e unsplash_key antes de usar
     if 'OPENAI_API_KEY' in st.secrets:
         api_key = st.secrets['OPENAI_API_KEY']
     elif 'OPENAI_API_KEY' in st.session_state:
         api_key = st.session_state['OPENAI_API_KEY']
     else:
         api_key = None
+    
+    if 'UNSPLASH_ACCESS_KEY' in st.secrets:
+        unsplash_key = st.secrets['UNSPLASH_ACCESS_KEY']
+    elif 'UNSPLASH_ACCESS_KEY' in st.session_state:
+        unsplash_key = st.session_state['UNSPLASH_ACCESS_KEY']
+    else:
+        unsplash_key = None
     
     # Configurações de API (ocultas - apenas busca dos secrets)
     # O expander foi removido conforme solicitado
