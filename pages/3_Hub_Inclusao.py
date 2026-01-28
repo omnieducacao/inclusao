@@ -149,7 +149,7 @@ st.markdown("""
     .mod-card-wrapper { 
         display: flex; 
         flex-direction: column; 
-        margin-bottom: 20px; 
+        margin-bottom: 4px; 
         /* margin-top já aplicado no forcar_layout_hub() - não duplicar aqui */
         border-radius: 16px; 
         overflow: hidden; 
@@ -245,7 +245,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Espaçamento após hero card
-st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
 # ==============================================================================
 # VERIFICAÇÃO DE ACESSO
