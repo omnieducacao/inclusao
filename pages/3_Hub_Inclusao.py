@@ -20,7 +20,13 @@ from openai import OpenAI
 # Importações para documentos
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.shared import Pt, Inches
+from docx.shared import Pt, Inches, RGBColor
+try:
+    from docx.oxml.ns import qn
+except ImportError:
+    # Fallback se qn não estiver disponível
+    qn = lambda x: x, RGBColor
+from docx.oxml.ns import qn
 from fpdf import FPDF
 from pypdf import PdfReader
 
@@ -386,16 +392,44 @@ def garantir_tag_imagem(texto):
         return texto + "\n\n[[IMG_1]]"
     return texto
 
-def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, tipo_atv, sem_cabecalho=False):
-    """Constrói documento DOCX final com formatação melhorada"""
+def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, tipo_atv, sem_cabecalho=False, checklist_adaptacao=None):
+    """Constrói documento DOCX final com formatação melhorada baseada no checklist"""
     doc = Document()
+    
+    # Determinar formatação baseada no checklist
+    usar_caixa_alta = False
+    usar_opendyslexic = False
+    espacamento_linhas = 1.5  # padrão
+    
+    if checklist_adaptacao:
+        # Se precisa de adaptação visual, usar formatação especial
+        if checklist_adaptacao.get("paragrafos_curtos") or not checklist_adaptacao.get("compreende_instrucoes_complexas"):
+            usar_caixa_alta = True
+            usar_opendyslexic = True
+            espacamento_linhas = 1.8
     
     # Estilos personalizados
     style = doc.styles['Normal']
-    style.font.name = 'Arial'
-    style.font.size = Pt(12)
-    style.paragraph_format.space_after = Pt(6)
-    style.paragraph_format.line_spacing = 1.15
+    if usar_opendyslexic:
+        # Tentar usar OpenDyslexic, fallback para Arial se não disponível
+        try:
+            style.font.name = 'OpenDyslexic'
+            # Tentar registrar fonte alternativa (pode não funcionar se fonte não estiver instalada)
+            try:
+                rFonts = style.element.rPr.rFonts
+                if rFonts is not None:
+                    rFonts.set(qn('w:ascii'), 'OpenDyslexic')
+                    rFonts.set(qn('w:hAnsi'), 'OpenDyslexic')
+            except:
+                pass  # Se não conseguir registrar, continua com o nome
+        except:
+            style.font.name = 'Arial'
+    else:
+        style.font.name = 'Arial'
+    
+    style.font.size = Pt(14)  # Aumentado para melhor legibilidade
+    style.paragraph_format.space_after = Pt(8)
+    style.paragraph_format.line_spacing = espacamento_linhas
     
     if not sem_cabecalho:
         # Título principal
@@ -449,52 +483,65 @@ def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, tipo_atv, sem_cabe
                         except Exception as e:
                             print(f"Erro ao adicionar imagem: {e}")
                 elif parte.strip():
-                    # Formatar texto com títulos e listas
-                    _adicionar_paragrafo_formatado(doc, parte.strip())
+                    # Formatar texto com títulos e listas (passando parâmetros de formatação)
+                    _adicionar_paragrafo_formatado(doc, parte.strip(), usar_caixa_alta, usar_opendyslexic, espacamento_linhas)
         else:
-            # Formatar texto com títulos e listas
-            _adicionar_paragrafo_formatado(doc, linha_limpa)
+            # Formatar texto com títulos e listas (passando parâmetros de formatação)
+            _adicionar_paragrafo_formatado(doc, linha_limpa, usar_caixa_alta, usar_opendyslexic, espacamento_linhas)
             
     buffer = BytesIO()
     doc.save(buffer)
     buffer.seek(0)
     return buffer
 
-def _adicionar_paragrafo_formatado(doc, texto):
+def _adicionar_paragrafo_formatado(doc, texto, usar_caixa_alta=False, usar_opendyslexic=False, espacamento=1.5):
     """Adiciona parágrafo formatado com detecção de títulos e listas"""
     try:
+        # Aplicar caixa alta se necessário
+        texto_formatado = texto.upper() if usar_caixa_alta else texto
+        
         # Detectar títulos (começam com # ou são números seguidos de ponto)
-        if re.match(r'^#{1,3}\s+', texto):
-            nivel = len(re.match(r'^(#+)', texto).group(1))
-            texto_limpo = re.sub(r'^#+\s+', '', texto)
+        if re.match(r'^#{1,3}\s+', texto_formatado):
+            nivel = len(re.match(r'^(#+)', texto_formatado).group(1))
+            texto_limpo = re.sub(r'^#+\s+', '', texto_formatado)
             heading = doc.add_heading(texto_limpo, level=min(nivel, 3))
             if heading.runs:
-                heading.runs[0].font.size = Pt(14 - nivel)
-        elif re.match(r'^\d+[\.\)]\s+', texto):
+                heading.runs[0].font.size = Pt(16 - nivel)
+                if usar_opendyslexic:
+                    heading.runs[0].font.name = 'OpenDyslexic'
+        elif re.match(r'^\d+[\.\)]\s+', texto_formatado):
             # Lista numerada
-            p = doc.add_paragraph(texto, style='List Number')
+            p = doc.add_paragraph(texto_formatado, style='List Number')
             if p.runs:
-                p.runs[0].font.size = Pt(12)
-        elif re.match(r'^[-•*]\s+', texto):
+                p.runs[0].font.size = Pt(14)
+                p.runs[0].font.name = 'OpenDyslexic' if usar_opendyslexic else 'Arial'
+                p.paragraph_format.line_spacing = espacamento
+        elif re.match(r'^[-•*]\s+', texto_formatado):
             # Lista com marcadores
-            texto_limpo = re.sub(r'^[-•*]\s+', '', texto)
+            texto_limpo = re.sub(r'^[-•*]\s+', '', texto_formatado)
             p = doc.add_paragraph(texto_limpo, style='List Bullet')
             if p.runs:
-                p.runs[0].font.size = Pt(12)
-        elif texto.isupper() and len(texto) < 100:
+                p.runs[0].font.size = Pt(14)
+                p.runs[0].font.name = 'OpenDyslexic' if usar_opendyslexic else 'Arial'
+                p.paragraph_format.line_spacing = espacamento
+        elif texto_formatado.isupper() and len(texto_formatado) < 100:
             # Título em maiúsculas
-            p = doc.add_paragraph(texto)
+            p = doc.add_paragraph(texto_formatado)
             if p.runs:
-                p.runs[0].font.size = Pt(13)
+                p.runs[0].font.size = Pt(15)
                 p.runs[0].bold = True
+                p.runs[0].font.name = 'OpenDyslexic' if usar_opendyslexic else 'Arial'
+                p.paragraph_format.line_spacing = espacamento
         else:
             # Texto normal
-            p = doc.add_paragraph(texto)
+            p = doc.add_paragraph(texto_formatado)
             if p.runs:
-                p.runs[0].font.size = Pt(12)
+                p.runs[0].font.size = Pt(14)
+                p.runs[0].font.name = 'OpenDyslexic' if usar_opendyslexic else 'Arial'
+                p.paragraph_format.line_spacing = espacamento
     except Exception as e:
         # Fallback: adiciona como parágrafo simples
-        doc.add_paragraph(texto)
+        doc.add_paragraph(texto_formatado if usar_caixa_alta else texto)
 
 def criar_docx_simples(texto, titulo="Documento"):
     """Cria um DOCX simples a partir de texto"""
@@ -672,33 +719,64 @@ def gerar_pictograma_caa(api_key, conceito, feedback_anterior=""):
         print(f"Erro ao gerar pictograma: {e}")
         return None
 
-def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remover_resp, questoes_mapeadas, modo_profundo=False, necessidades_especificas=None):
+def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remover_resp, questoes_mapeadas, modo_profundo=False, checklist_adaptacao=None):
     """Adapta conteúdo de um DOCX para o estudante"""
     client = OpenAI(api_key=api_key)
     lista_q = ", ".join([str(n) for n in questoes_mapeadas]) if questoes_mapeadas else ""
     style = "Seja didático e use uma Cadeia de Pensamento para adaptar." if modo_profundo else "Seja objetivo."
     
-    # Montar instruções de necessidades específicas
-    instrucoes_necessidades = ""
-    if necessidades_especificas and len(necessidades_especificas) > 0:
-        necessidades_texto = ", ".join(necessidades_especificas)
-        instrucoes_necessidades = f"""
+    # Montar instruções baseadas no checklist de adaptação
+    instrucoes_checklist = ""
+    if checklist_adaptacao and isinstance(checklist_adaptacao, dict):
+        necessidades_ativas = []
+        
+        if checklist_adaptacao.get("questoes_desafiadoras"):
+            necessidades_ativas.append("Aumentar o nível de desafio das questões")
+        else:
+            necessidades_ativas.append("Manter ou reduzir o nível de dificuldade")
+        
+        if not checklist_adaptacao.get("compreende_instrucoes_complexas"):
+            necessidades_ativas.append("Simplificar instruções complexas")
+        
+        if checklist_adaptacao.get("instrucoes_passo_a_passo"):
+            necessidades_ativas.append("Fornecer instruções passo a passo")
+        
+        if checklist_adaptacao.get("dividir_em_etapas"):
+            necessidades_ativas.append("Dividir questões em etapas menores e mais gerenciáveis")
+        
+        if checklist_adaptacao.get("paragrafos_curtos"):
+            necessidades_ativas.append("Usar parágrafos curtos para melhor compreensão")
+        
+        if checklist_adaptacao.get("dicas_apoio"):
+            necessidades_ativas.append("Incluir dicas de apoio para resolver questões")
+        
+        if not checklist_adaptacao.get("compreende_figuras_linguagem"):
+            necessidades_ativas.append("Reduzir ou eliminar figuras de linguagem e inferências")
+        
+        if checklist_adaptacao.get("descricao_imagens"):
+            necessidades_ativas.append("Incluir descrição detalhada de imagens")
+        
+        if necessidades_ativas:
+            instrucoes_checklist = f"""
     
-    NECESSIDADES ESPECÍFICAS A CONSIDERAR (do checklist do PEI):
-    {necessidades_texto}
+    CHECKLIST DE ADAPTAÇÃO (baseado no PEI):
+    {chr(10).join([f"- {n}" for n in necessidades_ativas])}
     
-    IMPORTANTE: Escolha APENAS as necessidades mais relevantes para cada questão. 
-    NÃO tente aplicar todas de uma vez, pois isso sobrecarregaria as questões.
-    Priorize 1-2 necessidades por questão, escolhendo as que fazem mais sentido para o contexto.
+    REGRA CRÍTICA: NÃO aplique todas as necessidades em uma única questão. 
+    Para cada questão, escolha APENAS 1-2 necessidades que façam mais sentido no contexto.
+    Analise cada questão individualmente e selecione as adaptações mais relevantes.
     """
     
     prompt = f"""
     ESPECIALISTA EM DUA E INCLUSÃO. {style}
     1. ANALISE O PERFIL: {aluno.get('ia_sugestao', '')[:1000]}
     2. ADAPTE A PROVA: Use o hiperfoco ({aluno.get('hiperfoco', 'Geral')}) em 30% das questões.
-    {instrucoes_necessidades}
-    REGRA SAGRADA DE IMAGEM: O professor indicou imagens nas questões: {lista_q if lista_q else "nenhuma"}.
-    Nessas questões, a estrutura OBRIGATÓRIA é: 1. Enunciado -> 2. [[IMG_número]] -> 3. Alternativas.
+    {instrucoes_checklist}
+    
+    REGRA ABSOLUTA DE IMAGENS: O professor indicou imagens nas questões: {lista_q if lista_q else "nenhuma"}.
+    MANTENHA AS IMAGENS NO MESMO LOCAL ONDE ESTAVAM NA PROVA ORIGINAL.
+    Para questões com imagens, a estrutura OBRIGATÓRIA é: 1. Enunciado -> 2. [[IMG_número]] -> 3. Alternativas.
+    NUNCA remova ou mova imagens de sua posição original.
     
     SAÍDA OBRIGATÓRIA (Use EXATAMENTE este divisor):
     [ANÁLISE PEDAGÓGICA]
@@ -1665,35 +1743,155 @@ def render_aba_adaptar_prova(aluno, api_key):
 
     st.markdown("---")
     
-    # Checklist de Adaptação e Acessibilidade (baseado no padrão do PEI)
-    checklist_adaptacao = {
-        "A. Mediação (Triângulo de Ouro)": [
-            "Instruções passo a passo em todas as atividades",
-            "Fragmentação de tarefas para melhor processamento",
-            "Scaffolding com suporte docente constante"
-        ],
-        "B. Acessibilidade": [
-            "Reduzir inferências e figuras de linguagem",
-            "Descrição de imagens durante as atividades",
-            "Adaptação visual (fontes claras e espaçamento apropriado)",
-            "Adequação dos desafios para inclusão e motivação"
-        ]
+    # Buscar informações do PEI para preencher o checklist
+    pei_data = aluno.get('pei_data', {}) or {}
+    ia_sugestao = aluno.get('ia_sugestao', '') or ""
+    estrategias_acesso = []
+    estrategias_ensino = []
+    estrategias_avaliacao = []
+    
+    if isinstance(pei_data, dict):
+        estrategias_acesso = pei_data.get('estrategias_acesso', []) or []
+        estrategias_ensino = pei_data.get('estrategias_ensino', []) or []
+        estrategias_avaliacao = pei_data.get('estrategias_avaliacao', []) or []
+    
+    # Analisar o PEI para inferir respostas do checklist
+    def inferir_resposta(termo_busca, texto_pei, estrategias):
+        """Infere resposta sim/não baseado no conteúdo do PEI"""
+        texto_completo = (texto_pei + " " + " ".join(estrategias)).lower()
+        termos_positivos = termo_busca.get('sim', [])
+        termos_negativos = termo_busca.get('nao', [])
+        
+        for termo in termos_positivos:
+            if termo.lower() in texto_completo:
+                return True
+        for termo in termos_negativos:
+            if termo.lower() in texto_completo:
+                return False
+        return None  # Não encontrou, deixa o usuário decidir
+    
+    # Checklist de perguntas específicas
+    st.markdown("#### 🎯 Checklist de Adaptação (baseado no PEI)")
+    st.caption("Responda as perguntas abaixo. As respostas serão usadas pela IA para adaptar cada questão de forma personalizada.")
+    
+    # Pergunta 1: Questões mais desafiadoras
+    termos_desafio = {
+        'sim': ['desafio', 'desafiador', 'adequação de desafio', 'motivação'],
+        'nao': ['reduzir dificuldade', 'simplificar']
     }
-    
-    # Lista plana de todas as necessidades
-    todas_necessidades = []
-    for categoria, itens in checklist_adaptacao.items():
-        todas_necessidades.extend([f"{categoria}: {item}" for item in itens])
-    
-    # Seletor de necessidades específicas
-    st.markdown("#### 🎯 Checklist de Adaptação e Acessibilidade (PEI)")
-    st.caption("Selecione quais necessidades específicas devem ser priorizadas na adaptação. A IA escolherá as mais relevantes para cada questão, evitando sobrecarga.")
-    necessidades_selecionadas = st.multiselect(
-        "Necessidades a considerar na adaptação:",
-        todas_necessidades,
-        default=todas_necessidades[:3] if len(todas_necessidades) > 3 else todas_necessidades,
-        help="A IA usará apenas as necessidades selecionadas para adaptar a prova, escolhendo as mais relevantes para cada questão."
+    default_desafio = inferir_resposta(termos_desafio, ia_sugestao, estrategias_ensino)
+    precisa_desafio = st.radio(
+        "O estudante necessita de questões mais desafiadoras?",
+        ["Sim", "Não"],
+        index=0 if default_desafio else (1 if default_desafio is False else 0),
+        horizontal=True,
+        key="check_desafio"
     )
+    
+    # Pergunta 2: Instruções complexas
+    termos_complexas = {
+        'sim': ['instrução complexa', 'compreende instruções', 'instrução detalhada'],
+        'nao': ['simplificar instruções', 'instrução passo a passo', 'fragmentar']
+    }
+    default_complexas = inferir_resposta(termos_complexas, ia_sugestao, estrategias_ensino)
+    compreende_complexas = st.radio(
+        "O estudante compreende instruções complexas?",
+        ["Sim", "Não"],
+        index=0 if default_complexas else (1 if default_complexas is False else 0),
+        horizontal=True,
+        key="check_complexas"
+    )
+    
+    # Pergunta 3: Instruções passo a passo
+    termos_passo = {
+        'sim': ['instrução passo a passo', 'passo a passo', 'fragmentação', 'dividir em etapas'],
+        'nao': ['instrução direta', 'compreende instruções complexas']
+    }
+    default_passo = inferir_resposta(termos_passo, ia_sugestao, estrategias_ensino)
+    precisa_passo = st.radio(
+        "O estudante necessita de instruções passo a passo?",
+        ["Sim", "Não"],
+        index=0 if default_passo else (1 if default_passo is False else 0),
+        horizontal=True,
+        key="check_passo"
+    )
+    
+    # Pergunta 4: Dividir em etapas
+    precisa_etapas = st.radio(
+        "Dividir a questão em etapas menores melhora o desempenho?",
+        ["Sim", "Não"],
+        index=0 if default_passo else (1 if default_passo is False else 0),
+        horizontal=True,
+        key="check_etapas"
+    )
+    
+    # Pergunta 5: Parágrafos curtos
+    termos_paragrafo = {
+        'sim': ['parágrafo curto', 'texto curto', 'fragmentação', 'simplificar texto'],
+        'nao': ['texto longo', 'compreende textos complexos']
+    }
+    default_paragrafo = inferir_resposta(termos_paragrafo, ia_sugestao, estrategias_ensino)
+    precisa_paragrafos_curtos = st.radio(
+        "Textos com parágrafos curtos melhoram a compreensão?",
+        ["Sim", "Não"],
+        index=0 if default_paragrafo else (1 if default_paragrafo is False else 0),
+        horizontal=True,
+        key="check_paragrafos"
+    )
+    
+    # Pergunta 6: Dicas de apoio
+    termos_dicas = {
+        'sim': ['dica', 'apoio', 'scaffolding', 'suporte', 'pista'],
+        'nao': ['autonomia', 'independente']
+    }
+    default_dicas = inferir_resposta(termos_dicas, ia_sugestao, estrategias_ensino)
+    precisa_dicas = st.radio(
+        "O estudante precisa de dicas de apoio para resolver questões?",
+        ["Sim", "Não"],
+        index=0 if default_dicas else (1 if default_dicas is False else 0),
+        horizontal=True,
+        key="check_dicas"
+    )
+    
+    # Pergunta 7: Figuras de linguagem
+    termos_figuras = {
+        'sim': ['reduzir inferências', 'reduzir figuras de linguagem', 'simplificar linguagem'],
+        'nao': ['compreende figuras de linguagem', 'faz inferências']
+    }
+    default_figuras = inferir_resposta(termos_figuras, ia_sugestao, estrategias_ensino)
+    compreende_figuras = st.radio(
+        "O estudante compreende figuras de linguagem e faz inferências?",
+        ["Sim", "Não"],
+        index=0 if default_figuras else (1 if default_figuras is False else 0),
+        horizontal=True,
+        key="check_figuras"
+    )
+    
+    # Pergunta 8: Descrição de imagens
+    termos_descricao = {
+        'sim': ['descrição de imagem', 'alt text', 'descrever imagem', 'descrição visual'],
+        'nao': []
+    }
+    default_descricao = inferir_resposta(termos_descricao, ia_sugestao, estrategias_acesso)
+    precisa_descricao_img = st.radio(
+        "O estudante necessita de descrição de imagens?",
+        ["Sim", "Não"],
+        index=0 if default_descricao else (1 if default_descricao is False else 0),
+        horizontal=True,
+        key="check_descricao"
+    )
+    
+    # Compilar respostas em um dicionário
+    checklist_respostas = {
+        "questoes_desafiadoras": precisa_desafio == "Sim",
+        "compreende_instrucoes_complexas": compreende_complexas == "Sim",
+        "instrucoes_passo_a_passo": precisa_passo == "Sim",
+        "dividir_em_etapas": precisa_etapas == "Sim",
+        "paragrafos_curtos": precisa_paragrafos_curtos == "Sim",
+        "dicas_apoio": precisa_dicas == "Sim",
+        "compreende_figuras_linguagem": compreende_figuras == "Sim",
+        "descricao_imagens": precisa_descricao_img == "Sim"
+    }
 
     st.markdown("---")
 
@@ -1712,11 +1910,11 @@ def render_aba_adaptar_prova(aluno, api_key):
              st.stop()
 
         with st.spinner("A IA está analisando e adaptando o conteúdo..."):
-            # Salvar necessidades selecionadas no session_state para uso no refazer
-            st.session_state['necessidades_selecionadas_adaptar_prova'] = necessidades_selecionadas
+            # Salvar checklist no session_state para uso no refazer
+            st.session_state['checklist_adaptacao_prova'] = checklist_respostas
             rac, txt = adaptar_conteudo_docx(
                 api_key, aluno, st.session_state.docx_txt, materia_d, tema_d, tipo_d, True, qs_d,
-                necessidades_especificas=necessidades_selecionadas
+                checklist_adaptacao=checklist_respostas
             )
             st.session_state['res_docx'] = {'rac': rac, 'txt': txt, 'map': map_d, 'valid': False}
             st.rerun()
@@ -1732,11 +1930,11 @@ def render_aba_adaptar_prova(aluno, api_key):
                 st.rerun()
             if col_r.button("🧠 Refazer (+Profundo)", key="redo_d", use_container_width=True):
                 with st.spinner("Refazendo com análise mais profunda..."):
-                    # Recuperar necessidades selecionadas do session_state se disponível
-                    necessidades_redo = st.session_state.get('necessidades_selecionadas_adaptar_prova', [])
+                    # Recuperar checklist do session_state se disponível
+                    checklist_redo = st.session_state.get('checklist_adaptacao_prova', {})
                     rac, txt = adaptar_conteudo_docx(
                         api_key, aluno, st.session_state.docx_txt, materia_d, tema_d, tipo_d, True, qs_d, 
-                        modo_profundo=True, necessidades_especificas=necessidades_redo
+                        modo_profundo=True, checklist_adaptacao=checklist_redo
                     )
                     st.session_state['res_docx'] = {'rac': rac, 'txt': txt, 'map': map_d, 'valid': False}
                     st.rerun()
@@ -1754,7 +1952,9 @@ def render_aba_adaptar_prova(aluno, api_key):
                     st.markdown(p.strip())
         
         c_down1, c_down2 = st.columns(2)
-        docx = construir_docx_final(res['txt'], aluno, materia_d, res['map'], tipo_d)
+        # Recuperar checklist para formatação do Word
+        checklist_formatacao = st.session_state.get('checklist_adaptacao_prova', {})
+        docx = construir_docx_final(res['txt'], aluno, materia_d, res['map'], tipo_d, sem_cabecalho=False, checklist_adaptacao=checklist_formatacao)
         c_down1.download_button(
             "📥 BAIXAR DOCX (Editável)", 
             docx, 
