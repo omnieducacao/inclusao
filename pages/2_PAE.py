@@ -717,13 +717,19 @@ def gerar_diagnostico_barreiras(api_key, aluno, obs_prof, feedback=None):
     4. **Barreiras Tecnológicas** - falta de recursos tecnológicos adequados
     5. **Barreiras Arquitetônicas** - espaço físico inadequado
     
-    Para cada barreira, forneça:
-    - Descrição específica
-    - Impacto na aprendizagem
-    - Sugestões de intervenção imediata
-    - Recursos necessários
+    Para cada barreira identificada, forneça:
+    - **Descrição específica** da barreira
+    - **Impacto na aprendizagem** do estudante
+    - **Sugestões de intervenção imediata** práticas e aplicáveis
+    - **Recursos necessários** para implementação
     
-    SAÍDA: Tabela Markdown organizada e clara.
+    FORMATO DE SAÍDA:
+    Use títulos (##) para cada tipo de barreira encontrada.
+    Use listas com marcadores (-) para organizar as informações.
+    Seja claro, objetivo e prático.
+    Use formatação Markdown para destacar informações importantes (**negrito**).
+    
+    SAÍDA: Texto em Markdown bem formatado, organizado por seções.
     """
     
     try:
@@ -1184,9 +1190,10 @@ def renderizar_hub_recurso(tipo_recurso, conteudo_gerado, aluno_nome, dados_entr
         
         # 1. MODO REVISÃO (após geração inicial)
         if status == 'revisao':
-            # Mostra o conteúdo gerado
+            # Mostra o conteúdo gerado em container formatado
             st.markdown("### 📝 Conteúdo Gerado")
-            st.markdown(conteudo_gerado)
+            with st.container(border=True):
+                st.markdown(conteudo_gerado)
             
             st.markdown("---")
             st.markdown("### 🔧 Ações Disponíveis")
@@ -1252,9 +1259,10 @@ def renderizar_hub_recurso(tipo_recurso, conteudo_gerado, aluno_nome, dados_entr
         elif status == 'aprovado':
             st.success("✅ **Recurso Validado e Pronto para Uso**")
             
-            # Mostra o conteúdo final
+            # Mostra o conteúdo final em container formatado
             st.markdown("### 📋 Conteúdo Final")
-            st.markdown(conteudo_gerado)
+            with st.container(border=True):
+                st.markdown(conteudo_gerado)
             
             st.markdown("---")
             st.markdown("### 💾 Opções de Download")
@@ -1328,7 +1336,7 @@ if is_ei:
             obs_aee = st.text_area(
                 "Observação do Brincar:", 
                 height=100,
-                placeholder="Descreva as observações sobre o brincar do estudante: interações, preferências, dificuldades..."
+                placeholder="Exemplo: O estudante se recusa a escrever quando solicitado, demonstrando ansiedade e evitamento. Durante atividades de escrita, ele tenta sair da sala ou distrai os colegas. Quando consegue iniciar, abandona a tarefa após algumas linhas, dizendo que está cansado ou que não sabe fazer."
             )
             
             if st.button("🔍 Mapear Barreiras", type="primary", use_container_width=True):
@@ -1379,7 +1387,7 @@ else:
             obs_aee = st.text_area(
                 "Observações Iniciais do AEE:", 
                 height=100,
-                placeholder="Descreva suas observações sobre as barreiras encontradas..."
+                placeholder="Exemplo: O estudante se recusa a escrever quando solicitado, demonstrando ansiedade e evitamento. Durante atividades de escrita, ele tenta sair da sala ou distrai os colegas. Quando consegue iniciar, abandona a tarefa após algumas linhas, dizendo que está cansado ou que não sabe fazer."
             )
             
             if st.button("🔍 Analisar Barreiras", type="primary", use_container_width=True):
