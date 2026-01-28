@@ -88,9 +88,12 @@ def forcar_layout_hub():
                 padding-top: 0px !important;
             }
             
-            /* 5. Hero card colado no menu - margin negativo (ajustado para não ficar muito colado) */
+            /* 5. Hero card colado no menu - margin negativo (ajustado para reduzir espaço) */
+            body .mod-card-wrapper,
+            .main .mod-card-wrapper,
+            .block-container .mod-card-wrapper,
             .mod-card-wrapper {
-                margin-top: -96px !important; /* Puxa o hero para cima, mas não tanto quanto antes */
+                margin-top: -120px !important; /* Puxa o hero para cima, reduzindo espaço do navbar */
                 position: relative;
                 z-index: 1;
             }
@@ -112,6 +115,20 @@ ou.inject_unified_ui_css()
 # Garantir que RemixIcon está carregado para os ícones aparecerem
 st.markdown("""
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+""", unsafe_allow_html=True)
+
+# CSS adicional para garantir espaçamento reduzido do hero card (aplicado por último)
+st.markdown("""
+<style>
+    /* Força o margin-top negativo após todos os outros CSS */
+    body .main .block-container .mod-card-wrapper,
+    body .block-container .mod-card-wrapper,
+    .main .block-container .mod-card-wrapper,
+    .block-container .mod-card-wrapper,
+    .mod-card-wrapper:first-of-type {
+        margin-top: -120px !important;
+    }
+</style>
 """, unsafe_allow_html=True)
 
 # ==============================================================================
@@ -142,8 +159,12 @@ def inject_paee_css(theme: str = "teal"):
     AJUSTE ENTRE MENU SUPERIOR E HERO (PADRONIZADO)
  ================================ */
 /* margin-top já aplicado no forcar_layout_hub() - não sobrescrever aqui */
+body .mod-card-wrapper,
+.main .mod-card-wrapper,
+.block-container .mod-card-wrapper,
 .mod-card-wrapper {{
     margin-bottom: 20px !important;
+    margin-top: -120px !important; /* Mantém o espaçamento reduzido do navbar */
 }}
 
 
@@ -152,9 +173,13 @@ def inject_paee_css(theme: str = "teal"):
      ============================ */
 
   /* CARD HERO (header do módulo) */
+  body .mod-card-wrapper,
+  .main .mod-card-wrapper,
+  .block-container .mod-card-wrapper,
   .mod-card-wrapper {{
       display:flex; flex-direction:column;
       margin-bottom:20px;
+      margin-top: -120px !important; /* Garante que não seja sobrescrito */
       border-radius:16px;
       overflow:hidden;
       box-shadow:0 4px 6px rgba(0,0,0,0.02);
