@@ -895,6 +895,8 @@ div[data-baseweb="tab-highlight"] {
 
 .stTabs [data-baseweb="tab-list"] {
     display: flex;
+    justify-content: flex-start !important;  /* pílulas alinhadas à esquerda */
+    align-items: center !important;
     flex-wrap: wrap !important;
     gap: 6px;
     padding: 3px 3px;
