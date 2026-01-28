@@ -404,7 +404,7 @@ if nome_selecionado != "Selecione...":
     c1, c2, c3 = st.columns(3)
     
     with c1:
-        st.subheader(f"{icon_title('Expectativa (PEI)', 'pei', 20, '#0C4A6E')}", unsafe_allow_html=True)
+        st.markdown(f"### {icon_title('Expectativa (PEI)', 'pei', 20, '#0C4A6E')}", unsafe_allow_html=True)
         st.caption("Objetivos cadastrados no Plano de Ensino")
         
         # Tenta extrair dados estruturados do seu JSON pei_data
@@ -424,7 +424,7 @@ if nome_selecionado != "Selecione...":
         
         paee_ativo = aluno.get('paee_ativo')
         if paee_ativo:
-            st.success(f"{get_icon('validar', 18, '#16A34A')} Ciclo PAE Ativo")
+            st.success("✅ Ciclo PAE Ativo")
             if isinstance(paee_ativo, dict):
                 config = paee_ativo.get('config_ciclo', {})
                 if config:
@@ -433,12 +433,12 @@ if nome_selecionado != "Selecione...":
         else:
             paee_ciclos = aluno.get('paee_ciclos', [])
             if paee_ciclos:
-                st.info(f"{get_icon('info', 18, '#2563EB')} {len(paee_ciclos)} ciclo(s) cadastrado(s), mas nenhum ativo")
+                st.info(f"ℹ️ {len(paee_ciclos)} ciclo(s) cadastrado(s), mas nenhum ativo")
             else:
                 st.warning("⚠️ Nenhum ciclo PAE cadastrado")
 
     with c3:
-        st.subheader(f"{icon_title('Realidade (Diário)', 'diario', 20, '#0C4A6E')}", unsafe_allow_html=True)
+        st.markdown(f"### {icon_title('Realidade (Diário)', 'diario', 20, '#0C4A6E')}", unsafe_allow_html=True)
         st.caption("Últimos registros de atividades")
         
         if logs:
@@ -455,7 +455,7 @@ if nome_selecionado != "Selecione...":
             st.warning("Nenhum registro encontrado no diário para este estudante.")
     
     # Informação sobre Hub
-    st.info(f"{get_icon('info', 18, '#2563EB')} **Nota:** Recursos gerados no Hub de Inclusão são temporários e não são persistidos. Para acompanhar recursos utilizados, registre-os no Diário de Bordo.")
+    st.info("ℹ️ **Nota:** Recursos gerados no Hub de Inclusão são temporários e não são persistidos. Para acompanhar recursos utilizados, registre-os no Diário de Bordo.")
 
     st.divider()
 
