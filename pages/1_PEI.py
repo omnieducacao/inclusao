@@ -143,7 +143,7 @@ api_key = st.secrets.get("OPENAI_API_KEY", "")
 # ==============================================================================
 def verificar_login_app():
     if "autenticado" not in st.session_state or not st.session_state["autenticado"]:
-        st.error(f"{get_icon('erro', 18, '#DC2626')} Acesso Negado. Faça login na Página Inicial.")
+        st.error("🔒 Acesso Negado. Faça login na Página Inicial.")
         st.stop()
 
 def verificar_login_supabase():
@@ -1811,10 +1811,10 @@ with tab0:
         # Status vínculo
         student_id = st.session_state.get("selected_student_id")
         if student_id:
-            st.success(f"{get_icon('validar', 18, '#16A34A')} Estudante vinculado ao Supabase (nuvem)")
+            st.success("✅ Estudante vinculado ao Supabase (nuvem)")
             st.caption(f"student_id: {str(student_id)[:8]}...")
         else:
-            st.warning(f"{get_icon('aviso', 18, '#F59E0B')} Modo rascunho (sem vínculo na nuvem)")
+            st.warning("📝 Modo rascunho (sem vínculo na nuvem)")
 
         # ------------------------------------------------------------------
         # (1) BACKUP LOCAL: upload JSON NÃO aplica sozinho (evita loop)
@@ -1869,7 +1869,7 @@ with tab0:
 
             with b1:
                 if st.button(
-                    f"{get_icon('upload', 18, 'white')} Carregar no formulário",
+                    "📥 Carregar no formulário",
                     type="primary",
                     use_container_width=True,
                     disabled=not isinstance(pending, dict),
@@ -1975,7 +1975,7 @@ with tab0:
 
             # Pós sucesso: botão de download
             if st.session_state.get("sync_sucesso"):
-                st.success(f"{get_icon('validar', 18, '#16A34A')} Tudo salvo no Supabase!")
+                st.success("✅ Tudo salvo no Supabase!")
 
                 timestamp = datetime.now().strftime("%d-%m_%Hh%M")
                 nome_clean = (d.get("nome") or "Estudante").replace(" ", "_")
@@ -2174,7 +2174,7 @@ with tab1:
 
                 a1, a2, a3 = st.columns([2, 2, 2])
 
-                if a1.button(f"{get_icon('adicionar', 18, 'white')} Adicionar ao PEI", type="primary", use_container_width=True, key="btn_add_meds_tmp"):
+                if a1.button("✅ Adicionar ao PEI", type="primary", use_container_width=True, key="btn_add_meds_tmp"):
                     # inserir no campo existente: lista_medicamentos (sem duplicar por nome)
                     lista_atual = st.session_state.dados.get("lista_medicamentos", [])
                     for m in meds_tmp:
@@ -2364,7 +2364,7 @@ with tab3:
                         st.session_state.dados["orientacoes_por_profissional"][prof] = ""
                         st.rerun()
 
-                    if c2.button(f"{get_icon('deletar', 16, '#DC2626')} Remover profissional", use_container_width=True, key=f"btn_remove_{prof}"):
+                    if c2.button("🗑️ Remover profissional", use_container_width=True, key=f"btn_remove_{prof}"):
                         # remove do multiselect
                         st.session_state.dados["rede_apoio"] = [x for x in st.session_state.dados["rede_apoio"] if x != prof]
                         # remove do dicionário
@@ -2404,7 +2404,7 @@ with tab4:
     # 1) POTENCIALIDADES + HIPERFOCO
     # -------------------------
     with st.container(border=True):
-        st.markdown("#### 🌟 Potencialidades e Hiperfoco")
+        st.markdown("#### Potencialidades e Hiperfoco")
         c1, c2 = st.columns(2)
 
         st.session_state.dados["hiperfoco"] = c1.text_input(
@@ -2422,7 +2422,7 @@ with tab4:
 
     st.divider()
 
-    st.markdown("#### 🧩 Barreiras e nível de apoio")
+    st.markdown("#### Barreiras e nível de apoio")
     st.caption("Selecione as barreiras observadas e defina o nível de apoio para a rotina escolar (não é DUA).")
 
     # -------------------------
@@ -2455,7 +2455,7 @@ with tab4:
 
                     colA, colB = st.columns([2.2, 2.8], vertical_alignment="center")
                     with colA:
-                        st.markdown(f"✅ **{b}**")
+                        st.markdown(f"**{b}**")
                     with colB:
                         st.session_state.dados["niveis_suporte"][chave] = st.select_slider(
                             "Nível de apoio",
@@ -2520,24 +2520,24 @@ with tab4:
     with r1:
         hf = (st.session_state.dados.get("hiperfoco") or "").strip()
         if hf:
-            st.success(f"🎯 **Hiperfoco:** {hf}")
+            st.success(f"**Hiperfoco:** {hf}")
         else:
-            st.info("🎯 **Hiperfoco:** não informado")
+            st.info("**Hiperfoco:** não informado")
 
         pots = st.session_state.dados.get("potencias", [])
         if pots:
-            st.success(f"🌟 **Potencialidades:** {', '.join(pots)}")
+            st.success(f"**Potencialidades:** {', '.join(pots)}")
         else:
-            st.info("🌟 **Potencialidades:** não selecionadas")
+            st.info("**Potencialidades:** não selecionadas")
 
     with r2:
         selecionadas = {dom: vals for dom, vals in st.session_state.dados["barreiras_selecionadas"].items() if vals}
         total_bar = sum(len(v) for v in selecionadas.values())
 
         if total_bar == 0:
-            st.info("🧩 **Barreiras:** nenhuma selecionada")
+            st.info("**Barreiras:** nenhuma selecionada")
         else:
-            st.warning(f"🧩 **Barreiras selecionadas:** {total_bar}")
+            st.warning(f"**Barreiras selecionadas:** {total_bar}")
             for dom, vals in selecionadas.items():
                 st.markdown(f"**{dom}:**")
                 for b in vals:
@@ -3493,3 +3493,4 @@ with tab_9:
 # RODAPÉ COM ASSINATURA
 # ==============================================================================
 ou.render_footer_assinatura()
+
