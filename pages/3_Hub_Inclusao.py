@@ -803,7 +803,7 @@ def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remove
     except Exception as e:
         return str(e), ""
 
-def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_atv, livro_professor, modo_profundo=False):
+def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_atv, livro_professor, modo_profundo=False, checklist_adaptacao=None):
     """Adapta conteúdo de uma imagem para o estudante"""
     client = OpenAI(api_key=api_key)
     if not imagem_bytes:
@@ -813,12 +813,55 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
     instrucao_livro = "ATENÇÃO: IMAGEM COM RESPOSTAS. Remova todo gabarito/respostas." if livro_professor else ""
     style = "Faça uma análise crítica para melhor adaptação." if modo_profundo else "Transcreva e adapte."
     
+    # Montar instruções baseadas no checklist de adaptação (específico para questão única)
+    instrucoes_checklist = ""
+    if checklist_adaptacao and isinstance(checklist_adaptacao, dict):
+        necessidades_ativas = []
+        
+        if checklist_adaptacao.get("questoes_desafiadoras"):
+            necessidades_ativas.append("Aumentar o nível de desafio da questão")
+        else:
+            necessidades_ativas.append("Manter ou reduzir o nível de dificuldade")
+        
+        if not checklist_adaptacao.get("compreende_instrucoes_complexas"):
+            necessidades_ativas.append("Simplificar instruções complexas")
+        
+        if checklist_adaptacao.get("instrucoes_passo_a_passo"):
+            necessidades_ativas.append("Fornecer instruções passo a passo detalhadas")
+        
+        if checklist_adaptacao.get("dividir_em_etapas"):
+            necessidades_ativas.append("Dividir a questão em etapas menores e mais gerenciáveis")
+        
+        if checklist_adaptacao.get("paragrafos_curtos"):
+            necessidades_ativas.append("Usar parágrafos curtos para melhor compreensão")
+        
+        if checklist_adaptacao.get("dicas_apoio"):
+            necessidades_ativas.append("Incluir dicas de apoio específicas para resolver esta questão")
+        
+        if not checklist_adaptacao.get("compreende_figuras_linguagem"):
+            necessidades_ativas.append("Reduzir ou eliminar figuras de linguagem e inferências")
+        
+        if checklist_adaptacao.get("descricao_imagens"):
+            necessidades_ativas.append("Incluir descrição detalhada da imagem presente na questão")
+        
+        if necessidades_ativas:
+            instrucoes_checklist = f"""
+    
+    CHECKLIST DE ADAPTAÇÃO (baseado no PEI - QUESTÃO ÚNICA):
+    {chr(10).join([f"- {n}" for n in necessidades_ativas])}
+    
+    REGRA CRÍTICA: Como esta é uma questão única, aplique as adaptações selecionadas de forma específica e pontual.
+    Selecione as 2-3 adaptações mais relevantes para esta questão específica e aplique-as de forma integrada.
+    """
+    
     prompt = f"""
     ATUAR COMO: Especialista em Acessibilidade e OCR. {style}
     1. Transcreva o texto da imagem. {instrucao_livro}
     2. Adapte para o estudante (PEI: {aluno.get('ia_sugestao', '')[:800]}).
     3. Hiperfoco ({aluno.get('hiperfoco')}): Conecte levemente.
-    4. REGRA DE OURO: Insira a tag [[IMG_1]] UMA ÚNICA VEZ, logo após o enunciado principal.
+    {instrucoes_checklist}
+    4. REGRA ABSOLUTA DE IMAGEM: Insira a tag [[IMG_1]] UMA ÚNICA VEZ, logo após o enunciado principal.
+    MANTENHA A IMAGEM NO MESMO LOCAL ONDE ESTAVA NA QUESTÃO ORIGINAL.
     
     SAÍDA OBRIGATÓRIA (Respeite o divisor):
     [ANÁLISE PEDAGÓGICA]
@@ -2022,8 +2065,33 @@ def render_aba_adaptar_atividade(aluno, api_key):
     </div>
     """, unsafe_allow_html=True)
     
-    # Dropdowns BNCC simplificados
-    ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, _ = criar_dropdowns_bncc_completos_melhorado(key_suffix="adaptar_atividade", mostrar_habilidades=False)
+    # Dropdowns BNCC simplificados - layout compacto (2 linhas)
+    # Primeira linha: Ano, Componente, Unidade (3 colunas)
+    col_bncc1, col_bncc2, col_bncc3 = st.columns(3)
+    with col_bncc1:
+        ano_bncc = st.selectbox("Ano", ordenar_anos(["1", "2", "3", "4", "5", "6", "7", "8", "9", "1EM", "2EM", "3EM"]), 
+                              key="ano_adaptar_atividade_compact")
+    with col_bncc2:
+        disciplina_bncc = st.selectbox("Componente Curricular", 
+                                     ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"],
+                                     key="disc_adaptar_atividade_compact")
+    with col_bncc3:
+        unidade_bncc = st.text_input("Unidade Temática", placeholder="Ex: Números", 
+                                   key="unid_adaptar_atividade_compact")
+    
+    # Segunda linha: Objeto do Conhecimento e Assunto lado a lado (2 colunas)
+    col_obj, col_ass = st.columns(2)
+    with col_obj:
+        objeto_bncc = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
+                                   key="obj_adaptar_atividade_compact")
+    with col_ass:
+        assunto_livre = st.text_input(
+            "📝 Assunto (opcional)",
+            value="",
+            placeholder="Ex: Frações, Sistema Solar...",
+            help="Preencha se quiser direcionar a adaptação para um assunto específico.",
+            key="assunto_adaptar_atividade_compact"
+        )
     
     st.markdown("---")
 
@@ -2036,6 +2104,10 @@ def render_aba_adaptar_atividade(aluno, api_key):
     # Definição automática baseada na BNCC
     materia_i = disciplina_bncc if disciplina_bncc else "Geral"
     tema_i = objeto_bncc if objeto_bncc else "Geral"
+    
+    # Se assunto livre foi preenchido, usa ele como tema
+    if assunto_livre and assunto_livre.strip():
+        tema_i = assunto_livre.strip()
     
     if 'img_raw' not in st.session_state:
         st.session_state.img_raw = None
@@ -2054,22 +2126,204 @@ def render_aba_adaptar_atividade(aluno, api_key):
             st.image(cropped_res, width=200, caption="Área selecionada")
 
     st.markdown("---")
+    
+    # Buscar informações do PEI para preencher o checklist
+    pei_data = aluno.get('pei_data', {}) or {}
+    ia_sugestao = aluno.get('ia_sugestao', '') or ""
+    estrategias_acesso = []
+    estrategias_ensino = []
+    estrategias_avaliacao = []
+    
+    if isinstance(pei_data, dict):
+        estrategias_acesso = pei_data.get('estrategias_acesso', []) or []
+        estrategias_ensino = pei_data.get('estrategias_ensino', []) or []
+        estrategias_avaliacao = pei_data.get('estrategias_avaliacao', []) or []
+    
+    # Analisar o PEI para inferir respostas do checklist
+    def inferir_resposta(termo_busca, texto_pei, estrategias):
+        """Infere resposta sim/não baseado no conteúdo do PEI"""
+        texto_completo = (texto_pei + " " + " ".join(estrategias)).lower()
+        termos_positivos = termo_busca.get('sim', [])
+        termos_negativos = termo_busca.get('nao', [])
+        
+        for termo in termos_positivos:
+            if termo.lower() in texto_completo:
+                return True
+        for termo in termos_negativos:
+            if termo.lower() in texto_completo:
+                return False
+        return None  # Não encontrou, deixa o usuário decidir
+    
+    # Checklist de perguntas específicas - em expander retrátil (mais específico para questão única)
+    with st.expander("🎯 Checklist de Adaptação (baseado no PEI) - Questão Única", expanded=False):
+        st.info("""
+        ⚠️ **IMPORTANTE:** Como esta é uma questão única, seja mais específico sobre quais adaptações aplicar. 
+        Revise cada pergunta e responda com base no perfil do estudante. A IA aplicará as adaptações selecionadas 
+        de forma pontual e específica para esta questão.
+        """)
+        
+        # Organizar em 2 colunas
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Pergunta 1: Questões mais desafiadoras
+            termos_desafio = {
+                'sim': ['desafio', 'desafiador', 'adequação de desafio', 'motivação'],
+                'nao': ['reduzir dificuldade', 'simplificar']
+            }
+            default_desafio = inferir_resposta(termos_desafio, ia_sugestao, estrategias_ensino)
+            precisa_desafio = st.radio(
+                "O estudante necessita de questões mais desafiadoras?",
+                ["Sim", "Não"],
+                index=0 if default_desafio else (1 if default_desafio is False else 0),
+                horizontal=True,
+                key="check_desafio_atividade"
+            )
+            
+            st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+            
+            # Pergunta 2: Instruções complexas
+            termos_complexas = {
+                'sim': ['instrução complexa', 'compreende instruções', 'instrução detalhada'],
+                'nao': ['simplificar instruções', 'instrução passo a passo', 'fragmentar']
+            }
+            default_complexas = inferir_resposta(termos_complexas, ia_sugestao, estrategias_ensino)
+            compreende_complexas = st.radio(
+                "O estudante compreende instruções complexas?",
+                ["Sim", "Não"],
+                index=0 if default_complexas else (1 if default_complexas is False else 0),
+                horizontal=True,
+                key="check_complexas_atividade"
+            )
+            
+            st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+            
+            # Pergunta 3: Instruções passo a passo
+            termos_passo = {
+                'sim': ['instrução passo a passo', 'passo a passo', 'fragmentação', 'dividir em etapas'],
+                'nao': ['instrução direta', 'compreende instruções complexas']
+            }
+            default_passo = inferir_resposta(termos_passo, ia_sugestao, estrategias_ensino)
+            precisa_passo = st.radio(
+                "O estudante necessita de instruções passo a passo?",
+                ["Sim", "Não"],
+                index=0 if default_passo else (1 if default_passo is False else 0),
+                horizontal=True,
+                key="check_passo_atividade"
+            )
+            
+            st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+            
+            # Pergunta 4: Dividir em etapas
+            precisa_etapas = st.radio(
+                "Dividir a questão em etapas menores melhora o desempenho?",
+                ["Sim", "Não"],
+                index=0 if default_passo else (1 if default_passo is False else 0),
+                horizontal=True,
+                key="check_etapas_atividade"
+            )
+        
+        with col2:
+            # Pergunta 5: Parágrafos curtos
+            termos_paragrafo = {
+                'sim': ['parágrafo curto', 'texto curto', 'fragmentação', 'simplificar texto'],
+                'nao': ['texto longo', 'compreende textos complexos']
+            }
+            default_paragrafo = inferir_resposta(termos_paragrafo, ia_sugestao, estrategias_ensino)
+            precisa_paragrafos_curtos = st.radio(
+                "Textos com parágrafos curtos melhoram a compreensão?",
+                ["Sim", "Não"],
+                index=0 if default_paragrafo else (1 if default_paragrafo is False else 0),
+                horizontal=True,
+                key="check_paragrafos_atividade"
+            )
+            
+            st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+            
+            # Pergunta 6: Dicas de apoio
+            termos_dicas = {
+                'sim': ['dica', 'apoio', 'scaffolding', 'suporte', 'pista'],
+                'nao': ['autonomia', 'independente']
+            }
+            default_dicas = inferir_resposta(termos_dicas, ia_sugestao, estrategias_ensino)
+            precisa_dicas = st.radio(
+                "O estudante precisa de dicas de apoio para resolver questões?",
+                ["Sim", "Não"],
+                index=0 if default_dicas else (1 if default_dicas is False else 0),
+                horizontal=True,
+                key="check_dicas_atividade"
+            )
+            
+            st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+            
+            # Pergunta 7: Figuras de linguagem
+            termos_figuras = {
+                'sim': ['reduzir inferências', 'reduzir figuras de linguagem', 'simplificar linguagem'],
+                'nao': ['compreende figuras de linguagem', 'faz inferências']
+            }
+            default_figuras = inferir_resposta(termos_figuras, ia_sugestao, estrategias_ensino)
+            compreende_figuras = st.radio(
+                "O estudante compreende figuras de linguagem e faz inferências?",
+                ["Sim", "Não"],
+                index=0 if default_figuras else (1 if default_figuras is False else 0),
+                horizontal=True,
+                key="check_figuras_atividade"
+            )
+            
+            st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+            
+            # Pergunta 8: Descrição de imagens
+            termos_descricao = {
+                'sim': ['descrição de imagem', 'alt text', 'descrever imagem', 'descrição visual'],
+                'nao': []
+            }
+            default_descricao = inferir_resposta(termos_descricao, ia_sugestao, estrategias_acesso)
+            precisa_descricao_img = st.radio(
+                "O estudante necessita de descrição de imagens?",
+                ["Sim", "Não"],
+                index=0 if default_descricao else (1 if default_descricao is False else 0),
+                horizontal=True,
+                key="check_descricao_atividade"
+            )
+        
+        # Compilar respostas em um dicionário
+        checklist_respostas = {
+            "questoes_desafiadoras": precisa_desafio == "Sim",
+            "compreende_instrucoes_complexas": compreende_complexas == "Sim",
+            "instrucoes_passo_a_passo": precisa_passo == "Sim",
+            "dividir_em_etapas": precisa_etapas == "Sim",
+            "paragrafos_curtos": precisa_paragrafos_curtos == "Sim",
+            "dicas_apoio": precisa_dicas == "Sim",
+            "compreende_figuras_linguagem": compreende_figuras == "Sim",
+            "descricao_imagens": precisa_descricao_img == "Sim"
+        }
+    else:
+        # Se expander não foi usado, usar valores padrão ou do session_state
+        checklist_respostas = st.session_state.get('checklist_adaptacao_atividade', {})
+
+    st.markdown("---")
 
     if st.button("🚀 ADAPTAR ATIVIDADE", type="primary", key="btn_i", use_container_width=True):
         if not st.session_state.img_raw:
             st.warning("Por favor, envie uma imagem.")
             st.stop()
         
-        # Validação BNCC
-        if not disciplina_bncc or not objeto_bncc:
-             st.warning("⚠️ Selecione a Disciplina e o Objeto do Conhecimento (BNCC) acima.")
+        # Validação BNCC (ou assunto livre)
+        if not disciplina_bncc:
+             st.warning("⚠️ Por favor, selecione a Disciplina nos campos da BNCC acima.")
+             st.stop()
+        
+        if not objeto_bncc and not (assunto_livre and assunto_livre.strip()):
+             st.warning("⚠️ Por favor, selecione o Objeto do Conhecimento (BNCC) ou preencha o campo Assunto acima para guiar a adaptação.")
              st.stop()
 
         with st.spinner("Lendo imagem e adaptando conteúdo..."):
             buf_c = BytesIO()
             cropped_res.convert('RGB').save(buf_c, format="JPEG", quality=90)
             img_bytes = buf_c.getvalue()
-            rac, txt = adaptar_conteudo_imagem(api_key, aluno, img_bytes, materia_i, tema_i, tipo_i, livro_prof)
+            # Salvar checklist no session_state para uso no refazer
+            st.session_state['checklist_adaptacao_atividade'] = checklist_respostas
+            rac, txt = adaptar_conteudo_imagem(api_key, aluno, img_bytes, materia_i, tema_i, tipo_i, livro_prof, checklist_adaptacao=checklist_respostas)
             st.session_state['res_img'] = {'rac': rac, 'txt': txt, 'map': {1: img_bytes}, 'valid': False}
             st.rerun()
 
@@ -2085,7 +2339,9 @@ def render_aba_adaptar_atividade(aluno, api_key):
             if col_r.button("🧠 Refazer (+Profundo)", key="redo_i", use_container_width=True):
                 with st.spinner("Refazendo..."):
                     img_bytes = res['map'][1]
-                    rac, txt = adaptar_conteudo_imagem(api_key, aluno, img_bytes, materia_i, tema_i, tipo_i, livro_prof, modo_profundo=True)
+                    # Recuperar checklist do session_state se disponível
+                    checklist_redo = st.session_state.get('checklist_adaptacao_atividade', {})
+                    rac, txt = adaptar_conteudo_imagem(api_key, aluno, img_bytes, materia_i, tema_i, tipo_i, livro_prof, modo_profundo=True, checklist_adaptacao=checklist_redo)
                     st.session_state['res_img'] = {'rac': rac, 'txt': txt, 'map': {1: img_bytes}, 'valid': False}
                     st.rerun()
 
@@ -2101,7 +2357,9 @@ def render_aba_adaptar_atividade(aluno, api_key):
                     st.markdown(p.strip())
         
         c_down1, c_down2 = st.columns(2)
-        docx = construir_docx_final(res['txt'], aluno, materia_i, res['map'], tipo_i)
+        # Recuperar checklist para formatação do Word
+        checklist_formatacao = st.session_state.get('checklist_adaptacao_atividade', {})
+        docx = construir_docx_final(res['txt'], aluno, materia_i, res['map'], tipo_i, sem_cabecalho=False, checklist_adaptacao=checklist_formatacao)
         c_down1.download_button("📥 BAIXAR DOCX (Editável)", docx, "Atividade.docx", "primary", use_container_width=True)
         
         pdf_bytes = criar_pdf_generico(res['txt'])
