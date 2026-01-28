@@ -129,7 +129,8 @@ footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 220px;
+    min-height: 140px;
+    max-height: 180px;
 }
 
 .hero-wrapper::before {
@@ -159,6 +160,8 @@ footer {
 .hero-content {
     z-index: 2;
     position: relative;
+    flex: 1;
+    min-width: 0;
 }
 
 .hero-greet {
@@ -172,9 +175,14 @@ footer {
 .hero-text {
     font-size: 1.1rem;
     opacity: 0.95;
-    max-width: 800px;
-    line-height: 1.6;
+    max-width: 100%;
+    line-height: 1.5;
     font-weight: 500;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    hyphens: auto;
+    flex: 1;
 }
 
 .hero-icon {
