@@ -126,7 +126,7 @@ if not st.session_state.autenticado:
 @st.cache_data(ttl=10, show_spinner=False)
 def list_students_rest(workspace_id):
     try:
-        url = st.secrets.get("SUPABASE_URL").rstrip("/") + "/rest/v1/students"
+        url = ou.get_setting("SUPABASE_URL").rstrip("/") + "/rest/v1/students"
         # Usa o header helper do omni_utils
         headers = ou._headers()
         params = f"?select=id,name,grade,class_group,diagnosis&workspace_id=eq.{workspace_id}&order=created_at.desc"
@@ -136,7 +136,7 @@ def list_students_rest(workspace_id):
 
 def delete_student_rest(sid, wid):
     try:
-        url = st.secrets.get("SUPABASE_URL").rstrip("/") + f"/rest/v1/students?id=eq.{sid}&workspace_id=eq.{wid}"
+        url = ou.get_setting("SUPABASE_URL").rstrip("/") + f"/rest/v1/students?id=eq.{sid}&workspace_id=eq.{wid}"
         headers = ou._headers()
         requests.delete(url, headers=headers)
         return True
