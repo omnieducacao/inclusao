@@ -837,73 +837,164 @@ def create_module_card(title, desc, icon, color_cls, bg_cls, page, key):
 def render_central_conhecimento():
     """Renderiza a Central de Conhecimento com as novas abas"""
     
-    # Adiciona CSS específico para a Central de Conhecimento
+    # Adiciona CSS específico para a Central de Conhecimento (estilo elegante da home)
     st.markdown("""
     <style>
-        /* Hero Section */
-        .hero-container {
-            background: linear-gradient(135deg, #0F52BA 0%, #3b82f6 100%);
-            padding: 3rem 2rem;
-            border-radius: 0 0 24px 24px;
-            color: white;
-            margin-top: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px -10px rgba(15, 82, 186, 0.4);
-        }
-        .hero-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 5px; }
-        .hero-subtitle { font-size: 1.1rem; opacity: 0.9; font-weight: 300; }
-
-        /* Cards e Containers */
+        /* Cards e Containers - Estilo Elegante */
         .content-card {
-            background: white; border: 1px solid #e2e8f0; border-radius: 16px;
-            padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s; height: 100%; margin-bottom: 20px;
+            background: white; border: 1px solid #E2E8F0; border-radius: 16px;
+            padding: 24px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); height: 100%; margin-bottom: 20px;
         }
-        .content-card:hover { transform: translateY(-3px); border-color: #0F52BA; }
+        .content-card:hover { 
+            transform: translateY(-4px); 
+            border-color: #CBD5E1; 
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+        .content-card h4 {
+            font-weight: 800; color: #1E293B; margin-bottom: 12px; font-size: 1.1rem;
+        }
+        .content-card p {
+            color: #64748B; line-height: 1.6; font-size: 0.9rem;
+        }
         
-        /* Manual Step Visuals */
+        /* Manual Step Visuals - Estilo Elegante */
         .manual-box {
-            border-left: 5px solid #0F52BA; background: white; padding: 25px;
-            border-radius: 0 12px 12px 0; margin-bottom: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            border-left: 5px solid #2563EB; background: white; padding: 28px;
+            border-radius: 0 16px 16px 0; margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .manual-header { font-size: 1.2rem; font-weight: 700; color: #1e293b; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
-        .manual-quote { font-style: italic; color: #64748b; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 3px solid #cbd5e1; }
-        .key-concept { background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 0.9rem; font-weight: 600; }
+        .manual-box:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+            border-left-color: #1E40AF;
+        }
+        .manual-header { 
+            font-size: 1.3rem; font-weight: 800; color: #1E293B; 
+            margin-bottom: 12px; display: flex; align-items: center; gap: 12px;
+            letter-spacing: -0.3px;
+        }
+        .manual-quote { 
+            font-style: italic; color: #64748B; background: #F8FAFC; padding: 14px 16px; 
+            border-radius: 10px; margin-bottom: 18px; border-left: 3px solid #CBD5E1;
+            font-size: 0.95rem; line-height: 1.5;
+        }
+        .key-concept { 
+            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+            border: 1px solid #BFDBFE; color: #1E40AF; padding: 16px; 
+            border-radius: 12px; margin-top: 18px; font-size: 0.9rem; font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+        .manual-box ul {
+            color: #475569; line-height: 1.8; margin-top: 12px;
+        }
+        .manual-box li {
+            margin-bottom: 8px;
+        }
 
-        /* Glossários */
-        .term-good { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .term-bad { background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        /* Glossários - Estilo Elegante */
+        .term-good { 
+            background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+            border-left: 4px solid #16A34A; padding: 18px; border-radius: 12px; 
+            margin-bottom: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            transition: all 0.2s;
+        }
+        .term-good:hover {
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.1);
+            transform: translateX(2px);
+        }
+        .term-good div:first-child {
+            color: #166534; font-weight: 800; font-size: 1.05rem; margin-bottom: 6px;
+            letter-spacing: -0.2px;
+        }
+        .term-good div:last-child {
+            color: #14532d; font-size: 0.9rem; line-height: 1.5;
+        }
+        .term-bad { 
+            background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+            border-left: 4px solid #DC2626; padding: 18px; border-radius: 12px; 
+            margin-bottom: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            transition: all 0.2s;
+        }
+        .term-bad:hover {
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+            transform: translateX(2px);
+        }
+        .term-bad div:first-child {
+            color: #991b1b; font-weight: 800; text-decoration: line-through; font-size: 1.05rem; margin-bottom: 6px;
+            letter-spacing: -0.2px;
+        }
+        .term-bad div:last-child {
+            color: #7f1d1d; font-size: 0.9rem; line-height: 1.5;
+        }
         .glossary-item { 
-            background: white; padding: 20px; border-radius: 12px; border-left: 5px solid #0F52BA; 
-            margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.2s;
+            background: white; padding: 24px; border-radius: 16px; 
+            border-left: 5px solid #2563EB; 
+            margin-bottom: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .glossary-item:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .glossary-item:hover { 
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+            border-left-color: #1E40AF;
+        }
+        .glossary-item div:first-child {
+            color: #1E3A8A; font-weight: 800; font-size: 1.1rem; margin-bottom: 8px;
+            letter-spacing: -0.2px;
+        }
+        .glossary-item div:last-child {
+            color: #475569; font-size: 0.95rem; line-height: 1.6;
+        }
 
-        /* AI Chat Box */
+        /* AI Chat Box - Estilo Elegante */
         .ai-box {
-            background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%);
-            border: 2px solid #ccfbf1; border-radius: 16px; padding: 20px;
-            margin-top: 20px;
+            background: linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%);
+            border: 2px solid #CCFBF1; border-radius: 16px; padding: 24px;
+            margin-top: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        }
+        .ai-box div:first-child {
+            font-weight: 800; color: #0D9488; font-size: 1.1rem;
         }
 
-        /* Abas */
-        .stTabs [data-baseweb="tab-list"] { gap: 8px; flex-wrap: wrap; }
+        /* Abas - Estilo Elegante da Home */
+        .stTabs [data-baseweb="tab-list"] { 
+            gap: 12px; flex-wrap: wrap; 
+            border-bottom: 2px solid #F1F5F9;
+            padding-bottom: 8px;
+            margin-bottom: 24px;
+        }
         .stTabs [data-baseweb="tab"] {
-            background-color: white; border-radius: 8px; border: 1px solid #e2e8f0;
-            padding: 8px 16px; font-weight: 600; color: #64748b; flex-grow: 1; text-align: center;
+            background-color: white; border-radius: 12px; border: 1px solid #E2E8F0;
+            padding: 12px 20px; font-weight: 700; color: #64748B; 
+            flex-grow: 1; text-align: center;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.9rem;
+            letter-spacing: -0.2px;
+        }
+        .stTabs [data-baseweb="tab"]:hover {
+            background-color: #F8FAFC;
+            border-color: #CBD5E1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
         }
         .stTabs [aria-selected="true"] {
-            background-color: #0F52BA !important; color: white !important; border-color: #0F52BA !important;
+            background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%) !important;
+            color: white !important; 
+            border-color: #1E3A8A !important;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3) !important;
         }
     </style>
     """, unsafe_allow_html=True)
     
-    # Hero
+    # Título elegante
     st.markdown("""
-    <div class="hero-container">
-        <div class="hero-title">🧠 Central de Inteligência Inclusiva</div>
-        <div class="hero-subtitle">Fundamentos Pedagógicos, Marcos Legais e Ferramentas Práticas.</div>
+    <div style="margin-bottom: 32px;">
+        <h2 style="font-size: 2rem; font-weight: 800; color: #1E293B; margin-bottom: 8px; letter-spacing: -0.5px;">
+            🧠 Central de Inteligência Inclusiva
+        </h2>
+        <p style="color: #64748B; font-size: 1rem; font-weight: 500;">
+            Fundamentos Pedagógicos, Marcos Legais e Ferramentas Práticas.
+        </p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -1003,9 +1094,11 @@ def render_central_conhecimento():
                 with st.spinner("Analisando Decretos 12.686 e 12.773..."):
                     time.sleep(1.5)
                     st.markdown(f"""
-                    <div style="background:white; padding:15px; border-radius:10px; border-left:4px solid #0d9488; margin-top:10px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-                        <strong>Resposta da IA:</strong><br>
-                        Com base no <strong>Decreto 12.773/2025</strong>, a exigência de laudo médico como condição prévia para matrícula é ilegal. A escola deve realizar o <strong>Estudo de Caso</strong> pedagógico.
+                    <div style="background:white; padding:20px; border-radius:16px; border-left:5px solid #0d9488; margin-top:16px; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+                        <div style="font-weight:800; color:#0d9488; font-size:1.05rem; margin-bottom:10px; letter-spacing:-0.2px;">Resposta da IA:</div>
+                        <div style="color:#475569; line-height:1.6; font-size:0.95rem;">
+                            Com base no <strong style="color:#1E293B;">Decreto 12.773/2025</strong>, a exigência de laudo médico como condição prévia para matrícula é ilegal. A escola deve realizar o <strong style="color:#1E293B;">Estudo de Caso</strong> pedagógico.
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -1065,8 +1158,8 @@ def render_central_conhecimento():
             for t, d in termos_bons:
                 st.markdown(f"""
                 <div class="term-good">
-                    <div style="color:#166534; font-weight:bold; font-size:1.05rem;">{t}</div>
-                    <div style="color:#14532d; font-size:0.9rem;">{d}</div>
+                    <div>{t}</div>
+                    <div>{d}</div>
                 </div>""", unsafe_allow_html=True)
 
         with col_g2:
@@ -1083,8 +1176,8 @@ def render_central_conhecimento():
             for t, d in termos_ruins:
                 st.markdown(f"""
                 <div class="term-bad">
-                    <div style="color:#991b1b; font-weight:bold; text-decoration:line-through; font-size:1.05rem;">{t}</div>
-                    <div style="color:#7f1d1d; font-size:0.9rem;">{d}</div>
+                    <div style="text-decoration:line-through;">{t}</div>
+                    <div>{d}</div>
                 </div>""", unsafe_allow_html=True)
 
     # ABA 5: BIBLIOTECA VIRTUAL
@@ -1368,10 +1461,6 @@ for i, module in enumerate(modules_data):
         )
 
 st.markdown("<div style='height:30px'></div>", unsafe_allow_html=True)
-
-# Recursos Externos
-st.markdown("### 📚 Recursos Externos & Referências")
-render_resources()
 
 # Nova Seção: Central de Conhecimento
 st.markdown("<div style='height:40px'></div>", unsafe_allow_html=True)
