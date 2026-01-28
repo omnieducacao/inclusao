@@ -1,7 +1,6 @@
 import streamlit as st
 import requests
 from datetime import datetime
-from zoneinfo import ZoneInfo
 import os
 import sys
 
@@ -13,7 +12,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 try:
     import omni_utils as ou
-    from omni_utils import get_icon, icon_title
 except ImportError:
     st.error("Erro crítico: O arquivo 'omni_utils.py' não foi encontrado na pasta raiz.")
     st.stop()
@@ -23,7 +21,7 @@ except ImportError:
 # ==============================================================================
 st.set_page_config(
     page_title="Omnisfera • Estudantes",
-    page_icon="omni_icone.png",
+    page_icon="👥",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -49,16 +47,11 @@ def gap_hub():
 # Garante que o estado de sessão (login, workspace) existe
 ou.ensure_state()
 
-# ✅ Header + Navbar (depois do page_config)
+# 1. Renderiza o Cabeçalho (Logo + Usuário)
 ou.render_omnisfera_header()
-ou.render_navbar(active_tab="Estudantes")
-ou.inject_compact_app_css()
-
-# Adiciona classe no body para cores específicas das abas
-st.markdown("<script>document.body.classList.add('page-indigo');</script>", unsafe_allow_html=True)
 
 # ==============================================================================
-# AJUSTE FINO DE LAYOUT (ANTES DO HERO - PADRONIZADO)
+# AJUSTE FINO DE LAYOUT (Igual ao PEI - PADRONIZADO)
 # ==============================================================================
 def forcar_layout_hub():
     st.markdown("""
@@ -69,136 +62,44 @@ def forcar_layout_hub():
                 height: 0px !important;
             }
 
-            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) - ESPECIFICIDADE MÁXIMA */
-            body .main .block-container,
-            body .block-container,
-            .main .block-container,
+            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
             .block-container {
-                padding-top: 0px !important; /* SEM espaço entre navbar e hero */
+                padding-top: 1rem !important; /* Padronizado: mesma distância do PEI */
                 padding-bottom: 1rem !important;
                 margin-top: 0px !important;
             }
-            
-            /* 3. Remove qualquer espaçamento do Streamlit */
-            [data-testid="stVerticalBlock"],
-            div[data-testid="stVerticalBlock"] > div:first-child,
-            .main .block-container > div:first-child {
-                padding-top: 0px !important;
-                margin-top: 0px !important;
-            }
-            
-            /* 4. Hero card colado no menu - margin negativo MUITO agressivo */
-            .mod-card-wrapper {
-                margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
-                position: relative;
-                z-index: 1;
-            }
-            
-            /* Remove TODOS os espaçamentos do elemento que contém o hero */
-            .main .block-container > div:first-child,
-            .main .block-container > div:first-child > div:first-child,
-            .main .block-container > div:first-child > div:first-child > div:first-child,
-            .main .block-container > *:first-child {
-                margin-top: 0px !important;
+
+            /* 3. Remove padding extra se houver container de navegação */
+            div[data-testid="stVerticalBlock"] > div:first-child {
                 padding-top: 0px !important;
             }
             
-            /* Remove espaçamento do stMarkdown que renderiza o hero */
-            .main .block-container > div:first-child .stMarkdown {
-                margin-top: 0px !important;
-                padding-top: 0px !important;
-            }
-            
-            /* 5. Esconde o menu hambúrguer e rodapé */
+            /* 4. Esconde o menu hambúrguer e rodapé */
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
         </style>
     """, unsafe_allow_html=True)
 
-# CHAME ESTA FUNÇÃO ANTES DO HERO CARD (igual ao PEI)
+# CHAME ESTA FUNÇÃO LOGO NO INÍCIO DO CÓDIGO
 forcar_layout_hub()
 
-# Cores dos hero cards (paleta vibrante)
-ou.inject_hero_card_colors()
-# CSS padronizado: abas (pílulas), botões, selects, etc.
-ou.inject_unified_ui_css()
-
-# CSS Específico desta página (Cards e Tabelas)
+# 2. CSS Específico desta página (Cards e Tabelas)
 st.markdown("""
 <style>
-    /* CARD HERO - PADRÃO VIA omni_utils.inject_hero_card_colors() */
-    .mod-card-wrapper { 
-        display: flex; 
-        flex-direction: column; 
-        margin-bottom: 20px; 
-        border-radius: 16px; 
-        overflow: hidden; 
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
-        margin-top: -128px !important; /* Puxa hero para cima, quase colando no menu */
-        position: relative;
-        z-index: 1;
-    }
-    .mod-card-rect { 
-        background: white; 
-        border-radius: 16px 16px 0 0; 
-        padding: 0; 
-        border: 1px solid #E2E8F0; 
-        border-bottom: none; 
-        display: flex; 
-        flex-direction: row; 
-        align-items: center; 
-        height: 130px !important; 
-        width: 100%; 
-        position: relative; 
-        overflow: hidden; 
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
-    }
-    .mod-bar { 
-        width: 6px; 
-        height: 100%; 
-        flex-shrink: 0; 
-    }
-    .mod-icon-area { 
-        width: 90px; 
-        height: 100%; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        font-size: 1.8rem; 
-        flex-shrink: 0; 
-        background: #FAFAFA !important; 
-        border-right: 1px solid #F1F5F9; 
-        transition: all 0.3s ease; 
-    }
-    .mod-content { 
-        flex-grow: 1; 
-        padding: 0 24px; 
-        display: flex; 
-        flex-direction: column; 
-        justify-content: center; 
-    }
-    .mod-title { 
-        font-weight: 800; 
-        font-size: 1.1rem; 
-        color: #1E293B; 
-        margin-bottom: 6px; 
-        letter-spacing: -0.3px; 
-    }
-    .mod-desc { 
-        font-size: 0.8rem; 
-        color: #64748B; 
-        line-height: 1.4; 
-    }
+    /* CARD HERO */
+    .mod-card-wrapper { display: flex; flex-direction: column; margin-bottom: 20px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-top: 0 !important; border: 1px solid #E2E8F0;}
+    .mod-card-rect { background: white; padding: 0; display: flex; align-items: center; height: 130px !important; position: relative; border-radius: 16px 16px 0 0; border-bottom: none; }
+    .mod-bar { width: 6px; height: 100%; position: absolute; left: 0; background-color: #0284C7; }
+    .mod-icon-area { width: 80px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; background: #F0F9FF; color: #0284C7; margin-left: 6px; }
+    .mod-content { flex-grow: 1; padding: 0 20px; display: flex; flex-direction: column; justify-content: center; }
+    .mod-title { font-weight: 800; font-size: 1.1rem; color: #1E293B; margin-bottom: 4px; }
+    .mod-desc { font-size: 0.8rem; color: #64748B; }
 
     /* TABELA DE ALUNOS */
     .student-table { background: white; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-top: 20px; }
     .student-header { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-weight: 800; color: #475569; font-size: 0.8rem; text-transform: uppercase; }
     .student-row { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; padding: 12px 20px; border-bottom: 1px solid #F1F5F9; align-items: center; background: white; }
     .student-row:hover { background: #F8FAFC; }
-    .student-row > div:last-child { display: flex; align-items: center; justify-content: center; }
-    /* Garantir que botões dentro da última coluna fiquem inline */
-    .student-row > div:last-child .stButton { margin: 0 !important; display: inline-block !important; }
-    .student-row > div:last-child button { margin: 0 !important; }
     
     /* BADGES */
     .badge-grade { background: #F0F9FF; color: #0369A1; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; border: 1px solid #BAE6FD; }
@@ -208,6 +109,9 @@ st.markdown("""
     .delete-confirm-banner { background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 8px; padding: 8px 12px; margin-top: 4px; font-size: 0.8rem; color: #92400E; display: flex; align-items: center; gap: 8px; }
 </style>
 """, unsafe_allow_html=True)
+
+# 3. Renderiza o Menu de Navegação (Aba Ativa: Estudantes)
+ou.render_navbar(active_tab="Estudantes")
 
 # ==============================================================================
 # 3. LÓGICA DE DADOS
@@ -239,38 +143,12 @@ def delete_student_rest(sid, wid):
     except: return False
 
 # ==============================================================================
-# HERO - ESTUDANTES
-# ==============================================================================
-hora = datetime.now(ZoneInfo("America/Sao_Paulo")).hour
-saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
-USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
-WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
-
-st.markdown(f"""
-<div class="mod-card-wrapper">
-    <div class="mod-card-rect">
-        <div class="mod-bar c-indigo"></div>
-        <div class="mod-icon-area bg-indigo-soft">
-            <i class="ri-user-star-fill"></i>
-        </div>
-        <div class="mod-content">
-            <div class="mod-title">Gestão de Estudantes</div>
-            <div class="mod-desc">
-                {saudacao}, <strong>{USUARIO_NOME}</strong>! Gerencie os dados dos alunos vinculados aos PEIs 
-                no workspace <strong>{WORKSPACE_NAME}</strong>.
-            </div>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# Espaçamento após hero card
-st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
-
-# ==============================================================================
-# VERIFICAÇÃO DE ACESSO E DADOS
+# 4. APLICAÇÃO PRINCIPAL
 # ==============================================================================
 ws_id = st.session_state.get("workspace_id")
+user_name = st.session_state.get("usuario_nome", "Visitante")
+user_first = user_name.split()[0]
+saudacao = "Bom dia" if 5 <= datetime.now().hour < 12 else "Boa tarde"
 
 # Lógica de Refresh
 if st.session_state.get("force_refresh"):
@@ -283,6 +161,20 @@ if not ws_id:
 
 # Busca Alunos
 alunos = list_students_rest(ws_id)
+
+# Renderiza Hero Card
+st.markdown(f"""
+    <div class="mod-card-wrapper">
+        <div class="mod-card-rect">
+            <div class="mod-bar"></div>
+            <div class="mod-icon-area"><i class="ri-group-fill"></i></div>
+            <div class="mod-content">
+                <div class="mod-title">Gestão de Estudantes</div>
+                <div class="mod-desc">{saudacao}, <strong>{user_first}</strong>! Gerencie os dados dos alunos vinculados aos PEIs neste workspace.</div>
+            </div>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
 
 # Controles de Busca
 c1, c2 = st.columns([3, 1])
@@ -316,7 +208,6 @@ else:
         if confirm_key not in st.session_state:
             st.session_state[confirm_key] = False
         
-        # Coluna de Ações (Botão Python dentro do HTML Layout)
         st.markdown(f"""
         <div class="student-row">
             <div style="font-weight:700; color:#1E293B;">{nome}</div>
@@ -326,10 +217,13 @@ else:
             <div>
         """, unsafe_allow_html=True)
         
+        # Coluna de Ações (Botão Python dentro do HTML Layout)
         if not st.session_state[confirm_key]:
-            if st.button("🗑️", key=f"btn_del_{sid}", help="Excluir"):
-                st.session_state[confirm_key] = True
-                st.rerun()
+            c_btn, _ = st.columns([1, 4])
+            with c_btn:
+                if st.button("🗑️", key=f"btn_del_{sid}", help="Excluir"):
+                    st.session_state[confirm_key] = True
+                    st.rerun()
         else:
             st.markdown(f"""<div class="delete-confirm-banner"><i class="ri-alert-fill"></i> Excluir <b>{nome}</b>?</div>""", unsafe_allow_html=True)
             c_s, c_n = st.columns(2)
@@ -348,5 +242,5 @@ else:
     
     st.markdown("</div>", unsafe_allow_html=True)
 
-# Rodapé com assinatura
-ou.render_footer_assinatura()
+# Rodapé Simples
+st.markdown(f"<div style='text-align:center;color:#94A3B8;font-size:0.7rem;padding:20px;margin-top:20px;'>{len(alunos)} estudantes • {APP_VERSION}</div>", unsafe_allow_html=True)
