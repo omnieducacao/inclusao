@@ -1927,7 +1927,7 @@ with tab0:
                 except Exception:
                     return False
 
-            if st.button(f"{get_icon('configurar', 18, 'white')} Sincronizar Tudo", type="primary", use_container_width=True, key="btn_sync_full_final"):
+            if st.button("🔗 Sincronizar Tudo", type="primary", use_container_width=True, key="btn_sync_full_final"):
                 if not _cloud_ready_check():
                     st.error("⚠️ Configure os Secrets do Supabase.")
                 else:
@@ -3403,7 +3403,7 @@ with tab_9:
         st.divider()
         c_ok, c_aj = st.columns(2)
         with c_ok:
-            if st.button(f"{get_icon('validar', 18, 'white')} Aprovar Missão", type="primary", use_container_width=True):
+            if st.button("✅ Aprovar Missão", type="primary", use_container_width=True):
                 st.session_state.dados["status_validacao_game"] = "aprovado"
                 st.rerun()
         with c_aj:
