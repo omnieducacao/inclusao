@@ -925,7 +925,7 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
     except Exception as e:
         return str(e), ""
 
-def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, verbos_bloom=None, habilidades_bncc=None, modo_profundo=False):
+def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, verbos_bloom=None, habilidades_bncc=None, modo_profundo=False, checklist_adaptacao=None):
     """Cria atividade profissional do zero"""
     client = OpenAI(api_key=api_key)
     hiperfoco = aluno.get('hiperfoco', 'Geral')
@@ -956,6 +956,35 @@ def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, v
            - Inclua referências às habilidades nos enunciados quando pertinente.
         """
     
+    # Montar instruções do checklist de adaptação (criação já considerando PEI)
+    instrucoes_checklist = ""
+    if checklist_adaptacao and isinstance(checklist_adaptacao, dict):
+        necessidades_ativas = []
+        if checklist_adaptacao.get("questoes_desafiadoras"):
+            necessidades_ativas.append("Incluir questões mais desafiadoras")
+        else:
+            necessidades_ativas.append("Manter nível de dificuldade acessível")
+        if not checklist_adaptacao.get("compreende_instrucoes_complexas"):
+            necessidades_ativas.append("Usar instruções simples e diretas")
+        if checklist_adaptacao.get("instrucoes_passo_a_passo"):
+            necessidades_ativas.append("Fornecer instruções passo a passo")
+        if checklist_adaptacao.get("dividir_em_etapas"):
+            necessidades_ativas.append("Dividir em etapas menores")
+        if checklist_adaptacao.get("paragrafos_curtos"):
+            necessidades_ativas.append("Usar parágrafos curtos")
+        if checklist_adaptacao.get("dicas_apoio"):
+            necessidades_ativas.append("Incluir dicas de apoio")
+        if not checklist_adaptacao.get("compreende_figuras_linguagem"):
+            necessidades_ativas.append("Evitar figuras de linguagem complexas")
+        if checklist_adaptacao.get("descricao_imagens"):
+            necessidades_ativas.append("Incluir descrição de imagens quando houver")
+        if necessidades_ativas:
+            instrucoes_checklist = f"""
+    8. CHECKLIST DE ADAPTAÇÃO (baseado no PEI):
+       {chr(10).join([f"- {n}" for n in necessidades_ativas])}
+       Aplique essas orientações de forma coerente nas questões criadas.
+    """
+    
     # Formato baseado no tipo
     if tipo_q == "Discursiva":
         diretriz_tipo = "3. FORMATO DISCURSIVO (RIGOROSO): Crie apenas questões abertas. NÃO inclua alternativas, apenas linhas para resposta."
@@ -983,6 +1012,7 @@ def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, v
     
     {instrucao_bloom}
     {instrucao_habilidades}
+    {instrucoes_checklist}
     
     SAÍDA OBRIGATÓRIA:
     [ANÁLISE PEDAGÓGICA]
@@ -2460,29 +2490,6 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
     mat_c = disciplina_bncc
     obj_c = assunto_criar.strip() if assunto_criar and assunto_criar.strip() else objeto_bncc
     
-    # Checklist de adaptação (expander)
-    with st.expander("🎯 Checklist de Adaptação (opcional)", expanded=False):
-        st.info("Marque as adaptações que devem ser consideradas na criação da atividade.")
-        col_c1, col_c2, col_c3, col_c4 = st.columns(4)
-        with col_c1:
-            check_desafio = st.checkbox("Questões mais desafiadoras", value=False, key="c0_desafio")
-            check_passo = st.checkbox("Instruções passo a passo", value=False, key="c0_passo")
-        with col_c2:
-            check_complexas = st.checkbox("Compreende instruções complexas", value=False, key="c0_complexas")
-            check_etapas = st.checkbox("Dividir em etapas menores", value=False, key="c0_etapas")
-        with col_c3:
-            check_paragrafos = st.checkbox("Parágrafos curtos", value=False, key="c0_paragrafos")
-            check_dicas = st.checkbox("Dicas de apoio", value=False, key="c0_dicas")
-        with col_c4:
-            check_figuras = st.checkbox("Compreende figuras de linguagem", value=False, key="c0_figuras")
-            check_descricao = st.checkbox("Descrição de imagens", value=False, key="c0_descricao")
-        checklist_criar = {
-            "questoes_desafiadoras": check_desafio, "compreende_instrucoes_complexas": check_complexas,
-            "instrucoes_passo_a_passo": check_passo, "dividir_em_etapas": check_etapas,
-            "paragrafos_curtos": check_paragrafos, "dicas_apoio": check_dicas,
-            "compreende_figuras_linguagem": check_figuras, "descricao_imagens": check_descricao
-        }
-    
     # Configuração da atividade (uma linha)
     st.markdown("---")
     r1, r2, r3, r4 = st.columns(4)
@@ -2495,23 +2502,53 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
     with r4:
         qtd_img_sel = st.slider("Qtd. imagens", 0, qtd_c, int(qtd_c/2) if qtd_c > 1 else 0, disabled=not usar_img, key="qtd_img_slider")
     
-    # Taxonomia de Bloom (expander)
-    with st.expander("🧠 Taxonomia de Bloom (opcional)", expanded=False):
-        if 'bloom_memoria' not in st.session_state:
-            st.session_state.bloom_memoria = {cat: [] for cat in TAXONOMIA_BLOOM.keys()}
-        verbos_finais_para_ia = []
-        usar_bloom = st.checkbox("🎯 Usar Taxonomia de Bloom (Revisada)", key="usar_bloom")
-        if usar_bloom:
-            col_b1, col_b2 = st.columns(2)
-            with col_b1:
-                cat_atual = st.selectbox("Categoria Cognitiva:", list(TAXONOMIA_BLOOM.keys()), key="cat_bloom")
-            with col_b2:
-                selecao_atual = st.multiselect(f"Verbos de '{cat_atual}':", TAXONOMIA_BLOOM[cat_atual], default=st.session_state.bloom_memoria[cat_atual], key=f"ms_bloom_{cat_atual}")
-                st.session_state.bloom_memoria[cat_atual] = selecao_atual
-            for cat in st.session_state.bloom_memoria:
-                verbos_finais_para_ia.extend(st.session_state.bloom_memoria[cat])
-            if verbos_finais_para_ia:
-                st.info(f"**Verbos:** {', '.join(verbos_finais_para_ia)}")
+    # Inicializar variáveis antes dos expanders
+    checklist_criar = {}
+    verbos_finais_para_ia = []
+    usar_bloom = False
+    
+    # Checklist e Taxonomia de Bloom juntos embaixo (lado a lado)
+    col_check, col_bloom = st.columns(2)
+    
+    with col_check:
+        with st.expander("🎯 Checklist de Adaptação (opcional)", expanded=False):
+            st.info("Marque as adaptações que devem ser consideradas na criação da atividade.")
+            col_c1, col_c2, col_c3, col_c4 = st.columns(4)
+            with col_c1:
+                check_desafio = st.checkbox("Questões mais desafiadoras", value=False, key="c0_desafio")
+                check_passo = st.checkbox("Instruções passo a passo", value=False, key="c0_passo")
+            with col_c2:
+                check_complexas = st.checkbox("Compreende instruções complexas", value=False, key="c0_complexas")
+                check_etapas = st.checkbox("Dividir em etapas menores", value=False, key="c0_etapas")
+            with col_c3:
+                check_paragrafos = st.checkbox("Parágrafos curtos", value=False, key="c0_paragrafos")
+                check_dicas = st.checkbox("Dicas de apoio", value=False, key="c0_dicas")
+            with col_c4:
+                check_figuras = st.checkbox("Compreende figuras de linguagem", value=False, key="c0_figuras")
+                check_descricao = st.checkbox("Descrição de imagens", value=False, key="c0_descricao")
+            checklist_criar = {
+                "questoes_desafiadoras": check_desafio, "compreende_instrucoes_complexas": check_complexas,
+                "instrucoes_passo_a_passo": check_passo, "dividir_em_etapas": check_etapas,
+                "paragrafos_curtos": check_paragrafos, "dicas_apoio": check_dicas,
+                "compreende_figuras_linguagem": check_figuras, "descricao_imagens": check_descricao
+            }
+    
+    with col_bloom:
+        with st.expander("🧠 Taxonomia de Bloom (opcional)", expanded=False):
+            if 'bloom_memoria' not in st.session_state:
+                st.session_state.bloom_memoria = {cat: [] for cat in TAXONOMIA_BLOOM.keys()}
+            usar_bloom = st.checkbox("🎯 Usar Taxonomia de Bloom (Revisada)", key="usar_bloom")
+            if usar_bloom:
+                col_b1, col_b2 = st.columns(2)
+                with col_b1:
+                    cat_atual = st.selectbox("Categoria Cognitiva:", list(TAXONOMIA_BLOOM.keys()), key="cat_bloom")
+                with col_b2:
+                    selecao_atual = st.multiselect(f"Verbos de '{cat_atual}':", TAXONOMIA_BLOOM[cat_atual], default=st.session_state.bloom_memoria[cat_atual], key=f"ms_bloom_{cat_atual}")
+                    st.session_state.bloom_memoria[cat_atual] = selecao_atual
+                for cat in st.session_state.bloom_memoria:
+                    verbos_finais_para_ia.extend(st.session_state.bloom_memoria[cat])
+                if verbos_finais_para_ia:
+                    st.info(f"**Verbos:** {', '.join(verbos_finais_para_ia)}")
     
     st.markdown("---")
     if st.button("✨ CRIAR ATIVIDADE", type="primary", key="btn_c", use_container_width=True):
@@ -2542,7 +2579,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
                 txt_fin = txt
                 for i in range(1, count + 1):
                     txt_fin = re.sub(r'\[\[GEN_IMG: .*?\]\]', f"[[IMG_G{i}]]", txt_fin, count=1)
-                st.session_state['res_create'] = {'rac': rac, 'txt': txt_fin, 'map': novo_map, 'valid': False, 'mat_c': mat_c, 'obj_c': obj_c}
+                st.session_state['res_create'] = {'rac': rac, 'txt': txt_fin, 'map': novo_map, 'valid': False, 'mat_c': mat_c, 'obj_c': obj_c, 'checklist': checklist_criar}
                 st.rerun()
     
     # Exibição do resultado
@@ -2595,7 +2632,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
         col_down1, col_down2, col_down3 = st.columns(3)
         
         with col_down1:
-            docx = construir_docx_final(res['txt'], aluno, mat_c, {}, "Criada")
+            docx = construir_docx_final(res['txt'], aluno, mat_c, res.get('map', {}), "Criada", checklist_adaptacao=res.get('checklist'))
             st.download_button(
                 label="📄 Baixar DOCX",
                 data=docx,
