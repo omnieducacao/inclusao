@@ -331,25 +331,28 @@ def inject_compact_app_css(accent: str = "#0D9488"):
   /* Primary */
   .stButton > button[kind="primary"],
   .stDownloadButton > button[kind="primary"] {{
-    background: linear-gradient(135deg, {accent}, #14B8A6) !important;
+    background: linear-gradient(135deg, #2563EB 0%, #0EA5E9 100%) !important;
     border: none !important;
   }}
   .stButton > button[kind="primary"]:hover,
   .stDownloadButton > button[kind="primary"]:hover {{
     transform: translateY(-1px) !important;
-    box-shadow: 0 6px 16px rgba(13,148,136,.18) !important;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3) !important;
+    background: linear-gradient(135deg, #0EA5E9 0%, #2563EB 100%) !important;
   }}
 
   /* Secondary */
   .stButton > button[kind="secondary"],
   .stDownloadButton > button[kind="secondary"] {{
     background: #ffffff !important;
-    color: {accent} !important;
-    border: 1px solid {accent} !important;
+    color: #2563EB !important;
+    border: 1px solid #2563EB !important;
   }}
   .stButton > button[kind="secondary"]:hover,
   .stDownloadButton > button[kind="secondary"]:hover {{
-    background: rgba(13,148,136,.06) !important;
+    background: rgba(37, 99, 235, 0.06) !important;
+    border-color: #0EA5E9 !important;
+    color: #0EA5E9 !important;
   }}
 
   .stButton, .stDownloadButton {{
@@ -996,27 +999,27 @@ div[data-baseweb="tab-highlight"] {
 }
 
 .stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, var(--ui-primary), var(--ui-primary-dark)) !important;
+    background: linear-gradient(135deg, #2563EB 0%, #0EA5E9 100%) !important;
     border: none !important;
     color: #ffffff !important;
 }
 
 .stButton > button[kind="primary"]:hover {
     transform: translateY(-1px) !important;
-    box-shadow: 0 10px 22px rgba(30,58,138,0.3) !important;
-    background: linear-gradient(135deg, var(--ui-primary-dark), var(--ui-primary)) !important;
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.3) !important;
+    background: linear-gradient(135deg, #0EA5E9 0%, #2563EB 100%) !important;
 }
 
 .stButton > button[kind="secondary"] {
     background: #ffffff !important;
-    color: var(--ui-primary-dark) !important;
-    border: 1px solid var(--ui-primary-border) !important;
+    color: #2563EB !important;
+    border: 1px solid #2563EB !important;
 }
 
 .stButton > button[kind="secondary"]:hover {
-    background: var(--ui-primary-soft) !important;
-    border-color: var(--ui-primary) !important;
-    color: var(--ui-primary-dark) !important;
+    background: rgba(37, 99, 235, 0.06) !important;
+    border-color: #0EA5E9 !important;
+    color: #0EA5E9 !important;
 }
 
 /* ===============================
