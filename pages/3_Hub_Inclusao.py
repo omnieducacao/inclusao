@@ -13,6 +13,7 @@ import requests
 import pandas as pd
 from PIL import Image
 from io import BytesIO
+from omni_utils import get_icon, icon_title
 
 # Importações OpenAI e ML
 from openai import OpenAI
@@ -2000,13 +2001,13 @@ def render_aba_adaptar_prova(aluno, api_key):
     if 'res_docx' in st.session_state:
         res = st.session_state['res_docx']
         if res.get('valid'):
-            st.success("✅ **ATIVIDADE VALIDADA E PRONTA PARA USO**")
+            st.success(f"{get_icon('validar', 20, '#16A34A')} **ATIVIDADE VALIDADA E PRONTA PARA USO**")
         else:
             col_v, col_r = st.columns([1, 1])
-            if col_v.button("✅ Validar", key="val_d", use_container_width=True):
+            if col_v.button(f"{get_icon('validar', 16, '#16A34A')} Validar", key="val_d", use_container_width=True):
                 st.session_state['res_docx']['valid'] = True
                 st.rerun()
-            if col_r.button("🧠 Refazer (+Profundo)", key="redo_d", use_container_width=True):
+            if col_r.button(f"{get_icon('configurar', 16, '#06B6D4')} Refazer (+Profundo)", key="redo_d", use_container_width=True):
                 with st.spinner("Refazendo com análise mais profunda..."):
                     # Recuperar checklist do session_state se disponível
                     checklist_redo = st.session_state.get('checklist_adaptacao_prova', {})
@@ -2017,7 +2018,7 @@ def render_aba_adaptar_prova(aluno, api_key):
                     st.session_state['res_docx'] = {'rac': rac, 'txt': txt, 'map': map_d, 'valid': False}
                     st.rerun()
 
-        st.markdown(f"<div class='analise-box'><div class='analise-title'>🧠 Análise Pedagógica</div>{res['rac']}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='analise-box'><div class='analise-title'>{get_icon('pedagogia', 20, '#06B6D4')} Análise Pedagógica</div>{res['rac']}</div>", unsafe_allow_html=True)
         with st.container(border=True):
             partes = re.split(r'(\[\[IMG.*?\d+\]\])', res['txt'], flags=re.IGNORECASE)
             for p in partes:
@@ -2034,7 +2035,7 @@ def render_aba_adaptar_prova(aluno, api_key):
         checklist_formatacao = st.session_state.get('checklist_adaptacao_prova', {})
         docx = construir_docx_final(res['txt'], aluno, materia_d, res['map'], tipo_d, sem_cabecalho=False, checklist_adaptacao=checklist_formatacao)
         c_down1.download_button(
-            "📥 BAIXAR DOCX (Editável)", 
+            f"{get_icon('download', 18, 'white')} BAIXAR DOCX (Editável)", 
             docx, 
             "Prova_Adaptada.docx", 
             "primary",
@@ -2043,7 +2044,7 @@ def render_aba_adaptar_prova(aluno, api_key):
         
         pdf_bytes = criar_pdf_generico(res['txt'])
         c_down2.download_button(
-            "📕 BAIXAR PDF (Visualização)", 
+            f"{get_icon('download', 18, 'white')} BAIXAR PDF (Visualização)", 
             pdf_bytes, 
             "Prova_Adaptada.pdf", 
             mime="application/pdf", 
@@ -2134,7 +2135,7 @@ def render_aba_adaptar_atividade(aluno, api_key):
     c1, c2 = st.columns([1, 2])
     tipo_i = c1.selectbox("Tipo", ["Atividade", "Tarefa", "Exercício"], key="itp")
     arquivo_i = c2.file_uploader("Upload da Imagem/Foto", type=["png","jpg","jpeg"], key="fi")
-    livro_prof = st.checkbox("📖 É foto do Livro do Professor? (A IA removerá as respostas)", value=False)
+    livro_prof = st.checkbox(f"{get_icon('livro', 16, '#06B6D4')} É foto do Livro do Professor? (A IA removerá as respostas)", value=False)
     
     # Definição automática baseada na BNCC
     materia_i = disciplina_bncc if disciplina_bncc else "Geral"
@@ -2156,7 +2157,7 @@ def render_aba_adaptar_atividade(aluno, api_key):
     imagem_recortada = None
     
     if st.session_state.img_raw:
-        st.markdown("### ✂️ Passo 1: Recortar a Questão")
+        st.markdown(f"### {icon_title('Passo 1: Recortar a Questão', 'adaptar_atividade', 20, '#06B6D4')}", unsafe_allow_html=True)
         st.info("💡 **Importante:** Recorte a área da questão completa.")
         
         img_pil = Image.open(BytesIO(st.session_state.img_raw))
@@ -2316,13 +2317,13 @@ def render_aba_adaptar_atividade(aluno, api_key):
     if 'res_img' in st.session_state:
         res = st.session_state['res_img']
         if res.get('valid'):
-            st.success("✅ **ATIVIDADE VALIDADA E PRONTA PARA USO**")
+            st.success(f"{get_icon('validar', 20, '#16A34A')} **ATIVIDADE VALIDADA E PRONTA PARA USO**")
         else:
             col_v, col_r = st.columns([1, 1])
-            if col_v.button("✅ Validar", key="val_i", use_container_width=True):
+            if col_v.button(f"{get_icon('validar', 16, '#16A34A')} Validar", key="val_i", use_container_width=True):
                 st.session_state['res_img']['valid'] = True
                 st.rerun()
-            if col_r.button("🧠 Refazer (+Profundo)", key="redo_i", use_container_width=True):
+            if col_r.button(f"{get_icon('configurar', 16, '#06B6D4')} Refazer (+Profundo)", key="redo_i", use_container_width=True):
                 with st.spinner("Refazendo..."):
                     img_bytes = res['map'][1]
                     img_separada_redo = res['map'].get(2)  # Recuperar imagem separada se houver
@@ -2335,7 +2336,7 @@ def render_aba_adaptar_atividade(aluno, api_key):
                     st.session_state['res_img'] = {'rac': rac, 'txt': txt, 'map': res['map'], 'valid': False}
                     st.rerun()
 
-        st.markdown(f"<div class='analise-box'><div class='analise-title'>🧠 Análise Pedagógica</div>{res['rac']}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='analise-box'><div class='analise-title'>{get_icon('pedagogia', 20, '#06B6D4')} Análise Pedagógica</div>{res['rac']}</div>", unsafe_allow_html=True)
         with st.container(border=True):
             partes = re.split(r'(\[\[IMG.*?\]\])', res['txt'], flags=re.IGNORECASE)
             for p in partes:
@@ -2354,7 +2355,7 @@ def render_aba_adaptar_atividade(aluno, api_key):
         
         pdf_bytes = criar_pdf_generico(res['txt'])
         c_down2.download_button(
-            "📕 BAIXAR PDF (Visualização)", 
+            f"{get_icon('download', 18, 'white')} BAIXAR PDF (Visualização)", 
             pdf_bytes, 
             "Atividade.pdf", 
             mime="application/pdf", 
@@ -2472,7 +2473,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
         with st.expander("🧠 Taxonomia de Bloom (opcional)", expanded=False):
             if 'bloom_memoria' not in st.session_state:
                 st.session_state.bloom_memoria = {cat: [] for cat in TAXONOMIA_BLOOM.keys()}
-            usar_bloom = st.checkbox("🎯 Usar Taxonomia de Bloom (Revisada)", key="usar_bloom")
+            usar_bloom = st.checkbox(f"{get_icon('configurar', 16, '#06B6D4')} Usar Taxonomia de Bloom (Revisada)", key="usar_bloom")
             if usar_bloom:
                 col_b1, col_b2 = st.columns(2)
                 with col_b1:
@@ -2522,11 +2523,11 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
         res = st.session_state['res_create']
         
         st.markdown("---")
-        st.markdown(f"### 📋 Atividade Criada: {res.get('mat_c', '')} - {res.get('obj_c', '')}")
+        st.markdown(f"### {icon_title(f'Atividade Criada: {res.get(\"mat_c\", \"\")} - {res.get(\"obj_c\", \"\")}', 'criar_zero', 20, '#06B6D4')}", unsafe_allow_html=True)
         
         # Barra de status
         if res.get('valid'):
-            st.success("✅ **ATIVIDADE VALIDADA E PRONTA PARA USO**")
+            st.success(f"{get_icon('validar', 20, '#16A34A')} **ATIVIDADE VALIDADA E PRONTA PARA USO**")
         else:
             col_val, col_ajust, col_desc = st.columns(3)
             with col_val:
@@ -3419,7 +3420,12 @@ def main():
         # Modo Educação Infantil
         st.info("🧸 **Modo Educação Infantil Ativado:** Foco em Experiências, BNCC e Brincar.")
         
-        tabs = st.tabs(["🧸 Criar Experiência (BNCC)", "🎨 Estúdio Visual & CAA", "📝 Rotina & AVD", "🤝 Inclusão no Brincar"])
+        tabs = st.tabs([
+            f"{get_icon('experiencia', 18, '#06B6D4')} Criar Experiência (BNCC)", 
+            f"{get_icon('estudio_visual', 18, '#06B6D4')} Estúdio Visual & CAA", 
+            f"{get_icon('rotina', 18, '#06B6D4')} Rotina & AVD", 
+            f"{get_icon('brincar', 18, '#06B6D4')} Inclusão no Brincar"
+        ])
         
         with tabs[0]:
             render_aba_ei_experiencia(aluno, api_key)
@@ -3436,14 +3442,14 @@ def main():
     else:
         # Modo Padrão (Fundamental / Médio)
         tabs = st.tabs([
-            "📄 Adaptar Prova", 
-            "✂️ Adaptar Atividade", 
-            "✨ Criar do Zero", 
-            "🎨 Estúdio Visual & CAA", 
-            "📝 Roteiro Individual", 
-            "🗣️ Papo de Mestre", 
-            "🤝 Dinâmica Inclusiva", 
-            "📅 Plano de Aula DUA"
+            f"{get_icon('adaptar_prova', 18, '#06B6D4')} Adaptar Prova", 
+            f"{get_icon('adaptar_atividade', 18, '#06B6D4')} Adaptar Atividade", 
+            f"{get_icon('criar_zero', 18, '#06B6D4')} Criar do Zero", 
+            f"{get_icon('estudio_visual', 18, '#06B6D4')} Estúdio Visual & CAA", 
+            f"{get_icon('roteiro', 18, '#06B6D4')} Roteiro Individual", 
+            f"{get_icon('papo_mestre', 18, '#06B6D4')} Papo de Mestre", 
+            f"{get_icon('dinamica', 18, '#06B6D4')} Dinâmica Inclusiva", 
+            f"{get_icon('plano_aula', 18, '#06B6D4')} Plano de Aula DUA"
         ])
         
         with tabs[0]:
