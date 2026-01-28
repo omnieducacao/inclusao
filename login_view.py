@@ -73,19 +73,23 @@ def inject_css():
             color: #0f172a;
         }
 
-        /* Container Centralizado */
+        /* Container Principal - Layout de Duas Colunas */
         .wrap {
-            max-width: 620px;
-            margin: auto;
-            padding-top: 30px;
-            padding-bottom: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 60px;
+            min-height: 100vh;
+            align-items: center;
         }
         
         /* Remove espaço extra do Streamlit */
         .block-container {
             padding-top: 1rem !important;
-            max-width: 620px !important;
-            margin: 0 auto !important;
+            max-width: 100% !important;
+            margin: 0 !important;
         }
         
         /* Centraliza e limita largura dos inputs */
@@ -93,50 +97,77 @@ def inject_css():
             max-width: 100% !important;
         }
 
-        /* Logo Centralizada (Ícone EM CIMA do Texto) */
-        .brand {
-            display:flex;
+        /* Coluna Esquerda - Logo e Boas-vindas */
+        .left-column {
+            display: flex;
             flex-direction: column;
-            align-items:center;
             justify-content: center;
-            gap: 12px;
-            margin-bottom: 24px;
+            align-items: flex-start;
+            padding-right: 40px;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
         }
 
         .logoSpin img {
-            width: 70px;
+            width: 140px;
             animation: spin 12s linear infinite;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .logoText img {
-            height: 38px;
-        }
-
-        .subtitle {
-            text-align: center;
-            margin-bottom: 20px;
-            font-weight: 700;
-            color: #64748B;
-            font-size: 15px;
+            height: 60px;
         }
 
         .welcome {
-            text-align: center;
-            margin: 6px auto 18px auto;
+            text-align: left;
+            margin-top: 20px;
             color: #334155;
-            font-size: 14px;
-            line-height: 1.5;
-            font-weight: 700;
-            max-width: 560px;
+            font-size: 16px;
+            line-height: 1.7;
+            font-weight: 600;
         }
 
         .welcome small {
             display: block;
-            margin-top: 6px;
-            font-weight: 700;
+            margin-top: 12px;
+            font-weight: 600;
             color: #64748B;
+            font-size: 14px;
+        }
+
+        /* Coluna Direita - Formulário */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Responsivo - Mobile */
+        @media (max-width: 768px) {
+            .wrap {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                padding: 30px 20px;
+            }
+            .left-column {
+                padding-right: 0;
+                align-items: center;
+                text-align: center;
+            }
+            .brand {
+                align-items: center;
+            }
+            .welcome {
+                text-align: center;
+            }
         }
 
         /* Cartão de Login */
@@ -250,26 +281,28 @@ def render_login():
     hide_streamlit()
     inject_css()
 
-    # Container Principal
+    # Container Principal - Duas Colunas
     st.markdown('<div class="wrap">', unsafe_allow_html=True)
-
-    # 1. Logo Centralizada (Ícone acima do Texto)
+    
+    # Coluna Esquerda - Logo e Boas-vindas
+    st.markdown('<div class="left-column">', unsafe_allow_html=True)
     st.markdown(
         f"""
         <div class="brand">
             <div class="logoSpin"><img src="data:image/png;base64,{ICON}"></div>
             <div class="logoText"><img src="data:image/png;base64,{TEXT}"></div>
         </div>
-        <div class="subtitle">Acesso seguro • Ambiente escolar</div>
         <div class="welcome">
-            Olá, educador(a)! A Omnisfera foi desenvolvida com muito carinho com o objetivo de facilitar a inclusão na sua escola.
-            <small>Preencha os dados abaixo para continuar.</small>
+            Olá, educador(a)! Desenvolvemos a Omnisfera com cuidado e dedicação para transformar a inclusão em uma realidade mais leve e possível na sua escola.
+            <small>Preencha os dados ao lado para continuar.</small>
         </div>
         """,
         unsafe_allow_html=True
     )
+    st.markdown('</div>', unsafe_allow_html=True)  # Fim left-column
 
-    # 2. Cartão de Login
+    # Coluna Direita - Formulário de Login
+    st.markdown('<div class="right-column">', unsafe_allow_html=True)
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
     # Inputs
@@ -339,5 +372,6 @@ def render_login():
         """,
         unsafe_allow_html=True
     )
+    st.markdown("</div>", unsafe_allow_html=True)  # Fim right-column
 
     st.markdown("</div>", unsafe_allow_html=True)  # Fim Wrap
