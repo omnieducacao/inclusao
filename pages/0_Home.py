@@ -1040,6 +1040,44 @@ def render_central_conhecimento():
             line-height: 1.6 !important;
         }
         
+        /* Corrigir renderização de emojis */
+        .stTabs [data-baseweb="tab"],
+        .stTabs [data-baseweb="tab-panel"],
+        .stTabs [data-baseweb="tab-panel"] * {
+            font-family: 'Plus Jakarta Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', sans-serif !important;
+            text-rendering: optimizeLegibility !important;
+            -webkit-font-smoothing: antialiased !important;
+            -moz-osx-font-smoothing: grayscale !important;
+        }
+        
+        /* Garantir que emojis não quebrem o layout */
+        .stTabs [data-baseweb="tab"] span,
+        .stTabs [data-baseweb="tab-panel"] span,
+        .stTabs [data-baseweb="tab-panel"] p,
+        .stTabs [data-baseweb="tab-panel"] div,
+        .stTabs [data-baseweb="tab-panel"] li {
+            display: inline-block !important;
+            vertical-align: middle !important;
+        }
+        
+        /* Emojis específicos - garantir renderização correta */
+        .stTabs [data-baseweb="tab"]::before,
+        .stTabs [data-baseweb="tab-panel"]::before {
+            display: inline-block !important;
+            vertical-align: middle !important;
+        }
+        
+        /* Corrigir quebra de emojis em textos */
+        .stTabs [data-baseweb="tab-panel"] p,
+        .stTabs [data-baseweb="tab-panel"] div,
+        .stTabs [data-baseweb="tab-panel"] li,
+        .content-card,
+        .manual-box,
+        .glossary-item {
+            unicode-bidi: embed !important;
+            direction: ltr !important;
+        }
+        
         /* Corrigir quebras em expanders */
         .streamlit-expanderHeader p,
         .streamlit-expanderContent p,
@@ -1063,6 +1101,58 @@ def render_central_conhecimento():
             overflow-wrap: break-word !important;
             white-space: normal !important;
             padding: 8px !important;
+        }
+        
+        /* Corrigir renderização de emojis nas abas */
+        .stTabs [data-baseweb="tab"],
+        .stTabs [data-baseweb="tab-panel"],
+        .stTabs [data-baseweb="tab-panel"] * {
+            font-family: 'Plus Jakarta Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', sans-serif !important;
+            text-rendering: optimizeLegibility !important;
+            -webkit-font-smoothing: antialiased !important;
+            -moz-osx-font-smoothing: grayscale !important;
+        }
+        
+        /* Garantir que emojis não quebrem o layout */
+        .stTabs [data-baseweb="tab"] {
+            white-space: nowrap !important;
+        }
+        
+        /* Emojis em textos - garantir que não quebrem */
+        .stTabs [data-baseweb="tab-panel"] p,
+        .stTabs [data-baseweb="tab-panel"] div,
+        .stTabs [data-baseweb="tab-panel"] li,
+        .content-card,
+        .manual-box,
+        .glossary-item,
+        .term-good,
+        .term-bad {
+            unicode-bidi: embed !important;
+            direction: ltr !important;
+            font-feature-settings: "liga" 1, "kern" 1 !important;
+        }
+        
+        /* Corrigir emojis em elementos específicos */
+        .manual-box .key-concept,
+        .ai-box span,
+        .content-card h4 {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex-wrap: wrap !important;
+        }
+        
+        /* Garantir que emojis em expanders não quebrem */
+        .streamlit-expanderHeader,
+        .streamlit-expanderContent {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+        
+        .streamlit-expanderHeader span {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
         }
     </style>
     """, unsafe_allow_html=True)
