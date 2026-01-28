@@ -339,7 +339,7 @@ def carregar_registros_aluno(aluno_id, limite=50):
         url = f"{ou._sb_url()}/rest/v1/pei_diario_bordo"
         params = {
             "select": "*",
-            "aluno_id": f"eq.{aluno_id}",
+            "student_id": f"eq.{aluno_id}",
             "order": "data_sessao.desc",
             "limit": str(limite)
         }
@@ -465,7 +465,7 @@ with tab_filtros:
         with col_stat2:
             st.metric("Últimos 30 dias", registros_ultimos_30)
         with col_stat3:
-            alunos_com_registros = len(set([r.get('aluno_id') for r in registros if r.get('aluno_id')]))
+            alunos_com_registros = len(set([r.get('student_id') for r in registros if r.get('student_id')]))
             st.metric("Estudantes Atendidos", alunos_com_registros)
         
         # Estatísticas por modalidade
@@ -684,7 +684,7 @@ with tab_novo:
             else:
                 # Preparar registro
                 registro = {
-                    "aluno_id": aluno_id,
+                    "student_id": aluno_id,
                     "data_sessao": data_sessao.isoformat(),
                     "duracao_minutos": duracao,
                     "modalidade_atendimento": modalidade,
@@ -912,9 +912,9 @@ with tab_relatorios:
         # Gráfico de engajamento ao longo do tempo
         st.markdown("#### 📈 Evolução do Engajamento")
         
-        if 'aluno_id' in df.columns:
+        if 'student_id' in df.columns:
             # Selecionar estudante específico para análise
-            alunos_unicos = df['aluno_id'].unique()
+            alunos_unicos = df['student_id'].unique()
             if len(alunos_unicos) > 0:
                 aluno_selecionado_id = st.selectbox(
                     "Selecione o estudante para análise:",
@@ -923,7 +923,7 @@ with tab_relatorios:
                 )
                 
                 # Filtrar dados do estudante
-                df_aluno = df[df['aluno_id'] == aluno_selecionado_id].sort_values('data_sessao')
+                df_aluno = df[df['student_id'] == aluno_selecionado_id].sort_values('data_sessao')
                 
                 if len(df_aluno) > 1:
                     fig3 = px.line(
@@ -1012,7 +1012,7 @@ with tab_relatorios:
                         "data_geracao": datetime.now().isoformat(),
                         "total_registros": len(df),
                         "periodo_analisado": f"{df['data_sessao'].min().date()} a {df['data_sessao'].max().date()}",
-                        "total_alunos": df['aluno_id'].nunique(),
+                        "total_alunos": df['student_id'].nunique(),
                         "total_horas": int(df['duracao_minutos'].sum() / 60),
                         "engajamento_medio": float(df['engajamento_aluno'].mean()),
                         "modalidades": df['modalidade_atendimento'].value_counts().to_dict(),
