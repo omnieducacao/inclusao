@@ -12,8 +12,8 @@ ICON_LIBRARY = {
     # Módulos Principais
     "estudantes": {"icon": "ri-user-star-line", "color": "#2563EB"},
     "pei": {"icon": "ri-book-open-line", "color": "#0EA5E9"},
-    "pae": {"icon": "ri-tools-line", "color": "#A855F7"},
-    "hub": {"icon": "ri-lightbulb-flash-line", "color": "#06B6D4"},
+    "pae": {"icon": "ri-puzzle-line", "color": "#A855F7"},
+    "hub": {"icon": "ri-rocket-line", "color": "#06B6D4"},
     "diario": {"icon": "ri-edit-box-line", "color": "#F43F5E"},
     "monitoramento": {"icon": "ri-line-chart-line", "color": "#0C4A6E"},
     
