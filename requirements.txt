@@ -10,3 +10,4 @@ supabase
 pandas
 plotly
 streamlit-option-menu
+graphviz
