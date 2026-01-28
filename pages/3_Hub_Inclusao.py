@@ -3276,12 +3276,12 @@ def main():
     """Função principal da aplicação - executa a lógica do Hub"""
     
     # Inicializar api_key e unsplash_key antes de usar (Render: env var → Streamlit Cloud: secrets → sessão)
-    api_key = os.environ.get("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY", "") or st.session_state.get("OPENAI_API_KEY")
+    api_key = os.environ.get("OPENAI_API_KEY") or ou.get_setting("OPENAI_API_KEY", "") or st.session_state.get("OPENAI_API_KEY")
     api_key = api_key if api_key else None
     
     unsplash_key = (
         os.environ.get("UNSPLASH_ACCESS_KEY")
-        or st.secrets.get("UNSPLASH_ACCESS_KEY", "")
+        or ou.get_setting("UNSPLASH_ACCESS_KEY", "")
         or st.session_state.get("UNSPLASH_ACCESS_KEY")
     )
     unsplash_key = unsplash_key if unsplash_key else None
