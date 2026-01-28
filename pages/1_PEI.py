@@ -136,7 +136,7 @@ st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 # ==============================================================================
 # OPENAI
 # ==============================================================================
-api_key = os.environ.get("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY", "")
+api_key = os.environ.get("OPENAI_API_KEY") or ou.get_setting("OPENAI_API_KEY", "")
 
 
 # ==============================================================================
@@ -176,13 +176,13 @@ def _rest_ready(debug: bool = False):
     details["has_workspace_id"] = bool(st.session_state.get("workspace_id"))
 
     try:
-        details["has_supabase_url"] = bool(str(os.environ.get("SUPABASE_URL") or st.secrets.get("SUPABASE_URL", "")).strip())
+        details["has_supabase_url"] = bool(str(os.environ.get("SUPABASE_URL") or ou.get_setting("SUPABASE_URL", "")).strip())
     except Exception:
         details["has_supabase_url"] = False
 
     try:
-        service = str(os.environ.get("SUPABASE_SERVICE_KEY") or st.secrets.get("SUPABASE_SERVICE_KEY", "")).strip()
-        anon = str(os.environ.get("SUPABASE_ANON_KEY") or st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+        service = str(os.environ.get("SUPABASE_SERVICE_KEY") or ou.get_setting("SUPABASE_SERVICE_KEY", "")).strip()
+        anon = str(os.environ.get("SUPABASE_ANON_KEY") or ou.get_setting("SUPABASE_ANON_KEY", "")).strip()
         details["has_supabase_key"] = bool(service or anon)
     except Exception:
         details["has_supabase_key"] = False
@@ -194,7 +194,7 @@ def _rest_ready(debug: bool = False):
 
 
 def _sb_url() -> str:
-    url = str(os.environ.get("SUPABASE_URL") or st.secrets.get("SUPABASE_URL", "")).strip()
+    url = str(os.environ.get("SUPABASE_URL") or ou.get_setting("SUPABASE_URL", "")).strip()
     if not url:
         raise RuntimeError("SUPABASE_URL não encontrado nos secrets.")
     return url.rstrip("/")
@@ -202,9 +202,9 @@ def _sb_url() -> str:
 
 def _sb_key() -> str:
     # Preferência: SERVICE_KEY (server-side), fallback: ANON_KEY
-    key = str(os.environ.get("SUPABASE_SERVICE_KEY") or st.secrets.get("SUPABASE_SERVICE_KEY", "")).strip()
+    key = str(os.environ.get("SUPABASE_SERVICE_KEY") or ou.get_setting("SUPABASE_SERVICE_KEY", "")).strip()
     if not key:
-        key = str(os.environ.get("SUPABASE_ANON_KEY") or st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+        key = str(os.environ.get("SUPABASE_ANON_KEY") or ou.get_setting("SUPABASE_ANON_KEY", "")).strip()
     if not key:
         raise RuntimeError("SUPABASE_SERVICE_KEY/ANON_KEY não encontrado nos secrets.")
     return key
@@ -1918,10 +1918,10 @@ with tab0:
 
             def _cloud_ready_check():
                 try:
-                    url = str(st.secrets.get("SUPABASE_URL", "")).strip()
+                    url = str(ou.get_setting("SUPABASE_URL", "")).strip()
                     key = str(
-                        st.secrets.get("SUPABASE_SERVICE_KEY", "")
-                        or st.secrets.get("SUPABASE_ANON_KEY", "")
+                        ou.get_setting("SUPABASE_SERVICE_KEY", "")
+                        or ou.get_setting("SUPABASE_ANON_KEY", "")
                         or ""
                     ).strip()
                     return bool(url and key)
@@ -3202,8 +3202,11 @@ with tab8:
             # Helper interno de verificação
             def _cloud_ready_check():
                 try:
-                    url = str(st.secrets.get("SUPABASE_URL", "")).strip()
-                    key = str(st.secrets.get("SUPABASE_SERVICE_KEY", "") or st.secrets.get("SUPABASE_ANON_KEY", "")).strip()
+                    url = str(ou.get_setting("SUPABASE_URL", "")).strip()
+                    key = str(
+                        ou.get_setting("SUPABASE_SERVICE_KEY", "")
+                        or ou.get_setting("SUPABASE_ANON_KEY", "")
+                    ).strip()
                     return bool(url and key)
                 except:
                     return False
