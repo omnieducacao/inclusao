@@ -20,7 +20,7 @@ import omni_utils as ou  # módulo atualizado
 # ✅ set_page_config UMA VEZ SÓ, SEMPRE no topo
 st.set_page_config(
     page_title="Omnisfera | PEI",
-    page_icon="📘",
+    page_icon="omni_icone.png" if os.path.exists("omni_icone.png") else "📘",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -55,20 +55,39 @@ def forcar_layout_hub():
                 height: 0px !important;
             }
 
-            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
+            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) - ESPECIFICIDADE MÁXIMA */
+            body .main .block-container,
+            body .block-container,
             .main .block-container,
             .block-container {
-                padding-top: 0.1rem !important; /* Espaço mínimo entre navbar e hero */
+                padding-top: 0px !important; /* SEM espaço entre navbar e hero */
                 padding-bottom: 1rem !important;
                 margin-top: 0px !important;
             }
-
-            /* 3. Remove padding extra se houver container de navegação */
-            div[data-testid="stVerticalBlock"] > div:first-child {
+            
+            /* 3. Remove qualquer espaçamento do Streamlit */
+            [data-testid="stVerticalBlock"],
+            div[data-testid="stVerticalBlock"] > div:first-child,
+            .main .block-container > div:first-child,
+            .main .block-container > *:first-child {
+                padding-top: 0px !important;
+                margin-top: 0px !important;
+            }
+            
+            /* 4. Remove espaçamento do stMarkdown que renderiza o hero */
+            .main .block-container > div:first-child .stMarkdown {
+                margin-top: 0px !important;
                 padding-top: 0px !important;
             }
             
-            /* 4. Esconde o menu hambúrguer e rodapé */
+            /* 5. Hero card colado no menu - margin negativo MUITO agressivo */
+            .mod-card-wrapper {
+                margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
+                position: relative;
+                z-index: 1;
+            }
+            
+            /* 6. Esconde o menu hambúrguer e rodapé */
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
         </style>
@@ -1069,6 +1088,9 @@ html, body, [class*="css"] {
     margin-bottom: 4px;
     border-radius: 16px;
     overflow: hidden;
+    margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
+    position: relative;
+    z-index: 1;
 }
 
 .mod-card-rect {
@@ -1228,9 +1250,10 @@ html, body, [class*="css"] {
 /* ===============================
 AJUSTE ENTRE MENU SUPERIOR E HERO (PADRONIZADO)
 ================================ */
-/* O padding-top é controlado pela função forcar_layout_hub() (1rem) - não sobrescrever aqui */
 .mod-card-wrapper {
-    margin-top: 0 !important;
+    margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
+    position: relative;
+    z-index: 1;
 }
 
 /* ===============================
@@ -3017,7 +3040,8 @@ with tab_9:
             with st.container(border=True):
                 st.markdown("#### 📥 Exportação")
                 pdf_mapa = gerar_pdf_tabuleiro_simples(st.session_state.dados["ia_mapa_texto"])
-                st.download_button(
+                if pdf_mapa:
+                    st.download_button(
                     "📄 Baixar Missão em PDF",
                     pdf_mapa,
                     file_name=f"Missao_{nome_aluno}.pdf",
@@ -3037,3 +3061,8 @@ with tab_9:
         # fallback seguro
         st.session_state.dados["status_validacao_game"] = "rascunho"
         st.rerun()
+
+# ==============================================================================
+# RODAPÉ COM ASSINATURA
+# ==============================================================================
+ou.render_footer_assinatura()
