@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import os
 import sys
 
@@ -240,7 +241,7 @@ def delete_student_rest(sid, wid):
 # ==============================================================================
 # HERO - ESTUDANTES
 # ==============================================================================
-hora = datetime.now().hour
+hora = datetime.now(ZoneInfo("America/Sao_Paulo")).hour
 saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
 USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
 WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
