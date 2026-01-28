@@ -20,7 +20,7 @@ except ImportError:
 APP_VERSION = "v2.0 - Guia de Inclusão"
 
 try:
-    IS_TEST_ENV = st.secrets.get("ENV", "PRODUCAO") == "TESTE"
+    IS_TEST_ENV = (os.environ.get("ENV") or ou.get_setting("ENV", "PRODUCAO")) == "TESTE"
 except Exception:
     IS_TEST_ENV = False
 
@@ -1556,7 +1556,7 @@ nome_user = st.session_state.get("usuario_nome", "Visitante").split()[0]
 
 # Tentar gerar mensagem com IA
 mensagem_ia = None
-api_key = os.environ.get("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY", "")
+api_key = os.environ.get("OPENAI_API_KEY") or ou.get_setting("OPENAI_API_KEY", "")
 if api_key:
     mensagem_ia = gerar_mensagem_boas_vindas_ia(api_key, nome_user, dia_semana, hora, saudacao)
 
