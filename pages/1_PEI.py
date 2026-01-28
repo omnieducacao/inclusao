@@ -14,6 +14,7 @@ import time
 import re
 
 import omni_utils as ou  # módulo atualizado
+from omni_utils import get_icon, icon_title
 
 
 
@@ -142,7 +143,7 @@ api_key = st.secrets.get("OPENAI_API_KEY", "")
 # ==============================================================================
 def verificar_login_app():
     if "autenticado" not in st.session_state or not st.session_state["autenticado"]:
-        st.error("🔒 Acesso Negado. Faça login na Página Inicial.")
+        st.error(f"{get_icon('erro', 18, '#DC2626')} Acesso Negado. Faça login na Página Inicial.")
         st.stop()
 
 def verificar_login_supabase():
@@ -1746,7 +1747,7 @@ tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab_9 = st.tabs(abas)
 # 11. ABA INÍCIO — CENTRAL (Gestão de Estudantes + Backups)
 # ==============================================================================
 with tab0:
-    st.markdown("### 🏛️ Central de Fundamentos e Gestão")
+    st.markdown(f"### {icon_title('Central de Fundamentos e Gestão', 'pei', 24, '#0EA5E9')}", unsafe_allow_html=True)
     st.caption("Aqui você gerencia estudantes (backup local e nuvem/Supabase) e acessa fundamentos do PEI.")
 
     # -------------------------
@@ -1774,7 +1775,7 @@ with tab0:
     # =========================
     with col_left:
         with st.container(border=True):
-            st.markdown("#### 📚 Fundamentos do PEI")
+            st.markdown(f"#### {icon_title('Fundamentos do PEI', 'pei', 20, '#0EA5E9')}", unsafe_allow_html=True)
             st.markdown(
                 """
 - O **PEI** organiza o planejamento individualizado com foco em **barreiras** e **apoios**.
@@ -1784,7 +1785,7 @@ with tab0:
             )
 
         with st.container(border=True):
-            st.markdown("#### 🧭 Como usar a Omnisfera")
+            st.markdown(f"#### {icon_title('Como usar a Omnisfera', 'info', 20, '#0EA5E9')}", unsafe_allow_html=True)
             st.markdown(
                 """
 1) **Estudante**: identificação + contexto + laudo (opcional)  
@@ -1800,7 +1801,7 @@ with tab0:
     # DIREITA: Gestão de alunos
     # =========================
     with col_right:
-        st.markdown("#### 👤 Gestão de Estudantes")
+            st.markdown(f"#### {icon_title('Gestão de Estudantes', 'estudantes', 20, '#0EA5E9')}", unsafe_allow_html=True)
 
         # garante d (se seu código já define antes, isso não atrapalha)
         d = st.session_state.get("dados", {})
@@ -1810,10 +1811,10 @@ with tab0:
         # Status vínculo
         student_id = st.session_state.get("selected_student_id")
         if student_id:
-            st.success("✅ Estudante vinculado ao Supabase (nuvem)")
+            st.success(f"{get_icon('validar', 18, '#16A34A')} Estudante vinculado ao Supabase (nuvem)")
             st.caption(f"student_id: {str(student_id)[:8]}...")
         else:
-            st.warning("📝 Modo rascunho (sem vínculo na nuvem)")
+            st.warning(f"{get_icon('aviso', 18, '#F59E0B')} Modo rascunho (sem vínculo na nuvem)")
 
         # ------------------------------------------------------------------
         # (1) BACKUP LOCAL: upload JSON NÃO aplica sozinho (evita loop)
@@ -1868,7 +1869,7 @@ with tab0:
 
             with b1:
                 if st.button(
-                    "📥 Carregar no formulário",
+                    f"{get_icon('upload', 18, 'white')} Carregar no formulário",
                     type="primary",
                     use_container_width=True,
                     disabled=not isinstance(pending, dict),
@@ -1926,7 +1927,7 @@ with tab0:
                 except Exception:
                     return False
 
-            if st.button("🔗 Sincronizar Tudo", type="primary", use_container_width=True, key="btn_sync_full_final"):
+            if st.button(f"{get_icon('configurar', 18, 'white')} Sincronizar Tudo", type="primary", use_container_width=True, key="btn_sync_full_final"):
                 if not _cloud_ready_check():
                     st.error("⚠️ Configure os Secrets do Supabase.")
                 else:
@@ -1974,7 +1975,7 @@ with tab0:
 
             # Pós sucesso: botão de download
             if st.session_state.get("sync_sucesso"):
-                st.success("✅ Tudo salvo no Supabase!")
+                st.success(f"{get_icon('validar', 18, '#16A34A')} Tudo salvo no Supabase!")
 
                 timestamp = datetime.now().strftime("%d-%m_%Hh%M")
                 nome_clean = (d.get("nome") or "Estudante").replace(" ", "_")
@@ -2173,7 +2174,7 @@ with tab1:
 
                 a1, a2, a3 = st.columns([2, 2, 2])
 
-                if a1.button("✅ Adicionar ao PEI", type="primary", use_container_width=True, key="btn_add_meds_tmp"):
+                if a1.button(f"{get_icon('adicionar', 18, 'white')} Adicionar ao PEI", type="primary", use_container_width=True, key="btn_add_meds_tmp"):
                     # inserir no campo existente: lista_medicamentos (sem duplicar por nome)
                     lista_atual = st.session_state.dados.get("lista_medicamentos", [])
                     for m in meds_tmp:
@@ -2335,7 +2336,7 @@ with tab3:
         )
 
     # 4) Campos individuais por profissional
-    st.markdown("#### 📌 Orientações por profissional")
+    st.markdown(f"#### {icon_title('Orientações por profissional', 'info', 20, '#0EA5E9')}", unsafe_allow_html=True)
     if not selecionados:
         st.info("Selecione ao menos um profissional para habilitar os campos de observação.")
     else:
@@ -2363,7 +2364,7 @@ with tab3:
                         st.session_state.dados["orientacoes_por_profissional"][prof] = ""
                         st.rerun()
 
-                    if c2.button("🗑️ Remover profissional", use_container_width=True, key=f"btn_remove_{prof}"):
+                    if c2.button(f"{get_icon('deletar', 16, '#DC2626')} Remover profissional", use_container_width=True, key=f"btn_remove_{prof}"):
                         # remove do multiselect
                         st.session_state.dados["rede_apoio"] = [x for x in st.session_state.dados["rede_apoio"] if x != prof]
                         # remove do dicionário
@@ -2378,7 +2379,7 @@ with tab3:
         for p in selecionados:
             txt = (st.session_state.dados["orientacoes_por_profissional"].get(p) or "").strip()
             resumo.append(f"- **{p}**: {'✅ preenchido' if txt else '⚠️ vazio'}")
-        st.markdown("##### ✅ Checklist de preenchimento")
+        st.markdown(f"##### {icon_title('Checklist de preenchimento', 'validar', 18, '#16A34A')}", unsafe_allow_html=True)
         st.markdown("\n".join(resumo))
 
 
@@ -2512,7 +2513,7 @@ with tab4:
     # -------------------------
     # 5) Resumo
     # -------------------------
-    st.markdown("#### 📌 Resumo do Mapeamento")
+    st.markdown(f"#### {icon_title('Resumo do Mapeamento', 'pei', 20, '#0EA5E9')}", unsafe_allow_html=True)
 
     r1, r2 = st.columns(2)
 
@@ -3402,7 +3403,7 @@ with tab_9:
         st.divider()
         c_ok, c_aj = st.columns(2)
         with c_ok:
-            if st.button("✅ Aprovar Missão", type="primary", use_container_width=True):
+            if st.button(f"{get_icon('validar', 18, 'white')} Aprovar Missão", type="primary", use_container_width=True):
                 st.session_state.dados["status_validacao_game"] = "aprovado"
                 st.rerun()
         with c_aj:
