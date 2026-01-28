@@ -67,20 +67,36 @@ def forcar_layout_hub():
                 height: 0px !important;
             }
 
-            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) */
+            /* 2. Puxa todo o conteúdo para cima (O SEGREDO ESTÁ AQUI) - ESPECIFICIDADE MÁXIMA */
+            body .main .block-container,
+            body .block-container,
             .main .block-container,
             .block-container {
-                padding-top: 0.1rem !important; /* Espaço mínimo entre navbar e hero */
+                padding-top: 0px !important; /* SEM espaço entre navbar e hero */
                 padding-bottom: 1rem !important;
                 margin-top: 0px !important;
             }
-
-            /* 3. Remove padding extra se houver container de navegação */
-            div[data-testid="stVerticalBlock"] > div:first-child {
+            
+            /* 3. Remove qualquer espaçamento do Streamlit */
+            [data-testid="stVerticalBlock"],
+            div[data-testid="stVerticalBlock"] > div:first-child,
+            .main .block-container > div:first-child {
+                padding-top: 0px !important;
+                margin-top: 0px !important;
+            }
+            
+            /* 4. Hero card colado no menu - margin negativo mais agressivo */
+            .mod-card-wrapper {
+                margin-top: -24px !important; /* Puxa o hero para cima, colando no menu */
+            }
+            
+            /* Remove espaçamento do elemento que contém o hero */
+            .main .block-container > div:first-child > div:first-child {
+                margin-top: 0px !important;
                 padding-top: 0px !important;
             }
             
-            /* 4. Esconde o menu hambúrguer e rodapé */
+            /* 5. Esconde o menu hambúrguer e rodapé */
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
         </style>
@@ -105,7 +121,7 @@ st.markdown("""
         border-radius: 16px; 
         overflow: hidden; 
         box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
-        margin-top: 0 !important; 
+        margin-top: -24px !important; /* Puxa hero para cima, colando no menu */
     }
     .mod-card-rect { 
         background: white; 
