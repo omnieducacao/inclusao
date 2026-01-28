@@ -1115,14 +1115,14 @@ def render_central_conhecimento():
         with c_info:
             st.markdown(f"### {icon_title('Legislação em Foco (2025)', 'legislacao', 24, '#2563EB')}", unsafe_allow_html=True)
             
-            with st.expander(f"{get_icon('legislacao', 18, '#2563EB')} Decreto 12.686/2025: O Financiamento (Duplo Fundo)", expanded=True):
+            with st.expander("⚖️ Decreto 12.686/2025: O Financiamento (Duplo Fundo)", expanded=True):
                 st.markdown("""
                 **Mudança Estrutural:**
                 1.  **Dupla Matrícula:** O aluno público-alvo da educação especial é contabilizado **duas vezes** no FUNDEB (Matrícula Comum + AEE).
                 2.  **Destinação:** A verba extra deve ser usada para Sala de Recursos, materiais adaptados e contratação de profissionais de apoio.
                 """)
                 
-            with st.expander(f"{get_icon('evitar', 18, '#DC2626')} Decreto 12.773/2025: Garantia de Acesso (Escolas Privadas)"):
+            with st.expander("🚫 Decreto 12.773/2025: Garantia de Acesso (Escolas Privadas)"):
                 st.markdown("""
                 **Tolerância Zero para Barreiras:**
                 1.  **Taxas Extras:** É **ilegal** cobrar valor adicional na mensalidade para custear monitor ou material.
@@ -1243,7 +1243,7 @@ def render_central_conhecimento():
         st.markdown("Clique nos itens para expandir o resumo e acessar o link (quando disponível).")
 
         def render_livro(titulo, autor, resumo, link=None, tag="Referência"):
-            with st.expander(f"{get_icon('livro', 18, '#2563EB')} {titulo}"):
+            with st.expander(f"📚 {titulo}"):
                 st.markdown(f"**Autor/Fonte:** {autor}")
                 st.markdown(f"**Sobre:** {resumo}")
                 if link:
