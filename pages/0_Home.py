@@ -1459,7 +1459,7 @@ def gerar_mensagem_boas_vindas_ia(api_key: str, nome_user: str, dia_semana: str,
         prompt = f"""
         Você é um assistente educacional da plataforma Omnisfera, uma ferramenta de inclusão educacional.
         
-        Crie uma mensagem de boas-vindas calorosa e inspiradora para o educador {nome_user}.
+        Crie uma mensagem de boas-vindas à Omnisfera que seja calorosa e inspiradora.
         
         CONTEXTO:
         - Dia da semana: {dia_pt}
@@ -1467,16 +1467,20 @@ def gerar_mensagem_boas_vindas_ia(api_key: str, nome_user: str, dia_semana: str,
         - Plataforma: Omnisfera - Ecossistema de Inclusão Educacional
         
         DIRETRIZES IMPORTANTES:
-        - NÃO inclua saudações como "Bom dia", "Boa tarde" ou "Boa noite" na mensagem (isso já aparece separadamente)
-        - SEMPRE mencione inclusão escolar ou educação inclusiva de forma natural
+        - A mensagem deve ser de BOAS-VINDAS À OMNISFERA
+        - NÃO inclua saudações como "Bom dia", "Boa tarde" ou "Boa noite" (isso já aparece separadamente)
+        - NÃO mencione o nome do educador (isso já aparece separadamente)
+        - SEMPRE mencione a importância da inclusão escolar ou educação inclusiva
+        - Mencione que a Omnisfera trabalhará JUNTO com o educador para facilitar a inclusão
         - Mencione o dia da semana de forma natural (ex: "Nesta segunda-feira", "Neste fim de semana")
         - Adapte o tom ao horário (manhã = energia, tarde = produtividade, noite = reflexão)
-        - Mantenha o foco na inclusão e no impacto positivo na educação
-        - Seja breve (máximo 2 frases)
+        - Seja breve (máximo 2-3 frases)
         - Use linguagem calorosa mas profissional
         - A mensagem deve inspirar e motivar para o trabalho com inclusão escolar
         
-        Retorne APENAS a mensagem, sem aspas ou formatação adicional, SEM incluir saudações.
+        Exemplo de estrutura: "Bem-vindo(a) à Omnisfera! [falar sobre importância da inclusão]. [mencionar que trabalharemos juntos]."
+        
+        Retorne APENAS a mensagem, sem aspas ou formatação adicional, SEM incluir saudações ou nomes.
         """
         
         response = client.chat.completions.create(
