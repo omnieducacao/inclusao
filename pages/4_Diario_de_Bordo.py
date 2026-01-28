@@ -7,6 +7,7 @@ import os
 import json
 import pandas as pd
 from datetime import datetime, date, timedelta
+from zoneinfo import ZoneInfo
 import requests
 import time
 import uuid
@@ -106,7 +107,7 @@ ou.inject_unified_ui_css()
 # ==============================================================================
 # HERO - DIÁRIO DE BORDO
 # ==============================================================================
-hora = datetime.now().hour
+hora = datetime.now(ZoneInfo("America/Sao_Paulo")).hour
 saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
 USUARIO_NOME = (st.session_state.get("usuario_nome", "Visitante") or "Visitante").split()[0]
 WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace") or "Workspace"
