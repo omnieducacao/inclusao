@@ -733,40 +733,233 @@ class PDF_Simple_Text(FPDF):
         self.ln(10)
 
 def gerar_pdf_final(dados: dict):
+    """Gera PDF completo do PEI com todas as seções - Documento Oficial"""
     pdf = PDF_Classic()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=20)
 
-    pdf.section_title("Identificação e Contexto")
+    # ======================================================================
+    # 1. IDENTIFICAÇÃO E CONTEXTO
+    # ======================================================================
+    pdf.section_title("1. IDENTIFICAÇÃO E CONTEXTO")
     pdf.set_font("Arial", "B", 10)
-    pdf.cell(35, 6, "Estudante:", 0, 0)
+    pdf.cell(40, 6, "Estudante:", 0, 0)
     pdf.set_font("Arial", "", 10)
     pdf.cell(0, 6, dados.get("nome", ""), 0, 1)
 
     pdf.set_font("Arial", "B", 10)
-    pdf.cell(35, 6, "Série/Turma:", 0, 0)
+    pdf.cell(40, 6, "Data de Nascimento:", 0, 0)
     pdf.set_font("Arial", "", 10)
-    pdf.cell(0, 6, f"{dados.get('serie','')} - {dados.get('turma','')}", 0, 1)
+    nasc = dados.get("nasc")
+    if nasc:
+        if isinstance(nasc, str):
+            pdf.cell(0, 6, nasc, 0, 1)
+        elif hasattr(nasc, 'strftime'):
+            pdf.cell(0, 6, nasc.strftime("%d/%m/%Y"), 0, 1)
+        else:
+            pdf.cell(0, 6, str(nasc), 0, 1)
+    else:
+        pdf.cell(0, 6, "-", 0, 1)
 
     pdf.set_font("Arial", "B", 10)
-    pdf.cell(35, 6, "Diagnóstico:", 0, 0)
+    pdf.cell(40, 6, "Série/Ano:", 0, 0)
     pdf.set_font("Arial", "", 10)
-    pdf.multi_cell(0, 6, dados.get("diagnostico", ""))
-    pdf.ln(2)
+    pdf.cell(0, 6, dados.get("serie", ""), 0, 1)
 
-    if any((dados.get("barreiras_selecionadas") or {}).values()):
-        pdf.section_title("Plano de Suporte (Barreiras x Nível)")
-        for area, itens in (dados.get("barreiras_selecionadas") or {}).items():
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(40, 6, "Turma:", 0, 0)
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(0, 6, dados.get("turma", ""), 0, 1)
+
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(40, 6, "Matrícula/RA:", 0, 0)
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(0, 6, dados.get("matricula", dados.get("ra", "")), 0, 1)
+    pdf.ln(3)
+
+    # Histórico Escolar
+    if dados.get("historico"):
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(0, 6, "Histórico Escolar:", 0, 1)
+        pdf.set_font("Arial", "", 10)
+        pdf.multi_cell(0, 6, limpar_texto_pdf(dados.get("historico", "")))
+        pdf.ln(2)
+
+    # Dinâmica Familiar
+    if dados.get("familia"):
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(0, 6, "Dinâmica Familiar:", 0, 1)
+        pdf.set_font("Arial", "", 10)
+        pdf.multi_cell(0, 6, limpar_texto_pdf(dados.get("familia", "")))
+        pdf.ln(2)
+
+    # Composição Familiar
+    comp_fam = dados.get("composicao_familiar_tags", [])
+    if comp_fam:
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(0, 6, "Composição Familiar:", 0, 1)
+        pdf.set_font("Arial", "", 10)
+        pdf.cell(0, 6, ", ".join(comp_fam), 0, 1)
+        pdf.ln(2)
+
+    # ======================================================================
+    # 2. DIAGNÓSTICO E CONTEXTO CLÍNICO
+    # ======================================================================
+    pdf.add_page()
+    pdf.section_title("2. DIAGNÓSTICO E CONTEXTO CLÍNICO")
+    
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(0, 6, "Diagnóstico:", 0, 1)
+    pdf.set_font("Arial", "", 10)
+    pdf.multi_cell(0, 6, limpar_texto_pdf(dados.get("diagnostico", "")))
+    pdf.ln(3)
+
+    # Medicações
+    meds = dados.get("lista_medicamentos", [])
+    if meds:
+        pdf.set_font("Arial", "B", 10)
+        pdf.cell(0, 6, "Medicações em Uso:", 0, 1)
+        pdf.set_font("Arial", "", 10)
+        for med in meds:
+            nome = med.get("nome", "")
+            posologia = med.get("posologia", "")
+            escola = med.get("escola", False)
+            escola_txt = " (Administração na escola)" if escola else ""
+            pdf.multi_cell(0, 6, f"• {nome} - {posologia}{escola_txt}")
+        pdf.ln(2)
+
+    # ======================================================================
+    # 3. POTENCIALIDADES E HIPERFOCO
+    # ======================================================================
+    potencias = dados.get("potencias", [])
+    hiperfoco = dados.get("hiperfoco", "")
+    
+    if potencias or hiperfoco:
+        pdf.section_title("3. POTENCIALIDADES E INTERESSES")
+        
+        if hiperfoco:
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(0, 6, "Hiperfoco/Interesse Principal:", 0, 1)
+            pdf.set_font("Arial", "", 10)
+            pdf.multi_cell(0, 6, limpar_texto_pdf(hiperfoco))
+            pdf.ln(2)
+        
+        if potencias:
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(0, 6, "Potencialidades:", 0, 1)
+            pdf.set_font("Arial", "", 10)
+            for pot in potencias:
+                pdf.add_flat_icon_item(limpar_texto_pdf(pot), "dot")
+            pdf.ln(2)
+
+    # ======================================================================
+    # 4. REDE DE APOIO
+    # ======================================================================
+    rede = dados.get("rede_apoio", [])
+    orientacoes = dados.get("orientacoes_especialistas", "")
+    orientacoes_por_prof = dados.get("orientacoes_por_profissional", {})
+    
+    if rede or orientacoes or orientacoes_por_prof:
+        pdf.add_page()
+        pdf.section_title("4. REDE DE APOIO E ORIENTAÇÕES")
+        
+        if rede:
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(0, 6, "Profissionais da Rede:", 0, 1)
+            pdf.set_font("Arial", "", 10)
+            for prof in rede:
+                pdf.add_flat_icon_item(limpar_texto_pdf(prof), "dot")
+            pdf.ln(2)
+        
+        if orientacoes:
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(0, 6, "Orientações Gerais dos Especialistas:", 0, 1)
+            pdf.set_font("Arial", "", 10)
+            pdf.multi_cell(0, 6, limpar_texto_pdf(orientacoes))
+            pdf.ln(2)
+        
+        if orientacoes_por_prof and isinstance(orientacoes_por_prof, dict):
+            for prof, orient in orientacoes_por_prof.items():
+                if orient:
+                    pdf.set_font("Arial", "B", 10)
+                    pdf.cell(0, 6, f"Orientações - {prof}:", 0, 1)
+                    pdf.set_font("Arial", "", 10)
+                    pdf.multi_cell(0, 6, limpar_texto_pdf(orient))
+                    pdf.ln(2)
+
+    # ======================================================================
+    # 5. MAPEAMENTO DE BARREIRAS E NÍVEIS DE SUPORTE
+    # ======================================================================
+    barreiras = dados.get("barreiras_selecionadas", {})
+    if any(barreiras.values() if isinstance(barreiras, dict) else []):
+        pdf.add_page()
+        pdf.section_title("5. MAPEAMENTO DE BARREIRAS E NÍVEIS DE SUPORTE")
+        
+        for area, itens in barreiras.items():
             if itens:
-                pdf.set_font("Arial", "B", 10)
+                pdf.set_font("Arial", "B", 11)
+                pdf.set_text_color(0, 51, 102)
                 pdf.cell(0, 8, limpar_texto_pdf(area), 0, 1)
+                pdf.set_text_color(0, 0, 0)
+                pdf.set_font("Arial", "", 10)
                 for item in itens:
                     nivel = (dados.get("niveis_suporte") or {}).get(f"{area}_{item}", "Monitorado")
-                    pdf.add_flat_icon_item(limpar_texto_pdf(f"{item} (Nível: {nivel})"), "check")
+                    pdf.add_flat_icon_item(limpar_texto_pdf(f"{item} (Nível de Suporte: {nivel})"), "check")
+                pdf.ln(2)
 
+    # ======================================================================
+    # 6. PLANO DE AÇÃO - ESTRATÉGIAS
+    # ======================================================================
+    estrategias_acesso = dados.get("estrategias_acesso", [])
+    estrategias_ensino = dados.get("estrategias_ensino", [])
+    estrategias_avaliacao = dados.get("estrategias_avaliacao", [])
+    outros_acesso = dados.get("outros_acesso", "")
+    outros_ensino = dados.get("outros_ensino", "")
+    
+    if estrategias_acesso or estrategias_ensino or estrategias_avaliacao or outros_acesso or outros_ensino:
+        pdf.add_page()
+        pdf.section_title("6. PLANO DE AÇÃO - ESTRATÉGIAS")
+        
+        if estrategias_acesso:
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(0, 6, "Estratégias de Acesso:", 0, 1)
+            pdf.set_font("Arial", "", 10)
+            for est in estrategias_acesso:
+                pdf.add_flat_icon_item(limpar_texto_pdf(est), "dot")
+            pdf.ln(2)
+        
+        if outros_acesso:
+            pdf.set_font("Arial", "", 10)
+            pdf.multi_cell(0, 6, limpar_texto_pdf(outros_acesso))
+            pdf.ln(2)
+        
+        if estrategias_ensino:
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(0, 6, "Estratégias de Ensino:", 0, 1)
+            pdf.set_font("Arial", "", 10)
+            for est in estrategias_ensino:
+                pdf.add_flat_icon_item(limpar_texto_pdf(est), "dot")
+            pdf.ln(2)
+        
+        if outros_ensino:
+            pdf.set_font("Arial", "", 10)
+            pdf.multi_cell(0, 6, limpar_texto_pdf(outros_ensino))
+            pdf.ln(2)
+        
+        if estrategias_avaliacao:
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(0, 6, "Estratégias de Avaliação:", 0, 1)
+            pdf.set_font("Arial", "", 10)
+            for est in estrategias_avaliacao:
+                pdf.add_flat_icon_item(limpar_texto_pdf(est), "dot")
+            pdf.ln(2)
+
+    # ======================================================================
+    # 7. PLANEJAMENTO PEDAGÓGICO DETALHADO (IA)
+    # ======================================================================
     if dados.get("ia_sugestao"):
         pdf.add_page()
-        pdf.section_title("Planejamento Pedagógico Detalhado")
+        pdf.section_title("7. PLANEJAMENTO PEDAGÓGICO DETALHADO")
         texto_limpo = limpar_texto_pdf(dados["ia_sugestao"])
         texto_limpo = re.sub(r"\[.*?\]", "", texto_limpo)
 
@@ -785,6 +978,51 @@ def gerar_pdf_final(dados: dict):
                 pdf.add_flat_icon_item(l.replace("-", "").replace("*", "").strip(), "dot")
             else:
                 pdf.multi_cell(0, 6, l)
+
+    # ======================================================================
+    # 8. MONITORAMENTO E ACOMPANHAMENTO
+    # ======================================================================
+    monitoramento_data = dados.get("monitoramento_data")
+    status_meta = dados.get("status_meta", "")
+    parecer_geral = dados.get("parecer_geral", "")
+    proximos_passos = dados.get("proximos_passos_select", [])
+    
+    if monitoramento_data or status_meta or parecer_geral or proximos_passos:
+        pdf.add_page()
+        pdf.section_title("8. MONITORAMENTO E ACOMPANHAMENTO")
+        
+        if monitoramento_data:
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(50, 6, "Data do Monitoramento:", 0, 0)
+            pdf.set_font("Arial", "", 10)
+            if isinstance(monitoramento_data, str):
+                pdf.cell(0, 6, monitoramento_data, 0, 1)
+            elif hasattr(monitoramento_data, 'strftime'):
+                pdf.cell(0, 6, monitoramento_data.strftime("%d/%m/%Y"), 0, 1)
+            else:
+                pdf.cell(0, 6, str(monitoramento_data), 0, 1)
+            pdf.ln(2)
+        
+        if status_meta:
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(50, 6, "Status da Meta:", 0, 0)
+            pdf.set_font("Arial", "", 10)
+            pdf.cell(0, 6, status_meta, 0, 1)
+            pdf.ln(2)
+        
+        if parecer_geral:
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(0, 6, "Parecer Geral:", 0, 1)
+            pdf.set_font("Arial", "", 10)
+            pdf.multi_cell(0, 6, limpar_texto_pdf(parecer_geral))
+            pdf.ln(2)
+        
+        if proximos_passos:
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(0, 6, "Próximos Passos:", 0, 1)
+            pdf.set_font("Arial", "", 10)
+            for passo in proximos_passos:
+                pdf.add_flat_icon_item(limpar_texto_pdf(passo), "dot")
 
     return pdf.output(dest="S").encode("latin-1", "replace")
 
@@ -807,10 +1045,152 @@ def gerar_pdf_tabuleiro_simples(texto: str):
     return pdf.output(dest="S").encode("latin-1", "ignore")
 
 def gerar_docx_final(dados: dict):
+    """Gera documento Word completo do PEI com todas as seções"""
     doc = Document()
-    doc.add_heading("PEI - " + (dados.get("nome") or "Sem Nome"), 0)
+    doc.add_heading("PLANO EDUCACIONAL INDIVIDUALIZADO (PEI)", 0)
+    doc.add_heading((dados.get("nome") or "Sem Nome"), level=1)
+    doc.add_paragraph("")
+    
+    # 1. IDENTIFICAÇÃO
+    doc.add_heading("1. IDENTIFICAÇÃO E CONTEXTO", level=2)
+    p = doc.add_paragraph()
+    p.add_run("Estudante: ").bold = True
+    p.add_run(dados.get("nome", ""))
+    
+    p = doc.add_paragraph()
+    p.add_run("Série/Ano: ").bold = True
+    p.add_run(dados.get("serie", ""))
+    
+    p = doc.add_paragraph()
+    p.add_run("Turma: ").bold = True
+    p.add_run(dados.get("turma", ""))
+    
+    p = doc.add_paragraph()
+    p.add_run("Matrícula/RA: ").bold = True
+    p.add_run(dados.get("matricula", dados.get("ra", "")))
+    
+    if dados.get("historico"):
+        p = doc.add_paragraph()
+        p.add_run("Histórico Escolar: ").bold = True
+        doc.add_paragraph(dados.get("historico", ""))
+    
+    if dados.get("familia"):
+        p = doc.add_paragraph()
+        p.add_run("Dinâmica Familiar: ").bold = True
+        doc.add_paragraph(dados.get("familia", ""))
+    
+    # 2. DIAGNÓSTICO
+    doc.add_heading("2. DIAGNÓSTICO E CONTEXTO CLÍNICO", level=2)
+    if dados.get("diagnostico"):
+        doc.add_paragraph(dados.get("diagnostico", ""))
+    
+    meds = dados.get("lista_medicamentos", [])
+    if meds:
+        p = doc.add_paragraph()
+        p.add_run("Medicações em Uso:").bold = True
+        for med in meds:
+            escola_txt = " (Administração na escola)" if med.get("escola") else ""
+            doc.add_paragraph(f"• {med.get('nome', '')} - {med.get('posologia', '')}{escola_txt}", style='List Bullet')
+    
+    # 3. POTENCIALIDADES
+    if dados.get("hiperfoco") or dados.get("potencias"):
+        doc.add_heading("3. POTENCIALIDADES E INTERESSES", level=2)
+        if dados.get("hiperfoco"):
+            p = doc.add_paragraph()
+            p.add_run("Hiperfoco/Interesse Principal: ").bold = True
+            doc.add_paragraph(dados.get("hiperfoco", ""))
+        potencias = dados.get("potencias", [])
+        if potencias:
+            p = doc.add_paragraph()
+            p.add_run("Potencialidades:").bold = True
+            for pot in potencias:
+                doc.add_paragraph(pot, style='List Bullet')
+    
+    # 4. REDE DE APOIO
+    rede = dados.get("rede_apoio", [])
+    orientacoes = dados.get("orientacoes_especialistas", "")
+    if rede or orientacoes:
+        doc.add_heading("4. REDE DE APOIO E ORIENTAÇÕES", level=2)
+        if rede:
+            p = doc.add_paragraph()
+            p.add_run("Profissionais da Rede:").bold = True
+            for prof in rede:
+                doc.add_paragraph(prof, style='List Bullet')
+        if orientacoes:
+            p = doc.add_paragraph()
+            p.add_run("Orientações dos Especialistas:").bold = True
+            doc.add_paragraph(orientacoes)
+    
+    # 5. BARREIRAS
+    barreiras = dados.get("barreiras_selecionadas", {})
+    if any(barreiras.values() if isinstance(barreiras, dict) else []):
+        doc.add_heading("5. MAPEAMENTO DE BARREIRAS E NÍVEIS DE SUPORTE", level=2)
+        for area, itens in barreiras.items():
+            if itens:
+                doc.add_heading(area, level=3)
+                for item in itens:
+                    nivel = (dados.get("niveis_suporte") or {}).get(f"{area}_{item}", "Monitorado")
+                    doc.add_paragraph(f"{item} (Nível de Suporte: {nivel})", style='List Bullet')
+    
+    # 6. ESTRATÉGIAS
+    estrategias_acesso = dados.get("estrategias_acesso", [])
+    estrategias_ensino = dados.get("estrategias_ensino", [])
+    estrategias_avaliacao = dados.get("estrategias_avaliacao", [])
+    if estrategias_acesso or estrategias_ensino or estrategias_avaliacao:
+        doc.add_heading("6. PLANO DE AÇÃO - ESTRATÉGIAS", level=2)
+        if estrategias_acesso:
+            p = doc.add_paragraph()
+            p.add_run("Estratégias de Acesso:").bold = True
+            for est in estrategias_acesso:
+                doc.add_paragraph(est, style='List Bullet')
+        if estrategias_ensino:
+            p = doc.add_paragraph()
+            p.add_run("Estratégias de Ensino:").bold = True
+            for est in estrategias_ensino:
+                doc.add_paragraph(est, style='List Bullet')
+        if estrategias_avaliacao:
+            p = doc.add_paragraph()
+            p.add_run("Estratégias de Avaliação:").bold = True
+            for est in estrategias_avaliacao:
+                doc.add_paragraph(est, style='List Bullet')
+    
+    # 7. PLANEJAMENTO PEDAGÓGICO
     if dados.get("ia_sugestao"):
-        doc.add_paragraph(re.sub(r"\[.*?\]", "", dados["ia_sugestao"]))
+        doc.add_heading("7. PLANEJAMENTO PEDAGÓGICO DETALHADO", level=2)
+        texto_limpo = re.sub(r"\[.*?\]", "", dados["ia_sugestao"])
+        for linha in texto_limpo.split("\n"):
+            l = linha.strip()
+            if not l:
+                continue
+            if l.startswith("###"):
+                doc.add_heading(l.replace("###", "").strip(), level=3)
+            elif l.startswith("##"):
+                doc.add_heading(l.replace("##", "").strip(), level=2)
+            elif l.startswith("-") or l.startswith("*"):
+                doc.add_paragraph(l.replace("-", "").replace("*", "").strip(), style='List Bullet')
+            else:
+                doc.add_paragraph(l)
+    
+    # 8. MONITORAMENTO
+    if dados.get("monitoramento_data") or dados.get("status_meta") or dados.get("parecer_geral"):
+        doc.add_heading("8. MONITORAMENTO E ACOMPANHAMENTO", level=2)
+        if dados.get("monitoramento_data"):
+            p = doc.add_paragraph()
+            p.add_run("Data do Monitoramento: ").bold = True
+            data_mon = dados.get("monitoramento_data")
+            if hasattr(data_mon, 'strftime'):
+                p.add_run(data_mon.strftime("%d/%m/%Y"))
+            else:
+                p.add_run(str(data_mon))
+        if dados.get("status_meta"):
+            p = doc.add_paragraph()
+            p.add_run("Status da Meta: ").bold = True
+            p.add_run(dados.get("status_meta", ""))
+        if dados.get("parecer_geral"):
+            p = doc.add_paragraph()
+            p.add_run("Parecer Geral: ").bold = True
+            doc.add_paragraph(dados.get("parecer_geral", ""))
+    
     b = BytesIO()
     doc.save(b)
     b.seek(0)
@@ -2715,52 +3095,50 @@ with tab8:
     st.divider()
     st.markdown("#### 📤 Exportação e Sincronização")
 
-    # Verifica se existe conteúdo gerado pela IA
-    if not d.get("ia_sugestao"):
-        st.info("Gere o Plano na aba **Consultoria IA** para liberar PDF, Word e Sincronização.")
-        # Se estiver dentro de uma função use return, se for script corrido:
-        # st.stop() 
-    else:
-        # ======================================================================
-        # 👇 A CORREÇÃO ESTÁ NESTA LINHA ABAIXO. ELA PRECISA EXISTIR AQUI 👇
-        # ======================================================================
-        col_docs, col_backup, col_sys = st.columns(3) 
+    # ======================================================================
+    # EXPORTAÇÃO E SINCRONIZAÇÃO (SEMPRE DISPONÍVEL)
+    # ======================================================================
+    col_docs, col_backup, col_sys = st.columns(3) 
 
-        # ---------------- COLUNA 1: DOCS ----------------
-        with col_docs:
-            st.caption("📄 Documentos")
-
+    # ---------------- COLUNA 1: DOCS ----------------
+    with col_docs:
+        st.caption("📄 Documentos")
+        
+        if not d.get("nome"):
+            st.info("Preencha o nome do estudante para gerar documentos.")
+        else:
             pdf_bytes = None
             try:
-                # Tenta gerar PDF com texto extraído se houver
-                texto_pdf = st.session_state.get("pdf_text", "")
-                pdf_bytes = gerar_pdf_final(d, len(texto_pdf) > 0)
-            except TypeError:
-                try:
-                    pdf_bytes = gerar_pdf_final(d)
-                except Exception as e:
-                    st.error(f"Erro ao gerar PDF: {e}")
+                pdf_bytes = gerar_pdf_final(d)
+            except Exception as e:
+                st.error(f"Erro ao gerar PDF: {e}")
 
             if pdf_bytes:
                 st.download_button(
-                    "Baixar PDF Oficial",
+                    "📄 Baixar PDF Oficial",
                     pdf_bytes,
                     f"PEI_{d.get('nome','Estudante')}.pdf",
                     "application/pdf",
-                    use_container_width=True
+                    use_container_width=True,
+                    type="primary"
                 )
+            else:
+                st.warning("Não foi possível gerar o PDF.")
 
             try:
                 docx = gerar_docx_final(d)
                 st.download_button(
-                    "Baixar Word Editável",
+                    "📝 Baixar Word Editável",
                     docx,
                     f"PEI_{d.get('nome','Estudante')}.docx",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     use_container_width=True
                 )
             except Exception as e:
-                st.warning("Word indisponível no momento.")
+                st.warning(f"Word indisponível: {str(e)}")
+            
+            if not d.get("ia_sugestao"):
+                st.caption("💡 Gere o Plano na aba **Consultoria IA** para incluir o planejamento pedagógico detalhado no documento.")
 
         # ---------------- COLUNA 2: BACKUP LOCAL ----------------
         with col_backup:
