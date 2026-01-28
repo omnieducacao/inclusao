@@ -1111,10 +1111,10 @@ def gerar_docx_final(dados: dict):
     if meds:
         p = doc.add_paragraph()
         p.add_run("Medicações em Uso:").bold = True
-            for med in meds:
-                escola_txt = " (Administração na escola)" if med.get("escola") else ""
-                texto_med = limpar_texto_pdf(f"{med.get('nome', '')} - {med.get('posologia', '')}{escola_txt}")
-                doc.add_paragraph(texto_med, style='List Bullet')
+        for med in meds:
+            escola_txt = " (Administração na escola)" if med.get("escola") else ""
+            texto_med = limpar_texto_pdf(f"{med.get('nome', '')} - {med.get('posologia', '')}{escola_txt}")
+            doc.add_paragraph(texto_med, style='List Bullet')
     
     # 3. POTENCIALIDADES
     if dados.get("hiperfoco") or dados.get("potencias"):
