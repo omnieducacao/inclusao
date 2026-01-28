@@ -282,7 +282,7 @@ verificar_acesso()
 # FUNÇÕES DO DIÁRIO DE BORDO
 # ==============================================================================
 def carregar_alunos_workspace():
-    """Carrega alunos do workspace atual"""
+    """Carrega estudantes do workspace atual"""
     WORKSPACE_ID = st.session_state.get("workspace_id")
     if not WORKSPACE_ID: 
         return []
@@ -300,7 +300,7 @@ def carregar_alunos_workspace():
             return response.json()
         return []
     except Exception as e:
-        st.error(f"Erro ao carregar alunos: {str(e)}")
+        st.error(f"Erro ao carregar estudantes: {str(e)}")
         return []
 
 def salvar_registro_diario(registro):
@@ -334,7 +334,7 @@ def atualizar_registro_diario(registro_id, dados):
         return False
 
 def carregar_registros_aluno(aluno_id, limite=50):
-    """Carrega registros de um aluno específico"""
+    """Carrega registros de um estudante específico"""
     try:
         url = f"{ou._sb_url()}/rest/v1/diario_bordo"
         params = {
@@ -391,15 +391,15 @@ def excluir_registro_diario(registro_id):
 # CARREGAMENTO DE DADOS
 # ==============================================================================
 
-# Carregar alunos
+# Carregar estudantes
 if 'alunos_cache' not in st.session_state:
-    with st.spinner("Carregando alunos..."):
+    with st.spinner("Carregando estudantes..."):
         st.session_state.alunos_cache = carregar_alunos_workspace()
 
 alunos = st.session_state.alunos_cache
 
 if not alunos:
-    st.warning("Nenhum aluno encontrado.")
+    st.warning("Nenhum estudante encontrado.")
     st.stop()
 
 # ==============================================================================
@@ -420,7 +420,7 @@ with tab_filtros:
 
     with col_filtro1:
         nomes_alunos = [f"{a['name']} ({a.get('grade', 'N/I')})" for a in alunos]
-        aluno_filtro = st.selectbox("Aluno:", ["Todos"] + nomes_alunos, key="filtro_aluno")
+        aluno_filtro = st.selectbox("Estudante:", ["Todos"] + nomes_alunos, key="filtro_aluno")
         # O valor já é salvo automaticamente no session_state pelo key="filtro_aluno"
 
     with col_filtro2:
@@ -466,7 +466,7 @@ with tab_filtros:
             st.metric("Últimos 30 dias", registros_ultimos_30)
         with col_stat3:
             alunos_com_registros = len(set([r.get('aluno_id') for r in registros if r.get('aluno_id')]))
-            st.metric("Alunos Atendidos", alunos_com_registros)
+            st.metric("Estudantes Atendidos", alunos_com_registros)
         
         # Estatísticas por modalidade
         st.markdown("#### 📈 Por Modalidade")
@@ -506,12 +506,12 @@ with tab_novo:
         col_info1, col_info2, col_info3 = st.columns(3)
         
         with col_info1:
-            # Seleção do aluno
+            # Seleção do estudante
             aluno_options = {f"{a['name']} ({a.get('grade', 'N/I')})": a for a in alunos}
             aluno_selecionado_label = st.selectbox(
-                "Aluno *",
+                "Estudante *",
                 options=list(aluno_options.keys()),
-                help="Selecione o aluno atendido"
+                help="Selecione o estudante atendido"
             )
             
             aluno_selecionado = aluno_options[aluno_selecionado_label]
@@ -547,7 +547,7 @@ with tab_novo:
             )[0]
             
             engajamento = st.slider(
-                "Engajamento do Aluno",
+                "Engajamento do Estudante",
                 min_value=1,
                 max_value=5,
                 value=3,
@@ -715,7 +715,7 @@ with tab_novo:
                         with st.expander("📋 Ver Resumo do Registro", expanded=True):
                             col_resumo1, col_resumo2 = st.columns(2)
                             with col_resumo1:
-                                st.markdown(f"**Aluno:** {aluno_selecionado_label}")
+                                st.markdown(f"**Estudante:** {aluno_selecionado_label}")
                                 st.markdown(f"**Data:** {data_sessao.strftime('%d/%m/%Y')}")
                                 st.markdown(f"**Duração:** {duracao} minutos")
                                 st.markdown(f"**Modalidade:** {modalidade}")
@@ -745,7 +745,7 @@ with tab_lista:
         # Aplicar filtros
         registros_filtrados = todos_registros.copy()
         
-        # Filtro por aluno (usa session_state para acessar da aba de filtros)
+        # Filtro por estudante (usa session_state para acessar da aba de filtros)
         aluno_filtro = st.session_state.get('filtro_aluno', 'Todos')
         if aluno_filtro and aluno_filtro != "Todos":
             aluno_nome = aluno_filtro.split("(")[0].strip()
@@ -802,7 +802,7 @@ with tab_lista:
         
         # Exibir registros
         for registro in registros_filtrados:
-            aluno_nome = registro.get('students', {}).get('name', 'Aluno não encontrado')
+            aluno_nome = registro.get('students', {}).get('name', 'Estudante não encontrado')
             data_formatada = datetime.fromisoformat(registro['data_sessao']).strftime('%d/%m/%Y')
             
             # Determinar classe CSS baseada na modalidade
@@ -913,16 +913,16 @@ with tab_relatorios:
         st.markdown("#### 📈 Evolução do Engajamento")
         
         if 'aluno_id' in df.columns:
-            # Selecionar aluno específico para análise
+            # Selecionar estudante específico para análise
             alunos_unicos = df['aluno_id'].unique()
             if len(alunos_unicos) > 0:
                 aluno_selecionado_id = st.selectbox(
-                    "Selecione o aluno para análise:",
+                    "Selecione o estudante para análise:",
                     options=alunos_unicos,
-                    format_func=lambda x: alunos_dict.get(x, f"Aluno {x[:8]}") if 'alunos_dict' in locals() else f"Aluno {x[:8]}"
+                    format_func=lambda x: alunos_dict.get(x, f"Estudante {x[:8]}") if 'alunos_dict' in locals() else f"Estudante {x[:8]}"
                 )
                 
-                # Filtrar dados do aluno
+                # Filtrar dados do estudante
                 df_aluno = df[df['aluno_id'] == aluno_selecionado_id].sort_values('data_sessao')
                 
                 if len(df_aluno) > 1:
@@ -930,14 +930,14 @@ with tab_relatorios:
                         df_aluno,
                         x='data_sessao',
                         y='engajamento_aluno',
-                        title=f"Evolução do Engajamento - {alunos_dict.get(aluno_selecionado_id, 'Aluno')}",
+                        title=f"Evolução do Engajamento - {alunos_dict.get(aluno_selecionado_id, 'Estudante')}",
                         markers=True,
                         line_shape='spline'
                     )
                     fig3.update_layout(height=400)
                     st.plotly_chart(fig3, use_container_width=True)
                     
-                    # Estatísticas do aluno
+                    # Estatísticas do estudante
                     col_aluno1, col_aluno2, col_aluno3, col_aluno4 = st.columns(4)
                     with col_aluno1:
                         st.metric("Total Sessões", len(df_aluno))
