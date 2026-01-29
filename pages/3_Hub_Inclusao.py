@@ -5,7 +5,6 @@
 # --- IMPORTS ---
 import streamlit as st
 from datetime import date, datetime
-from zoneinfo import ZoneInfo
 import os
 import re
 import base64
@@ -43,7 +42,7 @@ import omni_utils as ou
 # ✅ set_page_config UMA VEZ SÓ, SEMPRE no topo
 st.set_page_config(
     page_title="Omnisfera | Hub de Recursos",
-    page_icon="omni_icone.png",
+    page_icon="omni_icone.png" if os.path.exists("omni_icone.png") else "📘",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -127,7 +126,7 @@ ou.inject_unified_ui_css()
 # ==============================================================================
 # HERO - HUB DE INCLUSÃO
 # ==============================================================================
-hora = datetime.now(ZoneInfo("America/Sao_Paulo")).hour
+hora = datetime.now().hour
 saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
 USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
 WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
@@ -137,7 +136,7 @@ st.markdown(f"""
     <div class="mod-card-rect">
         <div class="mod-bar c-teal"></div>
         <div class="mod-icon-area bg-teal-soft">
-            <i class="ri-rocket-fill"></i>
+            <i class="ri-lightbulb-flash-fill"></i>
         </div>
         <div class="mod-content">
             <div class="mod-title">Hub de Recursos & Inteligência Artificial</div>
@@ -242,7 +241,7 @@ st.markdown("""
     .mod-icon-area i { color: inherit !important; }
     .bg-teal-soft i,
     .mod-icon-area.bg-teal-soft i,
-    .mod-icon-area.bg-teal-soft i.ri-rocket-fill {
+    .mod-icon-area.bg-teal-soft i.ri-lightbulb-flash-fill {
         color: #0D9488 !important;
         font-size: 1.8rem !important;
     }
