@@ -2929,8 +2929,10 @@ with tab7_hab:
         st.stop()
 
     def _opcao_label(h: dict) -> str:
+        """Label na lista suspensa: código + texto completo da habilidade (até 400 caracteres para não cortar)."""
         c = h.get("codigo", "")
-        d = (h.get("descricao") or "")[:70]
+        texto = h.get("habilidade_completa") or h.get("descricao") or ""
+        d = texto[:400] + ("..." if len(texto) > 400 else "")
         return f"{c} — {d}" if c else d
 
     # Seleção atual: set de (disciplina, codigo, origem)
@@ -2947,7 +2949,7 @@ with tab7_hab:
     with col_btn_aux:
         if st.button("Preenchimento com auxílio da IA", type="secondary", use_container_width=True, key="btn_auxilio_hab_bncc"):
             st.session_state["_run_auxilio_hab"] = True
-    st.caption("As habilidades sugeridas pela IA são gravadas como se você tivesse escolhido. Na sequência, você pode **excluir** ou **adicionar** outras nas listas abaixo.")
+    st.caption("As habilidades sugeridas pela IA entram no formulário como se você tivesse escolhido. Elas aparecem **marcadas** nas listas abaixo; para **excluir**, desmarque. Para **adicionar** outras, selecione nas listas.")
 
     if st.session_state.get("_run_auxilio_hab"):
         st.session_state["_run_auxilio_hab"] = False
@@ -3000,7 +3002,7 @@ HABILIDADES DO ANO ATUAL:
                         if isinstance(item, dict) and item.get("origem") == "anos_anteriores":
                             sug_list.append(item)
                     st.session_state.dados["habilidades_bncc_selecionadas"] = sug_list
-                st.success("Habilidades sugeridas gravadas como sua seleção. Exclua ou adicione outras nas listas abaixo se quiser.")
+                st.success("Habilidades sugeridas gravadas no formulário. Elas aparecem marcadas nas listas abaixo; desmarque para excluir ou selecione mais para adicionar.")
                 st.rerun()
             except Exception as e:
                 st.error(f"Erro ao sugerir: {str(e)[:120]}")
@@ -3010,6 +3012,7 @@ HABILIDADES DO ANO ATUAL:
         if not componentes_ordenados:
             return
         st.markdown(f"#### {titulo}")
+        st.caption("Habilidades marcadas são as selecionadas (pelo professor ou sugeridas pela IA). Desmarque para excluir.")
         for disc in componentes_ordenados:
             lista_hab = por_componente[disc]
             opcoes = [_opcao_label(h) for h in lista_hab]
