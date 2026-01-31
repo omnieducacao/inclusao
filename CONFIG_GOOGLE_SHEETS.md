@@ -63,12 +63,29 @@ GOOGLE_SHEETS_CREDENTIALS_PATH = "/caminho/completo/para/credenciais-google-shee
 export GOOGLE_SHEETS_CREDENTIALS_JSON='{"type":"service_account","project_id":"...", ...}'
 ```
 
-**Streamlit (arquivo `.streamlit/secrets.toml`):**
+**Streamlit (arquivo `.streamlit/secrets.toml`)** — duas formas:
+
+**Forma 1 — JSON como string (aspas triplas):**
 ```toml
-# Cole o JSON entre aspas triplas (evita problemas com aspas internas)
+# Cole o JSON entre aspas triplas; use \\n na private_key
 GOOGLE_SHEETS_CREDENTIALS_JSON = """
 {"type": "service_account", "project_id": "seu-projeto", "private_key_id": "...", "private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n", "client_email": "...@....iam.gserviceaccount.com", "client_id": "...", "auth_uri": "https://accounts.google.com/o/oauth2/auth", "token_uri": "https://oauth2.googleapis.com/token", ...}
 """
+```
+
+**Forma 2 — Seção TOML (objeto):** crie uma seção com o nome da chave e preencha os campos do JSON. Exemplo (substitua pelos valores do seu arquivo):
+```toml
+[GOOGLE_SHEETS_CREDENTIALS_JSON]
+type = "service_account"
+project_id = "seu-projeto-id"
+private_key_id = "abc123..."
+private_key = "-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----\n"
+client_email = "sua-conta@seu-projeto.iam.gserviceaccount.com"
+client_id = "123456789"
+auth_uri = "https://accounts.google.com/o/oauth2/auth"
+token_uri = "https://oauth2.googleapis.com/token"
+auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/..."
 ```
 
 ---
@@ -77,8 +94,8 @@ GOOGLE_SHEETS_CREDENTIALS_JSON = """
 
 O app usa, nesta ordem:
 
-1. **GOOGLE_SHEETS_CREDENTIALS_JSON** (variável de ambiente ou `st.secrets`)
-2. **GOOGLE_SHEETS_CREDENTIALS_PATH** (caminho do arquivo JSON)
+1. **GOOGLE_SHEETS_CREDENTIALS_JSON** — variável de ambiente (string JSON) ou `st.secrets` (string JSON **ou** seção TOML como objeto)
+2. **GOOGLE_SHEETS_CREDENTIALS_PATH** — variável de ambiente ou `st.secrets` (caminho do arquivo JSON)
 
 Se uma delas estiver preenchida e correta, a exportação para o Google Sheets funcionará.
 

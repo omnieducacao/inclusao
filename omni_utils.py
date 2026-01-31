@@ -1472,18 +1472,40 @@ def get_google_sheets_credentials():
     """
     Retorna credenciais para Google Sheets (service account).
     Ordem de leitura:
-    1. GOOGLE_SHEETS_CREDENTIALS_JSON — string JSON (env ou secrets)
+    1. GOOGLE_SHEETS_CREDENTIALS_JSON — string JSON (env ou secrets) ou objeto em st.secrets
     2. GOOGLE_SHEETS_CREDENTIALS_PATH — caminho para arquivo JSON (env ou secrets)
     """
     import json
-    raw = os.environ.get("GOOGLE_SHEETS_CREDENTIALS_JSON") or get_setting("GOOGLE_SHEETS_CREDENTIALS_JSON", "")
-    if raw:
+    raw = None
+    # 1) Variável de ambiente (sempre string)
+    raw_env = os.environ.get("GOOGLE_SHEETS_CREDENTIALS_JSON")
+    if raw_env and str(raw_env).strip():
+        raw = str(raw_env).strip()
+    # 2) st.secrets — pode ser string ou objeto (seção [GOOGLE_SHEETS_CREDENTIALS_JSON] no TOML)
+    if raw is None:
         try:
-            if isinstance(raw, str):
-                return json.loads(raw)
-            return raw
+            secret_val = st.secrets.get("GOOGLE_SHEETS_CREDENTIALS_JSON")
+            if secret_val is not None:
+                if isinstance(secret_val, dict):
+                    raw = secret_val
+                else:
+                    raw = str(secret_val).strip() if str(secret_val).strip() else None
         except Exception:
             pass
+    # 3) get_setting (string, para compat)
+    if raw is None:
+        s = get_setting("GOOGLE_SHEETS_CREDENTIALS_JSON", "")
+        if s:
+            raw = s
+    if raw is not None:
+        try:
+            if isinstance(raw, dict):
+                return dict(raw)
+            if isinstance(raw, str):
+                return json.loads(raw)
+        except Exception:
+            pass
+    # 4) Caminho do arquivo JSON
     path = (os.environ.get("GOOGLE_SHEETS_CREDENTIALS_PATH") or get_setting("GOOGLE_SHEETS_CREDENTIALS_PATH", "") or "").strip()
     if path and os.path.isfile(path):
         try:
