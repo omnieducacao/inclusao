@@ -518,8 +518,8 @@ def _aba_ok(d, key):
 def calcular_progresso() -> int:
     d = st.session_state.get("dados", {}) or {}
 
-    # quais “abas” contam no progresso
-    checkpoints = ["ESTUDANTE", "EVIDENCIAS", "REDE", "MAPEAMENTO", "PLANO", "MONITORAMENTO", "IA", "DASH", "JORNADA"]
+    # PEI: abas que contam no progresso (sem JORNADA — relatório gerado = 100% com DASH)
+    checkpoints = ["ESTUDANTE", "EVIDENCIAS", "REDE", "MAPEAMENTO", "PLANO", "MONITORAMENTO", "IA", "DASH"]
 
     done = sum(1 for k in checkpoints if _aba_ok(d, k))
     total = len(checkpoints)
@@ -2010,7 +2010,7 @@ def render_progresso():
     
     bar_color = "linear-gradient(90deg, #FF6B6B 0%, #FF8E53 100%)"
     if p >= 100:
-        bar_color = "linear-gradient(90deg, #00C6FF 0%, #0072FF 100%)"
+        bar_color = "linear-gradient(90deg, #34D399 0%, #059669 100%)"
     
     st.markdown(f"""
     <div class="progress-container">
@@ -2991,12 +2991,19 @@ with tab6:
 with tab7_hab:
     render_progresso()
     st.markdown("### <i class='ri-list-check-2'></i> Habilidades BNCC", unsafe_allow_html=True)
-    st.caption("Selecione as habilidades do ano/série do estudante. A Consultoria IA usará apenas estas para o relatório.")
 
     serie_hab = st.session_state.dados.get("serie") or ""
     if not serie_hab:
         st.warning("Selecione a **Série/Ano** na aba **Estudante** para carregar as habilidades BNCC.")
         st.stop()
+
+    # Educação Infantil: esta aba não se aplica; seguir para Consultoria IA
+    if detectar_nivel_ensino(serie_hab) == "EI":
+        st.info("Para **Educação Infantil** esta aba não se aplica (BNCC por habilidades é a partir do Fundamental). Siga para a aba **Consultoria IA** para gerar o relatório do PEI.")
+        st.markdown("👉 Use a aba **Consultoria IA** para gerar o relatório.")
+        st.stop()
+
+    st.caption("Selecione as habilidades do ano/série do estudante. A Consultoria IA usará apenas estas para o relatório.")
 
     st.session_state.dados.setdefault("habilidades_bncc_selecionadas", [])
     blocos = carregar_habilidades_bncc_por_componente_ano_e_anteriores(serie_hab)
@@ -3020,43 +3027,47 @@ with tab7_hab:
             set_selecionados.add((item["disciplina"], item["codigo"], item.get("origem", "ano_atual")))
 
     novas_selecoes = []
+    st.session_state.dados.setdefault("_hab_ia_motivo_ano_atual", "")
+    st.session_state.dados.setdefault("_hab_ia_motivo_anos_anteriores", "")
 
-    # Botões Preenchimento com auxílio da IA: ano atual e anos anteriores
-    col_btn_atual, col_btn_anteriores, _ = st.columns([1, 1, 2])
-    with col_btn_atual:
-        if st.button("Preenchimento com auxílio da IA (ano atual)", type="secondary", use_container_width=True, key="btn_auxilio_hab_bncc"):
-            st.session_state["_run_auxilio_hab"] = True
-    with col_btn_anteriores:
-        if st.button("Preenchimento com auxílio da IA (anos anteriores)", type="secondary", use_container_width=True, key="btn_auxilio_hab_anteriores"):
-            st.session_state["_run_auxilio_hab_anteriores"] = True
-    st.caption("Use um dos botões para a IA sugerir habilidades do **ano atual** ou dos **anos anteriores**. Veja a lista **Habilidades selecionadas** abaixo para excluir uma a uma ou todas; para **adicionar**, use as listas por componente.")
-
-    # Caixa visível: lista de habilidades selecionadas com opção de remover uma a uma ou todas
-    if selecionadas_atuais:
-        st.markdown("#### 📋 Habilidades selecionadas")
-        st.caption("Revise a lista. Use **Remover** para tirar uma habilidade ou **Desmarcar todas** para limpar. Você também pode desmarcar/marcar nas listas por componente mais abaixo.")
-        for idx, h in enumerate(selecionadas_atuais):
-            if not isinstance(h, dict) or not h.get("codigo"):
-                continue
-            disc = h.get("disciplina", "")
-            cod = h.get("codigo", "")
-            texto = (h.get("habilidade_completa") or h.get("descricao") or "")
-            col_txt, col_btn = st.columns([5, 1])
-            with col_txt:
-                st.markdown(f"**{disc}** — *{cod}* — {texto}")
-            with col_btn:
-                if st.button("Remover", key=f"remover_hab_{idx}_{cod}_{disc[:20]}", type="secondary"):
-                    nova_lista = [x for x in selecionadas_atuais if isinstance(x, dict) and not (x.get("codigo") == cod and x.get("disciplina") == disc)]
-                    st.session_state.dados["habilidades_bncc_selecionadas"] = nova_lista
-                    st.session_state.dados["habilidades_bncc_validadas"] = None
-                    st.session_state["_hab_bncc_key_salt"] = (st.session_state.get("_hab_bncc_key_salt", 0) + 1)
-                    st.rerun()
-        if st.button("Desmarcar todas", key="desmarcar_todas_hab_bncc", type="secondary"):
-            st.session_state.dados["habilidades_bncc_selecionadas"] = []
-            st.session_state.dados["habilidades_bncc_validadas"] = None
-            st.session_state["_hab_bncc_key_salt"] = (st.session_state.get("_hab_bncc_key_salt", 0) + 1)
-            st.rerun()
-        st.markdown("---")
+    # Lista de habilidades selecionadas em aba retrátil (expander)
+    with st.expander("📋 Habilidades selecionadas", expanded=bool(selecionadas_atuais)):
+        if selecionadas_atuais:
+            motivo_atual = st.session_state.dados.get("_hab_ia_motivo_ano_atual", "").strip()
+            motivo_ant = st.session_state.dados.get("_hab_ia_motivo_anos_anteriores", "").strip()
+            if motivo_atual or motivo_ant:
+                st.caption("**Por que a IA escolheu estas habilidades:**")
+                if motivo_atual:
+                    st.markdown(f"*Ano atual:* {motivo_atual}")
+                if motivo_ant:
+                    st.markdown(f"*Anos anteriores:* {motivo_ant}")
+                st.markdown("---")
+            st.caption("Revise a lista. Use **Remover** para tirar uma habilidade ou **Desmarcar todas** para limpar.")
+            for idx, h in enumerate(selecionadas_atuais):
+                if not isinstance(h, dict) or not h.get("codigo"):
+                    continue
+                disc = h.get("disciplina", "")
+                cod = h.get("codigo", "")
+                texto = (h.get("habilidade_completa") or h.get("descricao") or "")
+                col_txt, col_btn = st.columns([5, 1])
+                with col_txt:
+                    st.markdown(f"**{disc}** — *{cod}* — {texto}")
+                with col_btn:
+                    if st.button("Remover", key=f"remover_hab_{idx}_{cod}_{disc[:20]}", type="secondary"):
+                        nova_lista = [x for x in selecionadas_atuais if isinstance(x, dict) and not (x.get("codigo") == cod and x.get("disciplina") == disc)]
+                        st.session_state.dados["habilidades_bncc_selecionadas"] = nova_lista
+                        st.session_state.dados["habilidades_bncc_validadas"] = None
+                        st.session_state["_hab_bncc_key_salt"] = (st.session_state.get("_hab_bncc_key_salt", 0) + 1)
+                        st.rerun()
+            if st.button("Desmarcar todas", key="desmarcar_todas_hab_bncc", type="secondary"):
+                st.session_state.dados["habilidades_bncc_selecionadas"] = []
+                st.session_state.dados["habilidades_bncc_validadas"] = None
+                st.session_state.dados["_hab_ia_motivo_ano_atual"] = ""
+                st.session_state.dados["_hab_ia_motivo_anos_anteriores"] = ""
+                st.session_state["_hab_bncc_key_salt"] = (st.session_state.get("_hab_bncc_key_salt", 0) + 1)
+                st.rerun()
+        else:
+            st.caption("Nenhuma habilidade selecionada. Use os botões nas seções abaixo (ano atual e anos anteriores) para a IA sugerir ou selecione manualmente nas listas.")
 
     if st.session_state.get("_run_auxilio_hab"):
         st.session_state["_run_auxilio_hab"] = False
@@ -3072,8 +3083,13 @@ with tab7_hab:
                     lista_para_ia.append(f"- {disc}: {h.get('codigo','')} — {h.get('habilidade_completa','')[:150]}")
             texto_lista = "\n".join(lista_para_ia[:400])
             prompt_aux = f"""O estudante está no ano/série: {serie_hab}. Abaixo estão as habilidades BNCC do ano atual (código e descrição).
-Indique APENAS os códigos das habilidades mais fundamentais para esse ano (máximo 3 a 5 por componente curricular).
-Retorne somente os códigos, um por linha, ex: EF01LP02
+Indique as habilidades mais fundamentais para esse ano (máximo 3 a 5 por componente curricular).
+
+Retorne EXATAMENTE neste formato:
+CODES:
+(códigos um por linha, ex: EF01LP02)
+MOTIVO:
+(em 2 a 4 linhas, explique por que escolheu estas habilidades para este estudante.)
 
 HABILIDADES DO ANO ATUAL:
 {texto_lista}"""
@@ -3087,7 +3103,15 @@ HABILIDADES DO ANO ATUAL:
                     )
                     texto_resp = (r.choices[0].message.content or "").strip()
                     codigos_sugeridos = []
-                    for linha in texto_resp.splitlines():
+                    motivo_ia = ""
+                    if "MOTIVO:" in texto_resp.upper():
+                        partes = re.split(r"\s*MOTIVO\s*:\s*", texto_resp, flags=re.IGNORECASE, maxsplit=1)
+                        if len(partes) >= 2:
+                            motivo_ia = partes[1].strip()[:500]
+                        bloco_codes = partes[0] if partes else texto_resp
+                    else:
+                        bloco_codes = texto_resp
+                    for linha in bloco_codes.splitlines():
                         cod = re.search(r"(EF\d+[A-Z0-9]+|EM\d+[A-Z0-9]+)", linha.strip())
                         if cod:
                             codigos_sugeridos.append(cod.group(1).upper())
@@ -3104,14 +3128,13 @@ HABILIDADES DO ANO ATUAL:
                                     "descricao": h.get("descricao", ""), "habilidade_completa": h.get("habilidade_completa", ""),
                                     "origem": "ano_atual",
                                 })
-                    # Manter seleções de anos anteriores
                     for item in selecionadas_atuais:
                         if isinstance(item, dict) and item.get("origem") == "anos_anteriores":
                             sug_list.append(item)
                     st.session_state.dados["habilidades_bncc_selecionadas"] = sug_list
-                    # Força os multiselects a exibir a nova seleção na próxima renderização
+                    st.session_state.dados["_hab_ia_motivo_ano_atual"] = motivo_ia
                     st.session_state["_hab_bncc_key_salt"] = (st.session_state.get("_hab_bncc_key_salt", 0) + 1)
-                st.success("Habilidades sugeridas gravadas. Veja a lista abaixo; você pode remover uma a uma ou desmarcar todas.")
+                st.success("Habilidades sugeridas gravadas. Veja a lista em **Habilidades selecionadas**; você pode remover uma a uma ou desmarcar todas.")
                 st.rerun()
             except Exception as e:
                 st.error(f"Erro ao sugerir: {str(e)[:120]}")
@@ -3131,8 +3154,13 @@ HABILIDADES DO ANO ATUAL:
                     lista_para_ia_ant.append(f"- {disc}: {h.get('codigo','')} — {h.get('habilidade_completa','')[:150]}")
             texto_lista_ant = "\n".join(lista_para_ia_ant[:400])
             prompt_aux_ant = f"""O estudante está no ano/série: {serie_hab}. Abaixo estão habilidades BNCC de ANOS ANTERIORES (que podem merecer atenção ou reforço).
-Indique APENAS os códigos das habilidades mais relevantes para esse estudante (máximo 3 a 5 por componente curricular).
-Retorne somente os códigos, um por linha, ex: EF01LP02
+Indique as habilidades mais relevantes para esse estudante (máximo 3 a 5 por componente curricular).
+
+Retorne EXATAMENTE neste formato:
+CODES:
+(códigos um por linha, ex: EF01LP02)
+MOTIVO:
+(em 2 a 4 linhas, explique por que escolheu estas habilidades de anos anteriores para este estudante.)
 
 HABILIDADES DE ANOS ANTERIORES:
 {texto_lista_ant}"""
@@ -3146,7 +3174,15 @@ HABILIDADES DE ANOS ANTERIORES:
                     )
                     texto_resp = (r.choices[0].message.content or "").strip()
                     codigos_sugeridos = []
-                    for linha in texto_resp.splitlines():
+                    motivo_ia_ant = ""
+                    if "MOTIVO:" in texto_resp.upper():
+                        partes = re.split(r"\s*MOTIVO\s*:\s*", texto_resp, flags=re.IGNORECASE, maxsplit=1)
+                        if len(partes) >= 2:
+                            motivo_ia_ant = partes[1].strip()[:500]
+                        bloco_codes = partes[0] if partes else texto_resp
+                    else:
+                        bloco_codes = texto_resp
+                    for linha in bloco_codes.splitlines():
                         cod = re.search(r"(EF\d+[A-Z0-9]+|EM\d+[A-Z0-9]+)", linha.strip())
                         if cod:
                             codigos_sugeridos.append(cod.group(1).upper())
@@ -3155,7 +3191,6 @@ HABILIDADES DE ANOS ANTERIORES:
                             if (h.get("codigo") or "").upper() in codigos_sugeridos:
                                 set_selecionados.add((disc, h.get("codigo", ""), "anos_anteriores"))
                     sug_list_ant = []
-                    # Manter seleções do ano atual
                     for item in selecionadas_atuais:
                         if isinstance(item, dict) and item.get("origem") == "ano_atual":
                             sug_list_ant.append(item)
@@ -3168,8 +3203,9 @@ HABILIDADES DE ANOS ANTERIORES:
                                     "origem": "anos_anteriores",
                                 })
                     st.session_state.dados["habilidades_bncc_selecionadas"] = sug_list_ant
+                    st.session_state.dados["_hab_ia_motivo_anos_anteriores"] = motivo_ia_ant
                     st.session_state["_hab_bncc_key_salt"] = (st.session_state.get("_hab_bncc_key_salt", 0) + 1)
-                st.success("Habilidades de anos anteriores sugeridas. Veja a lista abaixo; você pode remover uma a uma ou desmarcar todas.")
+                st.success("Habilidades de anos anteriores sugeridas. Veja a lista em **Habilidades selecionadas**; você pode remover uma a uma ou desmarcar todas.")
                 st.rerun()
             except Exception as e:
                 st.error(f"Erro ao sugerir anos anteriores: {str(e)[:120]}")
@@ -3201,10 +3237,21 @@ HABILIDADES DE ANOS ANTERIORES:
                         })
                         break
 
+    # Seção Ano atual: botão da IA + listas em expander retrátil
+    with st.expander("📌 Habilidades do ano/série atual", expanded=True):
+        if st.button("Preenchimento com auxílio da IA (ano atual)", type="secondary", use_container_width=True, key="btn_auxilio_hab_bncc"):
+            st.session_state["_run_auxilio_hab"] = True
+        st.caption("Use o botão acima para a IA sugerir habilidades do ano atual; ou selecione manualmente nas listas abaixo.")
+        _render_multiselects(ano_atual, "Listas por componente (ano atual)", "ano_atual")
+
     st.markdown("---")
-    _render_multiselects(ano_atual, "Habilidades do ano/série atual", "ano_atual")
-    st.markdown("---")
-    _render_multiselects(anos_anteriores, "Habilidades de anos anteriores (que merecem atenção)", "anos_anteriores")
+
+    # Seção Anos anteriores: botão da IA + listas em expander retrátil
+    with st.expander("📌 Habilidades de anos anteriores (que merecem atenção)", expanded=True):
+        if st.button("Preenchimento com auxílio da IA (anos anteriores)", type="secondary", use_container_width=True, key="btn_auxilio_hab_anteriores"):
+            st.session_state["_run_auxilio_hab_anteriores"] = True
+        st.caption("Use o botão acima para a IA sugerir habilidades de anos anteriores; ou selecione manualmente nas listas abaixo.")
+        _render_multiselects(anos_anteriores, "Listas por componente (anos anteriores)", "anos_anteriores")
 
     st.session_state.dados["habilidades_bncc_selecionadas"] = novas_selecoes
     n_hab = len(novas_selecoes)
