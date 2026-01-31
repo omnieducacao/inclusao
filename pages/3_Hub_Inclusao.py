@@ -2145,7 +2145,7 @@ def render_aba_adaptar_atividade(aluno, api_key):
     c1, c2 = st.columns([1, 2])
     tipo_i = c1.selectbox("Tipo", ["Atividade", "Tarefa", "Exercício"], key="itp")
     arquivo_i = c2.file_uploader("Upload da Imagem/Foto", type=["png","jpg","jpeg"], key="fi")
-    livro_prof = st.checkbox(f"{get_icon_emoji('livro')} É foto do Livro do Professor? (A IA removerá as respostas)", value=False)
+    livro_prof = st.checkbox("📕 É foto do Livro do Professor? (A IA removerá as respostas)", value=False)
     
     # Definição automática baseada na BNCC
     materia_i = disciplina_bncc if disciplina_bncc else "Geral"
