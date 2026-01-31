@@ -1514,7 +1514,7 @@ Use o hiperfoco para conectar com a aprendizagem.
             prompt_literacia = f"""[ATENÇÃO CRÍTICA: ALFABETIZAÇÃO] Fase: {alfabetizacao}. Inclua 2 ações de consciência fonológica.[/ATENÇÃO CRÍTICA]"""
 
         prompt_hub = """
-### 6. 🧩 CHECKLIST DE ADAPTAÇÃO E ACESSIBILIDADE:
+### 7. 🧩 CHECKLIST DE ADAPTAÇÃO E ACESSIBILIDADE:
 **A. Mediação (Triângulo de Ouro):**
 1) Instruções passo a passo
 2) Fragmentação de tarefas
@@ -1527,20 +1527,15 @@ Use o hiperfoco para conectar com a aprendizagem.
 7) Adequação de desafio
 """.strip()
 
-        prompt_componentes = ""
-        if nivel_ensino != "EI":
-            prompt_componentes = f"""
-### 4. ⚠️ COMPONENTES CURRICULARES DE ATENÇÃO:
-Com base no diagnóstico ({dados.get('diagnostico','')}) e nas barreiras citadas, identifique componentes que exigirão maior flexibilização.
-- Liste componentes
-- Para cada um, explique o motivo técnico
-""".strip()
-
+        # Não há mais seção separada "Componentes de atenção" — fica só o MAPA POR COMPONENTE (único)
         prompt_metas = """
-[METAS_SMART]
-- Meta de Curto Prazo (2 meses): [Descreva a meta]
-- Meta de Médio Prazo (1 semestre): [Descreva a meta]
-- Meta de Longo Prazo (1 ano): [Descreva a meta]
+[METAS_SMART — TÓPICO OBRIGATÓRIO E PRIORITÁRIO]
+Dedique ESPECIAL ATENÇÃO a este bloco. Metas SMART são fundamentais no PEI: Específicas, Mensuráveis, Atingíveis, Relevantes e Temporais.
+Para cada meta, escreva em 3 a 5 linhas: o quê exatamente será trabalhado, como será medido (indicadores concretos), prazo claro, e relação com o diagnóstico/barreiras do estudante.
+- **Meta de Curto Prazo (2 meses):** Objetivo específico, indicador de sucesso, quem acompanha, data de revisão.
+- **Meta de Médio Prazo (1 semestre):** Objetivo específico, indicador de sucesso, quem acompanha, data de revisão.
+- **Meta de Longo Prazo (1 ano):** Objetivo específico, indicador de sucesso, quem acompanha, data de revisão.
+Não use placeholders genéricos. Personalize cada meta ao estudante e ao contexto pedagógico.
 [/METAS_SMART]
 """.strip()
 
@@ -1556,6 +1551,7 @@ Com base no diagnóstico ({dados.get('diagnostico','')}) e nas barreiras citadas
 ### 3. 🚀 ESTRATÉGIAS DE INTERVENÇÃO:
 (Estratégias de acolhimento, rotina e adaptação sensorial).
 
+### 4. 🎯 METAS SMART (tópico independente — dedique bastante espaço e detalhe):
 {prompt_metas}
 
 ### 5. ⚠️ PONTOS DE ATENÇÃO FARMACOLÓGICA:
@@ -1603,15 +1599,26 @@ Na seção "Avaliação de Repertório", cite SOMENTE habilidades das listas aba
                     instrucao_bncc = "[MAPEAMENTO_BNCC] Separe por Componente Curricular. Inclua código alfanumérico (ex: EF01LP02) e a descrição por escrito. [/MAPEAMENTO_BNCC]"
             instrucao_bloom = "[TAXONOMIA_BLOOM] Explique a categoria cognitiva escolhida. [/TAXONOMIA_BLOOM]"
             instrucao_mapa = """
-### 7. 📊 MAPA POR COMPONENTE CURRICULAR (obrigatório, ao final do relatório):
-Construa um quadro claro que demonstre QUAIS componentes curriculares precisam de MAIOR atenção e POR QUÊ.
+### 4. 📊 COMPONENTES CURRICULARES QUE MERECEM ATENÇÃO (mapa único):
+Construa um quadro claro que demonstre QUAIS componentes curriculares precisam de MAIOR atenção e POR QUÊ. Este é o único bloco sobre componentes — não repita em outra seção.
 
-**Formato obrigatório:** para cada componente que tenha habilidades listadas na aba anterior (ou nas listas BNCC fornecidas), inclua:
+**Formato obrigatório:** para cada componente que tenha habilidades listadas na Avaliação de Repertório, inclua:
 1. **Componente** (ex.: Língua Portuguesa, Matemática, Ciências)
 2. **Nível de atenção:** Alta | Média | Monitoramento
 3. **Motivos:** cruze explicitamente (a) o diagnóstico e as barreiras do PEI com (b) as habilidades desse componente. Exemplo: "O diagnóstico de X e as barreiras em [área] impactam diretamente as habilidades [códigos ou temas] deste componente, exigindo adaptações em..."
 
-**Regra:** use APENAS os componentes que aparecem nas habilidades já listadas neste relatório (Avaliação de Repertório). Para cada um, justifique o nível de atenção ligando diagnóstico + barreiras + evidências do PEI às habilidades daquele componente. Seja objetivo: deixe claro por que aquele componente exige mais atenção do que outros."""
+**Regra:** use APENAS os componentes que aparecem nas habilidades já listadas neste relatório (Avaliação de Repertório). Para cada um, justifique o nível de atenção ligando diagnóstico + barreiras + evidências do PEI às habilidades daquele componente. Seja objetivo."""
+            prompt_metas_fundamental = """
+### 5. 🎯 METAS SMART (tópico independente — PRIORIDADE ALTA, dedique bastante energia aqui):
+[METAS_SMART]
+Metas SMART são fundamentais no PEI: Específicas, Mensuráveis, Atingíveis, Relevantes e Temporais.
+Para CADA meta, escreva em 3 a 5 linhas: o quê exatamente será trabalhado, como será medido (indicadores concretos), prazo claro, e relação com o diagnóstico/barreiras do estudante.
+- **Meta de Curto Prazo (2 meses):** Objetivo específico, indicador de sucesso, quem acompanha, data de revisão.
+- **Meta de Médio Prazo (1 semestre):** Objetivo específico, indicador de sucesso, quem acompanha, data de revisão.
+- **Meta de Longo Prazo (1 ano):** Objetivo específico, indicador de sucesso, quem acompanha, data de revisão.
+NÃO use placeholders genéricos. Personalize cada meta ao estudante e ao contexto pedagógico. Este bloco deve ser um dos mais detalhados do relatório.
+[/METAS_SMART]
+""".strip()
             estrutura_req = f"""
 {prompt_identidade}
 {prompt_diagnostico}
@@ -1626,15 +1633,14 @@ Construa um quadro claro que demonstre QUAIS componentes curriculares precisam d
 (Adaptações curriculares e de acesso).
 {prompt_literacia}
 
-{prompt_componentes}
+{instrucao_mapa}
 
-{prompt_metas}
+{prompt_metas_fundamental}
 
-### 5. ⚠️ PONTOS DE ATENÇÃO FARMACOLÓGICA:
+### 6. ⚠️ PONTOS DE ATENÇÃO FARMACOLÓGICA:
 [ANALISE_FARMA] Se houver medicação, cite efeitos colaterais para atenção pedagógica. [/ANALISE_FARMA]
 
 {prompt_hub}
-{instrucao_mapa}
 """.strip()
 
         prompt_feedback = f"AJUSTE SOLICITADO: {feedback_usuario}" if feedback_usuario else ""
@@ -3014,12 +3020,15 @@ with tab7_hab:
 
     novas_selecoes = []
 
-    # Botão Preenchimento com auxílio (só para ano atual) — tratado como seleção do professor
-    col_btn_aux, _ = st.columns([1, 2])
-    with col_btn_aux:
-        if st.button("Preenchimento com auxílio da IA", type="secondary", use_container_width=True, key="btn_auxilio_hab_bncc"):
+    # Botões Preenchimento com auxílio da IA: ano atual e anos anteriores
+    col_btn_atual, col_btn_anteriores, _ = st.columns([1, 1, 2])
+    with col_btn_atual:
+        if st.button("Preenchimento com auxílio da IA (ano atual)", type="secondary", use_container_width=True, key="btn_auxilio_hab_bncc"):
             st.session_state["_run_auxilio_hab"] = True
-    st.caption("As habilidades sugeridas pela IA entram no formulário como se você tivesse escolhido. Veja a lista **Habilidades selecionadas** abaixo para excluir uma a uma ou todas; para **adicionar**, use as listas por componente.")
+    with col_btn_anteriores:
+        if st.button("Preenchimento com auxílio da IA (anos anteriores)", type="secondary", use_container_width=True, key="btn_auxilio_hab_anteriores"):
+            st.session_state["_run_auxilio_hab_anteriores"] = True
+    st.caption("Use um dos botões para a IA sugerir habilidades do **ano atual** ou dos **anos anteriores**. Veja a lista **Habilidades selecionadas** abaixo para excluir uma a uma ou todas; para **adicionar**, use as listas por componente.")
 
     # Caixa visível: lista de habilidades selecionadas com opção de remover uma a uma ou todas
     if selecionadas_atuais:
@@ -3107,6 +3116,64 @@ HABILIDADES DO ANO ATUAL:
                 st.rerun()
             except Exception as e:
                 st.error(f"Erro ao sugerir: {str(e)[:120]}")
+
+    # Preenchimento com auxílio da IA para anos anteriores (mesma lógica que ano atual)
+    if st.session_state.get("_run_auxilio_hab_anteriores"):
+        st.session_state["_run_auxilio_hab_anteriores"] = False
+        if not api_key:
+            st.error("Configure a chave OpenAI: variável OPENAI_API_KEY (ambiente), secrets do app ou session_state.")
+        elif not anos_anteriores:
+            st.warning("Não há habilidades de anos anteriores para sugerir.")
+        else:
+            lista_para_ia_ant = []
+            componentes_ant = sorted(anos_anteriores.keys())
+            for disc in componentes_ant:
+                for h in anos_anteriores[disc]:
+                    lista_para_ia_ant.append(f"- {disc}: {h.get('codigo','')} — {h.get('habilidade_completa','')[:150]}")
+            texto_lista_ant = "\n".join(lista_para_ia_ant[:400])
+            prompt_aux_ant = f"""O estudante está no ano/série: {serie_hab}. Abaixo estão habilidades BNCC de ANOS ANTERIORES (que podem merecer atenção ou reforço).
+Indique APENAS os códigos das habilidades mais relevantes para esse estudante (máximo 3 a 5 por componente curricular).
+Retorne somente os códigos, um por linha, ex: EF01LP02
+
+HABILIDADES DE ANOS ANTERIORES:
+{texto_lista_ant}"""
+            try:
+                with st.spinner("Sugerindo habilidades de anos anteriores..."):
+                    from openai import OpenAI
+                    client = OpenAI(api_key=api_key)
+                    r = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[{"role": "user", "content": prompt_aux_ant}],
+                    )
+                    texto_resp = (r.choices[0].message.content or "").strip()
+                    codigos_sugeridos = []
+                    for linha in texto_resp.splitlines():
+                        cod = re.search(r"(EF\d+[A-Z0-9]+|EM\d+[A-Z0-9]+)", linha.strip())
+                        if cod:
+                            codigos_sugeridos.append(cod.group(1).upper())
+                    for disc in componentes_ant:
+                        for h in anos_anteriores[disc]:
+                            if (h.get("codigo") or "").upper() in codigos_sugeridos:
+                                set_selecionados.add((disc, h.get("codigo", ""), "anos_anteriores"))
+                    sug_list_ant = []
+                    # Manter seleções do ano atual
+                    for item in selecionadas_atuais:
+                        if isinstance(item, dict) and item.get("origem") == "ano_atual":
+                            sug_list_ant.append(item)
+                    for disc in componentes_ant:
+                        for h in anos_anteriores[disc]:
+                            if (disc, h.get("codigo", ""), "anos_anteriores") in set_selecionados:
+                                sug_list_ant.append({
+                                    "disciplina": disc, "codigo": h.get("codigo", ""),
+                                    "descricao": h.get("descricao", ""), "habilidade_completa": h.get("habilidade_completa", ""),
+                                    "origem": "anos_anteriores",
+                                })
+                    st.session_state.dados["habilidades_bncc_selecionadas"] = sug_list_ant
+                    st.session_state["_hab_bncc_key_salt"] = (st.session_state.get("_hab_bncc_key_salt", 0) + 1)
+                st.success("Habilidades de anos anteriores sugeridas. Veja a lista abaixo; você pode remover uma a uma ou desmarcar todas.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Erro ao sugerir anos anteriores: {str(e)[:120]}")
 
     def _render_multiselects(por_componente: dict, titulo: str, origem: str):
         componentes_ordenados = sorted(por_componente.keys())
