@@ -68,22 +68,43 @@ ICON_LIBRARY = {
     "sucesso": {"icon": "ri-check-line", "color": "#16A34A"},
 }
 
-def get_icon(key: str, size: int = 20, color: str = None) -> str:
+# Fallback emoji para quando Remixicon não carrega no Streamlit (CDN bloqueado/iframe)
+USE_EMOJI_FALLBACK = True
+ICON_EMOJI = {
+    "estudantes": "👥", "pei": "📘", "pae": "🧩", "hub": "🚀", "diario": "📝", "monitoramento": "📊",
+    "panorama": "📈", "legislacao": "⚖️", "glossario": "📖", "linguagem": "💬", "biblioteca": "📚", "manual": "📗",
+    "fluxo": "🔄", "filosofia": "❤️", "justica": "⚖️", "buscar": "🔍", "preferir": "✅", "evitar": "❌",
+    "legislacao_doc": "🏛️", "pedagogia": "🧠", "livro": "📕",
+    "adaptar_prova": "✏️", "adaptar_atividade": "✂️", "criar_zero": "✨", "estudio_visual": "🖼️",
+    "roteiro": "📋", "papo_mestre": "💬", "dinamica": "👥", "plano_aula": "📅",
+    "experiencia": "💡", "rotina": "⏱️", "brincar": "🎮",
+    "salvar": "💾", "editar": "✏️", "deletar": "🗑️", "adicionar": "➕", "validar": "✅", "cancelar": "❌",
+    "download": "⬇️", "upload": "⬆️", "visualizar": "👁️", "configurar": "⚙️", "info": "ℹ️",
+    "aviso": "⚠️", "erro": "❌", "sucesso": "✅",
+}
+
+def get_icon(key: str, size: int = 20, color: str = None, use_emoji: bool = None) -> str:
     """
-    Retorna HTML do ícone RemixIcon com cor personalizada.
+    Retorna HTML do ícone RemixIcon com cor personalizada, ou emoji quando
+    use_emoji=True / USE_EMOJI_FALLBACK (Streamlit pode não carregar CDN Remixicon).
     
     Args:
         key: Chave do ícone na biblioteca
         size: Tamanho em pixels (padrão 20)
         color: Cor personalizada (sobrescreve a cor padrão)
+        use_emoji: Se True, retorna emoji; se None, usa USE_EMOJI_FALLBACK
     
     Returns:
         String HTML com o ícone
     """
+    use_emoji = use_emoji if use_emoji is not None else USE_EMOJI_FALLBACK
     icon_data = ICON_LIBRARY.get(key.lower(), {"icon": "ri-question-line", "color": "#64748B"})
-    icon_class = icon_data["icon"]
     icon_color = color or icon_data["color"]
-    
+
+    if use_emoji:
+        emoji = ICON_EMOJI.get(key.lower(), "❓")
+        return f'<span style="font-size: {size}px; color: {icon_color}; vertical-align: middle;">{emoji}</span>'
+    icon_class = icon_data["icon"]
     return f'<i class="{icon_class}" style="font-size: {size}px; color: {icon_color}; vertical-align: middle;"></i>'
 
 def icon_title(text: str, icon_key: str, size: int = 24, color: str = None) -> str:

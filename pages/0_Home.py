@@ -715,8 +715,8 @@ footer {
 # ==============================================================================
 # 3. FUNÇÕES AUXILIARES
 # ==============================================================================
-# Importar biblioteca de ícones do omni_utils
-from omni_utils import get_icon, icon_title
+# Importar biblioteca de ícones do omni_utils (com fallback emoji para Streamlit)
+from omni_utils import get_icon, icon_title, USE_EMOJI_FALLBACK
 def get_base64_image(image_path: str) -> str:
     """Carrega imagem e converte para base64"""
     if not os.path.exists(image_path):
@@ -864,18 +864,17 @@ def render_topbar():
     )
 
 
-def create_module_card(title, desc, icon, color_cls, bg_cls, page, key):
-    """Cria um card de módulo com botão de acesso"""
-    # Determinar cor do ícone baseado na classe bg
+def create_module_card(title, desc, icon, color_cls, bg_cls, page, key, emoji=None):
+    """Cria um card de módulo com botão de acesso. Usa emoji quando USE_EMOJI_FALLBACK (Streamlit pode não carregar Remixicon)."""
     icon_color = "#9333EA" if "purple" in bg_cls else "#2563EB" if "indigo" in bg_cls else "#0EA5E9" if "blue" in bg_cls else "#06B6D4" if "teal" in bg_cls else "#F43F5E" if "rose" in bg_cls else "#0C4A6E"
-    
+    icon_content = f'<span style="font-size: 2rem; color: {icon_color};">{emoji}</span>' if (USE_EMOJI_FALLBACK and emoji) else f'<i class="{icon}" style="font-size: 2rem; color: {icon_color}; display: inline-block; visibility: visible; opacity: 1; font-style: normal;"></i>'
     st.markdown(
         f"""
         <div class="mod-card-wrapper">
             <div class="mod-card-rect">
                 <div class="mod-bar {color_cls}"></div>
                 <div class="mod-icon-area {bg_cls}" style="display: flex; align-items: center; justify-content: center;">
-                    <i class="{icon}" style="font-size: 2rem; color: {icon_color}; display: inline-block; visibility: visible; opacity: 1; font-style: normal;"></i>
+                    {icon_content}
                 </div>
                 <div class="mod-content">
                     <div class="mod-title">{title}</div>
@@ -1411,47 +1410,24 @@ def render_central_conhecimento():
 
 
 def render_resources():
-    """Renderiza os recursos externos"""
+    """Renderiza os recursos externos. Ícones usam emoji quando USE_EMOJI_FALLBACK (Streamlit)."""
     resources_data = [
-        {
-            "title": "Lei da Inclusão",
-            "desc": "LBI e diretrizes",
-            "icon": "ri-government-fill",
-            "theme": "rc-sky",
-            "link": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm"
-        },
-        {
-            "title": "Base Nacional",
-            "desc": "Competências BNCC",
-            "icon": "ri-compass-3-fill",
-            "theme": "rc-green",
-            "link": "http://basenacionalcomum.mec.gov.br/"
-        },
-        {
-            "title": "Neurociência",
-            "desc": "Artigos e estudos",
-            "icon": "ri-brain-fill",
-            "theme": "rc-rose",
-            "link": "https://institutoneurosaber.com.br/"
-        },
-        {
-            "title": "Ajuda Omnisfera",
-            "desc": "Tutoriais e suporte",
-            "icon": "ri-question-fill",
-            "theme": "rc-orange",
-            "link": "#"
-        },
+        {"title": "Lei da Inclusão", "desc": "LBI e diretrizes", "icon": "ri-government-fill", "emoji": "🏛️", "theme": "rc-sky", "link": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm"},
+        {"title": "Base Nacional", "desc": "Competências BNCC", "icon": "ri-compass-3-fill", "emoji": "🧭", "theme": "rc-green", "link": "http://basenacionalcomum.mec.gov.br/"},
+        {"title": "Neurociência", "desc": "Artigos e estudos", "icon": "ri-brain-fill", "emoji": "🧠", "theme": "rc-rose", "link": "https://institutoneurosaber.com.br/"},
+        {"title": "Ajuda Omnisfera", "desc": "Tutoriais e suporte (em breve)", "icon": "ri-question-fill", "emoji": "❓", "theme": "rc-orange", "link": None},
     ]
-    
     cols = st.columns(4, gap="medium")
     for idx, resource in enumerate(resources_data):
         with cols[idx]:
-            if resource["link"] != "#":
+            link = resource.get("link")
+            icon_html = f'<span style="font-size:1.5rem;">{resource.get("emoji", "❓")}</span>' if USE_EMOJI_FALLBACK else f'<i class="{resource["icon"]}"></i>'
+            if link:
                 st.markdown(
                     f"""
-                    <a href="{resource['link']}" target="_blank" class="res-card-link">
+                    <a href="{link}" target="_blank" class="res-card-link">
                         <div class="res-card {resource['theme']}">
-                            <div class="res-icon {resource['theme']}"><i class="{resource['icon']}"></i></div>
+                            <div class="res-icon {resource['theme']}">{icon_html}</div>
                             <div class="res-info">
                                 <div class="res-name">{resource['title']}</div>
                                 <div class="res-meta">{resource['desc']}</div>
@@ -1464,8 +1440,8 @@ def render_resources():
             else:
                 st.markdown(
                     f"""
-                    <div class="res-card {resource['theme']}" style="cursor: pointer;">
-                        <div class="res-icon {resource['theme']}"><i class="{resource['icon']}"></i></div>
+                    <div class="res-card {resource['theme']}" style="cursor: default; opacity: 0.9;">
+                        <div class="res-icon {resource['theme']}">{icon_html}</div>
                         <div class="res-info">
                             <div class="res-name">{resource['title']}</div>
                             <div class="res-meta">{resource['desc']}</div>
@@ -1570,7 +1546,7 @@ st.markdown(
             <div class="hero-greet">{saudacao}, {nome_user}!</div>
             <div class="hero-text">{mensagem_final}</div>
         </div>
-        <div class="hero-icon"><i class="ri-heart-pulse-fill"></i></div>
+        <div class="hero-icon">{"❤️" if USE_EMOJI_FALLBACK else '<i class="ri-heart-pulse-fill"></i>'}</div>
     </div>
     """,
     unsafe_allow_html=True,
@@ -1580,60 +1556,12 @@ st.markdown(
 st.markdown("### 🚀 Módulos da Plataforma")
 
 modules_data = [
-    {
-        "title": "Estudantes",
-        "desc": "Gestão completa de estudantes, histórico e acompanhamento individualizado.",
-        "icon": "ri-user-star-fill",  # Ícone mais bonito
-        "color_cls": "c-indigo",
-        "bg_cls": "bg-indigo-soft",
-        "page": "pages/Alunos.py",
-        "key": "m_aluno",
-    },
-    {
-        "title": "Estratégias & PEI",
-        "desc": "Plano Educacional Individual com objetivos, avaliações e acompanhamento.",
-        "icon": "ri-book-3-fill",  # Ícone mais bonito
-        "color_cls": "c-blue",
-        "bg_cls": "bg-blue-soft",
-        "page": "pages/1_PEI.py",
-        "key": "m_pei",
-    },
-    {
-        "title": "Plano de Ação / PAEE",
-        "desc": "Plano de Atendimento Educacional Especializado e sala de recursos.",
-        "icon": "ri-puzzle-fill",  # Ícone mais bonito
-        "color_cls": "c-purple",
-        "bg_cls": "bg-purple-soft",
-        "page": "pages/2_PAE.py",
-        "key": "m_pae",
-    },
-    {
-        "title": "Hub de Recursos",
-        "desc": "Biblioteca de materiais, modelos e inteligência artificial para apoio.",
-        "icon": "ri-rocket-fill",  # Ícone mais bonito
-        "color_cls": "c-teal",
-        "bg_cls": "bg-teal-soft",
-        "page": "pages/3_Hub_Inclusao.py",
-        "key": "m_hub",
-    },
-    {
-        "title": "Diário de Bordo",
-        "desc": "Registro diário de observações, evidências e intervenções.",
-        "icon": "ri-edit-box-fill",  # Ícone mais bonito
-        "color_cls": "c-rose",
-        "bg_cls": "bg-rose-soft",
-        "page": "pages/4_Diario_de_Bordo.py",
-        "key": "m_diario",
-    },
-    {
-        "title": "Evolução & Dados",
-        "desc": "Indicadores, gráficos e relatórios de progresso dos estudantes.",
-        "icon": "ri-line-chart-fill",  # Ícone mais bonito
-        "color_cls": "c-sky",
-        "bg_cls": "bg-sky-soft",
-        "page": "pages/5_Monitoramento_Avaliacao.py",
-        "key": "m_dados",
-    },
+    {"title": "Estudantes", "desc": "Gestão completa de estudantes, histórico e acompanhamento individualizado.", "icon": "ri-user-star-fill", "emoji": "👥", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/Alunos.py", "key": "m_aluno"},
+    {"title": "Estratégias & PEI", "desc": "Plano Educacional Individual com objetivos, avaliações e acompanhamento.", "icon": "ri-book-3-fill", "emoji": "📘", "color_cls": "c-blue", "bg_cls": "bg-blue-soft", "page": "pages/1_PEI.py", "key": "m_pei"},
+    {"title": "Plano de Ação / PAEE", "desc": "Plano de Atendimento Educacional Especializado e sala de recursos.", "icon": "ri-puzzle-fill", "emoji": "🧩", "color_cls": "c-purple", "bg_cls": "bg-purple-soft", "page": "pages/2_PAE.py", "key": "m_pae"},
+    {"title": "Hub de Recursos", "desc": "Biblioteca de materiais, modelos e inteligência artificial para apoio.", "icon": "ri-rocket-fill", "emoji": "🚀", "color_cls": "c-teal", "bg_cls": "bg-teal-soft", "page": "pages/3_Hub_Inclusao.py", "key": "m_hub"},
+    {"title": "Diário de Bordo", "desc": "Registro diário de observações, evidências e intervenções.", "icon": "ri-edit-box-fill", "emoji": "📝", "color_cls": "c-rose", "bg_cls": "bg-rose-soft", "page": "pages/4_Diario_de_Bordo.py", "key": "m_diario"},
+    {"title": "Evolução & Dados", "desc": "Indicadores, gráficos e relatórios de progresso dos estudantes.", "icon": "ri-line-chart-fill", "emoji": "📊", "color_cls": "c-sky", "bg_cls": "bg-sky-soft", "page": "pages/5_Monitoramento_Avaliacao.py", "key": "m_dados"},
 ]
 
 # Organiza módulos em grid responsivo
@@ -1647,7 +1575,8 @@ for i, module in enumerate(modules_data):
             color_cls=module["color_cls"],
             bg_cls=module["bg_cls"],
             page=module["page"],
-            key=module["key"]
+            key=module["key"],
+            emoji=module.get("emoji"),
         )
 
 st.markdown("<div style='height:30px'></div>", unsafe_allow_html=True)

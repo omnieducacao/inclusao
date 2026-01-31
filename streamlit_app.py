@@ -22,7 +22,7 @@ menu_items = {} if ENV != "TESTE" else None
 
 st.set_page_config(
     page_title="Omnisfera | Ecossistema",
-    page_icon="iconeaba.png" if os.path.exists("iconeaba.png") else "🌐",
+    page_icon="omni_icone.png" if os.path.exists("omni_icone.png") else "🌐",
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items=menu_items,
