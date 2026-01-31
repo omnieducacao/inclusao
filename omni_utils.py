@@ -1639,7 +1639,12 @@ def exportar_jornada_para_sheets(texto_jornada: str, titulo: str = "Jornada Gami
         if spreadsheet_id:
             # Escrever na planilha já configurada: abrir e adicionar nova aba (usa o Drive do dono da planilha)
             sh = gc.open_by_key(spreadsheet_id)
-            worksheet = sh.add_worksheet(title=titulo_aba, rows=max(len(data) + 10, 100), cols=1)
+            # Nome único para a aba (evita "A sheet with the name ... already exists")
+            from datetime import datetime
+            sufixo = datetime.now().strftime(" %d-%m %Hh%M")
+            titulo_aba_unico = (titulo_aba.rstrip() + sufixo)[:100]
+            titulo_aba_unico = "".join(c for c in titulo_aba_unico if c.isalnum() or c in " -_h") or "Jornada"
+            worksheet = sh.add_worksheet(title=titulo_aba_unico, rows=max(len(data) + 10, 100), cols=1)
             worksheet.update(data, range_a1, value_input_option="RAW")
             return sh.url, None
         # Sem planilha configurada: a conta de serviço não tem quota no Drive para criar novas planilhas
