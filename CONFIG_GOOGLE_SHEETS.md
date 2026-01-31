@@ -90,18 +90,40 @@ client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/..."
 
 ---
 
-## 5. Ordem de leitura no app
+## 5. Planilha de destino (opcional)
+
+Se você quiser que **todas** as exportações da Jornada Gamificada vão para **uma planilha fixa** (em vez de criar uma nova planilha a cada exportação), configure o **ID** ou a **URL** dessa planilha. O app vai abrir essa planilha e **adicionar uma nova aba** a cada exportação (ex.: "Jornada Gamificada - Maria", "Jornada Gamificada - João").
+
+1. **Compartilhe a planilha** com o e-mail da conta de serviço (o `client_email` do JSON), dando permissão de **Editor**.
+2. No `.streamlit/secrets.toml` ou em variável de ambiente:
+
+```toml
+# Opção 1: URL da planilha (o app extrai o ID)
+GOOGLE_SHEETS_SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1cJHZAq-hwDvDEbOrt9yc9TdVs_CoKrBW4FTsgFiNZi0/edit?usp=sharing"
+
+# Opção 2: só o ID
+GOOGLE_SHEETS_SPREADSHEET_ID = "1cJHZAq-hwDvDEbOrt9yc9TdVs_CoKrBW4FTsgFiNZi0"
+```
+
+Se **não** configurar ID/URL, o app continua criando uma **nova planilha** a cada exportação (comportamento antigo).
+
+---
+
+## 6. Ordem de leitura no app
 
 O app usa, nesta ordem:
 
 1. **GOOGLE_SHEETS_CREDENTIALS_JSON** — variável de ambiente (string JSON) ou `st.secrets` (string JSON **ou** seção TOML como objeto)
 2. **GOOGLE_SHEETS_CREDENTIALS_PATH** — variável de ambiente ou `st.secrets` (caminho do arquivo JSON)
 
-Se uma delas estiver preenchida e correta, a exportação para o Google Sheets funcionará.
+Para **onde** escrever:
+
+- Se **GOOGLE_SHEETS_SPREADSHEET_ID** ou **GOOGLE_SHEETS_SPREADSHEET_URL** estiver configurado: abre essa planilha e **adiciona uma nova aba** com o conteúdo da jornada.
+- Caso contrário: **cria uma nova planilha** a cada exportação.
 
 ---
 
-## 6. Onde usar no app
+## 7. Onde usar no app
 
 Depois de aprovar uma **Jornada Gamificada** na aba **Jornada Gamificada** do PAE, o botão **Exportar para Google Sheets** cria uma nova planilha com o texto da missão (uma coluna, cada linha = um parágrafo) e exibe o link para abrir.
 
@@ -109,7 +131,7 @@ Se as credenciais não estiverem configuradas, será exibida uma mensagem pedind
 
 ---
 
-## Segurança
+## 8. Segurança
 
 - **Nunca** commite o arquivo JSON da conta de serviço no Git. Adicione ao `.gitignore`, por exemplo:  
   `credenciais-google-sheets.json` ou `*-google-*.json`.

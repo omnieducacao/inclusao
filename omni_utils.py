@@ -1516,11 +1516,42 @@ def get_google_sheets_credentials():
     return None
 
 
+def _get_google_sheets_spreadsheet_id():
+    """
+    Retorna o ID da planilha de destino (se configurado).
+    Ordem: GOOGLE_SHEETS_SPREADSHEET_ID, GOOGLE_SHEETS_SPREADSHEET_URL (extrai o ID da URL).
+    """
+    import re
+    raw_id = (os.environ.get("GOOGLE_SHEETS_SPREADSHEET_ID") or get_setting("GOOGLE_SHEETS_SPREADSHEET_ID", "") or "").strip()
+    if raw_id:
+        return raw_id
+    try:
+        raw_id = st.secrets.get("GOOGLE_SHEETS_SPREADSHEET_ID", "") or ""
+        if raw_id and str(raw_id).strip():
+            return str(raw_id).strip()
+    except Exception:
+        pass
+    url = (os.environ.get("GOOGLE_SHEETS_SPREADSHEET_URL") or get_setting("GOOGLE_SHEETS_SPREADSHEET_URL", "") or "").strip()
+    if not url:
+        try:
+            url = (st.secrets.get("GOOGLE_SHEETS_SPREADSHEET_URL") or "") or ""
+            url = str(url).strip() if url else ""
+        except Exception:
+            pass
+    if url:
+        # Extrai ID de URLs como https://docs.google.com/spreadsheets/d/1cJHZAq-hwDvDEbOrt9yc9TdVs_CoKrBW4FTsgFiNZi0/edit?usp=sharing
+        m = re.search(r"/d/([a-zA-Z0-9_-]+)", url)
+        if m:
+            return m.group(1)
+    return None
+
+
 def exportar_jornada_para_sheets(texto_jornada: str, titulo: str = "Jornada Gamificada", nome_estudante: str = "") -> tuple[str | None, str | None]:
     """
-    Cria uma planilha no Google Sheets com o texto da jornada (uma coluna, linhas por parágrafo).
+    Escreve o texto da jornada no Google Sheets (uma coluna, linhas por parágrafo).
+    - Se GOOGLE_SHEETS_SPREADSHEET_ID ou GOOGLE_SHEETS_SPREADSHEET_URL estiver configurado: abre essa planilha e adiciona uma nova aba.
+    - Caso contrário: cria uma nova planilha (comportamento antigo).
     Retorna (url_da_planilha, None) em sucesso ou (None, mensagem_erro).
-    Requer GOOGLE_SHEETS_CREDENTIALS_JSON (JSON de service account com acesso à API Sheets).
     """
     if not (texto_jornada or "").strip():
         return None, "Nenhum conteúdo para exportar."
@@ -1537,19 +1568,25 @@ def exportar_jornada_para_sheets(texto_jornada: str, titulo: str = "Jornada Gami
         ]
         creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
         gc = gspread.authorize(creds)
-        # Título sem caracteres que quebram no Sheets (nome da aba/planilha)
-        titulo_planilha = (titulo + (" - " + nome_estudante if nome_estudante else ""))[:100]
-        titulo_planilha = "".join(c for c in titulo_planilha if c.isalnum() or c in " -_")
-        sh = gc.create(titulo_planilha or "Jornada Gamificada")
-        worksheet = sh.sheet1
-        # Uma linha por parágrafo (só não vazias); se não houver, uma linha com o texto inteiro
+        # Nome da aba/planilha (sem caracteres que quebram)
+        titulo_aba = (titulo + (" - " + nome_estudante if nome_estudante else ""))[:100]
+        titulo_aba = "".join(c for c in titulo_aba if c.isalnum() or c in " -_") or "Jornada Gamificada"
+        # Dados: uma linha por parágrafo
         linhas = [linha.strip() for linha in texto_jornada.replace("\r", "\n").split("\n") if linha.strip()]
         if not linhas:
             linhas = [texto_jornada.strip()[:50000] or "(sem conteúdo)"]
         data = [[str(ln)] for ln in linhas]
-        # Range explícito (A1:A<n>) para a API preencher todas as células
-        # gspread: update(values, range_name) — valores primeiro, depois o range
         range_a1 = f"A1:A{len(data)}"
+        spreadsheet_id = _get_google_sheets_spreadsheet_id()
+        if spreadsheet_id:
+            # Escrever na planilha já configurada: abrir e adicionar nova aba
+            sh = gc.open_by_key(spreadsheet_id)
+            worksheet = sh.add_worksheet(title=titulo_aba, rows=max(len(data) + 10, 100), cols=1)
+            worksheet.update(data, range_a1, value_input_option="RAW")
+            return sh.url, None
+        # Comportamento antigo: criar nova planilha
+        sh = gc.create(titulo_aba)
+        worksheet = sh.sheet1
         worksheet.update(data, range_a1, value_input_option="RAW")
         return sh.url, None
     except Exception as e:
