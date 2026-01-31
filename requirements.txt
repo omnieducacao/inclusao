@@ -11,3 +11,6 @@ pandas
 plotly
 streamlit-option-menu
 graphviz
+google-genai
+gspread
+google-auth

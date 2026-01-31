@@ -2728,21 +2728,49 @@ with tab_jornada:
             st.rerun()
 
     elif status_game == "aprovado":
-        st.success("Missão aprovada! Edite se quiser e exporte em PDF.")
+        st.success("Missão aprovada! Edite se quiser e exporte em PDF ou Google Sheets.")
         novo_texto = st.text_area("Edição final (opcional)", value=estado.get("texto", ""), height=280, key="jg_texto_final")
         jg[chave_jornada]["texto"] = novo_texto
         pdf_bytes = _gerar_pdf_jornada_simples(novo_texto)
-        if pdf_bytes:
+        col_pdf, col_sheets, col_csv = st.columns(3)
+        with col_pdf:
+            if pdf_bytes:
+                st.download_button(
+                    "Baixar Missão em PDF",
+                    pdf_bytes,
+                    file_name=f"Missao_{aluno.get('nome','Estudante').replace(' ','_')}.pdf",
+                    mime="application/pdf",
+                    type="primary",
+                    use_container_width=True,
+                    key="btn_jg_pdf"
+                )
+        with col_sheets:
+            if st.button("Exportar para Google Sheets", use_container_width=True, key="btn_jg_sheets"):
+                url_sheet, err = ou.exportar_jornada_para_sheets(
+                    novo_texto, "Jornada Gamificada", aluno.get("nome", "")
+                )
+                if url_sheet:
+                    st.success("Planilha criada!")
+                    st.link_button("Abrir planilha", url_sheet, use_container_width=True, key="link_jg_sheets")
+                else:
+                    st.warning(err or "Erro ao exportar.")
+        with col_csv:
+            import io
+            import csv
+            buf = io.StringIO()
+            writer = csv.writer(buf)
+            for linha in (novo_texto or "").replace("\r", "\n").split("\n"):
+                writer.writerow([linha.strip() or ""])
+            csv_bytes = buf.getvalue().encode("utf-8-sig")
             st.download_button(
-                "Baixar Missão em PDF",
-                pdf_bytes,
-                file_name=f"Missao_{aluno.get('nome','Estudante').replace(' ','_')}.pdf",
-                mime="application/pdf",
-                type="primary",
+                "Baixar CSV (importar no Sheets)",
+                csv_bytes,
+                file_name=f"Jornada_{aluno.get('nome','Estudante').replace(' ','_')}.csv",
+                mime="text/csv",
                 use_container_width=True,
-                key="btn_jg_pdf"
+                key="btn_jg_csv"
             )
-        st.caption("Dica: imprima e entregue ao estudante ou à família.")
+        st.caption("Dica: imprima e entregue ao estudante ou à família. Para Google Sheets: use o botão acima ou baixe o CSV e importe em Arquivo > Importar.")
         if st.button("Criar Nova Missão (outra origem)", use_container_width=True, key="btn_jg_nova"):
             jg[chave_jornada]["status"] = "rascunho"
             jg[chave_jornada]["feedback"] = ""

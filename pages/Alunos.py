@@ -130,9 +130,8 @@ if not st.session_state.autenticado:
 def list_students_rest(workspace_id):
     try:
         url = ou.get_setting("SUPABASE_URL").rstrip("/") + "/rest/v1/students"
-        # Usa o header helper do omni_utils
         headers = ou._headers()
-        params = f"?select=id,name,grade,class_group,diagnosis&workspace_id=eq.{workspace_id}&order=created_at.desc"
+        params = f"?select=id,name,grade,class_group,diagnosis,pei_data,paee_ciclos&workspace_id=eq.{workspace_id}&order=created_at.desc"
         r = requests.get(url + params, headers=headers, timeout=10)
         return r.json() if r.status_code == 200 else []
     except: return []
@@ -144,6 +143,30 @@ def delete_student_rest(sid, wid):
         requests.delete(url, headers=headers)
         return True
     except: return False
+
+def update_student_pei_data(sid, pei_dict):
+    """Atualiza apenas o campo pei_data do estudante (PATCH)."""
+    try:
+        import json
+        url = ou.get_setting("SUPABASE_URL").rstrip("/") + f"/rest/v1/students?id=eq.{sid}"
+        headers = ou._headers()
+        headers["Prefer"] = "return=representation"
+        payload = json.loads(json.dumps(pei_dict, default=str))
+        r = requests.patch(url, headers=headers, json={"pei_data": payload}, timeout=15)
+        return r.status_code in (200, 204)
+    except Exception:
+        return False
+
+def update_student_paee_ciclos(sid, ciclos):
+    """Atualiza apenas o campo paee_ciclos do estudante (PATCH)."""
+    try:
+        url = ou.get_setting("SUPABASE_URL").rstrip("/") + f"/rest/v1/students?id=eq.{sid}"
+        headers = ou._headers()
+        headers["Prefer"] = "return=representation"
+        r = requests.patch(url, headers=headers, json={"paee_ciclos": ciclos or []}, timeout=15)
+        return r.status_code in (200, 204)
+    except Exception:
+        return False
 
 # ==============================================================================
 # 4. APLICAÇÃO PRINCIPAL
@@ -205,8 +228,17 @@ else:
         sid, nome = a.get("id"), a.get("name", "—")
         serie, turma = a.get("grade", "—"), a.get("class_group", "—")
         diag = a.get("diagnosis", "—")
+        pei_data = a.get("pei_data") or {}
+        paee_ciclos = a.get("paee_ciclos") or []
+        if not isinstance(pei_data, dict):
+            pei_data = {}
+        if not isinstance(paee_ciclos, list):
+            paee_ciclos = []
         
-        # Chave única para controle de estado do botão de deletar
+        tem_relatorio = bool((pei_data.get("ia_sugestao") or "").strip())
+        tem_jornada = bool((pei_data.get("ia_mapa_texto") or "").strip())
+        n_ciclos = len(paee_ciclos)
+        
         confirm_key = f"confirm_del_{sid}"
         if confirm_key not in st.session_state:
             st.session_state[confirm_key] = False
@@ -220,7 +252,6 @@ else:
             <div>
         """, unsafe_allow_html=True)
         
-        # Coluna de Ações (Botão Python dentro do HTML Layout)
         if not st.session_state[confirm_key]:
             c_btn, _ = st.columns([1, 4])
             with c_btn:
@@ -242,6 +273,53 @@ else:
                     st.rerun()
 
         st.markdown("</div></div>", unsafe_allow_html=True)
+        
+        # Lista suspensa (expander): o que está anexado a este aluno
+        with st.expander(f"📎 O que está anexado a **{nome}**", expanded=False):
+            itens = []
+            if tem_relatorio:
+                itens.append("📄 Relatório PEI (Consultoria IA)")
+            if tem_jornada:
+                itens.append("🎮 Jornada gamificada")
+            if n_ciclos > 0:
+                itens.append(f"📋 Ciclos PAE ({n_ciclos})")
+            if not itens:
+                st.caption("Nenhum relatório ou jornada anexada ainda.")
+            else:
+                for item in itens:
+                    st.markdown(f"- {item}")
+                st.caption("Você pode apagar apenas os relatórios ou a jornada, sem excluir o estudante.")
+                col_r, col_j, col_c = st.columns(3)
+                with col_r:
+                    if tem_relatorio and st.button("Apagar apenas relatórios", key=f"apagar_rel_{sid}", type="secondary"):
+                        pei_novo = dict(pei_data)
+                        pei_novo["ia_sugestao"] = ""
+                        pei_novo["status_validacao_pei"] = "rascunho"
+                        if update_student_pei_data(sid, pei_novo):
+                            list_students_rest.clear()
+                            st.success("Relatórios PEI apagados.")
+                            st.rerun()
+                        else:
+                            st.error("Erro ao atualizar.")
+                with col_j:
+                    if tem_jornada and st.button("Apagar jornada gamificada", key=f"apagar_jornada_{sid}", type="secondary"):
+                        pei_novo = dict(pei_data)
+                        pei_novo["ia_mapa_texto"] = ""
+                        pei_novo["status_validacao_game"] = "rascunho"
+                        if update_student_pei_data(sid, pei_novo):
+                            list_students_rest.clear()
+                            st.success("Jornada gamificada apagada.")
+                            st.rerun()
+                        else:
+                            st.error("Erro ao atualizar.")
+                with col_c:
+                    if n_ciclos > 0 and st.button("Apagar ciclos PAE", key=f"apagar_ciclos_{sid}", type="secondary"):
+                        if update_student_paee_ciclos(sid, []):
+                            list_students_rest.clear()
+                            st.success("Ciclos PAE apagados.")
+                            st.rerun()
+                        else:
+                            st.error("Erro ao atualizar.")
     
     st.markdown("</div>", unsafe_allow_html=True)
 

@@ -1403,3 +1403,81 @@ def inject_base_css():
         """,
         unsafe_allow_html=True,
     )
+
+
+# =============================================================================
+# GEMINI API (integração opcional)
+# =============================================================================
+def get_gemini_api_key():
+    """Retorna a chave da API Gemini: env GEMINI_API_KEY, secrets ou session_state."""
+    v = os.environ.get("GEMINI_API_KEY") or get_setting("GEMINI_API_KEY", "") or (getattr(st, "session_state", None) or {}).get("GEMINI_API_KEY", "")
+    return (v or "").strip() or None
+
+
+def consultar_gemini(prompt: str, model: str = "gemini-2.0-flash", api_key: str | None = None) -> tuple[str | None, str | None]:
+    """
+    Chama a API Gemini para geração de texto.
+    Retorna (texto, None) em sucesso ou (None, mensagem_erro) em falha.
+    """
+    key = api_key or get_gemini_api_key()
+    if not key:
+        return None, "Configure GEMINI_API_KEY (ambiente, secrets ou session_state)."
+    try:
+        from google import genai
+        client = genai.Client(api_key=key)
+        response = client.models.generate_content(model=model, contents=prompt)
+        if response and response.text:
+            return response.text.strip(), None
+        return None, "Resposta vazia do Gemini."
+    except Exception as e:
+        return None, str(e)[:200]
+
+
+# =============================================================================
+# GOOGLE SHEETS — Exportar Jornada Gamificada
+# =============================================================================
+def get_google_sheets_credentials():
+    """
+    Retorna credenciais para Google Sheets (service account).
+    Ordem: GOOGLE_SHEETS_CREDENTIALS_JSON (string JSON), env var ou secrets.
+    """
+    import json
+    raw = os.environ.get("GOOGLE_SHEETS_CREDENTIALS_JSON") or get_setting("GOOGLE_SHEETS_CREDENTIALS_JSON", "")
+    if not raw:
+        return None
+    try:
+        if isinstance(raw, str):
+            return json.loads(raw)
+        return raw
+    except Exception:
+        return None
+
+
+def exportar_jornada_para_sheets(texto_jornada: str, titulo: str = "Jornada Gamificada", nome_estudante: str = "") -> tuple[str | None, str | None]:
+    """
+    Cria uma planilha no Google Sheets com o texto da jornada (uma coluna, linhas por parágrafo).
+    Retorna (url_da_planilha, None) em sucesso ou (None, mensagem_erro).
+    Requer GOOGLE_SHEETS_CREDENTIALS_JSON (JSON de service account com acesso à API Sheets).
+    """
+    if not (texto_jornada or "").strip():
+        return None, "Nenhum conteúdo para exportar."
+    creds_dict = get_google_sheets_credentials()
+    if not creds_dict:
+        return None, "Configure GOOGLE_SHEETS_CREDENTIALS_JSON (credenciais de service account) para exportar direto no Google Sheets. Enquanto isso, use o download em CSV e importe em Arquivo > Importar."
+    try:
+        import gspread
+        from google.oauth2.service_account import Credentials
+        scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive.file"]
+        creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+        gc = gspread.authorize(creds)
+        titulo_planilha = f"{titulo} - {nome_estudante}"[:100] if nome_estudante else titulo
+        sh = gc.create(titulo_planilha)
+        worksheet = sh.sheet1
+        linhas = [linha.strip() for linha in texto_jornada.replace("\r", "\n").split("\n") if linha.strip()]
+        if not linhas:
+            linhas = [texto_jornada[:50000]]
+        data = [[linha] for linha in linhas]
+        worksheet.update("A1", data, value_input_option="USER_ENTERED")
+        return sh.url, None
+    except Exception as e:
+        return None, str(e)[:300]
