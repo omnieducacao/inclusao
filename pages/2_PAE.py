@@ -572,6 +572,9 @@ def list_students_rest(workspace_id: str = ""):
 def carregar_estudantes_supabase():
     """Carrega e processa, extraindo dados ricos do PEI"""
     _workspace_id = st.session_state.get("workspace_id") or ""
+    if st.session_state.get("students_cache_invalid"):
+        list_students_rest.clear()
+        st.session_state.pop("students_cache_invalid", None)
     dados = list_students_rest(_workspace_id)
     estudantes = []
     

@@ -291,6 +291,9 @@ def list_students_rest():
 
 def carregar_estudantes_formatados():
     """Processa a lista crua incluindo dados do PEI, PAE e Hub."""
+    if st.session_state.get("students_cache_invalid"):
+        list_students_rest.clear()
+        st.session_state.pop("students_cache_invalid", None)
     dados = list_students_rest()
     estudantes = []
 

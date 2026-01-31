@@ -597,6 +597,9 @@ def list_students_rest():
 
 def carregar_estudantes_supabase():
     """Carrega e processa estudantes, separando Diagnóstico de Hiperfoco."""
+    if st.session_state.get("students_cache_invalid"):
+        list_students_rest.clear()
+        st.session_state.pop("students_cache_invalid", None)
     dados = list_students_rest()
     estudantes = []
 

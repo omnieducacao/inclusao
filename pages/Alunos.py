@@ -185,6 +185,11 @@ if not ws_id:
     st.error("Nenhum workspace selecionado.")
     st.stop()
 
+# Se um aluno foi criado/alterado em outra página, recarregar a lista
+if st.session_state.get("students_cache_invalid"):
+    list_students_rest.clear()
+    st.session_state.pop("students_cache_invalid", None)
+
 # Busca Alunos
 alunos = list_students_rest(ws_id)
 
@@ -265,6 +270,7 @@ else:
                 if st.button("✅", key=f"yes_{sid}", type="primary"):
                     delete_student_rest(sid, ws_id)
                     list_students_rest.clear()
+                    st.session_state["students_cache_invalid"] = True
                     st.session_state[confirm_key] = False
                     st.rerun()
             with c_n:

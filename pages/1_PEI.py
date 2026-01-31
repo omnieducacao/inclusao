@@ -237,7 +237,12 @@ def db_create_student(payload: dict):
     if not ok:
         raise RuntimeError(f"Supabase não está pronto (REST). Missing: {details.get('missing')}")
 
-    ws_id = st.session_state.get("workspace_id")
+    ws_id = st.session_state.get("workspace_id") or (payload or {}).get("workspace_id")
+    if not ws_id or not str(ws_id).strip():
+        raise RuntimeError(
+            "Nenhum workspace selecionado. Faça login na Página Inicial e selecione o workspace (PIN) antes de criar um novo aluno. "
+            "O aluno só aparece nas páginas quando é criado no mesmo workspace em que você está logado."
+        )
     row = dict(payload or {})
     row["workspace_id"] = ws_id
 
@@ -2244,6 +2249,7 @@ with tab0:
                                 if created and isinstance(created, dict):
                                     sid = created.get("id")
                                     st.session_state["selected_student_id"] = sid
+                                    st.session_state["students_cache_invalid"] = True  # outras páginas recarregam a lista
                             else:
                                 db_update_student(sid, student_payload)
 
@@ -3830,6 +3836,7 @@ with tab9:
                                 if created and isinstance(created, dict):
                                     sid = created.get("id")
                                     st.session_state["selected_student_id"] = sid
+                                    st.session_state["students_cache_invalid"] = True  # outras páginas recarregam a lista
                             else:
                                 db_update_student(sid, student_payload)
 
