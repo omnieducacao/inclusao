@@ -1471,18 +1471,27 @@ def consultar_gemini(prompt: str, model: str = "gemini-2.0-flash", api_key: str 
 def get_google_sheets_credentials():
     """
     Retorna credenciais para Google Sheets (service account).
-    Ordem: GOOGLE_SHEETS_CREDENTIALS_JSON (string JSON), env var ou secrets.
+    Ordem de leitura:
+    1. GOOGLE_SHEETS_CREDENTIALS_JSON — string JSON (env ou secrets)
+    2. GOOGLE_SHEETS_CREDENTIALS_PATH — caminho para arquivo JSON (env ou secrets)
     """
     import json
     raw = os.environ.get("GOOGLE_SHEETS_CREDENTIALS_JSON") or get_setting("GOOGLE_SHEETS_CREDENTIALS_JSON", "")
-    if not raw:
-        return None
-    try:
-        if isinstance(raw, str):
-            return json.loads(raw)
-        return raw
-    except Exception:
-        return None
+    if raw:
+        try:
+            if isinstance(raw, str):
+                return json.loads(raw)
+            return raw
+        except Exception:
+            pass
+    path = (os.environ.get("GOOGLE_SHEETS_CREDENTIALS_PATH") or get_setting("GOOGLE_SHEETS_CREDENTIALS_PATH", "") or "").strip()
+    if path and os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return None
 
 
 def exportar_jornada_para_sheets(texto_jornada: str, titulo: str = "Jornada Gamificada", nome_estudante: str = "") -> tuple[str | None, str | None]:
@@ -1495,21 +1504,31 @@ def exportar_jornada_para_sheets(texto_jornada: str, titulo: str = "Jornada Gami
         return None, "Nenhum conteúdo para exportar."
     creds_dict = get_google_sheets_credentials()
     if not creds_dict:
-        return None, "Configure GOOGLE_SHEETS_CREDENTIALS_JSON (credenciais de service account) para exportar direto no Google Sheets. Enquanto isso, use o download em CSV e importe em Arquivo > Importar."
+        return None, "Configure Google Sheets: GOOGLE_SHEETS_CREDENTIALS_JSON (string JSON) ou GOOGLE_SHEETS_CREDENTIALS_PATH (caminho do arquivo). Veja CONFIG_GOOGLE_SHEETS.md."
     try:
         import gspread
         from google.oauth2.service_account import Credentials
-        scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive.file"]
+        scopes = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/drive",
+        ]
         creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
         gc = gspread.authorize(creds)
-        titulo_planilha = f"{titulo} - {nome_estudante}"[:100] if nome_estudante else titulo
-        sh = gc.create(titulo_planilha)
+        # Título sem caracteres que quebram no Sheets (nome da aba/planilha)
+        titulo_planilha = (titulo + (" - " + nome_estudante if nome_estudante else ""))[:100]
+        titulo_planilha = "".join(c for c in titulo_planilha if c.isalnum() or c in " -_")
+        sh = gc.create(titulo_planilha or "Jornada Gamificada")
         worksheet = sh.sheet1
+        # Uma linha por parágrafo (só não vazias); se não houver, uma linha com o texto inteiro
         linhas = [linha.strip() for linha in texto_jornada.replace("\r", "\n").split("\n") if linha.strip()]
         if not linhas:
-            linhas = [texto_jornada[:50000]]
-        data = [[linha] for linha in linhas]
-        worksheet.update("A1", data, value_input_option="USER_ENTERED")
+            linhas = [texto_jornada.strip()[:50000] or "(sem conteúdo)"]
+        data = [[str(ln)] for ln in linhas]
+        # Range explícito (A1:A<n>) para a API preencher todas as células
+        # gspread: update(values, range_name) — valores primeiro, depois o range
+        range_a1 = f"A1:A{len(data)}"
+        worksheet.update(data, range_a1, value_input_option="RAW")
         return sh.url, None
     except Exception as e:
         return None, str(e)[:300]
