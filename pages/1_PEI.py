@@ -439,7 +439,8 @@ default_state = {
     "matricula": "",
     "meds_extraidas_tmp": [],
     "status_meds_extraidas": "idle",
-    "habilidades_bncc_selecionadas": [],  # lista de {disciplina, codigo, descricao} da aba Habilidades BNCC
+    "habilidades_bncc_selecionadas": [],  # lista da aba Habilidades BNCC
+    "habilidades_bncc_validadas": None,   # lista validada pelo professor (Consultoria IA usa só esta quando existir)
 }
 
 if "dados" not in st.session_state:
@@ -638,6 +639,47 @@ def _parse_hab_row(hab: str) -> tuple:
         codigo, resto = m.group(1), m.group(2)
         descricao = resto.strip() if resto else hab
     return (codigo or "(sem código)", descricao[:200] + ("..." if len(descricao) > 200 else ""))
+
+
+def _codigos_permitidos(lista_hab: list) -> set:
+    """Retorna set de códigos BNCC em maiúscula a partir da lista de dicts (validadas ou selecionadas)."""
+    if not lista_hab or not isinstance(lista_hab, list):
+        return set()
+    return {(h.get("codigo") or "").strip().upper() for h in lista_hab if isinstance(h, dict) and h.get("codigo")}
+
+
+def filtrar_avaliacao_repertorio_apenas_permitidas(texto: str, lista_hab_permitidas: list) -> str:
+    """
+    Na seção 'Avaliação de Repertório', remove linhas que citam habilidades com código BNCC
+    que NÃO estejam na lista permitida (validadas pelo professor), evitando que a IA tenha inventado.
+    """
+    if not texto or not lista_hab_permitidas:
+        return texto
+    permitidos = _codigos_permitidos(lista_hab_permitidas)
+    if not permitidos:
+        return texto
+    # Padrão para códigos BNCC (EF01LP02, EM13CHT301, etc.)
+    padrao_codigo = re.compile(r"\b(EF\d+[A-Z0-9]+|EM\d+[A-Z0-9]+)\b", re.IGNORECASE)
+    # Encontrar seção Avaliação de Repertório até o próximo ###
+    inicio_marker = "AVALIAÇÃO DE REPERTÓRIO"
+    partes = re.split(r"(?=^###\s)", texto, flags=re.MULTILINE)
+    resultado = []
+    for bloco in partes:
+        if inicio_marker.upper() not in bloco.upper():
+            resultado.append(bloco)
+            continue
+        linhas = bloco.split("\n")
+        linhas_filtradas = []
+        for linha in linhas:
+            codigos_na_linha = set(c.upper() for c in padrao_codigo.findall(linha))
+            if not codigos_na_linha:
+                linhas_filtradas.append(linha)
+                continue
+            if codigos_na_linha.issubset(permitidos):
+                linhas_filtradas.append(linha)
+            # else: linha cita código não permitido (IA inventou) — não incluir
+        resultado.append("\n".join(linhas_filtradas))
+    return "".join(resultado)
 
 
 def carregar_habilidades_bncc_por_componente(serie: str) -> dict:
@@ -1523,8 +1565,8 @@ Com base no diagnóstico ({dados.get('diagnostico','')}) e nas barreiras citadas
 """.strip()
         else:
             perfil_ia = "Especialista em Inclusão Escolar e BNCC."
-            # Prioridade: habilidades selecionadas na aba Habilidades BNCC; senão carregar do CSV
-            hab_selecionadas = dados.get("habilidades_bncc_selecionadas") or []
+            # Prioridade: habilidades VALIDADAS pelo professor; senão selecionadas; senão carregar do CSV
+            hab_selecionadas = dados.get("habilidades_bncc_validadas") or dados.get("habilidades_bncc_selecionadas") or []
             if hab_selecionadas and isinstance(hab_selecionadas, list):
                 texto_hab_sel = "\n".join(
                     f"- {h.get('disciplina','')}: {h.get('codigo','')} — {h.get('habilidade_completa', h.get('descricao',''))}"
@@ -1532,10 +1574,10 @@ Com base no diagnóstico ({dados.get('diagnostico','')}) e nas barreiras citadas
                 )
                 if texto_hab_sel.strip():
                     instrucao_bncc = f"""[MAPEAMENTO_BNCC — REGRA OBRIGATÓRIA]
-Na seção "Avaliação de Repertório", cite SOMENTE habilidades da lista abaixo. Ao citar cada habilidade, reproduza a linha INTEIRA EXATAMENTE como está na lista: código + descrição COMPLETA, palavra por palavra, sem parafrasear, resumir ou alterar. O código correto sozinho NÃO basta: a descrição deve ser idêntica à da lista. Proibido inventar ou modificar o texto.
-[HABILIDADES_SELECIONADAS_PELO_PROFISSIONAL]
+Na seção "Avaliação de Repertório", cite SOMENTE habilidades da lista abaixo. A lista é FECHADA e EXAUSTIVA: NÃO adicione nenhuma habilidade que não esteja nela. Ao citar cada habilidade, reproduza a linha INTEIRA EXATAMENTE como está na lista: código + descrição COMPLETA, palavra por palavra, sem parafrasear, resumir ou alterar. Proibido inventar ou modificar o texto.
+[HABILIDADES_VALIDADAS_PELO_PROFESSOR — USE SOMENTE ESTAS]
 {texto_hab_sel[:12000]}
-[/HABILIDADES_SELECIONADAS_PELO_PROFISSIONAL]
+[/HABILIDADES_VALIDADAS_PELO_PROFESSOR]
 [/MAPEAMENTO_BNCC]"""
                 else:
                     hab_selecionadas = []
@@ -1624,12 +1666,38 @@ GUIA PRÁTICO PARA SALA DE AULA.
             f"DIAGNÓSTICO: {dados.get('diagnostico','')} | MEDS: {meds_info} | "
             f"EVIDÊNCIAS: {evid} | LAUDO: {(contexto_pdf or '')[:3000]}"
         )
+        # Injetar lista de habilidades no user message para a IA NÃO inventar (copiar exatamente)
+        if nivel_ensino != "EI":
+            hab_para_user = dados.get("habilidades_bncc_validadas") or dados.get("habilidades_bncc_selecionadas") or []
+            if hab_para_user and isinstance(hab_para_user, list):
+                lista_user = "\n".join(
+                    f"- {h.get('disciplina','')}: {h.get('codigo','')} — {h.get('habilidade_completa', h.get('descricao',''))}"
+                    for h in hab_para_user if isinstance(h, dict)
+                )
+                if lista_user.strip():
+                    prompt_user += f"\n\n[LISTA ÚNICA DE HABILIDADES PERMITIDAS — na Avaliação de Repertório cite SOMENTE estas, COPIANDO a linha inteira EXATAMENTE como abaixo. NÃO invente outras:]\n{lista_user[:10000]}"
+            else:
+                bncc_u = carregar_habilidades_bncc_ano_atual_e_anteriores(serie)
+                at_u = (bncc_u.get("ano_atual") or "").strip()
+                ant_u = (bncc_u.get("anos_anteriores") or "").strip()
+                if at_u or ant_u:
+                    prompt_user += "\n\n[LISTA ÚNICA DE HABILIDADES PERMITIDAS — na Avaliação de Repertório cite SOMENTE estas, COPIANDO a linha inteira EXATAMENTE como abaixo:]"
+                    if ant_u:
+                        prompt_user += f"\n\nANOS ANTERIORES:\n{ant_u[:5000]}"
+                    if at_u:
+                        prompt_user += f"\n\nANO SÉRIE ATUAL:\n{at_u[:5000]}"
 
         res = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}],
         )
-        return res.choices[0].message.content, None
+        texto_relatorio = res.choices[0].message.content or ""
+        # Pós-processamento: remover da Avaliação de Repertório qualquer habilidade que a IA tenha inventado
+        if nivel_ensino != "EI" and texto_relatorio:
+            lista_permitida = dados.get("habilidades_bncc_validadas") or dados.get("habilidades_bncc_selecionadas") or []
+            if lista_permitida:
+                texto_relatorio = filtrar_avaliacao_repertorio_apenas_permitidas(texto_relatorio, lista_permitida)
+        return texto_relatorio, None
 
     except Exception as e:
         return None, str(e)
@@ -1705,7 +1773,9 @@ def limpar_formulario():
         'status_validacao_pei': 'rascunho',
         'feedback_ajuste': '',
         'status_validacao_game': 'rascunho',
-        'feedback_ajuste_game': ''
+        'feedback_ajuste_game': '',
+        'habilidades_bncc_selecionadas': [],
+        'habilidades_bncc_validadas': None,
     }
     st.session_state.pdf_text = ""
 
@@ -3040,11 +3110,30 @@ HABILIDADES DO ANO ATUAL:
 
     st.session_state.dados["habilidades_bncc_selecionadas"] = novas_selecoes
     n_hab = len(novas_selecoes)
-    if n_hab > 0:
-        st.success(f"**{n_hab}** habilidade(s) selecionada(s). A Consultoria IA usará apenas estas no relatório.")
+
+    # Botão Validar seleção: professor confirma que a seleção atual é a que deve ir para o relatório
+    st.session_state.dados.setdefault("habilidades_bncc_validadas", None)
+    col_validar, _ = st.columns([1, 2])
+    with col_validar:
+        if st.button("✅ Validar seleção", type="primary", use_container_width=True, key="btn_validar_hab_bncc"):
+            if n_hab == 0:
+                st.warning("Selecione ao menos uma habilidade nas listas acima antes de validar.")
+            else:
+                st.session_state.dados["habilidades_bncc_validadas"] = [
+                    {**h} for h in novas_selecoes if isinstance(h, dict)
+                ]
+                st.success("Seleção validada pelo professor. O relatório da Consultoria IA usará **apenas** estas habilidades.")
+                st.rerun()
+
+    if st.session_state.dados.get("habilidades_bncc_validadas"):
+        n_val = len(st.session_state.dados["habilidades_bncc_validadas"])
+        st.info(f"📌 **{n_val}** habilidade(s) validadas. Para alterar, desmarque/marque nas listas e clique em **Validar seleção** novamente.")
+
+    if n_hab > 0 and not st.session_state.dados.get("habilidades_bncc_validadas"):
+        st.success(f"**{n_hab}** habilidade(s) selecionada(s). Clique em **Validar seleção** para o professor confirmar; a Consultoria IA usará apenas as validadas no relatório.")
 
     st.divider()
-    st.caption("Na aba **Consultoria IA**, o relatório será gerado com base nessas habilidades e incluirá um mapa por componente curricular com maior necessidade de atenção.")
+    st.caption("Na aba **Consultoria IA**, o relatório será gerado com base nas habilidades **validadas** e incluirá um mapa por componente curricular com maior necessidade de atenção.")
 
 
 # ==============================================================================
@@ -3110,11 +3199,15 @@ with tab8:
 
         with col_info:
             n_bar = sum(len(v) for v in (st.session_state.dados.get("barreiras_selecionadas") or {}).values())
+            n_hab = len(st.session_state.dados.get("habilidades_bncc_selecionadas") or [])
+            hab_validadas = st.session_state.dados.get("habilidades_bncc_validadas") or []
             st.info(
                 "Quanto mais completo o **Mapeamento** (barreiras + nível de suporte + hiperfoco) "
                 "e o **Plano de Ação**, melhor a precisão.\n\n"
                 f"📌 Barreiras mapeadas agora: **{n_bar}**"
             )
+            if n_hab > 0 and not hab_validadas:
+                st.warning("⚠️ Há habilidades selecionadas na aba **Habilidades BNCC** mas ainda não validadas. Clique em **Validar seleção** naquela aba para o relatório usar apenas as habilidades confirmadas pelo professor.")
 
     # 2) Revisão / Aprovado: mostrar e permitir aprovar/ajustar
     elif st.session_state.dados.get("status_validacao_pei") in ["revisao", "aprovado"]:
