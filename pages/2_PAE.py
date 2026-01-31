@@ -1099,26 +1099,28 @@ def gerar_cronograma_inteligente(api_key, aluno, semanas, foco, metas):
         return None
 
 # ==============================================================================
-# EXECUÇÃO E METAS SMART — DESDOBRAR METAS COM IA
+# EXECUÇÃO E METAS SMART — NORTEADOR PARA A ESCOLA (por semanas)
 # ==============================================================================
-def desdobrar_metas_smart_ia(api_key, metas_selecionadas, periodo_texto):
-    """Desdobra metas do PEI em formato SMART (Específico, Mensurável, etc.) com IA."""
+def desdobrar_metas_smart_ia(api_key, metas_selecionadas, periodo_texto, contexto_escola=""):
+    """Desdobra metas em SMART como norteador de ações para a escola. Não foca em hiperfoco."""
     if not api_key or not metas_selecionadas:
-        return metas_selecionadas
+        return metas_selecionadas, ""
     try:
         client = OpenAI(api_key=api_key)
         metas_texto = "\n".join([f"- {m.get('tipo','')}: {m.get('descricao','')}" for m in metas_selecionadas[:10]])
+        ctx = f"\n\nCONTEXTO DA ESCOLA (use como norteador das ações):\n{contexto_escola}" if contexto_escola else ""
         prompt = f"""
+        Este planejamento é NORTEADOR DE AÇÕES PARA A ESCOLA (não foque em hiperfoco do aluno).
         Transforme as metas abaixo em metas SMART (Específicas, Mensuráveis, Atingíveis, Relevantes, Temporais).
-        Período de execução: {periodo_texto}.
-        Para cada meta, retorne uma versão desdobrada em bullet points SMART (1-3 subitens por meta).
-        Formato de resposta: para cada meta original, liste "• [SMART] descrição" em linhas separadas.
+        Período: {periodo_texto}.
+        Para cada meta, retorne uma versão desdobrada em bullet points SMART (1-3 subitens por meta), pensando em AÇÕES CONCRETAS PARA A ESCOLA.
+        Formato: para cada meta original, liste "• [SMART] descrição" em linhas separadas.
         Não invente metas novas; apenas reescreva/desdobre as dadas.
-        """
+        """ + ctx
         res = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Você é um especialista em planejamento educacional. Reescreva metas em formato SMART de forma clara e objetiva."},
+                {"role": "system", "content": "Você é um especialista em planejamento educacional. Reescreva metas em formato SMART como norteador de ações para a escola, de forma clara e objetiva."},
                 {"role": "user", "content": f"Metas do PEI:\n{metas_texto}\n\n{prompt}"}
             ],
             temperature=0.4,
@@ -1128,6 +1130,66 @@ def desdobrar_metas_smart_ia(api_key, metas_selecionadas, periodo_texto):
         return metas_selecionadas, texto_smart
     except Exception as e:
         return metas_selecionadas, ""
+
+
+def gerar_cronograma_execucao_smart(api_key, aluno, duracao_semanas, metas, insumos_escola):
+    """Gera cronograma POR SEMANAS como norteador de ações para a escola (alimentado por barreiras, plano habilidades, tec assistiva)."""
+    if not api_key:
+        return None
+    try:
+        client = OpenAI(api_key=api_key)
+        metas_txt = "\n".join([f"- {m.get('tipo','')}: {m.get('descricao','')}" for m in metas[:8]])
+        barreiras = (insumos_escola.get("barreiras") or "")[:1200]
+        plano = (insumos_escola.get("plano_habilidades") or "")[:1200]
+        tec = (insumos_escola.get("tecnologia_assistiva") or "")[:1200]
+        contexto = f"""
+DIAGNÓSTICO DE BARREIRAS (Mapear Barreiras):
+{barreiras or '(não informado)'}
+
+PLANO DE HABILIDADES:
+{plano or '(não informado)'}
+
+TECNOLOGIA ASSISTIVA:
+{tec or '(não informado)'}
+"""
+        prompt = f"""
+        Crie um cronograma NORTEADOR DE AÇÕES PARA A ESCOLA, organizado POR SEMANAS ({duracao_semanas} semanas).
+        Estudante: {aluno.get('nome','')}.
+        Use o contexto abaixo (barreiras, plano de habilidades, tecnologia assistiva) para definir ações concretas por semana.
+        NÃO use hiperfoco como foco principal; foque em ações que a escola deve realizar.
+
+        METAS DO PEI:
+        {metas_txt}
+        {contexto}
+
+        Para CADA semana (1 a {duracao_semanas}), defina:
+        - tema da semana
+        - objetivo específico (ação para a escola)
+        - atividades principais (2-3)
+        - recursos necessários
+        - forma de avaliação
+
+        Retorne APENAS um JSON válido, no formato:
+        {{"fases": [{{"nome": "...", "descricao": "...", "semanas": [1,2,...], "objetivo_geral": "..."}}], "semanas": [{{"numero": 1, "tema": "...", "objetivo": "...", "atividades": ["...", "..."], "recursos": ["..."], "avaliacao": "..."}}, ...]}}
+        """
+        res = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5,
+            max_tokens=2500
+        )
+        texto = res.choices[0].message.content
+        import re
+        json_match = re.search(r'```json\s*(.*?)\s*```', texto, re.DOTALL)
+        if json_match:
+            texto = json_match.group(1).strip()
+        else:
+            m = re.search(r'\{.*\}', texto, re.DOTALL)
+            if m:
+                texto = m.group(0)
+        return json.loads(texto)
+    except Exception as e:
+        return None
 
 # ==============================================================================
 # JORNADA GAMIFICADA — ALIMENTADA PELA ABA EXECUÇÃO E METAS SMART
@@ -2241,10 +2303,10 @@ with tab_execucao_smart:
           Execução e Metas SMART
         </div>
         <div style="font-size:1.35rem;color:#0F172A;font-weight:900;margin-top:3px;">
-          Execução do PEI no tempo de revisão
+          Norteador de ações para a escola
         </div>
         <div style="font-size:.9rem;color:#64748B;margin-top:6px;">
-          Desdobre as metas SMART e planeje o ciclo de execução. Este planejamento alimenta a Jornada Gamificada.
+          Planejamento por semanas, alimentado por PEI, Mapear Barreiras, Plano de Habilidades e Tecnologia Assistiva. Este ciclo alimenta a Jornada Gamificada.
         </div>
       </div>
       <div style="text-align:right;">
@@ -2253,6 +2315,17 @@ with tab_execucao_smart:
       </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Insumos das outras abas (alimentam o planejamento)
+    insumos_disponiveis = {
+        "barreiras": st.session_state.get("conteudo_diagnostico_barreiras", ""),
+        "plano_habilidades": st.session_state.get("conteudo_plano_habilidades", ""),
+        "tecnologia_assistiva": st.session_state.get("conteudo_tecnologia_assistiva", ""),
+    }
+    tem_barreiras = bool(insumos_disponiveis["barreiras"] and len(str(insumos_disponiveis["barreiras"])) > 50)
+    tem_plano = bool(insumos_disponiveis["plano_habilidades"] and len(str(insumos_disponiveis["plano_habilidades"])) > 50)
+    tem_tec = bool(insumos_disponiveis["tecnologia_assistiva"] and len(str(insumos_disponiveis["tecnologia_assistiva"])) > 50)
+    st.caption(f"Insumos disponíveis: Mapear Barreiras {'✓' if tem_barreiras else '—'} | Plano de Habilidades {'✓' if tem_plano else '—'} | Tecnologia Assistiva {'✓' if tem_tec else '—'} (preencha as abas correspondentes para enriquecer o planejamento)")
 
     col_esq, col_dir = st.columns([1.05, 1.35], gap="large")
     ciclos_es = st.session_state["execucao_smart_ciclos"]
@@ -2308,17 +2381,23 @@ with tab_execucao_smart:
                             metas_es.append({"id": meta["id"], "tipo": meta["tipo"], "descricao": meta["descricao"]})
                 data_ini_es = st.date_input("Data de início (tempo de revisão)", value=date.today(), key="es_data_ini")
                 data_fim_es = st.date_input("Previsão de término", value=date.today() + timedelta(weeks=12), key="es_data_fim")
-                foco_es = st.text_input("Foco do ciclo de execução", value=aluno.get("hiperfoco") or "Execução do PEI", key="es_foco")
-                desc_es = st.text_area("Descrição", height=80, key="es_desc")
+                foco_es = st.text_input("Foco do ciclo (norteador para a escola)", value="Plano de ação AEE — execução e acompanhamento", key="es_foco")
+                desc_es = st.text_area("Descrição", height=80, placeholder="Objetivos gerais do ciclo para a escola...", key="es_desc")
                 desdobrar_smart = st.checkbox("Desdobrar metas em SMART com IA", value=True, key="es_desdobrar")
-                usar_ia_cron = st.checkbox("Usar IA para cronograma", value=True, key="es_ia_cron")
+                usar_ia_cron = st.checkbox("Usar IA para cronograma por semanas (com barreiras, plano e tec)", value=True, key="es_ia_cron")
                 btn_gerar_es = st.form_submit_button("Gerar preview do ciclo de execução")
                 if btn_gerar_es and metas_es:
                     periodo_txt = f"{data_ini_es} a {data_fim_es}"
+                    duracao_es = max(1, (data_fim_es - data_ini_es).days // 7)
+                    insumos_escola = {
+                        "barreiras": (insumos_disponiveis.get("barreiras") or "")[:1500],
+                        "plano_habilidades": (insumos_disponiveis.get("plano_habilidades") or "")[:1500],
+                        "tecnologia_assistiva": (insumos_disponiveis.get("tecnologia_assistiva") or "")[:1500],
+                    }
+                    contexto_escola_txt = f"Mapear Barreiras:\n{insumos_escola['barreiras']}\n\nPlano de Habilidades:\n{insumos_escola['plano_habilidades']}\n\nTecnologia Assistiva:\n{insumos_escola['tecnologia_assistiva']}"
                     texto_smart = ""
                     if desdobrar_smart and api_key:
-                        metas_es, texto_smart = desdobrar_metas_smart_ia(api_key, metas_es, periodo_txt)
-                    duracao_es = max(1, (data_fim_es - data_ini_es).days // 7)
+                        metas_es, texto_smart = desdobrar_metas_smart_ia(api_key, metas_es, periodo_txt, contexto_escola_txt)
                     ciclo_es_data = {
                         "ciclo_id": None,
                         "status": "rascunho",
@@ -2331,17 +2410,18 @@ with tab_execucao_smart:
                             "data_fim": data_fim_es.isoformat(),
                             "metas_selecionadas": metas_es,
                             "desdobramento_smart_texto": texto_smart,
+                            "insumos_escola": {k: v[:800] for k, v in insumos_escola.items() if v},
                         },
                         "recursos_incorporados": {},
                         "versao": 1,
                     }
                     if usar_ia_cron and api_key:
-                        cron_es = gerar_cronograma_inteligente(api_key, aluno, duracao_es, foco_es, metas_es)
+                        cron_es = gerar_cronograma_execucao_smart(api_key, aluno, duracao_es, metas_es, insumos_escola)
                         ciclo_es_data["cronograma"] = cron_es or criar_cronograma_basico(duracao_es, metas_es)
                     else:
                         ciclo_es_data["cronograma"] = criar_cronograma_basico(duracao_es, metas_es)
                     st.session_state["ciclo_execucao_preview"] = ciclo_es_data
-                    st.success("Preview gerado. Veja à direita e salve para usar na Jornada Gamificada.")
+                    st.success("Preview gerado (por semanas). Veja à direita e salve para usar na Jornada Gamificada.")
                     st.rerun()
 
     with col_dir:
@@ -2365,12 +2445,22 @@ with tab_execucao_smart:
                     st.caption(m.get("descricao", ""))
                 smart_txt = cfg_es.get("desdobramento_smart_texto", "")
                 if smart_txt:
-                    st.markdown("**Desdobramento SMART:**")
+                    st.markdown("**Desdobramento SMART (norteador para a escola):**")
                     st.markdown(smart_txt)
             cron_es = ciclo_ver_es.get("cronograma") or {}
-            with st.expander("Cronograma", expanded=False):
-                for f in (cron_es.get("fases") or [])[:3]:
-                    st.markdown(f"- **{f.get('nome','')}**: {f.get('objetivo_geral','')}")
+            with st.expander("Planejamento por semanas", expanded=True):
+                semanas_es = cron_es.get("semanas") or []
+                if semanas_es:
+                    for w in semanas_es:
+                        st.markdown(f"**Semana {w.get('numero')} — {w.get('tema', '')}**")
+                        st.caption(w.get("objetivo", ""))
+                        atv = w.get("atividades") or []
+                        if atv:
+                            st.markdown("• " + "\n• ".join(atv[:4]))
+                        st.markdown("---")
+                else:
+                    for f in (cron_es.get("fases") or [])[:5]:
+                        st.markdown(f"- **{f.get('nome','')}**: {f.get('objetivo_geral','')}")
             if preview_es:
                 st.markdown("**Salvar este ciclo** (será usado na Jornada Gamificada)")
                 if st.button("Salvar ciclo de execução", type="primary", use_container_width=True, key="btn_salvar_es"):
