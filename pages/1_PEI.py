@@ -3873,6 +3873,22 @@ with tab9:
                 )
 
 # ==============================================================================
+# ABA RETRÁTIL — O QUE ESTÁ REGISTRADO PARA O ESTUDANTE (PARTE DE BAIXO)
+# ==============================================================================
+dados = st.session_state.get("dados", {})
+nome_pei = (dados.get("nome") or "").strip()
+if nome_pei:
+    tem_relatorio_pei = bool((dados.get("ia_sugestao") or "").strip())
+    tem_jornada_pei = bool((dados.get("ia_mapa_texto") or "").strip())
+    ou.render_resumo_anexos_estudante(
+        nome_estudante=nome_pei,
+        tem_relatorio_pei=tem_relatorio_pei,
+        tem_jornada=tem_jornada_pei,
+        n_ciclos_pae=0,
+        pagina="PEI",
+    )
+
+# ==============================================================================
 # RODAPÉ COM ASSINATURA
 # ==============================================================================
 ou.render_footer_assinatura()

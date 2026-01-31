@@ -559,7 +559,7 @@ def list_students_rest(workspace_id: str = ""):
     try:
         base = (
             f"{ou._sb_url()}/rest/v1/students"
-            f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data"
+            f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data,paee_ciclos"
             f"&workspace_id=eq.{workspace_id}"
             f"&order=created_at.desc"
         )
@@ -593,7 +593,8 @@ def carregar_estudantes_supabase():
             'hiperfoco': item.get('diagnosis', ''),
             'ia_sugestao': contexto_ia,
             'id': item.get('id', ''),
-            'pei_data': pei_completo
+            'pei_data': pei_completo,
+            'paee_ciclos': item.get('paee_ciclos') or [],
         }
         if estudante['nome']:
             estudantes.append(estudante)
@@ -1200,12 +1201,11 @@ TECNOLOGIA ASSISTIVA:
 # JORNADA GAMIFICADA — ALIMENTADA PELA ABA EXECUÇÃO E METAS SMART
 # ==============================================================================
 def gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo, feedback_game=""):
-    """Gera roteiro gamificado para o estudante a partir do planejamento do ciclo (metas, cronograma, foco)."""
-    if not api_key:
-        return None, "Configure a chave OpenAI."
+    """Gera roteiro gamificado para o estudante a partir do planejamento do ciclo (metas, cronograma, foco). Usa Gemini."""
+    gemini_key = ou.get_gemini_api_key()
+    if not gemini_key:
+        return None, "Configure GEMINI_API_KEY (ambiente, secrets ou configuração) para gerar a jornada gamificada."
     try:
-        import re
-        client = OpenAI(api_key=api_key)
         nome_curto = (aluno.get("nome", "").split() or ["Estudante"])[0]
         cfg = ciclo.get("config_ciclo") or {}
         foco = cfg.get("foco_principal", "Ciclo AEE")
@@ -1240,28 +1240,23 @@ def gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo, feedback_game=""):
             "Estrutura: título da missão, mapa das fases/semanas como 'etapas', desafios e conquistas."
             + prompt_feedback
         )
-        res = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": prompt_sys},
-                {"role": "user", "content": contexto}
-            ],
-            temperature=0.7,
-            max_tokens=1500
-        )
-        return res.choices[0].message.content.strip(), None
+        prompt_completo = f"{prompt_sys}\n\n---\n\n{contexto}"
+        texto, err = ou.consultar_gemini(prompt_completo, api_key=gemini_key)
+        if err:
+            return None, err
+        return (texto or "").strip(), None
     except Exception as e:
         return None, str(e)
 
 
 def gerar_roteiro_gamificado_de_texto(api_key, aluno, texto_origem, nome_fonte, feedback_game=""):
-    """Gera roteiro gamificado para o estudante a partir do texto de uma aba (barreiras, plano, tech, etc.)."""
-    if not api_key:
-        return None, "Configure a chave OpenAI."
+    """Gera roteiro gamificado para o estudante a partir do texto de uma aba (barreiras, plano, tech, etc.). Usa Gemini."""
+    gemini_key = ou.get_gemini_api_key()
+    if not gemini_key:
+        return None, "Configure GEMINI_API_KEY (ambiente, secrets ou configuração) para gerar a jornada gamificada."
     if not (texto_origem or "").strip():
         return None, f"Não há conteúdo na aba selecionada. Gere o conteúdo na aba **{nome_fonte}** primeiro."
     try:
-        client = OpenAI(api_key=api_key)
         nome_curto = (aluno.get("nome", "").split() or ["Estudante"])[0]
         contexto = (
             f"ESTUDANTE: {nome_curto}\n"
@@ -1276,16 +1271,11 @@ def gerar_roteiro_gamificado_de_texto(api_key, aluno, texto_origem, nome_fonte, 
             "Estrutura: título da missão, etapas/desafios, conquistas. O estudante deve se ver como protagonista da jornada."
             + prompt_feedback
         )
-        res = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": prompt_sys},
-                {"role": "user", "content": contexto}
-            ],
-            temperature=0.7,
-            max_tokens=1500
-        )
-        return res.choices[0].message.content.strip(), None
+        prompt_completo = f"{prompt_sys}\n\n---\n\n{contexto}"
+        texto, err = ou.consultar_gemini(prompt_completo, api_key=gemini_key)
+        if err:
+            return None, err
+        return (texto or "").strip(), None
     except Exception as e:
         return None, str(e)
 
@@ -2587,7 +2577,7 @@ with tab_jornada:
     </div>
     """, unsafe_allow_html=True)
 
-    st.info("Cada aba do PAE pode virar uma **jornada gamificada** para o estudante. Escolha a **origem** na lista abaixo: Execução e Metas SMART, Mapear Barreiras, Plano de Habilidades ou Tecnologia Assistiva.")
+    st.info("Cada aba do PAE pode virar uma **jornada gamificada** para o estudante. Escolha a **origem** na lista abaixo: Execução e Metas SMART, Mapear Barreiras, Plano de Habilidades ou Tecnologia Assistiva. A geração da missão usa **Gemini** (configure GEMINI_API_KEY).")
 
     # Opções de origem para a jornada (cada aba pode virar roteiro gamificado)
     if is_ei:
@@ -2779,6 +2769,24 @@ with tab_jornada:
             jg[chave_jornada]["feedback"] = ""
             jg[chave_jornada]["texto"] = ""
             st.rerun()
+
+# ==============================================================================
+# ABA RETRÁTIL — O QUE ESTÁ REGISTRADO PARA O ESTUDANTE (PARTE DE BAIXO)
+# =============================================================================
+if aluno:
+    nome_pae = (aluno.get("nome") or "").strip()
+    pei_data_aluno = aluno.get("pei_data") or {}
+    tem_relatorio_pae = bool((pei_data_aluno.get("ia_sugestao") or "").strip())
+    tem_jornada_pae = bool((pei_data_aluno.get("ia_mapa_texto") or "").strip())
+    ciclos_pae = aluno.get("paee_ciclos") or []
+    n_ciclos_pae = len(ciclos_pae) if isinstance(ciclos_pae, list) else 0
+    ou.render_resumo_anexos_estudante(
+        nome_estudante=nome_pae,
+        tem_relatorio_pei=tem_relatorio_pae,
+        tem_jornada=tem_jornada_pae,
+        n_ciclos_pae=n_ciclos_pae,
+        pagina="PAE",
+    )
 
 # ==============================================================================
 # RODAPÉ COM ASSINATURA

@@ -1348,6 +1348,38 @@ select:focus {
     inject_loading_overlay_css()
 
 # =============================================================================
+# 4.4) ABA RETRÁTIL — O QUE ESTÁ REGISTRADO PARA O ESTUDANTE
+# =============================================================================
+def render_resumo_anexos_estudante(
+    nome_estudante: str,
+    tem_relatorio_pei: bool,
+    tem_jornada: bool,
+    n_ciclos_pae: int = 0,
+    pagina: str = "PEI",
+):
+    """
+    Renderiza uma aba retrátil na parte de baixo da página com o que está
+    registrado para o estudante (relatório PEI, jornada gamificada, ciclos PAE).
+    Para apagar ou gerir, o usuário vai à página Alunos.
+    """
+    nome = (nome_estudante or "Estudante").strip() or "Estudante"
+    with st.expander("📎 O que está registrado para este estudante", expanded=False):
+        st.markdown(f"**{nome}**")
+        itens = []
+        if tem_relatorio_pei:
+            itens.append("📄 Relatório PEI (Consultoria IA)")
+        if tem_jornada:
+            itens.append("🎮 Jornada gamificada")
+        if pagina == "PAE" and n_ciclos_pae is not None and n_ciclos_pae > 0:
+            itens.append(f"📋 Ciclos PAE ({n_ciclos_pae})")
+        if not itens:
+            st.caption("Nenhum relatório ou jornada registrado ainda.")
+        else:
+            for item in itens:
+                st.markdown(f"- {item}")
+        st.caption("Para apagar ou gerir, use a página **Alunos**.")
+
+# =============================================================================
 # 4.5) RODAPÉ COM ASSINATURA
 # =============================================================================
 def render_footer_assinatura():
