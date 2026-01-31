@@ -1468,12 +1468,31 @@ def consultar_gemini(prompt: str, model: str = "gemini-2.0-flash", api_key: str 
 # =============================================================================
 # GOOGLE SHEETS — Exportar Jornada Gamificada
 # =============================================================================
+def _get_secret_value(keys, default=None):
+    """Tenta obter valor de st.secrets por uma lista de chaves (ex.: ['google_sheets', 'credentials_json'])."""
+    try:
+        d = st.secrets
+        for k in keys:
+            if d is None:
+                return default
+            if isinstance(d, dict):
+                d = d.get(k)
+            else:
+                d = getattr(d, k, None)
+                if d is None and isinstance(k, str):
+                    d = getattr(d, k.lower(), None)
+        return d if d is not None else default
+    except Exception:
+        return default
+
+
 def get_google_sheets_credentials():
     """
     Retorna credenciais para Google Sheets (service account).
     Ordem de leitura:
-    1. GOOGLE_SHEETS_CREDENTIALS_JSON — string JSON (env ou secrets) ou objeto em st.secrets
-    2. GOOGLE_SHEETS_CREDENTIALS_PATH — caminho para arquivo JSON (env ou secrets)
+    1. GOOGLE_SHEETS_CREDENTIALS_JSON (env ou st.secrets, flat ou aninhado)
+    2. google_sheets.credentials_json ou google_sheets.GOOGLE_SHEETS_CREDENTIALS_JSON (seção [google_sheets])
+    3. GOOGLE_SHEETS_CREDENTIALS_PATH (env ou secrets)
     """
     import json
     raw = None
@@ -1481,7 +1500,7 @@ def get_google_sheets_credentials():
     raw_env = os.environ.get("GOOGLE_SHEETS_CREDENTIALS_JSON")
     if raw_env and str(raw_env).strip():
         raw = str(raw_env).strip()
-    # 2) st.secrets — pode ser string ou objeto (seção [GOOGLE_SHEETS_CREDENTIALS_JSON] no TOML)
+    # 2) st.secrets — chave direta
     if raw is None:
         try:
             secret_val = st.secrets.get("GOOGLE_SHEETS_CREDENTIALS_JSON")
@@ -1492,7 +1511,18 @@ def get_google_sheets_credentials():
                     raw = str(secret_val).strip() if str(secret_val).strip() else None
         except Exception:
             pass
-    # 3) get_setting (string, para compat)
+    # 3) st.secrets — seção [google_sheets] (credentials_json, CREDENTIALS_JSON ou GOOGLE_SHEETS_CREDENTIALS_JSON)
+    if raw is None:
+        for key in ("credentials_json", "CREDENTIALS_JSON", "GOOGLE_SHEETS_CREDENTIALS_JSON"):
+            val = _get_secret_value(["google_sheets", key])
+            if val is not None:
+                if isinstance(val, dict):
+                    raw = val
+                else:
+                    raw = str(val).strip() if str(val).strip() else None
+                if raw is not None:
+                    break
+    # 4) get_setting (string, para compat)
     if raw is None:
         s = get_setting("GOOGLE_SHEETS_CREDENTIALS_JSON", "")
         if s:
@@ -1502,11 +1532,33 @@ def get_google_sheets_credentials():
             if isinstance(raw, dict):
                 return dict(raw)
             if isinstance(raw, str):
-                return json.loads(raw)
+                s = raw.strip()
+                try:
+                    return json.loads(s)
+                except json.JSONDecodeError:
+                    # No TOML, \n dentro de """ vira newline; no JSON isso quebra. Corrige newlines dentro da private_key.
+                    begin = '"-----BEGIN PRIVATE KEY-----'
+                    end = '-----END PRIVATE KEY-----'
+                    if begin in s and end in s:
+                        start_idx = s.find(begin)
+                        end_marker_pos = s.find(end, start_idx) + len(end)
+                        closing_quote = s.find('"', end_marker_pos)
+                        if closing_quote > start_idx:
+                            segment = s[start_idx : closing_quote + 1]
+                            inner = segment[1:-1].replace("\n", "\\n")
+                            s = s[: start_idx + 1] + inner + s[closing_quote:]
+                            return json.loads(s)
+                    raise
         except Exception:
             pass
-    # 4) Caminho do arquivo JSON
+    # 5) Caminho do arquivo JSON — env, secrets direto, ou google_sheets.credentials_path
     path = (os.environ.get("GOOGLE_SHEETS_CREDENTIALS_PATH") or get_setting("GOOGLE_SHEETS_CREDENTIALS_PATH", "") or "").strip()
+    if not path:
+        try:
+            path = _get_secret_value(["google_sheets", "credentials_path"]) or _get_secret_value(["google_sheets", "GOOGLE_SHEETS_CREDENTIALS_PATH"])
+            path = str(path).strip() if path else ""
+        except Exception:
+            pass
     if path and os.path.isfile(path):
         try:
             with open(path, "r", encoding="utf-8") as f:
@@ -1557,7 +1609,13 @@ def exportar_jornada_para_sheets(texto_jornada: str, titulo: str = "Jornada Gami
         return None, "Nenhum conteúdo para exportar."
     creds_dict = get_google_sheets_credentials()
     if not creds_dict:
-        return None, "Configure Google Sheets: GOOGLE_SHEETS_CREDENTIALS_JSON (string JSON) ou GOOGLE_SHEETS_CREDENTIALS_PATH (caminho do arquivo). Veja CONFIG_GOOGLE_SHEETS.md."
+        return None, (
+            "Credenciais do Google Sheets não encontradas. No .streamlit/secrets.toml use uma destas opções:\n"
+            "• GOOGLE_SHEETS_CREDENTIALS_JSON = \"\"\"{...json da conta de serviço...}\"\"\"\n"
+            "• GOOGLE_SHEETS_CREDENTIALS_PATH = \"/caminho/para/arquivo.json\"\n"
+            "• Ou seção [google_sheets] com credentials_json = \"\"\"...\"\"\" ou credentials_path = \"...\"\n"
+            "Veja CONFIG_GOOGLE_SHEETS.md."
+        )
     try:
         import gspread
         from google.oauth2.service_account import Credentials

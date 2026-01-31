@@ -67,11 +67,14 @@ export GOOGLE_SHEETS_CREDENTIALS_JSON='{"type":"service_account","project_id":".
 
 **Forma 1 — JSON como string (aspas triplas):**
 ```toml
-# Cole o JSON entre aspas triplas; use \\n na private_key
+# Cole o JSON entre aspas triplas.
+# Se o JSON tiver várias linhas, use \\n na private_key (barra dupla) para o app aceitar.
+# O app também aceita newlines reais na private_key (TOML com \n vira newline; corrigimos no código).
 GOOGLE_SHEETS_CREDENTIALS_JSON = """
-{"type": "service_account", "project_id": "seu-projeto", "private_key_id": "...", "private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n", "client_email": "...@....iam.gserviceaccount.com", "client_id": "...", "auth_uri": "https://accounts.google.com/o/oauth2/auth", "token_uri": "https://oauth2.googleapis.com/token", ...}
+{"type": "service_account", "project_id": "seu-projeto", "private_key_id": "...", "private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n", "client_email": "...@....iam.gserviceaccount.com", ...}
 """
 ```
+**Dica:** Se você colar o JSON em várias linhas e usar `\n` na chave privada, o TOML vira isso em newline e o JSON quebra. O app tenta corrigir isso automaticamente; se ainda falhar, use **uma linha só** e `\\n` na private_key.
 
 **Forma 2 — Seção TOML (objeto):** crie uma seção com o nome da chave e preencha os campos do JSON. Exemplo (substitua pelos valores do seu arquivo):
 ```toml
@@ -87,6 +90,17 @@ token_uri = "https://oauth2.googleapis.com/token"
 auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
 client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/..."
 ```
+
+**Forma 3 — Seção `[google_sheets]`:** você pode agrupar tudo em uma seção. O app procura por `credentials_json` ou `credentials_path` dentro de `[google_sheets]`:
+```toml
+[google_sheets]
+# Cole o JSON entre aspas triplas (uma linha só, com \n na private_key)
+credentials_json = """{"type": "service_account", "project_id": "seu-projeto", "private_key_id": "...", "private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n", "client_email": "...@....iam.gserviceaccount.com", ...}"""
+# Opcional: planilha de destino
+GOOGLE_SHEETS_SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/SEU_ID/edit?usp=sharing"
+```
+
+**Importante:** o nome da chave no `secrets.toml` deve ser exatamente um dos que o app reconhece (veja mensagem de erro no app). O arquivo deve ficar em **`.streamlit/secrets.toml`** na raiz do projeto (mesmo nível de `streamlit_app.py` ou `pages/`).
 
 ---
 
