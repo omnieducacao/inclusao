@@ -135,9 +135,10 @@ st.markdown(f"""
 st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
 # ==============================================================================
-# OPENAI
+# OPENAI (env, secrets ou session_state — mesma lógica do PAE)
 # ==============================================================================
-api_key = os.environ.get("OPENAI_API_KEY") or ou.get_setting("OPENAI_API_KEY", "")
+api_key = os.environ.get("OPENAI_API_KEY") or ou.get_setting("OPENAI_API_KEY", "") or st.session_state.get("OPENAI_API_KEY", "")
+api_key = (api_key or "").strip() or None
 
 
 # ==============================================================================
@@ -629,57 +630,79 @@ def carregar_habilidades_bncc_ano_atual_e_anteriores(
         return {"ano_atual": "", "anos_anteriores": ""}
 
 
+def _parse_hab_row(hab: str) -> tuple:
+    """Extrai código e descrição de uma linha de habilidade (ex: (EF01LP02) Descrição)."""
+    codigo, descricao = "", hab
+    m = re.match(r"\(([A-Za-z0-9]+)\)\s*(.*)", hab)
+    if m:
+        codigo, resto = m.group(1), m.group(2)
+        descricao = resto.strip() if resto else hab
+    return (codigo or "(sem código)", descricao[:200] + ("..." if len(descricao) > 200 else ""))
+
+
 def carregar_habilidades_bncc_por_componente(serie: str) -> dict:
     """
-    Carrega do bncc.csv as habilidades do ano/série atual agrupadas por Disciplina (componente curricular).
-    Retorna { "Disciplina": [ {"codigo": "EF01LP02", "descricao": "...", "habilidade_completa": "..." }, ... ], ... }
-    para listas suspensas na aba Habilidades BNCC. Extrai código do início da descrição (ex: (EF01LP02)).
+    Carrega do bncc.csv as habilidades do ano/série atual agrupadas por Disciplina.
+    Retorna { "Disciplina": [ {"codigo", "descricao", "habilidade_completa"}, ... ], ... }
+    """
+    d = carregar_habilidades_bncc_por_componente_ano_e_anteriores(serie)
+    atual = d.get("ano_atual") or {}
+    # Junta ano_atual para compatibilidade com quem só usa ano atual
+    return atual
+
+
+def carregar_habilidades_bncc_por_componente_ano_e_anteriores(serie: str) -> dict:
+    """
+    Carrega do bncc.csv as habilidades do ano/série atual E dos anos anteriores,
+    agrupadas por Disciplina. Retorna:
+    { "ano_atual": { "Disciplina": [ {codigo, descricao, habilidade_completa}, ... ] },
+      "anos_anteriores": { "Disciplina": [ ... ] } }
     """
     ano_serie = _extrair_ano_serie_bncc(serie)
     if not ano_serie:
-        return {}
+        return {"ano_atual": {}, "anos_anteriores": {}}
+    try:
+        ano_num = int(ano_serie[0])
+    except (ValueError, IndexError):
+        return {"ano_atual": {}, "anos_anteriores": {}}
+    anteriores_str = [f"{n}º" for n in range(1, ano_num)]
     base_dir = os.path.dirname(os.path.abspath(__file__))
     path_csv = os.path.join(base_dir, "bncc.csv")
     if not os.path.exists(path_csv):
-        return {}
-    por_componente = {}
+        return {"ano_atual": {}, "anos_anteriores": {}}
+    ano_atual = {}
+    anos_anteriores = {}
     try:
         with open(path_csv, "r", encoding="utf-8") as f:
             next(f)
             reader = csv.DictReader(f, delimiter=";")
             raw = list(reader)
             if not raw:
-                return {}
+                return {"ano_atual": {}, "anos_anteriores": {}}
             col_disciplina = "Disciplina"
             col_ano = "Ano"
             col_habilidade = "Habilidade"
             if col_ano not in raw[0] or col_habilidade not in raw[0]:
-                return {}
+                return {"ano_atual": {}, "anos_anteriores": {}}
             for row in raw:
                 ano_celula = (row.get(col_ano) or "").strip()
-                if ano_serie not in ano_celula:
-                    continue
                 disc = (row.get(col_disciplina) or "").strip()
                 hab = (row.get(col_habilidade) or "").strip()
                 if not hab:
                     continue
-                codigo = ""
-                m = re.match(r"\(([A-Za-z0-9]+)\)\s*(.*)", hab)
-                if m:
-                    codigo, resto = m.group(1), m.group(2)
-                    descricao = resto.strip() if resto else hab
-                else:
-                    descricao = hab
-                if disc not in por_componente:
-                    por_componente[disc] = []
-                por_componente[disc].append({
-                    "codigo": codigo or "(sem código)",
-                    "descricao": descricao[:200] + ("..." if len(descricao) > 200 else ""),
-                    "habilidade_completa": hab,
-                })
-        return por_componente
+                codigo, descricao = _parse_hab_row(hab)
+                item = {"codigo": codigo, "descricao": descricao, "habilidade_completa": hab}
+                if ano_serie in ano_celula:
+                    if disc not in ano_atual:
+                        ano_atual[disc] = []
+                    ano_atual[disc].append(item)
+                elif anteriores_str and any(ant in ano_celula for ant in anteriores_str):
+                    if disc not in anos_anteriores:
+                        anos_anteriores[disc] = []
+                    anos_anteriores[disc].append(item)
+        return {"ano_atual": ano_atual, "anos_anteriores": anos_anteriores}
     except Exception:
-        return {}
+        return {"ano_atual": {}, "anos_anteriores": {}}
 
 
 def get_segmento_info_visual(serie: str | None):
@@ -1508,7 +1531,8 @@ Com base no diagnóstico ({dados.get('diagnostico','')}) e nas barreiras citadas
                     for h in hab_selecionadas if isinstance(h, dict)
                 )
                 if texto_hab_sel.strip():
-                    instrucao_bncc = f"""[MAPEAMENTO_BNCC] Use APENAS as habilidades BNCC selecionadas pelo profissional (aba Habilidades BNCC). NÃO invente outras. Gere estratégias com base NESSAS habilidades. Cite cada uma por escrito com código e descrição.
+                    instrucao_bncc = f"""[MAPEAMENTO_BNCC — REGRA OBRIGATÓRIA]
+Na seção "Avaliação de Repertório", você DEVE citar SOMENTE habilidades que estão na lista abaixo. É PROIBIDO inventar códigos (ex: EF01LP02) ou descrições. Cada habilidade citada deve ser CÓPIA LITERAL de uma linha da lista (mesmo código e mesmo texto). Selecione da lista as que forem relevantes para o estudante e copie o texto exatamente.
 [HABILIDADES_SELECIONADAS_PELO_PROFISSIONAL]
 {texto_hab_sel[:12000]}
 [/HABILIDADES_SELECIONADAS_PELO_PROFISSIONAL]
@@ -1520,10 +1544,8 @@ Com base no diagnóstico ({dados.get('diagnostico','')}) e nas barreiras citadas
                 ano_atual_txt = (bncc_blocos.get("ano_atual") or "").strip()
                 anos_anteriores_txt = (bncc_blocos.get("anos_anteriores") or "").strip()
                 if ano_atual_txt or anos_anteriores_txt:
-                    instrucao_bncc = """[MAPEAMENTO_BNCC] Use APENAS as habilidades BNCC listadas abaixo. NÃO invente outras. Cite cada habilidade por escrito com o código e a descrição completa (ex: (EF01LP02) Descrição da habilidade).
-- Habilidades de anos anteriores: diga PONTUALMENTE quais merecem atenção ou são essenciais para este estudante (com base no diagnóstico e nas barreiras), citando código e descrição.
-- Habilidades do ano/série atual: diga PONTUALMENTE quais são fundamentais para este estudante, citando código e descrição.
-Separe por Componente Curricular."""
+                    instrucao_bncc = """[MAPEAMENTO_BNCC — REGRA OBRIGATÓRIA]
+Na seção "Avaliação de Repertório", cite SOMENTE habilidades que estão nas listas abaixo. É PROIBIDO inventar ou criar códigos (ex: EF01LP02) ou descrições. Cada habilidade citada deve ser CÓPIA LITERAL de uma linha da lista (mesmo código e mesmo texto). Selecione da lista as que forem relevantes (anos anteriores que merecem atenção; ano atual que são fundamentais) e copie o texto exatamente. Separe por Componente Curricular."""
                     if anos_anteriores_txt:
                         instrucao_bncc += f"""
 [HABILIDADES_BNCC_ANOS_ANTERIORES]
@@ -1539,8 +1561,15 @@ Separe por Componente Curricular."""
                     instrucao_bncc = "[MAPEAMENTO_BNCC] Separe por Componente Curricular. Inclua código alfanumérico (ex: EF01LP02) e a descrição por escrito. [/MAPEAMENTO_BNCC]"
             instrucao_bloom = "[TAXONOMIA_BLOOM] Explique a categoria cognitiva escolhida. [/TAXONOMIA_BLOOM]"
             instrucao_mapa = """
-### 7. 📊 MAPA POR COMPONENTE CURRICULAR:
-Ao final do relatório, inclua um quadro ou tabela por componente curricular (ex.: Língua Portuguesa, Matemática, Ciências) indicando quais componentes exigem MAIOR atenção com base em todo o PEI (diagnóstico, barreiras, estratégias e habilidades). Use uma coluna de nível de atenção (ex.: Alta / Média / Monitoramento) e breve justificativa."""
+### 7. 📊 MAPA POR COMPONENTE CURRICULAR (obrigatório, ao final do relatório):
+Construa um quadro claro que demonstre QUAIS componentes curriculares precisam de MAIOR atenção e POR QUÊ.
+
+**Formato obrigatório:** para cada componente que tenha habilidades listadas na aba anterior (ou nas listas BNCC fornecidas), inclua:
+1. **Componente** (ex.: Língua Portuguesa, Matemática, Ciências)
+2. **Nível de atenção:** Alta | Média | Monitoramento
+3. **Motivos:** cruze explicitamente (a) o diagnóstico e as barreiras do PEI com (b) as habilidades desse componente. Exemplo: "O diagnóstico de X e as barreiras em [área] impactam diretamente as habilidades [códigos ou temas] deste componente, exigindo adaptações em..."
+
+**Regra:** use APENAS os componentes que aparecem nas habilidades já listadas neste relatório (Avaliação de Repertório). Para cada um, justifique o nível de atenção ligando diagnóstico + barreiras + evidências do PEI às habilidades daquele componente. Seja objetivo: deixe claro por que aquele componente exige mais atenção do que outros."""
             estrutura_req = f"""
 {prompt_identidade}
 {prompt_diagnostico}
@@ -1568,9 +1597,13 @@ Ao final do relatório, inclua um quadro ou tabela por componente curricular (ex
 
         prompt_feedback = f"AJUSTE SOLICITADO: {feedback_usuario}" if feedback_usuario else ""
         prompt_formatacao = "IMPORTANTE: Use Markdown simples. Use títulos H3 (###). Evite tabelas."
+        regra_repertorio = ""
+        if nivel_ensino != "EI":
+            regra_repertorio = "REGRA CRÍTICA: Na seção 'Avaliação de Repertório' (item 2), cite SOMENTE habilidades que constam na lista fornecida (MAPEAMENTO_BNCC). Copie o código e a descrição literalmente. NÃO invente códigos nem descrições de habilidades.\n\n"
 
         prompt_sys = f"""{perfil_ia}
 MISSÃO: Criar PEI Técnico Oficial.
+{regra_repertorio}
 ESTRUTURA OBRIGATÓRIA:
 {estrutura_req}
 
@@ -2888,27 +2921,28 @@ with tab7_hab:
         st.stop()
 
     st.session_state.dados.setdefault("habilidades_bncc_selecionadas", [])
-    por_componente = carregar_habilidades_bncc_por_componente(serie_hab)
-    if not por_componente:
+    blocos = carregar_habilidades_bncc_por_componente_ano_e_anteriores(serie_hab)
+    ano_atual = blocos.get("ano_atual") or {}
+    anos_anteriores = blocos.get("anos_anteriores") or {}
+    if not ano_atual and not anos_anteriores:
         st.info("Nenhuma habilidade BNCC encontrada para esta série no arquivo bncc.csv.")
         st.stop()
 
-    # Opção de label para multiselect: "codigo - descricao curta"; valor interno = índice no componente
     def _opcao_label(h: dict) -> str:
         c = h.get("codigo", "")
         d = (h.get("descricao") or "")[:70]
         return f"{c} — {d}" if c else d
 
-    # Manter seleção atual: set de (disciplina, codigo)
+    # Seleção atual: set de (disciplina, codigo, origem)
     selecionadas_atuais = st.session_state.dados.get("habilidades_bncc_selecionadas") or []
     set_selecionados = set()
     for item in selecionadas_atuais:
         if isinstance(item, dict) and item.get("codigo") and item.get("disciplina"):
-            set_selecionados.add((item["disciplina"], item["codigo"]))
+            set_selecionados.add((item["disciplina"], item["codigo"], item.get("origem", "ano_atual")))
 
     novas_selecoes = []
-    componentes_ordenados = sorted(por_componente.keys())
 
+    # Botão Preenchimento com auxílio (só para ano atual)
     col_btn_aux, _ = st.columns([1, 2])
     with col_btn_aux:
         if st.button("Preenchimento com auxílio da IA", type="secondary", use_container_width=True, key="btn_auxilio_hab_bncc"):
@@ -2916,20 +2950,22 @@ with tab7_hab:
 
     if st.session_state.get("_run_auxilio_hab"):
         st.session_state["_run_auxilio_hab"] = False
-        api_key = (st.session_state.get("api_key") or st.session_state.get("openai_api_key") or "").strip()
         if not api_key:
-            st.error("Configure a chave OpenAI nas configurações para usar o preenchimento com auxílio.")
+            st.error("Configure a chave OpenAI: variável OPENAI_API_KEY (ambiente), secrets do app ou session_state.")
+        elif not ano_atual:
+            st.warning("Não há habilidades do ano atual para sugerir.")
         else:
             lista_para_ia = []
-            for disc in componentes_ordenados:
-                for h in por_componente[disc]:
+            componentes_atual = sorted(ano_atual.keys())
+            for disc in componentes_atual:
+                for h in ano_atual[disc]:
                     lista_para_ia.append(f"- {disc}: {h.get('codigo','')} — {h.get('habilidade_completa','')[:150]}")
             texto_lista = "\n".join(lista_para_ia[:400])
-            prompt_aux = f"""O estudante está no ano/série: {serie_hab}. Abaixo estão as habilidades BNCC dessa série (código e descrição).
+            prompt_aux = f"""O estudante está no ano/série: {serie_hab}. Abaixo estão as habilidades BNCC do ano atual (código e descrição).
 Indique APENAS os códigos das habilidades mais fundamentais para esse ano (máximo 3 a 5 por componente curricular).
 Retorne somente os códigos, um por linha, ex: EF01LP02
 
-HABILIDADES DISPONÍVEIS:
+HABILIDADES DO ANO ATUAL:
 {texto_lista}"""
             try:
                 with st.spinner("Sugerindo habilidades fundamentais para esta série..."):
@@ -2945,47 +2981,58 @@ HABILIDADES DISPONÍVEIS:
                         cod = re.search(r"(EF\d+[A-Z0-9]+|EM\d+[A-Z0-9]+)", linha.strip())
                         if cod:
                             codigos_sugeridos.append(cod.group(1).upper())
-                    for disc in componentes_ordenados:
-                        for h in por_componente[disc]:
+                    for disc in componentes_atual:
+                        for h in ano_atual[disc]:
                             if (h.get("codigo") or "").upper() in codigos_sugeridos:
-                                set_selecionados.add((disc, h.get("codigo", "")))
-                    # Persistir sugestão em dados para o rerun mostrar os multiselects preenchidos
+                                set_selecionados.add((disc, h.get("codigo", ""), "ano_atual"))
                     sug_list = []
-                    for disc in componentes_ordenados:
-                        for h in por_componente[disc]:
-                            if (disc, h.get("codigo", "")) in set_selecionados:
+                    for disc in componentes_atual:
+                        for h in ano_atual[disc]:
+                            if (disc, h.get("codigo", ""), "ano_atual") in set_selecionados:
                                 sug_list.append({
-                                    "disciplina": disc,
-                                    "codigo": h.get("codigo", ""),
-                                    "descricao": h.get("descricao", ""),
-                                    "habilidade_completa": h.get("habilidade_completa", ""),
+                                    "disciplina": disc, "codigo": h.get("codigo", ""),
+                                    "descricao": h.get("descricao", ""), "habilidade_completa": h.get("habilidade_completa", ""),
+                                    "origem": "ano_atual",
                                 })
+                    # Manter seleções de anos anteriores
+                    for item in selecionadas_atuais:
+                        if isinstance(item, dict) and item.get("origem") == "anos_anteriores":
+                            sug_list.append(item)
                     st.session_state.dados["habilidades_bncc_selecionadas"] = sug_list
-                st.success("Sugestão aplicada. Revise as habilidades marcadas abaixo.")
+                st.success("Sugestão aplicada (ano atual). Revise as habilidades marcadas abaixo.")
                 st.rerun()
             except Exception as e:
                 st.error(f"Erro ao sugerir: {str(e)[:120]}")
 
-    for disc in componentes_ordenados:
-        lista_hab = por_componente[disc]
-        opcoes = [_opcao_label(h) for h in lista_hab]
-        default_labels = [opcoes[i] for i, h in enumerate(lista_hab) if (disc, h.get("codigo", "")) in set_selecionados]
-        escolhidas = st.multiselect(
-            f"**{disc}**",
-            options=opcoes,
-            default=default_labels,
-            key=f"hab_bncc_{disc}",
-        )
-        for label in escolhidas:
-            for i, h in enumerate(lista_hab):
-                if _opcao_label(h) == label:
-                    novas_selecoes.append({
-                        "disciplina": disc,
-                        "codigo": h.get("codigo", ""),
-                        "descricao": h.get("descricao", ""),
-                        "habilidade_completa": h.get("habilidade_completa", ""),
-                    })
-                    break
+    def _render_multiselects(por_componente: dict, titulo: str, origem: str):
+        componentes_ordenados = sorted(por_componente.keys())
+        if not componentes_ordenados:
+            return
+        st.markdown(f"#### {titulo}")
+        for disc in componentes_ordenados:
+            lista_hab = por_componente[disc]
+            opcoes = [_opcao_label(h) for h in lista_hab]
+            default_labels = [opcoes[i] for i, h in enumerate(lista_hab) if (disc, h.get("codigo", ""), origem) in set_selecionados]
+            escolhidas = st.multiselect(
+                f"**{disc}**",
+                options=opcoes,
+                default=default_labels,
+                key=f"hab_bncc_{origem}_{disc}",
+            )
+            for label in escolhidas:
+                for i, h in enumerate(lista_hab):
+                    if _opcao_label(h) == label:
+                        novas_selecoes.append({
+                            "disciplina": disc, "codigo": h.get("codigo", ""),
+                            "descricao": h.get("descricao", ""), "habilidade_completa": h.get("habilidade_completa", ""),
+                            "origem": origem,
+                        })
+                        break
+
+    st.markdown("---")
+    _render_multiselects(ano_atual, "Habilidades do ano/série atual", "ano_atual")
+    st.markdown("---")
+    _render_multiselects(anos_anteriores, "Habilidades de anos anteriores (que merecem atenção)", "anos_anteriores")
 
     st.session_state.dados["habilidades_bncc_selecionadas"] = novas_selecoes
     n_hab = len(novas_selecoes)
