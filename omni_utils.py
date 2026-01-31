@@ -1637,15 +1637,24 @@ def exportar_jornada_para_sheets(texto_jornada: str, titulo: str = "Jornada Gami
         range_a1 = f"A1:A{len(data)}"
         spreadsheet_id = _get_google_sheets_spreadsheet_id()
         if spreadsheet_id:
-            # Escrever na planilha já configurada: abrir e adicionar nova aba
+            # Escrever na planilha já configurada: abrir e adicionar nova aba (usa o Drive do dono da planilha)
             sh = gc.open_by_key(spreadsheet_id)
             worksheet = sh.add_worksheet(title=titulo_aba, rows=max(len(data) + 10, 100), cols=1)
             worksheet.update(data, range_a1, value_input_option="RAW")
             return sh.url, None
-        # Comportamento antigo: criar nova planilha
-        sh = gc.create(titulo_aba)
-        worksheet = sh.sheet1
-        worksheet.update(data, range_a1, value_input_option="RAW")
-        return sh.url, None
+        # Sem planilha configurada: a conta de serviço não tem quota no Drive para criar novas planilhas
+        return None, (
+            "Configure a planilha de destino. No .streamlit/secrets.toml adicione:\n"
+            "GOOGLE_SHEETS_SPREADSHEET_URL = \"https://docs.google.com/spreadsheets/d/SEU_ID/edit\"\n"
+            "Use uma planilha sua (Google), compartilhe com o e-mail da conta de serviço (client_email do JSON) como Editor. "
+            "O app vai adicionar uma nova aba nessa planilha a cada exportação (a conta de serviço não tem espaço no Drive para criar planilhas novas)."
+        )
     except Exception as e:
-        return None, str(e)[:300]
+        err_msg = str(e)
+        if "403" in err_msg or "quota" in err_msg.lower() or "storage" in err_msg.lower() or "exceeded" in err_msg.lower():
+            return None, (
+                "Quota do Drive da conta de serviço excedida (ou sem espaço). "
+                "Configure GOOGLE_SHEETS_SPREADSHEET_URL no secrets com a URL da sua planilha e compartilhe essa planilha com o e-mail da conta de serviço (client_email do JSON) como Editor. "
+                "Assim o app escreve na sua planilha em vez de criar uma nova."
+            )
+        return None, err_msg[:300]
