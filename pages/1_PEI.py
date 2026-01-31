@@ -13,6 +13,7 @@ import json
 import os
 import time
 import re
+import csv
 
 import omni_utils as ou  # módulo atualizado
 from omni_utils import get_icon, icon_title
@@ -543,6 +544,61 @@ def detectar_nivel_ensino(serie_str: str | None):
     if "série" in s or "médio" in s or "eja" in s:
         return "EM"
     return "INDEFINIDO"
+
+
+def _extrair_ano_serie_bncc(serie: str) -> str | None:
+    """Extrai o ano/série no formato do CSV BNCC (ex: 1º, 2º, 6º) a partir da série do estudante."""
+    if not serie or not isinstance(serie, str):
+        return None
+    # Ex.: "1º ano", "3º ano fundamental", "6º ano" -> "1º", "3º", "6º"
+    m = re.search(r"(\dº)", serie.strip())
+    return m.group(1) if m else None
+
+
+def carregar_habilidades_bncc_por_serie(serie: str, max_caracteres: int = 11000) -> str:
+    """
+    Carrega do bncc.csv (em pages/) as habilidades BNCC do ano/série do estudante.
+    Retorna texto formatado para injetar no prompt, para a IA usar APENAS essas habilidades
+    e não inventar. Se o arquivo não existir ou a série não bater, retorna string vazia.
+    """
+    ano_serie = _extrair_ano_serie_bncc(serie)
+    if not ano_serie:
+        return ""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    path_csv = os.path.join(base_dir, "bncc.csv")
+    if not os.path.exists(path_csv):
+        return ""
+    linhas = []
+    try:
+        with open(path_csv, "r", encoding="utf-8") as f:
+            next(f)  # pula "Lista de questões;;;;"
+            reader = csv.DictReader(f, delimiter=";")
+            raw = list(reader)
+            if not raw:
+                return ""
+            # CSV: Disciplina;Ano;Unidade Temática;Objeto do Conhecimento;Habilidade
+            col_disciplina = "Disciplina"
+            col_ano = "Ano"
+            col_habilidade = "Habilidade"
+            first = raw[0]
+            if col_ano not in first or col_habilidade not in first:
+                return ""
+            for row in raw:
+                ano_celula = (row.get(col_ano) or "").strip()
+                if ano_serie not in ano_celula:
+                    continue
+                disc = (row.get(col_disciplina) or "").strip()
+                hab = (row.get(col_habilidade) or "").strip()
+                if hab:
+                    linhas.append(f"- {disc}: {hab}")
+        if not linhas:
+            return ""
+        texto = "\n".join(linhas)
+        if len(texto) > max_caracteres:
+            texto = texto[: max_caracteres - 80] + "\n\n[... lista truncada por limite de caracteres ...]"
+        return texto
+    except Exception:
+        return ""
 
 def get_segmento_info_visual(serie: str | None):
     nivel = detectar_nivel_ensino(serie or "")
@@ -1362,7 +1418,16 @@ Com base no diagnóstico ({dados.get('diagnostico','')}) e nas barreiras citadas
 """.strip()
         else:
             perfil_ia = "Especialista em Inclusão Escolar e BNCC."
-            instrucao_bncc = "[MAPEAMENTO_BNCC] Separe por Componente Curricular. Inclua código alfanumérico (ex: EF01LP02). [/MAPEAMENTO_BNCC]"
+            # Carregar habilidades BNCC reais do ano/série do estudante (bncc.csv) para a IA NÃO inventar
+            habilidades_bncc_texto = carregar_habilidades_bncc_por_serie(serie)
+            if habilidades_bncc_texto:
+                instrucao_bncc = f"""[MAPEAMENTO_BNCC] Use APENAS as habilidades BNCC abaixo (ano/série do estudante). NÃO invente outras. Separe por Componente Curricular e cite o código alfanumérico (ex: EF01LP02) tal como na lista.
+[HABILIDADES_BNCC_ANO_SERIE]
+{habilidades_bncc_texto}
+[/HABILIDADES_BNCC_ANO_SERIE]
+[/MAPEAMENTO_BNCC]"""
+            else:
+                instrucao_bncc = "[MAPEAMENTO_BNCC] Separe por Componente Curricular. Inclua código alfanumérico (ex: EF01LP02). [/MAPEAMENTO_BNCC]"
             instrucao_bloom = "[TAXONOMIA_BLOOM] Explique a categoria cognitiva escolhida. [/TAXONOMIA_BLOOM]"
             estrutura_req = f"""
 {prompt_identidade}
