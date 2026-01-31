@@ -3019,7 +3019,36 @@ with tab7_hab:
     with col_btn_aux:
         if st.button("Preenchimento com auxílio da IA", type="secondary", use_container_width=True, key="btn_auxilio_hab_bncc"):
             st.session_state["_run_auxilio_hab"] = True
-    st.caption("As habilidades sugeridas pela IA entram no formulário como se você tivesse escolhido. Elas aparecem **marcadas** nas listas abaixo; para **excluir**, desmarque. Para **adicionar** outras, selecione nas listas.")
+    st.caption("As habilidades sugeridas pela IA entram no formulário como se você tivesse escolhido. Veja a lista **Habilidades selecionadas** abaixo para excluir uma a uma ou todas; para **adicionar**, use as listas por componente.")
+
+    # Caixa visível: lista de habilidades selecionadas com opção de remover uma a uma ou todas
+    if selecionadas_atuais:
+        st.markdown("#### 📋 Habilidades selecionadas")
+        st.caption("Revise a lista. Use **Remover** para tirar uma habilidade ou **Desmarcar todas** para limpar. Você também pode desmarcar/marcar nas listas por componente mais abaixo.")
+        for idx, h in enumerate(selecionadas_atuais):
+            if not isinstance(h, dict) or not h.get("codigo"):
+                continue
+            disc = h.get("disciplina", "")
+            cod = h.get("codigo", "")
+            texto = (h.get("habilidade_completa") or h.get("descricao") or "")[:120]
+            if len((h.get("habilidade_completa") or h.get("descricao") or "")) > 120:
+                texto += "..."
+            col_txt, col_btn = st.columns([5, 1])
+            with col_txt:
+                st.markdown(f"**{disc}** — *{cod}* — {texto}")
+            with col_btn:
+                if st.button("Remover", key=f"remover_hab_{idx}_{cod}_{disc[:20]}", type="secondary"):
+                    nova_lista = [x for x in selecionadas_atuais if isinstance(x, dict) and not (x.get("codigo") == cod and x.get("disciplina") == disc)]
+                    st.session_state.dados["habilidades_bncc_selecionadas"] = nova_lista
+                    st.session_state.dados["habilidades_bncc_validadas"] = None
+                    st.session_state["_hab_bncc_key_salt"] = (st.session_state.get("_hab_bncc_key_salt", 0) + 1)
+                    st.rerun()
+        if st.button("Desmarcar todas", key="desmarcar_todas_hab_bncc", type="secondary"):
+            st.session_state.dados["habilidades_bncc_selecionadas"] = []
+            st.session_state.dados["habilidades_bncc_validadas"] = None
+            st.session_state["_hab_bncc_key_salt"] = (st.session_state.get("_hab_bncc_key_salt", 0) + 1)
+            st.rerun()
+        st.markdown("---")
 
     if st.session_state.get("_run_auxilio_hab"):
         st.session_state["_run_auxilio_hab"] = False
@@ -3072,7 +3101,9 @@ HABILIDADES DO ANO ATUAL:
                         if isinstance(item, dict) and item.get("origem") == "anos_anteriores":
                             sug_list.append(item)
                     st.session_state.dados["habilidades_bncc_selecionadas"] = sug_list
-                st.success("Habilidades sugeridas gravadas no formulário. Elas aparecem marcadas nas listas abaixo; desmarque para excluir ou selecione mais para adicionar.")
+                    # Força os multiselects a exibir a nova seleção na próxima renderização
+                    st.session_state["_hab_bncc_key_salt"] = (st.session_state.get("_hab_bncc_key_salt", 0) + 1)
+                st.success("Habilidades sugeridas gravadas. Veja a lista abaixo; você pode remover uma a uma ou desmarcar todas.")
                 st.rerun()
             except Exception as e:
                 st.error(f"Erro ao sugerir: {str(e)[:120]}")
@@ -3087,11 +3118,12 @@ HABILIDADES DO ANO ATUAL:
             lista_hab = por_componente[disc]
             opcoes = [_opcao_label(h) for h in lista_hab]
             default_labels = [opcoes[i] for i, h in enumerate(lista_hab) if (disc, h.get("codigo", ""), origem) in set_selecionados]
+            _key_salt = st.session_state.get("_hab_bncc_key_salt", 0)
             escolhidas = st.multiselect(
                 f"**{disc}**",
                 options=opcoes,
                 default=default_labels,
-                key=f"hab_bncc_{origem}_{disc}",
+                key=f"hab_bncc_{origem}_{disc}_{_key_salt}",
             )
             for label in escolhidas:
                 for i, h in enumerate(lista_hab):
