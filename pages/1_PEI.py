@@ -438,6 +438,7 @@ default_state = {
     "matricula": "",
     "meds_extraidas_tmp": [],
     "status_meds_extraidas": "idle",
+    "habilidades_bncc_selecionadas": [],  # lista de {disciplina, codigo, descricao} da aba Habilidades BNCC
 }
 
 if "dados" not in st.session_state:
@@ -626,6 +627,60 @@ def carregar_habilidades_bncc_ano_atual_e_anteriores(
         }
     except Exception:
         return {"ano_atual": "", "anos_anteriores": ""}
+
+
+def carregar_habilidades_bncc_por_componente(serie: str) -> dict:
+    """
+    Carrega do bncc.csv as habilidades do ano/série atual agrupadas por Disciplina (componente curricular).
+    Retorna { "Disciplina": [ {"codigo": "EF01LP02", "descricao": "...", "habilidade_completa": "..." }, ... ], ... }
+    para listas suspensas na aba Habilidades BNCC. Extrai código do início da descrição (ex: (EF01LP02)).
+    """
+    ano_serie = _extrair_ano_serie_bncc(serie)
+    if not ano_serie:
+        return {}
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    path_csv = os.path.join(base_dir, "bncc.csv")
+    if not os.path.exists(path_csv):
+        return {}
+    por_componente = {}
+    try:
+        with open(path_csv, "r", encoding="utf-8") as f:
+            next(f)
+            reader = csv.DictReader(f, delimiter=";")
+            raw = list(reader)
+            if not raw:
+                return {}
+            col_disciplina = "Disciplina"
+            col_ano = "Ano"
+            col_habilidade = "Habilidade"
+            if col_ano not in raw[0] or col_habilidade not in raw[0]:
+                return {}
+            for row in raw:
+                ano_celula = (row.get(col_ano) or "").strip()
+                if ano_serie not in ano_celula:
+                    continue
+                disc = (row.get(col_disciplina) or "").strip()
+                hab = (row.get(col_habilidade) or "").strip()
+                if not hab:
+                    continue
+                codigo = ""
+                m = re.match(r"\(([A-Za-z0-9]+)\)\s*(.*)", hab)
+                if m:
+                    codigo, resto = m.group(1), m.group(2)
+                    descricao = resto.strip() if resto else hab
+                else:
+                    descricao = hab
+                if disc not in por_componente:
+                    por_componente[disc] = []
+                por_componente[disc].append({
+                    "codigo": codigo or "(sem código)",
+                    "descricao": descricao[:200] + ("..." if len(descricao) > 200 else ""),
+                    "habilidade_completa": hab,
+                })
+        return por_componente
+    except Exception:
+        return {}
+
 
 def get_segmento_info_visual(serie: str | None):
     nivel = detectar_nivel_ensino(serie or "")
@@ -1445,29 +1500,47 @@ Com base no diagnóstico ({dados.get('diagnostico','')}) e nas barreiras citadas
 """.strip()
         else:
             perfil_ia = "Especialista em Inclusão Escolar e BNCC."
-            # Carregar habilidades BNCC reais: ano atual e anos anteriores (bncc.csv) para a IA NÃO inventar
-            bncc_blocos = carregar_habilidades_bncc_ano_atual_e_anteriores(serie)
-            ano_atual_txt = (bncc_blocos.get("ano_atual") or "").strip()
-            anos_anteriores_txt = (bncc_blocos.get("anos_anteriores") or "").strip()
-            if ano_atual_txt or anos_anteriores_txt:
-                instrucao_bncc = """[MAPEAMENTO_BNCC] Use APENAS as habilidades BNCC listadas abaixo. NÃO invente outras. Cite cada habilidade por escrito com o código e a descrição completa (ex: (EF01LP02) Descrição da habilidade).
+            # Prioridade: habilidades selecionadas na aba Habilidades BNCC; senão carregar do CSV
+            hab_selecionadas = dados.get("habilidades_bncc_selecionadas") or []
+            if hab_selecionadas and isinstance(hab_selecionadas, list):
+                texto_hab_sel = "\n".join(
+                    f"- {h.get('disciplina','')}: {h.get('codigo','')} — {h.get('habilidade_completa', h.get('descricao',''))}"
+                    for h in hab_selecionadas if isinstance(h, dict)
+                )
+                if texto_hab_sel.strip():
+                    instrucao_bncc = f"""[MAPEAMENTO_BNCC] Use APENAS as habilidades BNCC selecionadas pelo profissional (aba Habilidades BNCC). NÃO invente outras. Gere estratégias com base NESSAS habilidades. Cite cada uma por escrito com código e descrição.
+[HABILIDADES_SELECIONADAS_PELO_PROFISSIONAL]
+{texto_hab_sel[:12000]}
+[/HABILIDADES_SELECIONADAS_PELO_PROFISSIONAL]
+[/MAPEAMENTO_BNCC]"""
+                else:
+                    hab_selecionadas = []
+            if not (hab_selecionadas and isinstance(hab_selecionadas, list)):
+                bncc_blocos = carregar_habilidades_bncc_ano_atual_e_anteriores(serie)
+                ano_atual_txt = (bncc_blocos.get("ano_atual") or "").strip()
+                anos_anteriores_txt = (bncc_blocos.get("anos_anteriores") or "").strip()
+                if ano_atual_txt or anos_anteriores_txt:
+                    instrucao_bncc = """[MAPEAMENTO_BNCC] Use APENAS as habilidades BNCC listadas abaixo. NÃO invente outras. Cite cada habilidade por escrito com o código e a descrição completa (ex: (EF01LP02) Descrição da habilidade).
 - Habilidades de anos anteriores: diga PONTUALMENTE quais merecem atenção ou são essenciais para este estudante (com base no diagnóstico e nas barreiras), citando código e descrição.
 - Habilidades do ano/série atual: diga PONTUALMENTE quais são fundamentais para este estudante, citando código e descrição.
 Separe por Componente Curricular."""
-                if anos_anteriores_txt:
-                    instrucao_bncc += f"""
+                    if anos_anteriores_txt:
+                        instrucao_bncc += f"""
 [HABILIDADES_BNCC_ANOS_ANTERIORES]
 {anos_anteriores_txt}
 [/HABILIDADES_BNCC_ANOS_ANTERIORES]"""
-                if ano_atual_txt:
-                    instrucao_bncc += f"""
+                    if ano_atual_txt:
+                        instrucao_bncc += f"""
 [HABILIDADES_BNCC_ANO_SERIE_ATUAL]
 {ano_atual_txt}
 [/HABILIDADES_BNCC_ANO_SERIE_ATUAL]"""
-                instrucao_bncc += "\n[/MAPEAMENTO_BNCC]"
-            else:
-                instrucao_bncc = "[MAPEAMENTO_BNCC] Separe por Componente Curricular. Inclua código alfanumérico (ex: EF01LP02) e a descrição por escrito. [/MAPEAMENTO_BNCC]"
+                    instrucao_bncc += "\n[/MAPEAMENTO_BNCC]"
+                else:
+                    instrucao_bncc = "[MAPEAMENTO_BNCC] Separe por Componente Curricular. Inclua código alfanumérico (ex: EF01LP02) e a descrição por escrito. [/MAPEAMENTO_BNCC]"
             instrucao_bloom = "[TAXONOMIA_BLOOM] Explique a categoria cognitiva escolhida. [/TAXONOMIA_BLOOM]"
+            instrucao_mapa = """
+### 7. 📊 MAPA POR COMPONENTE CURRICULAR:
+Ao final do relatório, inclua um quadro ou tabela por componente curricular (ex.: Língua Portuguesa, Matemática, Ciências) indicando quais componentes exigem MAIOR atenção com base em todo o PEI (diagnóstico, barreiras, estratégias e habilidades). Use uma coluna de nível de atenção (ex.: Alta / Média / Monitoramento) e breve justificativa."""
             estrutura_req = f"""
 {prompt_identidade}
 {prompt_diagnostico}
@@ -1490,6 +1563,7 @@ Separe por Componente Curricular."""
 [ANALISE_FARMA] Se houver medicação, cite efeitos colaterais para atenção pedagógica. [/ANALISE_FARMA]
 
 {prompt_hub}
+{instrucao_mapa}
 """.strip()
 
         prompt_feedback = f"AJUSTE SOLICITADO: {feedback_usuario}" if feedback_usuario else ""
@@ -1842,10 +1916,10 @@ def render_progresso():
 # ==============================================================================
 abas = [
     "INÍCIO", "ESTUDANTE", "EVIDÊNCIAS", "REDE DE APOIO", "MAPEAMENTO",
-    "PLANO DE AÇÃO", "MONITORAMENTO", "CONSULTORIA IA", "DASHBOARD & DOCS"
+    "PLANO DE AÇÃO", "MONITORAMENTO", "HABILIDADES BNCC", "CONSULTORIA IA", "DASHBOARD & DOCS"
 ]
 
-tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(abas)
+tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7_hab, tab8, tab9 = st.tabs(abas)
 
 
 # ==============================================================================
@@ -2801,9 +2875,131 @@ with tab6:
 
 
 # ==============================================================================
+# 17A. ABA HABILIDADES BNCC (seleção por lista suspensa + preenchimento com auxílio da IA)
+# ==============================================================================
+with tab7_hab:
+    render_progresso()
+    st.markdown("### <i class='ri-list-check-2'></i> Habilidades BNCC", unsafe_allow_html=True)
+    st.caption("Selecione as habilidades do ano/série do estudante. A Consultoria IA usará apenas estas para o relatório.")
+
+    serie_hab = st.session_state.dados.get("serie") or ""
+    if not serie_hab:
+        st.warning("Selecione a **Série/Ano** na aba **Estudante** para carregar as habilidades BNCC.")
+        st.stop()
+
+    st.session_state.dados.setdefault("habilidades_bncc_selecionadas", [])
+    por_componente = carregar_habilidades_bncc_por_componente(serie_hab)
+    if not por_componente:
+        st.info("Nenhuma habilidade BNCC encontrada para esta série no arquivo bncc.csv.")
+        st.stop()
+
+    # Opção de label para multiselect: "codigo - descricao curta"; valor interno = índice no componente
+    def _opcao_label(h: dict) -> str:
+        c = h.get("codigo", "")
+        d = (h.get("descricao") or "")[:70]
+        return f"{c} — {d}" if c else d
+
+    # Manter seleção atual: set de (disciplina, codigo)
+    selecionadas_atuais = st.session_state.dados.get("habilidades_bncc_selecionadas") or []
+    set_selecionados = set()
+    for item in selecionadas_atuais:
+        if isinstance(item, dict) and item.get("codigo") and item.get("disciplina"):
+            set_selecionados.add((item["disciplina"], item["codigo"]))
+
+    novas_selecoes = []
+    componentes_ordenados = sorted(por_componente.keys())
+
+    col_btn_aux, _ = st.columns([1, 2])
+    with col_btn_aux:
+        if st.button("Preenchimento com auxílio da IA", type="secondary", use_container_width=True, key="btn_auxilio_hab_bncc"):
+            st.session_state["_run_auxilio_hab"] = True
+
+    if st.session_state.get("_run_auxilio_hab"):
+        st.session_state["_run_auxilio_hab"] = False
+        api_key = (st.session_state.get("api_key") or st.session_state.get("openai_api_key") or "").strip()
+        if not api_key:
+            st.error("Configure a chave OpenAI nas configurações para usar o preenchimento com auxílio.")
+        else:
+            lista_para_ia = []
+            for disc in componentes_ordenados:
+                for h in por_componente[disc]:
+                    lista_para_ia.append(f"- {disc}: {h.get('codigo','')} — {h.get('habilidade_completa','')[:150]}")
+            texto_lista = "\n".join(lista_para_ia[:400])
+            prompt_aux = f"""O estudante está no ano/série: {serie_hab}. Abaixo estão as habilidades BNCC dessa série (código e descrição).
+Indique APENAS os códigos das habilidades mais fundamentais para esse ano (máximo 3 a 5 por componente curricular).
+Retorne somente os códigos, um por linha, ex: EF01LP02
+
+HABILIDADES DISPONÍVEIS:
+{texto_lista}"""
+            try:
+                with st.spinner("Sugerindo habilidades fundamentais para esta série..."):
+                    from openai import OpenAI
+                    client = OpenAI(api_key=api_key)
+                    r = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[{"role": "user", "content": prompt_aux}],
+                    )
+                    texto_resp = (r.choices[0].message.content or "").strip()
+                    codigos_sugeridos = []
+                    for linha in texto_resp.splitlines():
+                        cod = re.search(r"(EF\d+[A-Z0-9]+|EM\d+[A-Z0-9]+)", linha.strip())
+                        if cod:
+                            codigos_sugeridos.append(cod.group(1).upper())
+                    for disc in componentes_ordenados:
+                        for h in por_componente[disc]:
+                            if (h.get("codigo") or "").upper() in codigos_sugeridos:
+                                set_selecionados.add((disc, h.get("codigo", "")))
+                    # Persistir sugestão em dados para o rerun mostrar os multiselects preenchidos
+                    sug_list = []
+                    for disc in componentes_ordenados:
+                        for h in por_componente[disc]:
+                            if (disc, h.get("codigo", "")) in set_selecionados:
+                                sug_list.append({
+                                    "disciplina": disc,
+                                    "codigo": h.get("codigo", ""),
+                                    "descricao": h.get("descricao", ""),
+                                    "habilidade_completa": h.get("habilidade_completa", ""),
+                                })
+                    st.session_state.dados["habilidades_bncc_selecionadas"] = sug_list
+                st.success("Sugestão aplicada. Revise as habilidades marcadas abaixo.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Erro ao sugerir: {str(e)[:120]}")
+
+    for disc in componentes_ordenados:
+        lista_hab = por_componente[disc]
+        opcoes = [_opcao_label(h) for h in lista_hab]
+        default_labels = [opcoes[i] for i, h in enumerate(lista_hab) if (disc, h.get("codigo", "")) in set_selecionados]
+        escolhidas = st.multiselect(
+            f"**{disc}**",
+            options=opcoes,
+            default=default_labels,
+            key=f"hab_bncc_{disc}",
+        )
+        for label in escolhidas:
+            for i, h in enumerate(lista_hab):
+                if _opcao_label(h) == label:
+                    novas_selecoes.append({
+                        "disciplina": disc,
+                        "codigo": h.get("codigo", ""),
+                        "descricao": h.get("descricao", ""),
+                        "habilidade_completa": h.get("habilidade_completa", ""),
+                    })
+                    break
+
+    st.session_state.dados["habilidades_bncc_selecionadas"] = novas_selecoes
+    n_hab = len(novas_selecoes)
+    if n_hab > 0:
+        st.success(f"**{n_hab}** habilidade(s) selecionada(s). A Consultoria IA usará apenas estas no relatório.")
+
+    st.divider()
+    st.caption("Na aba **Consultoria IA**, o relatório será gerado com base nessas habilidades e incluirá um mapa por componente curricular com maior necessidade de atenção.")
+
+
+# ==============================================================================
 # 18. ABA CONSULTORIA IA (COMPLETA: gerar + revisar + aprovar + ajustar)
 # ==============================================================================
-with tab7:
+with tab8:
     render_progresso()
     st.markdown("### <i class='ri-robot-2-line'></i> Consultoria Pedagógica", unsafe_allow_html=True)
 
@@ -2831,12 +3027,13 @@ with tab7:
 
         with col_btn:
             if st.button("✨ Gerar Estratégia Técnica", type="primary", use_container_width=True):
-                res, err = consultar_gpt_pedagogico(
-                    api_key,
-                    st.session_state.dados,
-                    st.session_state.get("pdf_text", ""),
-                    modo_pratico=False,
-                )
+                with st.spinner("Gerando estratégia técnica do PEI..."):
+                    res, err = consultar_gpt_pedagogico(
+                        api_key,
+                        st.session_state.dados,
+                        st.session_state.get("pdf_text", ""),
+                        modo_pratico=False,
+                    )
                 if res:
                     st.session_state.dados["ia_sugestao"] = res
                     st.session_state.dados["status_validacao_pei"] = "revisao"
@@ -2846,12 +3043,13 @@ with tab7:
 
             st.write("")
             if st.button("🧰 Gerar Guia Prático (Sala de Aula)", use_container_width=True):
-                res, err = consultar_gpt_pedagogico(
-                    api_key,
-                    st.session_state.dados,
-                    st.session_state.get("pdf_text", ""),
-                    modo_pratico=True,
-                )
+                with st.spinner("Gerando guia prático..."):
+                    res, err = consultar_gpt_pedagogico(
+                        api_key,
+                        st.session_state.dados,
+                        st.session_state.get("pdf_text", ""),
+                        modo_pratico=True,
+                    )
                 if res:
                     st.session_state.dados["ia_sugestao"] = res
                     st.session_state.dados["status_validacao_pei"] = "revisao"
@@ -2959,7 +3157,7 @@ with tab7:
 # ==============================================================================
 # 19. ABA DASHBOARD & DOCS (Dashboard + Metas + Exportações + Sincronização 'rico')
 # ==============================================================================
-with tab8:
+with tab9:
     render_progresso()
     st.markdown("### <i class='ri-file-pdf-line'></i> Dashboard e Exportação", unsafe_allow_html=True)
 
