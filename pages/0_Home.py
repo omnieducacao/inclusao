@@ -865,7 +865,7 @@ def render_topbar():
 
 
 def create_module_card(title, desc, icon, color_cls, bg_cls, page, key, emoji=None):
-    """Cria um card de módulo com botão de acesso. Usa emoji quando USE_EMOJI_FALLBACK (Streamlit pode não carregar Remixicon)."""
+    """Cria um card de módulo com botão de acesso. Cards usam Remixicon (biblioteca flat); emoji é fallback opcional."""
     icon_color = "#9333EA" if "purple" in bg_cls else "#2563EB" if "indigo" in bg_cls else "#0EA5E9" if "blue" in bg_cls else "#06B6D4" if "teal" in bg_cls else "#F43F5E" if "rose" in bg_cls else "#0C4A6E"
     icon_content = f'<span style="font-size: 2rem; color: {icon_color};">{emoji}</span>' if (USE_EMOJI_FALLBACK and emoji) else f'<i class="{icon}" style="font-size: 2rem; color: {icon_color}; display: inline-block; visibility: visible; opacity: 1; font-style: normal;"></i>'
     st.markdown(

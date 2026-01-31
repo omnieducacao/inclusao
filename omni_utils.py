@@ -68,8 +68,9 @@ ICON_LIBRARY = {
     "sucesso": {"icon": "ri-check-line", "color": "#16A34A"},
 }
 
-# Fallback emoji para quando Remixicon não carrega no Streamlit (CDN bloqueado/iframe)
-USE_EMOJI_FALLBACK = True
+# Em botões/checkboxes o Streamlit não renderiza HTML; use get_icon(..., use_emoji=True) ou get_icon_emoji().
+# Em cards e markdown mantemos Remixicon (biblioteca flat).
+USE_EMOJI_FALLBACK = False
 ICON_EMOJI = {
     "estudantes": "👥", "pei": "📘", "pae": "🧩", "hub": "🚀", "diario": "📝", "monitoramento": "📊",
     "panorama": "📈", "legislacao": "⚖️", "glossario": "📖", "linguagem": "💬", "biblioteca": "📚", "manual": "📗",
@@ -106,6 +107,10 @@ def get_icon(key: str, size: int = 20, color: str = None, use_emoji: bool = None
         return f'<span style="font-size: {size}px; color: {icon_color}; vertical-align: middle;">{emoji}</span>'
     icon_class = icon_data["icon"]
     return f'<i class="{icon_class}" style="font-size: {size}px; color: {icon_color}; vertical-align: middle;"></i>'
+
+def get_icon_emoji(key: str) -> str:
+    """Retorna apenas o emoji do ícone (para rótulos de botão/checkbox onde HTML não é renderizado)."""
+    return ICON_EMOJI.get(key.lower(), "❓")
 
 def icon_title(text: str, icon_key: str, size: int = 24, color: str = None) -> str:
     """

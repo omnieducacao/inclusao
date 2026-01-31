@@ -15,7 +15,7 @@ import time
 import uuid
 
 import omni_utils as ou  # módulo atualizado
-from omni_utils import get_icon, icon_title
+from omni_utils import get_icon, icon_title, get_icon_emoji
 
 # 1. CONFIGURAÇÃO INICIAL (topo absoluto)
 st.set_page_config(
@@ -46,7 +46,7 @@ st.markdown("<script>document.body.classList.add('page-purple');</script>", unsa
 # 4. VERIFICAÇÃO DE ACESSO
 def verificar_acesso():
     if not st.session_state.get("autenticado"):
-        st.error(f"{get_icon('erro', 18, '#DC2626')} Acesso Negado.")
+        st.error(f"{get_icon_emoji('erro')} Acesso Negado.")
         st.stop()
 
 verificar_acesso()
@@ -702,7 +702,7 @@ def carregar_ciclo_ativo(aluno_id):
 # CARREGAMENTO DOS DADOS DOS ESTUDANTES
 # ==============================================================================
 if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estudantes:
-    with st.spinner(f"{get_icon('configurar', 18, '#A855F7')} Lendo dados da nuvem..."):
+    with st.spinner(f"{get_icon_emoji('configurar')} Lendo dados da nuvem..."):
         st.session_state.banco_estudantes = carregar_estudantes_supabase()
 
 if not st.session_state.banco_estudantes:
@@ -1256,11 +1256,11 @@ def renderizar_hub_recurso(tipo_recurso, conteudo_gerado, aluno_nome, dados_entr
         
         # TÍTULO DO RECURSO
         titulos = {
-            'diagnostico_barreiras': f'{get_icon("buscar", 18, "#A855F7")} Diagnóstico de Barreiras',
-            'projetos_ei': f'{get_icon("estudio_visual", 18, "#A855F7")} Banco de Experiências (BNCC)',
-            'plano_habilidades': f'{get_icon("monitoramento", 18, "#A855F7")} Plano de Habilidades',
-            'tecnologia_assistiva': f'{get_icon("configurar", 18, "#A855F7")} Tecnologia Assistiva',
-            'documento_articulacao': f'{get_icon("download", 18, "#A855F7")} Documento de Articulação'
+            'diagnostico_barreiras': f'{get_icon_emoji("buscar")} Diagnóstico de Barreiras',
+            'projetos_ei': f'{get_icon_emoji("estudio_visual")} Banco de Experiências (BNCC)',
+            'plano_habilidades': f'{get_icon_emoji("monitoramento")} Plano de Habilidades',
+            'tecnologia_assistiva': f'{get_icon_emoji("configurar")} Tecnologia Assistiva',
+            'documento_articulacao': f'{get_icon_emoji("download")} Documento de Articulação'
         }
         
         st.subheader(titulos.get(tipo_recurso, 'Recurso Gerado'))
@@ -1372,7 +1372,7 @@ def renderizar_hub_recurso(tipo_recurso, conteudo_gerado, aluno_nome, dados_entr
         
         # 4. MODO REGERANDO (processando ajustes)
         elif status == 'regerando':
-            st.info(f"{get_icon('configurar', 18, '#2563EB')} **Processando ajustes solicitados...**")
+            st.info(f"{get_icon_emoji('configurar')} **Processando ajustes solicitados...**")
             # Este estado é transitório, será tratado na função principal
         
         st.markdown("</div>", unsafe_allow_html=True)
@@ -1934,10 +1934,10 @@ with tab_planejamento:
                 "documento_articulacao": st.session_state.get("conteudo_documento_articulacao", ""),
             }
             recursos_nomes = {
-                "diagnostico_barreiras": f"{get_icon('buscar', 18, '#A855F7')} Diagnóstico de Barreiras",
-                "plano_habilidades": f"{get_icon('monitoramento', 18, '#A855F7')} Plano de Habilidades",
-                "tecnologia_assistiva": f"{get_icon('configurar', 18, '#A855F7')} Tecnologia Assistiva",
-                "documento_articulacao": f"{get_icon('dinamica', 18, '#A855F7')} Documento de Articulação",
+                "diagnostico_barreiras": f"{get_icon_emoji('buscar')} Diagnóstico de Barreiras",
+                "plano_habilidades": f"{get_icon_emoji('monitoramento')} Plano de Habilidades",
+                "tecnologia_assistiva": f"{get_icon_emoji('configurar')} Tecnologia Assistiva",
+                "documento_articulacao": f"{get_icon_emoji('dinamica')} Documento de Articulação",
             }
             recursos_com_conteudo = {k: v for k, v in recursos_disponiveis.items() if v and len(str(v)) > 120}
 
