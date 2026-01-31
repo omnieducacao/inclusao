@@ -42,6 +42,8 @@ except Exception:
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Estratégias & PEI")
 ou.inject_compact_app_css()
+# Overlay de loading (ícone girando) quando a IA está gerando algo
+ou.inject_loading_overlay_css()
 
 # Adiciona classe no body para cores específicas das abas
 st.markdown("<script>document.body.classList.add('page-blue');</script>", unsafe_allow_html=True)
@@ -3005,11 +3007,10 @@ with tab7_hab:
         st.stop()
 
     def _opcao_label(h: dict) -> str:
-        """Label na lista suspensa: código + texto completo da habilidade (até 400 caracteres para não cortar)."""
+        """Label na lista suspensa: código + texto completo da habilidade (na íntegra)."""
         c = h.get("codigo", "")
         texto = h.get("habilidade_completa") or h.get("descricao") or ""
-        d = texto[:400] + ("..." if len(texto) > 400 else "")
-        return f"{c} — {d}" if c else d
+        return f"{c} — {texto}" if c else texto
 
     # Seleção atual: set de (disciplina, codigo, origem)
     selecionadas_atuais = st.session_state.dados.get("habilidades_bncc_selecionadas") or []
@@ -3039,9 +3040,7 @@ with tab7_hab:
                 continue
             disc = h.get("disciplina", "")
             cod = h.get("codigo", "")
-            texto = (h.get("habilidade_completa") or h.get("descricao") or "")[:120]
-            if len((h.get("habilidade_completa") or h.get("descricao") or "")) > 120:
-                texto += "..."
+            texto = (h.get("habilidade_completa") or h.get("descricao") or "")
             col_txt, col_btn = st.columns([5, 1])
             with col_txt:
                 st.markdown(f"**{disc}** — *{cod}* — {texto}")
@@ -3378,13 +3377,14 @@ with tab8:
         st.warning("Descreva o ajuste desejado:")
         feedback = st.text_area("Seu feedback:", placeholder="Ex: Foque mais na alfabetização…")
         if st.button("Regerar com Ajustes", type="primary", use_container_width=True):
-            res, err = consultar_gpt_pedagogico(
-                api_key,
-                st.session_state.dados,
-                st.session_state.get("pdf_text", ""),
-                modo_pratico=False,
-                feedback_usuario=feedback,
-            )
+            with st.spinner("Aplicando ajustes e regerando o PEI..."):
+                res, err = consultar_gpt_pedagogico(
+                    api_key,
+                    st.session_state.dados,
+                    st.session_state.get("pdf_text", ""),
+                    modo_pratico=False,
+                    feedback_usuario=feedback,
+                )
             if res:
                 st.session_state.dados["ia_sugestao"] = res
                 st.session_state.dados["status_validacao_pei"] = "revisao"

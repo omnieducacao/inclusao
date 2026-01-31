@@ -111,6 +111,8 @@ forcar_layout_hub()
 ou.inject_hero_card_colors()
 # CSS padronizado: abas (pílulas), botões, selects, etc.
 ou.inject_unified_ui_css()
+# Overlay de loading (ícone girando) quando a IA está gerando algo
+ou.inject_loading_overlay_css()
 
 # Garantir que RemixIcon está carregado para os ícones aparecerem
 st.markdown("""
@@ -1233,6 +1235,42 @@ def gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo, feedback_game=""):
             "Você é um Game Master. Crie uma versão GAMIFICADA do planejamento do ciclo AEE, "
             "para o estudante e a família: linguagem motivadora, missões, recompensas, sem dados sensíveis. "
             "Estrutura: título da missão, mapa das fases/semanas como 'etapas', desafios e conquistas."
+            + prompt_feedback
+        )
+        res = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": prompt_sys},
+                {"role": "user", "content": contexto}
+            ],
+            temperature=0.7,
+            max_tokens=1500
+        )
+        return res.choices[0].message.content.strip(), None
+    except Exception as e:
+        return None, str(e)
+
+
+def gerar_roteiro_gamificado_de_texto(api_key, aluno, texto_origem, nome_fonte, feedback_game=""):
+    """Gera roteiro gamificado para o estudante a partir do texto de uma aba (barreiras, plano, tech, etc.)."""
+    if not api_key:
+        return None, "Configure a chave OpenAI."
+    if not (texto_origem or "").strip():
+        return None, f"Não há conteúdo na aba selecionada. Gere o conteúdo na aba **{nome_fonte}** primeiro."
+    try:
+        client = OpenAI(api_key=api_key)
+        nome_curto = (aluno.get("nome", "").split() or ["Estudante"])[0]
+        contexto = (
+            f"ESTUDANTE: {nome_curto}\n"
+            f"ORIGEM DO CONTEÚDO: {nome_fonte} (material da escola para o AEE)\n\n"
+            "CONTEÚDO A SER TRANSFORMADO EM JORNADA GAMIFICADA PARA O ESTUDANTE:\n"
+            f"{texto_origem[:8000]}"
+        )
+        prompt_feedback = f"\nAJUSTE SOLICITADO: {feedback_game}" if feedback_game else ""
+        prompt_sys = (
+            "Você é um Game Master. Transforme o conteúdo abaixo em uma versão GAMIFICADA para o estudante e a família: "
+            "linguagem motivadora, missões, recompensas, sem dados sensíveis. "
+            "Estrutura: título da missão, etapas/desafios, conquistas. O estudante deve se ver como protagonista da jornada."
             + prompt_feedback
         )
         res = client.chat.completions.create(
@@ -2540,14 +2578,44 @@ with tab_jornada:
           Missão do(a) {aluno.get('nome','')}
         </div>
         <div style="font-size:.9rem;color:#64748B;margin-top:6px;">
-          Versão gamificada do planejamento do ciclo para o estudante e a família.
+          Transforme em roteiro gamificado o que foi gerado em qualquer aba — para o estudante e a família.
         </div>
       </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.info("Esta aba cria um material **para o estudante**: uma versão gamificada do **ciclo de execução** (metas SMART, cronograma), para imprimir ou entregar à família.")
+    st.info("Cada aba do PAE pode virar uma **jornada gamificada** para o estudante. Escolha a **origem** na lista abaixo: Execução e Metas SMART, Mapear Barreiras, Plano de Habilidades ou Tecnologia Assistiva.")
 
+    # Opções de origem para a jornada (cada aba pode virar roteiro gamificado)
+    if is_ei:
+        opcoes_origem = [
+            "Execução e Metas SMART (ciclo)",
+            "Barreiras no Brincar",
+            "Banco de Experiências",
+        ]
+        chaves_conteudo = {"Barreiras no Brincar": "conteudo_diagnostico_barreiras", "Banco de Experiências": "conteudo_projetos_ei"}
+    else:
+        opcoes_origem = [
+            "Execução e Metas SMART (ciclo)",
+            "Mapear Barreiras",
+            "Plano de Habilidades",
+            "Tecnologia Assistiva",
+        ]
+        chaves_conteudo = {
+            "Mapear Barreiras": "conteudo_diagnostico_barreiras",
+            "Plano de Habilidades": "conteudo_plano_habilidades",
+            "Tecnologia Assistiva": "conteudo_tecnologia_assistiva",
+        }
+
+    origem_selecionada = st.selectbox(
+        "Gerar jornada a partir de:",
+        options=opcoes_origem,
+        key="jornada_origem_select",
+        help="Escolha de qual aba usar o conteúdo para criar o roteiro gamificado para o estudante.",
+    )
+
+    # Chave de estado por origem (ciclo usa ciclo_id; demais usam slug)
+    usa_ciclo = "Execução e Metas SMART" in origem_selecionada
     ciclos_es_j = st.session_state.get("execucao_smart_ciclos", [])
     ativo_es_j = st.session_state.get("execucao_smart_ativo")
     ciclo_ativo_j = next((c for c in ciclos_es_j if c.get("ciclo_id") == ativo_es_j), None) if ativo_es_j and ciclos_es_j else None
@@ -2555,49 +2623,73 @@ with tab_jornada:
     ciclo_sel_j = st.session_state.get("ciclo_execucao_selecionado")
     ciclo_para_jornada = ciclo_preview_j or ciclo_sel_j or ciclo_ativo_j
 
-    if not ciclo_para_jornada:
-        st.warning("Selecione ou gere um ciclo na aba **Execução e Metas SMART** para criar a Jornada Gamificada.")
-        st.stop()
+    if usa_ciclo:
+        if not ciclo_para_jornada:
+            st.warning("Selecione ou gere um ciclo na aba **Execução e Metas SMART** para usar esta origem.")
+        chave_jornada = "ciclo_" + (ciclo_para_jornada.get("ciclo_id") or "preview") if ciclo_para_jornada else "ciclo_none"
+    else:
+        slug = origem_selecionada.replace(" ", "_").lower()[:30]
+        chave_jornada = slug
 
-    cfg_j = ciclo_para_jornada.get("config_ciclo") or {}
-    ciclo_id_j = ciclo_para_jornada.get("ciclo_id") or "preview"
     st.session_state.setdefault("jornada_gamificada", {})
     jg = st.session_state["jornada_gamificada"]
-    jg.setdefault(ciclo_id_j, {"texto": "", "status": "rascunho", "feedback": ""})
-    estado = jg[ciclo_id_j]
+    jg.setdefault(chave_jornada, {"texto": "", "status": "rascunho", "feedback": "", "origem": origem_selecionada})
+    estado = jg[chave_jornada]
 
-    with st.container(border=True):
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("**Foco do ciclo**")
-            st.caption(cfg_j.get("foco_principal", "—"))
-        with c2:
-            st.markdown("**Período**")
-            st.caption(f"{_fmt_data_iso(cfg_j.get('data_inicio'))} → {_fmt_data_iso(cfg_j.get('data_fim'))}")
+    if usa_ciclo and ciclo_para_jornada:
+        cfg_j = ciclo_para_jornada.get("config_ciclo") or {}
+        with st.container(border=True):
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown("**Foco do ciclo**")
+                st.caption(cfg_j.get("foco_principal", "—"))
+            with c2:
+                st.markdown("**Período**")
+                st.caption(f"{_fmt_data_iso(cfg_j.get('data_inicio'))} → {_fmt_data_iso(cfg_j.get('data_fim'))}")
 
     st.divider()
     status_game = estado.get("status", "rascunho")
 
     if status_game != "rascunho":
         if st.button("Limpar / Abandonar", key="limpar_jornada", help="Descarta a missão gerada e volta ao início"):
-            jg[ciclo_id_j]["status"] = "rascunho"
-            jg[ciclo_id_j]["feedback"] = ""
-            jg[ciclo_id_j]["texto"] = ""
+            jg[chave_jornada]["status"] = "rascunho"
+            jg[chave_jornada]["feedback"] = ""
+            jg[chave_jornada]["texto"] = ""
             st.rerun()
 
     if status_game == "rascunho":
-        st.markdown("**Como funciona:** A IA usa o planejamento do ciclo (metas, cronograma, foco) para criar uma missão gamificada para o estudante.")
+        st.markdown("**Como funciona:** A IA transforma o conteúdo da aba escolhida em uma missão gamificada para o estudante.")
         estilo_j = st.text_input("Preferência de estilo (opcional)", placeholder="Ex: super-heróis, exploração, futebol...", key="jg_estilo")
         if st.button("Criar Roteiro Gamificado", type="primary", use_container_width=True, key="btn_jg_gerar"):
-            with st.spinner("Criando missão..."):
-                fb = (f"Estilo: {estilo_j}." if estilo_j else "").strip()
-                texto_game, err = gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo_para_jornada, fb)
-                if texto_game:
-                    jg[ciclo_id_j]["texto"] = texto_game
-                    jg[ciclo_id_j]["status"] = "revisao"
-                    st.rerun()
+            if usa_ciclo:
+                if not ciclo_para_jornada:
+                    st.warning("Gere ou selecione um ciclo na aba **Execução e Metas SMART** primeiro.")
                 else:
-                    st.error(err or "Erro ao gerar a missão.")
+                    with st.spinner("Criando missão..."):
+                        fb = (f"Estilo: {estilo_j}." if estilo_j else "").strip()
+                        texto_game, err = gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo_para_jornada, fb)
+                        if texto_game:
+                            jg[chave_jornada]["texto"] = texto_game
+                            jg[chave_jornada]["status"] = "revisao"
+                            jg[chave_jornada]["origem"] = origem_selecionada
+                            st.rerun()
+                        else:
+                            st.error(err or "Erro ao gerar a missão.")
+            else:
+                texto_fonte = st.session_state.get(chaves_conteudo.get(origem_selecionada, ""), "")
+                if not (texto_fonte or "").strip():
+                    st.warning(f"Gere o conteúdo na aba **{origem_selecionada}** primeiro.")
+                else:
+                    with st.spinner("Criando missão..."):
+                        fb = (f"Estilo: {estilo_j}." if estilo_j else "").strip()
+                        texto_game, err = gerar_roteiro_gamificado_de_texto(api_key, aluno, texto_fonte, origem_selecionada, fb)
+                        if texto_game:
+                            jg[chave_jornada]["texto"] = texto_game
+                            jg[chave_jornada]["status"] = "revisao"
+                            jg[chave_jornada]["origem"] = origem_selecionada
+                            st.rerun()
+                        else:
+                            st.error(err or "Erro ao gerar a missão.")
 
     elif status_game == "revisao":
         st.success("Missão gerada! Revise abaixo e aprove ou solicite ajustes.")
@@ -2607,34 +2699,38 @@ with tab_jornada:
         c_ok, c_aj = st.columns(2)
         with c_ok:
             if st.button("Aprovar Missão", type="primary", use_container_width=True, key="btn_jg_ok"):
-                jg[ciclo_id_j]["status"] = "aprovado"
+                jg[chave_jornada]["status"] = "aprovado"
                 st.rerun()
         with c_aj:
             if st.button("Solicitar Ajustes", use_container_width=True, key="btn_jg_aj"):
-                jg[ciclo_id_j]["status"] = "ajustando"
+                jg[chave_jornada]["status"] = "ajustando"
                 st.rerun()
 
     elif status_game == "ajustando":
         st.warning("Descreva o que ajustar e regenere.")
         fb_j = st.text_area("O que ajustar?", value=estado.get("feedback", ""), placeholder="Ex: mais curto, linguagem infantil...", height=100, key="jg_fb")
-        jg[ciclo_id_j]["feedback"] = fb_j
+        jg[chave_jornada]["feedback"] = fb_j
         if st.button("Regerar com Ajustes", type="primary", use_container_width=True, key="btn_jg_regerar"):
             with st.spinner("Reescrevendo..."):
-                texto_game, err = gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo_para_jornada, fb_j)
+                if usa_ciclo and ciclo_para_jornada:
+                    texto_game, err = gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo_para_jornada, fb_j)
+                else:
+                    texto_fonte = st.session_state.get(chaves_conteudo.get(origem_selecionada, ""), "")
+                    texto_game, err = gerar_roteiro_gamificado_de_texto(api_key, aluno, texto_fonte, origem_selecionada, fb_j)
                 if texto_game:
-                    jg[ciclo_id_j]["texto"] = texto_game
-                    jg[ciclo_id_j]["status"] = "revisao"
+                    jg[chave_jornada]["texto"] = texto_game
+                    jg[chave_jornada]["status"] = "revisao"
                     st.rerun()
                 else:
                     st.error(err or "Erro ao regerar.")
         if st.button("Voltar", use_container_width=True, key="btn_jg_voltar"):
-            jg[ciclo_id_j]["status"] = "revisao"
+            jg[chave_jornada]["status"] = "revisao"
             st.rerun()
 
     elif status_game == "aprovado":
         st.success("Missão aprovada! Edite se quiser e exporte em PDF.")
         novo_texto = st.text_area("Edição final (opcional)", value=estado.get("texto", ""), height=280, key="jg_texto_final")
-        jg[ciclo_id_j]["texto"] = novo_texto
+        jg[chave_jornada]["texto"] = novo_texto
         pdf_bytes = _gerar_pdf_jornada_simples(novo_texto)
         if pdf_bytes:
             st.download_button(
@@ -2647,10 +2743,10 @@ with tab_jornada:
                 key="btn_jg_pdf"
             )
         st.caption("Dica: imprima e entregue ao estudante ou à família.")
-        if st.button("Criar Nova Missão (outro ciclo)", use_container_width=True, key="btn_jg_nova"):
-            jg[ciclo_id_j]["status"] = "rascunho"
-            jg[ciclo_id_j]["feedback"] = ""
-            jg[ciclo_id_j]["texto"] = ""
+        if st.button("Criar Nova Missão (outra origem)", use_container_width=True, key="btn_jg_nova"):
+            jg[chave_jornada]["status"] = "rascunho"
+            jg[chave_jornada]["feedback"] = ""
+            jg[chave_jornada]["texto"] = ""
             st.rerun()
 
 # ==============================================================================
