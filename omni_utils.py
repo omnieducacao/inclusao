@@ -452,9 +452,8 @@ def inject_compact_app_css(accent: str = "#0D9488"):
 def inject_loading_overlay_css():
     """
     Quando o Streamlit mostra um spinner (ex.: IA gerando algo), transforma em overlay
-    de página cheia com ícone PNG girando no centro (load de página).
-    Como o menu/chrome foi escondido, o spinner padrão fica invisível; este CSS
-    reaproveita o container [data-testid="stSpinner"] e estiliza como overlay central.
+    de página cheia com ícone PNG girando no centro e texto "Omnisfera trabalhando...".
+    Fundo menos opaco para ver a página atrás. Reaproveita [data-testid="stSpinner"].
     """
     icon_b64 = ""
     try:
@@ -469,37 +468,54 @@ def inject_loading_overlay_css():
         bg_img = f"url('data:image/png;base64,{icon_b64}')"
         spinner_inner = f"""
         [data-testid="stSpinner"] > * {{ display: none !important; }}
-        [data-testid="stSpinner"]::after {{
+        [data-testid="stSpinner"]::before {{
             content: '' !important;
             display: block !important;
-            width: 56px !important;
-            height: 56px !important;
+            width: 40px !important;
+            height: 40px !important;
             background-image: {bg_img} !important;
             background-size: contain !important;
             background-repeat: no-repeat !important;
             background-position: center !important;
             animation: omni-spin 0.9s linear infinite !important;
         }}
+        [data-testid="stSpinner"]::after {{
+            content: 'Omnisfera trabalhando...' !important;
+            display: block !important;
+            margin-top: 12px !important;
+            font-size: 0.9rem !important;
+            color: #64748B !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.02em !important;
+        }}
         """
     else:
         spinner_inner = """
         [data-testid="stSpinner"] > * { display: none !important; }
-        [data-testid="stSpinner"]::after {
+        [data-testid="stSpinner"]::before {
             content: '' !important;
             display: block !important;
-            width: 48px !important;
-            height: 48px !important;
-            border: 4px solid #E2E8F0 !important;
+            width: 36px !important;
+            height: 36px !important;
+            border: 3px solid #E2E8F0 !important;
             border-top-color: #2563EB !important;
             border-radius: 50% !important;
             animation: omni-spin 0.8s linear infinite !important;
+        }
+        [data-testid="stSpinner"]::after {
+            content: 'Omnisfera trabalhando...' !important;
+            display: block !important;
+            margin-top: 12px !important;
+            font-size: 0.9rem !important;
+            color: #64748B !important;
+            font-weight: 600 !important;
         }
         """
 
     st.markdown(
         f"""
 <style>
-  /* Overlay de loading: quando st.spinner está ativo, mostra ícone girando no centro */
+  /* Overlay de loading: ícone menor, texto abaixo, fundo menos opaco */
   [data-testid="stSpinner"] {{
     position: fixed !important;
     top: 0 !important;
@@ -511,9 +527,10 @@ def inject_loading_overlay_css():
     margin: 0 !important;
     padding: 0 !important;
     display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    background: rgba(255, 255, 255, 0.88) !important;
+    background: rgba(255, 255, 255, 0.52) !important;
     z-index: 999999 !important;
   }}
   {spinner_inner}
@@ -1332,7 +1349,7 @@ select:focus {
 # 4.5) RODAPÉ COM ASSINATURA
 # =============================================================================
 def render_footer_assinatura():
-    """Renderiza rodapé com assinatura em todas as páginas"""
+    """Renderiza rodapé com assinatura e aviso sobre conteúdo gerado por IA."""
     st.markdown("""
     <div style="
         text-align: center;
@@ -1343,6 +1360,9 @@ def render_footer_assinatura():
         font-size: 0.75rem;
         font-weight: 500;
     ">
+        <div style="max-width: 560px; margin: 0 auto 14px auto; padding: 10px 14px; background: #F8FAFC; border-radius: 10px; border: 1px solid #E2E8F0; color: #64748B; font-size: 0.72rem; line-height: 1.4;">
+            Conteúdos gerados por IA podem conter erros. É importante sempre fazer <strong>leitura, conferência e edição minuciosa</strong> antes de usar em documentos oficiais.
+        </div>
         Criado e desenvolvido por <strong style="color: #64748B;">Rodrigo A. Queiroz</strong>
     </div>
     """, unsafe_allow_html=True)
