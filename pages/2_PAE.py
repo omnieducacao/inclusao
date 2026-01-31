@@ -2744,7 +2744,7 @@ with tab_jornada:
                 )
                 if url_sheet:
                     st.success("Planilha criada!")
-                    st.link_button("Abrir planilha", url_sheet, use_container_width=True, key="link_jg_sheets")
+                    st.link_button("Abrir planilha", str(url_sheet).strip(), type="primary", key="link_jg_sheets")
                 else:
                     st.warning(err or "Erro ao exportar.")
         with col_csv:
