@@ -2739,11 +2739,13 @@ with tab_jornada:
                 )
         with col_sheets:
             if st.button("Sincronizar na Minha Jornada", use_container_width=True, type="secondary", key="btn_jg_sheets", help="Envia a missão para a planilha em segundo plano e gera o código para o estudante"):
+                _hiperfoco = aluno.get("hiperfoco")
+                _hiperfoco = str(_hiperfoco).strip() if _hiperfoco is not None else ""
                 url_sheet, err, codigo = ou.exportar_jornada_para_sheets(
                     novo_texto,
                     "Jornada Gamificada",
-                    aluno.get("nome", ""),
-                    hiperfoco_estudante=aluno.get("hiperfoco", "") or "",
+                    nome_estudante=str(aluno.get("nome") or ""),
+                    hiperfoco_estudante=_hiperfoco,
                 )
                 if url_sheet and codigo:
                     st.success("Sincronizado na Minha Jornada!")

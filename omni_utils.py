@@ -1641,7 +1641,7 @@ def exportar_jornada_para_sheets(
         linhas = [linha.strip() for linha in texto_jornada.replace("\r", "\n").split("\n") if linha.strip()]
         if not linhas:
             linhas = [texto_jornada.strip()[:50000] or "(sem conteúdo)"]
-        hiperfoco_txt = (hiperfoco_estudante or "").strip() or "—"
+        hiperfoco_txt = (str(hiperfoco_estudante).strip() if hiperfoco_estudante is not None else "") or "—"
         cabecalho = [
             ["HIPERFOCO DO ESTUDANTE:"],
             [hiperfoco_txt],
