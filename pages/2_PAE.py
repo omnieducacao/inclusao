@@ -2744,7 +2744,12 @@ with tab_jornada:
                 )
                 if url_sheet:
                     st.success("Planilha criada!")
-                    st.link_button("Abrir planilha", str(url_sheet).strip(), type="primary", key="link_jg_sheets")
+                    url_str = str(url_sheet).strip()
+                    st.markdown(
+                        f'<a href="{url_str}" target="_blank" rel="noopener noreferrer" '
+                        'style="display:inline-block;padding:0.5rem 1rem;background:#0D9488;color:white;border-radius:0.5rem;text-decoration:none;font-weight:600;">Abrir planilha</a>',
+                        unsafe_allow_html=True,
+                    )
                 else:
                     st.warning(err or "Erro ao exportar.")
         with col_csv:
