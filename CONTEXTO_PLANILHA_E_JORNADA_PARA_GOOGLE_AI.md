@@ -173,12 +173,28 @@ Objeto com:
 
 ## 8. COMO A PLANILHA É ACESSADA PELO APP
 
+### Obrigatório: Publicar na web (não basta compartilhar)
+
+**"Compartilhar com qualquer um com o link" NÃO é suficiente.** É necessário **publicar a planilha na web**:
+1. Google Sheets → **Arquivo** → **Compartilhar** → **Publicar na web**
+2. Escolha "Documento Inteiro" ou "Página da Web"
+3. Clique em **Publicar**
+4. Copie a URL gerada (formato: `https://docs.google.com/spreadsheets/d/ID/pubhtml`)
+
+O Omnisfera exibe essa URL após sincronizar (expander "URL para o app Minha Jornada").
+
+### Erro 404 — Causa e solução
+
+Se o app retornar **HTTP 404**, a URL em `sheetService.ts` está incorreta ou a planilha não está publicada:
+- Use a **URL pubhtml** exata (exibida no Omnisfera após sincronizar).
+- Verifique se a planilha foi **publicada na web** (não só compartilhada).
+- A URL correta termina em `/pubhtml` (ex.: `https://docs.google.com/spreadsheets/d/1cJHZAq-.../pubhtml`).
+
 ### Opção 1: PubHTML (HTML público)
 
-- URL: `https://docs.google.com/spreadsheets/d/e/2PACX-xxx/pubhtml`
-- A planilha precisa estar **publicada na web** (Arquivo → Compartilhar → Publicar na web).
+- URL: `https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/pubhtml`
 - O app faz `fetch` dessa URL e interpreta o HTML.
-- **Problema possível:** CORS pode bloquear o fetch no navegador. Solução: usar um proxy CORS ou um backend que faça o fetch.
+- **Problema possível:** CORS pode bloquear o fetch no navegador. Solução: usar um proxy CORS (ex.: `https://api.allorigins.win/raw?url=`) ou um backend que faça o fetch.
 
 ### Opção 2: Google Sheets API (recomendado se CORS bloquear)
 

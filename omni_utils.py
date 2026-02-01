@@ -1603,14 +1603,15 @@ def exportar_jornada_para_sheets(
     titulo: str = "Jornada Gamificada",
     nome_estudante: str = "",
     hiperfoco_estudante: str = "",
-) -> tuple[str | None, str | None, str | None]:
+) -> tuple[str | None, str | None, str | None, str | None]:
     """
     Escreve o texto da jornada no Google Sheets (uma coluna, linhas por parágrafo).
     No início da aba: hiperfoco do estudante (se informado), código único, depois o conteúdo.
-    Retorna (url_da_planilha, None, codigo_unico) em sucesso ou (None, mensagem_erro, None).
+    Retorna (url_edicao, None, codigo_unico, url_pubhtml) em sucesso ou (None, mensagem_erro, None, None).
+    url_pubhtml: use no app Minha Jornada; a planilha precisa estar Publicada na Web.
     """
     if not (texto_jornada or "").strip():
-        return None, "Nenhum conteúdo para exportar.", None
+        return None, "Nenhum conteúdo para exportar.", None, None
     creds_dict = get_google_sheets_credentials()
     if not creds_dict:
         return None, (
@@ -1619,7 +1620,7 @@ def exportar_jornada_para_sheets(
             "• GOOGLE_SHEETS_CREDENTIALS_PATH = \"/caminho/para/arquivo.json\"\n"
             "• Ou seção [google_sheets] com credentials_json = \"\"\"...\"\"\" ou credentials_path = \"...\"\n"
             "Veja CONFIG_GOOGLE_SHEETS.md."
-        ), None
+        ), None, None
     try:
         import gspread
         from google.oauth2.service_account import Credentials
@@ -1663,14 +1664,15 @@ def exportar_jornada_para_sheets(
             titulo_aba_unico = "".join(c for c in titulo_aba_unico if c.isalnum() or c in " -_h") or "Jornada"
             worksheet = sh.add_worksheet(title=titulo_aba_unico, rows=max(len(data) + 10, 100), cols=1)
             worksheet.update(data, range_a1, value_input_option="RAW")
-            return sh.url, None, codigo_unico
+            url_pubhtml = f"https://docs.google.com/spreadsheets/d/{sh.id}/pubhtml"
+            return sh.url, None, codigo_unico, url_pubhtml
         # Sem planilha configurada: a conta de serviço não tem quota no Drive para criar novas planilhas
         return None, (
             "Configure a planilha de destino. No .streamlit/secrets.toml adicione:\n"
             "GOOGLE_SHEETS_SPREADSHEET_URL = \"https://docs.google.com/spreadsheets/d/SEU_ID/edit\"\n"
             "Use uma planilha sua (Google), compartilhe com o e-mail da conta de serviço (client_email do JSON) como Editor. "
             "O app vai adicionar uma nova aba nessa planilha a cada exportação (a conta de serviço não tem espaço no Drive para criar planilhas novas)."
-        ), None
+        ), None, None
     except Exception as e:
         err_msg = str(e)
         if "403" in err_msg or "quota" in err_msg.lower() or "storage" in err_msg.lower() or "exceeded" in err_msg.lower():
@@ -1678,5 +1680,5 @@ def exportar_jornada_para_sheets(
                 "Quota do Drive da conta de serviço excedida (ou sem espaço). "
                 "Configure GOOGLE_SHEETS_SPREADSHEET_URL no secrets com a URL da sua planilha e compartilhe essa planilha com o e-mail da conta de serviço (client_email do JSON) como Editor. "
                 "Assim o app escreve na sua planilha em vez de criar uma nova."
-            ), None
-        return None, err_msg[:300], None
+            ), None, None
+        return None, err_msg[:300], None, None

@@ -123,7 +123,22 @@ Se **não** configurar ID/URL, o app continua criando uma **nova planilha** a ca
 
 ---
 
-## 6. Ordem de leitura no app
+## 6. Publicar na web (para o app Minha Jornada)
+
+O app **Minha Jornada** (React gamificado) precisa ler a planilha via URL pública. **"Compartilhar com qualquer um com o link"** **não é suficiente**. É necessário **publicar a planilha na web**:
+
+1. Abra a planilha no Google Sheets.
+2. **Arquivo** → **Compartilhar** → **Publicar na web** (ou **Publicar na Web**).
+3. Em "Conteúdo vinculado", escolha **"Documento Inteiro"** ou **"Página da Web"**.
+4. Clique em **Publicar**.
+5. Copie a URL gerada (formato: `https://docs.google.com/spreadsheets/d/ID/pubhtml`).
+6. Use essa URL no app Minha Jornada em `sheetService.ts` (GOOGLE_SHEET_HTML_URL ou RAW_SHEET_URL).
+
+Após sincronizar no Omnisfera, a **URL pubhtml** é exibida no expander "URL para o app Minha Jornada (pubhtml)".
+
+---
+
+## 7. Ordem de leitura no app
 
 O app usa, nesta ordem:
 
@@ -137,7 +152,7 @@ Para **onde** escrever:
 
 ---
 
-## 7. Onde usar no app
+## 8. Onde usar no app
 
 Depois de aprovar uma **Jornada Gamificada** na aba **Jornada Gamificada** do PAE, o botão **Exportar para Google Sheets** cria uma nova planilha com o texto da missão (uma coluna, cada linha = um parágrafo) e exibe o link para abrir.
 
@@ -145,7 +160,7 @@ Se as credenciais não estiverem configuradas, será exibida uma mensagem pedind
 
 ---
 
-## 8. Segurança
+## 9. Segurança
 
 - **Nunca** commite o arquivo JSON da conta de serviço no Git. Adicione ao `.gitignore`, por exemplo:  
   `credenciais-google-sheets.json` ou `*-google-*.json`.

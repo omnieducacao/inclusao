@@ -2741,7 +2741,7 @@ with tab_jornada:
             if st.button("Sincronizar na Minha Jornada", use_container_width=True, type="secondary", key="btn_jg_sheets", help="Envia a missão para a planilha em segundo plano e gera o código para o estudante"):
                 _hiperfoco = aluno.get("hiperfoco")
                 _hiperfoco = str(_hiperfoco).strip() if _hiperfoco is not None else ""
-                url_sheet, err, codigo = ou.exportar_jornada_para_sheets(
+                url_sheet, err, codigo, url_pubhtml = ou.exportar_jornada_para_sheets(
                     novo_texto,
                     "Jornada Gamificada",
                     nome_estudante=str(aluno.get("nome") or ""),
@@ -2752,6 +2752,13 @@ with tab_jornada:
                     st.markdown("**Código para o estudante (use no app gamificado):**")
                     st.code(codigo, language=None)
                     st.caption("Informe este código ao estudante para ele acessar a jornada no app Minha Jornada.")
+                    with st.expander("URL para o app Minha Jornada (pubhtml)", expanded=True):
+                        st.markdown(
+                            "Para o app Minha Jornada funcionar, a planilha precisa estar **publicada na web**. "
+                            "No Google Sheets: **Arquivo → Compartilhar → Publicar na web** (não basta «Compartilhar com o link»)."
+                        )
+                        st.code(url_pubhtml or "", language=None)
+                        st.caption("Use esta URL em sheetService.ts (GOOGLE_SHEET_HTML_URL ou RAW_SHEET_URL) no app Minha Jornada.")
                 else:
                     st.warning(err or "Erro ao sincronizar.")
         with col_csv:
