@@ -1,57 +1,26 @@
 /**
- * Minha Jornada - Serviço de leitura da Planilha Google Sheets
+ * Minha Jornada – Serviço de leitura da Planilha Google Sheets (Versão IA-Native)
  *
- * Estrutura da planilha (Omnisfera):
- * - A1: "HIPERFOCO DO ESTUDANTE:"
- * - A2: Valor do hiperfoco (ex: "Dinossauros", "—")
- * - A3: linha vazia
- * - A4: "CÓDIGO ÚNICO (use no app gamificado):"
- * - A5: Código (OMNI-XXXX-XXXX-XXXX)
- * - A6: linha vazia
- * - A7+: Conteúdo da jornada (um parágrafo/etapa por linha)
+ * A planilha é tratada como Documento de Contexto:
+ * 1. Fetch do HTML público (pubhtml) da URL informada
+ * 2. Conversão do HTML em texto limpo
+ * 3. (Opcional) Envio do texto ao Gemini para extrair JSON estruturado
+ * 4. Fallback: parsing legado por posições fixas (A1–A5, A7+)
  */
 
-// Ajuste os tipos conforme seu projeto
-export interface DailyMission {
-  id: string;
-  title: string;
-  xp: number;
-  isCompleted: boolean;
-}
+import type { SheetStudentData, Journey, DailyMission } from '../types';
 
-export interface Journey {
-  id: string;
-  title: string;
-  description: string;
-  subject: string;
-  difficulty: string;
-  totalSteps: number;
-  currentStep: number;
-  isCompleted: boolean;
-  /** Texto completo da jornada (parágrafos unidos) */
-  content?: string;
-  /** Cada linha = um passo da missão */
-  steps?: string[];
-}
-
-export interface SheetStudentData {
-  id: string;
-  name: string;
-  hyperfocus: string;
-  dailyMissions: DailyMission[];
-  journeys: Journey[];
-}
+export type { SheetStudentData, Journey, DailyMission };
 
 // ==================================================================================
 // CONFIGURAÇÃO
 // ==================================================================================
-// URL pubhtml da planilha (substitua pelo ID correto do seu Google Sheets)
-const GOOGLE_SHEET_HTML_URL =
+const DEFAULT_SHEET_PUB_URL =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vTatajVth7dMIdJBiBXengYK_xQcfxP-62j3tdpqxyBLvhI3BamZ6J49k9NqvUAWb0KD6xBWqx5OWSs/pubhtml';
 
-// CORS: fetch do pubhtml pode bloquear no navegador. Use proxy se necessário.
-// Ex: 'https://api.allorigins.win/raw?url='
-const CORS_PROXY = ''; // deixe vazio para usar URL direta; ou ex: 'https://api.allorigins.win/raw?url='
+const CORS_PROXY = ''; // ex: 'https://api.allorigins.win/raw?url='
+
+const GEMINI_API_KEY = typeof import.meta !== 'undefined' && (import.meta as unknown as { env?: { VITE_GEMINI_API_KEY?: string } }).env?.VITE_GEMINI_API_KEY;
 
 // ==================================================================================
 // MOCK DATA (Fallback para testes sem internet)
@@ -81,11 +50,121 @@ const MOCK_DB: Record<string, SheetStudentData> = {
   },
 };
 
+// ==================================================================================
+// FETCH E TEXTO LIMPO
+// ==================================================================================
+
+async function fetchSheetHtml(pubUrl: string): Promise<string> {
+  const url = CORS_PROXY ? `${CORS_PROXY}${encodeURIComponent(pubUrl)}` : pubUrl;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Falha ao carregar planilha');
+  return response.text();
+}
+
 /**
- * Extrai o nome do estudante do título da aba.
- * Formato: "Jornada Gamificada - [Nome] DD-MM HHhMM"
+ * Converte o HTML da planilha em texto limpo (para enviar à IA).
  */
-const parseStudentName = (sheetTitle: string): string => {
+function htmlToCleanText(html: string): string {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const tds = doc.querySelectorAll('td');
+  const lines: string[] = [];
+  tds.forEach((td) => {
+    const t = td.textContent?.trim();
+    if (t) lines.push(t);
+  });
+  if (lines.length > 0) return lines.join('\n');
+  return doc.body?.innerText?.trim() ?? '';
+}
+
+// ==================================================================================
+// EXTRAÇÃO VIA GEMINI (Planilha como Documento de Contexto)
+// ==================================================================================
+
+const GEMINI_PROMPT = (rawText: string, code: string) => `No texto abaixo está o conteúdo de uma planilha com jornadas de estudantes.
+Encontre o estudante cujo CÓDIGO ou ID seja exatamente: ${code}
+
+Estruture os dados no seguinte JSON (responda APENAS com o JSON válido, sem markdown nem explicação):
+{
+  "id": "${code}",
+  "name": "nome do aluno (ou Viajante se não achar)",
+  "hyperfocus": "tema/interesse (ex: Dinossauros, Lego)",
+  "journeys": [
+    {
+      "id": "j_1",
+      "title": "título da missão",
+      "description": "descrição ou história",
+      "subject": "matéria (ex: Matemática)",
+      "totalSteps": número de passos/tarefas,
+      "currentStep": 0,
+      "isCompleted": false,
+      "difficulty": "Fácil" ou "Médio" ou "Desafio",
+      "steps": ["passo 1", "passo 2"]
+    }
+  ],
+  "dailyMissions": [
+    { "id": "dm1", "title": "Como estou me sentindo?", "xp": 50, "isCompleted": false },
+    { "id": "dm2", "title": "Ler o próximo passo da Jornada", "xp": 30, "isCompleted": false }
+  ]
+}
+
+Se encontrar missões explícitas (MISSÃO 1:, * Objetivo:, * Tarefa:), use-as. Se encontrar apenas objetivos ou tópicos soltos, crie as missões gamificadas a partir deles (title, steps, totalSteps).
+
+Texto da planilha:
+---
+${rawText}
+---`;
+
+async function extractStudentDataWithGemini(
+  cleanText: string,
+  accessCode: string
+): Promise<SheetStudentData | null> {
+  if (!GEMINI_API_KEY || !cleanText.trim()) return null;
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: GEMINI_PROMPT(cleanText, accessCode) }] }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const textPart = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textPart) return null;
+    let jsonStr = textPart.trim();
+    const codeBlock = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlock) jsonStr = codeBlock[1].trim();
+    const parsed = JSON.parse(jsonStr) as SheetStudentData;
+    if (!parsed.id || !parsed.journeys) return null;
+    parsed.id = accessCode;
+    parsed.journeys = (parsed.journeys || []).map((j, i) => ({
+      ...j,
+      id: j.id || `j_${i + 1}`,
+      currentStep: typeof j.currentStep === 'number' ? j.currentStep : 0,
+      isCompleted: Boolean(j.isCompleted),
+      totalSteps: typeof j.totalSteps === 'number' ? j.totalSteps : (j.steps?.length ?? 1),
+      difficulty: ['Fácil', 'Médio', 'Desafio'].includes(j.difficulty) ? j.difficulty : 'Médio',
+    }));
+    parsed.dailyMissions = parsed.dailyMissions?.length
+      ? parsed.dailyMissions
+      : [
+          { id: 'dm1', title: 'Como estou me sentindo?', xp: 50, isCompleted: false },
+          { id: 'dm2', title: 'Ler o próximo passo da Jornada', xp: 30, isCompleted: false },
+        ];
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+// ==================================================================================
+// PARSING LEGADO (posições fixas A1–A5, A7+)
+// ==================================================================================
+
+function parseStudentName(sheetTitle: string): string {
   try {
     let name = sheetTitle.replace(/Jornada Gamificada\s?-\s?/i, '');
     name = name.replace(/\s*\d{2}-\d{2}\s*\d{2}h\d{2}.*$/, '');
@@ -93,40 +172,25 @@ const parseStudentName = (sheetTitle: string): string => {
   } catch {
     return 'Viajante';
   }
-};
+}
 
-/**
- * Busca e interpreta o HTML do pubhtml.
- * Encontra o código na planilha e extrai hiperfoco + conteúdo.
- */
-const fetchAndParseHTML = async (targetCode: string): Promise<SheetStudentData | null> => {
+function parseStudentDataFromHtml(html: string, targetCode: string): SheetStudentData | null {
   try {
-    const url = CORS_PROXY ? `${CORS_PROXY}${encodeURIComponent(GOOGLE_SHEET_HTML_URL)}` : GOOGLE_SHEET_HTML_URL;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('Falha ao carregar planilha');
-
-    const htmlText = await response.text();
     const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlText, 'text/html');
-
+    const doc = parser.parseFromString(html, 'text/html');
     const tdElements = doc.querySelectorAll('td');
     let targetCell: Element | null = null;
-
     for (const td of Array.from(tdElements)) {
       if (td.textContent?.trim() === targetCode) {
         targetCell = td;
         break;
       }
     }
-
     if (!targetCell) return null;
 
     const tbody = targetCell.closest('tbody');
     if (!tbody) return null;
-
     const rows = Array.from(tbody.querySelectorAll('tr'));
-
-    // Extrai o texto da primeira coluna de cada linha (coluna A)
     const columnData: string[] = rows.map((tr) => {
       const cells = Array.from(tr.querySelectorAll('td'));
       return cells.length > 0 ? (cells[0].textContent?.trim() || '') : '';
@@ -135,48 +199,34 @@ const fetchAndParseHTML = async (targetCode: string): Promise<SheetStudentData |
     const codeIndex = columnData.findIndex((val) => val === targetCode);
     if (codeIndex < 0) return null;
 
-    // Hiperfoco: A2 = 3 linhas acima do código (A5)
-    // codeIndex 4 = A5, codeIndex-3 = 1 = A2
     let hyperfocus = 'Explorador';
     if (codeIndex >= 3) {
       const val = columnData[codeIndex - 3];
-      if (val && val !== 'HIPERFOCO DO ESTUDANTE:' && val !== '—') {
-        hyperfocus = val;
-      }
+      if (val && val !== 'HIPERFOCO DO ESTUDANTE:' && val !== '—') hyperfocus = val;
     }
 
-    // Conteúdo: A7+ = 2 linhas abaixo do código (A5)
-    // codeIndex+2 = 6 = A7
     const missionTextLines = columnData
       .slice(codeIndex + 2)
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
 
-    // Nome da aba (nome do estudante)
     let studentName = 'Viajante';
-    const sheetTable = targetCell.closest('table');
-    if (sheetTable) {
-      // Tenta obter o título da aba do elemento pai ou do documento
-      const sheetDiv = sheetTable.closest('div[id]');
-      const menuItems = doc.querySelectorAll('[id*="sheet-button"], .sheet-tab, [class*="sheet"]');
-      for (const el of Array.from(menuItems)) {
-        const text = el.textContent || '';
-        if (text.includes('Jornada') || text.includes(targetCode)) {
-          studentName = parseStudentName(text);
-          break;
-        }
-      }
-      if (studentName === 'Viajante') {
-        const title = doc.querySelector('title')?.textContent;
-        if (title) studentName = parseStudentName(title);
+    const menuItems = doc.querySelectorAll('[id*="sheet-button"], .sheet-tab, [class*="sheet"]');
+    for (const el of Array.from(menuItems)) {
+      const text = el.textContent || '';
+      if (text.includes('Jornada') || text.includes(targetCode)) {
+        studentName = parseStudentName(text);
+        break;
       }
     }
+    if (studentName === 'Viajante') {
+      const title = doc.querySelector('title')?.textContent;
+      if (title) studentName = parseStudentName(title);
+    }
 
-    // Monta a jornada com o conteúdo real
-    const journeyId = `j_${targetCode}`;
     const content = missionTextLines.join('\n\n');
     const journey: Journey = {
-      id: journeyId,
+      id: `j_${targetCode}`,
       title: `Aventura de ${studentName}`,
       description: content || 'Sua jornada personalizada de aprendizado.',
       subject: 'Jornada Integrada',
@@ -188,7 +238,7 @@ const fetchAndParseHTML = async (targetCode: string): Promise<SheetStudentData |
       steps: missionTextLines,
     };
 
-    const dailyMissions = [
+    const dailyMissions: DailyMission[] = [
       { id: 'dm_checkin', title: 'Como estou me sentindo?', xp: 50, isCompleted: false },
       { id: 'dm_read', title: 'Ler o próximo passo da Jornada', xp: 30, isCompleted: false },
     ];
@@ -200,22 +250,43 @@ const fetchAndParseHTML = async (targetCode: string): Promise<SheetStudentData |
       dailyMissions,
       journeys: [journey],
     };
-  } catch (error) {
-    console.error('Erro ao processar planilha:', error);
+  } catch {
     return null;
   }
-};
+}
+
+// ==================================================================================
+// API PÚBLICA
+// ==================================================================================
 
 /**
  * Busca os dados do estudante pelo código OMNI.
+ * Opcionalmente usa a URL da planilha publicada (pubhtml); se não informada, usa a URL padrão.
+ * Fluxo: fetch HTML → texto limpo → (se VITE_GEMINI_API_KEY) extrai via Gemini → senão parsing legado.
  */
-export const fetchStudentFromSheet = async (accessCode: string): Promise<SheetStudentData | null> => {
+export async function fetchStudentFromSheet(
+  accessCode: string,
+  sheetPubUrl?: string
+): Promise<SheetStudentData | null> {
   const code = accessCode.trim().toUpperCase();
+  const url = (sheetPubUrl || '').trim() || DEFAULT_SHEET_PUB_URL;
 
-  const liveData = await fetchAndParseHTML(code);
-  if (liveData) return liveData;
+  try {
+    const html = await fetchSheetHtml(url);
+    const cleanText = htmlToCleanText(html);
 
-  if (MOCK_DB[code]) return MOCK_DB[code];
+    if (GEMINI_API_KEY && cleanText) {
+      const data = await extractStudentDataWithGemini(cleanText, code);
+      if (data) return data;
+    }
 
+    const legacy = parseStudentDataFromHtml(html, code);
+    if (legacy) return legacy;
+
+    if (MOCK_DB[code]) return MOCK_DB[code];
+  } catch (e) {
+    console.error('Erro ao processar planilha:', e);
+    if (MOCK_DB[code]) return MOCK_DB[code];
+  }
   return null;
-};
+}

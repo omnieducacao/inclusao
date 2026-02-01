@@ -4,6 +4,55 @@ Este documento fornece **todo o contexto** necessário para o Google AI Studio a
 
 ---
 
+## 0. ESPECIFICAÇÃO IA-NATIVE: PLANILHA COMO DOCUMENTO DE CONTEXTO
+
+O aplicativo **não lê mais** a planilha como um "banco de dados rígido" (linhas e colunas fixas). A planilha é tratada como **Documento de Contexto**.
+
+### Fluxo de dados
+
+1. **Login:** O aluno insere o **código** (ex.: OMNI-1234) e, opcionalmente, o **link da planilha publicada** (pubhtml).
+2. **Leitura:** O sistema baixa o HTML público de todas as abas da planilha.
+3. **Texto limpo:** O HTML é convertido em texto bruto (células em sequência).
+4. **Processamento (IA):** O texto bruto é enviado ao **Gemini 1.5 Flash** com a instrução: *"Procure o aluno com código X neste texto e estruture os dados dele em JSON."*
+5. **Interpretação:** O Gemini devolve um JSON com `id`, `name`, `hyperfocus`, `journeys`, `dailyMissions`.
+6. **Fallback:** Se não houver API key do Gemini ou a IA falhar, o app usa o **parsing legado** (posições fixas A1–A6, A7+).
+
+### O que DEVE ter na planilha (contexto)
+
+Para a IA encontrar o aluno e montar a experiência, a **aba do aluno** deve conter, **em qualquer lugar** (texto livre, como num Word), as seguintes informações-chave:
+
+| Elemento | Exemplo |
+|---------|---------|
+| **Identificador único** | Palavra **CÓDIGO** ou **ID** seguida do valor. Ex.: `CÓDIGO: OMNI-LUCAS-01` |
+| **Nome do aluno** | Título claro ou campo. Ex.: `## Lucas, o Explorador` ou `Nome: Lucas` |
+| **Hiperfoco (tema)** | Define a personalização do app. Ex.: `HIPERFOCO: Dinossauros` ou `Tema de Interesse: Minecraft` |
+| **Missões (jornadas)** | Objetivo ou missão; não precisa de todos os detalhes técnicos. Ex.: `**MISSÃO 1: DOMINANDO A MATEMÁTICA**` com `* Objetivo: ...` e `* Tarefa: ...` |
+
+### Exemplo de uma aba válida (formato livre)
+
+```
+Olá, Mariana!
+Seu código secreto é OMNI-MARI-2024.
+Hoje vamos usar seu amor por Unicórnios para aprender!
+
+Missão Principal: A Magia das Palavras
+
+* Ler a página 10 do livro.
+* Escrever 3 palavras novas que você achou.
+```
+
+### Estrutura esperada pelo frontend (types.ts)
+
+O app espera o JSON no formato:
+
+- **SheetStudentData:** `id`, `name`, `hyperfocus`, `journeys[]`, `dailyMissions[]`
+- **Journey:** `id`, `title`, `description`, `subject`, `totalSteps`, `currentStep`, `isCompleted`, `difficulty` ('Fácil' | 'Médio' | 'Desafio'), opcionalmente `steps[]`
+- **DailyMission:** `id`, `title`, `xp`, `isCompleted`
+
+Se a planilha tiver apenas **objetivos ou tópicos soltos**, a IA deve **criar as missões gamificadas** a partir deles.
+
+---
+
 ## 1. O QUE É A JORNADA GAMIFICADA
 
 A **Jornada Gamificada** é um **roteiro de missão** criado para estudantes de inclusão (ensino fundamental). É gerada por IA (Gemini) no sistema **Omnisfera** (PAE — Plano de Ação AEE).

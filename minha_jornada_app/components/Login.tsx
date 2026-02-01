@@ -8,6 +8,7 @@ interface LoginProps {
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [accessCode, setAccessCode] = useState('');
+  const [sheetUrl, setSheetUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,7 +24,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError('');
 
     try {
-      const data = await fetchStudentFromSheet(accessCode.trim());
+      const data = await fetchStudentFromSheet(accessCode.trim(), sheetUrl.trim() || undefined);
       if (data) {
         onLogin(data);
       } else {
@@ -46,7 +47,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           Minha Jornada 🚀
         </h1>
         <p className="text-indigo-100 text-center mb-8 font-medium">
-          Digite o código da sua ficha OMNI.
+          Digite o código da sua ficha OMNI e, se tiver, o link da planilha publicada.
         </p>
 
         <form onSubmit={handleLogin} className="space-y-6">
@@ -62,6 +63,18 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               placeholder="OMNI-XXXX-XXXX-XXXX"
               maxLength={20}
               autoFocus
+            />
+          </div>
+          <div>
+            <label className="block text-indigo-100 text-sm font-bold mb-2 ml-2">
+              Link da planilha (opcional)
+            </label>
+            <input
+              type="url"
+              value={sheetUrl}
+              onChange={(e) => setSheetUrl(e.target.value)}
+              className="w-full px-5 py-3 rounded-2xl bg-white/90 text-indigo-900 placeholder-indigo-300 focus:outline-none focus:ring-4 focus:ring-indigo-300 shadow-inner text-sm"
+              placeholder="https://docs.google.com/.../pubhtml"
             />
           </div>
 
