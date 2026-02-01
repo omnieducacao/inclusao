@@ -7,14 +7,40 @@ RPC_NAME = "workspace_from_pin"
 
 
 def _get_secret(name: str) -> str | None:
-    """Lê env var (Render) e fallback para secrets (Streamlit Cloud)."""
-    v = os.environ.get(name)
-    if v and str(v).strip():
-        return str(v).strip()
+    """Lê env var e secrets (Streamlit Cloud aceita .get, atributo ou [key])."""
+    def _norm(val):
+        if val is None:
+            return None
+        if hasattr(val, "get_secret_value"):  # SecretStr do Streamlit
+            val = val.get_secret_value()
+        s = str(val).strip()
+        return s if s else None
+
+    v = _norm(os.environ.get(name))
+    if v:
+        return v
     try:
         v = st.secrets.get(name)
-        if v is not None and str(v).strip():
-            return str(v).strip()
+        if v is not None:
+            v = _norm(v)
+            if v:
+                return v
+    except Exception:
+        pass
+    try:
+        v = getattr(st.secrets, name, None)
+        if v is not None:
+            v = _norm(v)
+            if v:
+                return v
+    except Exception:
+        pass
+    try:
+        v = st.secrets[name]
+        if v is not None:
+            v = _norm(v)
+            if v:
+                return v
     except Exception:
         pass
     return None
@@ -76,11 +102,17 @@ def get_sb():
 
     url, key = _get_supabase_url_and_key()
     if not url or not key:
-        raise RuntimeError(
-            "Supabase: URL e chave não encontrados. Em Streamlit Cloud: Manage app → Settings → Secrets. "
-            "Use no nível raiz: SUPABASE_URL, SUPABASE_SERVICE_KEY (ou SUPABASE_ANON_KEY). "
-            "Ou seção [supabase] com: url, service_key ou anon_key."
+        _hint = (
+            "Supabase: URL ou chave não encontrados. Em Streamlit Cloud: Manage app → Settings → Secrets. "
+            "Use no nível raiz: SUPABASE_URL = \"...\", SUPABASE_SERVICE_KEY = \"...\" (ou SUPABASE_ANON_KEY). "
+            "Verifique se o TOML está válido (valores entre aspas; se usar [seção], feche corretamente)."
         )
+        try:
+            _keys = list(st.secrets.keys()) if hasattr(st.secrets, "keys") else []
+            _hint += f" Chaves presentes: {_keys[:20]}." if _keys else " Nenhuma chave em st.secrets (confira o TOML)."
+        except Exception:
+            _hint += " (Não foi possível listar st.secrets.)"
+        raise RuntimeError(_hint)
 
     sb = _create_supabase_client(url, key)
     st.session_state["sb"] = sb
