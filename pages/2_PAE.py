@@ -2700,12 +2700,12 @@ with tab_jornada:
             st.markdown(estado.get("texto", ""))
         # Representação visual (Nano Banana)
         st.markdown("---")
-        st.markdown("**Representação visual da missão** — Transponha o texto em uma ilustração com o Gemini (Nano Banana).")
-        st.caption("Requer GEMINI_API_KEY (chave do Google AI Studio: aistudio.google.com/apikey) nos secrets.")
+        st.markdown("**Representação visual do roteiro** — Traduza o roteiro gamificado em uma imagem com o Gemini (modelo mais potente).")
+        st.caption("Usa o modelo mais potente (Gemini 3 Pro Image / Nano Banana Pro) para traduzir o roteiro em imagem. Requer GEMINI_API_KEY nos secrets.")
         if estado.get("imagem_bytes"):
             st.image(estado["imagem_bytes"], caption="Ilustração da missão", use_container_width=True)
             st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_revisao")
-        if st.button("Gerar imagem da missão (Nano Banana)", key="btn_jg_imagem_revisao", help="Usa Gemini para criar uma ilustração inspiradora a partir do texto da missão."):
+        if st.button("Traduzir roteiro em imagem (Gemini Pro Image)", key="btn_jg_imagem_revisao", help="Usa o modelo mais potente do Gemini para traduzir o roteiro gamificado em uma imagem que representa a jornada."):
             with st.spinner("Gerando ilustração..."):
                 try:
                     gemini_key = ou.get_gemini_api_key()
@@ -2758,12 +2758,12 @@ with tab_jornada:
         novo_texto = st.text_area("Edição final (opcional)", value=estado.get("texto", ""), height=280, key="jg_texto_final")
         jg[chave_jornada]["texto"] = novo_texto
         # Representação visual (Nano Banana)
-        with st.expander("Representação visual da missão (Nano Banana)", expanded=bool(estado.get("imagem_bytes"))):
-            st.caption("Transponha o texto da missão em uma ilustração inspiradora com o Gemini. Requer GEMINI_API_KEY (Google AI Studio: aistudio.google.com/apikey) nos secrets.")
+        with st.expander("Representação visual do roteiro (Gemini Pro Image)", expanded=bool(estado.get("imagem_bytes"))):
+            st.caption("Traduz o roteiro gamificado em imagem com o modelo mais potente (Gemini 3 Pro Image). Requer GEMINI_API_KEY nos secrets.")
             if estado.get("imagem_bytes"):
                 st.image(estado["imagem_bytes"], caption="Ilustração da missão", use_container_width=True)
                 st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_aprovado")
-            if st.button("Gerar imagem da missão (Nano Banana)", key="btn_jg_imagem_aprovado", help="Usa Gemini para criar uma ilustração a partir do texto da missão."):
+            if st.button("Traduzir roteiro em imagem (Gemini Pro Image)", key="btn_jg_imagem_aprovado", help="Usa o modelo mais potente do Gemini para traduzir o roteiro gamificado em uma imagem que representa a jornada."):
                 with st.spinner("Gerando ilustração..."):
                     try:
                         gemini_key = ou.get_gemini_api_key()

@@ -1490,8 +1490,8 @@ def gerar_imagem_jornada_gemini(
     api_key: str | None = None,
 ) -> tuple[bytes | None, str | None]:
     """
-    Gera uma representação visual da missão gamificada usando Gemini (Nano Banana).
-    Transpõe o texto da missão em uma ilustração inspiradora e adequada ao estudante.
+    Gera uma representação visual do roteiro gamificado usando Gemini (Nano Banana Pro).
+    A imagem deve traduzir o roteiro: missões, etapas, tema e protagonista em uma única cena ou infográfico.
     Retorna (bytes_imagem_png, None) em sucesso ou (None, mensagem_erro) em falha.
     """
     key = api_key or get_gemini_api_key()
@@ -1505,20 +1505,40 @@ def gerar_imagem_jornada_gemini(
         import base64
         nome = (nome_estudante or "").strip() or "estudante"
         tema = (hiperfoco or "").strip() or "aprendizado"
+        roteiro = (texto_missao or "").strip()[:4500]
         prompt = (
-            f"Crie uma única ilustração inspiradora e colorida que represente esta missão gamificada "
-            f"para um(a) {nome}. O tema/interesse do estudante é: {tema}. "
-            "Estilo: amigável para crianças, claro, motivador, sem texto longo na imagem. "
-            "A cena deve transmitir aventura e conquista. Evite rostos realistas; prefira estilo cartoon ou ilustração. "
-            "Aspecto quadrado (1:1).\n\n"
-            "Texto da missão (use apenas como contexto para a cena):\n"
-            f"{texto_missao[:3000]}"
+            "Traduza este ROTEIRO GAMIFICADO em uma única imagem que represente a jornada completa. "
+            "A imagem deve ser uma ilustração ou infográfico visual que comunique o conteúdo do roteiro: "
+            "as missões, os objetivos, as etapas e a conquista. "
+            f"Protagonista: {nome}. Tema/interesse do estudante: {tema}. "
+            "Estilo: ilustração colorida, amigável para crianças, motivador, com sensação de aventura e progresso. "
+            "Pode incluir elementos visuais que remetam às missões (ex.: caminho, etapas, troféu, estrelas). "
+            "Evite rostos realistas; prefira cartoon ou ilustração. Proporção quadrada (1:1).\n\n"
+            "--- ROTEIRO GAMIFICADO (traduza este conteúdo em forma visual) ---\n\n"
+            f"{roteiro}\n\n"
+            "--- Fim do roteiro. Gere uma imagem que traduza essa jornada de forma clara e inspiradora. ---"
         )
         client = genai.Client(api_key=key)
-        response = client.models.generate_content(
-            model="gemini-2.5-flash-image",
-            contents=[prompt],
-        )
+        # Modelo mais potente: Gemini 3 Pro Image Preview (Nano Banana Pro); fallback para 2.5 Flash Image
+        response = None
+        for model_id in ("gemini-3-pro-image-preview", "gemini-2.5-flash-image"):
+            try:
+                response = client.models.generate_content(
+                    model=model_id,
+                    contents=[prompt],
+                )
+                if response is not None:
+                    break
+            except Exception as model_err:
+                err_str = str(model_err).lower()
+                if "404" in err_str or "not found" in err_str:
+                    continue
+                raise
+        if response is None:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash-image",
+                contents=[prompt],
+            )
         # Extrair primeira imagem: response.parts ou response.candidates[0].content.parts
         parts = getattr(response, "parts", None)
         if not parts and getattr(response, "candidates", None):
