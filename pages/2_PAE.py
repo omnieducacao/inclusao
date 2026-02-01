@@ -1031,30 +1031,26 @@ def gerar_documento_articulacao(api_key, aluno, frequencia, acoes, feedback=None
         return str(e)
 
 def gerar_cronograma_inteligente(api_key, aluno, semanas, foco, metas):
-    """Gera cronograma com IA baseado nas metas do PEI"""
+    """Gera cronograma de planejamento do AEE (documento de referência): visão em fases, para registro e articulação."""
     try:
         client = OpenAI(api_key=api_key)
         
-        # Preparar prompt com metas
         metas_texto = "\n".join([f"- {m['tipo']}: {m['descricao']}" for m in metas[:5]])
         
         prompt = f"""
-        Crie um cronograma de {semanas} semanas para AEE.
-        
+        Este cronograma é um DOCUMENTO DE PLANEJAMENTO DO AEE (Atendimento Educacional Especializado): serve para registro pedagógico e articulação com a escola, não para acompanhamento semanal.
+
+        Crie um cronograma de {semanas} semanas em VISÃO MACRO: priorize FASES bem definidas (ex.: avaliação/adaptacao, desenvolvimento, consolidacao) e, dentro delas, semanas com tema e objetivos alinhados às metas do PEI.
+
         ESTUDANTE: {aluno['nome']}
-        DIAGNÓSTICO: {aluno.get('hiperfoco', '')}
+        CONTEXTO (se relevante): {aluno.get('hiperfoco', '') or 'não informado'}
         FOCO DO CICLO: {foco}
-        
+
         METAS DO PEI:
         {metas_texto}
-        
-        Estruture em fases lógicas. Para cada semana, defina:
-        1. Tema da semana
-        2. Objetivo específico
-        3. Atividades principais (2-3 atividades por semana)
-        4. Recursos necessários
-        5. Formas de avaliação
-        
+
+        Estruture em FASES primeiro (nome, descrição, objetivo_geral, semanas cobertas); depois detalhe cada semana com tema, objetivo, 2-3 atividades, recursos e forma de avaliação. Mantenha linguagem adequada a documento de planejamento AEE.
+
         Formato JSON:
         {{
             "fases": [
@@ -2053,10 +2049,10 @@ with tab_planejamento:
           Planejamento AEE
         </div>
         <div style="font-size:1.35rem;color:#0F172A;font-weight:900;margin-top:3px;">
-          Culminação do PEI → Execução prática
+          Documento de planejamento do AEE — objetivos, período e recursos
         </div>
         <div style="font-size:.9rem;color:#64748B;margin-top:6px;">
-          Gere, revise, salve e visualize ciclos diretamente do histórico do estudante.
+          Registro pedagógico do ciclo de atendimento: metas do PEI, frequência do AEE, recursos incorporados e cronograma geral. Use "Definir como ciclo ativo" para referência em outras abas.
         </div>
       </div>
       <div style="text-align:right;">
@@ -2065,6 +2061,7 @@ with tab_planejamento:
       </div>
     </div>
     """, unsafe_allow_html=True)
+    st.caption("📋 **Planejamento AEE** = documento de referência (objetivos, período, recursos, cronograma em fases). Para metas SMART, acompanhamento por semanas e Jornada Gamificada, use a aba **Execução e Metas SMART**.")
 
     # ============================
     # LAYOUT: 2 COLUNAS (painel + preview)
@@ -2072,12 +2069,13 @@ with tab_planejamento:
     col_left, col_right = st.columns([1.05, 1.35], gap="large")
 
     # ----------------------------
-    # COLUNA ESQUERDA: HISTÓRICO + CONFIG
+    # COLUNA ESQUERDA: HISTÓRICO + CONFIG (apenas ciclos tipo planejamento_aee)
     # ----------------------------
     with col_left:
-        st.markdown(f"### {icon_title('Histórico de ciclos (nuvem)', 'monitoramento', 20, '#A855F7')}", unsafe_allow_html=True)
+        st.markdown(f"### {icon_title('Histórico de ciclos de planejamento (nuvem)', 'monitoramento', 20, '#A855F7')}", unsafe_allow_html=True)
 
-        ciclos, ciclo_ativo_id = listar_ciclos_aluno(aluno["id"])
+        ciclos_todos, ciclo_ativo_id = listar_ciclos_aluno(aluno["id"])
+        ciclos = [c for c in ciclos_todos if c.get("tipo") != "execucao_smart"]
         ciclo_ativo = None
         if ciclo_ativo_id:
             ciclo_ativo = next((c for c in ciclos if c.get("ciclo_id") == ciclo_ativo_id), None)
@@ -2127,7 +2125,7 @@ with tab_planejamento:
             )
             st.session_state["paee_ciclo_selecionado"] = ciclos[escolha]
         else:
-            st.info("Ainda não há ciclos salvos para este estudante.")
+            st.info("Ainda não há ciclos de planejamento AEE para este estudante. Gere um abaixo ou use a aba **Execução e Metas SMART** para ciclos operacionais.")
 
         # Botão: marcar ciclo como ativo
         ciclo_sel = st.session_state.get("paee_ciclo_selecionado")
@@ -2227,6 +2225,7 @@ with tab_planejamento:
                         ciclo_data = {
                             "ciclo_id": None,
                             "status": "rascunho",
+                            "tipo": "planejamento_aee",
                             "config_ciclo": {
                                 "duracao_semanas": duracao,
                                 "frequencia": freq,
@@ -2339,7 +2338,9 @@ with tab_planejamento:
                 c1, c2 = st.columns([1,1])
                 with c1:
                     if st.button("💾 Salvar na nuvem (Supabase)", type="primary", use_container_width=True):
-                        resultado = salvar_paee_ciclo(aluno["id"], ciclo_preview)
+                        ciclo_para_salvar = dict(ciclo_preview)
+                        ciclo_para_salvar.setdefault("tipo", "planejamento_aee")
+                        resultado = salvar_paee_ciclo(aluno["id"], ciclo_para_salvar)
                         if resultado.get("sucesso"):
                             st.success(f"✅ Salvo! ID: {str(resultado.get('ciclo_id',''))[:8]}")
                             st.session_state.pop("ciclo_preview", None)
@@ -2364,10 +2365,10 @@ with tab_execucao_smart:
           Execução e Metas SMART
         </div>
         <div style="font-size:1.35rem;color:#0F172A;font-weight:900;margin-top:3px;">
-          Norteador de ações para a escola
+          Norteador de ações para a escola — metas SMART e acompanhamento por semanas
         </div>
         <div style="font-size:.9rem;color:#64748B;margin-top:6px;">
-          Planejamento por semanas, alimentado por PEI, Mapear Barreiras, Plano de Habilidades e Tecnologia Assistiva. Este ciclo alimenta a Jornada Gamificada.
+          Plano de execução e acompanhamento: metas desdobradas em SMART, ações por semana e registro do que foi cumprido. Este ciclo alimenta a Jornada Gamificada do estudante.
         </div>
       </div>
       <div style="text-align:right;">
@@ -2376,9 +2377,11 @@ with tab_execucao_smart:
       </div>
     </div>
     """, unsafe_allow_html=True)
+    st.caption("🎯 **Execução e Metas SMART** = norteador operacional: metas SMART, cronograma por semanas e registro do cumprido. Este ciclo alimenta a **Jornada Gamificada**. Para documento de planejamento geral, use a aba **Planejamento AEE**.")
 
-    # Carregar ciclos do Supabase para este estudante (não usar cache global da sessão)
-    ciclos_es, ativo_es = listar_ciclos_aluno(aluno.get("id", ""))
+    # Carregar ciclos do Supabase para este estudante — apenas ciclos de execução (tipo execucao_smart)
+    ciclos_todos_es, ativo_es = listar_ciclos_aluno(aluno.get("id", ""))
+    ciclos_es = [c for c in ciclos_todos_es if c.get("tipo") == "execucao_smart"]
     ciclo_ativo_es = next((c for c in ciclos_es if c.get("ciclo_id") == ativo_es), None) if ativo_es and ciclos_es else None
 
     # Insumos das outras abas (alimentam o planejamento)
@@ -2427,9 +2430,9 @@ with tab_execucao_smart:
             )
             st.session_state["ciclo_execucao_selecionado"] = ciclos_es[escolha_es]
         else:
-            st.info("Nenhum ciclo de execução ainda. Gere um abaixo.")
+            st.info("Nenhum ciclo de execução ainda. Gere um abaixo — este ciclo será usado na **Jornada Gamificada** do estudante. Para documento de planejamento geral, use a aba **Planejamento AEE**.")
         st.markdown("---")
-        st.markdown(f"### {icon_title('Gerar novo ciclo de execução (SMART)', 'configurar', 20, '#A855F7')}", unsafe_allow_html=True)
+        st.markdown(f"### {icon_title('Gerar novo ciclo de execução (metas SMART + semanas)', 'configurar', 20, '#A855F7')}", unsafe_allow_html=True)
         pei_data_es = carregar_pei_aluno(aluno["id"])
         metas_pei_es = extrair_metas_do_pei(pei_data_es)
         if not metas_pei_es:
