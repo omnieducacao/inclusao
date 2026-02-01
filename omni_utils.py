@@ -701,77 +701,21 @@ def render_navbar(active_tab: str = "Início"):
             st.switch_page(target)
 
 # =============================================================================
-# 3) SUPABASE & UTILS (LÓGICA PRESERVADA)
+# 3) SUPABASE & UTILS (como antes: get_setting = env + st.secrets no nível raiz)
 # =============================================================================
-def _get_supabase_config():
-    """
-    Lê URL e chaves do Supabase: env vars, secrets no nível raiz (SUPABASE_*)
-    ou seção [supabase] no TOML (url, service_key/key, anon_key).
-    Google Sheets não altera isso; Supabase segue sendo a fonte principal.
-    """
-    url = ""
-    service_key = ""
-    anon_key = ""
-    # 1) Variáveis de ambiente (flat)
-    url = (os.environ.get("SUPABASE_URL") or "").strip()
-    service_key = (os.environ.get("SUPABASE_SERVICE_KEY") or "").strip()
-    anon_key = (os.environ.get("SUPABASE_ANON_KEY") or "").strip()
-    # 2) st.secrets — chaves no nível raiz (como antes)
-    if not url or not (service_key or anon_key):
-        try:
-            if not url:
-                v = st.secrets.get("SUPABASE_URL", "")
-                url = str(v).strip() if v is not None else ""
-            if not service_key:
-                v = st.secrets.get("SUPABASE_SERVICE_KEY", "")
-                service_key = str(v).strip() if v is not None else ""
-            if not anon_key:
-                v = st.secrets.get("SUPABASE_ANON_KEY", "")
-                anon_key = str(v).strip() if v is not None else ""
-        except Exception:
-            pass
-    # 3) st.secrets — seção [supabase] ou [SUPABASE] (formato aninhado)
-    if not url or not (service_key or anon_key):
-        try:
-            sec = st.secrets.get("supabase") or st.secrets.get("SUPABASE")
-            if isinstance(sec, dict):
-                if not url:
-                    u = sec.get("url") or sec.get("SUPABASE_URL")
-                    url = str(u).strip() if u is not None else ""
-                if not service_key:
-                    k = sec.get("service_key") or sec.get("key") or sec.get("SUPABASE_SERVICE_KEY")
-                    service_key = str(k).strip() if k is not None else ""
-                if not anon_key:
-                    a = sec.get("anon_key") or sec.get("SUPABASE_ANON_KEY")
-                    anon_key = str(a).strip() if a is not None else ""
-        except Exception:
-            pass
-    # 4) get_setting (compatibilidade)
-    if not url:
-        url = str(get_setting("SUPABASE_URL", "")).strip()
-    if not service_key:
-        service_key = str(get_setting("SUPABASE_SERVICE_KEY", "")).strip()
-    if not anon_key:
-        anon_key = str(get_setting("SUPABASE_ANON_KEY", "")).strip()
-    return url, service_key, anon_key
-
-
 def _sb_url() -> str:
-    url, _, _ = _get_supabase_config()
+    url = str(get_setting("SUPABASE_URL", "")).strip()
     if not url:
-        raise RuntimeError(
-            "SUPABASE_URL não encontrado. Configure em secrets (raiz: SUPABASE_URL ou seção [supabase] url = \"...\") ou variável de ambiente."
-        )
+        raise RuntimeError("SUPABASE_URL não encontrado nos secrets.")
     return url.rstrip("/")
 
 
 def _sb_key() -> str:
-    _, service_key, anon_key = _get_supabase_config()
-    key = service_key or anon_key
+    key = str(get_setting("SUPABASE_SERVICE_KEY", "")).strip()
     if not key:
-        raise RuntimeError(
-            "Chave Supabase não encontrada. Configure SUPABASE_SERVICE_KEY ou SUPABASE_ANON_KEY (ou [supabase] service_key / anon_key)."
-        )
+        key = str(get_setting("SUPABASE_ANON_KEY", "")).strip()
+    if not key:
+        raise RuntimeError("SUPABASE_SERVICE_KEY ou SUPABASE_ANON_KEY não encontrado nos secrets.")
     return key
 
 def _headers() -> dict:

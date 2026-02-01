@@ -1,53 +1,53 @@
 # supabase_client.py
+import os
 import streamlit as st
 
 # 🔒 Nome da função RPC
 RPC_NAME = "workspace_from_pin"
 
 
+def _get_secret(name: str) -> str | None:
+    """Lê env var (Render) e fallback para secrets (Streamlit Cloud). Igual ao que funcionava antes."""
+    v = os.environ.get(name)
+    if v and str(v).strip():
+        return str(v).strip()
+    try:
+        v = st.secrets.get(name)
+        if v is not None and str(v).strip():
+            return str(v).strip()
+    except Exception:
+        pass
+    return None
+
+
 @st.cache_resource(show_spinner=False)
-def _create_supabase_client(url: str, key: str):
-    """
-    Cria UM cliente Supabase (cacheado por url+key).
-    URL e chave são lidos fora do cache (em get_sb) para garantir que
-    st.secrets esteja disponível (importante no Streamlit Cloud).
-    """
+def _create_supabase_client():
+    """Cria UM cliente Supabase (cacheado). Usa _get_secret como antes."""
     try:
         from supabase import create_client  # type: ignore
     except Exception as e:
         raise RuntimeError(
-            "Pacote 'supabase' não encontrado.\n"
-            "➡️ requirements.txt precisa ter: supabase==2.*\n"
-            f"Detalhe: {e}"
+            "Pacote 'supabase' não encontrado. requirements.txt: supabase==2.*\n" + str(e)
         )
+
+    url = _get_secret("SUPABASE_URL")
+    key = _get_secret("SUPABASE_SERVICE_KEY") or _get_secret("SUPABASE_ANON_KEY")
+
     if not url or not key:
         raise RuntimeError(
-            "SUPABASE_URL e chave são obrigatórios. Configure em Secrets (raiz: SUPABASE_URL, SUPABASE_SERVICE_KEY/ANON_KEY ou seção [supabase])."
+            "SUPABASE_URL e SUPABASE_SERVICE_KEY (ou SUPABASE_ANON_KEY) não encontrados. "
+            "Configure em Settings → Secrets com chaves no nível raiz."
         )
+
     return create_client(url, key)
 
 
 def get_sb():
-    """
-    ✅ Função padrão do projeto: garante sb na session_state.
-    Lê secrets no contexto principal (não dentro do cache) para evitar
-    erro no Streamlit Cloud ao logar.
-    """
+    """Garante sb na session_state. Retorna o client."""
     if "sb" in st.session_state and st.session_state["sb"] is not None:
         return st.session_state["sb"]
 
-    try:
-        import omni_utils as ou
-        url = ou._sb_url()
-        key = ou._sb_key()
-    except Exception as e:
-        raise RuntimeError(
-            "Configuração Supabase não encontrada. Em Streamlit Cloud: Manage app → Settings → Secrets. "
-            "Use SUPABASE_URL e SUPABASE_SERVICE_KEY (ou SUPABASE_ANON_KEY) no nível raiz, ou seção [supabase] com url e service_key/anon_key.\n"
-            f"Detalhe: {e}"
-        )
-
-    sb = _create_supabase_client(url, key)
+    sb = _create_supabase_client()
     st.session_state["sb"] = sb
     return sb
 
