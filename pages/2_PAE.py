@@ -1610,8 +1610,8 @@ def renderizar_hub_recurso(tipo_recurso, conteudo_gerado, aluno_nome, dados_entr
 # INICIALIZAR API KEY (ANTES DAS ABAS)
 # ==============================================================================
 # Obter a chave API do OpenAI (Render: env var → Streamlit Cloud: secrets → sessão)
-api_key = os.environ.get("OPENAI_API_KEY") or ou.get_setting("OPENAI_API_KEY", "") or st.session_state.get("OPENAI_API_KEY")
-api_key = api_key if api_key else None
+api_key = os.environ.get("OPENAI_API_KEY") or ou.get_setting("OPENAI_API_KEY", "") or st.session_state.get("OPENAI_API_KEY", "")
+api_key = (api_key or "").strip() or None
 
 # ==============================================================================
 # CRIAR AS ABAS PRINCIPAIS

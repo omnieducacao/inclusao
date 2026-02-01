@@ -3290,8 +3290,8 @@ def main():
     """Função principal da aplicação - executa a lógica do Hub"""
     
     # Inicializar api_key e unsplash_key antes de usar (Render: env var → Streamlit Cloud: secrets → sessão)
-    api_key = os.environ.get("OPENAI_API_KEY") or ou.get_setting("OPENAI_API_KEY", "") or st.session_state.get("OPENAI_API_KEY")
-    api_key = api_key if api_key else None
+    api_key = os.environ.get("OPENAI_API_KEY") or ou.get_setting("OPENAI_API_KEY", "") or st.session_state.get("OPENAI_API_KEY", "")
+    api_key = (api_key or "").strip() or None
     
     unsplash_key = (
         os.environ.get("UNSPLASH_ACCESS_KEY")
@@ -3301,9 +3301,6 @@ def main():
     unsplash_key = unsplash_key if unsplash_key else None
     
     gemini_key = ou.get_gemini_api_key()
-    
-    # Configurações de API (ocultas - apenas busca dos secrets)
-    # O expander foi removido conforme solicitado
     
     # Carregar dados dos estudantes
     if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estudantes:
