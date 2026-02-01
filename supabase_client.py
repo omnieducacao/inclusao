@@ -21,33 +21,37 @@ def _get_secret(name: str) -> str | None:
 
 
 @st.cache_resource(show_spinner=False)
-def _create_supabase_client():
-    """Cria UM cliente Supabase (cacheado). Usa _get_secret como antes."""
+def _create_supabase_client(url: str, key: str):
+    """
+    Cria UM cliente Supabase (cacheado por url+key).
+    URL e key vêm de get_sb() — assim st.secrets é lido fora do cache,
+    onde está disponível no Streamlit Cloud.
+    """
     try:
         from supabase import create_client  # type: ignore
     except Exception as e:
         raise RuntimeError(
             "Pacote 'supabase' não encontrado. requirements.txt: supabase==2.*\n" + str(e)
         )
-
-    url = _get_secret("SUPABASE_URL")
-    key = _get_secret("SUPABASE_SERVICE_KEY") or _get_secret("SUPABASE_ANON_KEY")
-
     if not url or not key:
-        raise RuntimeError(
-            "SUPABASE_URL e SUPABASE_SERVICE_KEY (ou SUPABASE_ANON_KEY) não encontrados. "
-            "Configure em Settings → Secrets com chaves no nível raiz."
-        )
-
+        raise RuntimeError("SUPABASE_URL e chave são obrigatórios.")
     return create_client(url, key)
 
 
 def get_sb():
-    """Garante sb na session_state. Retorna o client."""
+    """Garante sb na session_state. Lê secrets aqui (fora do cache) para funcionar no Streamlit Cloud."""
     if "sb" in st.session_state and st.session_state["sb"] is not None:
         return st.session_state["sb"]
 
-    sb = _create_supabase_client()
+    url = _get_secret("SUPABASE_URL")
+    key = _get_secret("SUPABASE_SERVICE_KEY") or _get_secret("SUPABASE_ANON_KEY")
+    if not url or not key:
+        raise RuntimeError(
+            "SUPABASE_URL e SUPABASE_SERVICE_KEY (ou SUPABASE_ANON_KEY) não encontrados. "
+            "Em Streamlit Cloud: Manage app → Settings → Secrets. Use chaves no nível raiz."
+        )
+
+    sb = _create_supabase_client(url, key)
     st.session_state["sb"] = sb
     return sb
 
