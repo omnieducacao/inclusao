@@ -2702,8 +2702,18 @@ with tab_jornada:
             "Usar hiperfoco do estudante como tema do mapa mental (nó central)",
             value=True,
             key="jg_usar_hiperfoco_revisao",
-            help="Se marcado, o tema central do mapa será o hiperfoco do estudante. Use apenas palavras do roteiro; não invente nem distorça.",
+            help="Se marcado, abre o campo com o hiperfoco para você editar antes de gerar.",
         )
+        tema_mapa_revisao = ""
+        if usar_hiperfoco_tema_revisao:
+            tema_mapa_revisao = st.text_input(
+                "Tema do mapa mental (edite se quiser):",
+                value=aluno.get("hiperfoco", "") or "",
+                key="jg_tema_mapa_revisao",
+                placeholder="Ex: dinossauros, espaço, música...",
+                help="Texto usado como tema central do mapa. Vem do cadastro do estudante; você pode alterar.",
+            )
+            tema_mapa_revisao = (tema_mapa_revisao or "").strip()
         if estado.get("imagem_bytes"):
             st.image(estado["imagem_bytes"], caption="Mapa mental da jornada", use_container_width=True)
             st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_revisao")
@@ -2714,7 +2724,7 @@ with tab_jornada:
                     img_bytes, err = ou.gerar_imagem_jornada_gemini(
                         estado.get("texto", ""),
                         nome_estudante=aluno.get("nome", ""),
-                        hiperfoco=aluno.get("hiperfoco", "") if usar_hiperfoco_tema_revisao else "",
+                        hiperfoco=tema_mapa_revisao if usar_hiperfoco_tema_revisao else "",
                         api_key=gemini_key,
                     )
                     if img_bytes:
@@ -2766,8 +2776,18 @@ with tab_jornada:
                 "Usar hiperfoco do estudante como tema do mapa mental (nó central)",
                 value=True,
                 key="jg_usar_hiperfoco_aprovado",
-                help="Se marcado, o tema central do mapa será o hiperfoco do estudante. Use apenas palavras do roteiro; não invente nem distorça.",
+                help="Se marcado, abre o campo com o hiperfoco para você editar antes de gerar.",
             )
+            tema_mapa_aprovado = ""
+            if usar_hiperfoco_tema_aprovado:
+                tema_mapa_aprovado = st.text_input(
+                    "Tema do mapa mental (edite se quiser):",
+                    value=aluno.get("hiperfoco", "") or "",
+                    key="jg_tema_mapa_aprovado",
+                    placeholder="Ex: dinossauros, espaço, música...",
+                    help="Texto usado como tema central do mapa. Vem do cadastro do estudante; você pode alterar.",
+                )
+                tema_mapa_aprovado = (tema_mapa_aprovado or "").strip()
             if estado.get("imagem_bytes"):
                 st.image(estado["imagem_bytes"], caption="Mapa mental da jornada", use_container_width=True)
                 st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_aprovado")
@@ -2778,7 +2798,7 @@ with tab_jornada:
                         img_bytes, err = ou.gerar_imagem_jornada_gemini(
                             novo_texto,
                             nome_estudante=aluno.get("nome", ""),
-                            hiperfoco=aluno.get("hiperfoco", "") if usar_hiperfoco_tema_aprovado else "",
+                            hiperfoco=tema_mapa_aprovado if usar_hiperfoco_tema_aprovado else "",
                             api_key=gemini_key,
                         )
                         if img_bytes:

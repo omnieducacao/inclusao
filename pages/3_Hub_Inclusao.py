@@ -2643,15 +2643,23 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
             "Usar hiperfoco do estudante como tema da ilustração",
             value=bool(hiperfoco_est),
             key="hub_usar_hiperfoco_ilustracao",
-            help="Se marcado, o hiperfoco do estudante será incluído como tema/contexto na geração da imagem.",
+            help="Se marcado, abre o campo com o hiperfoco para você editar antes de gerar.",
         )
-        if usar_hiperfoco_ilustracao and hiperfoco_est:
-            st.caption(f"Tema: **{hiperfoco_est[:60]}{'…' if len(hiperfoco_est) > 60 else ''}**")
+        tema_ilustracao = ""
+        if usar_hiperfoco_ilustracao:
+            tema_ilustracao = st.text_input(
+                "Tema da ilustração (edite se quiser):",
+                value=hiperfoco_est,
+                key="hub_tema_ilustracao",
+                placeholder="Ex: dinossauros, espaço, música...",
+                help="Texto que será usado como tema na geração. Vem do cadastro do estudante; você pode alterar.",
+            )
+            tema_ilustracao = (tema_ilustracao or "").strip()
         if st.button("🎨 Gerar Imagem", key="btn_cena_padrao"):
             with st.spinner("Desenhando..."):
                 prompt_completo = f"{desc_m}. Context: Education."
-                if usar_hiperfoco_ilustracao and hiperfoco_est:
-                    prompt_completo = f"Tema da ilustração: {hiperfoco_est}. {prompt_completo}"
+                if usar_hiperfoco_ilustracao and tema_ilustracao:
+                    prompt_completo = f"Tema da ilustração: {tema_ilustracao}. {prompt_completo}"
                 st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, prioridade="IA", gemini_key=g_key)
                 st.session_state.valid_scene = False
 
@@ -2669,8 +2677,8 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
                     if st.button("Refazer", key="ref_sc_pd"):
                         with st.spinner("Redesenhando..."):
                             prompt_completo = f"{desc_m}. Context: Education."
-                            if usar_hiperfoco_ilustracao and hiperfoco_est:
-                                prompt_completo = f"Tema da ilustração: {hiperfoco_est}. {prompt_completo}"
+                            if usar_hiperfoco_ilustracao and tema_ilustracao:
+                                prompt_completo = f"Tema da ilustração: {tema_ilustracao}. {prompt_completo}"
                             st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, feedback_anterior=fb_scene, prioridade="IA", gemini_key=g_key)
                             st.rerun()
 
@@ -3145,15 +3153,23 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
             "Usar hiperfoco do estudante como tema da ilustração",
             value=bool(hiperfoco_ei),
             key="hub_usar_hiperfoco_ei",
-            help="Se marcado, o hiperfoco do estudante será incluído como tema/contexto na geração da imagem.",
+            help="Se marcado, abre o campo com o hiperfoco para você editar antes de gerar.",
         )
-        if usar_hiperfoco_ei and hiperfoco_ei:
-            st.caption(f"Tema: **{hiperfoco_ei[:60]}{'…' if len(hiperfoco_ei) > 60 else ''}**")
+        tema_ilustracao_ei = ""
+        if usar_hiperfoco_ei:
+            tema_ilustracao_ei = st.text_input(
+                "Tema da ilustração (edite se quiser):",
+                value=hiperfoco_ei,
+                key="hub_tema_ilustracao_ei",
+                placeholder="Ex: dinossauros, brincadeiras, animais...",
+                help="Texto que será usado como tema na geração. Vem do cadastro do estudante; você pode alterar.",
+            )
+            tema_ilustracao_ei = (tema_ilustracao_ei or "").strip()
         if st.button("🎨 Gerar Cena", key="btn_cena_ei"):
             with st.spinner("Desenhando..."):
                 prompt_completo = f"{desc_m}. Context: Child education, friendly style."
-                if usar_hiperfoco_ei and hiperfoco_ei:
-                    prompt_completo = f"Tema da ilustração: {hiperfoco_ei}. {prompt_completo}"
+                if usar_hiperfoco_ei and tema_ilustracao_ei:
+                    prompt_completo = f"Tema da ilustração: {tema_ilustracao_ei}. {prompt_completo}"
                 st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, prioridade="IA", gemini_key=g_key)
                 st.session_state.valid_scene = False
 
@@ -3171,8 +3187,8 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
                     if st.button("Refazer", key="ref_sc_ei"):
                         with st.spinner("Redesenhando..."):
                             prompt_completo = f"{desc_m}. Context: Child education."
-                            if usar_hiperfoco_ei and hiperfoco_ei:
-                                prompt_completo = f"Tema da ilustração: {hiperfoco_ei}. {prompt_completo}"
+                            if usar_hiperfoco_ei and tema_ilustracao_ei:
+                                prompt_completo = f"Tema da ilustração: {tema_ilustracao_ei}. {prompt_completo}"
                             st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, feedback_anterior=fb_scene, prioridade="IA", gemini_key=g_key)
                             st.rerun()
 
