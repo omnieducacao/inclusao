@@ -28,24 +28,39 @@ A jornada pode ser gerada a partir de:
 
 ### Formato do texto gerado
 
-O texto é **narrativo**, em parágrafos. Exemplo (simplificado):
+O texto é **narrativo**, em parágrafos. Cada **parágrafo** vira **uma linha** na planilha (coluna A).
+
+### Instruções para a Planilha (o que escrever no Google Sheets)
+
+Para o Gemini e o app Minha Jornada entenderem perfeitamente, use estas **palavras-chave e formatos** na aba do aluno:
+
+| Elemento | Onde / Como |
+|----------|--------------|
+| **CÓDIGO ÚNICO** | O Omnisfera escreve nas células A4–A5. Coloque o código `OMNI-...` logo abaixo ou ao lado do rótulo. |
+| **HIPERFOCO** | O Omnisfera escreve em A1–A2. Coloque o tema (ex.: Dinossauros) logo abaixo ou ao lado do rótulo. |
+| **NOME DO ALUNO** | Pode estar no título da aba ou num texto grande no corpo, ex.: `## Olá Lucas`. |
+| **MISSÕES** | Use a palavra "MISSÃO" seguida do número e do título. Exemplo: `**MISSÃO #1: A ORGANIZAÇÃO**` |
+| **TAREFAS/ETAPAS** | Use marcadores (hífens ou asteriscos) para as etapas da missão. Exemplo: `* Separar os livros` |
+
+Exemplo de texto gerado (simplificado):
 
 ```
-MISSÃO: CONQUISTA DA LEITURA
+**MISSÃO #1: A ORGANIZAÇÃO**
 
-Olá, [Nome]! Você é o herói desta missão. Seu objetivo é conquistar novos conhecimentos em leitura e escrita.
+## Olá Lucas!
 
-ETAPA 1 — Aquecimento
-Antes de começar, faça um alongamento e respire fundo. Você está pronto!
+Você é o herói desta missão. Seu objetivo é organizar seu espaço de estudo.
 
-ETAPA 2 — Desafio do dia
-Hoje você vai praticar a leitura de palavras novas. Cada palavra lida vale 10 pontos!
+* Separar os livros por matéria
+* Deixar a mesa limpa
+* Guardar o material na mochila
 
-ETAPA 3 — Conquista
-Ao finalizar, celebre! Você avançou mais um passo na sua jornada.
+**MISSÃO #2: CONQUISTA DA LEITURA**
+
+* Ler uma página do livro favorito
+* Marcar as palavras novas
+* Celebrar ao finalizar
 ```
-
-Cada **parágrafo** vira **uma linha** na planilha (coluna A).
 
 ---
 
@@ -98,14 +113,12 @@ A3:  (vazio)
 A4:  CÓDIGO ÚNICO (use no app gamificado):
 A5:  OMNI-1A2B-3C4D-5E6F
 A6:  (vazio)
-A7:  MISSÃO: CONQUISTA DA LEITURA
-A8:  Olá, Lucas! Você é o herói desta missão.
-A9:  ETAPA 1 — Aquecimento
-A10: Antes de começar, faça um alongamento.
-A11: ETAPA 2 — Desafio do dia
-A12: Hoje você vai praticar a leitura de palavras novas.
-A13: ETAPA 3 — Conquista
-A14: Ao finalizar, celebre! Você avançou mais um passo.
+A7:  **MISSÃO #1: CONQUISTA DA LEITURA**
+A8:  ## Olá, Lucas!
+A9:  Você é o herói desta missão.
+A10: * Antes de começar, faça um alongamento.
+A11: * Hoje você vai praticar a leitura de palavras novas.
+A12: * Ao finalizar, celebre! Você avançou mais um passo.
 ```
 
 ---

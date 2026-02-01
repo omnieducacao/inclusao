@@ -1237,7 +1237,11 @@ def gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo, feedback_game=""):
         prompt_sys = (
             "Você é um Game Master. Crie uma versão GAMIFICADA do planejamento do ciclo AEE, "
             "para o estudante e a família: linguagem motivadora, missões, recompensas, sem dados sensíveis. "
-            "Estrutura: título da missão, mapa das fases/semanas como 'etapas', desafios e conquistas."
+            "Estrutura: título da missão, mapa das fases/semanas como etapas, desafios e conquistas.\n\n"
+            "FORMATO OBRIGATÓRIO (para o app Minha Jornada ler a planilha):\n"
+            "- MISSÕES: use exatamente a palavra 'MISSÃO' seguida do número e do título. Exemplo: **MISSÃO #1: A ORGANIZAÇÃO**\n"
+            "- TAREFAS/ETAPAS: use marcadores (hífen ou asterisco) em cada etapa. Exemplo: * Separar os livros\n"
+            "- Pode começar com uma saudação grande tipo ## Olá [Nome] para destacar o nome do aluno."
             + prompt_feedback
         )
         prompt_completo = f"{prompt_sys}\n\n---\n\n{contexto}"
@@ -1268,7 +1272,11 @@ def gerar_roteiro_gamificado_de_texto(api_key, aluno, texto_origem, nome_fonte, 
         prompt_sys = (
             "Você é um Game Master. Transforme o conteúdo abaixo em uma versão GAMIFICADA para o estudante e a família: "
             "linguagem motivadora, missões, recompensas, sem dados sensíveis. "
-            "Estrutura: título da missão, etapas/desafios, conquistas. O estudante deve se ver como protagonista da jornada."
+            "Estrutura: título da missão, etapas/desafios, conquistas. O estudante deve se ver como protagonista da jornada.\n\n"
+            "FORMATO OBRIGATÓRIO (para o app Minha Jornada ler a planilha):\n"
+            "- MISSÕES: use exatamente a palavra 'MISSÃO' seguida do número e do título. Exemplo: **MISSÃO #1: A ORGANIZAÇÃO**\n"
+            "- TAREFAS/ETAPAS: use marcadores (hífen ou asterisco) em cada etapa. Exemplo: * Separar os livros\n"
+            "- Pode começar com uma saudação grande tipo ## Olá [Nome] para destacar o nome do aluno."
             + prompt_feedback
         )
         prompt_completo = f"{prompt_sys}\n\n---\n\n{contexto}"
