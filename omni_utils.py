@@ -1508,18 +1508,18 @@ def gerar_imagem_jornada_gemini(
         roteiro = (texto_missao or "").strip()[:4500]
         prompt = (
             "Crie um MAPA MENTAL rico e visual a partir deste roteiro gamificado. "
-            "Estrutura obrigatória de mapa mental: "
-            "(1) Nó central no meio com o tema principal (ex.: Minha Jornada ou nome do protagonista). "
-            "(2) Ramos principais saindo do centro: cada MISSÃO do roteiro vira um ramo. "
-            "(3) Sub-ramos em cada missão: as tarefas/etapas daquela missão. "
-            "Use cores diferentes por ramo, ícones ou símbolos pequenos nos nós (estrela, troféu, check), "
-            "linhas conectando centro → missões → etapas. Texto em português do Brasil: títulos curtos e claros. "
-            f"Protagonista: {nome}. Tema/interesse: {tema}. "
-            "Estilo: mapa mental colorido, organizado, fácil de ler, amigável para crianças. "
-            "Proporção quadrada (1:1). NÃO use inglês; todo o texto em português.\n\n"
-            "--- ROTEIRO GAMIFICADO (extraia as missões e etapas para montar o mapa mental) ---\n\n"
+            "REGRA OBRIGATÓRIA PARA O TEXTO: use APENAS palavras e expressões em português que ESTEJAM NO ROTEIRO abaixo. "
+            "Não invente nem adicione palavras; extraia os títulos das missões e as tarefas/etapas diretamente do texto. "
+            "Cada rótulo no mapa mental deve ser uma frase ou palavra curta retirada do roteiro (em português). "
+            "Estrutura: (1) Nó central com tema do roteiro. (2) Ramos = cada missão (título extraído do roteiro). "
+            "(3) Sub-ramos = tarefas/etapas de cada missão (texto extraído do roteiro). "
+            "Cores diferentes por ramo, ícones nos nós, linhas centro → missões → etapas. "
+            f"Protagonista: {nome}. Tema: {tema}. "
+            "Estilo: mapa mental colorido, organizado, fácil de ler. Proporção quadrada (1:1). "
+            "NÃO use inglês. Só português e só palavras que aparecem no roteiro.\n\n"
+            "--- ROTEIRO GAMIFICADO (extraia daqui as palavras para os rótulos do mapa mental) ---\n\n"
             f"{roteiro}\n\n"
-            "--- Fim. Gere um único mapa mental que represente essa jornada. ---"
+            "--- Fim. Gere o mapa mental usando somente texto em português presente no roteiro acima. ---"
         )
         client = genai.Client(api_key=key)
         # Modelo mais potente: Gemini 3 Pro Image Preview (Nano Banana Pro); fallback para 2.5 Flash Image
@@ -1586,6 +1586,104 @@ def gerar_imagem_jornada_gemini(
                 "(3) Se a chave tiver restrições (HTTP referrer), libere o domínio do Streamlit Cloud ou teste sem restrições."
             )
         return None, err_msg[:300] if err_msg else "Erro ao gerar imagem."
+
+
+def _gemini_gerar_imagem_core(prompt: str, api_key: str) -> tuple[bytes | None, str | None]:
+    """
+    Core: chama Gemini (Nano Banana) com um prompt e retorna (bytes_png, None) ou (None, erro).
+    Usado por gerar_imagem_jornada_gemini, gerar_imagem_ilustracao_gemini e gerar_imagem_pictograma_caa_gemini.
+    """
+    try:
+        from google import genai
+        import io
+        import base64
+        client = genai.Client(api_key=api_key)
+        response = None
+        for model_id in ("gemini-3-pro-image-preview", "gemini-2.5-flash-image"):
+            try:
+                response = client.models.generate_content(model=model_id, contents=[prompt])
+                if response is not None:
+                    break
+            except Exception as model_err:
+                if "404" in str(model_err).lower() or "not found" in str(model_err).lower():
+                    continue
+                raise
+        if response is None:
+            response = client.models.generate_content(model="gemini-2.5-flash-image", contents=[prompt])
+        parts = getattr(response, "parts", None)
+        if not parts and getattr(response, "candidates", None) and response.candidates:
+            content = getattr(response.candidates[0], "content", None)
+            parts = getattr(content, "parts", None) if content else None
+        if not parts:
+            return None, "Resposta sem partes de imagem."
+        for part in parts:
+            inline = getattr(part, "inline_data", None) or getattr(part, "inlineData", None)
+            if inline is not None:
+                data = getattr(inline, "data", None)
+                if data:
+                    return (data, None) if isinstance(data, bytes) else (base64.b64decode(data), None)
+            as_img = getattr(part, "as_image", None)
+            if callable(as_img):
+                try:
+                    img = as_img()
+                    if img is not None:
+                        buf = io.BytesIO()
+                        img.save(buf, format="PNG")
+                        return buf.getvalue(), None
+                except Exception:
+                    pass
+        return None, "Nenhuma imagem gerada na resposta."
+    except Exception as e:
+        return None, str(e)[:300]
+
+
+def gerar_imagem_ilustracao_gemini(
+    prompt: str,
+    feedback_anterior: str = "",
+    api_key: str | None = None,
+) -> tuple[bytes | None, str | None]:
+    """
+    Gera ilustração educacional com Gemini (Hub Estúdio Visual).
+    Regra: sem texto na imagem. Estilo didático, fundo claro. Retorna (bytes_png, None) ou (None, erro).
+    """
+    key = api_key or get_gemini_api_key()
+    if not key:
+        return None, "Configure GEMINI_API_KEY para gerar a imagem."
+    texto = (prompt or "").strip()
+    if feedback_anterior:
+        texto = f"{texto}. Ajuste solicitado: {feedback_anterior}"
+    prompt_final = (
+        "Ilustração educacional, estilo vetorial plano, fundo claro. "
+        "REGRA OBRIGATÓRIA: NÃO inclua texto, palavras, letras ou números na imagem. "
+        "Apenas a representação visual do conceito. Público: Brasil. Proporção quadrada (1:1). "
+        f"Cena a representar: {texto[:2000]}"
+    )
+    return _gemini_gerar_imagem_core(prompt_final, key)
+
+
+def gerar_imagem_pictograma_caa_gemini(
+    conceito: str,
+    feedback_anterior: str = "",
+    api_key: str | None = None,
+) -> tuple[bytes | None, str | None]:
+    """
+    Gera símbolo CAA (Comunicação Aumentativa e Alternativa) com Gemini (Hub Estúdio Visual).
+    Estilo: ícone plano, fundo branco, contornos pretos, alto contraste. Sem texto na imagem.
+    Retorna (bytes_png, None) ou (None, erro).
+    """
+    key = api_key or get_gemini_api_key()
+    if not key:
+        return None, "Configure GEMINI_API_KEY para gerar o pictograma."
+    conceito = (conceito or "").strip() or "comunicação"
+    ajuste = f" Ajuste solicitado: {feedback_anterior}." if feedback_anterior else ""
+    prompt_final = (
+        f"Símbolo de comunicação (CAA/PECS) para o conceito: '{conceito}'.{ajuste} "
+        "Estilo: ícone vetorial plano (estilo ARASAAC). Fundo BRANCO. Contornos PRETOS grossos. "
+        "Cores sólidas, alto contraste. Sem detalhes de fundo, sem sombras. "
+        "REGRA OBRIGATÓRIA: imagem MUDA, sem texto, palavras, letras ou números. Apenas o símbolo visual. "
+        "Proporção quadrada (1:1). Público: Brasil."
+    )
+    return _gemini_gerar_imagem_core(prompt_final, key)
 
 
 # =============================================================================

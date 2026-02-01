@@ -671,45 +671,58 @@ def carregar_estudantes_supabase():
 # FUNÇÕES DE IA (OPENAI)
 # ==============================================================================
 
-def gerar_imagem_inteligente(api_key, prompt, unsplash_key=None, feedback_anterior="", prioridade="IA"):
+def gerar_imagem_inteligente(api_key, prompt, unsplash_key=None, feedback_anterior="", prioridade="IA", gemini_key=None):
     """
-    Gera imagem com prioridade: IA (DALL-E) ou BANCO (Unsplash)
+    Gera imagem: prioridade Gemini (se GEMINI_API_KEY), depois DALL-E, depois Unsplash.
+    Retorna bytes (PNG) ou URL (str); st.image() aceita ambos.
     """
-    client = OpenAI(api_key=api_key)
-    
-    prompt_final = prompt
-    if feedback_anterior:
-        prompt_final = f"{prompt}. Adjustment requested: {feedback_anterior}"
+    # 1. TENTATIVA GEMINI (se chave configurada)
+    key_gemini = gemini_key or ou.get_gemini_api_key()
+    if key_gemini and prioridade == "IA":
+        img_bytes, err = ou.gerar_imagem_ilustracao_gemini(prompt, feedback_anterior=feedback_anterior, api_key=key_gemini)
+        if img_bytes:
+            return img_bytes
 
-    # 1. TENTATIVA BANCO DE IMAGENS (Se solicitado e configurado)
+    # 2. TENTATIVA BANCO DE IMAGENS (Se solicitado e configurado)
     if prioridade == "BANCO" and unsplash_key:
         termo = prompt.split('.')[0] if '.' in prompt else prompt
         url_banco = buscar_imagem_unsplash(termo, unsplash_key)
         if url_banco:
             return url_banco
 
-    # 2. TENTATIVA IA (DALL-E 3) - BLINDAGEM AGRESSIVA CONTRA TEXTO
+    # 3. TENTATIVA OPENAI (DALL-E 3)
+    if not api_key:
+        if unsplash_key and prioridade == "IA":
+            termo = prompt.split('.')[0] if '.' in prompt else prompt
+            return buscar_imagem_unsplash(termo, unsplash_key)
+        return None
+    client = OpenAI(api_key=api_key)
+    prompt_final = f"{prompt}. Adjustment requested: {feedback_anterior}" if feedback_anterior else prompt
     try:
-        # Prompt com TRAVA DE TEXTO ("STRICTLY NO TEXT")
         didactic_prompt = f"Educational textbook illustration, clean flat vector style, white background. CRITICAL RULE: STRICTLY NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS inside the image. Just the visual representation of: {prompt_final}"
         resp = client.images.generate(model="dall-e-3", prompt=didactic_prompt, size="1024x1024", quality="standard", n=1)
         return resp.data[0].url
     except Exception as e:
-        # Se IA falhar e não tentamos banco ainda, tenta agora como fallback
         if prioridade == "IA" and unsplash_key:
             termo = prompt.split('.')[0] if '.' in prompt else prompt
             return buscar_imagem_unsplash(termo, unsplash_key)
         print(f"Erro ao gerar imagem: {e}")
         return None
 
-def gerar_pictograma_caa(api_key, conceito, feedback_anterior=""):
+def gerar_pictograma_caa(api_key, conceito, feedback_anterior="", gemini_key=None):
     """
-    Gera símbolo específico para Comunicação Aumentativa e Alternativa.
+    Gera símbolo CAA: prioridade Gemini (se GEMINI_API_KEY), depois DALL-E.
+    Retorna bytes (PNG) ou URL (str); st.image() aceita ambos.
     """
+    key_gemini = gemini_key or ou.get_gemini_api_key()
+    if key_gemini:
+        img_bytes, err = ou.gerar_imagem_pictograma_caa_gemini(conceito, feedback_anterior=feedback_anterior, api_key=key_gemini)
+        if img_bytes:
+            return img_bytes
+    if not api_key:
+        return None
     client = OpenAI(api_key=api_key)
-    
     ajuste = f" CORREÇÃO PEDIDA: {feedback_anterior}" if feedback_anterior else ""
-    
     prompt_caa = f"""
     Create a COMMUNICATION SYMBOL (AAC/PECS) for the concept: '{conceito}'. {ajuste}
     STYLE GUIDE:
@@ -2611,16 +2624,17 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
                 use_container_width=True
             )
 
-def render_aba_estudio_visual(aluno, api_key, unsplash_key):
-    """Renderiza a aba de estúdio visual"""
+def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
+    """Renderiza a aba de estúdio visual (Gemini ou OpenAI + Unsplash)."""
     st.markdown("""
     <div class="pedagogia-box">
         <div class="pedagogia-title"><i class="ri-image-line"></i> Recursos Visuais</div>
-        Gere flashcards, rotinas visuais e símbolos de comunicação.
+        Gere flashcards, rotinas visuais e símbolos de comunicação. Usa <strong>Gemini</strong> (se GEMINI_API_KEY) ou OpenAI/Unsplash.
     </div>
     """, unsafe_allow_html=True)
     
     col_scene, col_caa = st.columns(2)
+    g_key = gemini_key or ou.get_gemini_api_key()
     
     with col_scene:
         st.markdown("#### 🖼️ Ilustração")
@@ -2629,7 +2643,7 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key):
         if st.button("🎨 Gerar Imagem", key="btn_cena_padrao"):
             with st.spinner("Desenhando..."):
                 prompt_completo = f"{desc_m}. Context: Education."
-                st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, prioridade="IA")
+                st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, prioridade="IA", gemini_key=g_key)
                 st.session_state.valid_scene = False
 
         if st.session_state.res_scene_url:
@@ -2646,7 +2660,7 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key):
                     if st.button("Refazer", key="ref_sc_pd"):
                         with st.spinner("Redesenhando..."):
                             prompt_completo = f"{desc_m}. Context: Education."
-                            st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, feedback_anterior=fb_scene, prioridade="IA")
+                            st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, feedback_anterior=fb_scene, prioridade="IA", gemini_key=g_key)
                             st.rerun()
 
     with col_caa:
@@ -2655,7 +2669,7 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key):
         
         if st.button("🧩 Gerar Pictograma", key="btn_caa_padrao"):
             with st.spinner("Criando símbolo..."):
-                st.session_state.res_caa_url = gerar_pictograma_caa(api_key, palavra_chave)
+                st.session_state.res_caa_url = gerar_pictograma_caa(api_key, palavra_chave, gemini_key=g_key)
                 st.session_state.valid_caa = False
 
         if st.session_state.res_caa_url:
@@ -2671,7 +2685,7 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key):
                     fb_caa = st.text_input("Ajuste:", key="fb_caa_pd")
                     if st.button("Refazer", key="ref_caa_pd"):
                         with st.spinner("Recriando..."):
-                            st.session_state.res_caa_url = gerar_pictograma_caa(api_key, palavra_chave, feedback_anterior=fb_caa)
+                            st.session_state.res_caa_url = gerar_pictograma_caa(api_key, palavra_chave, feedback_anterior=fb_caa, gemini_key=g_key)
                             st.rerun()
 
 def render_aba_roteiro_individual(aluno, api_key):
@@ -3099,19 +3113,19 @@ def render_aba_ei_experiencia(aluno, api_key):
                         st.session_state.res_ei_exp = gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, obj_aprendizagem, feedback_anterior=feedback_ei)
                         st.rerun()
 
-def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key):
-    """Renderiza a aba de estúdio visual da Educação Infantil"""
+def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
+    """Renderiza a aba de estúdio visual da Educação Infantil (Gemini ou OpenAI + Unsplash)."""
     st.markdown("""
     <div class="pedagogia-box">
         <div class="pedagogia-title"><i class="ri-eye-line"></i> Apoio Visual & Comunicação</div>
         Crianças atípicas processam melhor imagens do que fala. 
-        Use <strong>Cenas</strong> para histórias sociais (comportamento) e <strong>Pictogramas (CAA)</strong> para comunicação.
+        Use <strong>Cenas</strong> para histórias sociais e <strong>Pictogramas (CAA)</strong>. Usa <strong>Gemini</strong> (se GEMINI_API_KEY) ou OpenAI/Unsplash.
     </div>
     """, unsafe_allow_html=True)
     
     col_scene, col_caa = st.columns(2)
+    g_key = gemini_key or ou.get_gemini_api_key()
     
-    # Cenas
     with col_scene:
         st.markdown("#### 🖼️ Ilustração de Cena")
         desc_m = st.text_area("Descreva a cena ou rotina:", height=100, key="vdm_ei", placeholder="Ex: Crianças brincando de roda no parque...")
@@ -3119,7 +3133,7 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key):
         if st.button("🎨 Gerar Cena", key="btn_cena_ei"):
             with st.spinner("Desenhando..."):
                 prompt_completo = f"{desc_m}. Context: Child education, friendly style."
-                st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, prioridade="IA")
+                st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, prioridade="IA", gemini_key=g_key)
                 st.session_state.valid_scene = False
 
         if st.session_state.res_scene_url:
@@ -3136,17 +3150,16 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key):
                     if st.button("Refazer", key="ref_sc_ei"):
                         with st.spinner("Redesenhando..."):
                             prompt_completo = f"{desc_m}. Context: Child education."
-                            st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, feedback_anterior=fb_scene, prioridade="IA")
+                            st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, feedback_anterior=fb_scene, prioridade="IA", gemini_key=g_key)
                             st.rerun()
 
-    # CAA
     with col_caa:
         st.markdown("#### 🗣️ Símbolo CAA (Comunicação)")
         palavra_chave = st.text_input("Conceito/Palavra:", placeholder="Ex: Quero Água, Banheiro", key="caa_input_ei")
         
         if st.button("🧩 Gerar Pictograma", key="btn_caa_ei"):
             with st.spinner("Criando símbolo acessível..."):
-                st.session_state.res_caa_url = gerar_pictograma_caa(api_key, palavra_chave)
+                st.session_state.res_caa_url = gerar_pictograma_caa(api_key, palavra_chave, gemini_key=g_key)
                 st.session_state.valid_caa = False
 
         if st.session_state.res_caa_url:
@@ -3162,7 +3175,7 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key):
                     fb_caa = st.text_input("Ajuste:", key="fb_caa_ei")
                     if st.button("Refazer", key="ref_caa_ei"):
                         with st.spinner("Recriando..."):
-                            st.session_state.res_caa_url = gerar_pictograma_caa(api_key, palavra_chave, feedback_anterior=fb_caa)
+                            st.session_state.res_caa_url = gerar_pictograma_caa(api_key, palavra_chave, feedback_anterior=fb_caa, gemini_key=g_key)
                             st.rerun()
 
 def render_aba_ei_rotina(aluno, api_key):
@@ -3286,6 +3299,8 @@ def main():
         or st.session_state.get("UNSPLASH_ACCESS_KEY")
     )
     unsplash_key = unsplash_key if unsplash_key else None
+    
+    gemini_key = ou.get_gemini_api_key()
     
     # Configurações de API (ocultas - apenas busca dos secrets)
     # O expander foi removido conforme solicitado
@@ -3445,7 +3460,7 @@ def main():
             render_aba_ei_experiencia(aluno, api_key)
         
         with tabs[1]:
-            render_aba_ei_estudio_visual(aluno, api_key, unsplash_key)
+            render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key)
         
         with tabs[2]:
             render_aba_ei_rotina(aluno, api_key)
@@ -3476,7 +3491,7 @@ def main():
             render_aba_criar_do_zero(aluno, api_key, unsplash_key)
 
         with tabs[3]:
-            render_aba_estudio_visual(aluno, api_key, unsplash_key)
+            render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key)
 
         with tabs[4]:
             render_aba_roteiro_individual(aluno, api_key)
