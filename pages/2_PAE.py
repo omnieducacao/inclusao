@@ -2634,7 +2634,7 @@ with tab_jornada:
 
     st.session_state.setdefault("jornada_gamificada", {})
     jg = st.session_state["jornada_gamificada"]
-    jg.setdefault(chave_jornada, {"texto": "", "status": "rascunho", "feedback": "", "origem": origem_selecionada})
+    jg.setdefault(chave_jornada, {"texto": "", "status": "rascunho", "feedback": "", "origem": origem_selecionada, "imagem_bytes": None})
     estado = jg[chave_jornada]
 
     if usa_ciclo and ciclo_para_jornada:
@@ -2656,6 +2656,7 @@ with tab_jornada:
             jg[chave_jornada]["status"] = "rascunho"
             jg[chave_jornada]["feedback"] = ""
             jg[chave_jornada]["texto"] = ""
+            jg[chave_jornada]["imagem_bytes"] = None
             st.rerun()
 
     if status_game == "rascunho":
@@ -2697,6 +2698,25 @@ with tab_jornada:
         with st.container(border=True):
             st.markdown("#### Missão (prévia)")
             st.markdown(estado.get("texto", ""))
+        # Representação visual (Nano Banana)
+        st.markdown("---")
+        st.markdown("**Representação visual da missão** — Transponha o texto em uma ilustração com o Gemini (Nano Banana).")
+        if estado.get("imagem_bytes"):
+            st.image(estado["imagem_bytes"], caption="Ilustração da missão", use_container_width=True)
+            st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_revisao")
+        if st.button("Gerar imagem da missão (Nano Banana)", key="btn_jg_imagem_revisao", help="Usa Gemini para criar uma ilustração inspiradora a partir do texto da missão."):
+            with st.spinner("Gerando ilustração..."):
+                img_bytes, err = ou.gerar_imagem_jornada_gemini(
+                    estado.get("texto", ""),
+                    nome_estudante=aluno.get("nome", ""),
+                    hiperfoco=aluno.get("hiperfoco", ""),
+                    api_key=api_key,
+                )
+                if img_bytes:
+                    jg[chave_jornada]["imagem_bytes"] = img_bytes
+                    st.rerun()
+                else:
+                    st.error(err or "Erro ao gerar imagem.")
         c_ok, c_aj = st.columns(2)
         with c_ok:
             if st.button("Aprovar Missão", type="primary", use_container_width=True, key="btn_jg_ok"):
@@ -2732,6 +2752,25 @@ with tab_jornada:
         st.success("Missão aprovada! Edite se quiser e exporte em PDF ou Google Sheets.")
         novo_texto = st.text_area("Edição final (opcional)", value=estado.get("texto", ""), height=280, key="jg_texto_final")
         jg[chave_jornada]["texto"] = novo_texto
+        # Representação visual (Nano Banana)
+        with st.expander("Representação visual da missão (Nano Banana)", expanded=bool(estado.get("imagem_bytes"))):
+            st.caption("Transponha o texto da missão em uma ilustração inspiradora com o Gemini.")
+            if estado.get("imagem_bytes"):
+                st.image(estado["imagem_bytes"], caption="Ilustração da missão", use_container_width=True)
+                st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_aprovado")
+            if st.button("Gerar imagem da missão (Nano Banana)", key="btn_jg_imagem_aprovado", help="Usa Gemini para criar uma ilustração a partir do texto da missão."):
+                with st.spinner("Gerando ilustração..."):
+                    img_bytes, err = ou.gerar_imagem_jornada_gemini(
+                        novo_texto,
+                        nome_estudante=aluno.get("nome", ""),
+                        hiperfoco=aluno.get("hiperfoco", ""),
+                        api_key=api_key,
+                    )
+                    if img_bytes:
+                        jg[chave_jornada]["imagem_bytes"] = img_bytes
+                        st.rerun()
+                    else:
+                        st.error(err or "Erro ao gerar imagem.")
         pdf_bytes = _gerar_pdf_jornada_simples(novo_texto)
         col_pdf, col_sheets, col_csv = st.columns(3)
         with col_pdf:

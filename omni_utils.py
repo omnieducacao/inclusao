@@ -1465,6 +1465,83 @@ def consultar_gemini(prompt: str, model: str = "gemini-2.0-flash", api_key: str 
         return None, str(e)[:200]
 
 
+def gerar_imagem_jornada_gemini(
+    texto_missao: str,
+    nome_estudante: str = "",
+    hiperfoco: str = "",
+    api_key: str | None = None,
+) -> tuple[bytes | None, str | None]:
+    """
+    Gera uma representação visual da missão gamificada usando Gemini (Nano Banana).
+    Transpõe o texto da missão em uma ilustração inspiradora e adequada ao estudante.
+    Retorna (bytes_imagem_png, None) em sucesso ou (None, mensagem_erro) em falha.
+    """
+    key = api_key or get_gemini_api_key()
+    if not key:
+        return None, "Configure GEMINI_API_KEY para gerar a imagem."
+    if not (texto_missao or "").strip():
+        return None, "Nenhum texto da missão para transformar em imagem."
+    try:
+        from google import genai
+        from google.genai import types
+        import io
+        nome = (nome_estudante or "").strip() or "estudante"
+        tema = (hiperfoco or "").strip() or "aprendizado"
+        prompt = (
+            f"Crie uma única ilustração inspiradora e colorida que represente esta missão gamificada "
+            f"para um(a) {nome}. O tema/interesse do estudante é: {tema}. "
+            "Estilo: amigável para crianças, claro, motivador, sem texto longo na imagem. "
+            "A cena deve transmitir aventura e conquista. Evite rostos realistas; prefira estilo cartoon ou ilustração. "
+            "Aspecto quadrado (1:1).\n\n"
+            "Texto da missão (use apenas como contexto para a cena):\n"
+            f"{texto_missao[:3000]}"
+        )
+        client = genai.Client(api_key=key)
+        try:
+            config = types.GenerateContentConfig(response_modalities=["TEXT", "IMAGE"])
+            response = client.models.generate_content(
+                model="gemini-2.5-flash-image",
+                contents=prompt,
+                config=config,
+            )
+        except (TypeError, AttributeError):
+            response = client.models.generate_content(
+                model="gemini-2.5-flash-image",
+                contents=prompt,
+            )
+        # Extrair primeira imagem da resposta (parts ou candidates)
+        parts = getattr(response, "parts", None)
+        if not parts and getattr(response, "candidates", None):
+            c0 = response.candidates[0] if response.candidates else None
+            if c0 and getattr(c0, "content", None):
+                parts = getattr(c0.content, "parts", None)
+        if not parts:
+            return None, "Resposta sem partes de imagem."
+        for part in parts:
+            inline = getattr(part, "inline_data", None)
+            if inline is not None:
+                data = getattr(inline, "data", None)
+                if data:
+                    if isinstance(data, bytes):
+                        return data, None
+                    import base64
+                    return base64.b64decode(data), None
+            # SDK pode expor as_image() (PIL)
+            as_img = getattr(part, "as_image", None)
+            if callable(as_img):
+                try:
+                    img = as_img()
+                    if img is not None:
+                        buf = io.BytesIO()
+                        img.save(buf, format="PNG")
+                        return buf.getvalue(), None
+                except Exception:
+                    pass
+        return None, "Nenhuma imagem gerada na resposta."
+    except Exception as e:
+        return None, str(e)[:300]
+
+
 # =============================================================================
 # GOOGLE SHEETS — Exportar Jornada Gamificada
 # =============================================================================
