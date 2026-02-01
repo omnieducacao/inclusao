@@ -2701,22 +2701,27 @@ with tab_jornada:
         # Representação visual (Nano Banana)
         st.markdown("---")
         st.markdown("**Representação visual da missão** — Transponha o texto em uma ilustração com o Gemini (Nano Banana).")
+        st.caption("Requer GEMINI_API_KEY (chave do Google AI Studio: aistudio.google.com/apikey) nos secrets.")
         if estado.get("imagem_bytes"):
             st.image(estado["imagem_bytes"], caption="Ilustração da missão", use_container_width=True)
             st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_revisao")
         if st.button("Gerar imagem da missão (Nano Banana)", key="btn_jg_imagem_revisao", help="Usa Gemini para criar uma ilustração inspiradora a partir do texto da missão."):
             with st.spinner("Gerando ilustração..."):
-                img_bytes, err = ou.gerar_imagem_jornada_gemini(
-                    estado.get("texto", ""),
-                    nome_estudante=aluno.get("nome", ""),
-                    hiperfoco=aluno.get("hiperfoco", ""),
-                    api_key=api_key,
-                )
-                if img_bytes:
-                    jg[chave_jornada]["imagem_bytes"] = img_bytes
-                    st.rerun()
-                else:
-                    st.error(err or "Erro ao gerar imagem.")
+                try:
+                    gemini_key = ou.get_gemini_api_key()
+                    img_bytes, err = ou.gerar_imagem_jornada_gemini(
+                        estado.get("texto", ""),
+                        nome_estudante=aluno.get("nome", ""),
+                        hiperfoco=aluno.get("hiperfoco", ""),
+                        api_key=gemini_key,
+                    )
+                    if img_bytes:
+                        jg[chave_jornada]["imagem_bytes"] = img_bytes
+                        st.rerun()
+                    else:
+                        st.error(err or "Erro ao gerar imagem.")
+                except Exception as ex:
+                    st.error(f"Erro ao gerar imagem: {ex}")
         c_ok, c_aj = st.columns(2)
         with c_ok:
             if st.button("Aprovar Missão", type="primary", use_container_width=True, key="btn_jg_ok"):
@@ -2754,23 +2759,27 @@ with tab_jornada:
         jg[chave_jornada]["texto"] = novo_texto
         # Representação visual (Nano Banana)
         with st.expander("Representação visual da missão (Nano Banana)", expanded=bool(estado.get("imagem_bytes"))):
-            st.caption("Transponha o texto da missão em uma ilustração inspiradora com o Gemini.")
+            st.caption("Transponha o texto da missão em uma ilustração inspiradora com o Gemini. Requer GEMINI_API_KEY (Google AI Studio: aistudio.google.com/apikey) nos secrets.")
             if estado.get("imagem_bytes"):
                 st.image(estado["imagem_bytes"], caption="Ilustração da missão", use_container_width=True)
                 st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_aprovado")
             if st.button("Gerar imagem da missão (Nano Banana)", key="btn_jg_imagem_aprovado", help="Usa Gemini para criar uma ilustração a partir do texto da missão."):
                 with st.spinner("Gerando ilustração..."):
-                    img_bytes, err = ou.gerar_imagem_jornada_gemini(
-                        novo_texto,
-                        nome_estudante=aluno.get("nome", ""),
-                        hiperfoco=aluno.get("hiperfoco", ""),
-                        api_key=api_key,
-                    )
-                    if img_bytes:
-                        jg[chave_jornada]["imagem_bytes"] = img_bytes
-                        st.rerun()
-                    else:
-                        st.error(err or "Erro ao gerar imagem.")
+                    try:
+                        gemini_key = ou.get_gemini_api_key()
+                        img_bytes, err = ou.gerar_imagem_jornada_gemini(
+                            novo_texto,
+                            nome_estudante=aluno.get("nome", ""),
+                            hiperfoco=aluno.get("hiperfoco", ""),
+                            api_key=gemini_key,
+                        )
+                        if img_bytes:
+                            jg[chave_jornada]["imagem_bytes"] = img_bytes
+                            st.rerun()
+                        else:
+                            st.error(err or "Erro ao gerar imagem.")
+                    except Exception as ex:
+                        st.error(f"Erro ao gerar imagem: {ex}")
         pdf_bytes = _gerar_pdf_jornada_simples(novo_texto)
         col_pdf, col_sheets, col_csv = st.columns(3)
         with col_pdf:

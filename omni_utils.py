@@ -1483,8 +1483,8 @@ def gerar_imagem_jornada_gemini(
         return None, "Nenhum texto da missão para transformar em imagem."
     try:
         from google import genai
-        from google.genai import types
         import io
+        import base64
         nome = (nome_estudante or "").strip() or "estudante"
         tema = (hiperfoco or "").strip() or "aprendizado"
         prompt = (
@@ -1497,36 +1497,32 @@ def gerar_imagem_jornada_gemini(
             f"{texto_missao[:3000]}"
         )
         client = genai.Client(api_key=key)
-        try:
-            config = types.GenerateContentConfig(response_modalities=["TEXT", "IMAGE"])
-            response = client.models.generate_content(
-                model="gemini-2.5-flash-image",
-                contents=prompt,
-                config=config,
-            )
-        except (TypeError, AttributeError):
-            response = client.models.generate_content(
-                model="gemini-2.5-flash-image",
-                contents=prompt,
-            )
-        # Extrair primeira imagem da resposta (parts ou candidates)
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-image",
+            contents=[prompt],
+        )
+        # Extrair primeira imagem: response.parts ou response.candidates[0].content.parts
         parts = getattr(response, "parts", None)
         if not parts and getattr(response, "candidates", None):
-            c0 = response.candidates[0] if response.candidates else None
-            if c0 and getattr(c0, "content", None):
-                parts = getattr(c0.content, "parts", None)
+            cands = response.candidates
+            if cands:
+                c0 = cands[0]
+                content = getattr(c0, "content", None)
+                if content is not None:
+                    parts = getattr(content, "parts", None)
         if not parts:
             return None, "Resposta sem partes de imagem."
         for part in parts:
-            inline = getattr(part, "inline_data", None)
+            # inline_data (SDK) ou inlineData (REST)
+            inline = getattr(part, "inline_data", None) or getattr(part, "inlineData", None)
             if inline is not None:
                 data = getattr(inline, "data", None)
                 if data:
                     if isinstance(data, bytes):
                         return data, None
-                    import base64
-                    return base64.b64decode(data), None
-            # SDK pode expor as_image() (PIL)
+                    if isinstance(data, str):
+                        return base64.b64decode(data), None
+            # part.as_image() (PIL Image)
             as_img = getattr(part, "as_image", None)
             if callable(as_img):
                 try:
@@ -1538,8 +1534,16 @@ def gerar_imagem_jornada_gemini(
                 except Exception:
                     pass
         return None, "Nenhuma imagem gerada na resposta."
+    except AttributeError as e:
+        return None, f"API de imagem indisponível ou incompatível: {e!s}"[:320]
     except Exception as e:
-        return None, str(e)[:300]
+        err_msg = str(e)
+        if "API key not valid" in err_msg or "API_KEY_INVALID" in err_msg or "INVALID_ARGUMENT" in err_msg:
+            return None, (
+                "Chave da API Gemini inválida. Use uma chave válida do Google AI Studio: "
+                "aistudio.google.com/apikey — Configure GEMINI_API_KEY nos secrets (não use a chave da OpenAI)."
+            )
+        return None, err_msg[:300] if err_msg else "Erro ao gerar imagem."
 
 
 # =============================================================================
