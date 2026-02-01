@@ -6,10 +6,11 @@ RPC_NAME = "workspace_from_pin"
 
 
 @st.cache_resource(show_spinner=False)
-def _create_supabase_client():
+def _create_supabase_client(url: str, key: str):
     """
-    Cria UM cliente Supabase (cacheado para o app inteiro).
-    Usa a mesma leitura de secrets do omni_utils (flat ou [supabase]).
+    Cria UM cliente Supabase (cacheado por url+key).
+    URL e chave são lidos fora do cache (em get_sb) para garantir que
+    st.secrets esteja disponível (importante no Streamlit Cloud).
     """
     try:
         from supabase import create_client  # type: ignore
@@ -19,6 +20,21 @@ def _create_supabase_client():
             "➡️ requirements.txt precisa ter: supabase==2.*\n"
             f"Detalhe: {e}"
         )
+    if not url or not key:
+        raise RuntimeError(
+            "SUPABASE_URL e chave são obrigatórios. Configure em Secrets (raiz: SUPABASE_URL, SUPABASE_SERVICE_KEY/ANON_KEY ou seção [supabase])."
+        )
+    return create_client(url, key)
+
+
+def get_sb():
+    """
+    ✅ Função padrão do projeto: garante sb na session_state.
+    Lê secrets no contexto principal (não dentro do cache) para evitar
+    erro no Streamlit Cloud ao logar.
+    """
+    if "sb" in st.session_state and st.session_state["sb"] is not None:
+        return st.session_state["sb"]
 
     try:
         import omni_utils as ou
@@ -26,22 +42,12 @@ def _create_supabase_client():
         key = ou._sb_key()
     except Exception as e:
         raise RuntimeError(
-            "SUPABASE_URL / chave não encontrados. Configure em secrets (raiz ou [supabase]) ou variáveis de ambiente.\n"
+            "Configuração Supabase não encontrada. Em Streamlit Cloud: Manage app → Settings → Secrets. "
+            "Use SUPABASE_URL e SUPABASE_SERVICE_KEY (ou SUPABASE_ANON_KEY) no nível raiz, ou seção [supabase] com url e service_key/anon_key.\n"
             f"Detalhe: {e}"
         )
 
-    return create_client(url, key)
-
-
-def get_sb():
-    """
-    ✅ Função padrão do projeto: garante sb na session_state.
-    Retorna o client.
-    """
-    if "sb" in st.session_state and st.session_state["sb"] is not None:
-        return st.session_state["sb"]
-
-    sb = _create_supabase_client()
+    sb = _create_supabase_client(url, key)
     st.session_state["sb"] = sb
     return sb
 
