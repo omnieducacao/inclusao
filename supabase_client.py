@@ -1,30 +1,15 @@
 # supabase_client.py
-import os
 import streamlit as st
 
 # 🔒 Nome da função RPC
 RPC_NAME = "workspace_from_pin"
 
 
-def _get_secret(name: str) -> str | None:
-    """Lê env var (Render) e fallback para secrets (Streamlit Cloud)."""
-    v = os.environ.get(name)
-    if v:
-        return str(v).strip()
-    try:
-        v = st.secrets.get(name)
-        if v:
-            return str(v).strip()
-    except Exception:
-        pass
-    return None
-
-
 @st.cache_resource(show_spinner=False)
 def _create_supabase_client():
     """
     Cria UM cliente Supabase (cacheado para o app inteiro).
-    Não depende de session_state.
+    Usa a mesma leitura de secrets do omni_utils (flat ou [supabase]).
     """
     try:
         from supabase import create_client  # type: ignore
@@ -35,13 +20,14 @@ def _create_supabase_client():
             f"Detalhe: {e}"
         )
 
-    url = _get_secret("SUPABASE_URL")
-    key = _get_secret("SUPABASE_ANON_KEY")
-
-    if not url or not key:
+    try:
+        import omni_utils as ou
+        url = ou._sb_url()
+        key = ou._sb_key()
+    except Exception as e:
         raise RuntimeError(
-            "SUPABASE_URL / SUPABASE_ANON_KEY não encontrados.\n"
-            "➡️ Configure em Settings → Secrets do Streamlit Cloud."
+            "SUPABASE_URL / chave não encontrados. Configure em secrets (raiz ou [supabase]) ou variáveis de ambiente.\n"
+            f"Detalhe: {e}"
         )
 
     return create_client(url, key)
