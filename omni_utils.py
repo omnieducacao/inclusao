@@ -1441,9 +1441,27 @@ def inject_base_css():
 # GEMINI API (integração opcional)
 # =============================================================================
 def get_gemini_api_key():
-    """Retorna a chave da API Gemini: env GEMINI_API_KEY, secrets ou session_state."""
-    v = os.environ.get("GEMINI_API_KEY") or get_setting("GEMINI_API_KEY", "") or (getattr(st, "session_state", None) or {}).get("GEMINI_API_KEY", "")
-    return (v or "").strip() or None
+    """
+    Retorna a chave da API Gemini (Google AI Studio: aistudio.google.com/apikey).
+    Ordem: env GEMINI_API_KEY, secrets (flat ou [gemini].api_key), session_state.
+    A chave é normalizada (strip, aspas extras removidas).
+    """
+    raw = (
+        os.environ.get("GEMINI_API_KEY")
+        or get_setting("GEMINI_API_KEY", "")
+        or (getattr(st, "session_state", None) or {}).get("GEMINI_API_KEY", "")
+    )
+    if not raw:
+        try:
+            sec = getattr(st, "secrets", None)
+            if sec:
+                raw = sec.get("GEMINI_API_KEY") or (sec.get("gemini") or {}).get("api_key") or (sec.get("gemini") or {}).get("GEMINI_API_KEY")
+        except Exception:
+            pass
+    if not raw:
+        return None
+    key = str(raw).strip().strip('"\'')
+    return key if key else None
 
 
 def consultar_gemini(prompt: str, model: str = "gemini-2.0-flash", api_key: str | None = None) -> tuple[str | None, str | None]:
@@ -1540,8 +1558,9 @@ def gerar_imagem_jornada_gemini(
         err_msg = str(e)
         if "API key not valid" in err_msg or "API_KEY_INVALID" in err_msg or "INVALID_ARGUMENT" in err_msg:
             return None, (
-                "Chave da API Gemini inválida. Use uma chave válida do Google AI Studio: "
-                "aistudio.google.com/apikey — Configure GEMINI_API_KEY nos secrets (não use a chave da OpenAI)."
+                "A API rejeitou a chave Gemini. Confira: (1) Chave criada em aistudio.google.com/apikey "
+                "(não use chave do Google Cloud Console nem da OpenAI). (2) Nome no secrets: GEMINI_API_KEY. "
+                "(3) Se a chave tiver restrições (HTTP referrer), libere o domínio do Streamlit Cloud ou teste sem restrições."
             )
         return None, err_msg[:300] if err_msg else "Erro ao gerar imagem."
 
