@@ -2700,12 +2700,12 @@ with tab_jornada:
             st.markdown(estado.get("texto", ""))
         # Representação visual (Nano Banana)
         st.markdown("---")
-        st.markdown("**Representação visual do roteiro** — Traduza o roteiro gamificado em uma imagem com o Gemini (modelo mais potente).")
-        st.caption("Usa o modelo mais potente (Gemini 3 Pro Image / Nano Banana Pro) para traduzir o roteiro em imagem. Requer GEMINI_API_KEY nos secrets.")
+        st.markdown("**Mapa mental do roteiro** — Gere um mapa mental rico e visual a partir do roteiro gamificado (Gemini Pro Image).")
+        st.caption("Estrutura: nó central → missões → etapas. Texto em português. Requer GEMINI_API_KEY nos secrets.")
         if estado.get("imagem_bytes"):
-            st.image(estado["imagem_bytes"], caption="Ilustração da missão", use_container_width=True)
+            st.image(estado["imagem_bytes"], caption="Mapa mental da jornada", use_container_width=True)
             st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_revisao")
-        if st.button("Traduzir roteiro em imagem (Gemini Pro Image)", key="btn_jg_imagem_revisao", help="Usa o modelo mais potente do Gemini para traduzir o roteiro gamificado em uma imagem que representa a jornada."):
+        if st.button("Gerar mapa mental do roteiro (Gemini Pro Image)", key="btn_jg_imagem_revisao", help="Gera um mapa mental colorido: centro → missões → etapas, a partir do roteiro gamificado."):
             with st.spinner("Gerando ilustração..."):
                 try:
                     gemini_key = ou.get_gemini_api_key()
@@ -2758,12 +2758,12 @@ with tab_jornada:
         novo_texto = st.text_area("Edição final (opcional)", value=estado.get("texto", ""), height=280, key="jg_texto_final")
         jg[chave_jornada]["texto"] = novo_texto
         # Representação visual (Nano Banana)
-        with st.expander("Representação visual do roteiro (Gemini Pro Image)", expanded=bool(estado.get("imagem_bytes"))):
-            st.caption("Traduz o roteiro gamificado em imagem com o modelo mais potente (Gemini 3 Pro Image). Requer GEMINI_API_KEY nos secrets.")
+        with st.expander("Mapa mental do roteiro (Gemini Pro Image)", expanded=bool(estado.get("imagem_bytes"))):
+            st.caption("Gera um mapa mental rico e visual: nó central, ramos para missões e etapas. Texto em português. Requer GEMINI_API_KEY.")
             if estado.get("imagem_bytes"):
-                st.image(estado["imagem_bytes"], caption="Ilustração da missão", use_container_width=True)
+                st.image(estado["imagem_bytes"], caption="Mapa mental da jornada", use_container_width=True)
                 st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_aprovado")
-            if st.button("Traduzir roteiro em imagem (Gemini Pro Image)", key="btn_jg_imagem_aprovado", help="Usa o modelo mais potente do Gemini para traduzir o roteiro gamificado em uma imagem que representa a jornada."):
+            if st.button("Gerar mapa mental do roteiro (Gemini Pro Image)", key="btn_jg_imagem_aprovado", help="Gera um mapa mental colorido: centro → missões → etapas, a partir do roteiro gamificado."):
                 with st.spinner("Gerando ilustração..."):
                     try:
                         gemini_key = ou.get_gemini_api_key()

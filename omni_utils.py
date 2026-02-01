@@ -1490,8 +1490,8 @@ def gerar_imagem_jornada_gemini(
     api_key: str | None = None,
 ) -> tuple[bytes | None, str | None]:
     """
-    Gera uma representação visual do roteiro gamificado usando Gemini (Nano Banana Pro).
-    A imagem deve traduzir o roteiro: missões, etapas, tema e protagonista em uma única cena ou infográfico.
+    Gera um mapa mental rico e visual do roteiro gamificado usando Gemini (Nano Banana Pro).
+    Estrutura: nó central, ramos para cada missão, sub-ramos para as etapas. Texto em português.
     Retorna (bytes_imagem_png, None) em sucesso ou (None, mensagem_erro) em falha.
     """
     key = api_key or get_gemini_api_key()
@@ -1507,16 +1507,19 @@ def gerar_imagem_jornada_gemini(
         tema = (hiperfoco or "").strip() or "aprendizado"
         roteiro = (texto_missao or "").strip()[:4500]
         prompt = (
-            "Traduza este ROTEIRO GAMIFICADO em uma única imagem que represente a jornada completa. "
-            "A imagem deve ser uma ilustração ou infográfico visual que comunique o conteúdo do roteiro: "
-            "as missões, os objetivos, as etapas e a conquista. "
-            f"Protagonista: {nome}. Tema/interesse do estudante: {tema}. "
-            "Estilo: ilustração colorida, amigável para crianças, motivador, com sensação de aventura e progresso. "
-            "Pode incluir elementos visuais que remetam às missões (ex.: caminho, etapas, troféu, estrelas). "
-            "Evite rostos realistas; prefira cartoon ou ilustração. Proporção quadrada (1:1).\n\n"
-            "--- ROTEIRO GAMIFICADO (traduza este conteúdo em forma visual) ---\n\n"
+            "Crie um MAPA MENTAL rico e visual a partir deste roteiro gamificado. "
+            "Estrutura obrigatória de mapa mental: "
+            "(1) Nó central no meio com o tema principal (ex.: Minha Jornada ou nome do protagonista). "
+            "(2) Ramos principais saindo do centro: cada MISSÃO do roteiro vira um ramo. "
+            "(3) Sub-ramos em cada missão: as tarefas/etapas daquela missão. "
+            "Use cores diferentes por ramo, ícones ou símbolos pequenos nos nós (estrela, troféu, check), "
+            "linhas conectando centro → missões → etapas. Texto em português do Brasil: títulos curtos e claros. "
+            f"Protagonista: {nome}. Tema/interesse: {tema}. "
+            "Estilo: mapa mental colorido, organizado, fácil de ler, amigável para crianças. "
+            "Proporção quadrada (1:1). NÃO use inglês; todo o texto em português.\n\n"
+            "--- ROTEIRO GAMIFICADO (extraia as missões e etapas para montar o mapa mental) ---\n\n"
             f"{roteiro}\n\n"
-            "--- Fim do roteiro. Gere uma imagem que traduza essa jornada de forma clara e inspiradora. ---"
+            "--- Fim. Gere um único mapa mental que represente essa jornada. ---"
         )
         client = genai.Client(api_key=key)
         # Modelo mais potente: Gemini 3 Pro Image Preview (Nano Banana Pro); fallback para 2.5 Flash Image
