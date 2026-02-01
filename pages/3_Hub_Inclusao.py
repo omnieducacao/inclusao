@@ -690,15 +690,15 @@ def gerar_imagem_inteligente(api_key, prompt, unsplash_key=None, feedback_anteri
         if url_banco:
             return url_banco
 
-    # 3. TENTATIVA OPENAI (DALL-E 3)
-    if not api_key:
+    # 3. TENTATIVA OPENAI (DALL-E 3) — só se houver chave válida
+    if not api_key or not str(api_key).strip():
         if unsplash_key and prioridade == "IA":
             termo = prompt.split('.')[0] if '.' in prompt else prompt
             return buscar_imagem_unsplash(termo, unsplash_key)
         return None
-    client = OpenAI(api_key=api_key)
-    prompt_final = f"{prompt}. Adjustment requested: {feedback_anterior}" if feedback_anterior else prompt
     try:
+        client = OpenAI(api_key=api_key)
+        prompt_final = f"{prompt}. Adjustment requested: {feedback_anterior}" if feedback_anterior else prompt
         didactic_prompt = f"Educational textbook illustration, clean flat vector style, white background. CRITICAL RULE: STRICTLY NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS inside the image. Just the visual representation of: {prompt_final}"
         resp = client.images.generate(model="dall-e-3", prompt=didactic_prompt, size="1024x1024", quality="standard", n=1)
         return resp.data[0].url
@@ -719,11 +719,12 @@ def gerar_pictograma_caa(api_key, conceito, feedback_anterior="", gemini_key=Non
         img_bytes, err = ou.gerar_imagem_pictograma_caa_gemini(conceito, feedback_anterior=feedback_anterior, api_key=key_gemini)
         if img_bytes:
             return img_bytes
-    if not api_key:
+    if not api_key or not str(api_key).strip():
         return None
-    client = OpenAI(api_key=api_key)
-    ajuste = f" CORREÇÃO PEDIDA: {feedback_anterior}" if feedback_anterior else ""
-    prompt_caa = f"""
+    try:
+        client = OpenAI(api_key=api_key)
+        ajuste = f" CORREÇÃO PEDIDA: {feedback_anterior}" if feedback_anterior else ""
+        prompt_caa = f"""
     Create a COMMUNICATION SYMBOL (AAC/PECS) for the concept: '{conceito}'. {ajuste}
     STYLE GUIDE:
     - Flat vector icon (ARASAAC/Noun Project style).
@@ -734,7 +735,6 @@ def gerar_pictograma_caa(api_key, conceito, feedback_anterior="", gemini_key=Non
     - CRITICAL MANDATORY RULE: MUTE IMAGE. NO TEXT. NO WORDS. NO LETTERS. NO NUMBERS. 
     - The image must be a purely visual symbol.
     """
-    try:
         resp = client.images.generate(model="dall-e-3", prompt=prompt_caa, size="1024x1024", quality="standard", n=1)
         return resp.data[0].url
     except Exception as e:
