@@ -270,17 +270,16 @@ def _headers() -> dict:
 
 # --- Carregamento de Alunos ---
 @st.cache_data(ttl=60, show_spinner=False)
-def list_students_rest():
-    """Busca estudantes do Supabase incluindo pei_data, paee_ciclos e dados do Hub."""
-    WORKSPACE_ID = st.session_state.get("workspace_id")
-    if not WORKSPACE_ID:
-        pass 
+def list_students_rest(workspace_id: str = ""):
+    """Busca estudantes do Supabase incluindo pei_data, paee_ciclos e dados do Hub. workspace_id como argumento evita cache incorreto."""
+    if not (workspace_id and str(workspace_id).strip()):
+        return []
 
     try:
         base = (
             f"{_sb_url()}/rest/v1/students"
             f"?select=id,name,grade,class_group,diagnosis,created_at,pei_data,paee_ciclos,planejamento_ativo"
-            f"&workspace_id=eq.{WORKSPACE_ID}"
+            f"&workspace_id=eq.{workspace_id}"
             f"&order=created_at.desc"
         )
         r = requests.get(base, headers=_headers(), timeout=20)
@@ -291,10 +290,11 @@ def list_students_rest():
 
 def carregar_estudantes_formatados():
     """Processa a lista crua incluindo dados do PEI, PAE e Hub."""
+    workspace_id = (st.session_state.get("workspace_id") or "").strip()
     if st.session_state.get("students_cache_invalid"):
         list_students_rest.clear()
         st.session_state.pop("students_cache_invalid", None)
-    dados = list_students_rest()
+    dados = list_students_rest(workspace_id)
     estudantes = []
 
     for item in dados:
