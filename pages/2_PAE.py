@@ -1235,13 +1235,11 @@ def gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo, feedback_game=""):
         )
         prompt_feedback = f"\nAJUSTE SOLICITADO: {feedback_game}" if feedback_game else ""
         prompt_sys = (
-            "Você é um Game Master. Crie uma versão GAMIFICADA do planejamento do ciclo AEE, "
+            "Você é um Game Master. Crie uma versão GAMIFICADA do planejamento do ciclo AEE "
             "para o estudante e a família: linguagem motivadora, missões, recompensas, sem dados sensíveis. "
-            "Estrutura: título da missão, mapa das fases/semanas como etapas, desafios e conquistas.\n\n"
-            "FORMATO OBRIGATÓRIO (para o app Minha Jornada ler a planilha):\n"
-            "- MISSÕES: use exatamente a palavra 'MISSÃO' seguida do número e do título. Exemplo: **MISSÃO #1: A ORGANIZAÇÃO**\n"
-            "- TAREFAS/ETAPAS: use marcadores (hífen ou asterisco) em cada etapa. Exemplo: * Separar os livros\n"
-            "- Pode começar com uma saudação grande tipo ## Olá [Nome] para destacar o nome do aluno."
+            "É o mesmo planejamento das outras abas, só que em formato de roteiro para o estudante. "
+            "Estrutura: título da missão/jornada, mapa das fases ou semanas como etapas, desafios e conquistas. "
+            "Use títulos e listas em markdown de forma clara (##, -, *)."
             + prompt_feedback
         )
         prompt_completo = f"{prompt_sys}\n\n---\n\n{contexto}"
@@ -1272,11 +1270,9 @@ def gerar_roteiro_gamificado_de_texto(api_key, aluno, texto_origem, nome_fonte, 
         prompt_sys = (
             "Você é um Game Master. Transforme o conteúdo abaixo em uma versão GAMIFICADA para o estudante e a família: "
             "linguagem motivadora, missões, recompensas, sem dados sensíveis. "
-            "Estrutura: título da missão, etapas/desafios, conquistas. O estudante deve se ver como protagonista da jornada.\n\n"
-            "FORMATO OBRIGATÓRIO (para o app Minha Jornada ler a planilha):\n"
-            "- MISSÕES: use exatamente a palavra 'MISSÃO' seguida do número e do título. Exemplo: **MISSÃO #1: A ORGANIZAÇÃO**\n"
-            "- TAREFAS/ETAPAS: use marcadores (hífen ou asterisco) em cada etapa. Exemplo: * Separar os livros\n"
-            "- Pode começar com uma saudação grande tipo ## Olá [Nome] para destacar o nome do aluno."
+            "É o mesmo planejamento da aba de origem, em formato de roteiro para o estudante. "
+            "Estrutura: título da missão/jornada, etapas/desafios, conquistas. O estudante deve se ver como protagonista. "
+            "Use títulos e listas em markdown de forma clara (##, -, *)."
             + prompt_feedback
         )
         prompt_completo = f"{prompt_sys}\n\n---\n\n{contexto}"
@@ -2702,6 +2698,12 @@ with tab_jornada:
         st.markdown("---")
         st.markdown("**Mapa mental do roteiro** — Gere um mapa mental rico e visual a partir do roteiro gamificado (Gemini Pro Image).")
         st.caption("Estrutura: nó central → missões → etapas. Texto em português. Requer GEMINI_API_KEY nos secrets.")
+        usar_hiperfoco_tema_revisao = st.checkbox(
+            "Usar hiperfoco do estudante como tema do mapa mental (nó central)",
+            value=True,
+            key="jg_usar_hiperfoco_revisao",
+            help="Se marcado, o tema central do mapa será o hiperfoco do estudante. Use apenas palavras do roteiro; não invente nem distorça.",
+        )
         if estado.get("imagem_bytes"):
             st.image(estado["imagem_bytes"], caption="Mapa mental da jornada", use_container_width=True)
             st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_revisao")
@@ -2712,7 +2714,7 @@ with tab_jornada:
                     img_bytes, err = ou.gerar_imagem_jornada_gemini(
                         estado.get("texto", ""),
                         nome_estudante=aluno.get("nome", ""),
-                        hiperfoco=aluno.get("hiperfoco", ""),
+                        hiperfoco=aluno.get("hiperfoco", "") if usar_hiperfoco_tema_revisao else "",
                         api_key=gemini_key,
                     )
                     if img_bytes:
@@ -2760,6 +2762,12 @@ with tab_jornada:
         # Representação visual (Nano Banana)
         with st.expander("Mapa mental do roteiro (Gemini Pro Image)", expanded=bool(estado.get("imagem_bytes"))):
             st.caption("Gera um mapa mental rico e visual: nó central, ramos para missões e etapas. Texto em português. Requer GEMINI_API_KEY.")
+            usar_hiperfoco_tema_aprovado = st.checkbox(
+                "Usar hiperfoco do estudante como tema do mapa mental (nó central)",
+                value=True,
+                key="jg_usar_hiperfoco_aprovado",
+                help="Se marcado, o tema central do mapa será o hiperfoco do estudante. Use apenas palavras do roteiro; não invente nem distorça.",
+            )
             if estado.get("imagem_bytes"):
                 st.image(estado["imagem_bytes"], caption="Mapa mental da jornada", use_container_width=True)
                 st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_aprovado")
@@ -2770,7 +2778,7 @@ with tab_jornada:
                         img_bytes, err = ou.gerar_imagem_jornada_gemini(
                             novo_texto,
                             nome_estudante=aluno.get("nome", ""),
-                            hiperfoco=aluno.get("hiperfoco", ""),
+                            hiperfoco=aluno.get("hiperfoco", "") if usar_hiperfoco_tema_aprovado else "",
                             api_key=gemini_key,
                         )
                         if img_bytes:

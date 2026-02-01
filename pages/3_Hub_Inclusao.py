@@ -2638,10 +2638,20 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
     with col_scene:
         st.markdown("#### 🖼️ Ilustração")
         desc_m = st.text_area("Descreva a imagem:", height=100, key="vdm_padrao", placeholder="Ex: Sistema Solar simplificado com planetas coloridos...")
-        
+        hiperfoco_est = (aluno.get("hiperfoco") or aluno.get("diagnosis") or "").strip()
+        usar_hiperfoco_ilustracao = st.checkbox(
+            "Usar hiperfoco do estudante como tema da ilustração",
+            value=bool(hiperfoco_est),
+            key="hub_usar_hiperfoco_ilustracao",
+            help="Se marcado, o hiperfoco do estudante será incluído como tema/contexto na geração da imagem.",
+        )
+        if usar_hiperfoco_ilustracao and hiperfoco_est:
+            st.caption(f"Tema: **{hiperfoco_est[:60]}{'…' if len(hiperfoco_est) > 60 else ''}**")
         if st.button("🎨 Gerar Imagem", key="btn_cena_padrao"):
             with st.spinner("Desenhando..."):
                 prompt_completo = f"{desc_m}. Context: Education."
+                if usar_hiperfoco_ilustracao and hiperfoco_est:
+                    prompt_completo = f"Tema da ilustração: {hiperfoco_est}. {prompt_completo}"
                 st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, prioridade="IA", gemini_key=g_key)
                 st.session_state.valid_scene = False
 
@@ -2659,6 +2669,8 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
                     if st.button("Refazer", key="ref_sc_pd"):
                         with st.spinner("Redesenhando..."):
                             prompt_completo = f"{desc_m}. Context: Education."
+                            if usar_hiperfoco_ilustracao and hiperfoco_est:
+                                prompt_completo = f"Tema da ilustração: {hiperfoco_est}. {prompt_completo}"
                             st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, feedback_anterior=fb_scene, prioridade="IA", gemini_key=g_key)
                             st.rerun()
 
@@ -3128,10 +3140,20 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
     with col_scene:
         st.markdown("#### 🖼️ Ilustração de Cena")
         desc_m = st.text_area("Descreva a cena ou rotina:", height=100, key="vdm_ei", placeholder="Ex: Crianças brincando de roda no parque...")
-        
+        hiperfoco_ei = (aluno.get("hiperfoco") or aluno.get("diagnosis") or "").strip()
+        usar_hiperfoco_ei = st.checkbox(
+            "Usar hiperfoco do estudante como tema da ilustração",
+            value=bool(hiperfoco_ei),
+            key="hub_usar_hiperfoco_ei",
+            help="Se marcado, o hiperfoco do estudante será incluído como tema/contexto na geração da imagem.",
+        )
+        if usar_hiperfoco_ei and hiperfoco_ei:
+            st.caption(f"Tema: **{hiperfoco_ei[:60]}{'…' if len(hiperfoco_ei) > 60 else ''}**")
         if st.button("🎨 Gerar Cena", key="btn_cena_ei"):
             with st.spinner("Desenhando..."):
                 prompt_completo = f"{desc_m}. Context: Child education, friendly style."
+                if usar_hiperfoco_ei and hiperfoco_ei:
+                    prompt_completo = f"Tema da ilustração: {hiperfoco_ei}. {prompt_completo}"
                 st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, prioridade="IA", gemini_key=g_key)
                 st.session_state.valid_scene = False
 
@@ -3149,6 +3171,8 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
                     if st.button("Refazer", key="ref_sc_ei"):
                         with st.spinner("Redesenhando..."):
                             prompt_completo = f"{desc_m}. Context: Child education."
+                            if usar_hiperfoco_ei and hiperfoco_ei:
+                                prompt_completo = f"Tema da ilustração: {hiperfoco_ei}. {prompt_completo}"
                             st.session_state.res_scene_url = gerar_imagem_inteligente(api_key, prompt_completo, unsplash_key, feedback_anterior=fb_scene, prioridade="IA", gemini_key=g_key)
                             st.rerun()
 
