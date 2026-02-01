@@ -2354,10 +2354,8 @@ with tab_planejamento:
 
 # ==============================================================================
 # ABA — EXECUÇÃO E METAS SMART (tempo de revisão; desdobra SMART; alimenta Jornada)
+# Ciclos vêm do Supabase por estudante (listar_ciclos_aluno), não do cache da sessão.
 # ==============================================================================
-st.session_state.setdefault("execucao_smart_ciclos", [])
-st.session_state.setdefault("execucao_smart_ativo", None)
-
 with tab_execucao_smart:
     st.markdown(f"""
     <div class="timeline-header">
@@ -2379,6 +2377,10 @@ with tab_execucao_smart:
     </div>
     """, unsafe_allow_html=True)
 
+    # Carregar ciclos do Supabase para este estudante (não usar cache global da sessão)
+    ciclos_es, ativo_es = listar_ciclos_aluno(aluno.get("id", ""))
+    ciclo_ativo_es = next((c for c in ciclos_es if c.get("ciclo_id") == ativo_es), None) if ativo_es and ciclos_es else None
+
     # Insumos das outras abas (alimentam o planejamento)
     insumos_disponiveis = {
         "barreiras": st.session_state.get("conteudo_diagnostico_barreiras", ""),
@@ -2391,9 +2393,6 @@ with tab_execucao_smart:
     st.caption(f"Insumos disponíveis: Mapear Barreiras {'✓' if tem_barreiras else '—'} | Plano de Habilidades {'✓' if tem_plano else '—'} | Tecnologia Assistiva {'✓' if tem_tec else '—'} (preencha as abas correspondentes para enriquecer o planejamento)")
 
     col_esq, col_dir = st.columns([1.05, 1.35], gap="large")
-    ciclos_es = st.session_state["execucao_smart_ciclos"]
-    ativo_es = st.session_state.get("execucao_smart_ativo")
-    ciclo_ativo_es = next((c for c in ciclos_es if c.get("ciclo_id") == ativo_es), None) if ativo_es and ciclos_es else None
 
     with col_esq:
         st.markdown(f"### {icon_title('Histórico de ciclos de execução', 'monitoramento', 20, '#A855F7')}", unsafe_allow_html=True)
@@ -2551,12 +2550,14 @@ with tab_execucao_smart:
                     ciclo_es_data["criado_em"] = datetime.now().isoformat()
                     for w in (ciclo_es_data.get("cronograma") or {}).get("semanas") or []:
                         w.setdefault("cumprida", False)
-                    ciclos_es.append(ciclo_es_data)
-                    st.session_state["execucao_smart_ativo"] = ciclo_es_data["ciclo_id"]
-                    st.session_state["execucao_smart_ciclos"] = ciclos_es
+                    resultado = salvar_paee_ciclo(aluno["id"], ciclo_es_data)
                     st.session_state.pop("ciclo_execucao_preview", None)
-                    st.success("Ciclo salvo. Agora você pode usá-lo na aba Jornada Gamificada.")
-                    st.rerun()
+                    if resultado.get("sucesso"):
+                        st.session_state["students_cache_invalid"] = True
+                        st.success("Ciclo salvo no Supabase (vinculado a este estudante). Use na aba Jornada Gamificada.")
+                        st.rerun()
+                    else:
+                        st.error(resultado.get("erro", "Erro ao salvar no Supabase."))
                 if st.button("Limpar / Abandonar", use_container_width=True, key="btn_desc_es", help="Descarta o preview do ciclo de execução"):
                     st.session_state.pop("ciclo_execucao_preview", None)
                     st.rerun()
@@ -2611,10 +2612,9 @@ with tab_jornada:
         help="Escolha de qual aba usar o conteúdo para criar o roteiro gamificado para o estudante.",
     )
 
-    # Chave de estado por origem (ciclo usa ciclo_id; demais usam slug)
+    # Ciclos do Supabase para este estudante (não do cache da sessão)
     usa_ciclo = "Execução e Metas SMART" in origem_selecionada
-    ciclos_es_j = st.session_state.get("execucao_smart_ciclos", [])
-    ativo_es_j = st.session_state.get("execucao_smart_ativo")
+    ciclos_es_j, ativo_es_j = listar_ciclos_aluno(aluno.get("id", ""))
     ciclo_ativo_j = next((c for c in ciclos_es_j if c.get("ciclo_id") == ativo_es_j), None) if ativo_es_j and ciclos_es_j else None
     ciclo_preview_j = st.session_state.get("ciclo_execucao_preview")
     ciclo_sel_j = st.session_state.get("ciclo_execucao_selecionado")
@@ -2628,8 +2628,10 @@ with tab_jornada:
         slug = origem_selecionada.replace(" ", "_").lower()[:30]
         chave_jornada = slug
 
+    # Estado da jornada gamificada por estudante (cada aluno tem seu próprio dicionário)
     st.session_state.setdefault("jornada_gamificada", {})
-    jg = st.session_state["jornada_gamificada"]
+    jg_por_aluno = st.session_state["jornada_gamificada"]
+    jg = jg_por_aluno.setdefault(aluno.get("id", ""), {})
     jg.setdefault(chave_jornada, {"texto": "", "status": "rascunho", "feedback": "", "origem": origem_selecionada, "imagem_bytes": None})
     estado = jg[chave_jornada]
 
