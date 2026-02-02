@@ -55,10 +55,10 @@ def create_member(
     can_avaliacao: bool = False,
     can_gestao: bool = False,
     link_type: str = "todos",
-    class_assignments: list = None,
+    teacher_assignments: list = None,  # [{class_id, component_id}, ...]
     student_ids: list = None,
 ):
-    """Cria membro e seus vínculos (turma ou alunos)."""
+    """Cria membro e seus vínculos (turma+componente ou alunos)."""
     row = {
         "workspace_id": workspace_id,
         "nome": nome.strip(),
@@ -82,9 +82,9 @@ def create_member(
     member = data[0] if isinstance(data, list) and data else data
     member_id = member.get("id")
 
-    if member_id and link_type == "turma" and class_assignments:
-        for a in class_assignments:
-            _add_class_assignment(member_id, a.get("grade", ""), a.get("class_group", ""))
+    if member_id and link_type == "turma" and teacher_assignments:
+        for a in teacher_assignments:
+            _add_teacher_assignment(member_id, a.get("class_id"), a.get("component_id"))
     if member_id and link_type == "tutor" and student_ids:
         for sid in student_ids:
             _add_student_link(member_id, sid)
@@ -136,7 +136,7 @@ def update_member(
         return False, str(r.text)
 
     if class_assignments is not None:
-        _replace_class_assignments(member_id, class_assignments)
+        _replace_teacher_assignments(member_id, class_assignments)
     if student_ids is not None:
         _replace_student_links(member_id, student_ids)
     return True, None
@@ -148,18 +148,22 @@ def deactivate_member(member_id: str):
     return requests.patch(url, headers=_headers(), json={"active": False}, timeout=15).status_code < 400
 
 
-def _add_class_assignment(member_id: str, grade: str, class_group: str):
-    if not grade or not class_group:
+def _add_teacher_assignment(member_id: str, class_id: str, component_id: str):
+    if not class_id or not component_id:
         return
-    url = f"{_base()}/rest/v1/teacher_class_assignments"
-    requests.post(url, headers=_headers(), json={"workspace_member_id": member_id, "grade": grade, "class_group": class_group}, timeout=10)
+    url = f"{_base()}/rest/v1/teacher_assignments"
+    requests.post(url, headers=_headers(), json={
+        "workspace_member_id": member_id,
+        "class_id": class_id,
+        "component_id": component_id,
+    }, timeout=10)
 
 
-def _replace_class_assignments(member_id: str, assignments: list):
-    url = f"{_base()}/rest/v1/teacher_class_assignments?workspace_member_id=eq.{member_id}"
+def _replace_teacher_assignments(member_id: str, assignments: list):
+    url = f"{_base()}/rest/v1/teacher_assignments?workspace_member_id=eq.{member_id}"
     requests.delete(url, headers=_headers(), timeout=10)
     for a in (assignments or []):
-        _add_class_assignment(member_id, a.get("grade", ""), a.get("class_group", ""))
+        _add_teacher_assignment(member_id, a.get("class_id"), a.get("component_id"))
 
 
 def _add_student_link(member_id: str, student_id: str):
@@ -177,13 +181,30 @@ def _replace_student_links(member_id: str, student_ids: list):
 
 
 def get_class_assignments(member_id: str) -> list:
-    url = f"{_base()}/rest/v1/teacher_class_assignments"
-    params = {"workspace_member_id": f"eq.{member_id}", "select": "grade,class_group"}
+    """Retorna lista de {grade_code, class_group} para filtro de alunos. Usa teacher_assignments + classes + grades."""
+    url = f"{_base()}/rest/v1/teacher_assignments"
+    params = {
+        "workspace_member_id": f"eq.{member_id}",
+        "select": "classes(class_group,grades(code))"
+    }
     r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=10)
     if r.status_code != 200:
         return []
     data = r.json()
-    return data if isinstance(data, list) else []
+    if not isinstance(data, list):
+        return []
+    pairs = []
+    seen = set()
+    for row in data:
+        cls = row.get("classes") or row.get("class") or {}
+        gr = cls.get("grades") or cls.get("grade") or {}
+        code = str(gr.get("code", "") or "").strip()
+        cg = str(cls.get("class_group", "") or "").strip()
+        key = (code, cg)
+        if key not in seen and (code or cg):
+            seen.add(key)
+            pairs.append({"grade": code, "class_group": cg})
+    return pairs
 
 
 def get_student_links(member_id: str) -> list:

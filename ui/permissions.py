@@ -64,10 +64,15 @@ def filter_students_by_member(students: list, member: dict, class_assignments: l
     if link_type == "turma":
         if not class_assignments:
             return []
-        pairs = {(str(a.get("grade", "")).strip(), str(a.get("class_group", "")).strip()) for a in class_assignments}
+        def _norm_grade(v):
+            v = str(v or "").strip().upper().replace("º", "").replace("ª", "").replace("ANO", "").replace("SÉRIE", "").replace(" ", "").strip()
+            return v or ""
+        def _norm_class(c):
+            return str(c or "").strip().upper() or "A"
+        pairs = {(_norm_grade(a.get("grade")), _norm_class(a.get("class_group"))) for a in class_assignments}
         def _match(s):
-            g = str(s.get("grade") or s.get("serie") or "").strip()
-            c = str(s.get("class_group") or "").strip()
+            g = _norm_grade(s.get("grade") or s.get("serie"))
+            c = _norm_class(s.get("class_group"))
             return (g, c) in pairs
         return [s for s in students if _match(s)]
     if link_type == "tutor":

@@ -607,6 +607,7 @@ def render_navbar(active_tab: str = "Início"):
         ("Diário de Bordo", "journal"),
         ("Evolução & Dados", "bar-chart"),
         ("Gestão de Usuários", "gear"),
+        ("Configuração Escola", "building"),
     ]
     perm_map = {
         "Início": True,  # sempre visível
@@ -617,6 +618,7 @@ def render_navbar(active_tab: str = "Início"):
         "Diário de Bordo": "can_diario",
         "Evolução & Dados": "can_avaliacao",
         "Gestão de Usuários": "can_gestao",
+        "Configuração Escola": "can_gestao",
     }
     member = st.session_state.get("member")
     opcoes, icones = [], []
@@ -686,6 +688,7 @@ def render_navbar(active_tab: str = "Início"):
         "Diário de Bordo": {"bg": "#FFE4E6", "color": "#E11D48"},
         "Evolução & Dados": {"bg": "#BAE6FD", "color": "#075985"},
         "Gestão de Usuários": {"bg": "#F5F3FF", "color": "#6366F1"},
+        "Configuração Escola": {"bg": "#ECFDF5", "color": "#059669"},
     }
     
     if active_tab in page_colors:
@@ -714,6 +717,7 @@ def render_navbar(active_tab: str = "Início"):
             "Diário de Bordo": "pages/4_Diario_de_Bordo.py",
             "Evolução & Dados": "pages/5_Monitoramento_Avaliacao.py",
             "Gestão de Usuários": "pages/6_Gestao_Usuarios.py",
+            "Configuração Escola": "pages/7_Configuracao_Escola.py",
         }
         target = routes.get(selected)
         if target:

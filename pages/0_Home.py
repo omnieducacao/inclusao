@@ -1570,6 +1570,7 @@ modules_all = [
     {"title": "Diário de Bordo", "desc": "Registro diário de observações, evidências e intervenções.", "icon": "ri-edit-box-fill", "color_cls": "c-rose", "bg_cls": "bg-rose-soft", "page": "pages/4_Diario_de_Bordo.py", "key": "m_diario", "perm": "diario"},
     {"title": "Evolução & Dados", "desc": "Indicadores, gráficos e relatórios de progresso dos estudantes.", "icon": "ri-line-chart-fill", "color_cls": "c-sky", "bg_cls": "bg-sky-soft", "page": "pages/5_Monitoramento_Avaliacao.py", "key": "m_dados", "perm": "avaliacao"},
     {"title": "Gestão de Usuários", "desc": "Cadastrar usuários, atribuir permissões e vínculos com alunos.", "icon": "ri-user-settings-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/6_Gestao_Usuarios.py", "key": "m_gestao", "perm": "gestao"},
+    {"title": "Configuração Escola", "desc": "Ano letivo, séries e turmas. Configure antes de cadastrar professores.", "icon": "ri-building-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/7_Configuracao_Escola.py", "key": "m_config", "perm": "gestao"},
 ]
 modules_data = [m for m in modules_all if _can(m.get("perm", ""))]
 

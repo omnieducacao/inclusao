@@ -14,10 +14,15 @@ import omni_utils as ou
 from services.members_service import (
     list_members,
     create_member,
-    update_member,
     deactivate_member,
     get_class_assignments,
     get_student_links,
+)
+from services.school_config_service import (
+    list_school_years,
+    list_classes,
+    list_components,
+    SEGMENTS,
 )
 
 try:
@@ -112,20 +117,34 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
             can_avaliacao = st.checkbox("Avaliação", help="Monitoramento e evolução")
             can_gestao = st.checkbox("Gestão de Usuários", help="Cadastrar outros usuários")
 
-        link_type = st.selectbox("Vínculo com alunos", ["todos", "turma", "tutor"], format_func=lambda x: {"todos": "Todos (coordenação/AEE)", "turma": "Por turma (série + turma)", "tutor": "Por vínculo (alunos específicos)"}[x])
-        class_assignments = []
+        link_type = st.selectbox("Vínculo com alunos", ["todos", "turma", "tutor"], format_func=lambda x: {"todos": "Todos (coordenação/AEE)", "turma": "Por turma + componente curricular", "tutor": "Por vínculo (alunos específicos)"}[x])
+        teacher_assignments = []
         student_ids = []
         if link_type == "turma":
-            st.markdown("**Turmas em que leciona** (ex: 7º ano turma A)")
-            n_turmas = st.number_input("Quantidade de turmas", min_value=1, max_value=10, value=1)
-            for i in range(n_turmas):
-                c1, c2 = st.columns(2)
-                with c1:
-                    grade = st.text_input(f"Série/Ano {i+1}", placeholder="7 ou 1EM", key=f"g_{i}")
-                with c2:
-                    cg = st.text_input(f"Turma {i+1}", placeholder="A ou 1", key=f"cg_{i}")
-                if grade and cg:
-                    class_assignments.append({"grade": grade.strip(), "class_group": cg.strip()})
+            st.markdown("**Turmas e componentes** — Configure ano letivo e turmas em Configuração Escola antes.")
+            try:
+                years = list_school_years(ws_id)
+                classes_all = list_classes(ws_id) if years else []
+                components_all = list_components()
+            except Exception:
+                years, classes_all, components_all = [], [], []
+            if not classes_all:
+                st.caption("Nenhuma turma. Crie em Configuração Escola primeiro.")
+            else:
+                classes_opts = {f"{c.get('grade', {}).get('label', '')} - Turma {c.get('class_group','')}": c for c in classes_all if c.get("id")}
+                comp_opts = {c.get("label", c.get("id", "")): c.get("id") for c in components_all} if components_all else {"Arte":"arte","Ciências":"ciencias","Geografia":"geografia","História":"historia","Língua Portuguesa":"lingua_portuguesa","Matemática":"matematica","Educação Física":"educacao_fisica","Língua Inglesa":"lingua_inglesa"}
+                n_add = st.number_input("Quantos vínculos (turma + componente)?", min_value=1, max_value=20, value=1)
+                for i in range(int(n_add)):
+                    cc1, cc2 = st.columns(2)
+                    with cc1:
+                        cl_sel = st.selectbox(f"Turma {i+1}", list(classes_opts.keys()), key=f"cl_{i}")
+                    with cc2:
+                        comp_sel = st.selectbox(f"Componente {i+1}", list(comp_opts.keys()), key=f"comp_{i}")
+                    if cl_sel and comp_sel:
+                        cl = classes_opts.get(cl_sel)
+                        comp_id = comp_opts.get(comp_sel)
+                        if cl and comp_id:
+                            teacher_assignments.append({"class_id": cl["id"], "component_id": comp_id})
         elif link_type == "tutor":
             # Carregar alunos para multiselect
             try:
@@ -157,7 +176,7 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
                     can_avaliacao=can_avaliacao,
                     can_gestao=can_gestao,
                     link_type=link_type,
-                    class_assignments=class_assignments if link_type == "turma" else None,
+                    teacher_assignments=teacher_assignments if link_type == "turma" else None,
                     student_ids=student_ids if link_type == "tutor" else None,
                 )
                 if err:
@@ -186,7 +205,7 @@ else:
         link_txt = m.get("link_type", "todos")
         if link_txt == "turma":
             assign = get_class_assignments(m.get("id"))
-            link_txt = ", ".join(f"{a.get('grade')}º {a.get('class_group')}" for a in assign) or "—"
+            link_txt = ", ".join(f"{a.get('grade','')}º {a.get('class_group','')}" for a in assign) or "—"
         elif link_txt == "tutor":
             links = get_student_links(m.get("id"))
             link_txt = f"{len(links)} aluno(s)"
