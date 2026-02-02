@@ -56,10 +56,10 @@ CREATE TABLE IF NOT EXISTS grades (
   sort_order int DEFAULT 0,
   UNIQUE(segment_id, code)
 );
--- Remove séries antigas EI (Grupo 1-5) se existirem; EI usa idade (2 a 5 anos)
+-- Remove séries antigas EI se existirem; EI usa idade (2 a 5 anos)
 DELETE FROM grades WHERE segment_id = 'EI';
 
--- Pré-popula séries comuns (EI por idade; demais por ano)
+-- Pré-popula: EI=idade, EFAI/EFAF=ano (1º ao 9º), EM=série (1ª a 3ª)
 INSERT INTO grades (segment_id, code, label, sort_order) VALUES
   ('EI', '2anos', '2 anos', 1),
   ('EI', '3anos', '3 anos', 2),
@@ -78,6 +78,16 @@ INSERT INTO grades (segment_id, code, label, sort_order) VALUES
   ('EM', '2EM', '2ª Série', 31),
   ('EM', '3EM', '3ª Série', 32)
 ON CONFLICT (segment_id, code) DO NOTHING;
+
+-- 4b. Séries que a escola oferece (cada escola escolhe: pode não ter 7º ano ou EM)
+CREATE TABLE IF NOT EXISTS workspace_grades (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  workspace_id uuid NOT NULL,
+  grade_id uuid NOT NULL REFERENCES grades(id) ON DELETE CASCADE,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(workspace_id, grade_id)
+);
+CREATE INDEX IF NOT EXISTS idx_workspace_grades_ws ON workspace_grades(workspace_id);
 
 -- 5. TURMAS (série + turma dentro de um ano letivo)
 CREATE TABLE IF NOT EXISTS classes (
@@ -137,8 +147,13 @@ CREATE POLICY "Allow all for service" ON school_years FOR ALL USING (true) WITH 
 DROP POLICY IF EXISTS "Allow all for service" ON classes;
 CREATE POLICY "Allow all for service" ON classes FOR ALL USING (true) WITH CHECK (true);
 
+ALTER TABLE workspace_grades ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all for service" ON workspace_grades;
+CREATE POLICY "Allow all for service" ON workspace_grades FOR ALL USING (true) WITH CHECK (true);
+
 -- Comentários
 COMMENT ON TABLE school_years IS 'Anos letivos do workspace';
 COMMENT ON TABLE grades IS 'Séries por segmento (EI, EFAI, EFAF, EM)';
 COMMENT ON TABLE classes IS 'Turmas (série + turma) por ano letivo';
 COMMENT ON TABLE teacher_assignments IS 'Professor leciona componente X na turma Y (pode ter vários)';
+COMMENT ON TABLE workspace_grades IS 'Séries que a escola oferece (escola pode não ter 7º ano ou EM)';

@@ -16,6 +16,9 @@ from services.school_config_service import (
     list_school_years,
     create_school_year,
     list_grades,
+    list_grades_for_workspace,
+    list_workspace_grades,
+    set_workspace_grades,
     list_classes,
     create_class,
 )
@@ -98,8 +101,33 @@ if school_years:
 else:
     st.info("Nenhum ano letivo. Crie acima.")
 
-# --- 2. Turmas ---
-st.markdown("### 2. Turmas (série + turma)")
+# --- 2. Séries que a escola oferece ---
+st.markdown("### 2. Séries que a escola oferece")
+st.caption("Marque as séries que sua escola tem. (Pode não ter 7º ano ou Ensino Médio, por exemplo.)")
+ws_grade_ids = set(list_workspace_grades(ws_id))
+with st.form("form_series"):
+    for seg_id, seg_label in SEGMENTS:
+        grades_seg = list_grades(seg_id)
+        if not grades_seg:
+            continue
+        st.markdown(f"**{seg_label}**")
+        cols = st.columns(min(5, len(grades_seg)))
+        for i, g in enumerate(grades_seg):
+            with cols[i % 5]:
+                st.checkbox(g.get("label", g.get("code", "")), value=g.get("id") in ws_grade_ids, key=f"wg_{seg_id}_{g.get('id')}")
+        st.markdown("")
+    if st.form_submit_button("Salvar séries"):
+        all_selected = []
+        for seg_id, _ in SEGMENTS:
+            for g in list_grades(seg_id):
+                if st.session_state.get(f"wg_{seg_id}_{g.get('id')}", False):
+                    all_selected.append(g.get("id"))
+        set_workspace_grades(ws_id, all_selected)
+        st.success("Séries salvas.")
+        st.rerun()
+
+# --- 3. Turmas ---
+st.markdown("### 3. Turmas (série + turma)")
 if not school_years:
     st.caption("Crie um ano letivo antes de cadastrar turmas.")
 else:
@@ -107,7 +135,7 @@ else:
         with st.form("form_turma"):
             year_opt = st.selectbox("Ano letivo", school_years, format_func=lambda x: f"{x.get('year')} - {x.get('name','')}")
             segment = st.selectbox("Segmento", SEGMENTS, format_func=lambda x: x[1])
-            grades = list_grades(segment[0])
+            grades = list_grades_for_workspace(ws_id, segment[0])
             if not grades:
                 st.warning("Nenhuma série para este segmento.")
             else:

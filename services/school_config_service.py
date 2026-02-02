@@ -62,6 +62,27 @@ def create_school_year(workspace_id: str, year: int, name: str = None, active: b
     return (data[0] if isinstance(data, list) else data), None
 
 
+def list_workspace_grades(workspace_id: str) -> list:
+    """Séries que a escola oferece (ids)."""
+    url = f"{_base()}/rest/v1/workspace_grades"
+    params = {"workspace_id": f"eq.{workspace_id}", "select": "grade_id"}
+    r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=15)
+    data = r.json() if r.status_code == 200 else []
+    return [x.get("grade_id") for x in (data if isinstance(data, list) else []) if x.get("grade_id")]
+
+
+def set_workspace_grades(workspace_id: str, grade_ids: list) -> bool:
+    """Define quais séries a escola oferece."""
+    url_del = f"{_base()}/rest/v1/workspace_grades?workspace_id=eq.{workspace_id}"
+    requests.delete(url_del, headers=_headers(), timeout=10)
+    if not grade_ids:
+        return True
+    url = f"{_base()}/rest/v1/workspace_grades"
+    for gid in grade_ids:
+        requests.post(url, headers=_headers(), json={"workspace_id": workspace_id, "grade_id": gid}, timeout=10)
+    return True
+
+
 def list_grades(segment_id: str = None) -> list:
     url = f"{_base()}/rest/v1/grades"
     params = {"order": "sort_order.asc", "select": "*"}
@@ -69,6 +90,15 @@ def list_grades(segment_id: str = None) -> list:
         params["segment_id"] = f"eq.{segment_id}"
     r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=15)
     return r.json() if r.status_code == 200 and isinstance(r.json(), list) else []
+
+
+def list_grades_for_workspace(workspace_id: str, segment_id: str = None) -> list:
+    """Lista séries (filtradas pelas que a escola oferece, ou todas do segmento se vazio)."""
+    all_grades = list_grades(segment_id)
+    ws_grade_ids = set(list_workspace_grades(workspace_id))
+    if not ws_grade_ids:
+        return all_grades
+    return [g for g in all_grades if g.get("id") in ws_grade_ids]
 
 
 def list_classes(workspace_id: str, school_year_id: str = None, grade_id: str = None) -> list:
