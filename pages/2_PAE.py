@@ -48,6 +48,13 @@ def verificar_acesso():
     if not st.session_state.get("autenticado"):
         st.error(f"{get_icon_emoji('erro')} Acesso Negado.")
         st.stop()
+    try:
+        from ui.permissions import can_access
+        if not can_access("paee"):
+            st.error("🔒 Você não tem permissão para acessar o PAEE.")
+            st.stop()
+    except Exception:
+        pass
 
 verificar_acesso()
 
@@ -570,12 +577,17 @@ def list_students_rest(workspace_id: str = ""):
         return []
 
 def carregar_estudantes_supabase():
-    """Carrega e processa, extraindo dados ricos do PEI"""
+    """Carrega e processa, extraindo dados ricos do PEI. Filtra por membro se gestão ativa."""
     _workspace_id = st.session_state.get("workspace_id") or ""
     if st.session_state.get("students_cache_invalid"):
         list_students_rest.clear()
         st.session_state.pop("students_cache_invalid", None)
     dados = list_students_rest(_workspace_id)
+    try:
+        from ui.permissions import apply_member_filter
+        dados = apply_member_filter(dados)
+    except Exception:
+        pass
     estudantes = []
     
     for item in dados:

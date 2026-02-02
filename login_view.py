@@ -233,6 +233,18 @@ def inject_css():
 
 
 # ==============================================================================
+# Workspace members (gestão de usuários)
+# ==============================================================================
+def _list_workspace_members(workspace_id) -> list:
+    """Lista membros do workspace. Retorna [] se tabela não existir."""
+    try:
+        from services.members_service import list_members
+        return list_members(str(workspace_id))
+    except Exception:
+        return []
+
+
+# ==============================================================================
 # Supabase client opcional (não quebra login)
 # ==============================================================================
 def _try_init_supabase_client_into_session():
@@ -281,6 +293,7 @@ def render_login():
 
     # Inputs
     nome = st.text_input("Seu nome", placeholder="Nome completo")
+    email = st.text_input("Seu email", placeholder="email@escola.com", help="Obrigatório se sua escola usa Gestão de Usuários")
     cargo = st.text_input("Sua função", placeholder="Ex: Professor, Coordenador")
     pin = st.text_input("PIN da Escola", type="password", placeholder="****")
 
@@ -315,23 +328,39 @@ def render_login():
         if not ws:
             st.markdown("<div class='err'>PIN inválido ou escola não encontrada.</div>", unsafe_allow_html=True)
         else:
-            # ✅ Sucesso (estado mínimo)
-            st.session_state.usuario_nome = nome
-            st.session_state.usuario_cargo = cargo
+            ws_id = ws.get("id") or ws.get("workspace_id")
+            ws_name = ws.get("name") or ws.get("workspace_name") or ""
+            st.session_state.workspace_id = ws_id
+            st.session_state.workspace_name = ws_name
             st.session_state.autenticado = True
 
-            # ws pode vir com chaves diferentes dependendo da sua RPC
-            st.session_state.workspace_id = ws.get("id") or ws.get("workspace_id")
-            st.session_state.workspace_name = ws.get("name") or ws.get("workspace_name") or ""
-
-            # ✅ opcional: tenta criar sb na sessão (sem quebrar o login)
+            # Inicializa Supabase
             ok_sb, err_sb = _try_init_supabase_client_into_session()
             if (not ok_sb) and (_env() == "TESTE"):
-                # Em TESTE, mostro um aviso técnico leve (pra você depurar)
                 st.markdown(
                     f"<div class='warn'>Aviso (TESTE): não consegui iniciar supabase-py em st.session_state['sb'].<br>{err_sb}</div>",
                     unsafe_allow_html=True
                 )
+
+            # Gestão de usuários: workspace com membros exige email e vincula permissões
+            members = _list_workspace_members(ws_id) if ok_sb else []
+            members = [m for m in members if m.get("active", True)]
+            if members:
+                email_val = (email or "").strip().lower()
+                if not email_val:
+                    st.markdown("<div class='err'>Sua escola usa Gestão de Usuários. Informe seu email cadastrado.</div>", unsafe_allow_html=True)
+                    st.stop()
+                member = next((m for m in members if (m.get("email") or "").strip().lower() == email_val), None)
+                if not member:
+                    st.markdown("<div class='err'>Email não cadastrado nesta escola. Entre em contato com o responsável.</div>", unsafe_allow_html=True)
+                    st.stop()
+                st.session_state.member = member
+                st.session_state.usuario_nome = member.get("nome", nome)
+                st.session_state.usuario_cargo = cargo
+            else:
+                st.session_state.member = None
+                st.session_state.usuario_nome = nome
+                st.session_state.usuario_cargo = cargo
 
             st.rerun()
 

@@ -263,6 +263,13 @@ def verificar_acesso():
     if "autenticado" not in st.session_state or not st.session_state["autenticado"]:
         st.error("🔒 Acesso Negado. Por favor, faça login na Página Inicial.")
         st.stop()
+    try:
+        from ui.permissions import can_access
+        if not can_access("hub"):
+            st.error("🔒 Você não tem permissão para acessar o Hub de Recursos.")
+            st.stop()
+    except Exception:
+        pass
 
 verificar_acesso()
 
@@ -594,12 +601,17 @@ def list_students_rest(workspace_id: str = ""):
         return []
 
 def carregar_estudantes_supabase():
-    """Carrega e processa estudantes, separando Diagnóstico de Hiperfoco."""
+    """Carrega e processa estudantes, separando Diagnóstico de Hiperfoco. Filtra por membro se gestão ativa."""
     workspace_id = (st.session_state.get("workspace_id") or "").strip()
     if st.session_state.get("students_cache_invalid"):
         list_students_rest.clear()
         st.session_state.pop("students_cache_invalid", None)
     dados = list_students_rest(workspace_id)
+    try:
+        from ui.permissions import apply_member_filter
+        dados = apply_member_filter(dados)
+    except Exception:
+        pass
     estudantes = []
 
     for item in dados:

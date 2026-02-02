@@ -81,7 +81,7 @@ def acesso_bloqueado(msg: str):
     with col2:
         if st.button("🔑 Voltar para o Login", use_container_width=True, type="primary"):
             # 1) limpa sessão
-            for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "sb", "sb_error"]:
+            for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error"]:
                 st.session_state.pop(k, None)
 
             # 2) tenta ir para o começo (streamlit_app.py)

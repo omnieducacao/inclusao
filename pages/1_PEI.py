@@ -162,6 +162,14 @@ def verificar_login_supabase():
 verificar_login_app()
 verificar_login_supabase()
 
+try:
+    from ui.permissions import can_access
+    if not can_access("pei"):
+        st.error("🔒 Você não tem permissão para acessar o PEI.")
+        st.stop()
+except Exception:
+    pass
+
 
 # =============================================================================
 # 2. SUPABASE (CRUD students) — REST (compatível com omni_utils.py)
@@ -334,7 +342,13 @@ def db_list_students(search: str | None = None):
         _http_error("List students falhou", r)
 
     data = r.json()
-    return data if isinstance(data, list) else []
+    data = data if isinstance(data, list) else []
+    try:
+        from ui.permissions import apply_member_filter
+        data = apply_member_filter(data)
+    except Exception:
+        pass
+    return data
 
 def db_update_pei_content(student_id: str, pei_dict: dict):
     """

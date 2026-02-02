@@ -289,12 +289,17 @@ def list_students_rest(workspace_id: str = ""):
         return []
 
 def carregar_estudantes_formatados():
-    """Processa a lista crua incluindo dados do PEI, PAE e Hub."""
+    """Processa a lista crua incluindo dados do PEI, PAE e Hub. Filtra por membro se gestão ativa."""
     workspace_id = (st.session_state.get("workspace_id") or "").strip()
     if st.session_state.get("students_cache_invalid"):
         list_students_rest.clear()
         st.session_state.pop("students_cache_invalid", None)
     dados = list_students_rest(workspace_id)
+    try:
+        from ui.permissions import apply_member_filter
+        dados = apply_member_filter(dados)
+    except Exception:
+        pass
     estudantes = []
 
     for item in dados:
@@ -377,6 +382,13 @@ def save_assessment(student_id, rubric_data, observation):
 if not st.session_state.get("autenticado") or not st.session_state.get("workspace_id"):
     st.warning("🔒 Acesso restrito. Faça login na Home.")
     st.stop()
+try:
+    from ui.permissions import can_access
+    if not can_access("avaliacao"):
+        st.error("🔒 Você não tem permissão para acessar Avaliação.")
+        st.stop()
+except Exception:
+    pass
 
 # Espaçamento após hero card (reduzido para aproximar conteúdo)
 st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)

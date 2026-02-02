@@ -1554,17 +1554,26 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Módulos da Plataforma
-st.markdown("### 🚀 Módulos da Plataforma")
+# Módulos da Plataforma (filtrados por permissão se gestão de usuários ativa)
+def _can(page):
+    try:
+        from ui.permissions import can_access
+        return can_access(page)
+    except Exception:
+        return True
 
-modules_data = [
-    {"title": "Estudantes", "desc": "Gestão completa de estudantes, histórico e acompanhamento individualizado.", "icon": "ri-user-star-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/Alunos.py", "key": "m_aluno"},
-    {"title": "Estratégias & PEI", "desc": "Plano Educacional Individual com objetivos, avaliações e acompanhamento.", "icon": "ri-book-3-fill", "color_cls": "c-blue", "bg_cls": "bg-blue-soft", "page": "pages/1_PEI.py", "key": "m_pei"},
-    {"title": "Plano de Ação / PAEE", "desc": "Plano de Atendimento Educacional Especializado e sala de recursos.", "icon": "ri-puzzle-fill", "color_cls": "c-purple", "bg_cls": "bg-purple-soft", "page": "pages/2_PAE.py", "key": "m_pae"},
-    {"title": "Hub de Recursos", "desc": "Biblioteca de materiais, modelos e inteligência artificial para apoio.", "icon": "ri-rocket-fill", "color_cls": "c-teal", "bg_cls": "bg-teal-soft", "page": "pages/3_Hub_Inclusao.py", "key": "m_hub"},
-    {"title": "Diário de Bordo", "desc": "Registro diário de observações, evidências e intervenções.", "icon": "ri-edit-box-fill", "color_cls": "c-rose", "bg_cls": "bg-rose-soft", "page": "pages/4_Diario_de_Bordo.py", "key": "m_diario"},
-    {"title": "Evolução & Dados", "desc": "Indicadores, gráficos e relatórios de progresso dos estudantes.", "icon": "ri-line-chart-fill", "color_cls": "c-sky", "bg_cls": "bg-sky-soft", "page": "pages/5_Monitoramento_Avaliacao.py", "key": "m_dados"},
+modules_all = [
+    {"title": "Estudantes", "desc": "Gestão completa de estudantes, histórico e acompanhamento individualizado.", "icon": "ri-user-star-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/Alunos.py", "key": "m_aluno", "perm": "estudantes"},
+    {"title": "Estratégias & PEI", "desc": "Plano Educacional Individual com objetivos, avaliações e acompanhamento.", "icon": "ri-book-3-fill", "color_cls": "c-blue", "bg_cls": "bg-blue-soft", "page": "pages/1_PEI.py", "key": "m_pei", "perm": "pei"},
+    {"title": "Plano de Ação / PAEE", "desc": "Plano de Atendimento Educacional Especializado e sala de recursos.", "icon": "ri-puzzle-fill", "color_cls": "c-purple", "bg_cls": "bg-purple-soft", "page": "pages/2_PAE.py", "key": "m_pae", "perm": "paee"},
+    {"title": "Hub de Recursos", "desc": "Biblioteca de materiais, modelos e inteligência artificial para apoio.", "icon": "ri-rocket-fill", "color_cls": "c-teal", "bg_cls": "bg-teal-soft", "page": "pages/3_Hub_Inclusao.py", "key": "m_hub", "perm": "hub"},
+    {"title": "Diário de Bordo", "desc": "Registro diário de observações, evidências e intervenções.", "icon": "ri-edit-box-fill", "color_cls": "c-rose", "bg_cls": "bg-rose-soft", "page": "pages/4_Diario_de_Bordo.py", "key": "m_diario", "perm": "diario"},
+    {"title": "Evolução & Dados", "desc": "Indicadores, gráficos e relatórios de progresso dos estudantes.", "icon": "ri-line-chart-fill", "color_cls": "c-sky", "bg_cls": "bg-sky-soft", "page": "pages/5_Monitoramento_Avaliacao.py", "key": "m_dados", "perm": "avaliacao"},
+    {"title": "Gestão de Usuários", "desc": "Cadastrar usuários, atribuir permissões e vínculos com alunos.", "icon": "ri-user-settings-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/6_Gestao_Usuarios.py", "key": "m_gestao", "perm": "gestao"},
 ]
+modules_data = [m for m in modules_all if _can(m.get("perm", ""))]
+
+st.markdown("### 🚀 Módulos da Plataforma")
 
 # Organiza módulos em grid responsivo
 cols = st.columns(3, gap="medium")

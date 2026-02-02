@@ -274,6 +274,13 @@ def verificar_acesso():
     if not st.session_state.get("autenticado"):
         st.error("🔒 Acesso Negado. Por favor, faça login na Página Inicial.")
         st.stop()
+    try:
+        from ui.permissions import can_access
+        if not can_access("diario"):
+            st.error("🔒 Você não tem permissão para acessar o Diário de Bordo.")
+            st.stop()
+    except Exception:
+        pass
 
 verificar_acesso()
 
@@ -302,10 +309,17 @@ def carregar_alunos_workspace():
         if response.status_code == 200:
             dados = response.json()
             if isinstance(dados, list):
-                return dados
+                pass
             elif isinstance(dados, dict):
-                return [dados] if dados else []
-            return []
+                dados = [dados] if dados else []
+            else:
+                dados = []
+            try:
+                from ui.permissions import apply_member_filter
+                dados = apply_member_filter(dados)
+            except Exception:
+                pass
+            return dados
         return []
     except Exception as e:
         st.error(f"Erro ao carregar estudantes: {str(e)}")

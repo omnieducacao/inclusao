@@ -124,6 +124,13 @@ ou.render_navbar(active_tab="Estudantes")
 if not st.session_state.autenticado:
     st.warning("🔒 Acesso restrito. Faça login na Home.")
     st.stop()
+try:
+    from ui.permissions import can_access, apply_member_filter
+    if not can_access("estudantes"):
+        st.error("🔒 Você não tem permissão para acessar Estudantes.")
+        st.stop()
+except Exception:
+    apply_member_filter = lambda x: x  # fallback
 
 # Helpers API (Local)
 @st.cache_data(ttl=10, show_spinner=False)
@@ -190,8 +197,9 @@ if st.session_state.get("students_cache_invalid"):
     list_students_rest.clear()
     st.session_state.pop("students_cache_invalid", None)
 
-# Busca Alunos
-alunos = list_students_rest(ws_id)
+# Busca Alunos (com filtro por membro se gestão de usuários ativa)
+alunos_raw = list_students_rest(ws_id)
+alunos = apply_member_filter(alunos_raw)
 
 # Renderiza Hero Card
 st.markdown(f"""

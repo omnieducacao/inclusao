@@ -163,6 +163,8 @@ def ensure_state():
         st.session_state.usuario_nome = "Visitante"
     if "usuario_cargo" not in st.session_state:
         st.session_state.usuario_cargo = ""
+    if "member" not in st.session_state:
+        st.session_state.member = None  # Gestão de usuários: permissões por página
     if "view" not in st.session_state:
         st.session_state.view = "login"
 
@@ -592,20 +594,37 @@ def render_omnisfera_header():
 
 def render_navbar(active_tab: str = "Início"):
     """
-    Navbar horizontal FIXA (abaixo da topbar), sem margin negativa.
+    Navbar horizontal FIXA (abaixo da topbar). Filtra opções por permissões do membro.
     """
     ensure_state()
 
-    opcoes = [
-        "Início",
-        "Estudantes",
-        "Estratégias & PEI",
-        "Plano de Ação (AEE)",
-        "Hub de Recursos",
-        "Diário de Bordo",
-        "Evolução & Dados",
+    all_opcoes = [
+        ("Início", "house"),
+        ("Estudantes", "people"),
+        ("Estratégias & PEI", "book"),
+        ("Plano de Ação (AEE)", "puzzle"),
+        ("Hub de Recursos", "rocket"),
+        ("Diário de Bordo", "journal"),
+        ("Evolução & Dados", "bar-chart"),
+        ("Gestão de Usuários", "gear"),
     ]
-    icones = ["house", "people", "book", "puzzle", "rocket", "journal", "bar-chart"]
+    perm_map = {
+        "Início": True,  # sempre visível
+        "Estudantes": "can_estudantes",
+        "Estratégias & PEI": "can_pei",
+        "Plano de Ação (AEE)": "can_paee",
+        "Hub de Recursos": "can_hub",
+        "Diário de Bordo": "can_diario",
+        "Evolução & Dados": "can_avaliacao",
+        "Gestão de Usuários": "can_gestao",
+    }
+    member = st.session_state.get("member")
+    opcoes, icones = [], []
+    for label, icon in all_opcoes:
+        show = perm_map.get(label)
+        if show is True or (member is None) or (isinstance(show, str) and member.get(show)):
+            opcoes.append(label)
+            icones.append(icon)
 
     try:
         default_idx = opcoes.index(active_tab)
@@ -666,6 +685,7 @@ def render_navbar(active_tab: str = "Início"):
         "Hub de Recursos": {"bg": "#CFFAFE", "color": "#0891B2"},
         "Diário de Bordo": {"bg": "#FFE4E6", "color": "#E11D48"},
         "Evolução & Dados": {"bg": "#BAE6FD", "color": "#075985"},
+        "Gestão de Usuários": {"bg": "#F5F3FF", "color": "#6366F1"},
     }
     
     if active_tab in page_colors:
@@ -693,6 +713,7 @@ def render_navbar(active_tab: str = "Início"):
             "Hub de Recursos": "pages/3_Hub_Inclusao.py",
             "Diário de Bordo": "pages/4_Diario_de_Bordo.py",
             "Evolução & Dados": "pages/5_Monitoramento_Avaliacao.py",
+            "Gestão de Usuários": "pages/6_Gestao_Usuarios.py",
         }
         target = routes.get(selected)
         if target:
