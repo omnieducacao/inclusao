@@ -56,13 +56,15 @@ CREATE TABLE IF NOT EXISTS grades (
   sort_order int DEFAULT 0,
   UNIQUE(segment_id, code)
 );
--- Pré-popula séries comuns
+-- Remove séries antigas EI (Grupo 1-5) se existirem; EI usa idade (2 a 5 anos)
+DELETE FROM grades WHERE segment_id = 'EI';
+
+-- Pré-popula séries comuns (EI por idade; demais por ano)
 INSERT INTO grades (segment_id, code, label, sort_order) VALUES
-  ('EI', 'G1', 'Grupo 1', 1),
-  ('EI', 'G2', 'Grupo 2', 2),
-  ('EI', 'G3', 'Grupo 3', 3),
-  ('EI', 'G4', 'Grupo 4', 4),
-  ('EI', 'G5', 'Grupo 5', 5),
+  ('EI', '2anos', '2 anos', 1),
+  ('EI', '3anos', '3 anos', 2),
+  ('EI', '4anos', '4 anos', 3),
+  ('EI', '5anos', '5 anos', 4),
   ('EFAI', '1', '1º Ano', 10),
   ('EFAI', '2', '2º Ano', 11),
   ('EFAI', '3', '3º Ano', 12),

@@ -111,7 +111,16 @@ else:
             if not grades:
                 st.warning("Nenhuma série para este segmento.")
             else:
-                grade_opt = st.selectbox("Série", grades, format_func=lambda x: x.get("label", x.get("code", "")))
+                st.markdown("**Selecione a série:**")
+                grade_labels = [g.get("label", g.get("code", "")) for g in grades]
+                grade_idx = st.radio(
+                    "Série",
+                    range(len(grades)),
+                    format_func=lambda i: grade_labels[i],
+                    horizontal=True,
+                    label_visibility="collapsed",
+                )
+                grade_opt = grades[grade_idx] if grade_idx is not None else None
                 class_group = st.text_input("Turma", placeholder="A, B, 1, 2...", value="A")
                 if st.form_submit_button("Criar turma"):
                     if year_opt and grade_opt:
