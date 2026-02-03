@@ -14,6 +14,7 @@ import omni_utils as ou
 from services.members_service import (
     list_members,
     create_member,
+    update_member,
     deactivate_member,
     get_class_assignments,
     get_student_links,
@@ -195,12 +196,15 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
 
 # Lista de membros
 st.markdown("### 👥 Usuários cadastrados")
+editing_id = st.session_state.get("gestao_editing_id")
+
 if not members:
     st.info("Nenhum usuário cadastrado. Use o formulário acima para adicionar.")
 else:
     for m in members:
         if not m.get("active", True):
             continue
+        mid = m.get("id")
         perms = []
         if m.get("can_estudantes"): perms.append("Estudantes")
         if m.get("can_pei"): perms.append("PEI")
@@ -211,10 +215,10 @@ else:
         if m.get("can_gestao"): perms.append("Gestão")
         link_txt = m.get("link_type", "todos")
         if link_txt == "turma":
-            assign = get_class_assignments(m.get("id"))
+            assign = get_class_assignments(mid)
             link_txt = ", ".join(f"{a.get('grade','')}º {a.get('class_group','')}" for a in assign) or "—"
         elif link_txt == "tutor":
-            links = get_student_links(m.get("id"))
+            links = get_student_links(mid)
             link_txt = f"{len(links)} aluno(s)"
         with st.container():
             col1, col2, col3 = st.columns([2, 2, 1])
@@ -225,10 +229,124 @@ else:
                 st.markdown(" ".join([f"<span class='badge-perm'>{p}</span>" for p in perms]) or "—", unsafe_allow_html=True)
                 st.caption(f"Vínculo: {link_txt}")
             with col3:
-                if st.button("Desativar", key=f"desativar_{m.get('id')}", type="secondary"):
-                    if deactivate_member(m.get("id")):
-                        st.success("Desativado.")
+                btn_edit, btn_des = st.columns(2)
+                with btn_edit:
+                    if st.button("✏️", key=f"editar_{mid}", help="Editar"):
+                        st.session_state["gestao_editing_id"] = mid
                         st.rerun()
+                with btn_des:
+                    if st.button("Desativar", key=f"desativar_{mid}", type="secondary"):
+                        if deactivate_member(mid):
+                            st.success("Desativado.")
+                            st.rerun()
+                        else:
+                            st.error("Erro ao desativar.")
+
+    # Formulário de edição
+    member_edit = next((m for m in members if m.get("id") == editing_id), None)
+    if member_edit:
+        with st.expander(f"✏️ Editar: {member_edit.get('nome','')}", expanded=True):
+            with st.form("form_editar_usuario"):
+                assign_curr = get_class_assignments(editing_id)
+                links_curr = get_student_links(editing_id)
+                col1, col2 = st.columns(2)
+                with col1:
+                    nome_ed = st.text_input("Nome *", value=member_edit.get("nome", ""), key="edit_nome")
+                    email_ed = st.text_input("Email *", value=member_edit.get("email", ""), key="edit_email")
+                    senha_ed = st.text_input("Nova senha", type="password", placeholder="Deixe em branco para manter", key="edit_senha")
+                    telefone_ed = st.text_input("Telefone", value=member_edit.get("telefone") or "", key="edit_telefone")
+                with col2:
+                    st.markdown("**Páginas que pode acessar**")
+                    can_est_ed = st.checkbox("Estudantes", value=member_edit.get("can_estudantes"), key="edit_can_estudantes")
+                    can_pei_ed = st.checkbox("PEI", value=member_edit.get("can_pei"), key="edit_can_pei")
+                    can_paee_ed = st.checkbox("PAEE", value=member_edit.get("can_paee"), key="edit_can_paee")
+                    can_hub_ed = st.checkbox("Hub", value=member_edit.get("can_hub"), key="edit_can_hub")
+                    can_diario_ed = st.checkbox("Diário", value=member_edit.get("can_diario"), key="edit_can_diario")
+                    can_aval_ed = st.checkbox("Avaliação", value=member_edit.get("can_avaliacao"), key="edit_can_avaliacao")
+                    can_gestao_ed = st.checkbox("Gestão", value=member_edit.get("can_gestao"), key="edit_can_gestao")
+                lt = member_edit.get("link_type") or "todos"
+                lt_idx = ["todos", "turma", "tutor"].index(lt) if lt in ["todos", "turma", "tutor"] else 0
+                link_type_ed = st.selectbox("Vínculo", ["todos", "turma", "tutor"], index=lt_idx, format_func=lambda x: {"todos": "Todos", "turma": "Por turma", "tutor": "Por tutor"}[x], key="edit_link")
+                teacher_assignments_ed = []
+                student_ids_ed = []
+                if link_type_ed == "turma":
+                    try:
+                        years = list_school_years(ws_id)
+                        classes_all = list_classes(ws_id) if years else []
+                        components_all = list_components()
+                    except Exception:
+                        years, classes_all, components_all = [], [], []
+                    if classes_all:
+                        classes_opts = {f"{c.get('grade', {}).get('label', '')} - Turma {c.get('class_group','')}": c for c in classes_all if c.get("id")}
+                        comp_opts = {c.get("label", c.get("id", "")): c.get("id") for c in components_all} if components_all else {"Arte":"arte","Ciências":"ciencias","Geografia":"geografia","História":"historia","Língua Portuguesa":"lingua_portuguesa","Matemática":"matematica","Educação Física":"educacao_fisica","Língua Inglesa":"lingua_inglesa"}
+                        n_add = st.number_input("Quantos vínculos?", min_value=1, max_value=20, value=max(1, len(assign_curr)), key="edit_n_turma")
+                        for i in range(int(n_add)):
+                            cc1, cc2 = st.columns(2)
+                            with cc1:
+                                cl_sel = st.selectbox(f"Turma {i+1}", list(classes_opts.keys()), key=f"edit_cl_{i}")
+                            with cc2:
+                                comp_sel = st.selectbox(f"Componente {i+1}", list(comp_opts.keys()), key=f"edit_comp_{i}")
+                            if cl_sel and comp_sel:
+                                cl = classes_opts.get(cl_sel)
+                                comp_id = comp_opts.get(comp_sel)
+                                if cl and comp_id:
+                                    teacher_assignments_ed.append({"class_id": cl["id"], "component_id": comp_id})
+                elif link_type_ed == "tutor":
+                    try:
+                        import requests
+                        base = ou.get_setting("SUPABASE_URL", "").rstrip("/")
+                        r = requests.get(f"{base}/rest/v1/students?workspace_id=eq.{ws_id}&select=id,name,grade,class_group", headers=ou._headers(), timeout=10)
+                        alunos_raw = r.json() if r.status_code == 200 else []
+                    except Exception:
+                        alunos_raw = []
+                    alunos_opts = {f"{a.get('name','')} ({a.get('grade','')} - {a.get('class_group','')})": a.get("id") for a in alunos_raw if a.get("id")}
+                    default_links = []
+                    for lid in links_curr:
+                        for k, vid in alunos_opts.items():
+                            if vid == lid:
+                                default_links.append(k)
+                                break
+                    selecionados = st.multiselect("Alunos tutor", list(alunos_opts.keys()), default=default_links, key="edit_tutor")
+                    student_ids_ed = [alunos_opts[k] for k in selecionados if k in alunos_opts]
+                col_btn1, col_btn2 = st.columns(2)
+                with col_btn1:
+                    salvar_ed = st.form_submit_button("Salvar alterações")
+                with col_btn2:
+                    cancelar_ed = st.form_submit_button("Cancelar")
+                if cancelar_ed:
+                    st.session_state.pop("gestao_editing_id", None)
+                    st.rerun()
+                if salvar_ed:
+                    if not nome_ed or not email_ed:
+                        st.error("Nome e email são obrigatórios.")
                     else:
-                        st.error("Erro ao desativar.")
-    st.caption("Para editar um usuário, desative e cadastre novamente com os dados corretos. (Edição em breve)")
+                        ok, err = update_member(
+                                member_id=editing_id,
+                                nome=nome_ed,
+                                email=email_ed,
+                                password=senha_ed if senha_ed and len(senha_ed) >= 4 else None,
+                                telefone=telefone_ed,
+                                can_estudantes=can_est_ed,
+                                can_pei=can_pei_ed,
+                                can_paee=can_paee_ed,
+                                can_hub=can_hub_ed,
+                                can_diario=can_diario_ed,
+                                can_avaliacao=can_aval_ed,
+                                can_gestao=can_gestao_ed,
+                                link_type=link_type_ed,
+                                class_assignments=teacher_assignments_ed if link_type_ed == "turma" else None,
+                                student_ids=student_ids_ed if link_type_ed == "tutor" else None,
+                            )
+                            if err:
+                                if "23505" in err and "email" in err:
+                                    st.error("Este email já está em uso. Use outro.")
+                                else:
+                                    st.error(f"Erro: {err}")
+                            else:
+                                st.success("Usuário atualizado.")
+                                st.session_state.pop("gestao_editing_id", None)
+                                st.rerun()
+                with col_btn2:
+                    if st.form_submit_button("Cancelar"):
+                        st.session_state.pop("gestao_editing_id", None)
+                        st.rerun()

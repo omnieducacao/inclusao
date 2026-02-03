@@ -134,6 +134,8 @@ def create_member(
 def update_member(
     member_id: str,
     nome: str = None,
+    email: str = None,
+    password: str = None,
     telefone: str = None,
     can_estudantes: bool = None,
     can_pei: bool = None,
@@ -146,12 +148,17 @@ def update_member(
     class_assignments: list = None,
     student_ids: list = None,
 ):
-    """Atualiza membro. Passar None = não alterar."""
+    """Atualiza membro. Passar None = não alterar. password vazio = não alterar."""
     updates = {}
     if nome is not None:
         updates["nome"] = nome.strip()
+    if email is not None:
+        updates["email"] = email.strip().lower()
     if telefone is not None:
         updates["telefone"] = (telefone or "").strip()
+    ph = _hash_password(password) if password and len(password) >= 4 else None
+    if ph is not None:
+        updates["password_hash"] = ph
     if can_estudantes is not None:
         updates["can_estudantes"] = can_estudantes
     if can_pei is not None:
@@ -168,12 +175,11 @@ def update_member(
         updates["can_gestao"] = can_gestao
     if link_type is not None:
         updates["link_type"] = link_type
-    if not updates:
-        return True, None
-    url = f"{_base()}/rest/v1/workspace_members?id=eq.{member_id}"
-    r = requests.patch(url, headers=_headers(), json=updates, timeout=15)
-    if r.status_code >= 400:
-        return False, str(r.text)
+    if updates:
+        url = f"{_base()}/rest/v1/workspace_members?id=eq.{member_id}"
+        r = requests.patch(url, headers=_headers(), json=updates, timeout=15)
+        if r.status_code >= 400:
+            return False, str(r.text)
 
     if class_assignments is not None:
         _replace_teacher_assignments(member_id, class_assignments)
