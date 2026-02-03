@@ -42,20 +42,19 @@ if not st.session_state.get("autenticado") or not st.session_state.get("is_platf
     st.info("Na tela de login, expanda **Sou administrador da plataforma** e use email + senha.")
     st.stop()
 
-# Header simples
+# Header e navbar padrão (igual às outras páginas)
+ou.render_omnisfera_header()
+ou.render_navbar(active_tab="Admin Plataforma")
+
+st.markdown("### 🔧 Admin Plataforma Omnisfera")
+st.markdown("---")
+
+# Garantir que as abas internas sejam visíveis
 st.markdown("""
 <style>
-header[data-testid="stHeader"] { visibility: hidden !important; height: 0 !important; }
-.block-container { padding-top: 1rem !important; }
-.admin-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #1E293B; color: white; border-radius: 12px; margin-bottom: 24px; }
-.admin-bar h1 { margin: 0; font-size: 1.3rem; }
-.admin-bar a { color: #94A3B8; text-decoration: none; font-size: 0.9rem; }
-.admin-bar a:hover { color: white; }
+[data-testid="stTabs"] { margin-top: 1rem !important; }
+[data-testid="stTabs"] [data-baseweb="tab-list"] { gap: 8px !important; }
 </style>
-<div class="admin-bar">
-  <h1>🔧 Admin Plataforma Omnisfera</h1>
-  <a href="/?omni_logout=1" target="_self">🚪 Sair</a>
-</div>
 """, unsafe_allow_html=True)
 
 ws_id = st.session_state.get("workspace_id")

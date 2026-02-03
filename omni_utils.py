@@ -672,12 +672,17 @@ def render_navbar(active_tab: str = "Início"):
         "Configuração Escola": "can_gestao",
     }
     member = st.session_state.get("member")
+    is_admin = st.session_state.get("is_platform_admin")
     opcoes, icones = [], []
-    for label, icon in all_opcoes:
-        show = perm_map.get(label)
-        if show is True or (member is None) or (isinstance(show, str) and member.get(show)):
-            opcoes.append(label)
-            icones.append(icon)
+    if is_admin:
+        opcoes = ["Admin Plataforma", "Início"]
+        icones = ["gear", "house"]
+    else:
+        for label, icon in all_opcoes:
+            show = perm_map.get(label)
+            if show is True or (member is None) or (isinstance(show, str) and member.get(show)):
+                opcoes.append(label)
+                icones.append(icon)
 
     try:
         default_idx = opcoes.index(active_tab)
@@ -731,6 +736,7 @@ def render_navbar(active_tab: str = "Início"):
     
     # Adiciona CSS para cor específica da página no navbar selecionado
     page_colors = {
+        "Admin Plataforma": {"bg": "#FEF3C7", "color": "#B45309"},
         "Início": {"bg": "#F1F5F9", "color": "#0F172A"},
         "Estudantes": {"bg": "#DBEAFE", "color": "#1E40AF"},
         "Estratégias & PEI": {"bg": "#E0F2FE", "color": "#0284C7"},
@@ -760,6 +766,7 @@ def render_navbar(active_tab: str = "Início"):
 
     if selected != active_tab:
         routes = {
+            "Admin Plataforma": "pages/8_Admin_Plataforma.py",
             "Início": "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "Home.py",
             "Estudantes": "pages/Alunos.py",
             "Estratégias & PEI": "pages/1_PEI.py",
