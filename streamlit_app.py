@@ -138,8 +138,6 @@ if "is_platform_admin" not in st.session_state:
     st.session_state.is_platform_admin = False
 if "accepted_terms" not in st.session_state:
     st.session_state.accepted_terms = False
-if "terms_text" not in st.session_state:
-    st.session_state.terms_text = ""
 
 HOME_PAGE = "pages/0_Home.py"
 ADMIN_PAGE = "pages/8_Admin_Plataforma.py"
@@ -150,7 +148,12 @@ ADMIN_PAGE = "pages/8_Admin_Plataforma.py"
 if not st.session_state.autenticado:
     render_login()
 elif not st.session_state.get("accepted_terms"):
-    terms_text = (st.session_state.get("terms_text") or "").strip()
+    terms_text = ""
+    try:
+        from services.admin_service import get_platform_config
+        terms_text = (get_platform_config("terms_of_use") or "").strip()
+    except Exception:
+        pass
     if not terms_text:
         terms_text = (
             "1. Uso profissional: A Omnisfera é uma ferramenta profissional de apoio à inclusão e deve ser utilizada exclusivamente para fins educacionais e institucionais autorizados.\n\n"
@@ -159,6 +162,8 @@ elif not st.session_state.get("accepted_terms"):
             "4. Segurança: Credenciais de acesso são pessoais e intransferíveis. Qualquer uso indevido deve ser comunicado à coordenação responsável.\n\n"
             "5. Conformidade: O uso deve seguir as políticas internas da escola, legislação vigente e boas práticas de proteção de dados."
         )
+    import html
+    terms_html = html.escape(terms_text).replace("\n", "<br>")
     st.markdown(
         f"""
         <div style="
@@ -175,7 +180,7 @@ elif not st.session_state.get("accepted_terms"):
                 Termo de Uso e Confidencialidade (Profissional)
             </div>
             <div style="color:#334155; font-weight:600; font-size:0.96rem; line-height:1.55;">
-                {terms_text.replace("\n", "<br>")}
+                {terms_html}
             </div>
         </div>
         """,

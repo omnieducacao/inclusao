@@ -174,21 +174,6 @@ def inject_css():
             box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2);
         }
 
-        /* Termo de Confidencialidade */
-        .termo-box {
-            background-color: #F8FAFC;
-            padding: 15px;
-            border-radius: 12px;
-            height: 120px;
-            overflow-y: auto;
-            font-size: 13px;
-            border: 1px solid #E2E8F0;
-            margin: 20px 0 15px 0;
-            text-align: justify;
-            color: #475569;
-            line-height: 1.5;
-        }
-
         .err {
             margin-top: 12px;
             padding: 12px;
@@ -300,23 +285,9 @@ def render_login():
     # 2. Cartão de Login
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
-    # Opção ADMIN (entrada só com email + senha, sem PIN)
+    # Opção ADMIN (entrada só com email + senha)
     with st.expander("🔧 Sou administrador da plataforma", expanded=False):
-        default_terms = st.session_state.get(
-            "terms_text",
-            "1. Uso profissional: A Omnisfera é uma ferramenta profissional de apoio à inclusão e deve ser utilizada exclusivamente para fins educacionais e institucionais autorizados.\n\n"
-            "2. Confidencialidade: É proibido inserir dados pessoais sensíveis de estudantes fora de ambientes autorizados pela instituição. O usuário se compromete a proteger qualquer informação acessada na plataforma.\n\n"
-            "3. Responsabilidade: Recomendações e conteúdos gerados pela IA são auxiliares e devem ser validados por profissionais responsáveis. A decisão final é sempre humana.\n\n"
-            "4. Segurança: Credenciais de acesso são pessoais e intransferíveis. Qualquer uso indevido deve ser comunicado à coordenação responsável.\n\n"
-            "5. Conformidade: O uso deve seguir as políticas internas da escola, legislação vigente e boas práticas de proteção de dados.",
-        )
-        st.text_area(
-            "Texto do termo (editável pelo admin)",
-            value=default_terms,
-            key="terms_text",
-            height=220,
-            help="Esse texto aparece no primeiro acesso após o login.",
-        )
+        st.caption("O termo de uso é editado em **Admin → Termo de Uso** após o login.")
         admin_email = st.text_input("Email admin", placeholder="seu@email.com", key="login_admin_email")
         admin_senha = st.text_input("Senha admin", type="password", placeholder="****", key="login_admin_senha")
         if st.button("Entrar como admin", key="btn_admin"):

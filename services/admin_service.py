@@ -213,3 +213,29 @@ def create_workspace_master_for_workspace(
         link_type="todos",
     )
     return master, None
+
+
+# --- Platform Config (termo de uso) ---
+
+def get_platform_config(key: str) -> str:
+    """Retorna valor de configuração (ex: terms_of_use)."""
+    url = f"{_base()}/rest/v1/platform_config"
+    params = {"key": f"eq.{key}", "select": "value"}
+    try:
+        r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=10)
+        if r.status_code == 200:
+            data = r.json()
+            if isinstance(data, list) and data:
+                return data[0].get("value", "") or ""
+    except Exception:
+        pass
+    return ""
+
+
+def set_platform_config(key: str, value: str) -> tuple:
+    """Atualiza configuração (upsert). Retorna (True, None) ou (False, erro)."""
+    url = f"{_base()}/rest/v1/platform_config"
+    val = (value or "").strip()
+    h = {**_headers(), "Prefer": "resolution=merge-duplicates"}
+    r = requests.post(url, headers=h, json={"key": key, "value": val}, timeout=10)
+    return (r.status_code in (200, 201), None if r.status_code in (200, 201) else r.text)
