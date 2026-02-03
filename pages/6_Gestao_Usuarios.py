@@ -112,23 +112,25 @@ except Exception:
 
 if not master:
     with st.expander("🔐 Configurar usuário master (para este PIN)", expanded=True):
-        st.caption("Seu workspace usa login com PIN. Configure email e senha do **master** para ativar a Gestão de Usuários. Depois disso, o login exigirá PIN + email + senha do master.")
+        st.caption("Seu workspace usa login com PIN. Configure o **master** para ativar a Gestão de Usuários. Depois disso, o login exigirá email + senha.")
         with st.form("form_config_master"):
             m_nome = st.text_input("Nome do responsável *", placeholder="Nome completo")
+            m_telefone = st.text_input("Telefone", placeholder="(11) 99999-9999")
             m_email = st.text_input("Email *", placeholder="email@escola.com")
             m_senha = st.text_input("Senha *", type="password", placeholder="Mínimo 4 caracteres")
+            m_cargo = st.text_input("Cargo *", placeholder="Ex: Coordenador, Diretor")
             if st.form_submit_button("Cadastrar master"):
-                if not m_nome or not m_email or not m_senha:
-                    st.error("Preencha todos os campos.")
+                if not m_nome or not m_email or not m_senha or not m_cargo:
+                    st.error("Preencha Nome, Email, Senha e Cargo.")
                 elif len(m_senha) < 4:
                     st.error("Senha deve ter no mínimo 4 caracteres.")
                 else:
                     try:
-                        result, err = create_workspace_master(ws_id, m_email, m_senha, m_nome)
+                        result, err = create_workspace_master(ws_id, m_email, m_senha, m_nome, telefone=m_telefone or "", cargo=m_cargo.strip())
                         if err:
                             st.error(f"Erro: {err}")
                         else:
-                            create_member(ws_id, m_nome, m_email, m_senha, can_gestao=True, can_estudantes=True, can_pei=True, can_paee=True, can_hub=True, can_diario=True, can_avaliacao=True, link_type="todos")
+                            create_member(ws_id, m_nome, m_email, m_senha, telefone=m_telefone or "", cargo=m_cargo.strip(), can_gestao=True, can_estudantes=True, can_pei=True, can_paee=True, can_hub=True, can_diario=True, can_avaliacao=True, link_type="todos")
                             st.success("✅ Usuário master cadastrado! O login passará a exigir PIN + email + senha.")
                             st.rerun()
                     except Exception as ex:
@@ -143,8 +145,9 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
         with col1:
             nome = st.text_input("Nome *", placeholder="Nome completo")
             email = st.text_input("Email *", placeholder="email@escola.com")
-            senha = st.text_input("Senha *", type="password", placeholder="Senha de acesso", help="O usuário usará PIN + email + senha no login.")
+            senha = st.text_input("Senha *", type="password", placeholder="Senha de acesso", help="O usuário usará email + senha no login.")
             telefone = st.text_input("Telefone", placeholder="(11) 99999-9999")
+            cargo = st.text_input("Cargo", placeholder="Ex: Professor, Coordenador AEE")
         with col2:
             st.markdown("**Páginas que pode acessar**")
             can_estudantes = st.checkbox("Estudantes", help="Cadastro de alunos")
@@ -209,6 +212,7 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
                     email=email,
                     password=senha,
                     telefone=telefone,
+                    cargo=cargo or "",
                     can_estudantes=can_estudantes,
                     can_pei=can_pei,
                     can_paee=can_paee,
@@ -259,7 +263,7 @@ else:
         with st.container():
             col1, col2, col3 = st.columns([2, 2, 1])
             with col1:
-                st.markdown(f"**{m.get('nome','')}**")
+                st.markdown(f"**{m.get('nome','')}** {f\"— {m.get('cargo','')}\" if m.get('cargo') else ''}")
                 st.caption(f"{m.get('email','')} · {m.get('telefone','') or '—'}")
             with col2:
                 st.markdown(" ".join([f"<span class='badge-perm'>{p}</span>" for p in perms]) or "—", unsafe_allow_html=True)
@@ -314,6 +318,7 @@ else:
                     email_ed = st.text_input("Email *", value=member_edit.get("email", ""), key="edit_email")
                     senha_ed = st.text_input("Nova senha", type="password", placeholder="Deixe em branco para manter", key="edit_senha")
                     telefone_ed = st.text_input("Telefone", value=member_edit.get("telefone") or "", key="edit_telefone")
+                    cargo_ed = st.text_input("Cargo", value=member_edit.get("cargo") or "", key="edit_cargo")
                 with col2:
                     st.markdown("**Páginas que pode acessar**")
                     can_est_ed = st.checkbox("Estudantes", value=member_edit.get("can_estudantes"), key="edit_can_estudantes")
@@ -385,6 +390,7 @@ else:
                             email=email_ed,
                             password=senha_ed if senha_ed and len(senha_ed) >= 4 else None,
                             telefone=telefone_ed,
+                            cargo=cargo_ed or "",
                             can_estudantes=can_est_ed,
                             can_pei=can_pei_ed,
                             can_paee=can_paee_ed,

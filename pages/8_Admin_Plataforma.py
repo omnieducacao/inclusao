@@ -141,7 +141,14 @@ else:
                 except Exception:
                     master = None
                 if master:
-                    st.caption(f"Email: {master.get('email')}")
+                    m_email = master.get("email", "")
+                    m_telefone = master.get("telefone", "")
+                    m_cargo = master.get("cargo", "")
+                    st.caption(f"Email: {m_email}")
+                    if m_telefone:
+                        st.caption(f"Telefone: {m_telefone}")
+                    if m_cargo:
+                        st.caption(f"Cargo: {m_cargo}")
                     with st.form(f"form_alt_senha_{wid}"):
                         nova_senha = st.text_input("Nova senha master", type="password", key=f"np_{wid}")
                         if st.form_submit_button("Alterar senha"):
@@ -157,17 +164,25 @@ else:
                 else:
                     st.caption("Master não configurado.")
                     with st.form(f"form_criar_master_{wid}"):
-                        m_nome = st.text_input("Nome", key=f"mn_{wid}")
-                        m_email = st.text_input("Email", key=f"me_{wid}")
-                        m_senha = st.text_input("Senha", type="password", key=f"ms_{wid}")
+                        m_nome = st.text_input("Nome *", placeholder="Nome completo", key=f"mn_{wid}")
+                        m_telefone = st.text_input("Telefone", placeholder="(11) 99999-9999", key=f"mt_{wid}")
+                        m_email = st.text_input("Email *", placeholder="email@escola.com", key=f"me_{wid}")
+                        m_senha = st.text_input("Senha *", type="password", placeholder="Mín. 4 caracteres", key=f"ms_{wid}")
+                        m_cargo = st.text_input("Cargo *", placeholder="Ex: Coordenador, Diretor", key=f"mc_{wid}")
                         if st.form_submit_button("Criar master"):
-                            if m_nome and m_email and m_senha:
-                                _, err = create_workspace_master_for_workspace(wid, m_email, m_senha, m_nome)
+                            if m_nome and m_email and m_senha and m_cargo:
+                                _, err = create_workspace_master_for_workspace(
+                                    wid, m_email, m_senha, m_nome,
+                                    telefone=m_telefone or "",
+                                    cargo=m_cargo.strip(),
+                                )
                                 if err:
                                     st.error(err)
                                 else:
                                     st.success("Master criado.")
                                     st.rerun()
+                            else:
+                                st.warning("Preencha Nome, Email, Senha e Cargo.")
             with col2:
                 st.markdown("**Usuários**")
                 try:
@@ -178,7 +193,11 @@ else:
                     mid = m.get("id")
                     m_nome = m.get("nome", "")
                     m_email = m.get("email", "")
-                    st.caption(f"{m_nome} — {m_email}")
+                    m_cargo = m.get("cargo", "")
+                    txt = f"{m_nome} — {m_email}"
+                    if m_cargo:
+                        txt += f" · {m_cargo}"
+                    st.caption(txt)
                     if st.button("Excluir", key=f"del_{mid}"):
                         if delete_member_permanently(mid):
                             st.success("Excluído.")

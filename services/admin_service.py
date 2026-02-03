@@ -183,11 +183,33 @@ def delete_workspace_member(member_id: str) -> bool:
     return r.status_code in (200, 204)
 
 
-def create_workspace_master_for_workspace(workspace_id: str, email: str, password: str, nome: str) -> tuple:
+def create_workspace_master_for_workspace(
+    workspace_id: str,
+    email: str,
+    password: str,
+    nome: str,
+    telefone: str = "",
+    cargo: str = "",
+) -> tuple:
     """Admin cria o master de um workspace."""
     from services.members_service import create_workspace_master, create_member
-    master, err = create_workspace_master(workspace_id, email, password, nome)
+    master, err = create_workspace_master(workspace_id, email, password, nome, telefone=telefone, cargo=cargo)
     if err:
         return None, err
-    create_member(workspace_id, nome, email, password, can_gestao=True, can_estudantes=True, can_pei=True, can_paee=True, can_hub=True, can_diario=True, can_avaliacao=True, link_type="todos")
+    create_member(
+        workspace_id,
+        nome,
+        email,
+        password,
+        telefone=telefone,
+        cargo=cargo,
+        can_gestao=True,
+        can_estudantes=True,
+        can_pei=True,
+        can_paee=True,
+        can_hub=True,
+        can_diario=True,
+        can_avaliacao=True,
+        link_type="todos",
+    )
     return master, None

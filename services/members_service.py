@@ -28,7 +28,7 @@ def _headers():
 def list_members(workspace_id: str):
     """Lista membros do workspace (sem password_hash)."""
     url = f"{_base()}/rest/v1/workspace_members"
-    params = {"workspace_id": f"eq.{workspace_id}", "order": "nome.asc", "select": "id,workspace_id,nome,email,telefone,can_estudantes,can_pei,can_paee,can_hub,can_diario,can_avaliacao,can_gestao,link_type,active,created_at,updated_at"}
+    params = {"workspace_id": f"eq.{workspace_id}", "order": "nome.asc", "select": "id,workspace_id,nome,email,telefone,cargo,can_estudantes,can_pei,can_paee,can_hub,can_diario,can_avaliacao,can_gestao,link_type,active,created_at,updated_at"}
     r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=15)
     if r.status_code >= 400:
         return []
@@ -57,7 +57,7 @@ def _hash_password(plain: str) -> str | None:
 def get_workspace_master(workspace_id: str) -> Optional[dict]:
     """Retorna o master do workspace (se existir)."""
     url = f"{_base()}/rest/v1/workspace_masters"
-    params = {"workspace_id": f"eq.{workspace_id}", "select": "workspace_id,email,password_hash,nome"}
+    params = {"workspace_id": f"eq.{workspace_id}", "select": "workspace_id,email,password_hash,nome,telefone,cargo"}
     r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=10)
     if r.status_code != 200:
         return None
@@ -83,19 +83,31 @@ def verify_workspace_master(workspace_id: str, email: str, password: str) -> boo
         return False
 
 
-def create_workspace_master(workspace_id: str, email: str, password: str, nome: str) -> tuple:
+def create_workspace_master(
+    workspace_id: str,
+    email: str,
+    password: str,
+    nome: str,
+    telefone: str = "",
+    cargo: str = "",
+) -> tuple:
     """Cria o usuário master do workspace (primeiro acesso)."""
     ph = _hash_password(password)
     if not ph or len(password) < 4:
         return None, "Senha deve ter no mínimo 4 caracteres."
     url = f"{_base()}/rest/v1/workspace_masters"
-    h = {**_headers(), "Prefer": "return=minimal"}
-    r = requests.post(url, headers=h, json={
+    payload = {
         "workspace_id": workspace_id,
         "email": email.strip().lower(),
         "password_hash": ph,
         "nome": nome.strip(),
-    }, timeout=15)
+    }
+    if telefone is not None:
+        payload["telefone"] = (telefone or "").strip()
+    if cargo is not None:
+        payload["cargo"] = (cargo or "").strip()
+    h = {**_headers(), "Prefer": "return=minimal"}
+    r = requests.post(url, headers=h, json=payload, timeout=15)
     if r.status_code >= 400:
         return None, str(r.text)
     return {"workspace_id": workspace_id, "email": email, "nome": nome}, None
@@ -184,6 +196,7 @@ def create_member(
     email: str,
     password: str = "",
     telefone: str = "",
+    cargo: str = "",
     can_estudantes: bool = False,
     can_pei: bool = False,
     can_paee: bool = False,
@@ -201,6 +214,7 @@ def create_member(
         "nome": nome.strip(),
         "email": email.strip().lower(),
         "telefone": (telefone or "").strip(),
+        "cargo": (cargo or "").strip(),
         "can_estudantes": can_estudantes,
         "can_pei": can_pei,
         "can_paee": can_paee,
@@ -237,6 +251,7 @@ def update_member(
     email: str = None,
     password: str = None,
     telefone: str = None,
+    cargo: str = None,
     can_estudantes: bool = None,
     can_pei: bool = None,
     can_paee: bool = None,
@@ -256,6 +271,8 @@ def update_member(
         updates["email"] = email.strip().lower()
     if telefone is not None:
         updates["telefone"] = (telefone or "").strip()
+    if cargo is not None:
+        updates["cargo"] = (cargo or "").strip()
     ph = _hash_password(password) if password and len(password) >= 4 else None
     if ph is not None:
         updates["password_hash"] = ph
