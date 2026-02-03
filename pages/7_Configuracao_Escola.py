@@ -11,17 +11,22 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import omni_utils as ou
-from services.school_config_service import (
-    SEGMENTS,
-    list_school_years,
-    create_school_year,
-    list_grades,
-    list_grades_for_workspace,
-    list_workspace_grades,
-    set_workspace_grades,
-    list_classes,
-    create_class,
-)
+
+try:
+    from services.school_config_service import (
+        SEGMENTS,
+        list_school_years,
+        create_school_year,
+        list_grades,
+        list_grades_for_workspace,
+        list_workspace_grades,
+        set_workspace_grades,
+        list_classes,
+        create_class,
+    )
+except ImportError as e:
+    st.error(f"Erro ao carregar configuração: {e}")
+    st.stop()
 
 try:
     from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
