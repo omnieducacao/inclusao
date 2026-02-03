@@ -54,31 +54,32 @@ TEXT = b64("omni_texto.png")
 
 
 # ==============================================================================
-# CSS GLOBAL — Login profissional
+# CSS GLOBAL (Nunito)
 # ==============================================================================
 def inject_css():
     st.markdown(
         """
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 
         html, body, [class*="css"] {
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
-            background: linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
-            min-height: 100vh;
+            font-family: 'Nunito', sans-serif;
+            background: #F7FAFC;
             color: #0f172a;
         }
 
         .wrap {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 48px 24px 64px;
+            max-width: 620px;
+            margin: auto;
+            padding-top: 30px;
+            padding-bottom: 40px;
         }
 
         .block-container {
-            padding-top: 2rem !important;
-            max-width: 480px !important;
+            padding-top: 1rem !important;
+            max-width: 620px !important;
             margin: 0 auto !important;
+            background: transparent !important;
         }
 
         .element-container { max-width: 100% !important; }
@@ -87,107 +88,90 @@ def inject_css():
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
-            margin-bottom: 28px;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
         }
 
         .logoSpin img {
-            width: 80px;
-            filter: drop-shadow(0 4px 12px rgba(255,255,255,0.15));
-            animation: logo-spin 14s linear infinite;
+            width: 70px;
+            animation: spin 12s linear infinite;
         }
-        @keyframes logo-spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .logoText img {
-            height: 42px;
-            filter: brightness(1.1);
-        }
+        .logoText img { height: 38px; }
 
         .welcome {
             text-align: center;
-            margin: 0 auto 24px;
-            color: rgba(255,255,255,0.9);
-            font-size: 15px;
-            line-height: 1.6;
-            font-weight: 600;
-            max-width: 420px;
+            margin: 6px auto 18px auto;
+            color: #334155;
+            font-size: 14px;
+            line-height: 1.5;
+            font-weight: 700;
+            max-width: 560px;
         }
 
         .welcome small {
             display: block;
-            margin-top: 8px;
-            font-weight: 500;
-            color: rgba(255,255,255,0.65);
-            font-size: 13px;
+            margin-top: 6px;
+            font-weight: 700;
+            color: #64748B;
+            font-size: 14px;
         }
 
         .card {
-            background: #ffffff;
-            border-radius: 24px;
-            border: 1px solid rgba(255,255,255,0.12);
-            padding: 32px 28px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05);
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #E2E8F0;
+            padding: 28px;
+            box-shadow: 0 10px 40px rgba(15,23,42,.06);
         }
 
         @media (max-width: 768px) {
-            .wrap { max-width: 92vw; padding: 32px 16px; }
+            .wrap { max-width: 92vw; }
         }
 
         div[data-testid="stTextInput"] input {
-            border-radius: 14px;
-            border: 1px solid #e2e8f0;
-            background: #f8fafc;
-            color: #1e293b;
-            padding: 12px 16px;
-            font-weight: 500;
+            border-radius: 12px;
+            border: 1px solid #CBD5E1;
+            background-color: #F8FAFC;
+            color: #334155;
+            padding: 10px 12px;
+            width: 100%;
         }
         div[data-testid="stTextInput"] input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            border-color: #94A3B8;
+            background-color: #FFFFFF;
+            box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2);
         }
 
         div[data-testid="stButton"] button {
             width: 100%;
-            border-radius: 14px;
-            font-weight: 700;
-            padding: 12px 1rem;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+            border-radius: 12px;
+            font-weight: 800;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #1E3A8A, #1E40AF) !important;
             border: none !important;
-            color: #fff !important;
+            color: #ffffff !important;
         }
         div[data-testid="stButton"] button:hover {
-            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+            background: linear-gradient(135deg, #1E40AF, #1E3A8A) !important;
             transform: translateY(-1px);
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35) !important;
+            box-shadow: 0 10px 22px rgba(30, 58, 138, 0.3) !important;
         }
 
         .login-footer {
             text-align: center;
-            margin-top: 28px;
-            color: rgba(255,255,255,0.4);
+            margin-top: 20px;
+            color: #CBD5E1;
             font-size: 11px;
             font-weight: 500;
         }
 
-        .admin-corner {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            z-index: 100;
-        }
-        .admin-corner button {
-            font-size: 12px !important;
-            padding: 6px 12px !important;
-            background: rgba(255,255,255,0.1) !important;
-            color: rgba(255,255,255,0.9) !important;
-            border: 1px solid rgba(255,255,255,0.2) !important;
-        }
-        .admin-corner button:hover {
-            background: rgba(255,255,255,0.15) !important;
-        }
-        .login-relative { position: relative; }
+        /* Remove retângulo branco no meio */
+        .main .block-container { background: transparent !important; }
+        section[data-testid="stSidebar"] + div .block-container { background: transparent !important; }
+        [data-testid="stVerticalBlock"] > div[style*="flex"] { background: transparent !important; }
         </style>
         """,
         unsafe_allow_html=True
@@ -241,50 +225,14 @@ def render_login():
     hide_streamlit()
     inject_css()
 
-    st.markdown('<div class="wrap login-relative">', unsafe_allow_html=True)
+    st.markdown('<div class="wrap">', unsafe_allow_html=True)
 
-    # Admin no canto direito
-    ac1, ac2 = st.columns([5, 1])
-    with ac2:
-        with st.expander("🔧 Admin", expanded=False):
-            st.caption("Termo de uso: Admin → Termo de Uso")
-            admin_email = st.text_input("Email admin", placeholder="seu@email.com", key="login_admin_email")
-            admin_senha = st.text_input("Senha admin", type="password", placeholder="****", key="login_admin_senha")
-            if st.button("Entrar como admin", key="btn_admin"):
-                if not admin_email or not admin_senha:
-                    st.error("Informe email e senha.")
-                else:
-                    try:
-                        from services.admin_service import verify_platform_admin, list_platform_admins
-                        admins = list_platform_admins()
-                        if not admins:
-                            st.warning("Nenhum admin cadastrado. Criar no Supabase.")
-                            st.caption("Execute supabase/migrations/00013_seed_admin.sql")
-                        elif verify_platform_admin(admin_email.strip().lower(), admin_senha):
-                            st.session_state.autenticado = True
-                            st.session_state.is_platform_admin = True
-                            st.session_state.workspace_id = None
-                            st.session_state.workspace_name = None
-                            st.session_state.usuario_nome = "Admin"
-                            st.session_state.member = None
-                            st.session_state.user_role = "platform_admin"
-                            if hasattr(ou, "track_usage_event"):
-                                try:
-                                    ou.track_usage_event("login_admin_success", source="login_view")
-                                except Exception:
-                                    pass
-                            st.rerun()
-                        else:
-                            st.error("Email ou senha incorretos.")
-                    except Exception as e:
-                        st.error(str(e))
-
-    # Logo centralizada (com animação de rotação)
+    # Logo e boas-vindas
     st.markdown(
         f"""
         <div class="brand">
-            <div class="logoSpin"><img src="data:image/png;base64,{ICON}" alt="Omnisfera"></div>
-            <div class="logoText"><img src="data:image/png;base64,{TEXT}" alt="OMNISFERA"></div>
+            <div class="logoSpin"><img src="data:image/png;base64,{ICON}"></div>
+            <div class="logoText"><img src="data:image/png;base64,{TEXT}"></div>
         </div>
         <div class="welcome">
             Olá, educador(a)! Desenvolvemos a Omnisfera com cuidado e dedicação para transformar a inclusão em uma realidade mais leve e possível na sua escola.
@@ -296,6 +244,49 @@ def render_login():
 
     # Cartão de Login
     st.markdown('<div class="card">', unsafe_allow_html=True)
+
+    # Admin (dentro do card)
+    with st.expander("🔧 Sou administrador da plataforma", expanded=False):
+        st.caption("O termo de uso é editado em **Admin → Termo de Uso** após o login.")
+        admin_email = st.text_input("Email admin", placeholder="seu@email.com", key="login_admin_email")
+        admin_senha = st.text_input("Senha admin", type="password", placeholder="****", key="login_admin_senha")
+        if st.button("Entrar como admin", key="btn_admin"):
+            if not admin_email or not admin_senha:
+                st.error("Informe email e senha.")
+            else:
+                try:
+                    from services.admin_service import verify_platform_admin, list_platform_admins
+                    admins = list_platform_admins()
+                    if not admins:
+                        st.warning("Nenhum admin cadastrado. O primeiro admin deve ser criado no Supabase (segurança).")
+                        st.caption("No Supabase → SQL Editor, execute o arquivo supabase/migrations/00013_seed_admin.sql após substituir email, senha e nome.")
+                        st.code(
+                            "CREATE EXTENSION IF NOT EXISTS pgcrypto;\n\n"
+                            "INSERT INTO platform_admins (email, password_hash, nome)\n"
+                            "VALUES ('seu@email.com', crypt('SuaSenha123', gen_salt('bf')), 'Seu Nome')\n"
+                            "ON CONFLICT (email) DO NOTHING;",
+                            language="sql",
+                        )
+                    elif verify_platform_admin(admin_email.strip().lower(), admin_senha):
+                        st.session_state.autenticado = True
+                        st.session_state.is_platform_admin = True
+                        st.session_state.workspace_id = None
+                        st.session_state.workspace_name = None
+                        st.session_state.usuario_nome = "Admin"
+                        st.session_state.member = None
+                        st.session_state.user_role = "platform_admin"
+                        if hasattr(ou, "track_usage_event"):
+                            try:
+                                ou.track_usage_event("login_admin_success", source="login_view")
+                            except Exception:
+                                pass
+                        st.rerun()
+                    else:
+                        st.error("Email ou senha incorretos.")
+                except Exception as e:
+                    st.error(str(e))
+        st.caption("Admin cria escolas, gera PIN e gerencia masters. Primeiro admin: criar no Supabase.")
+
     st.markdown("**Entrar na plataforma**")
     email = st.text_input("Email", placeholder="seu@escola.com", key="login_email")
     senha = st.text_input("Senha", type="password", placeholder="****", key="login_senha")
@@ -332,8 +323,12 @@ def render_login():
                         st.session_state.autenticado = True
                         st.session_state.usuario_cargo = "Usuário"
                         st.session_state.user_role = "master" if role == "master" else "member"
-                        event_name = "login_master_success" if role == "master" else "login_member_success"
-                        ou.track_usage_event(event_name, source="login_view", metadata={"email": user.get("email")})
+                        if hasattr(ou, "track_usage_event"):
+                            try:
+                                event_name = "login_master_success" if role == "master" else "login_member_success"
+                                ou.track_usage_event(event_name, source="login_view", metadata={"email": user.get("email")})
+                            except Exception:
+                                pass
                         st.rerun()
                     else:
                         st.error("Senha incorreta.")
