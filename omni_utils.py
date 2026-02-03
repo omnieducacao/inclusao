@@ -617,7 +617,7 @@ def render_omnisfera_header():
   <div class="omni-user-info">
     <div class="omni-workspace" title="{ws_name}">{ws_name}</div>
     <div class="omni-avatar" title="{user_name}">{_get_initials(user_name)}</div>
-    <a href="?omni_logout=1" class="omni-btn-sair" title="Encerrar sessão">🚪 Sair</a>
+    <a href="/?omni_logout=1" target="_self" class="omni-btn-sair" title="Encerrar sessão">🚪 Sair</a>
   </div>
 </div>
 <style>
