@@ -810,6 +810,8 @@ if not st.session_state.get("autenticado") or not st.session_state.get("workspac
                 st.switch_page("streamlit_app.py")
     st.stop()
 
+ou.log_page_view("Início")
+
 # ==============================================================================
 # 5. FUNÇÕES DE RENDERIZAÇÃO
 # ==============================================================================

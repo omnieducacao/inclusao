@@ -6,6 +6,7 @@ import streamlit as st
 
 # ✅ IMPORTS SUPABASE (somente o que existe com certeza no seu supabase_client.py)
 from supabase_client import RPC_NAME
+import omni_utils as ou
 
 
 # ==============================================================================
@@ -314,6 +315,8 @@ def render_login():
                         st.session_state.workspace_name = None
                         st.session_state.usuario_nome = "Admin"
                         st.session_state.member = None
+                        st.session_state.user_role = "platform_admin"
+                        ou.track_usage_event("login_admin_success", source="login_view")
                         st.rerun()
                     else:
                         st.error("Email ou senha incorretos.")
@@ -357,6 +360,9 @@ def render_login():
                         st.session_state.workspace_name = ws_name
                         st.session_state.autenticado = True
                         st.session_state.usuario_cargo = "Usuário"
+                        st.session_state.user_role = "master" if role == "master" else "member"
+                        event_name = "login_master_success" if role == "master" else "login_member_success"
+                        ou.track_usage_event(event_name, source="login_view", metadata={"email": user.get("email")})
                         st.rerun()
                     else:
                         st.error("Senha incorreta.")

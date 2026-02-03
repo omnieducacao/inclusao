@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import base64
+import time
 import requests
 import streamlit as st
 from streamlit_option_menu import option_menu
@@ -735,6 +736,11 @@ def render_navbar(active_tab: str = "Início"):
     )
 
     st.markdown("</div></div>", unsafe_allow_html=True)
+
+    try:
+        log_page_view(active_tab or selected)
+    except Exception:
+        pass
     
     # Adiciona CSS para cor específica da página no navbar selecionado
     page_colors = {
@@ -863,6 +869,64 @@ def supabase_log_access(workspace_id: str, nome: str, cargo: str, event: str, ap
         "app_version": (app_version or "").strip(),
     }
     return supabase_insert("access_logs", row)
+
+
+def _current_actor():
+    role = st.session_state.get("user_role")
+    if st.session_state.get("is_platform_admin") or role == "platform_admin":
+        return "platform_admin", None
+    member = st.session_state.get("member") or {}
+    if role == "master":
+        return "master", member.get("id")
+    if member:
+        return "member", member.get("id")
+    return "anon", None
+
+
+def track_usage_event(event_type: str, **extra):
+    """
+    Helper para registrar eventos sem quebrar o fluxo caso o serviço falhe.
+    """
+    if not event_type:
+        return
+    workspace_id = extra.pop("workspace_id", None) or st.session_state.get("workspace_id")
+    actor_type = extra.pop("actor_type", None)
+    actor_id = extra.pop("actor_id", None)
+    if not actor_type:
+        actor_type, actor_id = _current_actor()
+    metadata = extra.pop("metadata", None)
+    try:
+        from services.monitoring_service import log_usage_event as _log_usage_event
+        _log_usage_event(
+            event_type=event_type,
+            workspace_id=workspace_id,
+            actor_type=actor_type,
+            actor_id=actor_id,
+            source=extra.pop("source", None),
+            ai_engine=extra.pop("ai_engine", None),
+            metadata=metadata,
+            ip_address=extra.pop("ip_address", None),
+            user_agent=extra.pop("user_agent", None),
+        )
+    except Exception:
+        pass
+
+
+def log_page_view(page_name: str, throttle_seconds: int = 120):
+    """
+    Registra page_view com throttling para evitar excesso de eventos em reruns.
+    """
+    if not page_name:
+        return
+    key = "_usage_page_log"
+    now = time.time()
+    cache = st.session_state.get(key, {})
+    last = cache.get(page_name)
+    if last and (now - last) < throttle_seconds:
+        return
+    cache[page_name] = now
+    st.session_state[key] = cache
+    track_usage_event("page_view", source=page_name, metadata={"page": page_name})
 
 def supa_save_pei(student_id: str, dados: dict, pdf_text: str = ""):
     if not student_id or not st.session_state.get("workspace_id"):

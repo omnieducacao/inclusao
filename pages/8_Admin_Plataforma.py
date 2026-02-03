@@ -20,6 +20,12 @@ from services.admin_service import (
     set_platform_config,
 )
 from services.members_service import list_members, get_workspace_master, delete_member_permanently
+from services.monitoring_service import (
+    get_usage_snapshot,
+    list_platform_issues,
+    create_platform_issue,
+    update_platform_issue_status,
+)
 
 try:
     from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
@@ -60,6 +66,13 @@ st.markdown("""
 ws_id = st.session_state.get("workspace_id")
 ws_name = st.session_state.get("workspace_name", "")
 
+try:
+    cached_workspaces = list_workspaces()
+    cached_workspaces_error = None
+except Exception as e:
+    cached_workspaces = []
+    cached_workspaces_error = str(e)
+
 # Abas do Admin
 tab_escolas, tab_termo, tab_dashboard, tab_bugs = st.tabs(["🏫 Escolas", "📜 Termo de Uso", "📊 Dashboard", "🐛 Bugs e Erros"])
 
@@ -89,13 +102,146 @@ with tab_termo:
             else:
                 st.error(f"Erro ao salvar: {err}")
 
-# --- Tab Dashboard (placeholder) ---
+# --- Tab Dashboard ---
 with tab_dashboard:
-    st.info("📊 Dashboard de uso e custos em construção. Em breve: PEIs gerados, chamadas por motor de IA, custos estimados.")
+    st.markdown("### 📊 Uso da plataforma (últimos 7 dias)")
+    try:
+        usage = get_usage_snapshot(days=7, limit=500)
+    except Exception as e:
+        usage = None
+        st.error(f"Não foi possível carregar métricas: {e}")
+    if not usage or usage.get("total", 0) == 0:
+        st.info("Ainda não há eventos registrados. Assim que os usuários começarem a acessar, o dashboard será preenchido automaticamente.")
+    else:
+        total_events = usage.get("total", 0)
+        by_type = {item["event_type"]: item["count"] for item in usage.get("by_type", [])}
+        login_events = sum(count for event, count in by_type.items() if event.startswith("login"))
+        page_views = by_type.get("page_view", 0)
+        ai_events = sum(item["count"] for item in usage.get("by_engine", []) if item["ai_engine"] != "—")
+        col_a, col_b, col_c = st.columns(3)
+        col_a.metric("Eventos capturados", total_events)
+        col_b.metric("Page views", page_views)
+        col_c.metric("Logins", login_events)
 
-# --- Tab Bugs (placeholder) ---
+        timeline = usage.get("timeline", [])
+        if timeline:
+            try:
+                import pandas as pd
+
+                timeline_df = pd.DataFrame(timeline).sort_values("day")
+                timeline_df = timeline_df.set_index("day")
+                st.subheader("Atividade diária")
+                st.line_chart(timeline_df)
+            except Exception:
+                pass
+
+        engines = usage.get("by_engine", [])
+        engines = [item for item in engines if item["ai_engine"] != "—"]
+        if engines:
+            try:
+                import pandas as pd
+
+                engine_df = pd.DataFrame(engines)
+                st.subheader("Motores de IA mais usados")
+                engine_df = engine_df.set_index("ai_engine")
+                st.bar_chart(engine_df)
+            except Exception:
+                pass
+
+        recent = usage.get("recent", [])
+        if recent:
+            st.subheader("Eventos recentes")
+            try:
+                import pandas as pd
+
+                recent_df = pd.DataFrame(recent)
+                recent_df["created_at"] = recent_df["created_at"].map(lambda x: datetime.fromisoformat(x.replace("Z", "+00:00")).astimezone(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m %H:%M") if isinstance(x, str) else x)
+                st.dataframe(
+                    recent_df[["created_at", "event_type", "source", "ai_engine", "workspace_id"]],
+                    use_container_width=True,
+                    hide_index=True,
+                )
+            except Exception:
+                for ev in recent[:10]:
+                    st.caption(f"{ev.get('created_at')} · {ev.get('event_type')} · {ev.get('source') or '—'}")
+
+# --- Tab Bugs ---
 with tab_bugs:
-    st.info("🐛 Mapeamento de inconsistências e erros em construção. Em breve: lista de erros, status, análise.")
+    st.markdown("### 🐛 Registro de bugs e inconsistências")
+    workspace_options = ["(sem vínculo)"] + [
+        f"{ws.get('name', 'Sem nome')} — PIN {ws.get('pin') or ws.get('pin_code') or ws.get('code') or '—'}"
+        for ws in cached_workspaces
+    ]
+    workspace_map = {
+        f"{ws.get('name', 'Sem nome')} — PIN {ws.get('pin') or ws.get('pin_code') or ws.get('code') or '—'}": ws.get("id")
+        for ws in cached_workspaces
+    }
+    with st.form("form_bug"):
+        ws_choice = st.selectbox("Escola relacionada (opcional)", workspace_options, key="issue_workspace")
+        titulo = st.text_input("Título do bug *", placeholder="Ex: Master não consegue alterar senha")
+        severidade = st.selectbox("Severidade", ["baixa", "média", "alta", "crítica"], index=1)
+        origem = st.text_input("Origem / Tela", placeholder="Ex: Gestão de Usuários")
+        descricao = st.text_area("Descrição detalhada", placeholder="Explique o que aconteceu, quem foi impactado e como reproduzir.")
+        if st.form_submit_button("Registrar bug"):
+            if not titulo.strip():
+                st.warning("Informe o título.")
+            else:
+                ws_selected = workspace_map.get(ws_choice) if ws_choice in workspace_map else None
+                criado_por = st.session_state.get("usuario_nome", "Admin")
+                ok = create_platform_issue(
+                    title=titulo.strip(),
+                    description=descricao.strip(),
+                    severity=severidade,
+                    workspace_id=ws_selected,
+                    source=origem.strip(),
+                    created_by=criado_por,
+                )
+                if ok:
+                    st.success("Bug registrado.")
+                    ou.track_usage_event("admin_issue_created", metadata={"title": titulo.strip(), "severity": severidade})
+                    st.rerun()
+                else:
+                    st.error("Não foi possível salvar. Verifique o Supabase.")
+
+    issues = list_platform_issues()
+    if not issues:
+        st.info("Nenhum bug registrado até o momento.")
+    else:
+        status_order = ["aberto", "em_andamento", "resolvido", "arquivado"]
+        for issue in issues:
+            status = issue.get("status") or "aberto"
+            badge = f"[{status.upper()}]"
+            title = issue.get("title", "Sem título")
+            workspace_label = next((ws.get("name") for ws in cached_workspaces if ws.get("id") == issue.get("workspace_id")), "Geral")
+            with st.expander(f"{badge} {title} • {workspace_label}"):
+                st.write(issue.get("description") or "_Sem descrição detalhada._")
+                col_meta1, col_meta2 = st.columns(2)
+                with col_meta1:
+                    st.caption(f"Severidade: **{issue.get('severity', 'média')}**")
+                    st.caption(f"Origem: {issue.get('source') or '—'}")
+                with col_meta2:
+                    criado_em = issue.get("created_at")
+                    if isinstance(criado_em, str):
+                        try:
+                            criado_fmt = datetime.fromisoformat(criado_em.replace("Z", "+00:00")).astimezone(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
+                        except Exception:
+                            criado_fmt = criado_em
+                    else:
+                        criado_fmt = criado_em
+                    st.caption(f"Criado em: {criado_fmt}")
+                    st.caption(f"Registrado por: {issue.get('created_by') or '—'}")
+                status_options = ["aberto", "em_andamento", "resolvido", "arquivado"]
+                current_index = status_options.index(status) if status in status_options else 0
+                new_status = st.selectbox("Status", status_options, index=current_index, key=f"issue_status_{issue['id']}")
+                notes = st.text_area("Notas / Próximos passos", value=issue.get("resolution_notes") or "", key=f"issue_notes_{issue['id']}")
+                if st.button("Salvar atualização", key=f"issue_save_{issue['id']}"):
+                    ok = update_platform_issue_status(issue["id"], status=new_status, resolution_notes=notes)
+                    if ok:
+                        st.success("Issue atualizada.")
+                        ou.track_usage_event("admin_issue_updated", metadata={"issue": issue.get("title"), "status": new_status})
+                        st.rerun()
+                    else:
+                        st.error("Não foi possível atualizar. Verifique o Supabase.")
 
 # --- Tab Escolas ---
 with tab_escolas:
@@ -138,6 +284,15 @@ with tab_escolas:
                         if ws:
                             st.success(f"✅ Escola **{ws.get('name')}** criada! PIN: **{pin}** — Guarde este PIN.")
                             st.balloons()
+                            ou.track_usage_event(
+                                "admin_create_workspace",
+                                workspace_id=ws.get("id"),
+                                metadata={
+                                    "workspace": ws.get("name"),
+                                    "segments": segmentos_escola,
+                                    "ai_engines": motores_escola,
+                                },
+                            )
                             st.rerun()
                         else:
                             st.error(f"Erro: {pin}")
@@ -147,11 +302,9 @@ with tab_escolas:
                 st.warning("Informe o nome da escola.")
 
     st.markdown("### 📋 Escolas cadastradas")
-    try:
-        workspaces = list_workspaces()
-    except Exception as e:
-        st.warning(f"Não foi possível listar escolas. Verifique se a tabela workspaces existe. {e}")
-        workspaces = []
+    workspaces = cached_workspaces
+    if cached_workspaces_error:
+        st.warning(f"Não foi possível listar escolas. Verifique se a tabela workspaces existe. {cached_workspaces_error}")
 
     if not workspaces:
         st.info("Nenhuma escola cadastrada. Crie a primeira acima.")
@@ -192,6 +345,7 @@ with tab_escolas:
                                     ok, err = update_workspace_master_password(wid, nova_senha)
                                     if ok:
                                         st.success("Senha alterada.")
+                                        ou.track_usage_event("admin_master_password_reset", workspace_id=wid, metadata={"workspace": wname})
                                         st.rerun()
                                     else:
                                         st.error(err or "Erro ao alterar.")
@@ -216,6 +370,7 @@ with tab_escolas:
                                         st.error(err)
                                     else:
                                         st.success("Master criado.")
+                                        ou.track_usage_event("admin_master_created", workspace_id=wid, metadata={"workspace": wname, "email": m_email.strip().lower()})
                                         st.rerun()
                                 else:
                                     st.warning("Preencha Nome, Email, Senha e Cargo.")
@@ -237,6 +392,7 @@ with tab_escolas:
                         if st.button("Excluir", key=f"del_{mid}"):
                             if delete_member_permanently(mid):
                                 st.success("Excluído.")
+                                ou.track_usage_event("admin_member_deleted", workspace_id=wid, metadata={"member": mid})
                                 st.rerun()
                             else:
                                 st.error("Erro ao excluir.")

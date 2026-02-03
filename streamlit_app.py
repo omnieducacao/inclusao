@@ -112,7 +112,7 @@ def acesso_bloqueado(msg: str):
 try:
     q = st.query_params
     if q.get("omni_logout") == "1":
-        for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity", "is_platform_admin", "students_cache_invalid", "banco_estudantes", "accepted_terms"]:
+        for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity", "is_platform_admin", "students_cache_invalid", "banco_estudantes", "accepted_terms", "user_role"]:
             st.session_state.pop(k, None)
         try:
             st.query_params.clear()
@@ -190,6 +190,11 @@ elif not st.session_state.get("accepted_terms"):
     with col2:
         if st.button("Li e aceito. Continuar", use_container_width=True, type="primary"):
             st.session_state.accepted_terms = True
+            try:
+                import omni_utils as ou  # lazy import para evitar ciclos
+                ou.track_usage_event("terms_accepted", source="terms_gate")
+            except Exception:
+                pass
             st.rerun()
     st.stop()
 elif st.session_state.get("is_platform_admin"):
