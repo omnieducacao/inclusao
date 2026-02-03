@@ -9,24 +9,43 @@ import sys
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import importlib.util
+_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if _root not in sys.path:
+    sys.path.insert(0, _root)
 import omni_utils as ou
 
-try:
-    from services.school_config_service import (
-        SEGMENTS,
-        list_school_years,
-        create_school_year,
-        list_grades,
-        list_grades_for_workspace,
-        list_workspace_grades,
-        set_workspace_grades,
-        list_classes,
-        create_class,
-    )
-except ImportError as e:
-    st.error(f"Erro ao carregar configuração: {e}")
-    st.stop()
+# Import school_config_service (robusto para Streamlit Cloud)
+_scs_path = os.path.join(_root, "services", "school_config_service.py")
+if os.path.exists(_scs_path):
+    _spec = importlib.util.spec_from_file_location("school_config_service", _scs_path)
+    _scs = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_scs)
+    SEGMENTS = _scs.SEGMENTS
+    list_school_years = _scs.list_school_years
+    create_school_year = _scs.create_school_year
+    list_grades = _scs.list_grades
+    list_grades_for_workspace = _scs.list_grades_for_workspace
+    list_workspace_grades = _scs.list_workspace_grades
+    set_workspace_grades = _scs.set_workspace_grades
+    list_classes = _scs.list_classes
+    create_class = _scs.create_class
+else:
+    try:
+        from services.school_config_service import (
+            SEGMENTS,
+            list_school_years,
+            create_school_year,
+            list_grades,
+            list_grades_for_workspace,
+            list_workspace_grades,
+            set_workspace_grades,
+            list_classes,
+            create_class,
+        )
+    except ImportError as e:
+        st.error(f"Erro ao carregar configuração: {e}")
+        st.stop()
 
 try:
     from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
