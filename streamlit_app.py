@@ -28,24 +28,17 @@ st.set_page_config(
     menu_items=menu_items,
 )
 
-# Esconde chrome só fora do TESTE
+# Esconde menu do Streamlit (acesso a secrets) na página de abertura
 if ENV != "TESTE":
     st.markdown(
         """
         <style>
-          #MainMenu {visibility: hidden !important; display: none !important;}
-          footer {visibility: hidden !important; display: none !important;}
-          header {visibility: hidden !important; display: none !important;}
-          [data-testid="stToolbar"] {visibility: hidden !important; display: none !important;}
-          [data-testid="stDecoration"] {display: none !important; visibility: hidden !important;}
-          [data-testid="stStatusWidget"] {display: none !important; visibility: hidden !important;}
-          [data-testid="stDeployButton"] {display: none !important; visibility: hidden !important;}
-          button[title="View app source"] {display: none !important; visibility: hidden !important;}
-          button[title="Get help"] {display: none !important; visibility: hidden !important;}
-          button[title="Report a bug"] {display: none !important; visibility: hidden !important;}
-          button[title="Settings"] {display: none !important; visibility: hidden !important;}
-          [data-testid="stHeader"] {display: none !important; visibility: hidden !important;}
-          [data-testid="stToolbarActions"] {display: none !important; visibility: hidden !important;}
+          #MainMenu, [data-testid="stMainMenu"], .stMainMenu { display: none !important; visibility: hidden !important; }
+          footer, header, [data-testid="stHeader"] { display: none !important; visibility: hidden !important; }
+          [data-testid="stToolbar"], [data-testid="stToolbarActions"], [data-testid="stDecoration"] { display: none !important; visibility: hidden !important; }
+          [data-testid="stSidebar"], section[data-testid="stSidebar"], [data-testid="stSidebarNav"] { display: none !important; visibility: hidden !important; }
+          button[data-testid="collapsedControl"], button[aria-label*="Settings"], button[aria-label*="Menu"] { display: none !important; visibility: hidden !important; }
+          button[title*="Settings"], button[title*="Manage"], button[title*="View app"], .stDeployButton { display: none !important; visibility: hidden !important; }
         </style>
         """,
         unsafe_allow_html=True,

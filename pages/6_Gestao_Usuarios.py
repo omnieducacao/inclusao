@@ -47,15 +47,14 @@ st.set_page_config(
 ou.ensure_state()
 
 if not st.session_state.get("autenticado") or not st.session_state.get("workspace_id"):
-    st.error("🔒 Acesso restrito. Faça login.")
-    st.stop()
+    ou.render_acesso_bloqueado("Faça login para acessar a Gestão de Usuários.")
 
-# Só quem tem can_gestao ou não tem member (acesso total) pode ver esta página
 from ui.permissions import get_member_from_session, can_access
 if not can_access("gestao"):
-    st.error("🔒 Você não tem permissão para acessar a Gestão de Usuários.")
-    st.info("Entre em contato com o responsável pela escola para solicitar acesso.")
-    st.stop()
+    ou.render_acesso_bloqueado(
+        "Você não tem permissão para acessar a Gestão de Usuários.",
+        "Entre em contato com o responsável pela escola para solicitar acesso.",
+    )
 
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Gestão de Usuários")

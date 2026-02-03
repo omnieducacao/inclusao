@@ -46,13 +46,14 @@ st.markdown("<script>document.body.classList.add('page-purple');</script>", unsa
 # 4. VERIFICAÇÃO DE ACESSO
 def verificar_acesso():
     if not st.session_state.get("autenticado"):
-        st.error(f"{get_icon_emoji('erro')} Acesso Negado.")
-        st.stop()
+        ou.render_acesso_bloqueado("Faça login na Página Inicial para acessar o Plano de Ação (AEE).")
     try:
         from ui.permissions import can_access
         if not can_access("paee"):
-            st.error("🔒 Você não tem permissão para acessar o PAEE.")
-            st.stop()
+            ou.render_acesso_bloqueado(
+                "Você não tem permissão para acessar o PAEE.",
+                "Entre em contato com o responsável pela escola.",
+            )
     except Exception:
         pass
 

@@ -29,7 +29,7 @@ from services.monitoring_service import (
 
 try:
     from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
-    hide_streamlit_chrome_if_needed()
+    hide_streamlit_chrome_if_needed(show_for_admin=True)
     hide_default_sidebar_nav()
 except Exception:
     pass
@@ -44,9 +44,10 @@ st.set_page_config(
 ou.ensure_state()
 
 if not st.session_state.get("autenticado") or not st.session_state.get("is_platform_admin"):
-    st.error("🔒 Acesso restrito. Entre como administrador da plataforma.")
-    st.info("Na tela de login, expanda **Sou administrador da plataforma** e use email + senha.")
-    st.stop()
+    ou.render_acesso_bloqueado(
+        "Entre como administrador da plataforma.",
+        "Na tela de login, expanda Sou administrador da plataforma e use email + senha.",
+    )
 
 # Header e navbar padrão (igual às outras páginas)
 ou.render_omnisfera_header()

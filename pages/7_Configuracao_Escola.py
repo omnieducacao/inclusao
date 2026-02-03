@@ -66,13 +66,11 @@ st.set_page_config(
 ou.ensure_state()
 
 if not st.session_state.get("autenticado") or not st.session_state.get("workspace_id"):
-    st.error("🔒 Acesso restrito. Faça login.")
-    st.stop()
+    ou.render_acesso_bloqueado("Faça login para acessar a Configuração da Escola.")
 
 from ui.permissions import can_access
 if not can_access("gestao"):
-    st.error("🔒 Apenas quem gerencia usuários pode configurar a escola.")
-    st.stop()
+    ou.render_acesso_bloqueado("Apenas quem gerencia usuários pode configurar a escola.")
 
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Configuração Escola")

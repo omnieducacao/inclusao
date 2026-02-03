@@ -380,13 +380,14 @@ def save_assessment(student_id, rubric_data, observation):
 
 # Verificação de autenticação
 if not st.session_state.get("autenticado") or not st.session_state.get("workspace_id"):
-    st.warning("🔒 Acesso restrito. Faça login na Home.")
-    st.stop()
+    ou.render_acesso_bloqueado("Faça login na Home para acessar Evolução & Dados.")
 try:
     from ui.permissions import can_access
     if not can_access("avaliacao"):
-        st.error("🔒 Você não tem permissão para acessar Avaliação.")
-        st.stop()
+        ou.render_acesso_bloqueado(
+            "Você não tem permissão para acessar Evolução & Dados.",
+            "Entre em contato com o responsável pela escola.",
+        )
 except Exception:
     pass
 

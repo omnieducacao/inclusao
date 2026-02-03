@@ -122,13 +122,14 @@ ou.render_navbar(active_tab="Estudantes")
 
 # Verificação de segurança
 if not st.session_state.autenticado:
-    st.warning("🔒 Acesso restrito. Faça login na Home.")
-    st.stop()
+    ou.render_acesso_bloqueado("Faça login na Home para acessar Estudantes.")
 try:
     from ui.permissions import can_access, apply_member_filter
     if not can_access("estudantes"):
-        st.error("🔒 Você não tem permissão para acessar Estudantes.")
-        st.stop()
+        ou.render_acesso_bloqueado(
+            "Você não tem permissão para acessar Estudantes.",
+            "Entre em contato com o responsável pela escola.",
+        )
 except Exception:
     apply_member_filter = lambda x: x  # fallback
 

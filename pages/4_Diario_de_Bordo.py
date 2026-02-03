@@ -272,13 +272,14 @@ st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 def verificar_acesso():
     """Verifica se o usuário está autenticado."""
     if not st.session_state.get("autenticado"):
-        st.error("🔒 Acesso Negado. Por favor, faça login na Página Inicial.")
-        st.stop()
+        ou.render_acesso_bloqueado("Faça login na Página Inicial para acessar o Diário de Bordo.")
     try:
         from ui.permissions import can_access
         if not can_access("diario"):
-            st.error("🔒 Você não tem permissão para acessar o Diário de Bordo.")
-            st.stop()
+            ou.render_acesso_bloqueado(
+                "Você não tem permissão para acessar o Diário de Bordo.",
+                "Entre em contato com o responsável pela escola.",
+            )
     except Exception:
         pass
 

@@ -20,36 +20,19 @@ def _env():
 
 
 def hide_streamlit():
-    # Se ENV="TESTE" no secrets, NÃO esconde o menu (pra debugar)
+    """Esconde menu do Streamlit (acesso a secrets) na página de login."""
     if _env() == "TESTE":
         return
-
     st.markdown(
         """
         <style>
-            /* Esconde todos os menus e controles do Streamlit */
-            #MainMenu { visibility: hidden !important; display: none !important; }
-            footer { visibility: hidden !important; display: none !important; }
-            header[data-testid="stHeader"] { display: none !important; visibility: hidden !important; }
-            [data-testid="stToolbar"] { visibility: hidden !important; display: none !important; }
-            [data-testid="stDecoration"] { display: none !important; visibility: hidden !important; }
-            [data-testid="stStatusWidget"] { display: none !important; visibility: hidden !important; }
-            [data-testid="stDeployButton"] { display: none !important; visibility: hidden !important; }
-            [data-testid="stSidebar"] { display: none !important; visibility: hidden !important; }
-            section[data-testid="stSidebar"] { display: none !important; visibility: hidden !important; }
-            [data-testid="stSidebarNav"] { display: none !important; visibility: hidden !important; }
-            button[data-testid="collapsedControl"] { display: none !important; visibility: hidden !important; }
-            button[title="View app source"] { display: none !important; visibility: hidden !important; }
-            button[title="Get help"] { display: none !important; visibility: hidden !important; }
-            button[title="Report a bug"] { display: none !important; visibility: hidden !important; }
-            button[title="Settings"] { display: none !important; visibility: hidden !important; }
-            .stDeployButton { display: none !important; visibility: hidden !important; }
-            #stDecoration { display: none !important; visibility: hidden !important; }
-            .stAppToolbar { display: none !important; visibility: hidden !important; }
-            [data-testid="stAppViewContainer"] > header { display: none !important; visibility: hidden !important; }
-            [data-testid="stHeader"] { display: none !important; visibility: hidden !important; }
-            [data-testid="stToolbarActions"] { display: none !important; visibility: hidden !important; }
-            [data-testid="stToolbar"] > div { display: none !important; visibility: hidden !important; }
+            #MainMenu, [data-testid="stMainMenu"], .stMainMenu { display: none !important; visibility: hidden !important; }
+            footer, header, [data-testid="stHeader"] { display: none !important; visibility: hidden !important; }
+            [data-testid="stToolbar"], [data-testid="stToolbarActions"], [data-testid="stDecoration"] { display: none !important; visibility: hidden !important; }
+            [data-testid="stSidebar"], section[data-testid="stSidebar"], [data-testid="stSidebarNav"] { display: none !important; visibility: hidden !important; }
+            button[data-testid="collapsedControl"], button[aria-label*="Settings"], button[aria-label*="Menu"] { display: none !important; visibility: hidden !important; }
+            button[title*="Settings"], button[title*="Manage"], button[title*="View app"], .stDeployButton { display: none !important; visibility: hidden !important; }
+            [data-testid="stAppViewContainer"] > header { display: none !important; }
         </style>
         """,
         unsafe_allow_html=True
@@ -71,146 +54,117 @@ TEXT = b64("omni_texto.png")
 
 
 # ==============================================================================
-# CSS GLOBAL (Nunito)
+# CSS GLOBAL — Login profissional
 # ==============================================================================
 def inject_css():
     st.markdown(
         """
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         html, body, [class*="css"] {
-            font-family: 'Nunito', sans-serif;
-            background: #F7FAFC;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
+            min-height: 100vh;
             color: #0f172a;
         }
 
-        /* Container Centralizado */
         .wrap {
-            max-width: 620px;
-            margin: auto;
-            padding-top: 30px;
-            padding-bottom: 40px;
-        }
-        
-        /* Remove espaço extra do Streamlit */
-        .block-container {
-            padding-top: 1rem !important;
-            max-width: 620px !important;
-            margin: 0 auto !important;
-        }
-        
-        /* Centraliza e limita largura dos inputs */
-        .element-container {
-            max-width: 100% !important;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 48px 24px 64px;
         }
 
+        .block-container {
+            padding-top: 2rem !important;
+            max-width: 480px !important;
+            margin: 0 auto !important;
+        }
+
+        .element-container { max-width: 100% !important; }
+
         .brand {
-            display:flex;
+            display: flex;
             flex-direction: column;
-            align-items:center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 24px;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
         }
 
         .logoSpin img {
-            width: 70px;
-            animation: spin 12s linear infinite;
+            width: 80px;
+            filter: drop-shadow(0 4px 12px rgba(255,255,255,0.15));
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
-
         .logoText img {
-            height: 38px;
+            height: 42px;
+            filter: brightness(1.1);
         }
 
         .welcome {
             text-align: center;
-            margin: 6px auto 18px auto;
-            color: #334155;
-            font-size: 14px;
-            line-height: 1.5;
-            font-weight: 700;
-            max-width: 560px;
+            margin: 0 auto 24px;
+            color: rgba(255,255,255,0.9);
+            font-size: 15px;
+            line-height: 1.6;
+            font-weight: 600;
+            max-width: 420px;
         }
 
         .welcome small {
             display: block;
-            margin-top: 6px;
-            font-weight: 700;
-            color: #64748B;
-            font-size: 14px;
+            margin-top: 8px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.65);
+            font-size: 13px;
         }
 
-        /* Card de Login */
         .card {
-            background: white;
-            border-radius: 20px;
-            border: 1px solid #E2E8F0;
-            padding: 28px;
-            box-shadow: 0 10px 40px rgba(15,23,42,.06);
+            background: #ffffff;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 32px 28px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05);
         }
 
-        /* Responsivo - Mobile */
         @media (max-width: 768px) {
-            .wrap { max-width: 92vw; }
+            .wrap { max-width: 92vw; padding: 32px 16px; }
         }
 
-        /* Inputs Elegantes */
-        div[data-testid="stTextInput"] {
-            max-width: 100% !important;
-        }
         div[data-testid="stTextInput"] input {
-            border-radius: 12px;
-            border: 1px solid #CBD5E1;
-            background-color: #F8FAFC;
-            color: #334155;
-            padding: 10px 12px;
-            width: 100%;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #1e293b;
+            padding: 12px 16px;
+            font-weight: 500;
         }
         div[data-testid="stTextInput"] input:focus {
-            border-color: #94A3B8;
-            background-color: #FFFFFF;
-            box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
 
-        .err {
-            margin-top: 12px;
-            padding: 12px;
-            border-radius: 14px;
-            background: #FEE2E2;
-            border: 1px solid #FCA5A5;
-            color: #7F1D1D;
-            font-weight: 900;
-            text-align: center;
-        }
-
-        .warn {
-            margin-top: 12px;
-            padding: 12px;
-            border-radius: 14px;
-            background: #FEF3C7;
-            border: 1px solid #FDE68A;
-            color: #92400E;
-            font-weight: 900;
-            text-align: center;
-        }
-
-        /* Botão - Cor padrão (azul marinho) */
         div[data-testid="stButton"] button {
             width: 100%;
-            border-radius: 12px;
-            font-weight: 800;
-            padding: 0.5rem 1rem;
-            background: linear-gradient(135deg, #1E3A8A, #1E40AF) !important;
+            border-radius: 14px;
+            font-weight: 700;
+            padding: 12px 1rem;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
             border: none !important;
-            color: #ffffff !important;
+            color: #fff !important;
         }
         div[data-testid="stButton"] button:hover {
-            background: linear-gradient(135deg, #1E40AF, #1E3A8A) !important;
+            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
             transform: translateY(-1px);
-            box-shadow: 0 10px 22px rgba(30, 58, 138, 0.3) !important;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35) !important;
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 28px;
+            color: rgba(255,255,255,0.4);
+            font-size: 11px;
+            font-weight: 500;
         }
         </style>
         """,
@@ -371,13 +325,8 @@ def render_login():
 
     st.markdown("</div>", unsafe_allow_html=True)  # Fim Card
 
-    # Info técnica discreta
     st.markdown(
-        f"""
-        <div style="text-align:center; margin-top:20px; color:#CBD5E1; font-size:11px; font-weight:500;">
-            SECURE LOGIN • RPC: {RPC_NAME}
-        </div>
-        """,
+        f'<div class="login-footer">Acesso seguro • RPC: {RPC_NAME}</div>',
         unsafe_allow_html=True
     )
 

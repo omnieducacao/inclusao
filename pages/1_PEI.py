@@ -150,8 +150,7 @@ api_key = (api_key or "").strip() or None
 # ==============================================================================
 def verificar_login_app():
     if "autenticado" not in st.session_state or not st.session_state["autenticado"]:
-        st.error("🔒 Acesso Negado. Faça login na Página Inicial.")
-        st.stop()
+        ou.render_acesso_bloqueado("Faça login na Página Inicial para acessar o PEI.")
 
 def verificar_login_supabase():
     # Supabase é necessário para SALVAR/CARREGAR, mas o PEI pode abrir como rascunho.
@@ -167,8 +166,10 @@ verificar_login_supabase()
 try:
     from ui.permissions import can_access
     if not can_access("pei"):
-        st.error("🔒 Você não tem permissão para acessar o PEI.")
-        st.stop()
+        ou.render_acesso_bloqueado(
+            "Você não tem permissão para acessar o PEI.",
+            "Entre em contato com o responsável pela escola.",
+        )
 except Exception:
     pass
 

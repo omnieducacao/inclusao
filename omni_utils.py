@@ -174,6 +174,47 @@ def ensure_state():
         st.session_state.last_activity = None
 
 
+def render_acesso_bloqueado(msg: str, info_extra: str = ""):
+    """
+    Exibe tela de acesso restrito com botão para ir ao login.
+    Chama st.stop() após renderizar.
+    """
+    import html as _html
+    _msg = _html.escape(str(msg))
+    _info = _html.escape(str(info_extra)) if info_extra else ""
+    _info_div = f'<div style="margin-top:12px; color:#94A3B8; font-size:0.85rem;">{_info}</div>' if _info else ""
+    st.markdown(
+        f"""
+        <div style="
+            max-width:480px; margin:80px auto; padding:32px;
+            background:white; border-radius:20px; border:1px solid #E2E8F0;
+            box-shadow:0 20px 40px rgba(0,0,0,0.08); text-align:center;
+        ">
+            <div style="font-size:3rem; margin-bottom:16px;">🔐</div>
+            <div style="font-weight:800; font-size:1.2rem; color:#1E293B; margin-bottom:8px;">Acesso restrito</div>
+            <div style="color:#64748B; font-size:0.95rem; line-height:1.5;">{_msg}</div>
+            {_info_div}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🔓 Ir para o Login", use_container_width=True, type="primary"):
+            for k in list(st.session_state.keys()):
+                st.session_state.pop(k, None)
+            try:
+                st.switch_page("streamlit_app.py")
+            except Exception:
+                st.markdown(
+                    '<div style="text-align:center; margin-top:12px;">'
+                    '<a href="/" target="_self" style="display:inline-block; padding:12px 20px; border-radius:12px; '
+                    'background:#2563EB; color:white; font-weight:700; text-decoration:none;">Fazer Login</a></div>',
+                    unsafe_allow_html=True,
+                )
+    st.stop()
+
+
 def _do_logout():
     """Limpa sessão e redireciona para login."""
     for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity", "is_platform_admin", "students_cache_invalid", "banco_estudantes"]:
