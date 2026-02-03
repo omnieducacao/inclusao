@@ -363,8 +363,8 @@ def render_login():
             try:
                 from services.members_service import find_user_by_email, verify_workspace_master, verify_member_password
                 found = find_user_by_email(email.strip().lower())
-                    if not found:
-                        st.error("Email não encontrado. Verifique seus dados.")
+                if not found:
+                    st.error("Email não encontrado. Verifique seus dados.")
                 else:
                     ws_id = found["workspace_id"]
                     ws_name = found.get("workspace_name", "")

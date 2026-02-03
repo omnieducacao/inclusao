@@ -1,12 +1,13 @@
 # supabase_client.py
 import os
+from typing import Optional, Tuple
 import streamlit as st
 
 # 🔒 Nome da função RPC
 RPC_NAME = "workspace_from_pin"
 
 
-def _get_secret(name: str) -> str | None:
+def _get_secret(name: str) -> Optional[str]:
     """Lê env var e secrets (Streamlit Cloud aceita .get, atributo ou [key])."""
     def _norm(val):
         if val is None:
@@ -46,7 +47,7 @@ def _get_secret(name: str) -> str | None:
     return None
 
 
-def _get_supabase_url_and_key() -> tuple[str | None, str | None]:
+def _get_supabase_url_and_key() -> Tuple[Optional[str], Optional[str]]:
     """
     Tenta obter URL e chave do Supabase de várias fontes (Streamlit Cloud
     pode usar chaves no nível raiz ou dentro de [supabase]).
@@ -125,7 +126,7 @@ def get_supabase():
     return get_sb()
 
 
-def rpc_workspace_from_pin(pin: str) -> dict | None:
+def rpc_workspace_from_pin(pin: str) -> Optional[dict]:
     """
     Chama a função:
     public.workspace_from_pin(p_pin text)
