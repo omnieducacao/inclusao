@@ -321,32 +321,28 @@ else:
                         st.error("Nome e email são obrigatórios.")
                     else:
                         ok, err = update_member(
-                                member_id=editing_id,
-                                nome=nome_ed,
-                                email=email_ed,
-                                password=senha_ed if senha_ed and len(senha_ed) >= 4 else None,
-                                telefone=telefone_ed,
-                                can_estudantes=can_est_ed,
-                                can_pei=can_pei_ed,
-                                can_paee=can_paee_ed,
-                                can_hub=can_hub_ed,
-                                can_diario=can_diario_ed,
-                                can_avaliacao=can_aval_ed,
-                                can_gestao=can_gestao_ed,
-                                link_type=link_type_ed,
-                                class_assignments=teacher_assignments_ed if link_type_ed == "turma" else None,
-                                student_ids=student_ids_ed if link_type_ed == "tutor" else None,
-                            )
-                            if err:
-                                if "23505" in err and "email" in err:
-                                    st.error("Este email já está em uso. Use outro.")
-                                else:
-                                    st.error(f"Erro: {err}")
+                            member_id=editing_id,
+                            nome=nome_ed,
+                            email=email_ed,
+                            password=senha_ed if senha_ed and len(senha_ed) >= 4 else None,
+                            telefone=telefone_ed,
+                            can_estudantes=can_est_ed,
+                            can_pei=can_pei_ed,
+                            can_paee=can_paee_ed,
+                            can_hub=can_hub_ed,
+                            can_diario=can_diario_ed,
+                            can_avaliacao=can_aval_ed,
+                            can_gestao=can_gestao_ed,
+                            link_type=link_type_ed,
+                            class_assignments=teacher_assignments_ed if link_type_ed == "turma" else None,
+                            student_ids=student_ids_ed if link_type_ed == "tutor" else None,
+                        )
+                        if err:
+                            if "23505" in err and "email" in err:
+                                st.error("Este email já está em uso. Use outro.")
                             else:
-                                st.success("Usuário atualizado.")
-                                st.session_state.pop("gestao_editing_id", None)
-                                st.rerun()
-                with col_btn2:
-                    if st.form_submit_button("Cancelar"):
-                        st.session_state.pop("gestao_editing_id", None)
-                        st.rerun()
+                                st.error(f"Erro: {err}")
+                        else:
+                            st.success("Usuário atualizado.")
+                            st.session_state.pop("gestao_editing_id", None)
+                            st.rerun()
