@@ -180,7 +180,10 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
                     student_ids=student_ids if link_type == "tutor" else None,
                 )
                 if err:
-                    st.error(f"Erro ao salvar: {err}")
+                    if "23505" in err and "workspace_id" in err and "email" in err:
+                        st.error("Este email já está cadastrado neste workspace. Use outro email ou desative o usuário existente para reutilizar.")
+                    else:
+                        st.error(f"Erro ao salvar: {err}")
                 else:
                     st.success(f"Usuário {nome} cadastrado. Peça para acessar com PIN da escola e selecionar o email no login.")
                     st.session_state["gestao_show_form"] = False
