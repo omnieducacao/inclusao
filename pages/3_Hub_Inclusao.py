@@ -1547,10 +1547,10 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
         
         col1, col2, col3 = st.columns(3)
         with col1:
-            disciplina = st.selectbox("Componente Curricular", DISCIPLINAS_PADRAO, key=f"disc_basico_{key_suffix}")
-        with col2:
-            ano = st.selectbox("Ano", ordenar_anos(["1", "2", "3", "4", "5", "6", "7", "8", "9", "1EM", "2EM", "3EM"]), 
+            ano = st.selectbox("Ano (PEI)", ordenar_anos(["1", "2", "3", "4", "5", "6", "7", "8", "9", "1EM", "2EM", "3EM"]), 
                               key=f"ano_basico_{key_suffix}")
+        with col2:
+            disciplina = st.selectbox("Componente Curricular", DISCIPLINAS_PADRAO, key=f"disc_basico_{key_suffix}")
         with col3:
             objeto = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
                                   key=f"obj_basico_{key_suffix}")
@@ -1580,32 +1580,34 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
         
         return ano, disciplina, unidade, objeto, habilidades
     
-    # TEMOS DADOS - criar dropdowns conectados (Componente → Ano)
+    # TEMOS DADOS - Ano PRIMEIRO (do PEI), depois Componente filtrado por ano
+    # Ordem: Ano → Componente Curricular → Unidade → Objeto → Habilidades
     
-    # Linha 1: Componente Curricular, Ano, Unidade Temática
+    # Linha 1: Ano (do PEI), Componente Curricular (filtrado por ano), Unidade Temática
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        # Primeiro: Componente Curricular (sem filtro)
-        disciplinas = sorted(dados['Disciplina'].dropna().unique())
-        disciplina_selecionada = st.selectbox("Componente Curricular", disciplinas, key=f"disc_bncc_{key_suffix}")
-    
-    with col2:
-        # Segundo: Ano (filtrado por Componente) — pré-preenche com ano do estudante se aluno passado
+        # Primeiro: Ano — determinado pelo PEI do estudante
+        anos_originais = dados['Ano'].dropna().unique().tolist()
+        anos_ordenados = ordenar_anos(anos_originais)
         ano_padrao = extrair_ano_bncc_do_aluno(aluno) if aluno else None
         index_ano = 0
-        if disciplina_selecionada:
-            disc_filtradas = dados[dados['Disciplina'] == disciplina_selecionada]
-            anos_originais = disc_filtradas['Ano'].dropna().unique().tolist()
-            anos_ordenados = ordenar_anos(anos_originais)
-            if ano_padrao and anos_ordenados:
-                for i, a in enumerate(anos_ordenados):
-                    if ano_celula_contem(a, ano_padrao) or str(a).strip() == str(ano_padrao).strip():
-                        index_ano = i
-                        break
-            ano_selecionado = st.selectbox("Ano", anos_ordenados, index=index_ano, key=f"ano_bncc_{key_suffix}")
+        if ano_padrao and anos_ordenados:
+            for i, a in enumerate(anos_ordenados):
+                if ano_celula_contem(a, ano_padrao) or str(a).strip() == str(ano_padrao).strip():
+                    index_ano = i
+                    break
+        ano_selecionado = st.selectbox("Ano (PEI)", anos_ordenados, index=index_ano, key=f"ano_bncc_{key_suffix}")
+    
+    with col2:
+        # Segundo: Componente Curricular — apenas disciplinas que têm conteúdo para o ano do PEI
+        if ano_selecionado:
+            mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_selecionado).strip() or ano_celula_contem(x, ano_selecionado))
+            df_por_ano = dados[mask_ano]
+            disciplinas = sorted(df_por_ano['Disciplina'].dropna().unique())
+            disciplina_selecionada = st.selectbox("Componente Curricular", disciplinas, key=f"disc_bncc_{key_suffix}")
         else:
-            ano_selecionado = None
+            disciplina_selecionada = None
     
     with col3:
         if ano_selecionado and disciplina_selecionada:
@@ -1871,32 +1873,33 @@ def render_aba_adaptar_prova(aluno, api_key):
             st.session_state.bncc_df_completo = carregar_bncc_completa()
         dados = st.session_state.bncc_df_completo
         
-        # Linha 1: Componente, Ano, Unidade
+        # Linha 1: Ano (PEI) primeiro, depois Componente filtrado por ano, Unidade
         col_bncc1, col_bncc2, col_bncc3 = st.columns(3)
         with col_bncc1:
-            if dados is not None and not dados.empty:
-                disciplinas = sorted(dados['Disciplina'].dropna().unique())
-                disciplina_bncc = st.selectbox("Componente Curricular", disciplinas, key="disc_adaptar_prova_compact")
-            else:
-                disciplina_bncc = st.selectbox("Componente Curricular", 
-                                             ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"],
-                                             key="disc_adaptar_prova_compact")
-        with col_bncc2:
             ano_padrao = extrair_ano_bncc_do_aluno(aluno) if aluno else None
             index_ano = 0
-            if dados is not None and not dados.empty and disciplina_bncc:
-                disc_filtradas = dados[dados['Disciplina'] == disciplina_bncc]
-                anos_originais = disc_filtradas['Ano'].dropna().unique().tolist()
+            if dados is not None and not dados.empty:
+                anos_originais = dados['Ano'].dropna().unique().tolist()
                 anos_ordenados = ordenar_anos(anos_originais)
                 if ano_padrao and anos_ordenados:
                     for i, a in enumerate(anos_ordenados):
                         if ano_celula_contem(a, ano_padrao) or str(a).strip() == str(ano_padrao).strip():
                             index_ano = i
                             break
-                ano_bncc = st.selectbox("Ano", anos_ordenados, index=index_ano, key="ano_adaptar_prova_compact")
+                ano_bncc = st.selectbox("Ano (PEI)", anos_ordenados, index=index_ano, key="ano_adaptar_prova_compact")
             else:
-                ano_bncc = st.selectbox("Ano", ordenar_anos(["1", "2", "3", "4", "5", "6", "7", "8", "9", "1EM", "2EM", "3EM"]), 
+                ano_bncc = st.selectbox("Ano (PEI)", ordenar_anos(["1", "2", "3", "4", "5", "6", "7", "8", "9", "1EM", "2EM", "3EM"]), 
                                       key="ano_adaptar_prova_compact")
+        with col_bncc2:
+            if dados is not None and not dados.empty and ano_bncc:
+                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
+                df_por_ano = dados[mask_ano]
+                disciplinas = sorted(df_por_ano['Disciplina'].dropna().unique())
+                disciplina_bncc = st.selectbox("Componente Curricular", disciplinas, key="disc_adaptar_prova_compact")
+            else:
+                disciplina_bncc = st.selectbox("Componente Curricular", 
+                                             ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"],
+                                             key="disc_adaptar_prova_compact")
         with col_bncc3:
             if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
@@ -2143,32 +2146,33 @@ def render_aba_adaptar_atividade(aluno, api_key):
             st.session_state.bncc_df_completo = carregar_bncc_completa()
         dados = st.session_state.bncc_df_completo
         
-        # Linha 1: Componente, Ano, Unidade
+        # Linha 1: Ano (PEI) primeiro, depois Componente filtrado por ano, Unidade
         col_bncc1, col_bncc2, col_bncc3 = st.columns(3)
         with col_bncc1:
-            if dados is not None and not dados.empty:
-                disciplinas = sorted(dados['Disciplina'].dropna().unique())
-                disciplina_bncc = st.selectbox("Componente Curricular", disciplinas, key="disc_adaptar_atividade_compact")
-            else:
-                disciplina_bncc = st.selectbox("Componente Curricular", 
-                                         ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"],
-                                         key="disc_adaptar_atividade_compact")
-        with col_bncc2:
             ano_padrao = extrair_ano_bncc_do_aluno(aluno) if aluno else None
             index_ano = 0
-            if dados is not None and not dados.empty and disciplina_bncc:
-                disc_filtradas = dados[dados['Disciplina'] == disciplina_bncc]
-                anos_originais = disc_filtradas['Ano'].dropna().unique().tolist()
+            if dados is not None and not dados.empty:
+                anos_originais = dados['Ano'].dropna().unique().tolist()
                 anos_ordenados = ordenar_anos(anos_originais)
                 if ano_padrao and anos_ordenados:
                     for i, a in enumerate(anos_ordenados):
                         if ano_celula_contem(a, ano_padrao) or str(a).strip() == str(ano_padrao).strip():
                             index_ano = i
                             break
-                ano_bncc = st.selectbox("Ano", anos_ordenados, index=index_ano, key="ano_adaptar_atividade_compact")
+                ano_bncc = st.selectbox("Ano (PEI)", anos_ordenados, index=index_ano, key="ano_adaptar_atividade_compact")
             else:
-                ano_bncc = st.selectbox("Ano", ordenar_anos(["1", "2", "3", "4", "5", "6", "7", "8", "9", "1EM", "2EM", "3EM"]), 
+                ano_bncc = st.selectbox("Ano (PEI)", ordenar_anos(["1", "2", "3", "4", "5", "6", "7", "8", "9", "1EM", "2EM", "3EM"]), 
                                   key="ano_adaptar_atividade_compact")
+        with col_bncc2:
+            if dados is not None and not dados.empty and ano_bncc:
+                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
+                df_por_ano = dados[mask_ano]
+                disciplinas = sorted(df_por_ano['Disciplina'].dropna().unique())
+                disciplina_bncc = st.selectbox("Componente Curricular", disciplinas, key="disc_adaptar_atividade_compact")
+            else:
+                disciplina_bncc = st.selectbox("Componente Curricular", 
+                                         ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"],
+                                         key="disc_adaptar_atividade_compact")
         with col_bncc3:
             if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
@@ -2456,29 +2460,31 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
             st.session_state.bncc_df_completo = carregar_bncc_completa()
         dados = st.session_state.bncc_df_completo
         
-        # Linha 1: Componente, Ano, Unidade
+        # Linha 1: Ano (PEI) primeiro, depois Componente filtrado por ano, Unidade
         c1, c2, c3 = st.columns(3)
         with c1:
+            ano_padrao = extrair_ano_bncc_do_aluno(aluno) if aluno else None
+            index_ano = 0
             if dados is not None and not dados.empty:
-                disciplinas = sorted(dados['Disciplina'].dropna().unique())
-                disciplina_bncc = st.selectbox("Componente Curricular", disciplinas, key="disc_criar_zero")
-            else:
-                disciplina_bncc = st.selectbox("Componente Curricular", 
-                    ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"], key="disc_criar_zero")
-        with c2:
-            if dados is not None and not dados.empty and disciplina_bncc:
-                disc_f = dados[dados['Disciplina'] == disciplina_bncc]
-                anos_ord = ordenar_anos(disc_f['Ano'].dropna().unique().tolist())
-                ano_padrao = extrair_ano_bncc_do_aluno(aluno) if aluno else None
-                index_ano = 0
+                anos_originais = dados['Ano'].dropna().unique().tolist()
+                anos_ord = ordenar_anos(anos_originais)
                 if ano_padrao and anos_ord:
                     for i, a in enumerate(anos_ord):
                         if ano_celula_contem(a, ano_padrao) or str(a).strip() == str(ano_padrao).strip():
                             index_ano = i
                             break
-                ano_bncc = st.selectbox("Ano", anos_ord, index=index_ano, key="ano_criar_zero")
+                ano_bncc = st.selectbox("Ano (PEI)", anos_ord, index=index_ano, key="ano_criar_zero")
             else:
-                ano_bncc = st.selectbox("Ano", ordenar_anos(["1", "2", "3", "4", "5", "6", "7", "8", "9", "1EM", "2EM", "3EM"]), key="ano_criar_zero")
+                ano_bncc = st.selectbox("Ano (PEI)", ordenar_anos(["1", "2", "3", "4", "5", "6", "7", "8", "9", "1EM", "2EM", "3EM"]), key="ano_criar_zero")
+        with c2:
+            if dados is not None and not dados.empty and ano_bncc:
+                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
+                df_por_ano = dados[mask_ano]
+                disciplinas = sorted(df_por_ano['Disciplina'].dropna().unique())
+                disciplina_bncc = st.selectbox("Componente Curricular", disciplinas, key="disc_criar_zero")
+            else:
+                disciplina_bncc = st.selectbox("Componente Curricular", 
+                    ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"], key="disc_criar_zero")
         with c3:
             if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
