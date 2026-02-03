@@ -94,6 +94,10 @@ def inject_css():
         .logoSpin img {
             width: 80px;
             filter: drop-shadow(0 4px 12px rgba(255,255,255,0.15));
+            animation: logo-spin 14s linear infinite;
+        }
+        @keyframes logo-spin {
+            to { transform: rotate(360deg); }
         }
 
         .logoText img {
@@ -166,6 +170,24 @@ def inject_css():
             font-size: 11px;
             font-weight: 500;
         }
+
+        .admin-corner {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 100;
+        }
+        .admin-corner button {
+            font-size: 12px !important;
+            padding: 6px 12px !important;
+            background: rgba(255,255,255,0.1) !important;
+            color: rgba(255,255,255,0.9) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+        }
+        .admin-corner button:hover {
+            background: rgba(255,255,255,0.15) !important;
+        }
+        .login-relative { position: relative; }
         </style>
         """,
         unsafe_allow_html=True
@@ -219,66 +241,61 @@ def render_login():
     hide_streamlit()
     inject_css()
 
-    # Container Principal
-    st.markdown('<div class="wrap">', unsafe_allow_html=True)
+    st.markdown('<div class="wrap login-relative">', unsafe_allow_html=True)
 
-    # 1. Logo Centralizada (Ícone acima do Texto)
+    # Admin no canto direito
+    ac1, ac2 = st.columns([5, 1])
+    with ac2:
+        with st.expander("🔧 Admin", expanded=False):
+            st.caption("Termo de uso: Admin → Termo de Uso")
+            admin_email = st.text_input("Email admin", placeholder="seu@email.com", key="login_admin_email")
+            admin_senha = st.text_input("Senha admin", type="password", placeholder="****", key="login_admin_senha")
+            if st.button("Entrar como admin", key="btn_admin"):
+                if not admin_email or not admin_senha:
+                    st.error("Informe email e senha.")
+                else:
+                    try:
+                        from services.admin_service import verify_platform_admin, list_platform_admins
+                        admins = list_platform_admins()
+                        if not admins:
+                            st.warning("Nenhum admin cadastrado. Criar no Supabase.")
+                            st.caption("Execute supabase/migrations/00013_seed_admin.sql")
+                        elif verify_platform_admin(admin_email.strip().lower(), admin_senha):
+                            st.session_state.autenticado = True
+                            st.session_state.is_platform_admin = True
+                            st.session_state.workspace_id = None
+                            st.session_state.workspace_name = None
+                            st.session_state.usuario_nome = "Admin"
+                            st.session_state.member = None
+                            st.session_state.user_role = "platform_admin"
+                            if hasattr(ou, "track_usage_event"):
+                                try:
+                                    ou.track_usage_event("login_admin_success", source="login_view")
+                                except Exception:
+                                    pass
+                            st.rerun()
+                        else:
+                            st.error("Email ou senha incorretos.")
+                    except Exception as e:
+                        st.error(str(e))
+
+    # Logo centralizada (com animação de rotação)
     st.markdown(
         f"""
         <div class="brand">
-            <div class="logoSpin"><img src="data:image/png;base64,{ICON}"></div>
-            <div class="logoText"><img src="data:image/png;base64,{TEXT}"></div>
+            <div class="logoSpin"><img src="data:image/png;base64,{ICON}" alt="Omnisfera"></div>
+            <div class="logoText"><img src="data:image/png;base64,{TEXT}" alt="OMNISFERA"></div>
         </div>
         <div class="welcome">
             Olá, educador(a)! Desenvolvemos a Omnisfera com cuidado e dedicação para transformar a inclusão em uma realidade mais leve e possível na sua escola.
             <small>Preencha os dados abaixo para continuar.</small>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
-    # 2. Cartão de Login
+    # Cartão de Login
     st.markdown('<div class="card">', unsafe_allow_html=True)
-
-    # Opção ADMIN (entrada só com email + senha)
-    with st.expander("🔧 Sou administrador da plataforma", expanded=False):
-        st.caption("O termo de uso é editado em **Admin → Termo de Uso** após o login.")
-        admin_email = st.text_input("Email admin", placeholder="seu@email.com", key="login_admin_email")
-        admin_senha = st.text_input("Senha admin", type="password", placeholder="****", key="login_admin_senha")
-        if st.button("Entrar como admin", key="btn_admin"):
-            if not admin_email or not admin_senha:
-                st.error("Informe email e senha.")
-            else:
-                try:
-                    from services.admin_service import verify_platform_admin, list_platform_admins
-                    admins = list_platform_admins()
-                    if not admins:
-                        st.warning("Nenhum admin cadastrado. O primeiro admin deve ser criado no Supabase (segurança).")
-                        st.caption("No Supabase → SQL Editor, execute o arquivo supabase/migrations/00013_seed_admin.sql após substituir email, senha e nome.")
-                        st.code(
-                            "CREATE EXTENSION IF NOT EXISTS pgcrypto;\n\n"
-                            "INSERT INTO platform_admins (email, password_hash, nome)\n"
-                            "VALUES ('seu@email.com', crypt('SuaSenha123', gen_salt('bf')), 'Seu Nome')\n"
-                            "ON CONFLICT (email) DO NOTHING;",
-                            language="sql",
-                        )
-                    elif verify_platform_admin(admin_email.strip().lower(), admin_senha):
-                        st.session_state.autenticado = True
-                        st.session_state.is_platform_admin = True
-                        st.session_state.workspace_id = None
-                        st.session_state.workspace_name = None
-                        st.session_state.usuario_nome = "Admin"
-                        st.session_state.member = None
-                        st.session_state.user_role = "platform_admin"
-                        ou.track_usage_event("login_admin_success", source="login_view")
-                        st.rerun()
-                    else:
-                        st.error("Email ou senha incorretos.")
-                except Exception as e:
-                    st.error(str(e))
-        st.caption("Admin cria escolas, gera PIN e gerencia masters. Primeiro admin: criar no Supabase.")
-
-    # Entrada principal: email + senha (nome e cargo vêm do cadastro)
     st.markdown("**Entrar na plataforma**")
     email = st.text_input("Email", placeholder="seu@escola.com", key="login_email")
     senha = st.text_input("Senha", type="password", placeholder="****", key="login_senha")
@@ -323,11 +340,10 @@ def render_login():
             except Exception as e:
                 st.error(str(e))
 
-    st.markdown("</div>", unsafe_allow_html=True)  # Fim Card
+    st.markdown("</div>", unsafe_allow_html=True)  # Fim card
 
     st.markdown(
         f'<div class="login-footer">Acesso seguro • RPC: {RPC_NAME}</div>',
         unsafe_allow_html=True
     )
-
-    st.markdown("</div>", unsafe_allow_html=True)  # Fim Wrap
+    st.markdown("</div>", unsafe_allow_html=True)  # Fim wrap
