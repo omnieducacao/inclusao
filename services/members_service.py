@@ -54,6 +54,53 @@ def _hash_password(plain: str) -> str | None:
     return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
+def get_workspace_master(workspace_id: str) -> Optional[dict]:
+    """Retorna o master do workspace (se existir)."""
+    url = f"{_base()}/rest/v1/workspace_masters"
+    params = {"workspace_id": f"eq.{workspace_id}", "select": "workspace_id,email,password_hash,nome"}
+    r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=10)
+    if r.status_code != 200:
+        return None
+    data = r.json()
+    if not isinstance(data, list) or not data:
+        return None
+    return data[0]
+
+
+def verify_workspace_master(workspace_id: str, email: str, password: str) -> bool:
+    """Verifica se o email+senha correspondem ao master do workspace."""
+    master = get_workspace_master(workspace_id)
+    if not master:
+        return False
+    if (master.get("email") or "").strip().lower() != (email or "").strip().lower():
+        return False
+    ph = master.get("password_hash")
+    if not ph or not password or not bcrypt:
+        return False
+    try:
+        return bcrypt.checkpw(password.encode("utf-8"), ph.encode("utf-8"))
+    except Exception:
+        return False
+
+
+def create_workspace_master(workspace_id: str, email: str, password: str, nome: str) -> tuple:
+    """Cria o usuário master do workspace (primeiro acesso)."""
+    ph = _hash_password(password)
+    if not ph or len(password) < 4:
+        return None, "Senha deve ter no mínimo 4 caracteres."
+    url = f"{_base()}/rest/v1/workspace_masters"
+    h = {**_headers(), "Prefer": "return=minimal"}
+    r = requests.post(url, headers=h, json={
+        "workspace_id": workspace_id,
+        "email": email.strip().lower(),
+        "password_hash": ph,
+        "nome": nome.strip(),
+    }, timeout=15)
+    if r.status_code >= 400:
+        return None, str(r.text)
+    return {"workspace_id": workspace_id, "email": email, "nome": nome}, None
+
+
 def verify_member_password(workspace_id: str, email: str, password: str) -> bool:
     """Verifica se o email+senha correspondem a um membro ativo."""
     url = f"{_base()}/rest/v1/workspace_members"
