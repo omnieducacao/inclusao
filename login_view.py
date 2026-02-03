@@ -279,52 +279,6 @@ def render_login():
     hide_streamlit()
     inject_css()
 
-    # Setup inicial: cadastrar usuário master (workspace sem master nem membros)
-    ws_id = st.session_state.get("workspace_id")
-    needs_setup = st.session_state.get("login_needs_master_setup", False)
-    if ws_id and needs_setup:
-        st.markdown('<div class="wrap">', unsafe_allow_html=True)
-        st.markdown(
-            f"""
-            <div class="brand">
-                <div class="logoSpin"><img src="data:image/png;base64,{ICON}"></div>
-                <div class="logoText"><img src="data:image/png;base64,{TEXT}"></div>
-            </div>
-            <div class="welcome">
-                Primeiro acesso desta escola. Cadastre o <strong>usuário master</strong> (email e senha).
-                <small>Este será o responsável que poderá adicionar outros usuários.</small>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        with st.form("form_setup_master"):
-            nome = st.text_input("Nome do responsável *", placeholder="Nome completo")
-            email = st.text_input("Email *", placeholder="email@escola.com")
-            senha = st.text_input("Senha *", type="password", placeholder="Mínimo 4 caracteres")
-            if st.form_submit_button("Cadastrar e entrar"):
-                if not nome or not email or not senha:
-                    st.error("Preencha todos os campos.")
-                elif len(senha) < 4:
-                    st.error("Senha deve ter no mínimo 4 caracteres.")
-                else:
-                    try:
-                        from services.members_service import create_workspace_master, create_member
-                        master, err = create_workspace_master(ws_id, email, senha, nome)
-                        if err:
-                            st.error(f"Erro: {err}")
-                        else:
-                            create_member(ws_id, nome, email, senha, can_gestao=True, link_type="todos")
-                            st.session_state.pop("login_needs_master_setup", None)
-                            st.session_state.autenticado = True
-                            st.session_state.usuario_nome = nome
-                            st.session_state.member = {"nome": nome, "email": email, "can_gestao": True, "can_estudantes": True, "can_pei": True, "can_paee": True, "can_hub": True, "can_diario": True, "can_avaliacao": True}
-                            st.rerun()
-                    except Exception as e:
-                        st.error(str(e))
-        st.markdown("</div>", unsafe_allow_html=True)
-        return
-
     # Container Principal
     st.markdown('<div class="wrap">', unsafe_allow_html=True)
 
@@ -444,8 +398,10 @@ def render_login():
                 st.session_state.usuario_nome = member.get("nome", nome)
                 st.session_state.usuario_cargo = cargo
             else:
-                st.session_state.login_needs_master_setup = True
-                st.rerun()
+                # Forma antiga: sem master nem membros → entrada só com PIN (acesso total)
+                st.session_state.member = None
+                st.session_state.usuario_nome = nome
+                st.session_state.usuario_cargo = cargo
 
             st.rerun()
 
