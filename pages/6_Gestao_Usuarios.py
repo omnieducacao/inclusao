@@ -172,7 +172,10 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
             if not classes_all:
                 st.caption("Nenhuma turma. Crie em Configuração Escola primeiro.")
             else:
-                classes_opts = {f"{c.get('grade', {}).get('label', '')} - Turma {c.get('class_group','')}": c for c in classes_all if c.get("id")}
+                def _grade_label(c):
+                    g = c.get("grade") or c.get("grades") or {}
+                    return g.get("label", g.get("code", "")) if isinstance(g, dict) else str(g)
+                classes_opts = {f"{_grade_label(c)} - Turma {c.get('class_group','')}": c for c in classes_all if c.get("id")}
                 comp_opts = {c.get("label", c.get("id", "")): c.get("id") for c in components_all} if components_all else {"Arte":"arte","Ciências":"ciencias","Geografia":"geografia","História":"historia","Língua Portuguesa":"lingua_portuguesa","Matemática":"matematica","Educação Física":"educacao_fisica","Língua Inglesa":"lingua_inglesa"}
                 n_add = st.number_input("Quantos vínculos (turma + componente)?", min_value=1, max_value=20, value=1)
                 for i in range(int(n_add)):
@@ -342,7 +345,10 @@ else:
                     except Exception:
                         years, classes_all, components_all = [], [], []
                     if classes_all:
-                        classes_opts = {f"{c.get('grade', {}).get('label', '')} - Turma {c.get('class_group','')}": c for c in classes_all if c.get("id")}
+                        def _grade_label_ed(c):
+                            g = c.get("grade") or c.get("grades") or {}
+                            return g.get("label", g.get("code", "")) if isinstance(g, dict) else str(g)
+                        classes_opts = {f"{_grade_label_ed(c)} - Turma {c.get('class_group','')}": c for c in classes_all if c.get("id")}
                         comp_opts = {c.get("label", c.get("id", "")): c.get("id") for c in components_all} if components_all else {"Arte":"arte","Ciências":"ciencias","Geografia":"geografia","História":"historia","Língua Portuguesa":"lingua_portuguesa","Matemática":"matematica","Educação Física":"educacao_fisica","Língua Inglesa":"lingua_inglesa"}
                         n_add = st.number_input("Quantos vínculos?", min_value=1, max_value=20, value=max(1, len(assign_curr)), key="edit_n_turma")
                         for i in range(int(n_add)):
