@@ -20,6 +20,8 @@ from services.members_service import (
     delete_member_permanently,
     get_class_assignments,
     get_student_links,
+    get_workspace_master,
+    create_workspace_master,
 )
 from services.school_config_service import (
     list_school_years,
@@ -101,6 +103,38 @@ try:
 except Exception as e:
     st.warning(f"Tabela workspace_members ainda não existe. Execute a migration em supabase/migrations/00006_workspace_members_gestao_usuarios.sql no Supabase. Detalhes: {e}")
     st.stop()
+
+# Configurar usuário master (para PIN que já existe, mas ainda não tem master)
+try:
+    master = get_workspace_master(ws_id)
+except Exception:
+    master = None
+
+if not master:
+    with st.expander("🔐 Configurar usuário master (para este PIN)", expanded=True):
+        st.caption("Seu workspace usa login com PIN. Configure email e senha do **master** para ativar a Gestão de Usuários. Depois disso, o login exigirá PIN + email + senha do master.")
+        with st.form("form_config_master"):
+            m_nome = st.text_input("Nome do responsável *", placeholder="Nome completo")
+            m_email = st.text_input("Email *", placeholder="email@escola.com")
+            m_senha = st.text_input("Senha *", type="password", placeholder="Mínimo 4 caracteres")
+            if st.form_submit_button("Cadastrar master"):
+                if not m_nome or not m_email or not m_senha:
+                    st.error("Preencha todos os campos.")
+                elif len(m_senha) < 4:
+                    st.error("Senha deve ter no mínimo 4 caracteres.")
+                else:
+                    try:
+                        result, err = create_workspace_master(ws_id, m_email, m_senha, m_nome)
+                        if err:
+                            st.error(f"Erro: {err}")
+                        else:
+                            create_member(ws_id, m_nome, m_email, m_senha, can_gestao=True, can_estudantes=True, can_pei=True, can_paee=True, can_hub=True, can_diario=True, can_avaliacao=True, link_type="todos")
+                            st.success("✅ Usuário master cadastrado! O login passará a exigir PIN + email + senha.")
+                            st.rerun()
+                    except Exception as ex:
+                        st.error(str(ex))
+else:
+    st.caption("✅ Usuário master configurado. Login: PIN + email + senha.")
 
 # Formulário novo usuário
 with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show_form", False)):
