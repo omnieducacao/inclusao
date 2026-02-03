@@ -1,4 +1,6 @@
 # omni_utils.py
+from __future__ import annotations
+
 import os
 import base64
 import requests

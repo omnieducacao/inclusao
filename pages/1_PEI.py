@@ -1,4 +1,6 @@
 # pages/1_PEI.py
+from __future__ import annotations
+
 import streamlit as st
 from datetime import date, datetime
 from zoneinfo import ZoneInfo

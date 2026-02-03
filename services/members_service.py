@@ -2,6 +2,8 @@
 Gestão de usuários do workspace: CRUD de membros, vínculos e permissões.
 Tudo gira em torno do estudante; professores vinculados por turma ou alunos.
 """
+from __future__ import annotations
+
 import os
 import requests
 from typing import Optional
