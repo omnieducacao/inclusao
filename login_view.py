@@ -5,7 +5,7 @@ from datetime import datetime
 import streamlit as st
 
 # ✅ IMPORTS SUPABASE (somente o que existe com certeza no seu supabase_client.py)
-from supabase_client import rpc_workspace_from_pin, RPC_NAME
+from supabase_client import RPC_NAME
 
 
 # ==============================================================================
@@ -335,148 +335,63 @@ def render_login():
                     st.error(str(e))
         st.caption("Admin cria escolas, gera PIN e gerencia masters. Primeiro admin: criar no Supabase.")
 
-    # Entrada principal: nome, cargo, PIN (como era antes)
-    nome = st.text_input("Seu nome", placeholder="Nome completo", key="login_nome")
-    cargo = st.text_input("Sua função", placeholder="Ex: Professor, Coordenador", key="login_cargo")
-    pin = st.text_input("PIN da Escola", type="password", placeholder="****", key="login_pin")
-
-    # Termo (antes do expander para aceitar estar definido)
+    # Termo
     st.markdown(
         """
         <div class="termo-box">
             <strong>1. Confidencialidade:</strong> O usuário compromete-se a não inserir dados reais sensíveis (nomes completos, documentos) que identifiquem estudantes, exceto em ambiente seguro autorizado pela instituição.<br><br>
             <strong>2. Natureza Beta:</strong> O sistema está em evolução constante. Algumas funcionalidades podem sofrer alterações.<br><br>
             <strong>3. Responsabilidade:</strong> As sugestões geradas pela IA servem como apoio pedagógico e devem ser sempre validadas por um profissional humano qualificado.<br><br>
-            <strong>4. Acesso:</strong> O PIN de acesso é pessoal e intransferível dentro da organização.
+            <strong>4. Acesso:</strong> As credenciais de acesso são pessoais e intransferíveis dentro da organização.
         </div>
         """,
         unsafe_allow_html=True
     )
     aceitar = st.checkbox("Li e aceito o Termo de Confidencialidade", key="login_aceitar")
 
-    # Segunda opção: entrada com email + senha (para escolas com Gestão de Usuários)
-    with st.expander("Minha escola usa Gestão de Usuários (entrar com email e senha)", expanded=False):
-        email = st.text_input("Seu email", placeholder="email@escola.com", key="login_email")
-        senha = st.text_input("Sua senha", type="password", placeholder="****", key="login_senha")
-        st.caption("Como você já está vinculado à escola, pode entrar **só com email e senha** (PIN opcional).")
-        if st.button("Entrar só com email e senha", key="btn_email_only"):
-            if not aceitar:
-                st.error("Aceite o termo de confidencialidade.")
-            elif not (email and senha):
-                st.error("Informe email e senha.")
-            else:
-                try:
-                    from services.members_service import find_user_by_email, verify_workspace_master, verify_member_password
-                    found = find_user_by_email(email.strip().lower())
-                    if not found:
-                        st.error("Email não encontrado. Verifique ou use o login com PIN.")
-                    else:
-                        ws_id = found["workspace_id"]
-                        ws_name = found.get("workspace_name", "")
-                        role = found.get("role", "")
-                        user = found.get("user", {})
-                        ok = False
-                        if role == "master":
-                            ok = verify_workspace_master(ws_id, user.get("email"), senha)
-                            if ok:
-                                st.session_state.member = {"nome": user.get("nome"), "email": user.get("email"), "can_gestao": True, "can_estudantes": True, "can_pei": True, "can_paee": True, "can_hub": True, "can_diario": True, "can_avaliacao": True}
-                                st.session_state.usuario_nome = user.get("nome")
-                        else:
-                            ok = verify_member_password(ws_id, user.get("email"), senha)
-                            if ok:
-                                st.session_state.member = user
-                                st.session_state.usuario_nome = user.get("nome")
-                        if ok:
-                            _try_init_supabase_client_into_session()
-                            st.session_state.workspace_id = ws_id
-                            st.session_state.workspace_name = ws_name
-                            st.session_state.autenticado = True
-                            st.session_state.usuario_cargo = cargo or "Usuário"
-                            st.rerun()
-                        else:
-                            st.error("Senha incorreta.")
-                except Exception as e:
-                    st.error(str(e))
+    # Entrada principal: email + senha (nome e cargo vêm do cadastro)
+    st.markdown("**Entrar na plataforma**")
+    email = st.text_input("Email", placeholder="seu@escola.com", key="login_email")
+    senha = st.text_input("Senha", type="password", placeholder="****", key="login_senha")
 
-    st.markdown("<div style='height:15px'></div>", unsafe_allow_html=True)
-
-    if st.button("Validar e entrar", use_container_width=True, type="primary"):
-        if not (nome and cargo and aceitar and pin):
-            st.markdown("<div class='err'>Preencha todos os campos e aceite o termo.</div>", unsafe_allow_html=True)
-            st.stop()
-
-        pin = pin.strip().upper()
-        if len(pin) == 8 and "-" not in pin:
-            pin = pin[:4] + "-" + pin[4:]
-
-        # Validação via RPC
-        ws = rpc_workspace_from_pin(pin)
-
-        if not ws:
-            st.markdown("<div class='err'>PIN inválido ou escola não encontrada.</div>", unsafe_allow_html=True)
+    if st.button("Entrar", use_container_width=True, type="primary", key="btn_entrar"):
+        if not aceitar:
+            st.error("Aceite o termo de confidencialidade.")
+        elif not (email and senha):
+            st.error("Informe email e senha.")
         else:
-            ws_id = ws.get("id") or ws.get("workspace_id")
-            ws_name = ws.get("name") or ws.get("workspace_name") or ""
-            st.session_state.workspace_id = ws_id
-            st.session_state.workspace_name = ws_name
-            st.session_state.autenticado = True
-
-            # Inicializa Supabase
-            ok_sb, err_sb = _try_init_supabase_client_into_session()
-            if (not ok_sb) and (_env() == "TESTE"):
-                st.markdown(
-                    f"<div class='warn'>Aviso (TESTE): não consegui iniciar supabase-py em st.session_state['sb'].<br>{err_sb}</div>",
-                    unsafe_allow_html=True
-                )
-
-            # Verifica master (usuário root do workspace) ou membros
-            master = _get_workspace_master(ws_id) if ok_sb else None
-            members = _list_workspace_members(ws_id) if ok_sb else []
-            members = [m for m in members if m.get("active", True)]
-
-            if master:
-                email_val = (email or "").strip().lower()
-                if not email_val or not senha:
-                    st.markdown("<div class='err'>Este workspace tem usuário master. Expanda a opção acima e informe email e senha.</div>", unsafe_allow_html=True)
-                    st.stop()
-                try:
-                    from services.members_service import verify_workspace_master
-                    if not verify_workspace_master(ws_id, email_val, senha):
-                        st.markdown("<div class='err'>Email ou senha incorretos. Tente novamente.</div>", unsafe_allow_html=True)
-                        st.stop()
-                except Exception:
-                    st.markdown("<div class='err'>Erro ao verificar. Tente novamente.</div>", unsafe_allow_html=True)
-                    st.stop()
-                st.session_state.member = {"nome": master.get("nome"), "email": master.get("email"), "can_gestao": True, "can_estudantes": True, "can_pei": True, "can_paee": True, "can_hub": True, "can_diario": True, "can_avaliacao": True}
-                st.session_state.usuario_nome = master.get("nome", nome)
-                st.session_state.usuario_cargo = cargo
-            elif members:
-                email_val = (email or "").strip().lower()
-                if not email_val:
-                    st.markdown("<div class='err'>Sua escola usa Gestão de Usuários. Expanda a opção acima e informe email e senha cadastrados.</div>", unsafe_allow_html=True)
-                    st.stop()
-                member = next((m for m in members if (m.get("email") or "").strip().lower() == email_val), None)
-                if not member:
-                    st.markdown("<div class='err'>Email não cadastrado nesta escola. Entre em contato com o responsável.</div>", unsafe_allow_html=True)
-                    st.stop()
-                try:
-                    from services.members_service import verify_member_password
-                    if not verify_member_password(ws_id, email_val, senha or ""):
-                        st.markdown("<div class='err'>Senha incorreta. Tente novamente ou entre em contato com o responsável.</div>", unsafe_allow_html=True)
-                        st.stop()
-                except Exception:
-                    st.markdown("<div class='err'>Erro ao verificar senha. Tente novamente.</div>", unsafe_allow_html=True)
-                    st.stop()
-                st.session_state.member = member
-                st.session_state.usuario_nome = member.get("nome", nome)
-                st.session_state.usuario_cargo = cargo
-            else:
-                # Forma antiga: sem master nem membros → entrada só com PIN (acesso total)
-                st.session_state.member = None
-                st.session_state.usuario_nome = nome
-                st.session_state.usuario_cargo = cargo
-
-            st.rerun()
+            try:
+                from services.members_service import find_user_by_email, verify_workspace_master, verify_member_password
+                found = find_user_by_email(email.strip().lower())
+                    if not found:
+                        st.error("Email não encontrado. Verifique seus dados.")
+                else:
+                    ws_id = found["workspace_id"]
+                    ws_name = found.get("workspace_name", "")
+                    role = found.get("role", "")
+                    user = found.get("user", {})
+                    ok = False
+                    if role == "master":
+                        ok = verify_workspace_master(ws_id, user.get("email"), senha)
+                        if ok:
+                            st.session_state.member = {"nome": user.get("nome"), "email": user.get("email"), "can_gestao": True, "can_estudantes": True, "can_pei": True, "can_paee": True, "can_hub": True, "can_diario": True, "can_avaliacao": True}
+                            st.session_state.usuario_nome = user.get("nome")
+                    else:
+                        ok = verify_member_password(ws_id, user.get("email"), senha)
+                        if ok:
+                            st.session_state.member = user
+                            st.session_state.usuario_nome = user.get("nome")
+                    if ok:
+                        _try_init_supabase_client_into_session()
+                        st.session_state.workspace_id = ws_id
+                        st.session_state.workspace_name = ws_name
+                        st.session_state.autenticado = True
+                        st.session_state.usuario_cargo = "Usuário"
+                        st.rerun()
+                    else:
+                        st.error("Senha incorreta.")
+            except Exception as e:
+                st.error(str(e))
 
     st.markdown("</div>", unsafe_allow_html=True)  # Fim Card
 

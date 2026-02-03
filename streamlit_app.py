@@ -107,14 +107,21 @@ def acesso_bloqueado(msg: str):
 
 
 # ------------------------------------------------------------------------------
-# Logout via query param (?omni_logout=1)
+# Logout via query param (?omni_logout=1) — direciona para login zerado
 # ------------------------------------------------------------------------------
 try:
     q = st.query_params
     if q.get("omni_logout") == "1":
-        for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity", "is_platform_admin"]:
+        for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity", "is_platform_admin", "students_cache_invalid", "banco_estudantes"]:
             st.session_state.pop(k, None)
-        st.query_params.clear()
+        try:
+            st.query_params.clear()
+        except Exception:
+            pass
+        try:
+            st.switch_page("streamlit_app.py")  # Redireciona para login zerado
+        except Exception:
+            st.rerun()
 except Exception:
     pass
 

@@ -173,7 +173,7 @@ def ensure_state():
 
 def _do_logout():
     """Limpa sessão e redireciona para login."""
-    for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity"]:
+    for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity", "is_platform_admin", "students_cache_invalid", "banco_estudantes"]:
         st.session_state.pop(k, None)
     try:
         st.query_params.clear()
