@@ -101,6 +101,59 @@ def create_workspace_master(workspace_id: str, email: str, password: str, nome: 
     return {"workspace_id": workspace_id, "email": email, "nome": nome}, None
 
 
+def find_user_by_email(email: str) -> Optional[dict]:
+    """
+    Busca usuário por email em workspace_masters e workspace_members.
+    Retorna {workspace_id, workspace_name, role, user_data} ou None.
+    Útil para login só com email+senha (sem PIN).
+    """
+    email_val = (email or "").strip().lower()
+    if not email_val:
+        return None
+    # 1. Busca em workspace_masters
+    url_m = f"{_base()}/rest/v1/workspace_masters"
+    params_m = {"email": f"eq.{email_val}", "select": "workspace_id,email,password_hash,nome"}
+    r_m = requests.get(url_m, headers={**_headers(), "Accept": "application/json"}, params=params_m, timeout=10)
+    if r_m.status_code == 200 and r_m.json() and isinstance(r_m.json(), list) and r_m.json():
+        m = r_m.json()[0]
+        ws_id = m.get("workspace_id")
+        ws_name = _get_workspace_name(ws_id)
+        return {"workspace_id": ws_id, "workspace_name": ws_name, "role": "master", "user": m}
+    # 2. Busca em workspace_members (ativos)
+    url_w = f"{_base()}/rest/v1/workspace_members"
+    params_w = {"email": f"eq.{email_val}", "active": "eq.true", "select": "id,workspace_id,nome,email,telefone,can_estudantes,can_pei,can_paee,can_hub,can_diario,can_avaliacao,can_gestao,link_type"}
+    r_w = requests.get(url_w, headers={**_headers(), "Accept": "application/json"}, params=params_w, timeout=10)
+    if r_w.status_code == 200 and r_w.json() and isinstance(r_w.json(), list) and r_w.json():
+        m = r_w.json()[0]
+        ws_id = m.get("workspace_id")
+        ws_name = _get_workspace_name(ws_id)
+        return {"workspace_id": ws_id, "workspace_name": ws_name, "role": "member", "user": m}
+    return None
+
+
+def _get_workspace_name(workspace_id: str) -> str:
+    """Retorna o nome do workspace pelo id."""
+    if not workspace_id:
+        return ""
+    try:
+        url = f"{_base()}/rest/v1/workspaces"
+        r = requests.get(url, headers={**_headers(), "Accept": "application/json"},
+                        params={"id": f"eq.{workspace_id}", "select": "name"}, timeout=5)
+        if r.status_code == 200 and r.json() and isinstance(r.json(), list) and r.json():
+            return r.json()[0].get("name", "") or ""
+    except Exception:
+        pass
+    try:
+        url = f"{_base()}/rest/v1/workspace"
+        r = requests.get(url, headers={**_headers(), "Accept": "application/json"},
+                        params={"id": f"eq.{workspace_id}", "select": "name"}, timeout=5)
+        if r.status_code == 200 and r.json() and isinstance(r.json(), list) and r.json():
+            return r.json()[0].get("name", "") or r.json()[0].get("workspace_name", "")
+    except Exception:
+        pass
+    return ""
+
+
 def verify_member_password(workspace_id: str, email: str, password: str) -> bool:
     """Verifica se o email+senha correspondem a um membro ativo."""
     url = f"{_base()}/rest/v1/workspace_members"

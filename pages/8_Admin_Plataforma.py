@@ -92,7 +92,7 @@ else:
     for ws in workspaces:
         wid = ws.get("id")
         wname = ws.get("name", "Sem nome")
-        wpin = ws.get("pin", "")
+        wpin = ws.get("pin") or ws.get("pin_code") or ws.get("code") or "—"
         with st.expander(f"🏫 {wname} — PIN: {wpin}", expanded=False):
             col1, col2 = st.columns(2)
             with col1:

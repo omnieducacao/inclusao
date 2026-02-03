@@ -340,13 +340,7 @@ def render_login():
     cargo = st.text_input("Sua função", placeholder="Ex: Professor, Coordenador", key="login_cargo")
     pin = st.text_input("PIN da Escola", type="password", placeholder="****", key="login_pin")
 
-    # Segunda opção: entrada com email + senha (para escolas com Gestão de Usuários)
-    with st.expander("Minha escola usa Gestão de Usuários (entrar com email e senha)", expanded=False):
-        email = st.text_input("Seu email", placeholder="email@escola.com", key="login_email")
-        senha = st.text_input("Sua senha", type="password", placeholder="****", key="login_senha")
-        st.caption("Preencha se sua escola cadastrou usuários. PIN + email + senha.")
-
-    # 3. Termo de Confidencialidade
+    # Termo (antes do expander para aceitar estar definido)
     st.markdown(
         """
         <div class="termo-box">
@@ -358,8 +352,52 @@ def render_login():
         """,
         unsafe_allow_html=True
     )
+    aceitar = st.checkbox("Li e aceito o Termo de Confidencialidade", key="login_aceitar")
 
-    aceitar = st.checkbox("Li e aceito o Termo de Confidencialidade")
+    # Segunda opção: entrada com email + senha (para escolas com Gestão de Usuários)
+    with st.expander("Minha escola usa Gestão de Usuários (entrar com email e senha)", expanded=False):
+        email = st.text_input("Seu email", placeholder="email@escola.com", key="login_email")
+        senha = st.text_input("Sua senha", type="password", placeholder="****", key="login_senha")
+        st.caption("Como você já está vinculado à escola, pode entrar **só com email e senha** (PIN opcional).")
+        if st.button("Entrar só com email e senha", key="btn_email_only"):
+            if not aceitar:
+                st.error("Aceite o termo de confidencialidade.")
+            elif not (email and senha):
+                st.error("Informe email e senha.")
+            else:
+                try:
+                    from services.members_service import find_user_by_email, verify_workspace_master, verify_member_password
+                    found = find_user_by_email(email.strip().lower())
+                    if not found:
+                        st.error("Email não encontrado. Verifique ou use o login com PIN.")
+                    else:
+                        ws_id = found["workspace_id"]
+                        ws_name = found.get("workspace_name", "")
+                        role = found.get("role", "")
+                        user = found.get("user", {})
+                        ok = False
+                        if role == "master":
+                            ok = verify_workspace_master(ws_id, user.get("email"), senha)
+                            if ok:
+                                st.session_state.member = {"nome": user.get("nome"), "email": user.get("email"), "can_gestao": True, "can_estudantes": True, "can_pei": True, "can_paee": True, "can_hub": True, "can_diario": True, "can_avaliacao": True}
+                                st.session_state.usuario_nome = user.get("nome")
+                        else:
+                            ok = verify_member_password(ws_id, user.get("email"), senha)
+                            if ok:
+                                st.session_state.member = user
+                                st.session_state.usuario_nome = user.get("nome")
+                        if ok:
+                            _try_init_supabase_client_into_session()
+                            st.session_state.workspace_id = ws_id
+                            st.session_state.workspace_name = ws_name
+                            st.session_state.autenticado = True
+                            st.session_state.usuario_cargo = cargo or "Usuário"
+                            st.rerun()
+                        else:
+                            st.error("Senha incorreta.")
+                except Exception as e:
+                    st.error(str(e))
+
     st.markdown("<div style='height:15px'></div>", unsafe_allow_html=True)
 
     if st.button("Validar e entrar", use_container_width=True, type="primary"):

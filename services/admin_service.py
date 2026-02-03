@@ -90,11 +90,12 @@ def create_platform_admin(email: str, password: str, nome: str) -> tuple:
 # --- Workspaces (escolas) ---
 
 def _normalize_workspace(row: dict) -> dict:
-    """Normaliza registro de workspace (aceita id/workspace_id, name/workspace_name, etc)."""
+    """Normaliza registro de workspace (aceita id/workspace_id, name/workspace_name, pin/pin_code/code, etc)."""
+    pin_val = row.get("pin") or row.get("pin_code") or row.get("code") or row.get("pincode", "")
     return {
         "id": row.get("id") or row.get("workspace_id"),
         "name": row.get("name") or row.get("workspace_name") or row.get("nome", ""),
-        "pin": row.get("pin") or row.get("pin_code", ""),
+        "pin": str(pin_val) if pin_val else "",
         "created_at": row.get("created_at"),
     }
 
