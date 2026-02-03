@@ -1609,9 +1609,7 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
     
     with col3:
         if ano_selecionado and disciplina_selecionada:
-            def _match_ano(x):
-                return str(x).strip() == str(ano_selecionado).strip() or ano_celula_contem(x, ano_selecionado)
-            mask_ano = dados['Ano'].apply(_match_ano)
+            mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_selecionado).strip() or ano_celula_contem(x, ano_selecionado))
             unid_filtradas = dados[mask_ano & (dados['Disciplina'] == disciplina_selecionada)]
             unidades = sorted(unid_filtradas['Unidade Temática'].dropna().unique())
             unidade_selecionada = st.selectbox("Unidade Temática", unidades, key=f"unid_bncc_{key_suffix}")
@@ -1621,15 +1619,12 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
     # Linha 2: Objeto do Conhecimento
     st.markdown("---")
     col4 = st.columns(1)[0]
+    obj_filtrados = pd.DataFrame()
     
     with col4:
         if ano_selecionado and disciplina_selecionada and unidade_selecionada:
-            mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_selecionado).strip() or ano_celula_contem(x, ano_selecionado))
-            obj_filtrados = dados[
-                mask_ano & 
-                (dados['Disciplina'] == disciplina_selecionada) & 
-                (dados['Unidade Temática'] == unidade_selecionada)
-            ]
+            df_filtrado = dados[mask_ano & (dados['Disciplina'] == disciplina_selecionada)]
+            obj_filtrados = df_filtrado[df_filtrado['Unidade Temática'] == unidade_selecionada]
             objetos = sorted(obj_filtrados['Objeto do Conhecimento'].dropna().unique())
             
             if objetos:
@@ -1654,13 +1649,7 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
                 unidade_selecionada and objeto_selecionado and 
                 isinstance(objeto_selecionado, str) and not objeto_selecionado.startswith("Selecione")):
                 
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_selecionado).strip() or ano_celula_contem(x, ano_selecionado))
-                hab_filtradas = dados[
-                    mask_ano & 
-                    (dados['Disciplina'] == disciplina_selecionada) & 
-                    (dados['Unidade Temática'] == unidade_selecionada) & 
-                    (dados['Objeto do Conhecimento'] == objeto_selecionado)
-                ]
+                hab_filtradas = obj_filtrados[obj_filtrados['Objeto do Conhecimento'] == objeto_selecionado] if not obj_filtrados.empty else obj_filtrados
                 todas_habilidades = sorted(hab_filtradas['Habilidade'].dropna().unique())
                 
                 if todas_habilidades:
