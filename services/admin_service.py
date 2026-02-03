@@ -89,15 +89,31 @@ def create_platform_admin(email: str, password: str, nome: str) -> tuple:
 
 # --- Workspaces (escolas) ---
 
+def _normalize_workspace(row: dict) -> dict:
+    """Normaliza registro de workspace (aceita id/workspace_id, name/workspace_name, etc)."""
+    return {
+        "id": row.get("id") or row.get("workspace_id"),
+        "name": row.get("name") or row.get("workspace_name") or row.get("nome", ""),
+        "pin": row.get("pin") or row.get("pin_code", ""),
+        "created_at": row.get("created_at"),
+    }
+
+
 def list_workspaces() -> list:
-    """Lista todas as escolas (workspaces)."""
-    url = f"{_base()}/rest/v1/workspaces"
-    params = {"select": "id,name,pin,created_at", "order": "created_at.desc"}
-    r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=15)
-    if r.status_code != 200:
-        return []
-    data = r.json()
-    return data if isinstance(data, list) else []
+    """Lista todas as escolas (workspaces). Tenta 'workspaces' e 'workspace'."""
+    tables_to_try = ["workspaces", "workspace"]
+    for table in tables_to_try:
+        url = f"{_base()}/rest/v1/{table}"
+        params = {"select": "*", "order": "created_at.desc"}
+        try:
+            r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=15)
+            if r.status_code == 200:
+                data = r.json()
+                rows = data if isinstance(data, list) else []
+                return [_normalize_workspace(x) for x in rows if x.get("id") or x.get("workspace_id")]
+        except Exception:
+            continue
+    return []
 
 
 def _generate_pin() -> str:
