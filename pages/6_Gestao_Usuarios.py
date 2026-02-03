@@ -263,7 +263,8 @@ else:
         with st.container():
             col1, col2, col3 = st.columns([2, 2, 1])
             with col1:
-                st.markdown(f"**{m.get('nome','')}** {f\"— {m.get('cargo','')}\" if m.get('cargo') else ''}")
+                cargo_str = f" — {m.get('cargo','')}" if m.get('cargo') else ""
+                st.markdown(f"**{m.get('nome','')}**{cargo_str}")
                 st.caption(f"{m.get('email','')} · {m.get('telefone','') or '—'}")
             with col2:
                 st.markdown(" ".join([f"<span class='badge-perm'>{p}</span>" for p in perms]) or "—", unsafe_allow_html=True)
