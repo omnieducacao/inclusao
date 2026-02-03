@@ -309,27 +309,18 @@ def render_login():
                 st.error("Informe email e senha.")
             else:
                 try:
-                    from services.admin_service import verify_platform_admin, list_platform_admins, create_platform_admin
+                    from services.admin_service import verify_platform_admin, list_platform_admins
                     admins = list_platform_admins()
                     if not admins:
-                        st.info("Nenhum admin cadastrado. Crie o primeiro admin abaixo.")
-                        with st.form("form_primeiro_admin"):
-                            a_nome = st.text_input("Seu nome *")
-                            a_email = st.text_input("Seu email *")
-                            a_senha = st.text_input("Senha *", type="password")
-                            if st.form_submit_button("Criar primeiro admin"):
-                                if a_nome and a_email and a_senha and len(a_senha) >= 4:
-                                    admin, err = create_platform_admin(a_email, a_senha, a_nome)
-                                    if err:
-                                        st.error(err)
-                                    else:
-                                        st.session_state.autenticado = True
-                                        st.session_state.is_platform_admin = True
-                                        st.session_state.usuario_nome = a_nome
-                                        st.success("Admin criado! Entrando...")
-                                        st.rerun()
-                                else:
-                                    st.error("Preencha todos os campos. Senha mín. 4 caracteres.")
+                        st.warning("Nenhum admin cadastrado. O primeiro admin deve ser criado no Supabase (segurança).")
+                        st.caption("No Supabase → SQL Editor, execute o arquivo supabase/migrations/00013_seed_admin.sql após substituir email, senha e nome.")
+                        st.code(
+                            "CREATE EXTENSION IF NOT EXISTS pgcrypto;\n\n"
+                            "INSERT INTO platform_admins (email, password_hash, nome)\n"
+                            "VALUES ('seu@email.com', crypt('SuaSenha123', gen_salt('bf')), 'Seu Nome')\n"
+                            "ON CONFLICT (email) DO NOTHING;",
+                            language="sql",
+                        )
                     elif verify_platform_admin(admin_email.strip().lower(), admin_senha):
                         st.session_state.autenticado = True
                         st.session_state.is_platform_admin = True
@@ -342,7 +333,7 @@ def render_login():
                         st.error("Email ou senha incorretos.")
                 except Exception as e:
                     st.error(str(e))
-        st.caption("Admin cria escolas, gera PIN e gerencia masters.")
+        st.caption("Admin cria escolas, gera PIN e gerencia masters. Primeiro admin: criar no Supabase.")
 
     # Entrada principal: nome, cargo, PIN (como era antes)
     nome = st.text_input("Seu nome", placeholder="Nome completo", key="login_nome")

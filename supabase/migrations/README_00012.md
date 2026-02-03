@@ -28,6 +28,23 @@ CREATE POLICY "Allow all for service" ON platform_admins FOR ALL USING (true) WI
 
 Rode o arquivo `00012_platform_admin_workspaces.sql` completo no Supabase SQL Editor.
 
-## Primeiro admin
+## Primeiro admin (obrigatório no Supabase)
 
-Na tela de login, expanda **"Sou administrador da plataforma"**. Se não houver admins, aparecerá o formulário para criar o primeiro. Use seu email e senha.
+Por segurança, o primeiro admin é criado **diretamente no Supabase**, não no app.
+
+1. Abra **Supabase → SQL Editor**
+2. Execute (substitua os valores):
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+INSERT INTO platform_admins (email, password_hash, nome)
+VALUES (
+  'seu@email.com',
+  crypt('SuaSenha123', gen_salt('bf')),
+  'Seu Nome'
+)
+ON CONFLICT (email) DO NOTHING;
+```
+
+3. Depois faça login no app com esse email e senha (expanda "Sou administrador da plataforma").
