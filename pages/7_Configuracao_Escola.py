@@ -127,25 +127,27 @@ else:
 
 # --- 2. Séries que a escola oferece ---
 st.markdown("### 2. Séries que a escola oferece")
-st.caption("Marque as séries que sua escola tem. (Pode não ter 7º ano ou Ensino Médio, por exemplo.)")
+st.caption("Marque as séries que sua escola tem. EI = idade (2 a 5 anos). Pode não ter 7º ano ou Ensino Médio.")
 ws_grade_ids = set(list_workspace_grades(ws_id))
 with st.form("form_series"):
     for seg_id, seg_label in SEGMENTS:
-        grades_seg = list_grades(seg_id)
+        grades_seg = [g for g in list_grades(seg_id) if "grupo" not in (g.get("label","") or "").lower() and "grupo" not in (g.get("code","") or "").lower()]
         if not grades_seg:
             continue
-        st.markdown(f"**{seg_label}**")
-        cols = st.columns(min(5, len(grades_seg)))
+        n = len(grades_seg) + 1
+        cols = st.columns(n)
+        with cols[0]:
+            st.markdown(f"**{seg_label}**")
         for i, g in enumerate(grades_seg):
-            with cols[i % 5]:
+            with cols[i + 1]:
                 st.checkbox(g.get("label", g.get("code", "")), value=g.get("id") in ws_grade_ids, key=f"wg_{seg_id}_{g.get('id')}")
-        st.markdown("")
     if st.form_submit_button("Salvar séries"):
         all_selected = []
         for seg_id, _ in SEGMENTS:
             for g in list_grades(seg_id):
-                if st.session_state.get(f"wg_{seg_id}_{g.get('id')}", False):
-                    all_selected.append(g.get("id"))
+                if "grupo" not in (g.get("label", "") or "").lower() and "grupo" not in (g.get("code", "") or "").lower():
+                    if st.session_state.get(f"wg_{seg_id}_{g.get('id')}", False):
+                        all_selected.append(g.get("id"))
         set_workspace_grades(ws_id, all_selected)
         st.success("Séries salvas.")
         st.rerun()
@@ -155,33 +157,31 @@ st.markdown("### 3. Turmas (série + turma)")
 if not school_years:
     st.caption("Crie um ano letivo antes de cadastrar turmas.")
 else:
+    segment_turma = st.selectbox("Segmento", SEGMENTS, format_func=lambda x: x[1], key="seg_turma")
+    grades_turma = list_grades_for_workspace(ws_id, segment_turma[0])
+    grades_turma = [g for g in grades_turma if "grupo" not in (g.get("label","") or "").lower() and "grupo" not in (g.get("code","") or "").lower()]
+
     with st.expander("➕ Nova turma"):
         with st.form("form_turma"):
-            year_opt = st.selectbox("Ano letivo", school_years, format_func=lambda x: f"{x.get('year')} - {x.get('name','')}")
-            segment = st.selectbox("Segmento", SEGMENTS, format_func=lambda x: x[1])
-            grades = list_grades_for_workspace(ws_id, segment[0])
-            if not grades:
-                st.warning("Nenhuma série para este segmento.")
-            else:
-                st.markdown("**Selecione a série:**")
-                grade_labels = [g.get("label", g.get("code", "")) for g in grades]
-                grade_idx = st.radio(
-                    "Série",
-                    range(len(grades)),
-                    format_func=lambda i: grade_labels[i],
-                    horizontal=True,
-                    label_visibility="collapsed",
-                )
-                grade_opt = grades[grade_idx] if grade_idx is not None else None
-                class_group = st.text_input("Turma", placeholder="A, B, 1, 2...", value="A")
-                if st.form_submit_button("Criar turma"):
-                    if year_opt and grade_opt:
-                        _, err = create_class(ws_id, year_opt["id"], grade_opt["id"], class_group)
-                        if err:
-                            st.error(err)
-                        else:
-                            st.success("Turma criada.")
-                            st.rerun()
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                year_opt = st.selectbox("Ano letivo", school_years, format_func=lambda x: f"{x.get('year')} - {x.get('name','')}")
+            with c2:
+                if grades_turma:
+                    grade_opt = st.selectbox("Série", grades_turma, format_func=lambda g: g.get("label", g.get("code","")))
+                else:
+                    grade_opt = None
+                    st.caption("Marque séries do segmento acima.")
+            with c3:
+                class_group = st.text_input("Turma", placeholder="A, B, 1...", value="A")
+            if st.form_submit_button("Criar turma"):
+                if year_opt and grade_opt:
+                    _, err = create_class(ws_id, year_opt["id"], grade_opt["id"], class_group)
+                    if err:
+                        st.error(err)
+                    else:
+                        st.success("Turma criada.")
+                        st.rerun()
 
     # Lista turmas
     school_year_active = next((y for y in school_years if y.get("active")), school_years[0] if school_years else None)
