@@ -13,3 +13,5 @@ pandas
 plotly
 streamlit-option-menu
 graphviz
+pytest
+pytest-cov
