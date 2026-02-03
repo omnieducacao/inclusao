@@ -3360,7 +3360,19 @@ def main():
     
     if not st.session_state.banco_estudantes:
         st.warning("⚠️ Nenhum estudante encontrado.")
-        if st.button("📘 Ir para o módulo PEI", type="primary"): 
+        try:
+            from ui.permissions import get_member_from_session
+            from services.members_service import get_class_assignments
+            m = get_member_from_session()
+            if m and (m.get("link_type") or "").lower() == "turma":
+                ca = get_class_assignments(m.get("id", ""))
+                if not ca:
+                    st.info("💡 Você está vinculado **por turma** mas não tem turmas atribuídas. Peça à coordenação para configurar em **Gestão de Usuários** (turmas e componentes).")
+                else:
+                    st.info("💡 Nenhum aluno corresponde às suas turmas no momento. Verifique se o PEI dos alunos está com a mesma série/turma das suas atribuições.")
+        except Exception:
+            pass
+        if st.button("📘 Ir para o módulo PEI", type="primary"):
             st.switch_page("pages/1_PEI.py")
         st.stop()
     

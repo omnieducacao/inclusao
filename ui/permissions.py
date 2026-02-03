@@ -3,6 +3,7 @@ Permissões e filtro de alunos por membro do workspace.
 - Sem member_id ou sem tabela workspace_members: acesso total (comportamento atual).
 - Com member_id: filtra por link_type (todos, turma, tutor).
 """
+import re
 import streamlit as st
 
 
@@ -48,6 +49,51 @@ def can_access(page: str) -> bool:
     return bool(m.get(page))
 
 
+def _student_grade_to_match_keys(grade_raw: str) -> set:
+    """
+    Converte o grade do estudante (formato PEI: "7º Ano (EFAF)", "1ª Série (EM)")
+    para um conjunto de chaves que podem bater com grades.code das turmas.
+    """
+    s = str(grade_raw or "").strip()
+    if not s:
+        return set()
+    s_lower = s.lower()
+    keys = set()
+
+    # Remove parênteses e conteúdo (ex: "(EFAF)", "(EM)")
+    s_clean = re.sub(r"\s*\([^)]*\)\s*", " ", s).strip()
+
+    # Educação Infantil: aceita 2anos, 3anos, 4anos, 5anos
+    if "infantil" in s_lower or "0-2" in s or "3-5" in s:
+        keys.update(["2anos", "3anos", "4anos", "5anos"])
+        return keys
+
+    # Extrai número: "7º Ano" → "7", "1ª Série" → "1"
+    num_match = re.search(r"(\d)", s_clean)
+    if num_match:
+        n = num_match.group(1)
+        keys.add(n)
+        if "série" in s_lower or "serie" in s_lower or "em" in s_lower or "médio" in s_lower:
+            keys.add(n + "EM")
+    return keys
+
+
+def _assignment_grade_to_match_keys(code: str, label: str) -> set:
+    """Converte grade da turma (code, label) para chaves de match."""
+    keys = set()
+    c = str(code or "").strip()
+    l = str(label or "").strip()
+    if c:
+        keys.add(c)
+        if c in ("1EM", "2EM", "3EM"):
+            keys.add(c[0])
+    if l:
+        m = re.search(r"(\d)", l)
+        if m:
+            keys.add(m.group(1))
+    return keys
+
+
 def filter_students_by_member(students: list, member: dict, class_assignments: list, student_ids: list) -> list:
     """
     Filtra lista de estudantes conforme vínculo do membro.
@@ -64,16 +110,22 @@ def filter_students_by_member(students: list, member: dict, class_assignments: l
     if link_type == "turma":
         if not class_assignments:
             return []
-        def _norm_grade(v):
-            v = str(v or "").strip().upper().replace("º", "").replace("ª", "").replace("ANO", "").replace("SÉRIE", "").replace(" ", "").strip()
-            return v or ""
         def _norm_class(c):
             return str(c or "").strip().upper() or "A"
-        pairs = {(_norm_grade(a.get("grade")), _norm_class(a.get("class_group"))) for a in class_assignments}
+
+        # Constrói set de (grade_key, class_group) aceitos
+        accepted = set()
+        for a in class_assignments:
+            cg = _norm_class(a.get("class_group"))
+            for k in _assignment_grade_to_match_keys(a.get("grade"), a.get("grade_label", "")):
+                accepted.add((k, cg))
+
         def _match(s):
-            g = _norm_grade(s.get("grade") or s.get("serie"))
+            g_raw = s.get("grade") or s.get("serie") or ""
             c = _norm_class(s.get("class_group"))
-            return (g, c) in pairs
+            student_keys = _student_grade_to_match_keys(g_raw)
+            return any((k, c) in accepted for k in student_keys)
+
         return [s for s in students if _match(s)]
     if link_type == "tutor":
         if not student_ids:

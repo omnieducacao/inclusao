@@ -290,7 +290,7 @@ def get_class_assignments(member_id: str) -> list:
     url = f"{_base()}/rest/v1/teacher_assignments"
     params = {
         "workspace_member_id": f"eq.{member_id}",
-        "select": "classes(class_group,grades(code))"
+        "select": "classes(class_group,grades(code,label))"
     }
     r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=10)
     if r.status_code != 200:
@@ -304,11 +304,13 @@ def get_class_assignments(member_id: str) -> list:
         cls = row.get("classes") or row.get("class") or {}
         gr = cls.get("grades") or cls.get("grade") or {}
         code = str(gr.get("code", "") or "").strip()
+        label = str(gr.get("label", "") or "").strip()
         cg = str(cls.get("class_group", "") or "").strip()
-        key = (code, cg)
-        if key not in seen and (code or cg):
-            seen.add(key)
-            pairs.append({"grade": code, "class_group": cg})
+        if (code or label) and cg:
+            key = (code, cg)
+            if key not in seen:
+                seen.add(key)
+                pairs.append({"grade": code, "grade_label": label, "class_group": cg})
     return pairs
 
 
