@@ -133,6 +133,13 @@ def create_class(workspace_id: str, school_year_id: str, grade_id: str, class_gr
     return (data[0] if isinstance(data, list) else data), None
 
 
+def delete_class(class_id: str) -> bool:
+    """Remove uma turma."""
+    url = f"{_base()}/rest/v1/classes?id=eq.{class_id}"
+    r = requests.delete(url, headers=_headers(), timeout=10)
+    return r.status_code in (200, 204)
+
+
 def list_components() -> list:
     url = f"{_base()}/rest/v1/components"
     params = {"order": "sort_order.asc", "select": "id,label"}

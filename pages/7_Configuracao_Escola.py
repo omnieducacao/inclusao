@@ -30,6 +30,7 @@ if os.path.exists(_scs_path):
     set_workspace_grades = _scs.set_workspace_grades
     list_classes = _scs.list_classes
     create_class = _scs.create_class
+    delete_class = _scs.delete_class
 else:
     try:
         from services.school_config_service import (
@@ -42,6 +43,7 @@ else:
             set_workspace_grades,
             list_classes,
             create_class,
+            delete_class,
         )
     except ImportError as e:
         st.error(f"Erro ao carregar configuração: {e}")
@@ -105,96 +107,100 @@ except Exception as e:
 
 # --- 1. Ano Letivo ---
 st.markdown("### 1. Ano Letivo")
-with st.expander("➕ Novo ano letivo"):
+with st.expander("➕ Adicionar ano letivo"):
     with st.form("form_ano"):
         col1, col2 = st.columns(2)
         with col1:
             year = st.number_input("Ano", min_value=2020, max_value=2030, value=datetime.now().year)
         with col2:
             name = st.text_input("Nome (opcional)", placeholder="Ex: 2025")
-        if st.form_submit_button("Criar"):
+        if st.form_submit_button("Adicionar"):
             _, err = create_school_year(ws_id, year, name or None)
             if err:
                 st.error(err)
             else:
-                st.success("Ano letivo criado.")
+                st.success("Ano letivo adicionado.")
                 st.rerun()
 
-if school_years:
-    anos_lista = " · ".join(f"{y.get('year')}" for y in school_years)
-    st.markdown(f"**Anos cadastrados:** <span style='color:#475569; font-weight:600;'>{anos_lista}</span>", unsafe_allow_html=True)
-else:
-    st.info("Nenhum ano letivo. Crie acima.")
+with st.expander("📋 Anos cadastrados", expanded=bool(school_years)):
+    if school_years:
+        for y in school_years:
+            st.markdown(f"• **{y.get('year')}** — {y.get('name','')}")
+    else:
+        st.caption("Nenhum ano. Adicione acima.")
 
 # --- 2. Séries que a escola oferece ---
 st.markdown("### 2. Séries que a escola oferece")
-st.caption("Marque as séries que sua escola tem. EI = idade. Pode não ter 7º ano ou Ensino Médio.")
+st.caption("Selecione as séries que sua escola tem (como em Habilidades BNCC no PEI).")
 ws_grade_ids = set()
 try:
     ws_grade_ids = set(list_workspace_grades(ws_id))
 except Exception:
     pass
-with st.form("form_series"):
-    for seg_id, seg_label in SEGMENTS:
-        grades_seg = list_grades(seg_id)
-        if not grades_seg:
-            continue
-        labels = [g.get("label", g.get("code", "")) for g in grades_seg]
-        st.markdown(f"**{seg_label}:** " + " · ".join(labels))
-        n = len(grades_seg)
-        cols = st.columns(n)
-        for i, g in enumerate(grades_seg):
-            with cols[i]:
-                st.checkbox(g.get("label", g.get("code", "")), value=g.get("id") in ws_grade_ids, key=f"wg_{seg_id}_{g.get('id')}")
-    if st.form_submit_button("Salvar séries"):
-        all_selected = []
-        for seg_id, _ in SEGMENTS:
-            for g in list_grades(seg_id):
-                if st.session_state.get(f"wg_{seg_id}_{g.get('id')}", False):
-                    all_selected.append(g.get("id"))
-        try:
-            set_workspace_grades(ws_id, all_selected)
-            st.success("Séries salvas.")
-            st.rerun()
-        except Exception as e:
-            st.warning("Execute a migration 00007 no Supabase (tabela workspace_grades). " + str(e))
+all_grades = []
+seg_map = {s[0]: s[1] for s in SEGMENTS}
+for seg_id, _ in SEGMENTS:
+    for g in list_grades(seg_id):
+        g["_seg_label"] = seg_map.get(seg_id, seg_id)
+        all_grades.append(g)
+grade_opts = {g["id"]: f"{g['_seg_label']}: {g.get('label', g.get('code',''))}" for g in all_grades}
+selected_ids = st.multiselect(
+    "Séries da escola",
+    options=list(grade_opts.keys()),
+    default=[gid for gid in ws_grade_ids if gid in grade_opts],
+    format_func=lambda x: grade_opts.get(x, str(x)),
+)
+if st.button("Salvar séries"):
+    try:
+        set_workspace_grades(ws_id, selected_ids)
+        st.success("Séries salvas.")
+        st.rerun()
+    except Exception as e:
+        st.warning("Execute a migration 00007 no Supabase (tabela workspace_grades). " + str(e))
 
 # --- 3. Turmas ---
 st.markdown("### 3. Turmas (série + turma)")
 if not school_years:
     st.caption("Crie um ano letivo antes de cadastrar turmas.")
 else:
-    segment_turma = st.selectbox("Segmento", SEGMENTS, format_func=lambda x: x[1], key="seg_turma")
-    grades_turma = list_grades_for_workspace(ws_id, segment_turma[0])
-
-    with st.expander("➕ Nova turma"):
+    with st.expander("➕ Adicionar turma"):
         with st.form("form_turma"):
+            segment_turma = st.selectbox("Segmento", SEGMENTS, format_func=lambda x: x[1], key="seg_turma")
+            grades_turma = list_grades_for_workspace(ws_id, segment_turma[0])
             c1, c2, c3 = st.columns(3)
             with c1:
-                year_opt = st.selectbox("Ano letivo", school_years, format_func=lambda x: f"{x.get('year')} - {x.get('name','')}")
+                year_opt = st.selectbox("Ano letivo", school_years, format_func=lambda x: f"{x.get('year')} — {x.get('name','')}")
             with c2:
                 if grades_turma:
                     grade_opt = st.selectbox("Série", grades_turma, format_func=lambda g: g.get("label", g.get("code","")))
                 else:
                     grade_opt = None
-                    st.caption("Marque séries do segmento acima.")
+                    st.caption("Selecione séries acima primeiro.")
             with c3:
                 class_group = st.text_input("Turma", placeholder="A, B, 1...", value="A")
-            if st.form_submit_button("Criar turma"):
+            if st.form_submit_button("Adicionar turma"):
                 if year_opt and grade_opt:
                     _, err = create_class(ws_id, year_opt["id"], grade_opt["id"], class_group)
                     if err:
                         st.error(err)
                     else:
-                        st.success("Turma criada.")
+                        st.success("Turma adicionada.")
                         st.rerun()
 
-    # Lista turmas (compacta, um ao lado do outro)
-    school_year_active = next((y for y in school_years if y.get("active")), school_years[0] if school_years else None)
-    if school_year_active:
-        classes = list_classes(ws_id, school_year_active.get("id"))
-        if classes:
-            turmas_lista = " · ".join(f"{(c.get('grade') or {}).get('label','')} {c.get('class_group','')}" for c in classes)
-            st.markdown(f"**Turmas ({school_year_active.get('year')}):** <span style='color:#475569; font-weight:600;'>{turmas_lista}</span>", unsafe_allow_html=True)
-        else:
-            st.caption("Nenhuma turma cadastrada para o ano ativo.")
+    with st.expander("📋 Turmas criadas", expanded=True):
+        school_year_active = next((y for y in school_years if y.get("active")), school_years[0] if school_years else None)
+        if school_year_active:
+            classes = list_classes(ws_id, school_year_active.get("id"))
+            if classes:
+                for c in classes:
+                    grade_info = c.get("grade") or {}
+                    lbl = f"{grade_info.get('label','')} {c.get('class_group','')}".strip()
+                    col_txt, col_btn = st.columns([5, 1])
+                    with col_txt:
+                        st.markdown(f"• **{lbl}** ({school_year_active.get('year')})")
+                    with col_btn:
+                        if st.button("Remover", key=f"del_class_{c.get('id')}", type="secondary"):
+                            if delete_class(c.get("id")):
+                                st.rerun()
+            else:
+                st.caption("Nenhuma turma. Adicione acima.")
