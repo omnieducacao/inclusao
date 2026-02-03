@@ -574,12 +574,23 @@ def detectar_nivel_ensino(serie_str: str | None):
 
 
 def _extrair_ano_serie_bncc(serie: str) -> str | None:
-    """Extrai o ano/série no formato do CSV BNCC (ex: 1º, 2º, 6º) a partir da série do estudante."""
+    """
+    Extrai o ano/série no formato do CSV BNCC (ex: 1º, 2º, 6º, 1EM) a partir da série do estudante.
+    Suporta: "1º ano", "7º Ano (EFAF)", "1ª Série (EM)" -> "1º", "7º", "1EM"
+    """
     if not serie or not isinstance(serie, str):
         return None
-    # Ex.: "1º ano", "3º ano fundamental", "6º ano" -> "1º", "3º", "6º"
-    m = re.search(r"(\dº)", serie.strip())
-    return m.group(1) if m else None
+    s = serie.strip()
+    # 1ª Série, 2ª Série (EM) -> 1EM, 2EM, 3EM
+    m_em = re.search(r"(\d)\s*ª?\s*série", s, re.IGNORECASE)
+    if m_em or "em" in s.lower() or "médio" in s.lower():
+        num = m_em.group(1) if m_em else (re.search(r"(\d)", s))
+        if num is not None:
+            n = int(num) if isinstance(num, str) else int(num.group(1))
+            return f"{n}EM"
+    # 1º ano, 7º Ano (EFAF), etc.
+    m = re.search(r"(\d\s*º)", s)
+    return m.group(1).replace(" ", "") if m else None
 
 
 def carregar_habilidades_bncc_por_serie(serie: str, max_caracteres: int = 11000) -> str:
