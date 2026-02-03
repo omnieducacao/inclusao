@@ -810,12 +810,11 @@ if not st.session_state.get("autenticado") or not st.session_state.get("workspac
                 st.switch_page("streamlit_app.py")
     st.stop()
 
-try:
-    ou.log_page_view("Início")
-except AttributeError:
-    pass
-except Exception:
-    pass
+if hasattr(ou, "log_page_view"):
+    try:
+        ou.log_page_view("Início")
+    except Exception:
+        pass
 
 # ==============================================================================
 # 5. FUNÇÕES DE RENDERIZAÇÃO
