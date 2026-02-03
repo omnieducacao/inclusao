@@ -291,11 +291,15 @@ def render_login():
     # 2. Cartão de Login
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
-    # Inputs
-    nome = st.text_input("Seu nome", placeholder="Nome completo")
-    email = st.text_input("Seu email", placeholder="email@escola.com", help="Obrigatório se sua escola usa Gestão de Usuários")
-    cargo = st.text_input("Sua função", placeholder="Ex: Professor, Coordenador")
-    pin = st.text_input("PIN da Escola", type="password", placeholder="****")
+    # Entrada principal: nome, cargo, PIN (como era antes)
+    nome = st.text_input("Seu nome", placeholder="Nome completo", key="login_nome")
+    cargo = st.text_input("Sua função", placeholder="Ex: Professor, Coordenador", key="login_cargo")
+    pin = st.text_input("PIN da Escola", type="password", placeholder="****", key="login_pin")
+
+    # Segunda opção: entrada com email (para escolas com Gestão de Usuários)
+    with st.expander("Minha escola usa Gestão de Usuários (entrar com email cadastrado)", expanded=False):
+        email = st.text_input("Seu email", placeholder="email@escola.com", key="login_email")
+        st.caption("Preencha apenas se sua escola cadastrou usuários com email.")
 
     # 3. Termo de Confidencialidade
     st.markdown(
@@ -348,7 +352,7 @@ def render_login():
             if members:
                 email_val = (email or "").strip().lower()
                 if not email_val:
-                    st.markdown("<div class='err'>Sua escola usa Gestão de Usuários. Informe seu email cadastrado.</div>", unsafe_allow_html=True)
+                    st.markdown("<div class='err'>Sua escola usa Gestão de Usuários. Expanda a opção acima e informe seu email cadastrado.</div>", unsafe_allow_html=True)
                     st.stop()
                 member = next((m for m in members if (m.get("email") or "").strip().lower() == email_val), None)
                 if not member:
