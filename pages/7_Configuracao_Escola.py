@@ -121,36 +121,43 @@ with st.expander("➕ Novo ano letivo"):
                 st.rerun()
 
 if school_years:
-    st.write("**Anos cadastrados:**", ", ".join(f"{y.get('year')} ({y.get('name','')})" for y in school_years))
+    anos_lista = " · ".join(f"{y.get('year')}" for y in school_years)
+    st.markdown(f"**Anos cadastrados:** <span style='color:#475569; font-weight:600;'>{anos_lista}</span>", unsafe_allow_html=True)
 else:
     st.info("Nenhum ano letivo. Crie acima.")
 
 # --- 2. Séries que a escola oferece ---
 st.markdown("### 2. Séries que a escola oferece")
-st.caption("Marque as séries que sua escola tem. EI = idade (2 a 5 anos). Pode não ter 7º ano ou Ensino Médio.")
-ws_grade_ids = set(list_workspace_grades(ws_id))
+st.caption("Marque as séries que sua escola tem. EI = idade. Pode não ter 7º ano ou Ensino Médio.")
+ws_grade_ids = set()
+try:
+    ws_grade_ids = set(list_workspace_grades(ws_id))
+except Exception:
+    pass
 with st.form("form_series"):
     for seg_id, seg_label in SEGMENTS:
-        grades_seg = [g for g in list_grades(seg_id) if "grupo" not in (g.get("label","") or "").lower() and "grupo" not in (g.get("code","") or "").lower()]
+        grades_seg = list_grades(seg_id)
         if not grades_seg:
             continue
-        n = len(grades_seg) + 1
+        labels = [g.get("label", g.get("code", "")) for g in grades_seg]
+        st.markdown(f"**{seg_label}:** " + " · ".join(labels))
+        n = len(grades_seg)
         cols = st.columns(n)
-        with cols[0]:
-            st.markdown(f"**{seg_label}**")
         for i, g in enumerate(grades_seg):
-            with cols[i + 1]:
+            with cols[i]:
                 st.checkbox(g.get("label", g.get("code", "")), value=g.get("id") in ws_grade_ids, key=f"wg_{seg_id}_{g.get('id')}")
     if st.form_submit_button("Salvar séries"):
         all_selected = []
         for seg_id, _ in SEGMENTS:
             for g in list_grades(seg_id):
-                if "grupo" not in (g.get("label", "") or "").lower() and "grupo" not in (g.get("code", "") or "").lower():
-                    if st.session_state.get(f"wg_{seg_id}_{g.get('id')}", False):
-                        all_selected.append(g.get("id"))
-        set_workspace_grades(ws_id, all_selected)
-        st.success("Séries salvas.")
-        st.rerun()
+                if st.session_state.get(f"wg_{seg_id}_{g.get('id')}", False):
+                    all_selected.append(g.get("id"))
+        try:
+            set_workspace_grades(ws_id, all_selected)
+            st.success("Séries salvas.")
+            st.rerun()
+        except Exception as e:
+            st.warning("Execute a migration 00007 no Supabase (tabela workspace_grades). " + str(e))
 
 # --- 3. Turmas ---
 st.markdown("### 3. Turmas (série + turma)")
@@ -159,7 +166,6 @@ if not school_years:
 else:
     segment_turma = st.selectbox("Segmento", SEGMENTS, format_func=lambda x: x[1], key="seg_turma")
     grades_turma = list_grades_for_workspace(ws_id, segment_turma[0])
-    grades_turma = [g for g in grades_turma if "grupo" not in (g.get("label","") or "").lower() and "grupo" not in (g.get("code","") or "").lower()]
 
     with st.expander("➕ Nova turma"):
         with st.form("form_turma"):
@@ -183,14 +189,12 @@ else:
                         st.success("Turma criada.")
                         st.rerun()
 
-    # Lista turmas
+    # Lista turmas (compacta, um ao lado do outro)
     school_year_active = next((y for y in school_years if y.get("active")), school_years[0] if school_years else None)
     if school_year_active:
         classes = list_classes(ws_id, school_year_active.get("id"))
         if classes:
-            st.markdown(f"**Turmas ({school_year_active.get('year')}):**")
-            for c in classes:
-                grade_info = c.get("grade") or {}
-                st.caption(f"• {grade_info.get('label','')} - Turma {c.get('class_group','')}")
+            turmas_lista = " · ".join(f"{(c.get('grade') or {}).get('label','')} {c.get('class_group','')}" for c in classes)
+            st.markdown(f"**Turmas ({school_year_active.get('year')}):** <span style='color:#475569; font-weight:600;'>{turmas_lista}</span>", unsafe_allow_html=True)
         else:
             st.caption("Nenhuma turma cadastrada para o ano ativo.")
