@@ -773,6 +773,10 @@ def initialize_session_state():
 # Inicializa estado
 initialize_session_state()
 
+# Admin da plataforma vai para painel admin
+if st.session_state.get("is_platform_admin"):
+    st.switch_page("pages/8_Admin_Plataforma.py")
+
 # Verificação de autenticação
 if not st.session_state.get("autenticado") or not st.session_state.get("workspace_id"):
     col1, col2, col3 = st.columns([1, 2, 1])

@@ -112,7 +112,7 @@ def acesso_bloqueado(msg: str):
 try:
     q = st.query_params
     if q.get("omni_logout") == "1":
-        for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity"]:
+            for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity", "is_platform_admin"]:
             st.session_state.pop(k, None)
         st.query_params.clear()
 except Exception:
@@ -127,14 +127,23 @@ if "workspace_id" not in st.session_state:
     st.session_state.workspace_id = None
 if "workspace_name" not in st.session_state:
     st.session_state.workspace_name = None
+if "is_platform_admin" not in st.session_state:
+    st.session_state.is_platform_admin = False
 
 HOME_PAGE = "pages/0_Home.py"
+ADMIN_PAGE = "pages/8_Admin_Plataforma.py"
 
 # ------------------------------------------------------------------------------
 # Router
 # ------------------------------------------------------------------------------
 if not st.session_state.autenticado:
     render_login()
+elif st.session_state.get("is_platform_admin"):
+    # Admin da plataforma: vai direto para painel admin
+    try:
+        st.switch_page(ADMIN_PAGE)
+    except Exception:
+        st.switch_page("pages/8_Admin_Plataforma.py")
 else:
     # Se por algum motivo entrou sem workspace, força relogar
     if not st.session_state.workspace_id:

@@ -300,6 +300,50 @@ def render_login():
     # 2. Cartão de Login
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
+    # Opção ADMIN (entrada só com email + senha, sem PIN)
+    with st.expander("🔧 Sou administrador da plataforma", expanded=False):
+        admin_email = st.text_input("Email admin", placeholder="seu@email.com", key="login_admin_email")
+        admin_senha = st.text_input("Senha admin", type="password", placeholder="****", key="login_admin_senha")
+        if st.button("Entrar como admin", key="btn_admin"):
+            if not admin_email or not admin_senha:
+                st.error("Informe email e senha.")
+            else:
+                try:
+                    from services.admin_service import verify_platform_admin, list_platform_admins, create_platform_admin
+                    admins = list_platform_admins()
+                    if not admins:
+                        st.info("Nenhum admin cadastrado. Crie o primeiro admin abaixo.")
+                        with st.form("form_primeiro_admin"):
+                            a_nome = st.text_input("Seu nome *")
+                            a_email = st.text_input("Seu email *")
+                            a_senha = st.text_input("Senha *", type="password")
+                            if st.form_submit_button("Criar primeiro admin"):
+                                if a_nome and a_email and a_senha and len(a_senha) >= 4:
+                                    admin, err = create_platform_admin(a_email, a_senha, a_nome)
+                                    if err:
+                                        st.error(err)
+                                    else:
+                                        st.session_state.autenticado = True
+                                        st.session_state.is_platform_admin = True
+                                        st.session_state.usuario_nome = a_nome
+                                        st.success("Admin criado! Entrando...")
+                                        st.rerun()
+                                else:
+                                    st.error("Preencha todos os campos. Senha mín. 4 caracteres.")
+                    elif verify_platform_admin(admin_email.strip().lower(), admin_senha):
+                        st.session_state.autenticado = True
+                        st.session_state.is_platform_admin = True
+                        st.session_state.workspace_id = None
+                        st.session_state.workspace_name = None
+                        st.session_state.usuario_nome = "Admin"
+                        st.session_state.member = None
+                        st.rerun()
+                    else:
+                        st.error("Email ou senha incorretos.")
+                except Exception as e:
+                    st.error(str(e))
+        st.caption("Admin cria escolas, gera PIN e gerencia masters.")
+
     # Entrada principal: nome, cargo, PIN (como era antes)
     nome = st.text_input("Seu nome", placeholder="Nome completo", key="login_nome")
     cargo = st.text_input("Sua função", placeholder="Ex: Professor, Coordenador", key="login_cargo")
