@@ -8,6 +8,7 @@ Pillow
 streamlit-cropper
 requests
 supabase
+bcrypt
 pandas
 plotly
 streamlit-option-menu

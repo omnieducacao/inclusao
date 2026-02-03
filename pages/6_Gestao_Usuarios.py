@@ -106,6 +106,7 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
         with col1:
             nome = st.text_input("Nome *", placeholder="Nome completo")
             email = st.text_input("Email *", placeholder="email@escola.com")
+            senha = st.text_input("Senha *", type="password", placeholder="Senha de acesso", help="O usuário usará PIN + email + senha no login.")
             telefone = st.text_input("Telefone", placeholder="(11) 99999-9999")
         with col2:
             st.markdown("**Páginas que pode acessar**")
@@ -162,11 +163,14 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
         if submitted:
             if not nome or not email:
                 st.error("Nome e email são obrigatórios.")
+            elif not senha or len(senha) < 4:
+                st.error("Senha obrigatória com no mínimo 4 caracteres.")
             else:
                 member, err = create_member(
                     workspace_id=ws_id,
                     nome=nome,
                     email=email,
+                    password=senha,
                     telefone=telefone,
                     can_estudantes=can_estudantes,
                     can_pei=can_pei,
@@ -185,7 +189,7 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
                     else:
                         st.error(f"Erro ao salvar: {err}")
                 else:
-                    st.success(f"Usuário {nome} cadastrado. Peça para acessar com PIN da escola e selecionar o email no login.")
+                    st.success(f"Usuário {nome} cadastrado. Peça para acessar com PIN da escola + email + senha no login.")
                     st.session_state["gestao_show_form"] = False
                     st.rerun()
 

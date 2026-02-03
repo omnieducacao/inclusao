@@ -296,10 +296,11 @@ def render_login():
     cargo = st.text_input("Sua função", placeholder="Ex: Professor, Coordenador", key="login_cargo")
     pin = st.text_input("PIN da Escola", type="password", placeholder="****", key="login_pin")
 
-    # Segunda opção: entrada com email (para escolas com Gestão de Usuários)
-    with st.expander("Minha escola usa Gestão de Usuários (entrar com email cadastrado)", expanded=False):
+    # Segunda opção: entrada com email + senha (para escolas com Gestão de Usuários)
+    with st.expander("Minha escola usa Gestão de Usuários (entrar com email e senha)", expanded=False):
         email = st.text_input("Seu email", placeholder="email@escola.com", key="login_email")
-        st.caption("Preencha apenas se sua escola cadastrou usuários com email.")
+        senha = st.text_input("Sua senha", type="password", placeholder="****", key="login_senha")
+        st.caption("Preencha se sua escola cadastrou usuários. PIN + email + senha.")
 
     # 3. Termo de Confidencialidade
     st.markdown(
@@ -346,17 +347,25 @@ def render_login():
                     unsafe_allow_html=True
                 )
 
-            # Gestão de usuários: workspace com membros exige email e vincula permissões
+            # Gestão de usuários: workspace com membros exige email + senha
             members = _list_workspace_members(ws_id) if ok_sb else []
             members = [m for m in members if m.get("active", True)]
             if members:
                 email_val = (email or "").strip().lower()
                 if not email_val:
-                    st.markdown("<div class='err'>Sua escola usa Gestão de Usuários. Expanda a opção acima e informe seu email cadastrado.</div>", unsafe_allow_html=True)
+                    st.markdown("<div class='err'>Sua escola usa Gestão de Usuários. Expanda a opção acima e informe email e senha cadastrados.</div>", unsafe_allow_html=True)
                     st.stop()
                 member = next((m for m in members if (m.get("email") or "").strip().lower() == email_val), None)
                 if not member:
                     st.markdown("<div class='err'>Email não cadastrado nesta escola. Entre em contato com o responsável.</div>", unsafe_allow_html=True)
+                    st.stop()
+                try:
+                    from services.members_service import verify_member_password
+                    if not verify_member_password(ws_id, email_val, senha or ""):
+                        st.markdown("<div class='err'>Senha incorreta. Tente novamente ou entre em contato com o responsável.</div>", unsafe_allow_html=True)
+                        st.stop()
+                except Exception:
+                    st.markdown("<div class='err'>Erro ao verificar senha. Tente novamente.</div>", unsafe_allow_html=True)
                     st.stop()
                 st.session_state.member = member
                 st.session_state.usuario_nome = member.get("nome", nome)

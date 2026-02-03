@@ -6,6 +6,11 @@ import os
 import requests
 from typing import Optional
 
+try:
+    import bcrypt
+except ImportError:
+    bcrypt = None
+
 # Usa omni_utils para headers e URL
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -21,9 +26,9 @@ def _headers():
 
 
 def list_members(workspace_id: str):
-    """Lista membros do workspace."""
+    """Lista membros do workspace (sem password_hash)."""
     url = f"{_base()}/rest/v1/workspace_members"
-    params = {"workspace_id": f"eq.{workspace_id}", "order": "nome.asc", "select": "*"}
+    params = {"workspace_id": f"eq.{workspace_id}", "order": "nome.asc", "select": "id,workspace_id,nome,email,telefone,can_estudantes,can_pei,can_paee,can_hub,can_diario,can_avaliacao,can_gestao,link_type,active,created_at,updated_at"}
     r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=15)
     if r.status_code >= 400:
         return []
@@ -42,10 +47,42 @@ def get_member_by_email(workspace_id: str, email: str) -> Optional[dict]:
     return data[0] if isinstance(data, list) and data else None
 
 
+def _hash_password(plain: str) -> str | None:
+    """Retorna hash bcrypt da senha."""
+    if not plain or not bcrypt:
+        return None
+    return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def verify_member_password(workspace_id: str, email: str, password: str) -> bool:
+    """Verifica se o email+senha correspondem a um membro ativo."""
+    url = f"{_base()}/rest/v1/workspace_members"
+    params = {"workspace_id": f"eq.{workspace_id}", "email": f"eq.{email.strip().lower()}", "select": "id,password_hash,active"}
+    r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=10)
+    if r.status_code != 200:
+        return False
+    data = r.json()
+    if not isinstance(data, list) or not data:
+        return False
+    m = data[0]
+    if not m.get("active", True):
+        return False
+    ph = m.get("password_hash")
+    if not ph:
+        return True
+    if not password or not bcrypt:
+        return False
+    try:
+        return bcrypt.checkpw(password.encode("utf-8"), ph.encode("utf-8"))
+    except Exception:
+        return False
+
+
 def create_member(
     workspace_id: str,
     nome: str,
     email: str,
+    password: str = "",
     telefone: str = "",
     can_estudantes: bool = False,
     can_pei: bool = False,
@@ -58,7 +95,7 @@ def create_member(
     teacher_assignments: list = None,  # [{class_id, component_id}, ...]
     student_ids: list = None,
 ):
-    """Cria membro e seus vínculos (turma+componente ou alunos)."""
+    """Cria membro e seus vínculos (turma+componente ou alunos). Senha é obrigatória."""
     row = {
         "workspace_id": workspace_id,
         "nome": nome.strip(),
@@ -73,6 +110,9 @@ def create_member(
         "can_gestao": can_gestao,
         "link_type": link_type or "todos",
     }
+    ph = _hash_password(password)
+    if ph:
+        row["password_hash"] = ph
     url = f"{_base()}/rest/v1/workspace_members"
     h = {**_headers(), "Prefer": "return=representation"}
     r = requests.post(url, headers=h, json=row, timeout=15)
