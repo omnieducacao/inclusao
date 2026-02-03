@@ -3,6 +3,7 @@ Admin da plataforma: criar escolas (workspaces + PIN), gerenciar masters.
 """
 import os
 import random
+from typing import Optional, Tuple
 import requests
 
 import sys
@@ -23,7 +24,7 @@ def _headers():
     return ou._headers()
 
 
-def _hash_password(plain: str) -> str | None:
+def _hash_password(plain: str) -> Optional[str]:
     if not plain or not bcrypt:
         return None
     return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
@@ -42,7 +43,7 @@ def list_platform_admins() -> list:
     return data if isinstance(data, list) else []
 
 
-def get_platform_admin_by_email(email: str) -> dict | None:
+def get_platform_admin_by_email(email: str) -> Optional[dict]:
     """Retorna admin por email (com password_hash para verificação)."""
     url = f"{_base()}/rest/v1/platform_admins"
     params = {"email": f"eq.{email.strip().lower()}", "select": "id,email,nome,password_hash,active"}
@@ -96,6 +97,8 @@ def _normalize_workspace(row: dict) -> dict:
         "id": row.get("id") or row.get("workspace_id"),
         "name": row.get("name") or row.get("workspace_name") or row.get("nome", ""),
         "pin": str(pin_val) if pin_val else "",
+        "segments": row.get("segments") or [],
+        "ai_engines": row.get("ai_engines") or [],
         "created_at": row.get("created_at"),
     }
 
@@ -125,13 +128,21 @@ def _generate_pin() -> str:
     return f"{p1}-{p2}"
 
 
-def create_workspace(name: str) -> tuple:
+def create_workspace(name: str, segments: Optional[list] = None, ai_engines: Optional[list] = None) -> Tuple[Optional[dict], str]:
     """Cria escola (workspace) com PIN gerado. Retorna (workspace, pin) ou (None, erro)."""
     url = f"{_base()}/rest/v1/workspaces"
     for _ in range(20):
         pin = _generate_pin()
         h = {**_headers(), "Prefer": "return=representation"}
-        r = requests.post(url, headers=h, json={"name": name.strip(), "pin": pin}, timeout=15)
+        payload = {
+            "name": name.strip(),
+            "pin": pin,
+        }
+        if segments is not None:
+            payload["segments"] = segments
+        if ai_engines is not None:
+            payload["ai_engines"] = ai_engines
+        r = requests.post(url, headers=h, json=payload, timeout=15)
         if r.status_code == 201:
             data = r.json()
             ws = data[0] if isinstance(data, list) else data

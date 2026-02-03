@@ -59,14 +59,45 @@ header[data-testid="stHeader"] { visibility: hidden !important; height: 0 !impor
 ws_id = st.session_state.get("workspace_id")
 ws_name = st.session_state.get("workspace_name", "")
 
+# Opções de vínculo
+SEGMENT_OPTIONS = {
+    "EI": "Educação Infantil",
+    "EF_AI": "Ensino Fundamental — Anos Iniciais",
+    "EF_AF": "Ensino Fundamental — Anos Finais",
+    "EM": "Ensino Médio",
+}
+ENGINE_OPTIONS = {
+    "red": "Omnisfera Red",
+    "green": "Omnisfera Green",
+    "blue": "Omnisfera Blue",
+}
+
 # --- 1. Criar nova escola ---
 st.markdown("### ➕ Nova escola")
 with st.form("form_nova_escola"):
     nome_escola = st.text_input("Nome da escola", placeholder="Ex: Escola Municipal XYZ")
+    segmentos_escola = st.multiselect(
+        "Segmentos atendidos",
+        options=list(SEGMENT_OPTIONS.keys()),
+        format_func=lambda k: SEGMENT_OPTIONS.get(k, k),
+        placeholder="Selecione os segmentos",
+    )
+    motores_escola = st.multiselect(
+        "Motores de IA disponíveis",
+        options=list(ENGINE_OPTIONS.keys()),
+        format_func=lambda k: ENGINE_OPTIONS.get(k, k),
+        placeholder="Selecione os motores",
+    )
     if st.form_submit_button("Criar escola e gerar PIN"):
         if nome_escola and nome_escola.strip():
+            if not segmentos_escola:
+                st.warning("Selecione ao menos um segmento.")
+                st.stop()
+            if not motores_escola:
+                st.warning("Selecione ao menos um motor de IA.")
+                st.stop()
             try:
-                ws, pin = create_workspace(nome_escola.strip())
+                ws, pin = create_workspace(nome_escola.strip(), segmentos_escola, motores_escola)
                 if ws:
                     st.success(f"✅ Escola **{ws.get('name')}** criada! PIN: **{pin}** — Guarde este PIN.")
                     st.balloons()
@@ -93,7 +124,15 @@ else:
         wid = ws.get("id")
         wname = ws.get("name", "Sem nome")
         wpin = ws.get("pin") or ws.get("pin_code") or ws.get("code") or "—"
+        wsegments = ws.get("segments") or []
+        wengines = ws.get("ai_engines") or []
         with st.expander(f"🏫 {wname} — PIN: {wpin}", expanded=False):
+            if wsegments:
+                seg_labels = [SEGMENT_OPTIONS.get(s, s) for s in wsegments]
+                st.caption(f"Segmentos: {', '.join(seg_labels)}")
+            if wengines:
+                eng_labels = [ENGINE_OPTIONS.get(e, e) for e in wengines]
+                st.caption(f"Motores IA: {', '.join(eng_labels)}")
             col1, col2 = st.columns(2)
             with col1:
                 st.markdown("**Master**")
