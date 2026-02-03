@@ -1546,15 +1546,14 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
         st.warning("⚠️ BNCC não carregada. Usando campos básicos.")
         anos_opcoes = ordenar_anos(["1", "2", "3", "4", "5", "6", "7", "8", "9", "1EM", "2EM", "3EM"])
         ano_padrao = extrair_ano_bncc_do_aluno(aluno) if aluno else None
-        idx = 0
-        if ano_padrao:
-            for i, a in enumerate(anos_opcoes):
-                if str(a).strip() == str(ano_padrao).strip():
-                    idx = i
-                    break
         col1, col2, col3 = st.columns(3)
         with col1:
-            ano = st.selectbox("Ano (PEI)", anos_opcoes, index=idx, key=f"ano_basico_{key_suffix}")
+            if ano_padrao:
+                rotulo = f"{ano_padrao} ano" if "EM" not in str(ano_padrao).upper() else f"{str(ano_padrao).replace('EM','')}ª série EM"
+                st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key=f"ano_basico_{key_suffix}")
+                ano = ano_padrao
+            else:
+                ano = st.selectbox("Ano (PEI)", anos_opcoes, key=f"ano_basico_{key_suffix}")
         with col2:
             disciplina = st.selectbox("Componente Curricular", DISCIPLINAS_PADRAO, key=f"disc_basico_{key_suffix}")
         with col3:
@@ -1596,19 +1595,30 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
         serie_pei = pei.get("serie") or aluno.get("grade") or ""
         ano_selecionado = extrair_ano_bncc_do_aluno({"serie": serie_pei, "grade": serie_pei}) if serie_pei else None
     
+    def _rotulo_ano(a):
+        """Formata ano para exibição: 7º -> 7º ano, 1EM -> 1ª série EM"""
+        if not a:
+            return ""
+        s = str(a).strip()
+        if "EM" in s.upper():
+            n = s.replace("EM", "").strip()
+            return f"{n}ª série EM" if n else s
+        return f"{s} ano"
+    
     if not ano_selecionado:
         st.warning("⚠️ **Série não informada no PEI.** Informe o ano/série do estudante na aba Estudante do PEI para filtrar a BNCC.")
         anos_originais = dados['Ano'].dropna().unique().tolist()
         anos_ordenados = ordenar_anos(anos_originais)
         ano_selecionado = st.selectbox("Ano (escolha enquanto o PEI não tiver série)", anos_ordenados, key=f"ano_bncc_fallback_{key_suffix}")
     
-    if ano_selecionado:
-        st.caption(f"📋 **BNCC para {ano_selecionado}** (conforme PEI do estudante)")
-    
-    # Linha 1: Componente Curricular (filtrado pelo ano do PEI), Unidade Temática
+    # Linha 1: Ano (desabilitado, do PEI), Componente Curricular, Unidade Temática
     col1, col2, col3 = st.columns(3)
     
     with col1:
+        rotulo = _rotulo_ano(ano_selecionado)
+        st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key=f"ano_bncc_display_{key_suffix}")
+    
+    with col2:
         # Componente Curricular — apenas disciplinas que têm conteúdo para o ano do PEI
         if ano_selecionado:
             mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_selecionado).strip() or ano_celula_contem(x, ano_selecionado))
@@ -1619,7 +1629,7 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
             disciplina_selecionada = None
             mask_ano = None
     
-    with col2:
+    with col3:
         if ano_selecionado and disciplina_selecionada and mask_ano is not None:
             unid_filtradas = dados[mask_ano & (dados['Disciplina'] == disciplina_selecionada)]
             unidades = sorted(unid_filtradas['Unidade Temática'].dropna().unique())
@@ -1882,7 +1892,7 @@ def render_aba_adaptar_prova(aluno, api_key):
             st.session_state.bncc_df_completo = carregar_bncc_completa()
         dados = st.session_state.bncc_df_completo
         
-        # Ano determinado pelo PEI (sem escolha) — BNCC já filtrada pelo ano do estudante
+        # Ano determinado pelo PEI — campo desabilitado para dar clareza (7º ano, 5º ano etc.)
         ano_bncc = extrair_ano_bncc_do_aluno(aluno) if aluno else None
         if not ano_bncc and aluno:
             pei = (aluno.get("pei_data") or {}) if isinstance(aluno.get("pei_data"), dict) else {}
@@ -1892,11 +1902,15 @@ def render_aba_adaptar_prova(aluno, api_key):
             st.warning("⚠️ Série não informada no PEI. Informe na aba Estudante do PEI.")
             anos_ord = ordenar_anos(dados['Ano'].dropna().unique().tolist())
             ano_bncc = st.selectbox("Ano (fallback)", anos_ord, key="ano_adaptar_prova_fallback")
-        if ano_bncc:
-            st.caption(f"📋 BNCC para **{ano_bncc}** (PEI)")
-        # Linha 1: Componente, Unidade
+        # Linha 1: Ano (desabilitado), Componente, Unidade
         col_bncc1, col_bncc2, col_bncc3 = st.columns(3)
         with col_bncc1:
+            if ano_bncc:
+                rotulo = f"{ano_bncc} ano" if "EM" not in str(ano_bncc).upper() else f"{str(ano_bncc).replace('EM','')}ª série EM"
+                st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key="ano_adaptar_prova_display")
+            else:
+                st.empty()
+        with col_bncc2:
             if dados is not None and not dados.empty and ano_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
                 df_por_ano = dados[mask_ano]
@@ -1906,7 +1920,7 @@ def render_aba_adaptar_prova(aluno, api_key):
                 disciplina_bncc = st.selectbox("Componente Curricular", 
                                              ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"],
                                              key="disc_adaptar_prova_compact")
-        with col_bncc2:
+        with col_bncc3:
             if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
                 unid_filtradas = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc)]
@@ -2152,7 +2166,7 @@ def render_aba_adaptar_atividade(aluno, api_key):
             st.session_state.bncc_df_completo = carregar_bncc_completa()
         dados = st.session_state.bncc_df_completo
         
-        # Ano determinado pelo PEI — BNCC já filtrada pelo ano do estudante
+        # Ano determinado pelo PEI — campo desabilitado para clareza (7º ano, 5º ano etc.)
         ano_bncc = extrair_ano_bncc_do_aluno(aluno) if aluno else None
         if not ano_bncc and aluno:
             pei = (aluno.get("pei_data") or {}) if isinstance(aluno.get("pei_data"), dict) else {}
@@ -2162,11 +2176,15 @@ def render_aba_adaptar_atividade(aluno, api_key):
             st.warning("⚠️ Série não informada no PEI. Informe na aba Estudante do PEI.")
             anos_ord = ordenar_anos(dados['Ano'].dropna().unique().tolist())
             ano_bncc = st.selectbox("Ano (fallback)", anos_ord, key="ano_adaptar_atividade_fallback")
-        if ano_bncc:
-            st.caption(f"📋 BNCC para **{ano_bncc}** (PEI)")
-        # Linha 1: Componente, Unidade
+        # Linha 1: Ano (desabilitado), Componente, Unidade
         col_bncc1, col_bncc2, col_bncc3 = st.columns(3)
         with col_bncc1:
+            if ano_bncc:
+                rotulo = f"{ano_bncc} ano" if "EM" not in str(ano_bncc).upper() else f"{str(ano_bncc).replace('EM','')}ª série EM"
+                st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key="ano_adaptar_atividade_display")
+            else:
+                st.empty()
+        with col_bncc2:
             if dados is not None and not dados.empty and ano_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
                 df_por_ano = dados[mask_ano]
@@ -2176,7 +2194,7 @@ def render_aba_adaptar_atividade(aluno, api_key):
                 disciplina_bncc = st.selectbox("Componente Curricular", 
                                          ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"],
                                          key="disc_adaptar_atividade_compact")
-        with col_bncc2:
+        with col_bncc3:
             if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
                 unid_filtradas = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc)]
@@ -2463,7 +2481,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
             st.session_state.bncc_df_completo = carregar_bncc_completa()
         dados = st.session_state.bncc_df_completo
         
-        # Ano determinado pelo PEI — BNCC já filtrada pelo ano do estudante
+        # Ano determinado pelo PEI — campo desabilitado para clareza (7º ano, 5º ano etc.)
         ano_bncc = extrair_ano_bncc_do_aluno(aluno) if aluno else None
         if not ano_bncc and aluno:
             pei = (aluno.get("pei_data") or {}) if isinstance(aluno.get("pei_data"), dict) else {}
@@ -2473,11 +2491,15 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
             st.warning("⚠️ Série não informada no PEI. Informe na aba Estudante do PEI.")
             anos_ord = ordenar_anos(dados['Ano'].dropna().unique().tolist())
             ano_bncc = st.selectbox("Ano (fallback)", anos_ord, key="ano_criar_zero_fallback")
-        if ano_bncc:
-            st.caption(f"📋 BNCC para **{ano_bncc}** (PEI)")
-        # Linha 1: Componente, Unidade
+        # Linha 1: Ano (desabilitado), Componente, Unidade
         c1, c2, c3 = st.columns(3)
         with c1:
+            if ano_bncc:
+                rotulo = f"{ano_bncc} ano" if "EM" not in str(ano_bncc).upper() else f"{str(ano_bncc).replace('EM','')}ª série EM"
+                st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key="ano_criar_zero_display")
+            else:
+                st.empty()
+        with c2:
             if dados is not None and not dados.empty and ano_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
                 df_por_ano = dados[mask_ano]
@@ -2486,7 +2508,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
             else:
                 disciplina_bncc = st.selectbox("Componente Curricular", 
                     ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"], key="disc_criar_zero")
-        with c2:
+        with c3:
             if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
                 unid_f = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc)]
