@@ -16,6 +16,8 @@ from services.members_service import (
     create_member,
     update_member,
     deactivate_member,
+    reactivate_member,
+    delete_member_permanently,
     get_class_assignments,
     get_student_links,
 )
@@ -186,7 +188,7 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
                 )
                 if err:
                     if "23505" in err and "workspace_id" in err and "email" in err:
-                        st.error("Este email já está cadastrado neste workspace. Use outro email ou desative o usuário existente para reutilizar.")
+                        st.error("Este email já está em uso. Role até **Usuários desativados** abaixo e exclua o usuário para liberar o email, ou use outro email.")
                     else:
                         st.error(f"Erro ao salvar: {err}")
                 else:
@@ -241,6 +243,29 @@ else:
                             st.rerun()
                         else:
                             st.error("Erro ao desativar.")
+
+    # Usuários desativados (podem estar ocupando o email)
+    inactive = [m for m in members if not m.get("active", True)]
+    if inactive:
+        with st.expander("🗑️ Usuários desativados (excluir para liberar email)", expanded=True):
+            st.caption("Estes emails estão bloqueados. **Excluir permanentemente** libera o email para novo cadastro.")
+            for m in inactive:
+                mid = m.get("id")
+                col_a, col_b, col_c = st.columns([2, 1, 1])
+                with col_a:
+                    st.markdown(f"**{m.get('nome','')}** — {m.get('email','')}")
+                with col_b:
+                    if st.button("Reativar", key=f"reativar_{mid}"):
+                        if reactivate_member(mid):
+                            st.success("Reativado.")
+                            st.rerun()
+                with col_c:
+                    if st.button("Excluir permanentemente", key=f"excluir_{mid}", type="secondary"):
+                        if delete_member_permanently(mid):
+                            st.success("Excluído. O email está liberado.")
+                            st.rerun()
+                        else:
+                            st.error("Erro ao excluir.")
 
     # Formulário de edição
     member_edit = next((m for m in members if m.get("id") == editing_id), None)

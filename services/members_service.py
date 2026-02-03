@@ -194,6 +194,18 @@ def deactivate_member(member_id: str):
     return requests.patch(url, headers=_headers(), json={"active": False}, timeout=15).status_code < 400
 
 
+def reactivate_member(member_id: str):
+    """Reativa membro desativado."""
+    url = f"{_base()}/rest/v1/workspace_members?id=eq.{member_id}"
+    return requests.patch(url, headers=_headers(), json={"active": True}, timeout=15).status_code < 400
+
+
+def delete_member_permanently(member_id: str):
+    """Remove membro do banco (libera o email para novo cadastro)."""
+    url = f"{_base()}/rest/v1/workspace_members?id=eq.{member_id}"
+    return requests.delete(url, headers=_headers(), timeout=15).status_code in (200, 204)
+
+
 def _add_teacher_assignment(member_id: str, class_id: str, component_id: str):
     if not class_id or not component_id:
         return
