@@ -112,7 +112,7 @@ def acesso_bloqueado(msg: str):
 try:
     q = st.query_params
     if q.get("omni_logout") == "1":
-            for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity", "is_platform_admin"]:
+        for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity", "is_platform_admin"]:
             st.session_state.pop(k, None)
         st.query_params.clear()
 except Exception:
