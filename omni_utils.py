@@ -167,6 +167,22 @@ def ensure_state():
         st.session_state.member = None  # Gestão de usuários: permissões por página
     if "view" not in st.session_state:
         st.session_state.view = "login"
+    if "last_activity" not in st.session_state:
+        st.session_state.last_activity = None
+
+
+def _do_logout():
+    """Limpa sessão e redireciona para login."""
+    for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity"]:
+        st.session_state.pop(k, None)
+    try:
+        st.query_params.clear()
+    except Exception:
+        pass
+    try:
+        st.switch_page("streamlit_app.py")
+    except Exception:
+        st.rerun()
 
 # =============================================================================
 # 2) UI COMPONENTS (HEADER & NAVBAR) — PADRÃO ESTÁVEL
@@ -547,20 +563,35 @@ def inject_loading_overlay_css():
 
 def render_omnisfera_header():
     """
-    Topbar fixa (apenas render).
-    O espaço do conteúdo é controlado por inject_layout_css().
+    Topbar fixa com link Sair.
+    Verifica ?omni_logout=1 e timeout de inatividade (30 min).
     """
     ensure_state()
 
-    TOPBAR_H = 56
-    NAVBAR_H = 44  # Reduzido de 52 para 44 para diminuir espaço total
+    # Logout via query param
+    try:
+        if st.query_params.get("omni_logout") == "1":
+            _do_logout()
+            return
+    except Exception:
+        pass
 
-    # 🔥 MUITO PERTO: content_gap=0 (espaço mínimo entre navbar e hero)
+    # Timeout de inatividade: 30 minutos
+    SESSION_TIMEOUT_MIN = 30
+    import time
+    now = time.time()
+    last = st.session_state.get("last_activity")
+    if last is not None and (now - last) > (SESSION_TIMEOUT_MIN * 60):
+        _do_logout()
+        return
+    st.session_state.last_activity = now
+
+    TOPBAR_H = 56
+    NAVBAR_H = 44
     inject_layout_css(topbar_h=TOPBAR_H, navbar_h=NAVBAR_H, content_gap=0)
 
     icone = get_base64_image("omni_icone.png")
     texto = get_base64_image("omni_texto.png")
-
     ws_name = _get_ws_short()
     user_name = st.session_state.get("usuario_nome", "Visitante") or "Visitante"
 
@@ -569,13 +600,13 @@ def render_omnisfera_header():
         if icone else
         '<div class="omni-logo">🌐</div>'
     )
-
     img_text = (
         f'<img src="data:image/png;base64,{texto}" style="height:18px;">'
         if texto else
         '<span style="font-weight:900;color:#0F172A;font-size:15px;letter-spacing:0.05em;">OMNISFERA</span>'
     )
 
+    # Topbar com link Sair (link funciona dentro do HTML fixo)
     st.markdown(
         f"""
 <div class="omni-topbar">
@@ -586,8 +617,28 @@ def render_omnisfera_header():
   <div class="omni-user-info">
     <div class="omni-workspace" title="{ws_name}">{ws_name}</div>
     <div class="omni-avatar" title="{user_name}">{_get_initials(user_name)}</div>
+    <a href="?omni_logout=1" class="omni-btn-sair" title="Encerrar sessão">🚪 Sair</a>
   </div>
 </div>
+<style>
+.omni-btn-sair {{
+  margin-left: 12px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #F1F5F9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid #E2E8F0;
+  transition: all 0.2s;
+}}
+.omni-btn-sair:hover {{
+  background: #E2E8F0;
+  color: #0F172A;
+  border-color: #CBD5E1;
+}}
+</style>
         """,
         unsafe_allow_html=True,
     )
