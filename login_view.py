@@ -126,6 +126,14 @@ def inject_css():
             padding: 28px;
             box-shadow: 0 10px 40px rgba(15,23,42,.06);
         }
+        /* Card visual na coluna central (evita div vazia = retângulo branco) */
+        [data-testid="column"]:nth-of-type(2) {
+            background: white;
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 10px 40px rgba(15,23,42,.06);
+            border: 1px solid #E2E8F0;
+        }
 
         @media (max-width: 768px) {
             .wrap { max-width: 92vw; }
@@ -242,100 +250,97 @@ def render_login():
         unsafe_allow_html=True,
     )
 
-    # Cartão de Login
-    st.markdown('<div class="card">', unsafe_allow_html=True)
+    # Card: conteúdo em coluna central (sem div vazia = sem retângulo branco)
+    col_left, col_center, col_right = st.columns([1, 4, 1])
+    with col_center:
+        with st.expander("🔧 Sou administrador da plataforma", expanded=False):
+            st.caption("O termo de uso é editado em **Admin → Termo de Uso** após o login.")
+            admin_email = st.text_input("Email admin", placeholder="seu@email.com", key="login_admin_email")
+            admin_senha = st.text_input("Senha admin", type="password", placeholder="****", key="login_admin_senha")
+            if st.button("Entrar como admin", key="btn_admin"):
+                if not admin_email or not admin_senha:
+                    st.error("Informe email e senha.")
+                else:
+                    try:
+                        from services.admin_service import verify_platform_admin, list_platform_admins
+                        admins = list_platform_admins()
+                        if not admins:
+                            st.warning("Nenhum admin cadastrado. Criar no Supabase (segurança).")
+                            st.caption("Execute supabase/migrations/00013_seed_admin.sql")
+                            st.code(
+                                "CREATE EXTENSION IF NOT EXISTS pgcrypto;\n\n"
+                                "INSERT INTO platform_admins (email, password_hash, nome)\n"
+                                "VALUES ('seu@email.com', crypt('SuaSenha123', gen_salt('bf')), 'Seu Nome')\n"
+                                "ON CONFLICT (email) DO NOTHING;",
+                                language="sql",
+                            )
+                        elif verify_platform_admin(admin_email.strip().lower(), admin_senha):
+                            st.session_state.autenticado = True
+                            st.session_state.is_platform_admin = True
+                            st.session_state.workspace_id = None
+                            st.session_state.workspace_name = None
+                            st.session_state.usuario_nome = "Admin"
+                            st.session_state.member = None
+                            st.session_state.user_role = "platform_admin"
+                            if hasattr(ou, "track_usage_event"):
+                                try:
+                                    ou.track_usage_event("login_admin_success", source="login_view")
+                                except Exception:
+                                    pass
+                            st.rerun()
+                        else:
+                            st.error("Email ou senha incorretos.")
+                    except Exception as e:
+                        st.error(str(e))
+            st.caption("Admin cria escolas, gera PIN e gerencia masters. Primeiro admin: criar no Supabase.")
 
-    # Admin (dentro do card)
-    with st.expander("🔧 Sou administrador da plataforma", expanded=False):
-        st.caption("O termo de uso é editado em **Admin → Termo de Uso** após o login.")
-        admin_email = st.text_input("Email admin", placeholder="seu@email.com", key="login_admin_email")
-        admin_senha = st.text_input("Senha admin", type="password", placeholder="****", key="login_admin_senha")
-        if st.button("Entrar como admin", key="btn_admin"):
-            if not admin_email or not admin_senha:
+        st.markdown("**Entrar na plataforma**")
+        email = st.text_input("Email", placeholder="seu@escola.com", key="login_email")
+        senha = st.text_input("Senha", type="password", placeholder="****", key="login_senha")
+
+        if st.button("Entrar", use_container_width=True, type="primary", key="btn_entrar"):
+            if not (email and senha):
                 st.error("Informe email e senha.")
             else:
                 try:
-                    from services.admin_service import verify_platform_admin, list_platform_admins
-                    admins = list_platform_admins()
-                    if not admins:
-                        st.warning("Nenhum admin cadastrado. O primeiro admin deve ser criado no Supabase (segurança).")
-                        st.caption("No Supabase → SQL Editor, execute o arquivo supabase/migrations/00013_seed_admin.sql após substituir email, senha e nome.")
-                        st.code(
-                            "CREATE EXTENSION IF NOT EXISTS pgcrypto;\n\n"
-                            "INSERT INTO platform_admins (email, password_hash, nome)\n"
-                            "VALUES ('seu@email.com', crypt('SuaSenha123', gen_salt('bf')), 'Seu Nome')\n"
-                            "ON CONFLICT (email) DO NOTHING;",
-                            language="sql",
-                        )
-                    elif verify_platform_admin(admin_email.strip().lower(), admin_senha):
-                        st.session_state.autenticado = True
-                        st.session_state.is_platform_admin = True
-                        st.session_state.workspace_id = None
-                        st.session_state.workspace_name = None
-                        st.session_state.usuario_nome = "Admin"
-                        st.session_state.member = None
-                        st.session_state.user_role = "platform_admin"
-                        if hasattr(ou, "track_usage_event"):
-                            try:
-                                ou.track_usage_event("login_admin_success", source="login_view")
-                            except Exception:
-                                pass
-                        st.rerun()
+                    from services.members_service import find_user_by_email, verify_workspace_master, verify_member_password
+                    found = find_user_by_email(email.strip().lower())
+                    if not found:
+                        st.error("Email não encontrado. Verifique seus dados.")
                     else:
-                        st.error("Email ou senha incorretos.")
+                        ws_id = found["workspace_id"]
+                        ws_name = found.get("workspace_name", "")
+                        role = found.get("role", "")
+                        user = found.get("user", {})
+                        ok = False
+                        if role == "master":
+                            ok = verify_workspace_master(ws_id, user.get("email"), senha)
+                            if ok:
+                                st.session_state.member = {"nome": user.get("nome"), "email": user.get("email"), "can_gestao": True, "can_estudantes": True, "can_pei": True, "can_paee": True, "can_hub": True, "can_diario": True, "can_avaliacao": True}
+                                st.session_state.usuario_nome = user.get("nome")
+                        else:
+                            ok = verify_member_password(ws_id, user.get("email"), senha)
+                            if ok:
+                                st.session_state.member = user
+                                st.session_state.usuario_nome = user.get("nome")
+                        if ok:
+                            _try_init_supabase_client_into_session()
+                            st.session_state.workspace_id = ws_id
+                            st.session_state.workspace_name = ws_name
+                            st.session_state.autenticado = True
+                            st.session_state.usuario_cargo = "Usuário"
+                            st.session_state.user_role = "master" if role == "master" else "member"
+                            if hasattr(ou, "track_usage_event"):
+                                try:
+                                    event_name = "login_master_success" if role == "master" else "login_member_success"
+                                    ou.track_usage_event(event_name, source="login_view", metadata={"email": user.get("email")})
+                                except Exception:
+                                    pass
+                            st.rerun()
+                        else:
+                            st.error("Senha incorreta.")
                 except Exception as e:
                     st.error(str(e))
-        st.caption("Admin cria escolas, gera PIN e gerencia masters. Primeiro admin: criar no Supabase.")
-
-    st.markdown("**Entrar na plataforma**")
-    email = st.text_input("Email", placeholder="seu@escola.com", key="login_email")
-    senha = st.text_input("Senha", type="password", placeholder="****", key="login_senha")
-
-    if st.button("Entrar", use_container_width=True, type="primary", key="btn_entrar"):
-        if not (email and senha):
-            st.error("Informe email e senha.")
-        else:
-            try:
-                from services.members_service import find_user_by_email, verify_workspace_master, verify_member_password
-                found = find_user_by_email(email.strip().lower())
-                if not found:
-                    st.error("Email não encontrado. Verifique seus dados.")
-                else:
-                    ws_id = found["workspace_id"]
-                    ws_name = found.get("workspace_name", "")
-                    role = found.get("role", "")
-                    user = found.get("user", {})
-                    ok = False
-                    if role == "master":
-                        ok = verify_workspace_master(ws_id, user.get("email"), senha)
-                        if ok:
-                            st.session_state.member = {"nome": user.get("nome"), "email": user.get("email"), "can_gestao": True, "can_estudantes": True, "can_pei": True, "can_paee": True, "can_hub": True, "can_diario": True, "can_avaliacao": True}
-                            st.session_state.usuario_nome = user.get("nome")
-                    else:
-                        ok = verify_member_password(ws_id, user.get("email"), senha)
-                        if ok:
-                            st.session_state.member = user
-                            st.session_state.usuario_nome = user.get("nome")
-                    if ok:
-                        _try_init_supabase_client_into_session()
-                        st.session_state.workspace_id = ws_id
-                        st.session_state.workspace_name = ws_name
-                        st.session_state.autenticado = True
-                        st.session_state.usuario_cargo = "Usuário"
-                        st.session_state.user_role = "master" if role == "master" else "member"
-                        if hasattr(ou, "track_usage_event"):
-                            try:
-                                event_name = "login_master_success" if role == "master" else "login_member_success"
-                                ou.track_usage_event(event_name, source="login_view", metadata={"email": user.get("email")})
-                            except Exception:
-                                pass
-                        st.rerun()
-                    else:
-                        st.error("Senha incorreta.")
-            except Exception as e:
-                st.error(str(e))
-
-    st.markdown("</div>", unsafe_allow_html=True)  # Fim card
 
     st.markdown(
         f'<div class="login-footer">Acesso seguro • RPC: {RPC_NAME}</div>',
