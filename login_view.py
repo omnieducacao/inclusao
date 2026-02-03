@@ -302,6 +302,21 @@ def render_login():
 
     # Opção ADMIN (entrada só com email + senha, sem PIN)
     with st.expander("🔧 Sou administrador da plataforma", expanded=False):
+        default_terms = st.session_state.get(
+            "terms_text",
+            "1. Uso profissional: A Omnisfera é uma ferramenta profissional de apoio à inclusão e deve ser utilizada exclusivamente para fins educacionais e institucionais autorizados.\n\n"
+            "2. Confidencialidade: É proibido inserir dados pessoais sensíveis de estudantes fora de ambientes autorizados pela instituição. O usuário se compromete a proteger qualquer informação acessada na plataforma.\n\n"
+            "3. Responsabilidade: Recomendações e conteúdos gerados pela IA são auxiliares e devem ser validados por profissionais responsáveis. A decisão final é sempre humana.\n\n"
+            "4. Segurança: Credenciais de acesso são pessoais e intransferíveis. Qualquer uso indevido deve ser comunicado à coordenação responsável.\n\n"
+            "5. Conformidade: O uso deve seguir as políticas internas da escola, legislação vigente e boas práticas de proteção de dados.",
+        )
+        st.text_area(
+            "Texto do termo (editável pelo admin)",
+            value=default_terms,
+            key="terms_text",
+            height=220,
+            help="Esse texto aparece no primeiro acesso após o login.",
+        )
         admin_email = st.text_input("Email admin", placeholder="seu@email.com", key="login_admin_email")
         admin_senha = st.text_input("Senha admin", type="password", placeholder="****", key="login_admin_senha")
         if st.button("Entrar como admin", key="btn_admin"):
@@ -335,29 +350,13 @@ def render_login():
                     st.error(str(e))
         st.caption("Admin cria escolas, gera PIN e gerencia masters. Primeiro admin: criar no Supabase.")
 
-    # Termo
-    st.markdown(
-        """
-        <div class="termo-box">
-            <strong>1. Confidencialidade:</strong> O usuário compromete-se a não inserir dados reais sensíveis (nomes completos, documentos) que identifiquem estudantes, exceto em ambiente seguro autorizado pela instituição.<br><br>
-            <strong>2. Natureza Beta:</strong> O sistema está em evolução constante. Algumas funcionalidades podem sofrer alterações.<br><br>
-            <strong>3. Responsabilidade:</strong> As sugestões geradas pela IA servem como apoio pedagógico e devem ser sempre validadas por um profissional humano qualificado.<br><br>
-            <strong>4. Acesso:</strong> As credenciais de acesso são pessoais e intransferíveis dentro da organização.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    aceitar = st.checkbox("Li e aceito o Termo de Confidencialidade", key="login_aceitar")
-
     # Entrada principal: email + senha (nome e cargo vêm do cadastro)
     st.markdown("**Entrar na plataforma**")
     email = st.text_input("Email", placeholder="seu@escola.com", key="login_email")
     senha = st.text_input("Senha", type="password", placeholder="****", key="login_senha")
 
     if st.button("Entrar", use_container_width=True, type="primary", key="btn_entrar"):
-        if not aceitar:
-            st.error("Aceite o termo de confidencialidade.")
-        elif not (email and senha):
+        if not (email and senha):
             st.error("Informe email e senha.")
         else:
             try:

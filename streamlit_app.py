@@ -136,6 +136,10 @@ if "workspace_name" not in st.session_state:
     st.session_state.workspace_name = None
 if "is_platform_admin" not in st.session_state:
     st.session_state.is_platform_admin = False
+if "accepted_terms" not in st.session_state:
+    st.session_state.accepted_terms = False
+if "terms_text" not in st.session_state:
+    st.session_state.terms_text = ""
 
 HOME_PAGE = "pages/0_Home.py"
 ADMIN_PAGE = "pages/8_Admin_Plataforma.py"
@@ -145,6 +149,44 @@ ADMIN_PAGE = "pages/8_Admin_Plataforma.py"
 # ------------------------------------------------------------------------------
 if not st.session_state.autenticado:
     render_login()
+elif not st.session_state.get("accepted_terms"):
+    terms_text = (st.session_state.get("terms_text") or "").strip()
+    if not terms_text:
+        terms_text = (
+            "1. Uso profissional: A Omnisfera é uma ferramenta profissional de apoio à inclusão e deve ser utilizada exclusivamente para fins educacionais e institucionais autorizados.\n\n"
+            "2. Confidencialidade: É proibido inserir dados pessoais sensíveis de estudantes fora de ambientes autorizados pela instituição. O usuário se compromete a proteger qualquer informação acessada na plataforma.\n\n"
+            "3. Responsabilidade: Recomendações e conteúdos gerados pela IA são auxiliares e devem ser validados por profissionais responsáveis. A decisão final é sempre humana.\n\n"
+            "4. Segurança: Credenciais de acesso são pessoais e intransferíveis. Qualquer uso indevido deve ser comunicado à coordenação responsável.\n\n"
+            "5. Conformidade: O uso deve seguir as políticas internas da escola, legislação vigente e boas práticas de proteção de dados."
+        )
+    st.markdown(
+        f"""
+        <div style="
+            max-width:720px;
+            margin: 80px auto;
+            padding: 28px;
+            background: white;
+            border-radius: 18px;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 20px 40px rgba(15,82,186,0.12);
+        ">
+            <div style="font-size:2.2rem; margin-bottom:10px;">🛡️</div>
+            <div style="font-weight:900; font-size:1.2rem; margin-bottom:12px; color:#0f172a;">
+                Termo de Uso e Confidencialidade (Profissional)
+            </div>
+            <div style="color:#334155; font-weight:600; font-size:0.96rem; line-height:1.55;">
+                {terms_text.replace("\n", "<br>")}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("Li e aceito. Continuar", use_container_width=True, type="primary"):
+            st.session_state.accepted_terms = True
+            st.rerun()
+    st.stop()
 elif st.session_state.get("is_platform_admin"):
     # Admin da plataforma: vai direto para painel admin
     try:
