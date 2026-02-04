@@ -1026,6 +1026,20 @@ def track_usage_event(event_type: str, **extra):
         pass
 
 
+def track_ai_feedback(source: str, action: str, content_type: str = None, feedback_text: str = None, metadata: dict = None):
+    """
+    Registra feedback de IA (validação ou refazer) para treinamento futuro.
+    Não quebra o fluxo se o serviço falhar.
+    source: pei, paee, hub
+    action: validated, refazer
+    """
+    try:
+        from services.ai_feedback_service import save_ai_feedback
+        save_ai_feedback(source=source, action=action, content_type=content_type, feedback_text=feedback_text, metadata=metadata)
+    except Exception:
+        pass
+
+
 def log_page_view(page_name: str, throttle_seconds: int = 120):
     """
     Registra page_view com throttling para evitar excesso de eventos em reruns.
@@ -1666,7 +1680,7 @@ def render_footer_assinatura():
         font-weight: 500;
     ">
         <div style="max-width: 560px; margin: 0 auto 14px auto; padding: 10px 14px; background: #F8FAFC; border-radius: 10px; border: 1px solid #E2E8F0; color: #64748B; font-size: 0.72rem; line-height: 1.4;">
-            Conteúdos gerados por IA podem conter erros. É importante sempre fazer <strong>leitura, conferência e edição minuciosa</strong> antes de usar em documentos oficiais.
+            A Omnisfera utiliza motores de IA para apoiar sua prática. Essas ferramentas podem apresentar falhas. É fundamental <strong>revisar sempre com muito cuidado</strong> todo conteúdo gerado, dada a sensibilidade dos dados tratados em educação inclusiva.
         </div>
         Omnisfera — plataforma de inclusão ativa — criada e desenvolvida por <strong style="color: #64748B;">Omni Soluções Educacionais</strong> — todos os direitos reservados.
     </div>

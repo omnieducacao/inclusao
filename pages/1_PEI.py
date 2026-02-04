@@ -3457,6 +3457,7 @@ with tab8:
             c_ok, c_ajuste = st.columns(2)
             if c_ok.button("✅ Aprovar Plano", type="primary", use_container_width=True):
                 st.session_state.dados["status_validacao_pei"] = "aprovado"
+                ou.track_ai_feedback("pei", "validated", content_type="relatorio_pei")
                 st.success("Plano aprovado ✅")
                 st.rerun()
             if c_ajuste.button("❌ Solicitar Ajuste", use_container_width=True):
@@ -3488,6 +3489,7 @@ with tab8:
         st.warning("Descreva o ajuste desejado:")
         feedback = st.text_area("Seu feedback:", placeholder="Ex: Foque mais na alfabetização…")
         if st.button("Regerar com Ajustes", type="primary", use_container_width=True):
+            ou.track_ai_feedback("pei", "refazer", content_type="relatorio_pei", feedback_text=feedback or "")
             with st.spinner("Aplicando ajustes e regerando o PEI..."):
                 res, err = consultar_gpt_pedagogico(
                     api_key,

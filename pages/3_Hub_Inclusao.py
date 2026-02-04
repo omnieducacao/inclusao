@@ -2189,8 +2189,10 @@ def render_aba_adaptar_prova(aluno, api_key):
             col_v, col_r = st.columns([1, 1])
             if col_v.button(f"{get_icon_emoji('validar')} Validar", key="val_d", use_container_width=True):
                 st.session_state['res_docx']['valid'] = True
+                ou.track_ai_feedback("hub", "validated", content_type="prova_adaptada")
                 st.rerun()
             if col_r.button(f"{get_icon_emoji('configurar')} Refazer (+Profundo)", key="redo_d", use_container_width=True):
+                ou.track_ai_feedback("hub", "refazer", content_type="prova_adaptada")
                 with st.spinner("Refazendo com análise mais profunda..."):
                     # Recuperar checklist do session_state se disponível
                     checklist_redo = st.session_state.get('checklist_adaptacao_prova', {})
@@ -2510,8 +2512,10 @@ def render_aba_adaptar_atividade(aluno, api_key):
             col_v, col_r = st.columns([1, 1])
             if col_v.button(f"{get_icon_emoji('validar')} Validar", key="val_i", use_container_width=True):
                 st.session_state['res_img']['valid'] = True
+                ou.track_ai_feedback("hub", "validated", content_type="atividade_adaptada")
                 st.rerun()
             if col_r.button(f"{get_icon_emoji('configurar')} Refazer (+Profundo)", key="redo_i", use_container_width=True):
+                ou.track_ai_feedback("hub", "refazer", content_type="atividade_adaptada")
                 with st.spinner("Refazendo..."):
                     img_bytes = res['map'][1]
                     img_separada_redo = res['map'].get(2)  # Recuperar imagem separada se houver
@@ -2739,9 +2743,11 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
             with col_val:
                 if st.button("✅ Validar Atividade", key="val_c", use_container_width=True):
                     st.session_state['res_create']['valid'] = True
+                    ou.track_ai_feedback("hub", "validated", content_type="atividade_criada")
                     st.rerun()
             with col_ajust:
                 if st.button("🔄 Refazer com Ajustes", key="redo_c", use_container_width=True):
+                    ou.track_ai_feedback("hub", "refazer", content_type="atividade_criada")
                     st.session_state['res_create']['valid'] = False
                     st.info("Para ajustes, modifique os parâmetros acima e clique em 'CRIAR ATIVIDADE' novamente.")
             with col_desc:
@@ -2850,10 +2856,12 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
                 c_vs1, c_vs2 = st.columns([1, 2])
                 if c_vs1.button("✅ Validar", key="val_sc_pd"):
                     st.session_state.valid_scene = True
+                    ou.track_ai_feedback("hub", "validated", content_type="cena_ilustracao")
                     st.rerun()
                 with c_vs2.expander("🔄 Refazer Cena"):
                     fb_scene = st.text_input("Ajuste:", key="fb_sc_pd")
                     if st.button("Refazer", key="ref_sc_pd"):
+                        ou.track_ai_feedback("hub", "refazer", content_type="cena_ilustracao", feedback_text=fb_scene or "")
                         with st.spinner("Redesenhando..."):
                             prompt_completo = f"{desc_m}. Context: Education."
                             if usar_hiperfoco_ilustracao and tema_ilustracao:
@@ -2878,10 +2886,12 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
                 c_vc1, c_vc2 = st.columns([1, 2])
                 if c_vc1.button("✅ Validar", key="val_caa_pd"):
                     st.session_state.valid_caa = True
+                    ou.track_ai_feedback("hub", "validated", content_type="pictograma_caa")
                     st.rerun()
                 with c_vc2.expander("🔄 Refazer Picto"):
                     fb_caa = st.text_input("Ajuste:", key="fb_caa_pd")
                     if st.button("Refazer", key="ref_caa_pd"):
+                        ou.track_ai_feedback("hub", "refazer", content_type="pictograma_caa", feedback_text=fb_caa or "")
                         with st.spinner("Recriando..."):
                             st.session_state.res_caa_url = gerar_pictograma_caa(api_key, palavra_chave, feedback_anterior=fb_caa, gemini_key=g_key)
                             st.rerun()
@@ -2936,9 +2946,11 @@ def render_aba_roteiro_individual(aluno, api_key):
             with col_val:
                 if st.button("✅ Validar Roteiro", key="val_roteiro", use_container_width=True):
                     st.session_state['res_roteiro_valid'] = True
+                    ou.track_ai_feedback("hub", "validated", content_type="roteiro")
                     st.rerun()
             with col_ajust:
                 if st.button("🔄 Refazer com Ajustes", key="redo_roteiro", use_container_width=True):
+                    ou.track_ai_feedback("hub", "refazer", content_type="roteiro")
                     st.session_state['res_roteiro_valid'] = False
                     st.info("Para ajustes, modifique as seleções da BNCC e clique em 'GERAR ROTEIRO' novamente.")
             with col_desc:
@@ -3021,9 +3033,11 @@ def render_aba_papo_mestre(aluno, api_key):
             with col_val:
                 if st.button("✅ Validar Conexões", key="val_papo", use_container_width=True):
                     st.session_state['res_papo_valid'] = True
+                    ou.track_ai_feedback("hub", "validated", content_type="papo_mestre")
                     st.rerun()
             with col_ajust:
                 if st.button("🔄 Refazer com Ajustes", key="redo_papo", use_container_width=True):
+                    ou.track_ai_feedback("hub", "refazer", content_type="papo_mestre")
                     st.session_state['res_papo_valid'] = False
                     st.info("Para ajustes, modifique os parâmetros acima e clique em 'CRIAR CONEXÕES' novamente.")
             with col_desc:
@@ -3124,9 +3138,11 @@ def render_aba_dinamica_inclusiva(aluno, api_key):
             with col_val:
                 if st.button("✅ Validar Dinâmica", key="val_dinamica", use_container_width=True):
                     st.session_state['res_dinamica_valid'] = True
+                    ou.track_ai_feedback("hub", "validated", content_type="dinamica")
                     st.rerun()
             with col_ajust:
                 if st.button("🔄 Refazer com Ajustes", key="redo_dinamica", use_container_width=True):
+                    ou.track_ai_feedback("hub", "refazer", content_type="dinamica")
                     st.session_state['res_dinamica_valid'] = False
                     st.info("Para ajustes, modifique os parâmetros e clique em 'CRIAR DINÂMICA' novamente.")
             with col_desc:
@@ -3235,9 +3251,11 @@ def render_aba_plano_aula(aluno, api_key):
             with col_val:
                 if st.button("✅ Validar Plano", key="val_plano", use_container_width=True):
                     st.session_state['res_plano_valid'] = True
+                    ou.track_ai_feedback("hub", "validated", content_type="plano_aula")
                     st.rerun()
             with col_ajust:
                 if st.button("🔄 Refazer com Ajustes", key="redo_plano", use_container_width=True):
+                    ou.track_ai_feedback("hub", "refazer", content_type="plano_aula")
                     st.session_state['res_plano_valid'] = False
                     st.info("Para ajustes, modifique os parâmetros e clique em 'GERAR PLANO' novamente.")
             with col_desc:
@@ -3310,10 +3328,12 @@ def render_aba_ei_experiencia(aluno, api_key):
             c_val, c_ref = st.columns([1, 3])
             if c_val.button("✅ Validar Experiência", key="val_exp_ei"): 
                 st.session_state.valid_ei_exp = True
+                ou.track_ai_feedback("hub", "validated", content_type="experiencia_ei")
                 st.rerun()
             with c_ref.expander("🔄 Não gostou? Ensinar a IA"):
                 feedback_ei = st.text_input("O que precisa melhorar?", placeholder="Ex: Ficou muito complexo, use materiais mais simples...", key="fb_exp_ei")
                 if st.button("Refazer com Ajustes", key="refazer_exp_ei"):
+                    ou.track_ai_feedback("hub", "refazer", content_type="experiencia_ei", feedback_text=feedback_ei or "")
                     with st.spinner("Reescrevendo..."):
                         st.session_state.res_ei_exp = gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, obj_aprendizagem, feedback_anterior=feedback_ei)
                         st.rerun()
@@ -3367,10 +3387,12 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
                 c_vs1, c_vs2 = st.columns([1, 2])
                 if c_vs1.button("✅ Validar", key="val_sc_ei"):
                     st.session_state.valid_scene = True
+                    ou.track_ai_feedback("hub", "validated", content_type="cena_ei")
                     st.rerun()
                 with c_vs2.expander("🔄 Refazer Cena"):
                     fb_scene = st.text_input("Ajuste:", key="fb_sc_ei")
                     if st.button("Refazer", key="ref_sc_ei"):
+                        ou.track_ai_feedback("hub", "refazer", content_type="cena_ei", feedback_text=fb_scene or "")
                         with st.spinner("Redesenhando..."):
                             prompt_completo = f"{desc_m}. Context: Child education."
                             if usar_hiperfoco_ei and tema_ilustracao_ei:
@@ -3395,10 +3417,12 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
                 c_vc1, c_vc2 = st.columns([1, 2])
                 if c_vc1.button("✅ Validar", key="val_caa_ei"):
                     st.session_state.valid_caa = True
+                    ou.track_ai_feedback("hub", "validated", content_type="pictograma_caa_ei")
                     st.rerun()
                 with c_vc2.expander("🔄 Refazer Picto"):
                     fb_caa = st.text_input("Ajuste:", key="fb_caa_ei")
                     if st.button("Refazer", key="ref_caa_ei"):
+                        ou.track_ai_feedback("hub", "refazer", content_type="pictograma_caa_ei", feedback_text=fb_caa or "")
                         with st.spinner("Recriando..."):
                             st.session_state.res_caa_url = gerar_pictograma_caa(api_key, palavra_chave, feedback_anterior=fb_caa, gemini_key=g_key)
                             st.rerun()
@@ -3437,10 +3461,12 @@ def render_aba_ei_rotina(aluno, api_key):
             c_val, c_ref = st.columns([1, 3])
             if c_val.button("✅ Validar Rotina", key="val_rotina_ei"):
                 st.session_state.valid_ei_rotina = True
+                ou.track_ai_feedback("hub", "validated", content_type="rotina_ei")
                 st.rerun()
             with c_ref.expander("🔄 Refazer adaptação"):
                 fb_rotina = st.text_input("O que ajustar na rotina?", key="fb_rotina_input_ei")
                 if st.button("Refazer Rotina", key="refazer_rotina_ei"):
+                    ou.track_ai_feedback("hub", "refazer", content_type="rotina_ei", feedback_text=fb_rotina or "")
                     with st.spinner("Reajustando..."):
                         prompt_rotina = f"Analise esta rotina de Educação Infantil e sugira adaptações:\n\n{rotina_detalhada}\n\nFoco: {topico_foco}"
                         st.session_state.res_ei_rotina = gerar_roteiro_aula_completo(api_key, aluno, "Geral", "Rotina", feedback_anterior=prompt_rotina)
@@ -3485,10 +3511,12 @@ def render_aba_ei_inclusao_brincar(aluno, api_key):
             c_val, c_ref = st.columns([1, 3])
             if c_val.button("✅ Validar Dinâmica", key="val_dina_ei"):
                 st.session_state.valid_ei_dina = True
+                ou.track_ai_feedback("hub", "validated", content_type="dinamica_ei")
                 st.rerun()
             with c_ref.expander("🔄 Refazer dinâmica"):
                 fb_dina = st.text_input("O que ajustar?", key="fb_dina_input_ei")
                 if st.button("Refazer Dinâmica", key="refazer_dina_ei"):
+                    ou.track_ai_feedback("hub", "refazer", content_type="dinamica_ei", feedback_text=fb_dina or "")
                     with st.spinner("Reajustando..."):
                         st.session_state.res_ei_dina = gerar_dinamica_inclusiva_completa(
                             api_key, 
