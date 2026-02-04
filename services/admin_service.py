@@ -99,6 +99,7 @@ def _normalize_workspace(row: dict) -> dict:
         "pin": str(pin_val) if pin_val else "",
         "segments": row.get("segments") or [],
         "ai_engines": row.get("ai_engines") or [],
+        "enabled_modules": row.get("enabled_modules"),  # None = todos habilitados (retrocompat)
         "created_at": row.get("created_at"),
     }
 
@@ -118,6 +119,39 @@ def list_workspaces() -> list:
         except Exception:
             continue
     return []
+
+
+def get_workspace(workspace_id: str) -> Optional[dict]:
+    """Retorna um workspace por id (normalizado)."""
+    if not workspace_id:
+        return None
+    url = f"{_base()}/rest/v1/workspaces"
+    params = {"id": f"eq.{workspace_id}", "select": "*"}
+    try:
+        r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=10)
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        if not isinstance(data, list) or not data:
+            return None
+        return _normalize_workspace(data[0])
+    except Exception:
+        return None
+
+
+def update_workspace(workspace_id: str, enabled_modules: Optional[list] = None, **kwargs) -> tuple:
+    """Atualiza workspace (ex.: enabled_modules). Retorna (True, None) ou (False, erro)."""
+    if not workspace_id:
+        return False, "workspace_id obrigatório"
+    payload = {}
+    if enabled_modules is not None:
+        payload["enabled_modules"] = enabled_modules
+    payload.update(kwargs)
+    if not payload:
+        return True, None
+    url = f"{_base()}/rest/v1/workspaces?id=eq.{workspace_id}"
+    r = requests.patch(url, headers=_headers(), json=payload, timeout=10)
+    return (r.status_code in (200, 204), None if r.status_code in (200, 204) else (r.text or str(r.status_code)))
 
 
 def _generate_pin() -> str:

@@ -327,6 +327,13 @@ def render_login():
                             _try_init_supabase_client_into_session()
                             st.session_state.workspace_id = ws_id
                             st.session_state.workspace_name = ws_name
+                            try:
+                                from services.admin_service import get_workspace
+                                ws = get_workspace(str(ws_id))
+                                # None ou ausente no DB = todos os módulos habilitados (retrocompat)
+                                st.session_state.enabled_modules = ws.get("enabled_modules") if ws else None
+                            except Exception:
+                                st.session_state.enabled_modules = None
                             st.session_state.autenticado = True
                             st.session_state.usuario_cargo = "Usuário"
                             st.session_state.user_role = "master" if role == "master" else "member"

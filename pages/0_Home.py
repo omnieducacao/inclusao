@@ -1696,7 +1696,13 @@ modules_all = [
     {"title": "Gestão de Usuários", "desc": "Cadastrar usuários, atribuir permissões e vínculos com alunos.", "icon": "ri-user-settings-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/6_Gestao_Usuarios.py", "key": "m_gestao", "perm": "gestao"},
     {"title": "Configuração Escola", "desc": "Ano letivo, séries e turmas. Configure antes de cadastrar professores.", "icon": "ri-building-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/7_Configuracao_Escola.py", "key": "m_config", "perm": "gestao"},
 ]
-modules_data = [m for m in modules_all if _can(m.get("perm", ""))]
+# Filtro por permissão e por módulos habilitados para a escola (Admin)
+_enabled = set(ou.get_enabled_modules())
+modules_data = [
+    m for m in modules_all
+    if _can(m.get("perm", ""))
+    and (m.get("perm") not in ou.MODULE_KEYS or m.get("perm") in _enabled)
+]
 
 st.markdown("### 🚀 Módulos da Plataforma")
 

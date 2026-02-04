@@ -13,6 +13,8 @@ import omni_utils as ou
 from services.admin_service import (
     list_workspaces,
     create_workspace,
+    get_workspace,
+    update_workspace,
     list_platform_admins,
     update_workspace_master_password,
     create_workspace_master_for_workspace,
@@ -257,6 +259,13 @@ with tab_escolas:
         "green": "Omnisfera Green",
         "blue": "Omnisfera Blue",
     }
+    MODULE_OPTIONS = [
+        ("pei", "Estratégias & PEI"),
+        ("paee", "Plano de Ação (AEE)"),
+        ("hub", "Hub de Recursos"),
+        ("diario", "Diário de Bordo"),
+        ("avaliacao", "Evolução & Dados"),
+    ]
 
     st.markdown("### ➕ Nova escola")
     with st.form("form_nova_escola"):
@@ -323,6 +332,22 @@ with tab_escolas:
                 if wengines:
                     eng_labels = [ENGINE_OPTIONS.get(e, e) for e in wengines]
                     st.caption(f"Motores IA: {', '.join(eng_labels)}")
+                # Módulos habilitados (MVP menor = menos módulos)
+                wmodules = ws.get("enabled_modules")  # None = todos
+                with st.form(f"form_modulos_{wid}"):
+                    st.markdown("**Módulos habilitados** (desmarque para ocultar na escola)")
+                    checks = {}
+                    for key, label in MODULE_OPTIONS:
+                        checks[key] = st.checkbox(label, value=(wmodules is None or key in (wmodules or [])), key=f"mod_{wid}_{key}")
+                    if st.form_submit_button("Salvar módulos"):
+                        new_list = [k for k, _ in MODULE_OPTIONS if checks[k]]
+                        ok, err = update_workspace(wid, enabled_modules=new_list)
+                        if ok:
+                            st.success("Módulos atualizados. Usuários da escola verão apenas os habilitados.")
+                            ou.track_usage_event("admin_modules_updated", workspace_id=wid, metadata={"modules": new_list})
+                            st.rerun()
+                        else:
+                            st.error(err or "Erro ao salvar.")
                 col1, col2 = st.columns(2)
                 with col1:
                     st.markdown("**Master**")
