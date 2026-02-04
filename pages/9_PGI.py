@@ -81,6 +81,7 @@ st.markdown("""
 .pgi-badge-equipe { background: #FEF3C7; color: #B45309; }
 .pgi-badge-pedag { background: #D1FAE5; color: #047857; }
 .pgi-badge-pgei { background: #E0E7FF; color: #4338CA; }
+.pgi-badge-com { background: #FCE7F3; color: #BE185D; }
 .pgi-info-box { background: #F0FDFA; border-left: 4px solid #0F766E; padding: 1rem 1.25rem; border-radius: 0 12px 12px 0; margin: 1rem 0; }
 .pgi-info-box h4 { color: #0F766E; margin: 0 0 0.5rem 0; font-size: 1rem; }
 .pgi-quote { background: #F8FAFC; border-left: 3px solid #CBD5E1; padding: 1rem; border-radius: 0 8px 8px 0; font-style: italic; color: #475569; margin: 1rem 0; }
@@ -89,16 +90,20 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Estado das ações cadastradas
+# Estado das ações cadastradas e dimensionamento preliminar
 if "pgi_acoes" not in st.session_state:
     st.session_state.pgi_acoes = []
+if "pgi_dimensionamento" not in st.session_state:
+    st.session_state.pgi_dimensionamento = {}
 
 TIPOS_ACAO = {
     "infraestrutura": ("Infraestrutura (Acessibilidade física)", "pgi-badge-infra", "ri-building-line"),
     "formacao_equipe": ("Formação de Equipe (Capacitação docente/staff)", "pgi-badge-equipe", "ri-team-line"),
     "recursos_pedagogicos": ("Recursos Pedagógicos (Tecnologia assistiva)", "pgi-badge-pedag", "ri-tools-line"),
     "dimensionamento_pgei": ("Dimensionamento / Equipe (PGEI)", "pgi-badge-pgei", "ri-bar-chart-line"),
+    "comunicacao_procedimentos": ("Comunicação e procedimentos institucionais", "pgi-badge-com", "ri-chat-3-line"),
 }
+PERFIS_ATENDIMENTO = ["TEA", "Deficiência física", "Deficiência intelectual", "Dificuldades de aprendizagem", "Altas habilidades", "Comportamentos disruptivos", "Outro"]
 
 # ==============================================================================
 # 1. HERO SECTION
@@ -209,30 +214,33 @@ with tab_inicial:
     st.markdown("---")
     st.markdown("### 2. Atendimento ao aluno — compromisso e ação")
 
-    st.markdown("""
-    O aluno, seja qual for sua condição ou necessidade, é o **centro do projeto escolar** em qualquer modalidade educativa. A escola deve oferecer condições para o seu pleno desenvolvimento. Garantir o acompanhamento sistemático e contínuo, integrando dados e informações tanto da área pedagógica quanto da área socioemocional, além dos relacionados aos modos de convivência na comunidade escolar, supõe uma equipe de profissionais em movimento sinérgico, aptos para realizar um conjunto de tarefas articuladas.
+    with st.expander("📖 Bloco 2.1 — Conceito e referência", expanded=True):
+        st.markdown("""
+        O aluno, seja qual for sua condição ou necessidade, é o **centro do projeto escolar** em qualquer modalidade educativa. A escola deve oferecer condições para o seu pleno desenvolvimento. Garantir o acompanhamento sistemático e contínuo, integrando dados e informações tanto da área pedagógica quanto da área socioemocional, além dos relacionados aos modos de convivência na comunidade escolar, supõe uma equipe de profissionais em movimento sinérgico, aptos para realizar um conjunto de tarefas articuladas.
 
-    *Referência: VALADÃO, M. P. B.; VALADÃO, P. B.; COELHO, J. T. (org.). Referencial de Educação Inclusiva. SINEP-BA. Garimpo Editorial. São Paulo, 2024.*
-    """)
+        *Referência: VALADÃO, M. P. B.; VALADÃO, P. B.; COELHO, J. T. (org.). Referencial de Educação Inclusiva. SINEP-BA. Garimpo Editorial. São Paulo, 2024.*
+        """)
 
-    st.markdown("#### Plano Geral de Educação Inclusiva (PGEI)")
-    st.markdown("""
-    A escola deve prever no seu Projeto Pedagógico um **Plano Geral de Educação Inclusiva (PGEI)** que pode estar no bojo da orientação educacional ou se constituir como um departamento (Serviço de Apoio à Inclusão, Orientação às Práticas Inclusivas, entre outras).
+    with st.expander("📋 Bloco 2.2 — PGEI: estrutura e equipe"):
+        st.markdown("""
+        A escola deve prever no seu Projeto Pedagógico um **Plano Geral de Educação Inclusiva (PGEI)** que pode estar no bojo da orientação educacional ou se constituir como um departamento (Serviço de Apoio à Inclusão, Orientação às Práticas Inclusivas, entre outras).
 
-    A equipe atuante envolve orientadores(as) educacionais, psicólogos(as), psicopedagogos(as), professores(as) habilitados. O coordenador(a) pedagógico(a) terá papel importante na adaptação curricular aos planos individuais (PEI/PDI), subsidiando o desenvolvimento curricular.
+        **Equipe atuante:** orientadores(as) educacionais, psicólogos(as), psicopedagogos(as), professores(as) habilitados. O coordenador(a) pedagógico(a) terá papel importante na adaptação curricular aos planos individuais (PEI/PDI).
 
-    Cabe ao orientador(a) educacional ou psicólogo(a) escolar receber a família e especialistas externos, registrar dados (relatórios médicos, laudos, orientações técnicas), arquivá-los com sigilo e disponibilizar ao setor pedagógico o conteúdo necessário à personalização do currículo.
-    """)
+        **Recepção e documentação:** Cabe ao orientador(a) educacional ou psicólogo(a) escolar receber a família e especialistas externos, registrar dados (relatórios médicos, laudos, orientações técnicas, autorizações das famílias, agenda de atendimentos, contatos dos profissionais externos), arquivá-los com garantia de sigilo e disponibilizar ao setor pedagógico o conteúdo necessário à personalização do currículo no PEI/PDI.
 
-    st.markdown("#### Questões preliminares para o PGEI")
-    st.markdown("""
-    1. **Número total de alunos** e número de alunos com deficiência matriculados  
-    2. **Número de profissionais por período** e horas efetivas de permanência da equipe de inclusão
+        *Quando a escola não conta com equipe multidisciplinar ampla, o coordenador pedagógico pode assumir a recepção, acompanhamento e orientação de docentes e famílias.*
+        """)
 
-    Essas variáveis impactam o dimensionamento do atendimento e a qualidade das ações inclusivas: determinam alocação de recursos (professores de apoio, mediadores, intérpretes de Libras), orientam a organização da rotina e influenciam prioridades e tempo para cada intervenção.
-    """)
+    with st.expander("📊 Bloco 2.3 — Questões preliminares para o PGEI"):
+        st.markdown("""
+        1. **Número total de alunos** e número de alunos com deficiência matriculados  
+        2. **Número de profissionais por período** e horas efetivas de permanência da equipe de inclusão
 
-    with st.expander("📋 Check-list prático para elaboração do PGEI", expanded=False):
+        Essas variáveis impactam o dimensionamento do atendimento e a qualidade das ações inclusivas: determinam alocação de recursos (professores de apoio, mediadores, intérpretes de Libras), orientam a organização da rotina e influenciam prioridades e tempo para cada intervenção.
+        """)
+
+    with st.expander("✅ Bloco 2.4 — Check-list prático para elaboração do PGEI"):
         st.markdown("""
         - Levantar o número total de alunos e os perfis específicos (com deficiência, altas habilidades, etc.)
         - Identificar necessidades específicas de cada perfil (intérpretes, materiais adaptados)
@@ -242,7 +250,7 @@ with tab_inicial:
         - Estabelecer indicadores para avaliar a implementação (participação, frequência)
         """)
 
-    with st.expander("📊 Proposta prática: tabela de dimensionamento", expanded=False):
+    with st.expander("📊 Bloco 2.5 — Tabela de dimensionamento + exemplo de aplicação"):
         st.markdown("""
         | Questão Preliminar | Exemplo | Ação Sugestiva |
         |-------------------|---------|----------------|
@@ -251,38 +259,86 @@ with tab_inicial:
         | Nº de profissionais por período | 2 professores de apoio; 1 coordenador | Avaliar ampliação da equipe conforme turnos de maior demanda |
         | Horas efetivas da equipe | 6h/dia; demandas extras 4h/semana | Realocar em horários estratégicos ou solicitar ampliação |
         """)
+        st.markdown("**Exemplo:** Escola com 10 alunos (4 TEA, 2 def. física, 3 dificuldades aprendizagem, 1 altas habilidades). Equipe: 2 mediadores + 1 coordenador.")
+        st.markdown("**Desafios comuns:** Insuficiência de mediadores; falta de planejamento para altas habilidades.")
+        st.markdown("**Soluções propostas:** Contratar mediador adicional; criar grupo de enriquecimento curricular para altas habilidades; reorganizar rotina para priorizar horários de maior demanda.")
+
+    with st.expander("👥 Bloco 2.6 — Perfis contemplados no PGEI"):
+        st.markdown("""
+        O PGEI considera perfis singulares: alunos com **deficiência**, **comportamentos disruptivos**, **transtornos e/ou dificuldades de aprendizagem específicas** e **altas habilidades**. Use esses perfis ao cadastrar ações no Gerador.
+        """)
 
     st.markdown("---")
     st.markdown("### 3. Equipe de trabalho em ação")
 
-    st.markdown("""
-    O Setor de Orientação Educacional, ao abrigar o serviço de apoio à educação inclusiva, deve contar com **psicólogo(a) escolar**, **orientador(a) educacional** e **assistentes pedagógicas (APs)** atuando em parceria.
+    with st.expander("👥 Bloco 3.1 — Papéis da equipe (orientador, psicólogo, AT)"):
+        st.markdown("""
+        O Setor de Orientação Educacional deve contar com **psicólogo(a) escolar**, **orientador(a) educacional** e **assistentes pedagógicas (APs)**.
 
-    - **Orientador(a) educacional:** Dinâmicas entre alunos, professores e famílias; bem-estar e integração social; pontes entre currículo e desempenho.
-    - **Psicólogo(a) escolar:** Estudos de caso; acompanhamento do cumprimento do PEI/PDI; organização de encontros com famílias e profissionais externos; supervisão de ATs e APs. Não assume função terapêutica.
-    - **Atendente terapêutico (AT):** Profissional com atendimento individual e exclusivo do aluno, vínculo com família/clínica, inserido formalmente via Termo de Compromisso. Custeado pelo Estado ou pela família. A Política de Proteção aos Direitos das Pessoas com TEA garante acompanhante especializado em sala quando há comprovada necessidade (BRASIL, 2012).
+        - **Orientador(a) educacional:** Dinâmicas entre alunos, professores e famílias; bem-estar e integração social; pontes entre currículo e desempenho.
+        - **Psicólogo(a) escolar:** Estudos de caso; acompanhamento do cumprimento do PEI/PDI; organização de encontros com famílias e profissionais externos; supervisão de ATs e APs. Não assume função terapêutica.
+        - **Atendente terapêutico (AT):** Atendimento individual e exclusivo do aluno, vínculo com família/clínica, inserido via Termo de Compromisso. Custeado pelo Estado ou família. Política de Proteção aos Direitos das Pessoas com TEA garante acompanhante especializado em sala quando há comprovada necessidade (BRASIL, 2012).
+        """)
 
-    *Quando a escola não conta com equipe multidisciplinar ampla, o coordenador pedagógico pode assumir a recepção, acompanhamento e orientação de docentes e famílias.*
-    """)
-
-    st.markdown("---")
-    st.markdown("#### Comunicação e sigilo")
-    st.markdown("""
-    Uma das questões fundamentais é a **comunicação interna** entre profissionais que atuam com o aluno, a troca com profissionais externos e o **diálogo com as famílias**. Em todos os casos, o sigilo e a reserva de informações devem ser respeitados conforme o limite da atuação de cada profissional. A responsabilidade pela privacidade do aluno é de todos; cabe à equipe de educação inclusiva a tarefa de filtrar dados e informações.
-    """)
+    with st.expander("🔒 Bloco 3.2 — Comunicação e sigilo"):
+        st.markdown("""
+        Uma das questões fundamentais é a **comunicação interna** entre profissionais que atuam com o aluno, a troca com profissionais externos e o **diálogo com as famílias**. Em todos os casos, o sigilo e a reserva de informações devem ser respeitados conforme o limite da atuação de cada profissional. A responsabilidade pela privacidade do aluno é de todos; cabe à equipe de educação inclusiva a tarefa de filtrar dados e informações.
+        """)
 
 # --- ABA GERADOR: Formulário 5W2H e tabela ---
 with tab_gerador:
     st.markdown(f"### {icon_title('O Gerador', 'fluxo', 22, '#0F766E')}", unsafe_allow_html=True)
     st.caption("Cadastre ações usando o framework 5W2H. Alinhe com o PGEI: Infraestrutura, Formação, Recursos Pedagógicos ou Dimensionamento da equipe.")
 
+    with st.expander("📐 Dimensionamento preliminar (opcional)", expanded=False):
+        st.caption("Preencha conforme as questões do PGEI. Esses números orientam as ações que você vai cadastrar.")
+        d1, d2 = st.columns(2)
+        with d1:
+            n_total = st.number_input("Nº total de alunos", min_value=0, value=st.session_state.pgi_dimensionamento.get("n_total", 0), key="dim_n_total")
+            n_deficiencia = st.number_input("Nº alunos com deficiência / necessidades específicas", min_value=0, value=st.session_state.pgi_dimensionamento.get("n_deficiencia", 0), key="dim_n_def")
+        with d2:
+            n_prof = st.number_input("Nº profissionais da equipe de inclusão", min_value=0, value=st.session_state.pgi_dimensionamento.get("n_prof", 0), key="dim_n_prof")
+            horas_dia = st.number_input("Horas efetivas da equipe por dia", min_value=0.0, value=float(st.session_state.pgi_dimensionamento.get("horas_dia", 0)), key="dim_horas", step=0.5)
+        if n_total or n_deficiencia or n_prof or horas_dia:
+            st.session_state.pgi_dimensionamento = {"n_total": n_total, "n_deficiencia": n_deficiencia, "n_prof": n_prof, "horas_dia": horas_dia}
+
     with st.expander("💡 Dicas do PGEI — use na aba Inicial para referência", expanded=False):
         st.markdown("""
         - **Infraestrutura:** rampas, banheiros adaptados, tecnologias assistivas  
         - **Formação:** capacitação docente, HTPC, formação sobre LDB/BNCC  
         - **Recursos pedagógicos:** materiais adaptados, intérpretes de Libras  
-        - **Dimensionamento PGEI:** alocação de mediadores, ampliação de carga horária da equipe, reorganização de turnos
+        - **Dimensionamento PGEI:** alocação de mediadores, ampliação de carga horária, reorganização de turnos  
+        - **Comunicação e procedimentos:** fluxo de recepção à família, arquivamento de documentação PEI/PDI
         """)
+
+    st.markdown("**Ações sugeridas** (clique para adicionar rapidamente ao plano)")
+    sug_cols = st.columns(4)
+    def _add_acao_rapida(o_que, por_que, tipo):
+        st.session_state.pgi_acoes.append({
+            "tipo": tipo,
+            "o_que": o_que,
+            "por_que": por_que,
+            "quem": "",
+            "onde": "",
+            "como": "",
+            "prazo": date.today().isoformat(),
+            "custo": "",
+            "perfil": [],
+            "criado_em": datetime.now(ZoneInfo("America/Sao_Paulo")).isoformat(),
+        })
+        st.rerun()
+    with sug_cols[0]:
+        if st.button("➕ Contratar mediador", key="sug_mediador", use_container_width=True):
+            _add_acao_rapida("Contratar mediador adicional para alunos com maior necessidade de suporte", "Insuficiência de mediadores (dimensionamento PGEI)", "dimensionamento_pgei")
+    with sug_cols[1]:
+        if st.button("➕ Grupo enriquecimento", key="sug_altas", use_container_width=True):
+            _add_acao_rapida("Criar grupo de enriquecimento curricular para altas habilidades", "Atendimento diferenciado em horários de menor demanda", "dimensionamento_pgei")
+    with sug_cols[2]:
+        if st.button("➕ Reorganizar rotina", key="sug_rotina", use_container_width=True):
+            _add_acao_rapida("Reorganizar rotina da equipe para priorizar horários de maior demanda", "Otimização do dimensionamento", "dimensionamento_pgei")
+    with sug_cols[3]:
+        if st.button("➕ Fluxo recepção/doc.", key="sug_fluxo", use_container_width=True):
+            _add_acao_rapida("Estabelecer fluxo de recepção à família e arquivamento de documentação PEI/PDI", "Garantir sigilo e disponibilizar ao setor pedagógico", "comunicacao_procedimentos")
 
     tipo_acao = st.radio(
         "Tipo de Ação:",
@@ -326,6 +382,12 @@ with tab_gerador:
                 "COMO (Método)",
                 placeholder="Ex: Contratação de empresa especializada / Palestra em horário de HTPC",
             )
+            perfil = st.multiselect(
+                "Perfil de atendimento (opcional)",
+                options=PERFIS_ATENDIMENTO,
+                default=[],
+                help="TEA, deficiência física, altas habilidades, etc. — conforme PGEI",
+            )
 
         if st.form_submit_button("➕ Adicionar ação ao plano"):
             if not o_que or not o_que.strip():
@@ -340,6 +402,7 @@ with tab_gerador:
                     "como": (como or "").strip(),
                     "prazo": prazo.isoformat() if prazo else "",
                     "custo": (custo or "").strip(),
+                    "perfil": perfil if perfil else [],
                     "criado_em": datetime.now(ZoneInfo("America/Sao_Paulo")).isoformat(),
                 })
                 st.success("Ação adicionada ao plano da escola.")
@@ -380,6 +443,8 @@ with tab_gerador:
                     st.caption(f"📅 {prazo_fmt or '—'}")
                 with sub[3]:
                     st.caption(f"💰 {a.get('custo') or '—'}")
+                if a.get("perfil"):
+                    st.caption(f"📌 Perfis: {', '.join(a['perfil'])}")
             with col_act:
                 if st.button("🗑️", key=f"pgi_del_{i}", help="Remover"):
                     st.session_state.pgi_acoes.pop(i)
@@ -426,6 +491,7 @@ with tab_gerador:
                 "formacao_equipe": "Formacao de Equipe (Capacitacao docente/staff)",
                 "recursos_pedagogicos": "Recursos Pedagogicos (Tecnologia assistiva)",
                 "dimensionamento_pgei": "Dimensionamento / Equipe (PGEI)",
+                "comunicacao_procedimentos": "Comunicacao e procedimentos institucionais",
             }
 
             for i, a in enumerate(acoes_list, 1):
@@ -453,6 +519,10 @@ with tab_gerador:
                 pdf.multi_cell(0, 6, prazo_pdf or "A definir")
                 pdf.cell(0, 6, "CUSTO (R$):", 0, 1)
                 pdf.multi_cell(0, 6, _limpar(a.get("custo", "")) or "A definir")
+                perfis = a.get("perfil") or []
+                if perfis:
+                    pdf.cell(0, 6, "PERFIL DE ATENDIMENTO:", 0, 1)
+                    pdf.multi_cell(0, 6, _limpar(", ".join(perfis)))
                 pdf.ln(6)
 
             buf = io.BytesIO()
