@@ -1662,9 +1662,22 @@ def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alun
     except Exception as e:
         return str(e)
 
-def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, qtd_alunos, recursos, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, aluno_info=None):
-    """Gera plano de aula completo com BNCC"""
-    client = OpenAI(api_key=api_key)
+def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, qtd_alunos, recursos, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, aluno_info=None, kimi_key=None):
+    """Gera plano de aula completo com BNCC. Usa ChatGPT (OPENAI_API_KEY) ou Kimi (OPENROUTER_API_KEY) como fallback."""
+    use_openai = api_key and str(api_key).strip()
+    use_kimi = kimi_key and str(kimi_key).strip()
+    if not use_openai and not use_kimi:
+        return "⚠️ **Configure pelo menos uma chave:** OPENAI_API_KEY (ChatGPT) ou OPENROUTER_API_KEY/KIMI_API_KEY (Kimi)."
+    if use_openai:
+        client = OpenAI(api_key=str(api_key).strip())
+        base_url, model = None, "gpt-4o-mini"
+    else:
+        k = str(kimi_key).strip().replace("\n", "").replace("\r", "")
+        base_url = ou.get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if k.startswith("sk-or-") else "https://api.moonshot.ai/v1")
+        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://openrouter.ai/api/v1"
+        model = ou.get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if k.startswith("sk-or-") else "kimi-k2-turbo-preview")
+        model = (model or "").strip() or "moonshotai/kimi-k2.5"
+        client = OpenAI(api_key=k, base_url=base_url)
     
     # Construir informações da BNCC
     info_bncc = ""
@@ -1775,8 +1788,8 @@ def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, q
     
     try:
         resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=[{"role": "user", "content": prompt}], 
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
             temperature=0.7
         )
         return resp.choices[0].message.content
@@ -3540,22 +3553,31 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
     st.markdown("---")
     
     if st.button("📅 GERAR PLANO DE AULA", type="primary", use_container_width=True):
-        if objeto_bncc and habilidades_bncc:
+        has_openai = api_key and str(api_key).strip()
+        has_kimi = kimi_key and str(kimi_key).strip()
+        if not has_openai and not has_kimi:
+            st.error(
+                "Configure a chave da OpenAI (ChatGPT) para gerar o plano de aula. "
+                "Adicione OPENAI_API_KEY em secrets ou variáveis de ambiente. "
+                "O PPT usa Kimi (OPENROUTER_API_KEY) separadamente."
+            )
+        elif objeto_bncc and habilidades_bncc:
             with st.spinner(f"Consultando BNCC e planejando aula sobre '{objeto_bncc}'..."):
                 res = gerar_plano_aula_completo(
-                    api_key=api_key,
+                    api_key=api_key or "",
                     materia=disciplina_bncc,
-                    assunto=objeto_bncc, # Passa o objeto BNCC como assunto
+                    assunto=objeto_bncc,
                     metodologia=metodologia,
                     tecnica=tecnica_ativa,
                     qtd_alunos=qtd_alunos_plano,
                     recursos=recursos_plano,
                     habilidades_bncc=habilidades_bncc,
-                    verbos_bloom=None, # Bloom Removido
+                    verbos_bloom=None,
                     ano=ano_bncc,
                     unidade_tematica=unidade_bncc,
                     objeto_conhecimento=objeto_bncc,
-                    aluno_info=aluno
+                    aluno_info=aluno,
+                    kimi_key=kimi_key
                 )
                 st.session_state['res_plano'] = res
                 st.session_state['res_plano_valid'] = False
