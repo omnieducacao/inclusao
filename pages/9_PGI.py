@@ -80,6 +80,7 @@ st.markdown("""
 .pgi-badge-infra { background: #DBEAFE; color: #1E40AF; }
 .pgi-badge-equipe { background: #FEF3C7; color: #B45309; }
 .pgi-badge-pedag { background: #D1FAE5; color: #047857; }
+.pgi-badge-pgei { background: #E0E7FF; color: #4338CA; }
 .pgi-info-box { background: #F0FDFA; border-left: 4px solid #0F766E; padding: 1rem 1.25rem; border-radius: 0 12px 12px 0; margin: 1rem 0; }
 .pgi-info-box h4 { color: #0F766E; margin: 0 0 0.5rem 0; font-size: 1rem; }
 .pgi-quote { background: #F8FAFC; border-left: 3px solid #CBD5E1; padding: 1rem; border-radius: 0 8px 8px 0; font-style: italic; color: #475569; margin: 1rem 0; }
@@ -96,6 +97,7 @@ TIPOS_ACAO = {
     "infraestrutura": ("Infraestrutura (Acessibilidade física)", "pgi-badge-infra", "ri-building-line"),
     "formacao_equipe": ("Formação de Equipe (Capacitação docente/staff)", "pgi-badge-equipe", "ri-team-line"),
     "recursos_pedagogicos": ("Recursos Pedagógicos (Tecnologia assistiva)", "pgi-badge-pedag", "ri-tools-line"),
+    "dimensionamento_pgei": ("Dimensionamento / Equipe (PGEI)", "pgi-badge-pgei", "ri-bar-chart-line"),
 }
 
 # ==============================================================================
@@ -204,10 +206,83 @@ with tab_inicial:
     Estabelecer parcerias com ONGs, instituições de saúde e outros órgãos pode proporcionar suporte adicional às práticas inclusivas da escola.
     """)
 
+    st.markdown("---")
+    st.markdown("### 2. Atendimento ao aluno — compromisso e ação")
+
+    st.markdown("""
+    O aluno, seja qual for sua condição ou necessidade, é o **centro do projeto escolar** em qualquer modalidade educativa. A escola deve oferecer condições para o seu pleno desenvolvimento. Garantir o acompanhamento sistemático e contínuo, integrando dados e informações tanto da área pedagógica quanto da área socioemocional, além dos relacionados aos modos de convivência na comunidade escolar, supõe uma equipe de profissionais em movimento sinérgico, aptos para realizar um conjunto de tarefas articuladas.
+
+    *Referência: VALADÃO, M. P. B.; VALADÃO, P. B.; COELHO, J. T. (org.). Referencial de Educação Inclusiva. SINEP-BA. Garimpo Editorial. São Paulo, 2024.*
+    """)
+
+    st.markdown("#### Plano Geral de Educação Inclusiva (PGEI)")
+    st.markdown("""
+    A escola deve prever no seu Projeto Pedagógico um **Plano Geral de Educação Inclusiva (PGEI)** que pode estar no bojo da orientação educacional ou se constituir como um departamento (Serviço de Apoio à Inclusão, Orientação às Práticas Inclusivas, entre outras).
+
+    A equipe atuante envolve orientadores(as) educacionais, psicólogos(as), psicopedagogos(as), professores(as) habilitados. O coordenador(a) pedagógico(a) terá papel importante na adaptação curricular aos planos individuais (PEI/PDI), subsidiando o desenvolvimento curricular.
+
+    Cabe ao orientador(a) educacional ou psicólogo(a) escolar receber a família e especialistas externos, registrar dados (relatórios médicos, laudos, orientações técnicas), arquivá-los com sigilo e disponibilizar ao setor pedagógico o conteúdo necessário à personalização do currículo.
+    """)
+
+    st.markdown("#### Questões preliminares para o PGEI")
+    st.markdown("""
+    1. **Número total de alunos** e número de alunos com deficiência matriculados  
+    2. **Número de profissionais por período** e horas efetivas de permanência da equipe de inclusão
+
+    Essas variáveis impactam o dimensionamento do atendimento e a qualidade das ações inclusivas: determinam alocação de recursos (professores de apoio, mediadores, intérpretes de Libras), orientam a organização da rotina e influenciam prioridades e tempo para cada intervenção.
+    """)
+
+    with st.expander("📋 Check-list prático para elaboração do PGEI", expanded=False):
+        st.markdown("""
+        - Levantar o número total de alunos e os perfis específicos (com deficiência, altas habilidades, etc.)
+        - Identificar necessidades específicas de cada perfil (intérpretes, materiais adaptados)
+        - Dimensionar a equipe de inclusão e verificar carga horária disponível
+        - Planejar ações coletivas e individuais, alinhadas ao PPP
+        - Garantir formação continuada para toda a equipe escolar
+        - Estabelecer indicadores para avaliar a implementação (participação, frequência)
+        """)
+
+    with st.expander("📊 Proposta prática: tabela de dimensionamento", expanded=False):
+        st.markdown("""
+        | Questão Preliminar | Exemplo | Ação Sugestiva |
+        |-------------------|---------|----------------|
+        | Nº de alunos com deficiência | 5 em escola com 300 alunos | Contratar 1 mediador para cada aluno que demande suporte contínuo |
+        | Perfil dos alunos | Deficiência física, TEA, altas habilidades | Mapear necessidades (acessibilidade, intérpretes, materiais adaptados) |
+        | Nº de profissionais por período | 2 professores de apoio; 1 coordenador | Avaliar ampliação da equipe conforme turnos de maior demanda |
+        | Horas efetivas da equipe | 6h/dia; demandas extras 4h/semana | Realocar em horários estratégicos ou solicitar ampliação |
+        """)
+
+    st.markdown("---")
+    st.markdown("### 3. Equipe de trabalho em ação")
+
+    st.markdown("""
+    O Setor de Orientação Educacional, ao abrigar o serviço de apoio à educação inclusiva, deve contar com **psicólogo(a) escolar**, **orientador(a) educacional** e **assistentes pedagógicas (APs)** atuando em parceria.
+
+    - **Orientador(a) educacional:** Dinâmicas entre alunos, professores e famílias; bem-estar e integração social; pontes entre currículo e desempenho.
+    - **Psicólogo(a) escolar:** Estudos de caso; acompanhamento do cumprimento do PEI/PDI; organização de encontros com famílias e profissionais externos; supervisão de ATs e APs. Não assume função terapêutica.
+    - **Atendente terapêutico (AT):** Profissional com atendimento individual e exclusivo do aluno, vínculo com família/clínica, inserido formalmente via Termo de Compromisso. Custeado pelo Estado ou pela família. A Política de Proteção aos Direitos das Pessoas com TEA garante acompanhante especializado em sala quando há comprovada necessidade (BRASIL, 2012).
+
+    *Quando a escola não conta com equipe multidisciplinar ampla, o coordenador pedagógico pode assumir a recepção, acompanhamento e orientação de docentes e famílias.*
+    """)
+
+    st.markdown("---")
+    st.markdown("#### Comunicação e sigilo")
+    st.markdown("""
+    Uma das questões fundamentais é a **comunicação interna** entre profissionais que atuam com o aluno, a troca com profissionais externos e o **diálogo com as famílias**. Em todos os casos, o sigilo e a reserva de informações devem ser respeitados conforme o limite da atuação de cada profissional. A responsabilidade pela privacidade do aluno é de todos; cabe à equipe de educação inclusiva a tarefa de filtrar dados e informações.
+    """)
+
 # --- ABA GERADOR: Formulário 5W2H e tabela ---
 with tab_gerador:
     st.markdown(f"### {icon_title('O Gerador', 'fluxo', 22, '#0F766E')}", unsafe_allow_html=True)
-    st.caption("Cadastre ações usando o framework 5W2H. Cada ação pode ser de Infraestrutura, Formação de Equipe ou Recursos Pedagógicos.")
+    st.caption("Cadastre ações usando o framework 5W2H. Alinhe com o PGEI: Infraestrutura, Formação, Recursos Pedagógicos ou Dimensionamento da equipe.")
+
+    with st.expander("💡 Dicas do PGEI — use na aba Inicial para referência", expanded=False):
+        st.markdown("""
+        - **Infraestrutura:** rampas, banheiros adaptados, tecnologias assistivas  
+        - **Formação:** capacitação docente, HTPC, formação sobre LDB/BNCC  
+        - **Recursos pedagógicos:** materiais adaptados, intérpretes de Libras  
+        - **Dimensionamento PGEI:** alocação de mediadores, ampliação de carga horária da equipe, reorganização de turnos
+        """)
 
     tipo_acao = st.radio(
         "Tipo de Ação:",
@@ -222,12 +297,12 @@ with tab_gerador:
         with c1:
             o_que = st.text_input(
                 "O QUE (Ação prática)",
-                placeholder="Ex: Adaptação de banheiros para acessibilidade / Aquisição de rampas móveis / Formação sobre LDB atualizada",
-                help="Descreva a ação concreta a ser realizada.",
+                placeholder="Ex: Adaptação de banheiros / Aquisição de rampas móveis / Formação sobre LDB / Contratar mediador adicional / Grupo de enriquecimento para altas habilidades",
+                help="Descreva a ação concreta. Para PGEI: contratar mediador, ampliar carga horária, mapear perfis.",
             )
             por_que = st.text_area(
                 "POR QUE (Justificativa)",
-                placeholder="Ex: Garantia de acesso conforme Módulo 2, LBI e legislação vigente.",
+                placeholder="Ex: Garantia de acesso (Módulo 2, LBI) / Dimensionamento PGEI: insuficiência de mediadores para demanda atual / Formação continuada para práticas inclusivas",
                 height=80,
             )
         with c2:
@@ -350,6 +425,7 @@ with tab_gerador:
                 "infraestrutura": "Infraestrutura (Acessibilidade fisica)",
                 "formacao_equipe": "Formacao de Equipe (Capacitacao docente/staff)",
                 "recursos_pedagogicos": "Recursos Pedagogicos (Tecnologia assistiva)",
+                "dimensionamento_pgei": "Dimensionamento / Equipe (PGEI)",
             }
 
             for i, a in enumerate(acoes_list, 1):
