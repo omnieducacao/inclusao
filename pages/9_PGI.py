@@ -520,7 +520,6 @@ with tab_gerador:
         # Exportar PDF
         def _gerar_pdf_pgi(acoes_list):
             from fpdf import FPDF
-            import io
 
             class PDFPGI(FPDF):
                 def header(self):
@@ -592,9 +591,8 @@ with tab_gerador:
                     pdf.multi_cell(0, 6, _limpar(", ".join(perfis)))
                 pdf.ln(6)
 
-            buf = io.BytesIO()
-            pdf.output(buf)
-            return buf.getvalue()
+            # output() sem argumentos retorna bytes (evita erro ao passar BytesIO como path)
+            return pdf.output()
 
         st.markdown("---")
         col_btn, _ = st.columns([1, 3])
