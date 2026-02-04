@@ -47,7 +47,11 @@ Documento para rodar o MVP em produção e **blindar os secrets** para a escola 
 1. **Usuário (escola)**  
    Pedir para clicar em **Recarregar página**. Se persistir, avisar o suporte.
 
-2. **Administrador**  
+2. **Erro 503 (Connection failed with status 503)**  
+   Serviço temporariamente indisponível. O app mostra: *"Serviço temporariamente indisponível. Tente novamente em alguns minutos."*  
+   Usuário: esperar 1–2 min e recarregar. Administrador: **Manage app → Restart**; conferir status do Streamlit Cloud ou Supabase.
+
+3. **Administrador**  
    - No Streamlit Cloud: **Manage app → Restart** (ou equivalente) para reiniciar o app.
    - Verificar logs (Manage app → Logs) para ver o erro real.
    - Para debug local, usar `ENV = "TESTE"` nos secrets **só em ambiente de teste**, nunca no mesmo app que a escola usa.

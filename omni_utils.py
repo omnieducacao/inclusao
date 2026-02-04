@@ -766,6 +766,7 @@ def render_navbar(active_tab: str = "Início"):
         icons=icones,
         default_index=default_idx,
         orientation="horizontal",
+        key="omni_navbar",
         styles={
             "container": {
                 "padding": "2px 4px",
@@ -839,7 +840,7 @@ def render_navbar(active_tab: str = "Início"):
         </style>
         """, unsafe_allow_html=True)
 
-    if selected != active_tab:
+    if selected and selected != active_tab:
         routes = {
             "Admin Plataforma": "pages/8_Admin_Plataforma.py",
             "Início": "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "Home.py",
@@ -857,7 +858,10 @@ def render_navbar(active_tab: str = "Início"):
         if target:
             if selected == "Início" and not os.path.exists(target):
                 target = "Home.py"
-            st.switch_page(target)
+            try:
+                st.switch_page(target)
+            except Exception:
+                pass
 
 # =============================================================================
 # 3) SUPABASE & UTILS (como antes: get_setting = env + st.secrets no nível raiz)

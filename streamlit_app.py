@@ -250,7 +250,13 @@ try:
             st.switch_page(HOME_PAGE)
 
 except Exception as e:
+    err_str = str(e).strip()
+    if "503" in err_str or "Service Unavailable" in err_str or "Connection failed with status 503" in err_str:
+        _tela_erro_recarregar(
+            msg="Serviço temporariamente indisponível. Tente novamente em alguns minutos.",
+            detalhe=err_str if ENV == "TESTE" else None,
+        )
     _tela_erro_recarregar(
         msg="Algo deu errado. Recarregue a página.",
-        detalhe=str(e) if ENV == "TESTE" else None,
+        detalhe=err_str if ENV == "TESTE" else None,
     )
