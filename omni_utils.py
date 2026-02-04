@@ -1752,30 +1752,32 @@ def get_gemini_api_key():
 def get_kimi_api_key():
     """
     Retorna a chave da API Kimi (Omnisfera Green).
-    Suporta: OpenRouter (recomendado), Moonshot direto.
-    Ordem: OPENROUTER_API_KEY, KIMI_API_KEY, MOONSHOT_API_KEY.
-    OpenRouter: openrouter.ai/keys | Modelo Kimi: moonshotai/kimi-k2.5
+    Suporta: KIMI_API_KEY (OpenRouter sk-or-... ou Moonshot), OPENROUTER_API_KEY.
+    Ordem: KIMI_API_KEY, OPENROUTER_API_KEY, MOONSHOT_API_KEY.
     """
-    raw = (
-        os.environ.get("OPENROUTER_API_KEY")
-        or os.environ.get("KIMI_API_KEY")
-        or os.environ.get("MOONSHOT_API_KEY")
-        or get_setting("OPENROUTER_API_KEY", "")
-        or get_setting("KIMI_API_KEY", "")
-        or get_setting("MOONSHOT_API_KEY", "")
-        or (getattr(st, "session_state", None) or {}).get("OPENROUTER_API_KEY", "")
-        or (getattr(st, "session_state", None) or {}).get("KIMI_API_KEY", "")
-    )
+    for name in ("KIMI_API_KEY", "OPENROUTER_API_KEY", "MOONSHOT_API_KEY"):
+        raw = os.environ.get(name) or get_setting(name, "")
+        if raw:
+            break
+        try:
+            raw = (getattr(st, "secrets", None) or {}).get(name, "") or ""
+            if raw:
+                break
+            raw = (getattr(st, "session_state", None) or {}).get(name, "") or ""
+            if raw:
+                break
+        except Exception:
+            pass
     if not raw:
         try:
             sec = getattr(st, "secrets", None)
             if sec:
                 raw = (
-                    sec.get("OPENROUTER_API_KEY")
-                    or sec.get("KIMI_API_KEY")
+                    sec.get("KIMI_API_KEY")
+                    or sec.get("OPENROUTER_API_KEY")
                     or sec.get("MOONSHOT_API_KEY")
-                    or (sec.get("openrouter") or {}).get("api_key")
                     or (sec.get("kimi") or {}).get("api_key")
+                    or (sec.get("openrouter") or {}).get("api_key")
                 )
         except Exception:
             pass

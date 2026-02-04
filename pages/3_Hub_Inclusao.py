@@ -653,7 +653,7 @@ def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str) -> tuple[bytes 
     """
     kimi_key = ou.get_kimi_api_key()
     if not kimi_key:
-        return None, "Configure OPENROUTER_API_KEY (ou KIMI_API_KEY) em secrets. OpenRouter: openrouter.ai/keys"
+        return None, "Configure KIMI_API_KEY em .streamlit/secrets.toml (chave OpenRouter sk-or-... ou Moonshot)"
 
     # Chave sk-or-v1-... = OpenRouter; senão = Moonshot direto
     use_openrouter = (kimi_key or "").strip().startswith("sk-or-") or bool(ou.get_setting("OPENROUTER_API_KEY", ""))
