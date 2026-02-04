@@ -645,22 +645,23 @@ def criar_pdf_generico(texto):
     return pdf.output(dest='S').encode('latin-1')
 
 
-def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str) -> tuple[bytes | None, str | None]:
+def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str, kimi_key: str = None) -> tuple[bytes | None, str | None]:
     """
     Gera PowerPoint a partir do plano de aula usando Omnisfera Green (Kimi/Moonshot).
     Kimi estrutura o conteúdo em slides; python-pptx monta o arquivo.
     Retorna (bytes_pptx, None) em sucesso ou (None, mensagem_erro).
     """
-    kimi_key = (
-        os.environ.get("KIMI_API_KEY")
-        or ou.get_setting("KIMI_API_KEY", "")
-        or st.session_state.get("KIMI_API_KEY", "")
-    )
-    try:
-        kimi_key = kimi_key or (st.secrets.get("KIMI_API_KEY", "") or "")
-    except Exception:
-        pass
-    kimi_key = (kimi_key or "").strip() or None
+    if not kimi_key:
+        kimi_key = (
+            os.environ.get("KIMI_API_KEY")
+            or ou.get_setting("KIMI_API_KEY", "")
+            or st.session_state.get("KIMI_API_KEY", "")
+        )
+        try:
+            kimi_key = kimi_key or (st.secrets.get("KIMI_API_KEY", "") or "")
+        except Exception:
+            pass
+        kimi_key = (kimi_key or "").strip() or None
     if not kimi_key:
         return None, "Configure KIMI_API_KEY em .streamlit/secrets.toml (chave OpenRouter sk-or-... ou Moonshot)"
 
@@ -3313,7 +3314,7 @@ def render_aba_dinamica_inclusiva(aluno, api_key):
                 use_container_width=True
             )
 
-def render_aba_plano_aula(aluno, api_key):
+def render_aba_plano_aula(aluno, api_key, kimi_key=None):
     """Renderiza a aba de plano de aula"""
     st.markdown("""
     <div class="pedagogia-box">
@@ -3438,7 +3439,7 @@ def render_aba_plano_aula(aluno, api_key):
                 help="Gera PowerPoint a partir do plano usando Kimi (Omnisfera Green)"
             ):
                 with st.spinner("Gerando PPT com Omnisfera Green..."):
-                    ppt_bytes, err = gerar_ppt_do_plano_kimi(res, objeto_bncc or disciplina_bncc or "Plano de Aula")
+                    ppt_bytes, err = gerar_ppt_do_plano_kimi(res, objeto_bncc or disciplina_bncc or "Plano de Aula", kimi_key=kimi_key)
                     if err:
                         st.session_state[ppt_key] = None
                         st.error(err)
@@ -3718,7 +3719,17 @@ def main():
     unsplash_key = unsplash_key if unsplash_key else None
     
     gemini_key = ou.get_gemini_api_key()
-    
+    kimi_key = (
+        os.environ.get("KIMI_API_KEY")
+        or ou.get_setting("KIMI_API_KEY", "")
+        or st.session_state.get("KIMI_API_KEY", "")
+    )
+    try:
+        kimi_key = kimi_key or (st.secrets.get("KIMI_API_KEY", "") or "")
+    except Exception:
+        pass
+    kimi_key = (kimi_key or "").strip() or None
+
     # Carregar dados dos estudantes
     if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estudantes:
         with st.spinner("🔄 Lendo dados da nuvem..."):
@@ -3930,7 +3941,7 @@ def main():
             render_aba_dinamica_inclusiva(aluno, api_key)
 
         with tabs[7]:
-            render_aba_plano_aula(aluno, api_key)
+            render_aba_plano_aula(aluno, api_key, kimi_key)
 
 # Executa a função principal
 main()
