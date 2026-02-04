@@ -2815,7 +2815,7 @@ with tab_jornada:
             st.rerun()
 
     elif status_game == "aprovado":
-        st.success("Missão aprovada! Edite se quiser e exporte em PDF ou Google Sheets.")
+        st.success("Missão aprovada! Edite se quiser e exporte em PDF ou CSV.")
         novo_texto = st.text_area("Edição final (opcional)", value=estado.get("texto", ""), height=280, key="jg_texto_final")
         jg[chave_jornada]["texto"] = novo_texto
         # Representação visual (Nano Banana)
@@ -2858,7 +2858,7 @@ with tab_jornada:
                     except Exception as ex:
                         st.error(f"Erro ao gerar imagem: {ex}")
         pdf_bytes = _gerar_pdf_jornada_simples(novo_texto)
-        col_pdf, col_sheets, col_csv = st.columns(3)
+        col_pdf, col_csv = st.columns(2)
         with col_pdf:
             if pdf_bytes:
                 st.download_button(
@@ -2870,30 +2870,6 @@ with tab_jornada:
                     use_container_width=True,
                     key="btn_jg_pdf"
                 )
-        with col_sheets:
-            if st.button("Sincronizar na Minha Jornada", use_container_width=True, type="secondary", key="btn_jg_sheets", help="Envia a missão para a planilha em segundo plano e gera o código para o estudante"):
-                _hiperfoco = aluno.get("hiperfoco")
-                _hiperfoco = str(_hiperfoco).strip() if _hiperfoco is not None else ""
-                url_sheet, err, codigo, url_pubhtml = ou.exportar_jornada_para_sheets(
-                    novo_texto,
-                    "Jornada Gamificada",
-                    nome_estudante=str(aluno.get("nome") or ""),
-                    hiperfoco_estudante=_hiperfoco,
-                )
-                if url_sheet and codigo:
-                    st.success("Sincronizado na Minha Jornada!")
-                    st.markdown("**Código para o estudante (use no app gamificado):**")
-                    st.code(codigo, language=None)
-                    st.caption("Informe este código ao estudante para ele acessar a jornada no app Minha Jornada.")
-                    with st.expander("URL para o app Minha Jornada (pubhtml)", expanded=True):
-                        st.markdown(
-                            "Para o app Minha Jornada funcionar, a planilha precisa estar **publicada na web**. "
-                            "No Google Sheets: **Arquivo → Compartilhar → Publicar na web** (não basta «Compartilhar com o link»)."
-                        )
-                        st.code(url_pubhtml or "", language=None)
-                        st.caption("Use esta URL em sheetService.ts (GOOGLE_SHEET_HTML_URL ou RAW_SHEET_URL) no app Minha Jornada.")
-                else:
-                    st.warning(err or "Erro ao sincronizar.")
         with col_csv:
             import io
             import csv
@@ -2910,7 +2886,7 @@ with tab_jornada:
                 use_container_width=True,
                 key="btn_jg_csv"
             )
-        st.caption("Dica: Baixe o PDF para imprimir ou use «Sincronizar na Minha Jornada» para gerar o código de acesso. O material está em linguagem adequada para o estudante e a família — sem informações clínicas.")
+        st.caption("Dica: Baixe o PDF para imprimir ou o CSV para importar em outra ferramenta. O material está em linguagem adequada para o estudante e a família — sem informações clínicas.")
         if st.button("Criar Nova Missão (outra origem)", use_container_width=True, key="btn_jg_nova"):
             jg[chave_jornada]["status"] = "rascunho"
             jg[chave_jornada]["feedback"] = ""

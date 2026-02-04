@@ -2055,18 +2055,13 @@ def exportar_jornada_para_sheets(
     No início da aba: hiperfoco do estudante (se informado), código único, depois o conteúdo.
     Retorna (url_edicao, None, codigo_unico, url_pubhtml) em sucesso ou (None, mensagem_erro, None, None).
     url_pubhtml: use no app Minha Jornada; a planilha precisa estar Publicada na Web.
+    NOTA: Exportação para Google Sheets desativada temporariamente; será retomada em versão futura.
     """
     if not (texto_jornada or "").strip():
         return None, "Nenhum conteúdo para exportar.", None, None
     creds_dict = get_google_sheets_credentials()
     if not creds_dict:
-        return None, (
-            "Credenciais do Google Sheets não encontradas. No .streamlit/secrets.toml use uma destas opções:\n"
-            "• GOOGLE_SHEETS_CREDENTIALS_JSON = \"\"\"{...json da conta de serviço...}\"\"\"\n"
-            "• GOOGLE_SHEETS_CREDENTIALS_PATH = \"/caminho/para/arquivo.json\"\n"
-            "• Ou seção [google_sheets] com credentials_json = \"\"\"...\"\"\" ou credentials_path = \"...\"\n"
-            "Veja CONFIG_GOOGLE_SHEETS.md."
-        ), None, None
+        return None, "Exportação para Google Sheets desativada temporariamente. Será retomada em versão futura. Use PDF ou CSV.", None, None
     try:
         import gspread
         from google.oauth2.service_account import Credentials
