@@ -1519,11 +1519,31 @@ def extrair_dados_pdf_ia(api_key: str, texto_pdf: str):
     except Exception as e:
         return None, str(e)
 
-def consultar_gpt_pedagogico(api_key: str, dados: dict, contexto_pdf: str = "", modo_pratico: bool = False, feedback_usuario: str = ""):
-    if not api_key:
+def consultar_gpt_pedagogico(api_key: str, dados: dict, contexto_pdf: str = "", modo_pratico: bool = False, feedback_usuario: str = "", engine: str = "red"):
+    """
+    Gera relatório da Consultoria IA.
+    engine: "red" (OpenAI), "blue" (Gemini), "green" (Kimi/OpenRouter)
+    """
+    engine = (engine or "red").strip().lower()
+    if engine not in ("red", "blue", "green"):
+        engine = "red"
+
+    if engine == "red" and not api_key:
         return None, f"⚠️ Configure a chave da IA ({ou.AI_RED}) nas configurações."
+    if engine == "blue":
+        gemini_key = ou.get_gemini_api_key()
+        if not gemini_key:
+            return None, f"⚠️ Configure GEMINI_API_KEY ({ou.AI_BLUE}) nas configurações."
+    if engine == "green":
+        kimi_key = ou.get_kimi_api_key() or (st.session_state.get("_kimi_key_cached") if hasattr(st, "session_state") else None)
+        try:
+            kimi_key = kimi_key or (st.secrets.get("OPENROUTER_API_KEY", "") or st.secrets.get("KIMI_API_KEY", "") or "").strip() or None
+        except Exception:
+            pass
+        if not kimi_key:
+            return None, f"⚠️ Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({ou.AI_GREEN}) nas configurações."
+
     try:
-        client = OpenAI(api_key=api_key)
 
         evid = "\n".join([f"- {k.replace('?', '')}" for k, v in (dados.get("checklist_evidencias") or {}).items() if v])
         meds_info = "\n".join(
@@ -1733,11 +1753,36 @@ GUIA PRÁTICO PARA SALA DE AULA.
                     if at_u:
                         prompt_user += f"\n\nANO SÉRIE ATUAL:\n{at_u[:5000]}"
 
-        res = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}],
-        )
-        texto_relatorio = res.choices[0].message.content or ""
+        if engine == "blue":
+            full_prompt = f"{prompt_sys}\n\n---\n\n{prompt_user}"
+            texto_relatorio, err = ou.consultar_gemini(full_prompt, model="gemini-2.0-flash")
+            if err:
+                return None, err
+            texto_relatorio = texto_relatorio or ""
+        elif engine == "green":
+            kimi_key = ou.get_kimi_api_key() or st.session_state.get("_kimi_key_cached", "")
+            try:
+                kimi_key = kimi_key or (st.secrets.get("OPENROUTER_API_KEY", "") or st.secrets.get("KIMI_API_KEY", "") or "").strip()
+            except Exception:
+                pass
+            use_openrouter = (kimi_key or "").strip().startswith("sk-or-")
+            base_url = ou.get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if use_openrouter else "https://api.moonshot.ai/v1")
+            base_url = (base_url or "").strip() or "https://openrouter.ai/api/v1"
+            model = ou.get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_openrouter else "kimi-k2-turbo-preview")
+            model = (model or "").strip() or "moonshotai/kimi-k2.5"
+            client = OpenAI(api_key=kimi_key.strip(), base_url=base_url)
+            res = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}],
+            )
+            texto_relatorio = res.choices[0].message.content or ""
+        else:
+            client = OpenAI(api_key=api_key)
+            res = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}],
+            )
+            texto_relatorio = res.choices[0].message.content or ""
         # Pós-processamento: remover da Avaliação de Repertório qualquer habilidade que a IA tenha inventado
         if nivel_ensino != "EI" and texto_relatorio:
             lista_permitida = dados.get("habilidades_bncc_validadas") or dados.get("habilidades_bncc_selecionadas") or []
@@ -3359,6 +3404,7 @@ with tab8:
     # estado default
     st.session_state.dados.setdefault("status_validacao_pei", "rascunho")
     st.session_state.dados.setdefault("feedback_ajuste", "")
+    st.session_state.dados.setdefault("consultoria_engine", "red")
 
     seg_nome, seg_cor, seg_desc = get_segmento_info_visual(st.session_state.dados.get("serie"))
     st.markdown(
@@ -3372,16 +3418,31 @@ with tab8:
 
     # 1) Se ainda não tem texto, ou voltou para rascunho: botões de geração
     if (not st.session_state.dados.get("ia_sugestao")) or (st.session_state.dados.get("status_validacao_pei") == "rascunho"):
+        with st.expander("🔧 Escolher motor de IA (Red, Blue ou Green)", expanded=True):
+            st.caption("Selecione qual IA gerará o relatório. Útil para comparar resultados.")
+            engine_map = {"red": f"🔴 {ou.AI_RED} — ChatGPT (OpenAI)", "blue": f"🔵 {ou.AI_BLUE} — Gemini", "green": f"🟢 {ou.AI_GREEN} — Kimi (OpenRouter)"}
+            engine_sel = st.radio(
+                "Motor de IA",
+                options=["red", "blue", "green"],
+                format_func=lambda x: engine_map.get(x, x),
+                index={"red": 0, "blue": 1, "green": 2}.get(st.session_state.dados.get("consultoria_engine", "red"), 0),
+                key="consultoria_engine_radio",
+                horizontal=True,
+            )
+            st.session_state.dados["consultoria_engine"] = engine_sel
+
         col_btn, col_info = st.columns([1, 2])
 
         with col_btn:
+            engine = st.session_state.dados.get("consultoria_engine", "red")
             if st.button("✨ Gerar Estratégia Técnica", type="primary", use_container_width=True):
-                with st.spinner("Gerando estratégia técnica do PEI..."):
+                with st.spinner(f"Gerando estratégia técnica do PEI ({ou.AI_RED if engine=='red' else ou.AI_BLUE if engine=='blue' else ou.AI_GREEN})..."):
                     res, err = consultar_gpt_pedagogico(
                         api_key,
                         st.session_state.dados,
                         st.session_state.get("pdf_text", ""),
                         modo_pratico=False,
+                        engine=engine,
                     )
                 if res:
                     st.session_state.dados["ia_sugestao"] = res
@@ -3392,12 +3453,13 @@ with tab8:
 
             st.write("")
             if st.button("🧰 Gerar Guia Prático (Sala de Aula)", use_container_width=True):
-                with st.spinner("Gerando guia prático..."):
+                with st.spinner(f"Gerando guia prático ({ou.AI_RED if engine=='red' else ou.AI_BLUE if engine=='blue' else ou.AI_GREEN})..."):
                     res, err = consultar_gpt_pedagogico(
                         api_key,
                         st.session_state.dados,
                         st.session_state.get("pdf_text", ""),
                         modo_pratico=True,
+                        engine=engine,
                     )
                 if res:
                     st.session_state.dados["ia_sugestao"] = res
@@ -3490,13 +3552,15 @@ with tab8:
         feedback = st.text_area("Seu feedback:", placeholder="Ex: Foque mais na alfabetização…")
         if st.button("Regerar com Ajustes", type="primary", use_container_width=True):
             ou.track_ai_feedback("pei", "refazer", content_type="relatorio_pei", feedback_text=feedback or "")
-            with st.spinner("Aplicando ajustes e regerando o PEI..."):
+            engine = st.session_state.dados.get("consultoria_engine", "red")
+            with st.spinner(f"Aplicando ajustes e regerando ({ou.AI_RED if engine=='red' else ou.AI_BLUE if engine=='blue' else ou.AI_GREEN})..."):
                 res, err = consultar_gpt_pedagogico(
                     api_key,
                     st.session_state.dados,
                     st.session_state.get("pdf_text", ""),
                     modo_pratico=False,
                     feedback_usuario=feedback,
+                    engine=engine,
                 )
             if res:
                 st.session_state.dados["ia_sugestao"] = res
