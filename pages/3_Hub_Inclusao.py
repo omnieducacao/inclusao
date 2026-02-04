@@ -653,7 +653,12 @@ def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str) -> tuple[bytes 
     """
     kimi_key = ou.get_kimi_api_key()
     if not kimi_key:
-        return None, f"Configure KIMI_API_KEY (Omnisfera Green) em secrets ou variável de ambiente."
+        return None, "Configure OPENROUTER_API_KEY (ou KIMI_API_KEY) em secrets. OpenRouter: openrouter.ai/keys"
+
+    # Chave sk-or-v1-... = OpenRouter; senão = Moonshot direto
+    use_openrouter = (kimi_key or "").strip().startswith("sk-or-") or bool(ou.get_setting("OPENROUTER_API_KEY", ""))
+    base_url = "https://openrouter.ai/api/v1" if use_openrouter else "https://api.moonshot.ai/v1"
+    model = "moonshotai/kimi-k2.5" if use_openrouter else "kimi-k2-turbo-preview"
 
     prompt = f"""Transforme este plano de aula em estrutura para apresentação PowerPoint.
 Retorne APENAS um JSON válido, sem markdown ou texto extra:
@@ -677,10 +682,10 @@ Regras:
     try:
         client = OpenAI(
             api_key=kimi_key,
-            base_url="https://api.moonshot.ai/v1",
+            base_url=base_url,
         )
         resp = client.chat.completions.create(
-            model="kimi-k2-turbo-preview",
+            model=model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.4,
         )
@@ -754,7 +759,15 @@ Regras:
     except json.JSONDecodeError as e:
         return None, f"Resposta do Kimi não é JSON válido: {str(e)[:100]}"
     except Exception as e:
-        return None, str(e)[:200]
+        err = str(e)
+        if "401" in err or "Invalid Authentication" in err or "invalid_authentication" in err:
+            return None, (
+                "Chave da API inválida (401). Verifique: "
+                "1) KIMI_API_KEY ou MOONSHOT_API_KEY em secrets.toml ou variável de ambiente; "
+                "2) Chave correta de platform.moonshot.ai (não use chave da OpenAI); "
+                "3) Conta com saldo e chave ativa."
+            )
+        return None, err[:200]
 
 
 # ==============================================================================

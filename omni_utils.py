@@ -1751,20 +1751,32 @@ def get_gemini_api_key():
 
 def get_kimi_api_key():
     """
-    Retorna a chave da API Kimi/Moonshot (Omnisfera Green).
-    Ordem: env KIMI_API_KEY, secrets, session_state.
-    Obtém em platform.moonshot.ai/console/api-keys
+    Retorna a chave da API Kimi (Omnisfera Green).
+    Suporta: OpenRouter (recomendado), Moonshot direto.
+    Ordem: OPENROUTER_API_KEY, KIMI_API_KEY, MOONSHOT_API_KEY.
+    OpenRouter: openrouter.ai/keys | Modelo Kimi: moonshotai/kimi-k2.5
     """
     raw = (
-        os.environ.get("KIMI_API_KEY")
+        os.environ.get("OPENROUTER_API_KEY")
+        or os.environ.get("KIMI_API_KEY")
+        or os.environ.get("MOONSHOT_API_KEY")
+        or get_setting("OPENROUTER_API_KEY", "")
         or get_setting("KIMI_API_KEY", "")
+        or get_setting("MOONSHOT_API_KEY", "")
+        or (getattr(st, "session_state", None) or {}).get("OPENROUTER_API_KEY", "")
         or (getattr(st, "session_state", None) or {}).get("KIMI_API_KEY", "")
     )
     if not raw:
         try:
             sec = getattr(st, "secrets", None)
             if sec:
-                raw = sec.get("KIMI_API_KEY") or (sec.get("kimi") or {}).get("api_key") or (sec.get("kimi") or {}).get("KIMI_API_KEY")
+                raw = (
+                    sec.get("OPENROUTER_API_KEY")
+                    or sec.get("KIMI_API_KEY")
+                    or sec.get("MOONSHOT_API_KEY")
+                    or (sec.get("openrouter") or {}).get("api_key")
+                    or (sec.get("kimi") or {}).get("api_key")
+                )
         except Exception:
             pass
     if not raw:
