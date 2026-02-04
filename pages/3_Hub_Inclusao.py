@@ -795,7 +795,7 @@ Regras:
             layout = prs.slide_layouts[6]
             slide = prs.slides.add_slide(layout)
 
-            slide.follow_master_background = False
+            # Acessar e preencher o background já interrompe herança do master (evita follow_master_background)
             bg = slide.background
             bg.fill.solid()
             bg.fill.fore_color.rgb = clr_bg
