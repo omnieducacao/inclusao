@@ -1668,7 +1668,7 @@ def render_footer_assinatura():
         <div style="max-width: 560px; margin: 0 auto 14px auto; padding: 10px 14px; background: #F8FAFC; border-radius: 10px; border: 1px solid #E2E8F0; color: #64748B; font-size: 0.72rem; line-height: 1.4;">
             Conteúdos gerados por IA podem conter erros. É importante sempre fazer <strong>leitura, conferência e edição minuciosa</strong> antes de usar em documentos oficiais.
         </div>
-        Criado e desenvolvido por <strong style="color: #64748B;">Rodrigo A. Queiroz</strong>
+        Omnisfera — plataforma de inclusão ativa — criada e desenvolvida por <strong style="color: #64748B;">Omni Soluções Educacionais</strong> — todos os direitos reservados.
     </div>
     """, unsafe_allow_html=True)
 
