@@ -651,7 +651,16 @@ def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str) -> tuple[bytes 
     Kimi estrutura o conteúdo em slides; python-pptx monta o arquivo.
     Retorna (bytes_pptx, None) em sucesso ou (None, mensagem_erro).
     """
-    kimi_key = ou.get_kimi_api_key()
+    kimi_key = (
+        os.environ.get("KIMI_API_KEY")
+        or ou.get_setting("KIMI_API_KEY", "")
+        or st.session_state.get("KIMI_API_KEY", "")
+    )
+    try:
+        kimi_key = kimi_key or (st.secrets.get("KIMI_API_KEY", "") or "")
+    except Exception:
+        pass
+    kimi_key = (kimi_key or "").strip() or None
     if not kimi_key:
         return None, "Configure KIMI_API_KEY em .streamlit/secrets.toml (chave OpenRouter sk-or-... ou Moonshot)"
 
