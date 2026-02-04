@@ -400,6 +400,9 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
   }}
   .omni-navbar-inner {{
     width: min(1200px, calc(100% - 48px));
+    margin: 0 auto !important;
+    display: flex !important;
+    justify-content: center !important;
     pointer-events: auto;
   }}
 
