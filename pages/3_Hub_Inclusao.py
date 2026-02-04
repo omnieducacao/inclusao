@@ -292,6 +292,70 @@ TAXONOMIA_BLOOM = {
 # Lista de componentes curriculares padrão
 DISCIPLINAS_PADRAO = ["Matemática", "Português", "Ciências", "História", "Geografia", "Artes", "Educação Física", "Inglês", "Filosofia", "Sociologia"]
 
+# Mapeamento: label do components (DB) → nome usado no Hub/DISCIPLINAS_PADRAO
+COMPONENT_TO_HUB = {
+    "Língua Portuguesa": "Português",
+    "Arte": "Artes",
+    "Língua Inglesa": "Inglês",
+}
+# Inverso para BNCC (Hub → DB/BNCC)
+HUB_TO_COMPONENT = {v: k for k, v in COMPONENT_TO_HUB.items()}
+
+
+def _get_hub_componentes_filtrados():
+    """
+    Retorna (opcoes, mostrar_selector, default) para o selectbox de componente no Hub.
+    Se professor leciona 1 componente: só esse, sem selector.
+    Se leciona >1: selector com apenas esses.
+    Se coordenação/master/todos: lista completa, com selector.
+    """
+    try:
+        from ui.permissions import get_member_from_session
+        from services.members_service import get_member_components
+        member = get_member_from_session()
+        if not member or member.get("link_type") != "turma":
+            return DISCIPLINAS_PADRAO, True, None
+        mid = member.get("id")
+        comps = get_member_components(mid) if mid else []
+        if not comps:
+            return DISCIPLINAS_PADRAO, True, None
+        # Mapeia labels DB → Hub
+        mapped = [COMPONENT_TO_HUB.get(c, c) for c in comps]
+        opcoes = [x for x in DISCIPLINAS_PADRAO if x in mapped]
+        if not opcoes:
+            opcoes = mapped if mapped else DISCIPLINAS_PADRAO
+        if len(opcoes) == 1:
+            return opcoes, False, opcoes[0]
+        return opcoes, True, opcoes[0] if opcoes else None
+    except Exception:
+        return DISCIPLINAS_PADRAO, True, None
+
+
+def _filtrar_disciplinas_por_membro(disciplinas_bncc: list) -> tuple:
+    """
+    Para formulários com BNCC (disciplinas vindas do df). Retorna (opcoes_filtradas, mostrar_selector, default).
+    """
+    try:
+        from ui.permissions import get_member_from_session
+        from services.members_service import get_member_components
+        member = get_member_from_session()
+        if not member or member.get("link_type") != "turma":
+            return disciplinas_bncc, True, None
+        mid = member.get("id")
+        comps = get_member_components(mid) if mid else []
+        if not comps:
+            return disciplinas_bncc, True, None
+        # BNCC usa mesmo nome que components (Arte, Língua Portuguesa, Matemática)
+        opcoes = [d for d in disciplinas_bncc if d in comps]
+        if not opcoes:
+            opcoes = comps if comps else disciplinas_bncc
+        if len(opcoes) == 1:
+            return opcoes, False, opcoes[0]
+        return opcoes, True, opcoes[0] if opcoes else None
+    except Exception:
+        return disciplinas_bncc, True, None
+
+
 # Campos de Experiência (Educação Infantil)
 CAMPOS_EXPERIENCIA_EI = [
     "O eu, o outro e o nós",
@@ -1556,7 +1620,14 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
             else:
                 ano = st.selectbox("Ano (PEI)", anos_opcoes, key=f"ano_basico_{key_suffix}")
         with col2:
-            disciplina = st.selectbox("Componente Curricular", DISCIPLINAS_PADRAO, key=f"disc_basico_{key_suffix}")
+            disc_opcoes, disc_mostrar, disc_default = _get_hub_componentes_filtrados()
+            disciplina = st.selectbox(
+                "Componente Curricular",
+                disc_opcoes,
+                index=0 if disc_opcoes else 0,
+                disabled=not disc_mostrar,
+                key=f"disc_basico_{key_suffix}"
+            )
         with col3:
             objeto = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
                                   key=f"obj_basico_{key_suffix}")
@@ -1620,12 +1691,19 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
         st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key=f"ano_bncc_display_{key_suffix}")
     
     with col2:
-        # Componente Curricular — apenas disciplinas que têm conteúdo para o ano do PEI
+        # Componente Curricular — apenas disciplinas que têm conteúdo para o ano do PEI; filtrado por componente do professor
         if ano_selecionado:
             mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_selecionado).strip() or ano_celula_contem(x, ano_selecionado))
             df_por_ano = dados[mask_ano]
-            disciplinas = sorted(df_por_ano['Disciplina'].dropna().unique())
-            disciplina_selecionada = st.selectbox("Componente Curricular", disciplinas, key=f"disc_bncc_{key_suffix}")
+            disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
+            disc_opcoes, disc_mostrar, disc_default = _filtrar_disciplinas_por_membro(disciplinas_raw)
+            disciplina_selecionada = st.selectbox(
+                "Componente Curricular",
+                disc_opcoes,
+                index=0,
+                disabled=not disc_mostrar,
+                key=f"disc_bncc_{key_suffix}"
+            )
         else:
             disciplina_selecionada = None
             mask_ano = None
@@ -1915,12 +1993,13 @@ def render_aba_adaptar_prova(aluno, api_key):
             if dados is not None and not dados.empty and ano_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
                 df_por_ano = dados[mask_ano]
-                disciplinas = sorted(df_por_ano['Disciplina'].dropna().unique())
-                disciplina_bncc = st.selectbox("Componente Curricular", disciplinas, key="disc_adaptar_prova_compact")
+                disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
+                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
+                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_prova_compact")
             else:
-                disciplina_bncc = st.selectbox("Componente Curricular", 
-                                             ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"],
-                                             key="disc_adaptar_prova_compact")
+                lista_fallback = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"]
+                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
+                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_prova_compact")
         with col_bncc3:
             if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
@@ -2189,12 +2268,13 @@ def render_aba_adaptar_atividade(aluno, api_key):
             if dados is not None and not dados.empty and ano_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
                 df_por_ano = dados[mask_ano]
-                disciplinas = sorted(df_por_ano['Disciplina'].dropna().unique())
-                disciplina_bncc = st.selectbox("Componente Curricular", disciplinas, key="disc_adaptar_atividade_compact")
+                disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
+                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
+                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_atividade_compact")
             else:
-                disciplina_bncc = st.selectbox("Componente Curricular", 
-                                         ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"],
-                                         key="disc_adaptar_atividade_compact")
+                lista_fallback = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"]
+                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
+                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_atividade_compact")
         with col_bncc3:
             if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
@@ -2504,11 +2584,13 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
             if dados is not None and not dados.empty and ano_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
                 df_por_ano = dados[mask_ano]
-                disciplinas = sorted(df_por_ano['Disciplina'].dropna().unique())
-                disciplina_bncc = st.selectbox("Componente Curricular", disciplinas, key="disc_criar_zero")
+                disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
+                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
+                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_criar_zero")
             else:
-                disciplina_bncc = st.selectbox("Componente Curricular", 
-                    ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"], key="disc_criar_zero")
+                lista_fallback = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"]
+                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
+                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_criar_zero")
         with c3:
             if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
@@ -2899,7 +2981,14 @@ def render_aba_papo_mestre(aluno, api_key):
     """, unsafe_allow_html=True)
     
     c1, c2 = st.columns(2)
-    materia_papo = c1.selectbox("Componente Curricular", DISCIPLINAS_PADRAO, key="papo_mat")
+    disc_opcoes, disc_mostrar, disc_default = _get_hub_componentes_filtrados()
+    materia_papo = c1.selectbox(
+        "Componente Curricular",
+        disc_opcoes,
+        index=0,
+        disabled=not disc_mostrar,
+        key="papo_mat"
+    )
     assunto_papo = c2.text_input("Assunto da Aula:", key="papo_ass")
     
     c3, c4 = st.columns(2)
