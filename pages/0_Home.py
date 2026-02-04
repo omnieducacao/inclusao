@@ -1189,6 +1189,58 @@ def render_central_conhecimento():
             </div>
             """, unsafe_allow_html=True)
 
+        st.markdown("---")
+        st.markdown("#### Amplie o Conhecimento — Fundamentos da Educação Inclusiva")
+
+        with st.expander("1. Educação Inclusiva – Definição", expanded=False):
+            st.markdown("""
+            > *"Temos direito à igualdade, quando a diferença nos inferioriza, e direito à diferença, quando a igualdade nos descaracteriza."*  
+            > **Boaventura de Souza Santos**
+
+            A educação inclusiva é a efetiva realização do que dispõe a Constituição: todos devem ter direitos iguais à educação, frequentar os mesmos ambientes e serem beneficiados pelo processo de socialização. Engloba a educação especial e a regular, da Educação Infantil ao Ensino Superior, incluindo EJA, ensino profissionalizante e grupos quilombolas e indígenas.
+
+            **Todos devem aprender juntos**, independentemente de suas diferenças e dificuldades. Apesar de técnicas aplicáveis de forma geral, é necessária uma **seleção específica e individualizada** dos recursos e planos de ensino — a diversidade exige clareza de objetivos, respeito ao tempo do aluno e identificação de necessidades e potencialidades.
+
+            A educação inclusiva garante a oferta da **educação especial** (serviços suplementares que potencializam habilidades para autonomia), mas **não substitui** o trabalho nas salas de aula comuns. O público-alvo ampliou-se: deficiências, condutas típicas de síndromes, altas habilidades, dificuldades de aprendizagem (cognitivas, psicomotoras, comportamentais), privações socioculturais e nutricionais.
+
+            Diante dessa diversidade, as escolas precisam **se adaptar** para acolher todos, garantindo não apenas presença física, mas **inclusão efetiva** — condições físicas, currículo possível e cultura do pertencimento (AINSCOW, 2001).
+            """)
+
+        with st.expander("2. Capacitismo", expanded=False):
+            st.markdown("""
+            Conforme a **Lei Brasileira de Inclusão (Lei nº 13.146/2015)**, o capacitismo é *"toda forma de distinção, restrição ou exclusão, por ação ou omissão, que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício dos direitos e das liberdades fundamentais de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas"*.
+
+            O termo vem do inglês *ableism* (able + ism). As consequências podem ser **físicas** (barreiras estruturais em ambientes) ou **simbólicas** (metáforas, gestos e sons que reforçam estigmas). A PcD frequentemente é vista pela ótica pré-concebida de limitação, associada à funcionalidade do corpo, ignorando que pode desenvolver habilidades independentes de suas deficiências.
+
+            Os **vieses inconscientes** (associações aprendidas socialmente) têm grande impacto em preconceitos. O capacitismo se esconde atrás da pena, da não inclusão em brincadeiras ou grupos, e de comentários aparentemente de simpatia. (ROSA; LUIZ; BÖCK, 2023)
+            """)
+            with st.expander("a) O papel do diretor nas práticas anticapacitistas", expanded=False):
+                st.markdown("""
+                O capacitismo no trabalho relega a PcD à invisibilidade. Evidências: ausência de práticas que valorizem a diversidade, infraestrutura não acessível, suposição de incapacidade, normatização de padrão corporal ideal, metáforas capacitistas ("deu uma de João sem braço", "o pior cego é aquele que não quer ver").
+
+                **O diretor empenhado em educação inclusiva** deve instalar política inclusiva e liderar pelo exemplo, mobilizando a comunidade. Ações: espaço físico acessível, recursos assistivos, sensibilização da equipe, formação dos educadores, acompanhamento periódico, atividades inclusivas, comunicação transparente com pais.
+
+                Para viabilizar: visão estratégica de gestão, recursos financeiros, treinamento contínuo e amparo jurídico alinhado às secretarias de educação.
+                """)
+
+        with st.expander("3. Uma escola para todos: recursos, currículo e gestão", expanded=False):
+            st.markdown("""
+            O **IBGE (PNAD Contínua 2022)** revelou: **18,6 milhões** de pessoas com 2 anos ou mais têm deficiência no Brasil (8,9% da população). Dados relevantes:
+            - 19,5% das PcD são analfabetas (vs 4,1% sem deficiência)
+            - 25,6% das PcD concluíram o Ensino Médio (vs 57,3%)
+            - 55% das PcD que trabalham estão na informalidade
+            - Maior percentual: Nordeste (10,3%); menor: Sudeste (8,2%)
+
+            **Qual a escola necessária?** Aquela que:
+            - Desenvolve política e cultura voltadas às diferenças e à igualdade
+            - Mantém equipe interessada nos direitos de todos
+            - Considera a parceria com a família
+            - Garante formação de professores
+            - Prioriza necessidades nos processos de adaptação e avaliação
+            - Garante espaços, equipamentos e instrumental adequados
+            - Desenvolve práticas emancipatórias e respeita os marcos legais
+            """)
+
     # ABA 2: LEGISLAÇÃO & IA
     with tab_legal:
         c_info, c_ai = st.columns([1.5, 1])
@@ -1210,8 +1262,11 @@ def render_central_conhecimento():
                 2.  **Porta de Entrada:** A escola não pode exigir laudo médico para efetivar a matrícula. A avaliação pedagógica é soberana.
                 """)
 
-            st.markdown("#### ⏳ Marcos Históricos")
-            st.caption("1988 (Constituição) • 1994 (Salamanca) • 2008 (PNEEPEI) • 2015 (LBI)")
+            with st.expander("4. Marcos Legais e Linha do Tempo", expanded=False):
+                st.markdown("""
+                Desde a década de 1960, o conceito de deficiência foi se distanciando do foco na incapacidade para ocupar-se do potencial dos indivíduos, delegando a tarefa de derrubar barreiras à sociedade (TEZANI, 2008). Conferência Mundial "Educação para Todos" (1990, Jomtien); Declaração de Salamanca (1994); LDB (1996, art. 59); PNEEPEI (2008); Convenção Internacional sobre os Direitos das Pessoas com Deficiência (Nova York, 2007; Brasil, Decreto 6.949/2009); Decreto 7.611/2011 (apoio especializado e formação); Lei 12.796/2013 (substituição de "portadores" por "educandos com deficiência, transtornos globais e altas habilidades"). A Meta 4 do PNE (2014-2024) prescreve universalizar o acesso à educação básica e ao AEE preferencialmente na rede regular.
+                """)
+                st.caption("Linha do Tempo: 1960 (foco no potencial) → 1980 (organismos multilaterais) → 1990 (Educação para Todos) → 1994 (Salamanca) → 1996 (LDB) → 2007-2009 (Convenção ONU) → 2008 (PNEEPEI) → 2011 (Decreto 7.611) → 2013 (alteração LDB) → 2021 (Diretrizes Nacionais MEC)")
 
         with c_ai:
             st.markdown("""
@@ -1253,8 +1308,9 @@ def render_central_conhecimento():
             {"t": "Capacitismo", "d": "Toda forma de distinção, restrição ou exclusão que tenha o propósito de prejudicar, impedir ou anular o reconhecimento dos direitos da pessoa com deficiência."},
             {"t": "Cultura do Pertencimento", "d": "Uma cultura escolar onde o aluno realmente faz parte da comunidade, sendo condição essencial para o desenvolvimento inclusivo."},
             {"t": "Declaração de Salamanca", "d": "Resolução da ONU (1994) que estabeleceu princípios para a educação especial, formalizando o compromisso com a escola inclusiva."},
-            {"t": "Educação Especial", "d": "Modalidade de educação que, dentro da inclusiva, oferece serviços, recursos e estratégias para atender às necessidades específicas."},
-            {"t": "Educação Inclusiva", "d": "A efetivação do direito constitucional à educação para todos, garantindo que aprendam juntos independentemente das diferenças."},
+            {"t": "Educação Especial", "d": "Modalidade que oferece serviços, recursos e estratégias. Originalmente para deficiências (mental, visual, auditiva, físico-motoras, múltiplas), condutas típicas e altas habilidades; hoje abrange também dificuldades de aprendizagem, fatores ecológicos e socioeconômicos (BRASIL, 2001)."},
+            {"t": "Educação Inclusiva", "d": "Efetivação do direito constitucional: todos frequentam os mesmos ambientes e são beneficiados pela socialização. Da EI ao Superior, incluindo EJA, profissionalizante, quilombolas e indígenas. Não substitui a escolarização regular."},
+            {"t": "Público-alvo da Educação Especial", "d": "Deficiências; transtornos globais do desenvolvimento; altas habilidades/superdotação; dificuldades de aprendizagem (cognitivas, psicomotoras, comportamentais); privações socioculturais e nutricionais."},
             {"t": "Estudo de Caso", "d": "Metodologia de produção e registro de informações. Em 2025, é a porta de entrada que substitui o laudo médico."},
             {"t": "Justiça Curricular", "d": "Conceito que busca um currículo relevante e representativo, promovendo igualdade de condições e respeitando particularidades."},
             {"t": "Outragem / Outrar-se", "d": "Postura de quem é capaz de se colocar no lugar do outro, sentir o mundo do outro como se fosse seu próprio, numa relação empática."},
@@ -1309,7 +1365,9 @@ def render_central_conhecimento():
                 ("Surdo-Mudo", "Erro técnico. A surdez não implica mudez. Surdos têm voz."),
                 ("Atrasado / Lento", "Pejorativo. Ignora a neurodiversidade."),
                 ("Doença Mental", "Deficiência não é doença. Doença tem cura; deficiência é condição."),
-                ("Fingir de João-sem-braço", "Expressão capacitista.")
+                ("Fingir de João-sem-braço / Deu uma de João sem braço", "Expressão capacitista."),
+                ("O pior cego é aquele que não quer ver", "Metáfora capacitista."),
+                ("Desculpa de aleijado é muleta / Na terra de cego quem tem um olho é rei", "Expressões que desconsideram a PcD.")
             ]
             for t, d in termos_ruins:
                 st.markdown(f"""
@@ -1345,6 +1403,11 @@ def render_central_conhecimento():
         render_livro("Mentes que mudam: a arte e a ciência de mudar as nossas mentes", "Howard Gardner (2005)", "Teoria das Inteligências Múltiplas aplicada.", None)
         render_livro("Capacitismo: o que é, onde vive?", "Sidney Andrade", "Entendendo o preconceito estrutural.", "https://medium.com/@sidneyandrade23")
         render_livro("Os Benefícios da Educação Inclusiva (2016)", "Instituto Alana", "Estudos comprovam ganhos para todos.", "https://alana.org.br/wp-content/uploads/2016/11/Os_Beneficios_da_Ed_Inclusiva_final.pdf")
+        render_livro("Desarrollo de escuelas inclusivas", "AINSCOW, M. (2001)", "Ideas, propuestas y experiencias para mejorar las instituciones escolares. Madri: Narcea.", None)
+        render_livro("Educação Inclusiva", "SILVA, B. M. D.; PEDRO, V. I. D. C.; JESUS, E. M.", "Revista Científica Semana Acadêmica. Fortaleza, 2017.", None)
+        render_livro("Como educar crianças anticapacitistas", "ROSA, M.; LUIZ, K. G.; BÖCK, G. L. K. (org.) (2023)", "Florianópolis: Editora das Autoras. Aborda vieses inconscientes e comentários aparentemente de simpatia.", None)
+        render_livro("O Corpo Como Personificação da Diferença e o Capacitismo", "RODRIGUES, M. B.; LOPES, P. G.; BIDARTE M. V. DALAGOSTINI", "XXVI SemAd - Seminário em Administração, 2023.", None)
+        render_livro("Educação inclusiva: 7 filmes para abordar a inclusão", "Educa SC", "Lista para introduzir o tema na escola. Educação inclusiva é o primeiro passo para acabar com o capacitismo.", "https://educa.sc.gov.br")
 
     # ABA 6: MANUAL DA JORNADA
     with tab_manual:
