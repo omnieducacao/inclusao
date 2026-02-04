@@ -1637,6 +1637,34 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Seção Informações — Amplie o Conhecimento (visível logo após o hero)
+st.markdown("### 📖 Informações — Amplie o Conhecimento")
+st.caption("Fundamentos da educação inclusiva. Clique para expandir.")
+
+with st.expander("1. Educação Inclusiva – Definição", expanded=True):
+    st.markdown("""
+    > *"Temos direito à igualdade, quando a diferença nos inferioriza, e direito à diferença, quando a igualdade nos descaracteriza."*  
+    > **Boaventura de Souza Santos**
+
+    A educação inclusiva é a efetiva realização do que dispõe a Constituição: todos devem ter direitos iguais à educação, frequentar os mesmos ambientes e serem beneficiados pelo processo de socialização. Engloba a educação especial e a regular, da Educação Infantil ao Ensino Superior, incluindo EJA, ensino profissionalizante e grupos quilombolas e indígenas.
+
+    **Todos devem aprender juntos**, independentemente de suas diferenças e dificuldades. A diversidade exige clareza de objetivos, respeito ao tempo do aluno e identificação de necessidades e potencialidades.
+    """)
+
+with st.expander("2. Capacitismo"):
+    st.markdown("""
+    Conforme a **Lei Brasileira de Inclusão (Lei nº 13.146/2015)**, o capacitismo é *"toda forma de distinção, restrição ou exclusão que tenha o propósito de prejudicar, impedir ou anular o reconhecimento dos direitos da pessoa com deficiência"*, incluindo a recusa de adaptações razoáveis e tecnologias assistivas.
+
+    O termo vem do inglês *ableism*. As consequências podem ser físicas (barreiras estruturais) ou simbólicas (metáforas e gestos que reforçam estigmas). O diretor empenhado em educação inclusiva deve instalar política inclusiva e liderar pelo exemplo.
+    """)
+
+with st.expander("3. Uma escola para todos (IBGE/PNAD 2022)"):
+    st.markdown("""
+    **18,6 milhões** de pessoas com 2 anos ou mais têm deficiência no Brasil (8,9%). Dados: 19,5% das PcD são analfabetas (vs 4,1%); 25,6% concluíram o Ensino Médio (vs 57,3%). **Qual a escola necessária?** Aquela que desenvolve política e cultura voltadas às diferenças, mantém equipe interessada nos direitos de todos, considera a parceria com a família, garante formação de professores e espaços acessíveis.
+    """)
+
+st.markdown("---")
+
 # Módulos da Plataforma (filtrados por permissão se gestão de usuários ativa)
 def _can(page):
     try:
