@@ -2120,6 +2120,31 @@ with tab0:
                 """
             )
 
+        with st.expander("📘 PEI/PDI e a Prática Inclusiva — Amplie o conhecimento", expanded=False):
+            st.markdown("""
+            O **Plano Educacional Individualizado (PEI)**, também denominado **Plano de Desenvolvimento Individual (PDI)**, é um roteiro de intervenção pedagógica personalizado e flexível que norteia o processo de aprendizagem em sala comum para público-alvo da educação inclusiva. Tem o objetivo de **remover obstáculos** e **promover a escolarização**.
+
+            O PEI/PDI leva em conta as particularidades do(a) aluno(a), incluindo-o no repertório da classe que frequenta e tendo como referência a **mesma matriz curricular** do ano a ser cursado.
+
+            **Caráter obrigatório:** deve ser atualizado sistematicamente e compor a documentação escolar de alunos com deficiência, transtorno global do desenvolvimento e altas habilidades/superdotação. Respeita as orientações do laudo médico, quando houver. Se o aluno apresentar condições descritas e não possuir acompanhamento externo, cabe à escola orientar a família na busca de recursos para diagnóstico e obtenção de dados.
+
+            **Elaboração:** pela equipe multidisciplinar da escola; discutido com a família e profissionais externos no início do ano letivo; replanejado ao final de cada unidade e/ou período de avaliação. Em transferência, o PEI deve compor a documentação do aluno egresso.
+            """)
+            st.markdown("**Registros fundamentais:**")
+            st.markdown("""
+            - Identidade do aluno
+            - Necessidades específicas (características mais recorrentes)
+            - Dados sobre autonomia
+            - Dados atualizados sobre atendimentos externos
+            - Desenvolvimento escolar (leitura e raciocínio lógico-matemático)
+            - Necessidades de material pedagógico e tecnologias assistivas
+            """)
+            st.markdown("**Avaliação da aprendizagem:**")
+            st.markdown("""
+            Parte de objetivos mensuráveis e metas educacionais específicas. Deve considerar: implicações das funções e estrutura corporal, limitações no desempenho, condições socioemocionais. A avaliação **não incide apenas sobre o resultado**, mas sobre o processo — identificando conhecimentos construídos, dificuldades superadas e as que necessitam de mais tempo. A avaliação inclusiva **não classifica** em relação à turma; o que importa é o quanto e o como o aluno avança em relação ao seu conhecimento inicial. Nota/conceito segundo o avanço constatado.
+            """)
+            st.caption("A família deve acompanhar a elaboração do PEI/PDI e consentir formalmente, participando da análise das avaliações sistemáticas.")
+
     # =========================
     # DIREITA: Gestão de alunos
     # =========================
