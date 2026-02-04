@@ -578,7 +578,7 @@ def list_students_rest(workspace_id: str = ""):
         return []
 
 def carregar_estudantes_supabase():
-    """Carrega e processa, extraindo dados ricos do PEI. Filtra por membro se gestão ativa."""
+    """Carrega e processa, extraindo dados ricos do PEI. Separa Diagnóstico de Hiperfoco (NUNCA misturar)."""
     _workspace_id = st.session_state.get("workspace_id") or ""
     if st.session_state.get("students_cache_invalid"):
         list_students_rest.clear()
@@ -593,17 +593,40 @@ def carregar_estudantes_supabase():
     
     for item in dados:
         pei_completo = item.get('pei_data') or {}
-        contexto_ia = pei_completo.get('ia_sugestao', '')
+        if not isinstance(pei_completo, dict):
+            pei_completo = {}
         
+        # 1. DIAGNÓSTICO (clinico/CID)
+        diagnostico_real = pei_completo.get("diagnostico") or "" if isinstance(pei_completo, dict) else ""
+        if not diagnostico_real:
+            diagnostico_real = item.get("diagnosis") or ""
+        if not diagnostico_real:
+            diagnostico_real = "Não informado"
+        
+        # 2. HIPERFOCO (interesses, paixões) — NUNCA usar diagnóstico como fallback
+        hiperfoco_temp = ""
+        if isinstance(pei_completo, dict):
+            hiperfoco_temp = (
+                pei_completo.get("hiperfoco") or
+                pei_completo.get("interesses") or
+                pei_completo.get("habilidades_interesses") or
+                ""
+            )
+            if hiperfoco_temp and hiperfoco_temp == diagnostico_real:
+                hiperfoco_temp = ""
+        hiperfoco_real = hiperfoco_temp if hiperfoco_temp else "Interesses gerais (A descobrir)"
+        
+        # Contexto IA
+        contexto_ia = pei_completo.get('ia_sugestao', '') if isinstance(pei_completo, dict) else ''
         if not contexto_ia:
-            diag = item.get('diagnosis', 'Não informado')
             serie = item.get('grade', '')
-            contexto_ia = f"Estudante: {item.get('name')}. Série: {serie}. Diagnóstico: {diag}."
+            contexto_ia = f"Estudante: {item.get('name')}. Série: {serie}. Diagnóstico: {diagnostico_real}. Hiperfoco: {hiperfoco_real}."
 
         estudante = {
             'nome': item.get('name', ''),
             'serie': item.get('grade', ''),
-            'hiperfoco': item.get('diagnosis', ''),
+            'diagnosis': diagnostico_real,
+            'hiperfoco': hiperfoco_real,
             'ia_sugestao': contexto_ia,
             'id': item.get('id', ''),
             'pei_data': pei_completo,
@@ -756,7 +779,8 @@ st.markdown(f"""
     <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 20px 30px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
         <div><div style="font-size: 0.8rem; color: #64748B; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Nome</div><div style="font-size: 1.2rem; color: #1E293B; font-weight: 800;">{aluno.get('nome')}</div></div>
         <div><div style="font-size: 0.8rem; color: #64748B; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Série</div><div style="font-size: 1.2rem; color: #1E293B; font-weight: 800;">{aluno.get('serie')}</div></div>
-        <div><div style="font-size: 0.8rem; color: #64748B; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Diagnóstico</div><div style="font-size: 1.2rem; color: #1E293B; font-weight: 800;">{aluno.get('hiperfoco', '-')}</div></div>
+        <div><div style="font-size: 0.8rem; color: #64748B; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Diagnóstico</div><div style="font-size: 1.2rem; color: #1E293B; font-weight: 800;">{aluno.get('diagnosis', '-')}</div></div>
+        <div><div style="font-size: 0.8rem; color: #64748B; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Hiperfoco</div><div style="font-size: 1.2rem; color: #1E293B; font-weight: 800;">{aluno.get('hiperfoco', '-')}</div></div>
     </div>
 """, unsafe_allow_html=True)
 
@@ -779,7 +803,7 @@ def gerar_diagnostico_barreiras(api_key, aluno, obs_prof, feedback=None):
     
     prompt = f"""
     ATUAR COMO: Especialista em AEE.
-    ESTUDANTE: {aluno['nome']} | DIAGNÓSTICO: {aluno.get('hiperfoco')}
+    ESTUDANTE: {aluno['nome']} | DIAGNÓSTICO (clínico/CID): {aluno.get('diagnosis', '')}
     CONTEXTO DO PEI: {contexto[:2500]}
     OBSERVAÇÃO ATUAL: {obs_prof}
     """

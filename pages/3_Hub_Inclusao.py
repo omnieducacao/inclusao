@@ -2729,7 +2729,7 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
     with col_scene:
         st.markdown("#### 🖼️ Ilustração")
         desc_m = st.text_area("Descreva a imagem:", height=100, key="vdm_padrao", placeholder="Ex: Sistema Solar simplificado com planetas coloridos...")
-        hiperfoco_est = (aluno.get("hiperfoco") or aluno.get("diagnosis") or "").strip()
+        hiperfoco_est = (aluno.get("hiperfoco") or "").strip()
         usar_hiperfoco_ilustracao = st.checkbox(
             "Usar hiperfoco do estudante como tema da ilustração",
             value=bool(hiperfoco_est),
@@ -3239,7 +3239,7 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
     with col_scene:
         st.markdown("#### 🖼️ Ilustração de Cena")
         desc_m = st.text_area("Descreva a cena ou rotina:", height=100, key="vdm_ei", placeholder="Ex: Crianças brincando de roda no parque...")
-        hiperfoco_ei = (aluno.get("hiperfoco") or aluno.get("diagnosis") or "").strip()
+        hiperfoco_ei = (aluno.get("hiperfoco") or "").strip()
         usar_hiperfoco_ei = st.checkbox(
             "Usar hiperfoco do estudante como tema da ilustração",
             value=bool(hiperfoco_ei),

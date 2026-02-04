@@ -304,8 +304,26 @@ def carregar_estudantes_formatados():
 
     for item in dados:
         pei_completo = item.get("pei_data") or {}
+        if not isinstance(pei_completo, dict):
+            pei_completo = {}
         paee_ciclos = item.get("paee_ciclos") or []
         planejamento_ativo = item.get("planejamento_ativo")
+        
+        # Diagnóstico (clínico/CID)
+        diagnostico_real = pei_completo.get("diagnostico") or item.get("diagnosis") or ""
+        if not diagnostico_real:
+            diagnostico_real = "Não informado"
+        
+        # Hiperfoco (interesses) — NUNCA usar diagnóstico como fallback
+        hiperfoco_temp = (
+            pei_completo.get("hiperfoco") or
+            pei_completo.get("interesses") or
+            pei_completo.get("habilidades_interesses") or
+            ""
+        )
+        if hiperfoco_temp and hiperfoco_temp == diagnostico_real:
+            hiperfoco_temp = ""
+        hiperfoco_real = hiperfoco_temp if hiperfoco_temp else "Interesses gerais (A descobrir)"
         
         # Busca ciclo ativo do PAE
         paee_ativo = None
@@ -316,23 +334,20 @@ def carregar_estudantes_formatados():
                     break
         
         # Tenta pegar contexto da IA do PEI ou monta fallback
-        contexto_ia = ""
-        if isinstance(pei_completo, dict):
-            contexto_ia = pei_completo.get("ia_sugestao", "")
-        
+        contexto_ia = pei_completo.get("ia_sugestao", "")
         if not contexto_ia:
-            diag = item.get("diagnosis", "Não informado")
             serie = item.get("grade", "")
-            contexto_ia = f"Estudante: {item.get('name')}. Série: {serie}. Diagnóstico: {diag}."
+            contexto_ia = f"Estudante: {item.get('name')}. Série: {serie}. Diagnóstico: {diagnostico_real}. Hiperfoco: {hiperfoco_real}."
 
         estudante = {
             "nome": item.get("name", ""),
             "serie": item.get("grade", ""),
             "id": item.get("id", ""),
-            "pei_data": pei_completo,  # Dados do PEI
-            "paee_ciclos": paee_ciclos,  # Dados do PAE
-            "paee_ativo": paee_ativo,  # Ciclo ativo do PAE
-            "diagnosis": item.get("diagnosis", "")
+            "pei_data": pei_completo,
+            "paee_ciclos": paee_ciclos,
+            "paee_ativo": paee_ativo,
+            "diagnosis": diagnostico_real,
+            "hiperfoco": hiperfoco_real,
         }
         if estudante["nome"]:
             estudantes.append(estudante)
