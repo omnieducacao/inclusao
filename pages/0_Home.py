@@ -1241,6 +1241,44 @@ def render_central_conhecimento():
             - Desenvolve práticas emancipatórias e respeita os marcos legais
             """)
 
+        with st.expander("4. Cultura da Educação Inclusiva", expanded=False):
+            st.markdown("""
+            A cultura inclusiva consiste em **valores e atitudes compartilhados** pela comunidade escolar, que garantem a igualdade de desenvolvimento para todos os alunos, acolhendo-os e tratando-os de forma igualitária, permitindo-lhes se desenvolver de acordo com suas potencialidades, ritmo e singularidades.
+
+            Criar uma cultura de inclusão significa **conviver com a visibilidade da diferença**, valorizar o diferente e aprender a conectar-se com a diversidade sem preconceitos. O gestor comunica as regras da estrutura escolar, as concepções do Projeto Pedagógico e a visão acerca das responsabilidades da escola e suas relações com a comunidade. O cenário construído será o espaço em que os educadores trabalharão de forma colaborativa, orientados por visões comuns (GIDDENS, 2003).
+
+            Segundo Heloisa Lück (2000), a ação dos gestores articula-se em três verbos: **organizar, mobilizar e articular** todas as condições materiais e humanas para garantir o avanço dos processos socioeducacionais e promover a aprendizagem efetiva — aquela que garante competências necessárias à cidadania.
+            """)
+            st.markdown("**Fatores que fortalecem a cultura de inclusão:**")
+            st.markdown("""
+            - Formação dos educadores e valorização dos talentos
+            - Prevenção da rotatividade de profissionais (preservar a história da instituição)
+            - Diversidade na composição da equipe
+            - Metas focadas na inclusão em todos os níveis
+            - Cumprimento da legislação
+            - Escuta ativa para mapear pontos fortes e ajustes necessários
+
+            Cada escola é única. Mesmo fazendo parte de uma rede, os procedimentos, ênfases e acordos são irrepetíveis — a cultura é gerada pela liderança, corpo docente, discente, colaboradores e famílias num espaço específico.
+            """)
+
+        with st.expander("5. Sensibilização da comunidade escolar", expanded=False):
+            st.markdown("""
+            > *"A cegueira moral é a incapacidade de ver a humanidade no outro e, por consequência, a incapacidade de agir de maneira justa e solidária."*  
+            > **Zygmunt Bauman**
+
+            Vivemos em uma sociedade consumista e individualista, com meritocracia que justifica desigualdades. São tempos de desumanização, nos quais não percebemos a dor do outro (BAUMANN; DONSKIS, 2014). Há leis suficientes, porém o cumprimento burocrático não leva às transformações necessárias. O trabalho com a inclusão exige dos gestores um **esforço potente** para que a comunidade se alie e se comprometa com o projeto.
+            """)
+            st.markdown("**Para sensibilizar a comunidade:**")
+            st.markdown("""
+            - Promover atividades de respeito à diversidade, diferenças e empatia
+            - Formar parcerias com organizações de inclusão e especialistas; palestras e rodas de conversa com pais
+            - Estimular a participação dos pais: comunicação aberta, envolvê-los no processo, visitas para comentar produções, vídeos com alunos em atividades
+            - Criar canais de formação digital: lives, seminários, cine fórum sobre deficiências e altas habilidades
+            - Capacitar líderes estudantis: voluntariado que promova inserção cultural e social; multiplicadores da cultura inclusiva; monitores de atividades sociais, esportivas e culturais
+
+            A construção de uma cultura inclusiva não é simples, mas é fundamental. A sensibilização dos gestores e educadores sobre diversidade, empatia e respeito às singularidades cria um ambiente acolhedor. A cultura inclusiva deve ser **compromisso de todos**, não apenas da equipe escolar — um compromisso da comunidade.
+            """)
+
     # ABA 2: LEGISLAÇÃO & IA
     with tab_legal:
         c_info, c_ai = st.columns([1.5, 1])
@@ -1408,6 +1446,8 @@ def render_central_conhecimento():
         render_livro("Como educar crianças anticapacitistas", "ROSA, M.; LUIZ, K. G.; BÖCK, G. L. K. (org.) (2023)", "Florianópolis: Editora das Autoras. Aborda vieses inconscientes e comentários aparentemente de simpatia.", None)
         render_livro("O Corpo Como Personificação da Diferença e o Capacitismo", "RODRIGUES, M. B.; LOPES, P. G.; BIDARTE M. V. DALAGOSTINI", "XXVI SemAd - Seminário em Administração, 2023.", None)
         render_livro("Educação inclusiva: 7 filmes para abordar a inclusão", "Educa SC", "Lista para introduzir o tema na escola. Educação inclusiva é o primeiro passo para acabar com o capacitismo.", "https://educa.sc.gov.br")
+        render_livro("Diversidade", "Lenine", "Canção sobre diversidade e respeito às diferenças. Recurso para sensibilização.", None)
+        render_livro("10 Desenhos animados sobre inclusão e diferença", "Instituto Nacional de Nanismo", "Indicações para cine fórum e discussões sobre inclusão na escola.", None)
 
     # ABA 6: MANUAL DA JORNADA
     with tab_manual:
