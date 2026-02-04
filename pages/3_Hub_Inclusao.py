@@ -1148,9 +1148,74 @@ def gerar_pictograma_caa(api_key, conceito, feedback_anterior="", gemini_key=Non
         print(f"Erro ao gerar pictograma: {e}")
         return None
 
-def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remover_resp, questoes_mapeadas, modo_profundo=False, checklist_adaptacao=None):
+def _hub_chat_completion(engine, messages, temperature=0.7, api_key=None):
+    """Chat completion unificado para Hub. engine: red (ChatGPT), blue (Gemini), green (Kimi)."""
+    engine = (engine or "red").strip().lower()
+    if engine not in ("red", "blue", "green"):
+        engine = "red"
+    if engine == "blue":
+        full = ""
+        for m in messages:
+            role = m.get("role", "user")
+            cont = (m.get("content") or "").strip()
+            if role == "system":
+                full = f"[INSTRUÇÕES]\n{cont}\n\n" + full
+            else:
+                full += f"\n[ENTRADA]\n{cont}" if full else cont
+        full = full.strip() or "Responda."
+        txt, err = ou.consultar_gemini(full, model="gemini-2.0-flash")
+        if err:
+            raise Exception(err)
+        return txt or ""
+    if engine == "green":
+        k = ou.get_kimi_api_key() or api_key
+        try:
+            k = k or (st.secrets.get("OPENROUTER_API_KEY", "") or st.secrets.get("KIMI_API_KEY", "") or "")
+        except Exception:
+            pass
+        k = (k or "").strip().replace("\n", "").replace("\r", "")
+        if not k:
+            raise Exception(f"Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({ou.AI_GREEN}).")
+        use_or = k.startswith("sk-or-")
+        base_url = ou.get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if use_or else "https://api.moonshot.ai/v1")
+        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://openrouter.ai/api/v1"
+        model = ou.get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_or else "kimi-k2-turbo-preview")
+        model = (model or "").strip() or "moonshotai/kimi-k2.5"
+        client = OpenAI(api_key=k, base_url=base_url)
+        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
+        return (resp.choices[0].message.content or "").strip()
+    # Red (OpenAI)
+    if not api_key or not str(api_key).strip():
+        raise Exception(f"Configure OPENAI_API_KEY ({ou.AI_RED}).")
+    client = OpenAI(api_key=str(api_key).strip())
+    resp = client.chat.completions.create(model="gpt-4o-mini", messages=messages, temperature=temperature)
+    return (resp.choices[0].message.content or "").strip()
+
+
+def _render_engine_selector(key_suffix=""):
+    """Renderiza expander para escolher motor IA (Red/Blue/Green). Retorna engine escolhido."""
+    sk = f"hub_engine_{key_suffix}" if key_suffix else "hub_engine_default"
+    st.session_state.setdefault(sk, "red")
+    with st.expander("🔧 Escolher motor de IA (Red, Blue ou Green)", expanded=False):
+        engine_map = {
+            "red": f"🔴 {ou.AI_RED} — ChatGPT (OpenAI)",
+            "blue": f"🔵 {ou.AI_BLUE} — Gemini",
+            "green": f"🟢 {ou.AI_GREEN} — Kimi (OpenRouter)"
+        }
+        eng = st.radio(
+            "Motor",
+            options=["red", "blue", "green"],
+            format_func=lambda x: engine_map.get(x, x),
+            index={"red": 0, "blue": 1, "green": 2}.get(st.session_state.get(sk, "red"), 0),
+            key=f"engine_radio_{key_suffix}",
+            horizontal=True
+        )
+        st.session_state[sk] = eng
+    return st.session_state[sk]
+
+
+def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remover_resp, questoes_mapeadas, modo_profundo=False, checklist_adaptacao=None, engine="red"):
     """Adapta conteúdo de um DOCX para o estudante"""
-    client = OpenAI(api_key=api_key)
     lista_q = ", ".join([str(n) for n in questoes_mapeadas]) if questoes_mapeadas else ""
     style = "Seja didático e use uma Cadeia de Pensamento para adaptar." if modo_profundo else "Seja objetivo."
     
@@ -1219,12 +1284,11 @@ def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remove
     """
     
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=[{"role": "user", "content": prompt}], 
-            temperature=0.7 if modo_profundo else 0.4
+        full_text = _hub_chat_completion(
+            engine, [{"role": "user", "content": prompt}],
+            temperature=0.7 if modo_profundo else 0.4,
+            api_key=api_key
         )
-        full_text = resp.choices[0].message.content
         if "---DIVISOR---" in full_text:
             parts = full_text.split("---DIVISOR---")
             return parts[0].replace("[ANÁLISE PEDAGÓGICA]", "").strip(), parts[1].replace("[ATIVIDADE]", "").strip()
@@ -1354,9 +1418,8 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
     except Exception as e:
         return str(e), ""
 
-def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, verbos_bloom=None, habilidades_bncc=None, modo_profundo=False, checklist_adaptacao=None):
+def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, verbos_bloom=None, habilidades_bncc=None, modo_profundo=False, checklist_adaptacao=None, engine="red"):
     """Cria atividade profissional do zero"""
-    client = OpenAI(api_key=api_key)
     hiperfoco = aluno.get('hiperfoco', 'Geral')
     
     # Instrução de imagens
@@ -1452,12 +1515,10 @@ def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, v
     """
     
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=[{"role": "user", "content": prompt}], 
-            temperature=0.8 if modo_profundo else 0.6
+        full_text = _hub_chat_completion(
+            engine, [{"role": "user", "content": prompt}],
+            temperature=0.8 if modo_profundo else 0.6, api_key=api_key
         )
-        full_text = resp.choices[0].message.content
         if "---DIVISOR---" in full_text:
             parts = full_text.split("---DIVISOR---")
             return parts[0].replace("[ANÁLISE PEDAGÓGICA]", "").strip(), parts[1].replace("[ATIVIDADE]", "").strip()
@@ -1508,9 +1569,8 @@ def gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, objetivo, feedback_ante
     except Exception as e:
         return str(e)
 
-def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior=""):
+def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior="", engine="red"):
     """Gera roteiro de aula completo com BNCC"""
-    client = OpenAI(api_key=api_key)
     
     # Construir informações da BNCC
     info_bncc = ""
@@ -1576,12 +1636,10 @@ def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bn
     """
     
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=[{"role": "user", "content": prompt}], 
-            temperature=0.7
+        return _hub_chat_completion(
+            engine, [{"role": "user", "content": prompt}],
+            temperature=0.7, api_key=api_key
         )
-        return resp.choices[0].message.content
     except Exception as e:
         return str(e)
 
@@ -1662,23 +1720,8 @@ def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alun
     except Exception as e:
         return str(e)
 
-def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, qtd_alunos, recursos, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, aluno_info=None, kimi_key=None):
-    """Gera plano de aula completo com BNCC. Usa ChatGPT (OPENAI_API_KEY) ou Kimi (OPENROUTER_API_KEY) como fallback."""
-    use_openai = api_key and str(api_key).strip()
-    use_kimi = kimi_key and str(kimi_key).strip()
-    if not use_openai and not use_kimi:
-        return "⚠️ **Configure pelo menos uma chave:** OPENAI_API_KEY (ChatGPT) ou OPENROUTER_API_KEY/KIMI_API_KEY (Kimi)."
-    if use_openai:
-        client = OpenAI(api_key=str(api_key).strip())
-        base_url, model = None, "gpt-4o-mini"
-    else:
-        k = str(kimi_key).strip().replace("\n", "").replace("\r", "")
-        base_url = ou.get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if k.startswith("sk-or-") else "https://api.moonshot.ai/v1")
-        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://openrouter.ai/api/v1"
-        model = ou.get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if k.startswith("sk-or-") else "kimi-k2-turbo-preview")
-        model = (model or "").strip() or "moonshotai/kimi-k2.5"
-        client = OpenAI(api_key=k, base_url=base_url)
-    
+def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, qtd_alunos, recursos, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, aluno_info=None, engine="red"):
+    """Gera plano de aula completo com BNCC. engine: red (ChatGPT), blue (Gemini), green (Kimi)."""
     # Construir informações da BNCC
     info_bncc = ""
     if habilidades_bncc:
@@ -1787,19 +1830,15 @@ def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, q
     """
     
     try:
-        resp = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
+        return _hub_chat_completion(
+            engine, [{"role": "user", "content": prompt}],
+            temperature=0.7, api_key=api_key
         )
-        return resp.choices[0].message.content
     except Exception as e:
         return str(e)
 
-def gerar_quebra_gelo_profundo(api_key, aluno, materia, assunto, hiperfoco, tema_turma_extra=""):
+def gerar_quebra_gelo_profundo(api_key, aluno, materia, assunto, hiperfoco, tema_turma_extra="", engine="red"):
     """Gera quebra-gelo profundo para engajamento"""
-    client = OpenAI(api_key=api_key)
-    
     prompt = f"""
     Crie 3 sugestões de 'Papo de Mestre' (Quebra-gelo/Introdução) para conectar o estudante {aluno['nome']} à aula.
     Componente Curricular: {materia}. Assunto: {assunto}.
@@ -1811,16 +1850,14 @@ def gerar_quebra_gelo_profundo(api_key, aluno, materia, assunto, hiperfoco, tema
     """
     
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=[{"role": "user", "content": prompt}], 
-            temperature=0.8
+        return _hub_chat_completion(
+            engine, [{"role": "user", "content": prompt}],
+            temperature=0.8, api_key=api_key
         )
-        return resp.choices[0].message.content
     except Exception as e:
         return str(e)
 
-    # ==============================================================================
+# ==============================================================================
 # FUNÇÕES DE BNCC (DROPDOWNS)
 # ==============================================================================
 
@@ -2381,6 +2418,9 @@ def render_aba_adaptar_prova(aluno, api_key):
                 key="assunto_adaptar_prova_compact"
             )
     
+    # Motor de IA
+    engine_adaptar_prova = _render_engine_selector("adaptar_prova")
+    
     # Configuração (Tipo e Upload)
     st.markdown("---")
     c1, c2 = st.columns([1, 2])
@@ -2514,7 +2554,7 @@ def render_aba_adaptar_prova(aluno, api_key):
             st.session_state['checklist_adaptacao_prova'] = checklist_respostas
             rac, txt = adaptar_conteudo_docx(
                 api_key, aluno, st.session_state.docx_txt, materia_d, tema_d, tipo_d, True, qs_d,
-                checklist_adaptacao=checklist_respostas
+                checklist_adaptacao=checklist_respostas, engine=engine_adaptar_prova
             )
             st.session_state['res_docx'] = {'rac': rac, 'txt': txt, 'map': map_d, 'valid': False}
             st.rerun()
@@ -2534,9 +2574,10 @@ def render_aba_adaptar_prova(aluno, api_key):
                 with st.spinner("Refazendo com análise mais profunda..."):
                     # Recuperar checklist do session_state se disponível
                     checklist_redo = st.session_state.get('checklist_adaptacao_prova', {})
+                    eng_prova = st.session_state.get("hub_engine_adaptar_prova", "red")
                     rac, txt = adaptar_conteudo_docx(
                         api_key, aluno, st.session_state.docx_txt, materia_d, tema_d, tipo_d, True, qs_d, 
-                        modo_profundo=True, checklist_adaptacao=checklist_redo
+                        modo_profundo=True, checklist_adaptacao=checklist_redo, engine=eng_prova
                     )
                     st.session_state['res_docx'] = {'rac': rac, 'txt': txt, 'map': map_d, 'valid': False}
                     st.rerun()
@@ -2657,6 +2698,11 @@ def render_aba_adaptar_atividade(aluno, api_key):
                 help="Preencha se quiser direcionar a adaptação para um assunto específico.",
                 key="assunto_adaptar_atividade_compact"
             )
+    
+    # Motor de IA (OCR/visão usa Red; Blue/Green em breve)
+    engine_adaptar_atividade = _render_engine_selector("adaptar_atividade")
+    if engine_adaptar_atividade != "red":
+        st.caption("ℹ️ OCR/visão usa apenas Omnisfera Red no momento. Será usado Red para esta função.")
     
     # Configuração (Tipo e Upload)
     st.markdown("---")
@@ -3033,18 +3079,20 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
                 if verbos_finais_para_ia:
                     st.info(f"**Verbos:** {', '.join(verbos_finais_para_ia)}")
     
+    # Motor de IA
+    engine_criar_zero = _render_engine_selector("criar_zero")
+    
     st.markdown("---")
     if st.button("✨ CRIAR ATIVIDADE", type="primary", key="btn_c", use_container_width=True):
-        if not api_key:
-            st.error(f"❌ Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
-        else:
-            with st.spinner("Elaborando atividade..."):
+        with st.spinner("Elaborando atividade..."):
+            try:
                 qtd_final = qtd_img_sel if usar_img else 0
                 rac, txt = criar_profissional(
                     api_key, aluno, mat_c, obj_c, qtd_c, tipo_quest, qtd_final,
                     verbos_bloom=verbos_finais_para_ia if usar_bloom else None,
                     habilidades_bncc=habilidades_bncc,
-                    checklist_adaptacao=checklist_criar
+                    checklist_adaptacao=checklist_criar,
+                    engine=engine_criar_zero
                 )
                 novo_map = {}
                 count = 0
@@ -3064,6 +3112,8 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
                     txt_fin = re.sub(r'\[\[GEN_IMG: .*?\]\]', f"[[IMG_G{i}]]", txt_fin, count=1)
                 st.session_state['res_create'] = {'rac': rac, 'txt': txt_fin, 'map': novo_map, 'valid': False, 'mat_c': mat_c, 'obj_c': obj_c, 'checklist': checklist_criar}
                 st.rerun()
+            except Exception as e:
+                st.error(str(e))
     
     # Exibição do resultado
     if 'res_create' in st.session_state:
@@ -3248,23 +3298,30 @@ def render_aba_roteiro_individual(aluno, api_key):
     with st.expander("📚 BNCC e Habilidades", expanded=True):
         ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc = criar_dropdowns_bncc_completos_melhorado(key_suffix="roteiro", aluno=aluno)
     
+    # Motor de IA
+    engine_roteiro = _render_engine_selector("roteiro")
+    
     st.markdown("---")
     
     if st.button("📝 GERAR ROTEIRO INDIVIDUAL", type="primary", use_container_width=True):
         # Validação: Usa o objeto_bncc como assunto
         if objeto_bncc and habilidades_bncc:
             with st.spinner(f"Criando roteiro sobre '{objeto_bncc}'..."):
-                res = gerar_roteiro_aula_completo(
-                    api_key=api_key,
-                    aluno=aluno,
-                    materia=disciplina_bncc,
-                    assunto=objeto_bncc, # Passa o objeto BNCC como assunto
-                    habilidades_bncc=habilidades_bncc,
-                    verbos_bloom=None, # Bloom removido
-                    ano=ano_bncc,
-                    unidade_tematica=unidade_bncc,
-                    objeto_conhecimento=objeto_bncc
-                )
+                try:
+                    res = gerar_roteiro_aula_completo(
+                        api_key=api_key,
+                        aluno=aluno,
+                        materia=disciplina_bncc,
+                        assunto=objeto_bncc,
+                        habilidades_bncc=habilidades_bncc,
+                        verbos_bloom=None,
+                        ano=ano_bncc,
+                        unidade_tematica=unidade_bncc,
+                        objeto_conhecimento=objeto_bncc,
+                        engine=engine_roteiro
+                    )
+                except Exception as e:
+                    res = str(e)
                 st.session_state['res_roteiro'] = res
                 st.session_state['res_roteiro_valid'] = False
         else:
@@ -3350,9 +3407,15 @@ def render_aba_papo_mestre(aluno, api_key):
     hiperfoco_papo = c3.text_input("Hiperfoco (Estudante):", value=aluno.get('hiperfoco', 'Geral'), key="papo_hip")
     tema_turma = c4.text_input("Interesse da Turma (Opcional - DUA):", placeholder="Ex: Minecraft, Copa do Mundo...", key="papo_turma")
     
+    # Motor de IA
+    engine_papo = _render_engine_selector("papo_mestre")
+    
     if st.button("🗣️ CRIAR CONEXÕES", type="primary"): 
         if assunto_papo:
-            res = gerar_quebra_gelo_profundo(api_key, aluno, materia_papo, assunto_papo, hiperfoco_papo, tema_turma)
+            try:
+                res = gerar_quebra_gelo_profundo(api_key, aluno, materia_papo, assunto_papo, hiperfoco_papo, tema_turma, engine=engine_papo)
+            except Exception as e:
+                res = str(e)
             st.session_state['res_papo'] = res
             st.session_state['res_papo_valid'] = False
         else:
@@ -3549,36 +3612,34 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
     with c4:
         recursos_plano = st.multiselect("Recursos Disponíveis:", RECURSOS_DISPONIVEIS, key="plano_rec")
     
+    # Motor de IA
+    engine_plano = _render_engine_selector("plano_aula")
+    
     # Botão para gerar
     st.markdown("---")
     
     if st.button("📅 GERAR PLANO DE AULA", type="primary", use_container_width=True):
-        has_openai = api_key and str(api_key).strip()
-        has_kimi = kimi_key and str(kimi_key).strip()
-        if not has_openai and not has_kimi:
-            st.error(
-                "Configure a chave da OpenAI (ChatGPT) para gerar o plano de aula. "
-                "Adicione OPENAI_API_KEY em secrets ou variáveis de ambiente. "
-                "O PPT usa Kimi (OPENROUTER_API_KEY) separadamente."
-            )
-        elif objeto_bncc and habilidades_bncc:
+        if objeto_bncc and habilidades_bncc:
             with st.spinner(f"Consultando BNCC e planejando aula sobre '{objeto_bncc}'..."):
-                res = gerar_plano_aula_completo(
-                    api_key=api_key or "",
-                    materia=disciplina_bncc,
-                    assunto=objeto_bncc,
-                    metodologia=metodologia,
-                    tecnica=tecnica_ativa,
-                    qtd_alunos=qtd_alunos_plano,
-                    recursos=recursos_plano,
-                    habilidades_bncc=habilidades_bncc,
-                    verbos_bloom=None,
-                    ano=ano_bncc,
-                    unidade_tematica=unidade_bncc,
-                    objeto_conhecimento=objeto_bncc,
-                    aluno_info=aluno,
-                    kimi_key=kimi_key
-                )
+                try:
+                    res = gerar_plano_aula_completo(
+                        api_key=api_key or "",
+                        materia=disciplina_bncc,
+                        assunto=objeto_bncc,
+                        metodologia=metodologia,
+                        tecnica=tecnica_ativa,
+                        qtd_alunos=qtd_alunos_plano,
+                        recursos=recursos_plano,
+                        habilidades_bncc=habilidades_bncc,
+                        verbos_bloom=None,
+                        ano=ano_bncc,
+                        unidade_tematica=unidade_bncc,
+                        objeto_conhecimento=objeto_bncc,
+                        aluno_info=aluno,
+                        engine=engine_plano
+                    )
+                except Exception as e:
+                    res = str(e)
                 st.session_state['res_plano'] = res
                 st.session_state['res_plano_valid'] = False
         else:
@@ -3609,7 +3670,6 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
                 if st.button("🗑️ Descartar", key="del_plano", use_container_width=True):
                     del st.session_state['res_plano']
                     del st.session_state['res_plano_valid']
-                    st.session_state.pop('res_plano_pptx', None)
                     st.rerun()
         
         st.markdown(res)
@@ -3617,7 +3677,7 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
         # Botões de Download
         st.markdown("---")
         st.markdown("### 📥 Download")
-        col_down1, col_down2, col_down3 = st.columns(3)
+        col_down1, col_down2 = st.columns(2)
         
         with col_down1:
             docx_plano = criar_docx_simples(res, "Plano de Aula DUA")
@@ -3638,34 +3698,6 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
                 mime="application/pdf",
                 use_container_width=True
             )
-        
-        with col_down3:
-            ppt_key = "res_plano_pptx"
-            if ppt_key not in st.session_state:
-                st.session_state[ppt_key] = None
-            if st.button(
-                "🎯 Criar PPT (Omnisfera Green)",
-                key="btn_ppt_plano",
-                use_container_width=True,
-                help="Gera PowerPoint a partir do plano usando Kimi (Omnisfera Green)"
-            ):
-                with st.spinner("Gerando PPT com Omnisfera Green..."):
-                    ppt_bytes, err = gerar_ppt_do_plano_kimi(res, objeto_bncc or disciplina_bncc or "Plano de Aula", aluno=aluno, kimi_key=kimi_key)
-                    if err:
-                        st.session_state[ppt_key] = None
-                        st.error(err)
-                    else:
-                        st.session_state[ppt_key] = ppt_bytes
-                        st.rerun()
-            if st.session_state.get(ppt_key):
-                st.download_button(
-                    label="📊 Baixar PPTX",
-                    data=st.session_state[ppt_key],
-                    file_name=f"Plano_Aula_{disciplina_bncc}_{date.today().strftime('%Y%m%d')}.pptx",
-                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                    key="dl_ppt_plano",
-                    use_container_width=True
-                )
     # ==============================================================================
 # FUNÇÕES DA EDUCAÇÃO INFANTIL
 # ==============================================================================
