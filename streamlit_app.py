@@ -1,6 +1,14 @@
 # streamlit_app.py
 import os
 import streamlit as st
+
+# Warmup: lê chaves Supabase o mais cedo possível (mitiga race no Streamlit Cloud cold start)
+try:
+    import omni_utils as _ou
+    _ou.get_setting("SUPABASE_URL", "")
+except Exception:
+    pass
+
 from login_view import render_login
 
 

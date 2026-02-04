@@ -153,15 +153,28 @@ def get_setting(name: str, default: str = "") -> str:
     - Streamlit Cloud: usa st.secrets
     Importante: em ambientes sem secrets.toml (ex.: Render), acessar st.secrets pode levantar
     StreamlitSecretNotFoundError, então fazemos try/except.
+    Para chaves Supabase, aplica retry (Streamlit Cloud pode demorar a carregar secrets no cold start).
     """
-    v = os.environ.get(name)
-    if v is not None and str(v).strip() != "":
-        return str(v).strip()
-    try:
-        v2 = st.secrets.get(name, default)
-        return str(v2).strip() if v2 is not None else default
-    except Exception:
-        return default
+    import time as _time
+    _SUPABASE_KEYS = ("SUPABASE_URL", "SUPABASE_SERVICE_KEY", "SUPABASE_ANON_KEY")
+    _max_tries = 3 if name in _SUPABASE_KEYS else 1
+    _delay = 0.35
+
+    for attempt in range(_max_tries):
+        v = os.environ.get(name)
+        if v is not None and str(v).strip() != "":
+            return str(v).strip()
+        try:
+            v2 = st.secrets.get(name, default)
+            result = str(v2).strip() if v2 is not None else default
+            if result or name not in _SUPABASE_KEYS:
+                return result
+        except Exception:
+            pass
+        if attempt < _max_tries - 1:
+            _time.sleep(_delay)
+
+    return default
 
 def ensure_state():
     if "autenticado" not in st.session_state:

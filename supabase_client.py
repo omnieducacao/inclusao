@@ -1,10 +1,15 @@
 # supabase_client.py
 import os
+import time
 from typing import Optional, Tuple
 import streamlit as st
 
 # 🔒 Nome da função RPC
 RPC_NAME = "workspace_from_pin"
+
+# Retentativas para lidar com race do Streamlit Cloud (secrets podem não estar prontos no cold start)
+_SUPABASE_RETRIES = 3
+_SUPABASE_RETRY_DELAY = 0.4
 
 
 def _get_secret(name: str) -> Optional[str]:
@@ -52,28 +57,39 @@ def _get_supabase_url_and_key() -> Tuple[Optional[str], Optional[str]]:
     Tenta obter URL e chave do Supabase de várias fontes (Streamlit Cloud
     pode usar chaves no nível raiz ou dentro de [supabase]).
     Retorna (url, key) ou (None, None).
+    Inclui retry para mitigar race no cold start (secrets podem demorar a carregar).
     """
-    url = _get_secret("SUPABASE_URL")
-    key = _get_secret("SUPABASE_SERVICE_KEY") or _get_secret("SUPABASE_ANON_KEY")
+    def _try_read():
+        url = _get_secret("SUPABASE_URL")
+        key = _get_secret("SUPABASE_SERVICE_KEY") or _get_secret("SUPABASE_ANON_KEY")
 
-    if url and key:
-        return url, key
+        if url and key:
+            return url, key
 
-    try:
-        sec = st.secrets.get("supabase") or st.secrets.get("SUPABASE")
-        if isinstance(sec, dict):
-            u = sec.get("url") or sec.get("SUPABASE_URL")
-            k = sec.get("service_key") or sec.get("key") or sec.get("SUPABASE_SERVICE_KEY") or sec.get("anon_key") or sec.get("SUPABASE_ANON_KEY")
-            if u:
-                url = str(u).strip() if u else url
-            if k:
-                key = str(k).strip() if k else key
-        elif hasattr(sec, "url"):
-            url = url or (str(sec.url).strip() if getattr(sec, "url", None) else None)
-            k = getattr(sec, "service_key", None) or getattr(sec, "key", None) or getattr(sec, "anon_key", None)
-            key = key or (str(k).strip() if k else None)
-    except Exception:
-        pass
+        try:
+            sec = st.secrets.get("supabase") or st.secrets.get("SUPABASE")
+            if isinstance(sec, dict):
+                u = sec.get("url") or sec.get("SUPABASE_URL")
+                k = sec.get("service_key") or sec.get("key") or sec.get("SUPABASE_SERVICE_KEY") or sec.get("anon_key") or sec.get("SUPABASE_ANON_KEY")
+                if u:
+                    url = str(u).strip() if u else url
+                if k:
+                    key = str(k).strip() if k else key
+            elif hasattr(sec, "url"):
+                url = url or (str(sec.url).strip() if getattr(sec, "url", None) else None)
+                k = getattr(sec, "service_key", None) or getattr(sec, "key", None) or getattr(sec, "anon_key", None)
+                key = key or (str(k).strip() if k else None)
+        except Exception:
+            pass
+
+        return url or None, key or None
+
+    url, key = _try_read()
+    for _ in range(_SUPABASE_RETRIES - 1):
+        if url and key:
+            break
+        time.sleep(_SUPABASE_RETRY_DELAY)
+        url, key = _try_read()
 
     return url or None, key or None
 
