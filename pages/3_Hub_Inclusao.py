@@ -673,19 +673,24 @@ def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str, aluno: dict = N
             "Em deploy (Streamlit Cloud/Render): adicione nas Secrets/Env Vars do serviço."
         )
 
+    def _clean(s):
+        return (s or "").strip().replace("\n", "").replace("\r", "").strip()
+
+    kimi_key = _clean(kimi_key)
+
     # Usa OPENROUTER_BASE_URL, KIMI_MODEL se configurados; senão detecta por prefixo da chave
     base_url = (
         os.environ.get("OPENROUTER_BASE_URL")
         or ou.get_setting("OPENROUTER_BASE_URL", "")
-        or ("https://openrouter.ai/api/v1" if (kimi_key or "").strip().startswith("sk-or-") else "https://api.moonshot.ai/v1")
+        or ("https://openrouter.ai/api/v1" if kimi_key.startswith("sk-or-") else "https://api.moonshot.ai/v1")
     )
-    base_url = (base_url or "").strip() or "https://openrouter.ai/api/v1"
+    base_url = _clean(base_url) or "https://openrouter.ai/api/v1"
     model = (
         os.environ.get("KIMI_MODEL")
         or ou.get_setting("KIMI_MODEL", "")
-        or ("moonshotai/kimi-k2.5" if (kimi_key or "").strip().startswith("sk-or-") else "kimi-k2-turbo-preview")
+        or ("moonshotai/kimi-k2.5" if kimi_key.startswith("sk-or-") else "kimi-k2-turbo-preview")
     )
-    model = (model or "").strip() or "moonshotai/kimi-k2.5"
+    model = _clean(model) or "moonshotai/kimi-k2.5"
 
     hiperfoco = (aluno or {}).get("hiperfoco", "") or "aprendizado e descobertas"
     nome_aluno = (aluno or {}).get("nome", "") or "estudante"
