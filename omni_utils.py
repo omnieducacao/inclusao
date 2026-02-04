@@ -1749,6 +1749,44 @@ def get_gemini_api_key():
     return key if key else None
 
 
+def get_kimi_api_key():
+    """
+    Retorna a chave da API Kimi (Omnisfera Green).
+    Suporta: KIMI_API_KEY (OpenRouter sk-or-... ou Moonshot), OPENROUTER_API_KEY.
+    Ordem: KIMI_API_KEY, OPENROUTER_API_KEY, MOONSHOT_API_KEY.
+    """
+    for name in ("KIMI_API_KEY", "OPENROUTER_API_KEY", "MOONSHOT_API_KEY"):
+        raw = os.environ.get(name) or get_setting(name, "")
+        if raw:
+            break
+        try:
+            raw = (getattr(st, "secrets", None) or {}).get(name, "") or ""
+            if raw:
+                break
+            raw = (getattr(st, "session_state", None) or {}).get(name, "") or ""
+            if raw:
+                break
+        except Exception:
+            pass
+    if not raw:
+        try:
+            sec = getattr(st, "secrets", None)
+            if sec:
+                raw = (
+                    sec.get("KIMI_API_KEY")
+                    or sec.get("OPENROUTER_API_KEY")
+                    or sec.get("MOONSHOT_API_KEY")
+                    or (sec.get("kimi") or {}).get("api_key")
+                    or (sec.get("openrouter") or {}).get("api_key")
+                )
+        except Exception:
+            pass
+    if not raw:
+        return None
+    key = str(raw).strip().strip('"\'')
+    return key if key else None
+
+
 def consultar_gemini(prompt: str, model: str = "gemini-2.0-flash", api_key: str | None = None) -> tuple[str | None, str | None]:
     """
     Chama a API Gemini para geração de texto.

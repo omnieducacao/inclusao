@@ -644,6 +644,226 @@ def criar_pdf_generico(texto):
     pdf.multi_cell(0, 10, texto_safe)
     return pdf.output(dest='S').encode('latin-1')
 
+
+def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str, aluno: dict = None, kimi_key: str = None) -> tuple[bytes | None, str | None]:
+    """
+    Gera PowerPoint rico visualmente a partir do plano de aula, usando Omnisfera Green (Kimi).
+    Estética inspirada no hiperfoco do aluno. Para o professor usar em aula.
+    Retorna (bytes_pptx, None) em sucesso ou (None, mensagem_erro).
+    """
+    if not kimi_key:
+        kimi_key = (
+            st.session_state.get("_kimi_key_cached")
+            or os.environ.get("OPENROUTER_API_KEY")
+            or os.environ.get("KIMI_API_KEY")
+            or ou.get_setting("OPENROUTER_API_KEY", "")
+            or ou.get_setting("KIMI_API_KEY", "")
+            or st.session_state.get("OPENROUTER_API_KEY", "")
+            or st.session_state.get("KIMI_API_KEY", "")
+        )
+        try:
+            kimi_key = kimi_key or (st.secrets.get("OPENROUTER_API_KEY", "") or st.secrets.get("KIMI_API_KEY", "") or "")
+        except Exception:
+            pass
+        kimi_key = (kimi_key or "").strip() or None
+    if not kimi_key:
+        return None, (
+            "Configure OPENROUTER_API_KEY ou KIMI_API_KEY em .streamlit/secrets.toml ou variáveis de ambiente. "
+            "Chave OpenRouter (sk-or-...) em openrouter.ai/keys. "
+            "Em deploy (Streamlit Cloud/Render): adicione nas Secrets/Env Vars do serviço."
+        )
+
+    # Usa OPENROUTER_BASE_URL, KIMI_MODEL se configurados; senão detecta por prefixo da chave
+    base_url = (
+        os.environ.get("OPENROUTER_BASE_URL")
+        or ou.get_setting("OPENROUTER_BASE_URL", "")
+        or ("https://openrouter.ai/api/v1" if (kimi_key or "").strip().startswith("sk-or-") else "https://api.moonshot.ai/v1")
+    )
+    base_url = (base_url or "").strip() or "https://openrouter.ai/api/v1"
+    model = (
+        os.environ.get("KIMI_MODEL")
+        or ou.get_setting("KIMI_MODEL", "")
+        or ("moonshotai/kimi-k2.5" if (kimi_key or "").strip().startswith("sk-or-") else "kimi-k2-turbo-preview")
+    )
+    model = (model or "").strip() or "moonshotai/kimi-k2.5"
+
+    hiperfoco = (aluno or {}).get("hiperfoco", "") or "aprendizado e descobertas"
+    nome_aluno = (aluno or {}).get("nome", "") or "estudante"
+
+    prompt = f"""Crie uma APRESENTAÇÃO PARA O PROFESSOR USAR NA AULA — visualmente rica, inspirada no interesse do aluno.
+
+CONTEXTO:
+- Plano de aula: {titulo_plano[:80]}
+- Hiperfoco do aluno (use na estética/theme): {hiperfoco[:200]}
+- Nome do aluno: {nome_aluno}
+
+Objetivo: PPT que o professor projeta na aula — engajante, com poucos bullets por slide, frases de destaque, sugestões visuais. A estética (cores, tema) deve refletir o hiperfoco.
+
+Retorne APENAS um JSON válido, sem markdown:
+{{
+  "theme": "nome do tema baseado no hiperfoco (ex: dinossauros, espaço, natureza, jogos)",
+  "palette": {{
+    "primary": "hex sem # (ex: 0F766E para teal)",
+    "accent": "hex sem # (ex: F59E0B para âmbar)",
+    "background_light": "hex (ex: F0FDFA)"
+  }},
+  "slides": [
+    {{"title": "Título impactante", "bullets": ["Frase curta", "..."], "visual_cue": "Sugestão de imagem/ícone (ex: foguete, lupa)"}},
+    ...
+  ]
+}}
+
+Regras:
+- 8 a 16 slides
+- Slide 1: capa com título da aula, subtítulo com foco no hiperfoco
+- Slides 2+: títulos chamativos, 2-5 bullets curtos (máx 60 chars), visual_cue por slide
+- palette: cores que combinem com o hiperfoco (ex: espaço=azul escuro/roxo, natureza=verde, dinossauros=marrom/verde)
+- Texto em português
+
+--- PLANO DE AULA ---
+{texto_plano[:5500]}
+--- FIM ---"""
+
+    try:
+        client = OpenAI(
+            api_key=kimi_key,
+            base_url=base_url,
+        )
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.4,
+        )
+        raw = (resp.choices[0].message.content or "").strip()
+        if not raw:
+            return None, "Resposta vazia do Kimi."
+
+        # Extrair JSON (pode vir em ```json ... ```)
+        if "```" in raw:
+            for sep in ("```json", "```"):
+                if sep in raw:
+                    idx = raw.find(sep) + len(sep)
+                    raw = raw[idx:].split("```")[0].strip()
+                    break
+        data = json.loads(raw)
+        slides_data = data.get("slides") or []
+        if not slides_data:
+            return None, "Kimi não retornou slides estruturados."
+
+        from pptx import Presentation
+        from pptx.util import Inches, Pt
+        from pptx.dml.color import RGBColor as PptxRgb
+        from pptx.enum.shapes import MSO_SHAPE
+
+        def _hex_to_rgb(hex_str):
+            if not hex_str or not isinstance(hex_str, str):
+                return (15, 118, 110)  # teal default
+            h = str(hex_str).strip().lstrip("#")[:6]
+            if len(h) != 6:
+                return (15, 118, 110)
+            try:
+                return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+            except Exception:
+                return (15, 118, 110)
+
+        palette = data.get("palette") or {}
+        rgb_primary = _hex_to_rgb(palette.get("primary") or palette.get("primary_rgb") or "0F766E")
+        rgb_accent = _hex_to_rgb(palette.get("accent") or palette.get("accent_rgb") or "F59E0B")
+        rgb_bg = _hex_to_rgb(palette.get("background_light") or "F0FDFA")
+        clr_primary = PptxRgb(*rgb_primary)
+        clr_accent = PptxRgb(*rgb_accent)
+        clr_bg = PptxRgb(*rgb_bg)
+        clr_text = PptxRgb(15, 23, 42)
+        clr_text_light = PptxRgb(71, 85, 105)
+
+        prs = Presentation()
+        prs.slide_width = Inches(10)
+        prs.slide_height = Inches(7.5)
+
+        for i, s in enumerate(slides_data):
+            title = str(s.get("title") or f"Slide {i+1}")[:200]
+            bullets = s.get("bullets") or []
+            if isinstance(bullets, str):
+                bullets = [bullets] if bullets.strip() else []
+            visual_cue = str(s.get("visual_cue") or "")[:80]
+
+            layout = prs.slide_layouts[6]
+            slide = prs.slides.add_slide(layout)
+
+            slide.follow_master_background = False
+            bg = slide.background
+            bg.fill.solid()
+            bg.fill.fore_color.rgb = clr_bg
+
+            left = Inches(0.5)
+            top = Inches(0.3)
+            width = Inches(9)
+            height_bar = Inches(0.08)
+            bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height_bar)
+            bar.fill.solid()
+            bar.fill.fore_color.rgb = clr_primary
+            bar.line.fill.background()
+
+            top_title = Inches(0.55)
+            height_title = Inches(1.4)
+            tx = slide.shapes.add_textbox(left, top_title, width, height_title)
+            tf = tx.text_frame
+            tf.word_wrap = True
+            p = tf.paragraphs[0]
+            p.text = title
+            p.font.size = Pt(32 if i == 0 else 24)
+            p.font.bold = True
+            for r in p.runs:
+                r.font.color.rgb = clr_primary if i == 0 else clr_text
+
+            if bullets:
+                top_body = Inches(2.1)
+                height_body = Inches(4.5)
+                tx_body = slide.shapes.add_textbox(left, top_body, width, height_body)
+                tf_body = tx_body.text_frame
+                tf_body.word_wrap = True
+                for j, b in enumerate(bullets[:6]):
+                    bullet_text = str(b)[:100]
+                    if j == 0:
+                        p_b = tf_body.paragraphs[0]
+                    else:
+                        p_b = tf_body.add_paragraph()
+                    p_b.text = f"• {bullet_text}"
+                    p_b.font.size = Pt(18)
+                    for r in p_b.runs:
+                        r.font.color.rgb = clr_text
+                    p_b.space_after = Pt(10)
+
+            if visual_cue:
+                top_cue = Inches(6.4)
+                tx_cue = slide.shapes.add_textbox(left, top_cue, width, Inches(0.6))
+                tf_cue = tx_cue.text_frame
+                tf_cue.word_wrap = True
+                p_cue = tf_cue.paragraphs[0]
+                p_cue.text = f"🖼 {visual_cue}"
+                p_cue.font.size = Pt(12)
+                p_cue.font.italic = True
+                for r in p_cue.runs:
+                    r.font.color.rgb = clr_text_light
+
+        buf = BytesIO()
+        prs.save(buf)
+        buf.seek(0)
+        return buf.read(), None
+    except json.JSONDecodeError as e:
+        return None, f"Resposta do Kimi não é JSON válido: {str(e)[:100]}"
+    except Exception as e:
+        err = str(e)
+        if "401" in err or "Invalid Authentication" in err or "invalid_authentication" in err:
+            return None, (
+                "Chave da API inválida (401). Verifique: "
+                "1) KIMI_API_KEY ou MOONSHOT_API_KEY em secrets.toml ou variável de ambiente; "
+                "2) Chave correta de platform.moonshot.ai (não use chave da OpenAI); "
+                "3) Conta com saldo e chave ativa."
+            )
+        return None, err[:200]
+
+
 # ==============================================================================
 # FUNÇÕES DE CONEXÃO COM SUPABASE (CORRIGIDO PARA SEPARAR DIAGNÓSTICO DE HIPERFOCO)
 # ==============================================================================
@@ -3178,7 +3398,7 @@ def render_aba_dinamica_inclusiva(aluno, api_key):
                 use_container_width=True
             )
 
-def render_aba_plano_aula(aluno, api_key):
+def render_aba_plano_aula(aluno, api_key, kimi_key=None):
     """Renderiza a aba de plano de aula"""
     st.markdown("""
     <div class="pedagogia-box">
@@ -3262,6 +3482,7 @@ def render_aba_plano_aula(aluno, api_key):
                 if st.button("🗑️ Descartar", key="del_plano", use_container_width=True):
                     del st.session_state['res_plano']
                     del st.session_state['res_plano_valid']
+                    st.session_state.pop('res_plano_pptx', None)
                     st.rerun()
         
         st.markdown(res)
@@ -3269,7 +3490,7 @@ def render_aba_plano_aula(aluno, api_key):
         # Botões de Download
         st.markdown("---")
         st.markdown("### 📥 Download")
-        col_down1, col_down2 = st.columns(2)
+        col_down1, col_down2, col_down3 = st.columns(3)
         
         with col_down1:
             docx_plano = criar_docx_simples(res, "Plano de Aula DUA")
@@ -3290,6 +3511,34 @@ def render_aba_plano_aula(aluno, api_key):
                 mime="application/pdf",
                 use_container_width=True
             )
+        
+        with col_down3:
+            ppt_key = "res_plano_pptx"
+            if ppt_key not in st.session_state:
+                st.session_state[ppt_key] = None
+            if st.button(
+                "🎯 Criar PPT (Omnisfera Green)",
+                key="btn_ppt_plano",
+                use_container_width=True,
+                help="Gera PowerPoint a partir do plano usando Kimi (Omnisfera Green)"
+            ):
+                with st.spinner("Gerando PPT com Omnisfera Green..."):
+                    ppt_bytes, err = gerar_ppt_do_plano_kimi(res, objeto_bncc or disciplina_bncc or "Plano de Aula", aluno=aluno, kimi_key=kimi_key)
+                    if err:
+                        st.session_state[ppt_key] = None
+                        st.error(err)
+                    else:
+                        st.session_state[ppt_key] = ppt_bytes
+                        st.rerun()
+            if st.session_state.get(ppt_key):
+                st.download_button(
+                    label="📊 Baixar PPTX",
+                    data=st.session_state[ppt_key],
+                    file_name=f"Plano_Aula_{disciplina_bncc}_{date.today().strftime('%Y%m%d')}.pptx",
+                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                    key="dl_ppt_plano",
+                    use_container_width=True
+                )
     # ==============================================================================
 # FUNÇÕES DA EDUCAÇÃO INFANTIL
 # ==============================================================================
@@ -3554,7 +3803,23 @@ def main():
     unsplash_key = unsplash_key if unsplash_key else None
     
     gemini_key = ou.get_gemini_api_key()
-    
+    kimi_key = (
+        st.session_state.get("_kimi_key_cached")
+        or os.environ.get("OPENROUTER_API_KEY")
+        or os.environ.get("KIMI_API_KEY")
+        or ou.get_setting("OPENROUTER_API_KEY", "")
+        or ou.get_setting("KIMI_API_KEY", "")
+        or st.session_state.get("OPENROUTER_API_KEY", "")
+        or st.session_state.get("KIMI_API_KEY", "")
+    )
+    try:
+        kimi_key = kimi_key or (st.secrets.get("OPENROUTER_API_KEY", "") or st.secrets.get("KIMI_API_KEY", "") or "")
+    except Exception:
+        pass
+    kimi_key = (kimi_key or "").strip() or None
+    if kimi_key:
+        st.session_state["_kimi_key_cached"] = kimi_key
+
     # Carregar dados dos estudantes
     if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estudantes:
         with st.spinner("🔄 Lendo dados da nuvem..."):
@@ -3601,6 +3866,7 @@ def main():
                 # Outras abas
                 'res_roteiro', 'res_roteiro_valid', 'res_papo', 'res_papo_valid',
                 'res_dinamica', 'res_dinamica_valid', 'res_plano_aula', 'res_plano_aula_valid',
+                'res_plano', 'res_plano_valid', 'res_plano_pptx',
                 # Configurações de adaptação
                 'necessidades_selecionadas_adaptar_prova',
                 # Estados de Bloom (limpar todos os prefixos)
@@ -3765,7 +4031,7 @@ def main():
             render_aba_dinamica_inclusiva(aluno, api_key)
 
         with tabs[7]:
-            render_aba_plano_aula(aluno, api_key)
+            render_aba_plano_aula(aluno, api_key, kimi_key)
 
 # Executa a função principal
 main()
