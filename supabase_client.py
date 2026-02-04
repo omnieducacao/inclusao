@@ -94,6 +94,12 @@ def _get_supabase_url_and_key() -> Tuple[Optional[str], Optional[str]]:
     return url or None, key or None
 
 
+def has_supabase_keys() -> bool:
+    """Retorna True se URL e chave do Supabase estão configurados (sem criar cliente)."""
+    url, key = _get_supabase_url_and_key()
+    return bool(url and key)
+
+
 @st.cache_resource(show_spinner=False)
 def _create_supabase_client(url: str, key: str):
     """

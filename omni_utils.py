@@ -800,49 +800,84 @@ def render_navbar(active_tab: str = "Início"):
     except ValueError:
         default_idx = 0
 
+    routes = {
+        "Admin Plataforma": "pages/8_Admin_Plataforma.py",
+        "Início": "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "Home.py",
+        "Estudantes": "pages/Alunos.py",
+        "Estratégias & PEI": "pages/1_PEI.py",
+        "Plano de Ação (AEE)": "pages/2_PAE.py",
+        "Hub de Recursos": "pages/3_Hub_Inclusao.py",
+        "Diário de Bordo": "pages/4_Diario_de_Bordo.py",
+        "Evolução & Dados": "pages/5_Monitoramento_Avaliacao.py",
+        "PGI": "pages/9_PGI.py",
+        "Gestão de Usuários": "pages/6_Gestao_Usuarios.py",
+        "Configuração Escola": "pages/7_Configuracao_Escola.py",
+    }
+
     st.markdown('<div class="omni-navbar"><div class="omni-navbar-inner">', unsafe_allow_html=True)
 
-    selected = option_menu(
-        menu_title=None,
-        options=opcoes,
-        icons=icones,
-        default_index=default_idx,
-        orientation="horizontal",
-        key="omni_navbar",
-        styles={
-            "container": {
-                "padding": "2px 4px",
-                "margin": "0px",
-                "background-color": "#ffffff",
-                "border": "1px solid #E2E8F0",
-                "border-radius": "14px",
-                "box-shadow": "0 1px 2px rgba(0,0,0,0.03)",
+    try:
+        selected = option_menu(
+            menu_title=None,
+            options=opcoes,
+            icons=icones,
+            default_index=default_idx,
+            orientation="horizontal",
+            key="omni_navbar",
+            styles={
+                "container": {
+                    "padding": "2px 4px",
+                    "margin": "0px",
+                    "background-color": "#ffffff",
+                    "border": "1px solid #E2E8F0",
+                    "border-radius": "14px",
+                    "box-shadow": "0 1px 2px rgba(0,0,0,0.03)",
+                },
+                "icon": {"color": "#64748B", "font-size": "15px"},
+                "nav-link": {
+                    "font-size": "12px",
+                    "text-align": "center",
+                    "margin": "0px",
+                    "padding": "6px 8px",
+                    "--hover-color": "#F8FAFC",
+                    "color": "#64748B",
+                    "white-space": "nowrap",
+                    "border-radius": "10px",
+                    "min-height": "32px",
+                    "display": "flex",
+                    "align-items": "center",
+                    "justify-content": "center",
+                    "border": "1px solid transparent",
+                    "gap": "6px",
+                },
+                "nav-link-selected": {
+                    "background-color": "#F1F5F9",
+                    "color": "#0F172A",
+                    "font-weight": "700",
+                    "border": "1px solid #E2E8F0",
+                },
             },
-            "icon": {"color": "#64748B", "font-size": "15px"},
-            "nav-link": {
-                "font-size": "12px",
-                "text-align": "center",
-                "margin": "0px",
-                "padding": "6px 8px",
-                "--hover-color": "#F8FAFC",
-                "color": "#64748B",
-                "white-space": "nowrap",
-                "border-radius": "10px",
-                "min-height": "32px",
-                "display": "flex",
-                "align-items": "center",
-                "justify-content": "center",
-                "border": "1px solid transparent",
-                "gap": "6px",
-            },
-            "nav-link-selected": {
-                "background-color": "#F1F5F9",
-                "color": "#0F172A",
-                "font-weight": "700",
-                "border": "1px solid #E2E8F0",
-            },
-        },
-    )
+        )
+    except Exception:
+        cols = st.columns(min(len(opcoes), 12))
+        selected = active_tab
+        for i, opt in enumerate(opcoes):
+            with cols[i % len(cols)]:
+                if st.button(
+                    opt,
+                    key=f"omni_nav_fb_{i}",
+                    type="primary" if opt == active_tab else "secondary",
+                    use_container_width=True,
+                    disabled=(opt == active_tab),
+                ):
+                    t = routes.get(opt)
+                    if opt == "Início" and t and not os.path.exists(t):
+                        t = "Home.py"
+                    if t:
+                        try:
+                            st.switch_page(t)
+                        except Exception:
+                            pass
 
     st.markdown("</div></div>", unsafe_allow_html=True)
 
@@ -883,19 +918,6 @@ def render_navbar(active_tab: str = "Início"):
         """, unsafe_allow_html=True)
 
     if selected and selected != active_tab:
-        routes = {
-            "Admin Plataforma": "pages/8_Admin_Plataforma.py",
-            "Início": "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "Home.py",
-            "Estudantes": "pages/Alunos.py",
-            "Estratégias & PEI": "pages/1_PEI.py",
-            "Plano de Ação (AEE)": "pages/2_PAE.py",
-            "Hub de Recursos": "pages/3_Hub_Inclusao.py",
-            "Diário de Bordo": "pages/4_Diario_de_Bordo.py",
-            "Evolução & Dados": "pages/5_Monitoramento_Avaliacao.py",
-            "PGI": "pages/9_PGI.py",
-            "Gestão de Usuários": "pages/6_Gestao_Usuarios.py",
-            "Configuração Escola": "pages/7_Configuracao_Escola.py",
-        }
         target = routes.get(selected)
         if target:
             if selected == "Início" and not os.path.exists(target):

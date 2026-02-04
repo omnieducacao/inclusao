@@ -358,6 +358,31 @@ def render_login():
                 except Exception as e:
                     st.error(str(e))
 
+        # Modo demo: quando ENV=TESTE e Supabase não configurado (teste local de UI)
+        try:
+            from supabase_client import has_supabase_keys
+            _sb_ok = has_supabase_keys()
+        except Exception:
+            _sb_ok = True
+        if _env() == "TESTE" and not _sb_ok:
+            st.markdown("---")
+            st.caption("🔧 Sem Supabase configurado? Use o modo demo para testar a interface:")
+            if st.button("Entrar em modo demo (teste de interface)", key="btn_demo", use_container_width=True, type="secondary"):
+                st.session_state.autenticado = True
+                st.session_state.accepted_terms = True
+                st.session_state.modo_demo = True
+                st.session_state.workspace_id = "demo"
+                st.session_state.workspace_name = "Demo"
+                st.session_state.usuario_nome = "Usuário Demo"
+                st.session_state.member = {
+                    "nome": "Demo", "email": "demo@local",
+                    "can_gestao": True, "can_estudantes": True, "can_pei": True,
+                    "can_paee": True, "can_hub": True, "can_diario": True, "can_avaliacao": True,
+                }
+                st.session_state.is_platform_admin = False
+                st.session_state.user_role = "master"
+                st.rerun()
+
     st.markdown(
         f'<div class="login-footer">Acesso seguro • RPC: {RPC_NAME}</div>',
         unsafe_allow_html=True

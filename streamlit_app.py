@@ -1,5 +1,7 @@
 # streamlit_app.py
 import os
+from typing import Optional
+
 import streamlit as st
 
 # Warmup: lê chaves Supabase o mais cedo possível (mitiga race no Streamlit Cloud cold start)
@@ -144,7 +146,7 @@ HOME_PAGE = "pages/0_Home.py"
 ADMIN_PAGE = "pages/8_Admin_Plataforma.py"
 
 
-def _tela_erro_recarregar(msg: str = "Algo deu errado. Recarregue a página.", detalhe: str | None = None):
+def _tela_erro_recarregar(msg: str = "Algo deu errado. Recarregue a página.", detalhe: Optional[str] = None):
     """Exibe mensagem amigável e botão Recarregar para evitar tela de crash do Streamlit."""
     st.markdown(
         f"""
@@ -235,16 +237,17 @@ try:
             st.warning("Workspace não encontrado. Faça login novamente.")
             render_login()
         else:
-            # ✅ GARANTE O CLIENT SUPABASE NA SESSÃO (resolve has_sb:false)
-            try:
-                from supabase_client import get_sb
-
-                get_sb()  # salva em st.session_state["sb"]
-            except Exception as e:
-                st.error("Não foi possível conectar ao banco de dados. Tente recarregar a página.")
-                if ENV == "TESTE":
-                    st.code(str(e))
-                st.stop()
+            # Modo demo: pula conexão Supabase (teste local de UI)
+            if not st.session_state.get("modo_demo"):
+                try:
+                    from supabase_client import get_sb
+                    get_sb()  # salva em st.session_state["sb"]
+                except Exception as e:
+                    st.error("Não foi possível conectar ao banco de dados. Tente recarregar a página.")
+                    if ENV == "TESTE":
+                        st.code(str(e))
+                        st.caption("Use o botão 'Entrar em modo demo' na tela de login para testar a interface sem Supabase.")
+                    st.stop()
 
             # Vai para Home real (multipage)
             st.switch_page(HOME_PAGE)
