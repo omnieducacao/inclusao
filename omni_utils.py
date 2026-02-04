@@ -240,7 +240,7 @@ def render_acesso_bloqueado(msg: str, info_extra: str = ""):
 
 def _do_logout():
     """Limpa sessão e redireciona para login."""
-    for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity", "is_platform_admin", "students_cache_invalid", "banco_estudantes"]:
+    for k in ["autenticado", "workspace_id", "workspace_name", "usuario_nome", "usuario_cargo", "member", "sb", "sb_error", "last_activity", "is_platform_admin", "students_cache_invalid", "banco_estudantes", "enabled_modules"]:
         st.session_state.pop(k, None)
     try:
         st.query_params.clear()
@@ -400,6 +400,9 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
   }}
   .omni-navbar-inner {{
     width: min(1200px, calc(100% - 48px));
+    margin: 0 auto !important;
+    display: flex !important;
+    justify-content: center !important;
     pointer-events: auto;
   }}
 
@@ -710,11 +713,46 @@ def render_omnisfera_header():
         unsafe_allow_html=True,
     )
 
+# Módulos configuráveis por escola (Admin). None/empty = todos habilitados.
+MODULE_KEYS = ["pei", "paee", "hub", "diario", "avaliacao"]
+LABEL_TO_MODULE = {
+    "Estratégias & PEI": "pei",
+    "Plano de Ação (AEE)": "paee",
+    "Hub de Recursos": "hub",
+    "Diário de Bordo": "diario",
+    "Evolução & Dados": "avaliacao",
+}
+
+
+def get_enabled_modules() -> list:
+    """Lista de módulos habilitados para o workspace atual. None/vazio no DB = todos."""
+    ensure_state()
+    if st.session_state.get("is_platform_admin"):
+        return list(MODULE_KEYS)
+    en = st.session_state.get("enabled_modules")
+    if en is not None:
+        return en if isinstance(en, list) else list(MODULE_KEYS)
+    wid = st.session_state.get("workspace_id")
+    if wid:
+        try:
+            from services.admin_service import get_workspace
+            ws = get_workspace(str(wid))
+            if ws is not None:
+                em = ws.get("enabled_modules")
+                st.session_state.enabled_modules = em if em is not None else list(MODULE_KEYS)
+                return st.session_state.enabled_modules
+        except Exception:
+            pass
+    st.session_state.enabled_modules = list(MODULE_KEYS)
+    return list(MODULE_KEYS)
+
+
 def render_navbar(active_tab: str = "Início"):
     """
-    Navbar horizontal FIXA (abaixo da topbar). Filtra opções por permissões do membro.
+    Navbar horizontal FIXA (abaixo da topbar). Filtra opções por permissões do membro e módulos habilitados.
     """
     ensure_state()
+    enabled = set(get_enabled_modules())
 
     all_opcoes = [
         ("Início", "house"),
@@ -750,6 +788,10 @@ def render_navbar(active_tab: str = "Início"):
         for label, icon in all_opcoes:
             show = perm_map.get(label)
             if show is True or (member is None) or (isinstance(show, str) and member.get(show)):
+                # Filtrar por módulos habilitados (só para os 5 módulos configuráveis)
+                mod_key = LABEL_TO_MODULE.get(label)
+                if mod_key is not None and mod_key not in enabled:
+                    continue
                 opcoes.append(label)
                 icones.append(icon)
 
@@ -980,6 +1022,20 @@ def track_usage_event(event_type: str, **extra):
             ip_address=extra.pop("ip_address", None),
             user_agent=extra.pop("user_agent", None),
         )
+    except Exception:
+        pass
+
+
+def track_ai_feedback(source: str, action: str, content_type: str = None, feedback_text: str = None, metadata: dict = None):
+    """
+    Registra feedback de IA (validação ou refazer) para treinamento futuro.
+    Não quebra o fluxo se o serviço falhar.
+    source: pei, paee, hub
+    action: validated, refazer
+    """
+    try:
+        from services.ai_feedback_service import save_ai_feedback
+        save_ai_feedback(source=source, action=action, content_type=content_type, feedback_text=feedback_text, metadata=metadata)
     except Exception:
         pass
 
@@ -1624,9 +1680,9 @@ def render_footer_assinatura():
         font-weight: 500;
     ">
         <div style="max-width: 560px; margin: 0 auto 14px auto; padding: 10px 14px; background: #F8FAFC; border-radius: 10px; border: 1px solid #E2E8F0; color: #64748B; font-size: 0.72rem; line-height: 1.4;">
-            Conteúdos gerados por IA podem conter erros. É importante sempre fazer <strong>leitura, conferência e edição minuciosa</strong> antes de usar em documentos oficiais.
+            A Omnisfera utiliza motores de IA para apoiar sua prática. Essas ferramentas podem apresentar falhas. É fundamental <strong>revisar sempre com muito cuidado</strong> todo conteúdo gerado, dada a sensibilidade dos dados tratados em educação inclusiva.
         </div>
-        Criado e desenvolvido por <strong style="color: #64748B;">Rodrigo A. Queiroz</strong>
+        Omnisfera — plataforma de inclusão ativa — criada e desenvolvida por <strong style="color: #64748B;">Omni Soluções Educacionais</strong> — todos os direitos reservados.
     </div>
     """, unsafe_allow_html=True)
 

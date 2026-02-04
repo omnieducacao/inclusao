@@ -394,3 +394,35 @@ def get_student_links(member_id: str) -> list:
         return []
     data = r.json()
     return [x.get("student_id") for x in (data if isinstance(data, list) else []) if x.get("student_id")]
+
+
+def get_member_components(member_id: str) -> list:
+    """
+    Retorna lista única de labels de componentes curriculares que o membro leciona.
+    Baseado em teacher_assignments (turma + componente). Vazio se não tiver vínculo por turma.
+    """
+    if not member_id:
+        return []
+    url = f"{_base()}/rest/v1/teacher_assignments"
+    params = {
+        "workspace_member_id": f"eq.{member_id}",
+        "select": "component_id,components(id,label)"
+    }
+    r = requests.get(url, headers={**_headers(), "Accept": "application/json"}, params=params, timeout=10)
+    if r.status_code != 200:
+        return []
+    data = r.json()
+    if not isinstance(data, list):
+        return []
+    labels = []
+    seen = set()
+    for row in data:
+        comp = row.get("components") or {}
+        if isinstance(comp, dict):
+            lab = (comp.get("label") or comp.get("id") or "").strip()
+        else:
+            lab = str(comp).strip() if comp else ""
+        if lab and lab not in seen:
+            seen.add(lab)
+            labels.append(lab)
+    return sorted(labels)

@@ -38,6 +38,11 @@ except Exception:
 # 3. HEADER E NAVBAR (do omni_utils)
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Plano de Ação (AEE)")
+if "paee" not in ou.get_enabled_modules():
+    st.warning("Este módulo está desabilitado para sua escola.")
+    if st.button("Voltar ao Início"):
+        st.switch_page("pages/0_Home.py")
+    st.stop()
 ou.inject_compact_app_css()
 
 # Adiciona classe no body para cores específicas das abas
@@ -1545,6 +1550,7 @@ def renderizar_hub_recurso(tipo_recurso, conteudo_gerado, aluno_nome, dados_entr
                 if st.button("✅ **Validar e Finalizar**", key=f"validar_{tipo_recurso}", 
                            use_container_width=True, type="primary"):
                     st.session_state[f'status_{tipo_recurso}'] = 'aprovado'
+                    ou.track_ai_feedback("paee", "validated", content_type=tipo_recurso)
                     st.success("Recurso validado com sucesso!")
                     time.sleep(1)
                     st.rerun()
@@ -1582,6 +1588,7 @@ def renderizar_hub_recurso(tipo_recurso, conteudo_gerado, aluno_nome, dados_entr
                            key=f"regerar_{tipo_recurso}",
                            use_container_width=True, type="primary"):
                     if feedback:
+                        ou.track_ai_feedback("paee", "refazer", content_type=tipo_recurso, feedback_text=feedback)
                         st.session_state[f'feedback_{tipo_recurso}'] = feedback
                         st.info("Regerando com os ajustes solicitados...")
                         st.session_state[f'status_{tipo_recurso}'] = 'regerando'
@@ -2787,6 +2794,7 @@ with tab_jornada:
         with c_ok:
             if st.button("Aprovar Missão", type="primary", use_container_width=True, key="btn_jg_ok"):
                 jg[chave_jornada]["status"] = "aprovado"
+                ou.track_ai_feedback("paee", "validated", content_type="jornada_gamificada")
                 st.rerun()
         with c_aj:
             if st.button("Solicitar Ajustes", use_container_width=True, key="btn_jg_aj"):
@@ -2798,6 +2806,7 @@ with tab_jornada:
         fb_j = st.text_area("O que ajustar?", value=estado.get("feedback", ""), placeholder="Ex: mais curto, linguagem infantil...", height=100, key="jg_fb")
         jg[chave_jornada]["feedback"] = fb_j
         if st.button("Regerar com Ajustes", type="primary", use_container_width=True, key="btn_jg_regerar"):
+            ou.track_ai_feedback("paee", "refazer", content_type="jornada_gamificada", feedback_text=fb_j or "")
             with st.spinner("Reescrevendo..."):
                 if usa_ciclo and ciclo_para_jornada:
                     texto_game, err = gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo_para_jornada, fb_j)

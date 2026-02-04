@@ -42,6 +42,11 @@ except Exception:
 # ✅ Header + Navbar (depois do page_config)
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Evolução & Dados")
+if "avaliacao" not in ou.get_enabled_modules():
+    st.warning("Este módulo está desabilitado para sua escola.")
+    if st.button("Voltar ao Início"):
+        st.switch_page("pages/0_Home.py")
+    st.stop()
 ou.inject_compact_app_css()
 
 # Garantir que RemixIcon está carregado

@@ -62,6 +62,11 @@ except Exception:
 # ✅ Header + Navbar (depois do page_config)
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="Hub de Recursos")
+if "hub" not in ou.get_enabled_modules():
+    st.warning("Este módulo está desabilitado para sua escola.")
+    if st.button("Voltar ao Início"):
+        st.switch_page("pages/0_Home.py")
+    st.stop()
 ou.inject_compact_app_css()
 
 # Adiciona classe no body para cores específicas das abas
@@ -291,6 +296,70 @@ TAXONOMIA_BLOOM = {
 
 # Lista de componentes curriculares padrão
 DISCIPLINAS_PADRAO = ["Matemática", "Português", "Ciências", "História", "Geografia", "Artes", "Educação Física", "Inglês", "Filosofia", "Sociologia"]
+
+# Mapeamento: label do components (DB) → nome usado no Hub/DISCIPLINAS_PADRAO
+COMPONENT_TO_HUB = {
+    "Língua Portuguesa": "Português",
+    "Arte": "Artes",
+    "Língua Inglesa": "Inglês",
+}
+# Inverso para BNCC (Hub → DB/BNCC)
+HUB_TO_COMPONENT = {v: k for k, v in COMPONENT_TO_HUB.items()}
+
+
+def _get_hub_componentes_filtrados():
+    """
+    Retorna (opcoes, mostrar_selector, default) para o selectbox de componente no Hub.
+    Se professor leciona 1 componente: só esse, sem selector.
+    Se leciona >1: selector com apenas esses.
+    Se coordenação/master/todos: lista completa, com selector.
+    """
+    try:
+        from ui.permissions import get_member_from_session
+        from services.members_service import get_member_components
+        member = get_member_from_session()
+        if not member or member.get("link_type") != "turma":
+            return DISCIPLINAS_PADRAO, True, None
+        mid = member.get("id")
+        comps = get_member_components(mid) if mid else []
+        if not comps:
+            return DISCIPLINAS_PADRAO, True, None
+        # Mapeia labels DB → Hub
+        mapped = [COMPONENT_TO_HUB.get(c, c) for c in comps]
+        opcoes = [x for x in DISCIPLINAS_PADRAO if x in mapped]
+        if not opcoes:
+            opcoes = mapped if mapped else DISCIPLINAS_PADRAO
+        if len(opcoes) == 1:
+            return opcoes, False, opcoes[0]
+        return opcoes, True, opcoes[0] if opcoes else None
+    except Exception:
+        return DISCIPLINAS_PADRAO, True, None
+
+
+def _filtrar_disciplinas_por_membro(disciplinas_bncc: list) -> tuple:
+    """
+    Para formulários com BNCC (disciplinas vindas do df). Retorna (opcoes_filtradas, mostrar_selector, default).
+    """
+    try:
+        from ui.permissions import get_member_from_session
+        from services.members_service import get_member_components
+        member = get_member_from_session()
+        if not member or member.get("link_type") != "turma":
+            return disciplinas_bncc, True, None
+        mid = member.get("id")
+        comps = get_member_components(mid) if mid else []
+        if not comps:
+            return disciplinas_bncc, True, None
+        # BNCC usa mesmo nome que components (Arte, Língua Portuguesa, Matemática)
+        opcoes = [d for d in disciplinas_bncc if d in comps]
+        if not opcoes:
+            opcoes = comps if comps else disciplinas_bncc
+        if len(opcoes) == 1:
+            return opcoes, False, opcoes[0]
+        return opcoes, True, opcoes[0] if opcoes else None
+    except Exception:
+        return disciplinas_bncc, True, None
+
 
 # Campos de Experiência (Educação Infantil)
 CAMPOS_EXPERIENCIA_EI = [
@@ -1556,7 +1625,14 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
             else:
                 ano = st.selectbox("Ano (PEI)", anos_opcoes, key=f"ano_basico_{key_suffix}")
         with col2:
-            disciplina = st.selectbox("Componente Curricular", DISCIPLINAS_PADRAO, key=f"disc_basico_{key_suffix}")
+            disc_opcoes, disc_mostrar, disc_default = _get_hub_componentes_filtrados()
+            disciplina = st.selectbox(
+                "Componente Curricular",
+                disc_opcoes,
+                index=0 if disc_opcoes else 0,
+                disabled=not disc_mostrar,
+                key=f"disc_basico_{key_suffix}"
+            )
         with col3:
             objeto = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
                                   key=f"obj_basico_{key_suffix}")
@@ -1620,12 +1696,19 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
         st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key=f"ano_bncc_display_{key_suffix}")
     
     with col2:
-        # Componente Curricular — apenas disciplinas que têm conteúdo para o ano do PEI
+        # Componente Curricular — apenas disciplinas que têm conteúdo para o ano do PEI; filtrado por componente do professor
         if ano_selecionado:
             mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_selecionado).strip() or ano_celula_contem(x, ano_selecionado))
             df_por_ano = dados[mask_ano]
-            disciplinas = sorted(df_por_ano['Disciplina'].dropna().unique())
-            disciplina_selecionada = st.selectbox("Componente Curricular", disciplinas, key=f"disc_bncc_{key_suffix}")
+            disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
+            disc_opcoes, disc_mostrar, disc_default = _filtrar_disciplinas_por_membro(disciplinas_raw)
+            disciplina_selecionada = st.selectbox(
+                "Componente Curricular",
+                disc_opcoes,
+                index=0,
+                disabled=not disc_mostrar,
+                key=f"disc_bncc_{key_suffix}"
+            )
         else:
             disciplina_selecionada = None
             mask_ano = None
@@ -1915,12 +1998,13 @@ def render_aba_adaptar_prova(aluno, api_key):
             if dados is not None and not dados.empty and ano_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
                 df_por_ano = dados[mask_ano]
-                disciplinas = sorted(df_por_ano['Disciplina'].dropna().unique())
-                disciplina_bncc = st.selectbox("Componente Curricular", disciplinas, key="disc_adaptar_prova_compact")
+                disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
+                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
+                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_prova_compact")
             else:
-                disciplina_bncc = st.selectbox("Componente Curricular", 
-                                             ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"],
-                                             key="disc_adaptar_prova_compact")
+                lista_fallback = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"]
+                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
+                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_prova_compact")
         with col_bncc3:
             if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
@@ -2105,8 +2189,10 @@ def render_aba_adaptar_prova(aluno, api_key):
             col_v, col_r = st.columns([1, 1])
             if col_v.button(f"{get_icon_emoji('validar')} Validar", key="val_d", use_container_width=True):
                 st.session_state['res_docx']['valid'] = True
+                ou.track_ai_feedback("hub", "validated", content_type="prova_adaptada")
                 st.rerun()
             if col_r.button(f"{get_icon_emoji('configurar')} Refazer (+Profundo)", key="redo_d", use_container_width=True):
+                ou.track_ai_feedback("hub", "refazer", content_type="prova_adaptada")
                 with st.spinner("Refazendo com análise mais profunda..."):
                     # Recuperar checklist do session_state se disponível
                     checklist_redo = st.session_state.get('checklist_adaptacao_prova', {})
@@ -2189,12 +2275,13 @@ def render_aba_adaptar_atividade(aluno, api_key):
             if dados is not None and not dados.empty and ano_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
                 df_por_ano = dados[mask_ano]
-                disciplinas = sorted(df_por_ano['Disciplina'].dropna().unique())
-                disciplina_bncc = st.selectbox("Componente Curricular", disciplinas, key="disc_adaptar_atividade_compact")
+                disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
+                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
+                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_atividade_compact")
             else:
-                disciplina_bncc = st.selectbox("Componente Curricular", 
-                                         ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"],
-                                         key="disc_adaptar_atividade_compact")
+                lista_fallback = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"]
+                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
+                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_atividade_compact")
         with col_bncc3:
             if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
@@ -2425,8 +2512,10 @@ def render_aba_adaptar_atividade(aluno, api_key):
             col_v, col_r = st.columns([1, 1])
             if col_v.button(f"{get_icon_emoji('validar')} Validar", key="val_i", use_container_width=True):
                 st.session_state['res_img']['valid'] = True
+                ou.track_ai_feedback("hub", "validated", content_type="atividade_adaptada")
                 st.rerun()
             if col_r.button(f"{get_icon_emoji('configurar')} Refazer (+Profundo)", key="redo_i", use_container_width=True):
+                ou.track_ai_feedback("hub", "refazer", content_type="atividade_adaptada")
                 with st.spinner("Refazendo..."):
                     img_bytes = res['map'][1]
                     img_separada_redo = res['map'].get(2)  # Recuperar imagem separada se houver
@@ -2504,11 +2593,13 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
             if dados is not None and not dados.empty and ano_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
                 df_por_ano = dados[mask_ano]
-                disciplinas = sorted(df_por_ano['Disciplina'].dropna().unique())
-                disciplina_bncc = st.selectbox("Componente Curricular", disciplinas, key="disc_criar_zero")
+                disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
+                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
+                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_criar_zero")
             else:
-                disciplina_bncc = st.selectbox("Componente Curricular", 
-                    ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"], key="disc_criar_zero")
+                lista_fallback = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"]
+                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
+                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_criar_zero")
         with c3:
             if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
                 mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
@@ -2652,9 +2743,11 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
             with col_val:
                 if st.button("✅ Validar Atividade", key="val_c", use_container_width=True):
                     st.session_state['res_create']['valid'] = True
+                    ou.track_ai_feedback("hub", "validated", content_type="atividade_criada")
                     st.rerun()
             with col_ajust:
                 if st.button("🔄 Refazer com Ajustes", key="redo_c", use_container_width=True):
+                    ou.track_ai_feedback("hub", "refazer", content_type="atividade_criada")
                     st.session_state['res_create']['valid'] = False
                     st.info("Para ajustes, modifique os parâmetros acima e clique em 'CRIAR ATIVIDADE' novamente.")
             with col_desc:
@@ -2763,10 +2856,12 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
                 c_vs1, c_vs2 = st.columns([1, 2])
                 if c_vs1.button("✅ Validar", key="val_sc_pd"):
                     st.session_state.valid_scene = True
+                    ou.track_ai_feedback("hub", "validated", content_type="cena_ilustracao")
                     st.rerun()
                 with c_vs2.expander("🔄 Refazer Cena"):
                     fb_scene = st.text_input("Ajuste:", key="fb_sc_pd")
                     if st.button("Refazer", key="ref_sc_pd"):
+                        ou.track_ai_feedback("hub", "refazer", content_type="cena_ilustracao", feedback_text=fb_scene or "")
                         with st.spinner("Redesenhando..."):
                             prompt_completo = f"{desc_m}. Context: Education."
                             if usar_hiperfoco_ilustracao and tema_ilustracao:
@@ -2791,10 +2886,12 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
                 c_vc1, c_vc2 = st.columns([1, 2])
                 if c_vc1.button("✅ Validar", key="val_caa_pd"):
                     st.session_state.valid_caa = True
+                    ou.track_ai_feedback("hub", "validated", content_type="pictograma_caa")
                     st.rerun()
                 with c_vc2.expander("🔄 Refazer Picto"):
                     fb_caa = st.text_input("Ajuste:", key="fb_caa_pd")
                     if st.button("Refazer", key="ref_caa_pd"):
+                        ou.track_ai_feedback("hub", "refazer", content_type="pictograma_caa", feedback_text=fb_caa or "")
                         with st.spinner("Recriando..."):
                             st.session_state.res_caa_url = gerar_pictograma_caa(api_key, palavra_chave, feedback_anterior=fb_caa, gemini_key=g_key)
                             st.rerun()
@@ -2849,9 +2946,11 @@ def render_aba_roteiro_individual(aluno, api_key):
             with col_val:
                 if st.button("✅ Validar Roteiro", key="val_roteiro", use_container_width=True):
                     st.session_state['res_roteiro_valid'] = True
+                    ou.track_ai_feedback("hub", "validated", content_type="roteiro")
                     st.rerun()
             with col_ajust:
                 if st.button("🔄 Refazer com Ajustes", key="redo_roteiro", use_container_width=True):
+                    ou.track_ai_feedback("hub", "refazer", content_type="roteiro")
                     st.session_state['res_roteiro_valid'] = False
                     st.info("Para ajustes, modifique as seleções da BNCC e clique em 'GERAR ROTEIRO' novamente.")
             with col_desc:
@@ -2899,7 +2998,14 @@ def render_aba_papo_mestre(aluno, api_key):
     """, unsafe_allow_html=True)
     
     c1, c2 = st.columns(2)
-    materia_papo = c1.selectbox("Componente Curricular", DISCIPLINAS_PADRAO, key="papo_mat")
+    disc_opcoes, disc_mostrar, disc_default = _get_hub_componentes_filtrados()
+    materia_papo = c1.selectbox(
+        "Componente Curricular",
+        disc_opcoes,
+        index=0,
+        disabled=not disc_mostrar,
+        key="papo_mat"
+    )
     assunto_papo = c2.text_input("Assunto da Aula:", key="papo_ass")
     
     c3, c4 = st.columns(2)
@@ -2927,9 +3033,11 @@ def render_aba_papo_mestre(aluno, api_key):
             with col_val:
                 if st.button("✅ Validar Conexões", key="val_papo", use_container_width=True):
                     st.session_state['res_papo_valid'] = True
+                    ou.track_ai_feedback("hub", "validated", content_type="papo_mestre")
                     st.rerun()
             with col_ajust:
                 if st.button("🔄 Refazer com Ajustes", key="redo_papo", use_container_width=True):
+                    ou.track_ai_feedback("hub", "refazer", content_type="papo_mestre")
                     st.session_state['res_papo_valid'] = False
                     st.info("Para ajustes, modifique os parâmetros acima e clique em 'CRIAR CONEXÕES' novamente.")
             with col_desc:
@@ -3030,9 +3138,11 @@ def render_aba_dinamica_inclusiva(aluno, api_key):
             with col_val:
                 if st.button("✅ Validar Dinâmica", key="val_dinamica", use_container_width=True):
                     st.session_state['res_dinamica_valid'] = True
+                    ou.track_ai_feedback("hub", "validated", content_type="dinamica")
                     st.rerun()
             with col_ajust:
                 if st.button("🔄 Refazer com Ajustes", key="redo_dinamica", use_container_width=True):
+                    ou.track_ai_feedback("hub", "refazer", content_type="dinamica")
                     st.session_state['res_dinamica_valid'] = False
                     st.info("Para ajustes, modifique os parâmetros e clique em 'CRIAR DINÂMICA' novamente.")
             with col_desc:
@@ -3141,9 +3251,11 @@ def render_aba_plano_aula(aluno, api_key):
             with col_val:
                 if st.button("✅ Validar Plano", key="val_plano", use_container_width=True):
                     st.session_state['res_plano_valid'] = True
+                    ou.track_ai_feedback("hub", "validated", content_type="plano_aula")
                     st.rerun()
             with col_ajust:
                 if st.button("🔄 Refazer com Ajustes", key="redo_plano", use_container_width=True):
+                    ou.track_ai_feedback("hub", "refazer", content_type="plano_aula")
                     st.session_state['res_plano_valid'] = False
                     st.info("Para ajustes, modifique os parâmetros e clique em 'GERAR PLANO' novamente.")
             with col_desc:
@@ -3216,10 +3328,12 @@ def render_aba_ei_experiencia(aluno, api_key):
             c_val, c_ref = st.columns([1, 3])
             if c_val.button("✅ Validar Experiência", key="val_exp_ei"): 
                 st.session_state.valid_ei_exp = True
+                ou.track_ai_feedback("hub", "validated", content_type="experiencia_ei")
                 st.rerun()
             with c_ref.expander("🔄 Não gostou? Ensinar a IA"):
                 feedback_ei = st.text_input("O que precisa melhorar?", placeholder="Ex: Ficou muito complexo, use materiais mais simples...", key="fb_exp_ei")
                 if st.button("Refazer com Ajustes", key="refazer_exp_ei"):
+                    ou.track_ai_feedback("hub", "refazer", content_type="experiencia_ei", feedback_text=feedback_ei or "")
                     with st.spinner("Reescrevendo..."):
                         st.session_state.res_ei_exp = gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, obj_aprendizagem, feedback_anterior=feedback_ei)
                         st.rerun()
@@ -3273,10 +3387,12 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
                 c_vs1, c_vs2 = st.columns([1, 2])
                 if c_vs1.button("✅ Validar", key="val_sc_ei"):
                     st.session_state.valid_scene = True
+                    ou.track_ai_feedback("hub", "validated", content_type="cena_ei")
                     st.rerun()
                 with c_vs2.expander("🔄 Refazer Cena"):
                     fb_scene = st.text_input("Ajuste:", key="fb_sc_ei")
                     if st.button("Refazer", key="ref_sc_ei"):
+                        ou.track_ai_feedback("hub", "refazer", content_type="cena_ei", feedback_text=fb_scene or "")
                         with st.spinner("Redesenhando..."):
                             prompt_completo = f"{desc_m}. Context: Child education."
                             if usar_hiperfoco_ei and tema_ilustracao_ei:
@@ -3301,10 +3417,12 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
                 c_vc1, c_vc2 = st.columns([1, 2])
                 if c_vc1.button("✅ Validar", key="val_caa_ei"):
                     st.session_state.valid_caa = True
+                    ou.track_ai_feedback("hub", "validated", content_type="pictograma_caa_ei")
                     st.rerun()
                 with c_vc2.expander("🔄 Refazer Picto"):
                     fb_caa = st.text_input("Ajuste:", key="fb_caa_ei")
                     if st.button("Refazer", key="ref_caa_ei"):
+                        ou.track_ai_feedback("hub", "refazer", content_type="pictograma_caa_ei", feedback_text=fb_caa or "")
                         with st.spinner("Recriando..."):
                             st.session_state.res_caa_url = gerar_pictograma_caa(api_key, palavra_chave, feedback_anterior=fb_caa, gemini_key=g_key)
                             st.rerun()
@@ -3343,10 +3461,12 @@ def render_aba_ei_rotina(aluno, api_key):
             c_val, c_ref = st.columns([1, 3])
             if c_val.button("✅ Validar Rotina", key="val_rotina_ei"):
                 st.session_state.valid_ei_rotina = True
+                ou.track_ai_feedback("hub", "validated", content_type="rotina_ei")
                 st.rerun()
             with c_ref.expander("🔄 Refazer adaptação"):
                 fb_rotina = st.text_input("O que ajustar na rotina?", key="fb_rotina_input_ei")
                 if st.button("Refazer Rotina", key="refazer_rotina_ei"):
+                    ou.track_ai_feedback("hub", "refazer", content_type="rotina_ei", feedback_text=fb_rotina or "")
                     with st.spinner("Reajustando..."):
                         prompt_rotina = f"Analise esta rotina de Educação Infantil e sugira adaptações:\n\n{rotina_detalhada}\n\nFoco: {topico_foco}"
                         st.session_state.res_ei_rotina = gerar_roteiro_aula_completo(api_key, aluno, "Geral", "Rotina", feedback_anterior=prompt_rotina)
@@ -3391,10 +3511,12 @@ def render_aba_ei_inclusao_brincar(aluno, api_key):
             c_val, c_ref = st.columns([1, 3])
             if c_val.button("✅ Validar Dinâmica", key="val_dina_ei"):
                 st.session_state.valid_ei_dina = True
+                ou.track_ai_feedback("hub", "validated", content_type="dinamica_ei")
                 st.rerun()
             with c_ref.expander("🔄 Refazer dinâmica"):
                 fb_dina = st.text_input("O que ajustar?", key="fb_dina_input_ei")
                 if st.button("Refazer Dinâmica", key="refazer_dina_ei"):
+                    ou.track_ai_feedback("hub", "refazer", content_type="dinamica_ei", feedback_text=fb_dina or "")
                     with st.spinner("Reajustando..."):
                         st.session_state.res_ei_dina = gerar_dinamica_inclusiva_completa(
                             api_key, 

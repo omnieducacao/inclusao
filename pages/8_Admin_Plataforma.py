@@ -13,13 +13,18 @@ import omni_utils as ou
 from services.admin_service import (
     list_workspaces,
     create_workspace,
+    get_workspace,
+    update_workspace,
+    deactivate_workspace,
+    reactivate_workspace,
+    delete_workspace,
     list_platform_admins,
     update_workspace_master_password,
     create_workspace_master_for_workspace,
     get_platform_config,
     set_platform_config,
 )
-from services.members_service import list_members, get_workspace_master, delete_member_permanently
+from services.members_service import list_members, get_workspace_master, delete_member_permanently, deactivate_member, reactivate_member
 from services.monitoring_service import (
     get_usage_snapshot,
     list_platform_issues,
@@ -257,6 +262,13 @@ with tab_escolas:
         "green": "Omnisfera Green",
         "blue": "Omnisfera Blue",
     }
+    MODULE_OPTIONS = [
+        ("pei", "Estratégias & PEI"),
+        ("paee", "Plano de Ação (AEE)"),
+        ("hub", "Hub de Recursos"),
+        ("diario", "Diário de Bordo"),
+        ("avaliacao", "Evolução & Dados"),
+    ]
 
     st.markdown("### ➕ Nova escola")
     with st.form("form_nova_escola"):
@@ -307,6 +319,9 @@ with tab_escolas:
     if cached_workspaces_error:
         st.warning(f"Não foi possível listar escolas. Verifique se a tabela workspaces existe. {cached_workspaces_error}")
 
+    editing_ws = st.session_state.get("admin_editing_ws")
+    confirm_del_ws = st.session_state.get("admin_confirm_delete_ws")
+
     if not workspaces:
         st.info("Nenhuma escola cadastrada. Crie a primeira acima.")
     else:
@@ -316,84 +331,196 @@ with tab_escolas:
             wpin = ws.get("pin") or ws.get("pin_code") or ws.get("code") or "—"
             wsegments = ws.get("segments") or []
             wengines = ws.get("ai_engines") or []
-            with st.expander(f"🏫 {wname} — PIN: {wpin}", expanded=False):
-                if wsegments:
-                    seg_labels = [SEGMENT_OPTIONS.get(s, s) for s in wsegments]
-                    st.caption(f"Segmentos: {', '.join(seg_labels)}")
-                if wengines:
-                    eng_labels = [ENGINE_OPTIONS.get(e, e) for e in wengines]
-                    st.caption(f"Motores IA: {', '.join(eng_labels)}")
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown("**Master**")
-                    try:
-                        master = get_workspace_master(wid)
-                    except Exception:
-                        master = None
-                    if master:
-                        m_email = master.get("email", "")
-                        m_telefone = master.get("telefone", "")
-                        m_cargo = master.get("cargo", "")
-                        st.caption(f"Email: {m_email}")
-                        if m_telefone:
-                            st.caption(f"Telefone: {m_telefone}")
-                        if m_cargo:
-                            st.caption(f"Cargo: {m_cargo}")
-                        with st.form(f"form_alt_senha_{wid}"):
-                            nova_senha = st.text_input("Nova senha master", type="password", key=f"np_{wid}")
-                            if st.form_submit_button("Alterar senha"):
-                                if nova_senha and len(nova_senha) >= 4:
-                                    ok, err = update_workspace_master_password(wid, nova_senha)
-                                    if ok:
-                                        st.success("Senha alterada.")
-                                        ou.track_usage_event("admin_master_password_reset", workspace_id=wid, metadata={"workspace": wname})
-                                        st.rerun()
-                                    else:
-                                        st.error(err or "Erro ao alterar.")
-                                else:
-                                    st.warning("Senha mín. 4 caracteres.")
-                    else:
-                        st.caption("Master não configurado.")
-                        with st.form(f"form_criar_master_{wid}"):
-                            m_nome = st.text_input("Nome *", placeholder="Nome completo", key=f"mn_{wid}")
-                            m_telefone = st.text_input("Telefone", placeholder="(11) 99999-9999", key=f"mt_{wid}")
-                            m_email = st.text_input("Email *", placeholder="email@escola.com", key=f"me_{wid}")
-                            m_senha = st.text_input("Senha *", type="password", placeholder="Mín. 4 caracteres", key=f"ms_{wid}")
-                            m_cargo = st.text_input("Cargo *", placeholder="Ex: Coordenador, Diretor", key=f"mc_{wid}")
-                            if st.form_submit_button("Criar master"):
-                                if m_nome and m_email and m_senha and m_cargo:
-                                    _, err = create_workspace_master_for_workspace(
-                                        wid, m_email, m_senha, m_nome,
-                                        telefone=m_telefone or "",
-                                        cargo=m_cargo.strip(),
-                                    )
-                                    if err:
-                                        st.error(err)
-                                    else:
-                                        st.success("Master criado.")
-                                        ou.track_usage_event("admin_master_created", workspace_id=wid, metadata={"workspace": wname, "email": m_email.strip().lower()})
-                                        st.rerun()
-                                else:
-                                    st.warning("Preencha Nome, Email, Senha e Cargo.")
-                with col2:
-                    st.markdown("**Usuários**")
-                    try:
-                        members = list_members(wid)
-                    except Exception:
-                        members = []
-                    for m in members:
-                        mid = m.get("id")
-                        m_nome = m.get("nome", "")
-                        m_email = m.get("email", "")
-                        m_cargo = m.get("cargo", "")
-                        txt = f"{m_nome} — {m_email}"
-                        if m_cargo:
-                            txt += f" · {m_cargo}"
-                        st.caption(txt)
-                        if st.button("Excluir", key=f"del_{mid}"):
-                            if delete_member_permanently(mid):
-                                st.success("Excluído.")
-                                ou.track_usage_event("admin_member_deleted", workspace_id=wid, metadata={"member": mid})
+            wactive = ws.get("active", True)
+            badge = "🟢 Ativa" if wactive else "🔴 Inativa"
+            exp_label = f"🏫 {wname} — PIN: {wpin} · {badge}"
+            with st.expander(exp_label, expanded=(editing_ws == wid or confirm_del_ws == wid)):
+                # Confirmação de exclusão
+                if confirm_del_ws == wid:
+                    st.warning("⚠️ Excluir remove a escola e dados relacionados. Esta ação não pode ser desfeita.")
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        if st.button("Sim, excluir permanentemente", key=f"del_yes_{wid}", type="primary"):
+                            if delete_workspace(wid):
+                                st.session_state.pop("admin_confirm_delete_ws", None)
+                                st.session_state.pop("admin_editing_ws", None)
+                                ou.track_usage_event("admin_workspace_deleted", metadata={"workspace": wname})
+                                st.success("Escola excluída.")
                                 st.rerun()
                             else:
                                 st.error("Erro ao excluir.")
+                    with c2:
+                        if st.button("Cancelar", key=f"del_no_{wid}"):
+                            st.session_state.pop("admin_confirm_delete_ws", None)
+                            st.rerun()
+                    continue
+
+                # Modo edição
+                if editing_ws == wid:
+                    with st.form(f"form_edit_ws_{wid}"):
+                        st.markdown("**Editar escola**")
+                        nome_ed = st.text_input("Nome", value=wname, key=f"edit_name_{wid}")
+                        seg_ed = st.multiselect("Segmentos", options=list(SEGMENT_OPTIONS.keys()), default=wsegments, format_func=lambda k: SEGMENT_OPTIONS.get(k, k), key=f"edit_seg_{wid}")
+                        eng_ed = st.multiselect("Motores IA", options=list(ENGINE_OPTIONS.keys()), default=wengines, format_func=lambda k: ENGINE_OPTIONS.get(k, k), key=f"edit_eng_{wid}")
+                        wmodules = ws.get("enabled_modules")
+                        st.markdown("**Módulos habilitados**")
+                        checks_ed = {k: st.checkbox(l, value=(wmodules is None or k in (wmodules or [])), key=f"edit_mod_{wid}_{k}") for k, l in MODULE_OPTIONS}
+                        col_s, col_c = st.columns(2)
+                        with col_s:
+                            if st.form_submit_button("Salvar"):
+                                new_mods = [k for k, _ in MODULE_OPTIONS if checks_ed[k]]
+                                ok, err = update_workspace(wid, name=nome_ed, segments=seg_ed, ai_engines=eng_ed, enabled_modules=new_mods)
+                                if ok:
+                                    st.session_state.pop("admin_editing_ws", None)
+                                    ou.track_usage_event("admin_workspace_updated", workspace_id=wid, metadata={"workspace": nome_ed})
+                                    st.success("Escola atualizada.")
+                                    st.rerun()
+                                else:
+                                    st.error(err or "Erro ao salvar.")
+                        with col_c:
+                            if st.form_submit_button("Cancelar"):
+                                st.session_state.pop("admin_editing_ws", None)
+                                st.rerun()
+                else:
+                    # Ações: Editar | Desativar/Reativar | Excluir
+                    col_a1, col_a2, col_a3, _ = st.columns([1, 1, 1, 3])
+                    with col_a1:
+                        if st.button("✏️ Editar", key=f"edit_btn_{wid}"):
+                            st.session_state["admin_editing_ws"] = wid
+                            st.rerun()
+                    with col_a2:
+                        if wactive:
+                            if st.button("⏸️ Desativar", key=f"deact_{wid}", type="secondary"):
+                                if deactivate_workspace(wid):
+                                    ou.track_usage_event("admin_workspace_deactivated", workspace_id=wid, metadata={"workspace": wname})
+                                    st.success("Escola desativada. Dados mantidos.")
+                                    st.rerun()
+                                else:
+                                    st.error("Erro ao desativar.")
+                        else:
+                            if st.button("▶️ Reativar", key=f"react_{wid}", type="primary"):
+                                if reactivate_workspace(wid):
+                                    ou.track_usage_event("admin_workspace_reactivated", workspace_id=wid, metadata={"workspace": wname})
+                                    st.success("Escola reativada.")
+                                    st.rerun()
+                                else:
+                                    st.error("Erro ao reativar.")
+                    with col_a3:
+                        if st.button("🗑️ Excluir", key=f"del_btn_{wid}", type="secondary"):
+                            st.session_state["admin_confirm_delete_ws"] = wid
+                            st.rerun()
+
+                    if wsegments:
+                        seg_labels = [SEGMENT_OPTIONS.get(s, s) for s in wsegments]
+                        st.caption(f"Segmentos: {', '.join(seg_labels)}")
+                    if wengines:
+                        eng_labels = [ENGINE_OPTIONS.get(e, e) for e in wengines]
+                        st.caption(f"Motores IA: {', '.join(eng_labels)}")
+
+                    # Módulos habilitados (form rápido)
+                    wmodules = ws.get("enabled_modules")
+                    with st.form(f"form_modulos_{wid}"):
+                        st.markdown("**Módulos habilitados** (desmarque para ocultar na escola)")
+                        checks = {}
+                        for key, label in MODULE_OPTIONS:
+                            checks[key] = st.checkbox(label, value=(wmodules is None or key in (wmodules or [])), key=f"mod_{wid}_{key}")
+                        if st.form_submit_button("Salvar módulos"):
+                            new_list = [k for k, _ in MODULE_OPTIONS if checks[k]]
+                            ok, err = update_workspace(wid, enabled_modules=new_list)
+                            if ok:
+                                st.success("Módulos atualizados.")
+                                ou.track_usage_event("admin_modules_updated", workspace_id=wid, metadata={"modules": new_list})
+                                st.rerun()
+                            else:
+                                st.error(err or "Erro ao salvar.")
+
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("**Master**")
+                        try:
+                            master = get_workspace_master(wid)
+                        except Exception:
+                            master = None
+                        if master:
+                            m_email = master.get("email", "")
+                            m_telefone = master.get("telefone", "")
+                            m_cargo = master.get("cargo", "")
+                            st.caption(f"Email: {m_email}")
+                            if m_telefone:
+                                st.caption(f"Telefone: {m_telefone}")
+                            if m_cargo:
+                                st.caption(f"Cargo: {m_cargo}")
+                            with st.form(f"form_alt_senha_{wid}"):
+                                nova_senha = st.text_input("Nova senha master", type="password", key=f"np_{wid}")
+                                if st.form_submit_button("Alterar senha"):
+                                    if nova_senha and len(nova_senha) >= 4:
+                                        ok, err = update_workspace_master_password(wid, nova_senha)
+                                        if ok:
+                                            st.success("Senha alterada.")
+                                            ou.track_usage_event("admin_master_password_reset", workspace_id=wid, metadata={"workspace": wname})
+                                            st.rerun()
+                                        else:
+                                            st.error(err or "Erro ao alterar.")
+                                    else:
+                                        st.warning("Senha mín. 4 caracteres.")
+                        else:
+                            st.caption("Master não configurado.")
+                            with st.form(f"form_criar_master_{wid}"):
+                                m_nome = st.text_input("Nome *", placeholder="Nome completo", key=f"mn_{wid}")
+                                m_telefone = st.text_input("Telefone", placeholder="(11) 99999-9999", key=f"mt_{wid}")
+                                m_email = st.text_input("Email *", placeholder="email@escola.com", key=f"me_{wid}")
+                                m_senha = st.text_input("Senha *", type="password", placeholder="Mín. 4 caracteres", key=f"ms_{wid}")
+                                m_cargo = st.text_input("Cargo *", placeholder="Ex: Coordenador, Diretor", key=f"mc_{wid}")
+                                if st.form_submit_button("Criar master"):
+                                    if m_nome and m_email and m_senha and m_cargo:
+                                        _, err = create_workspace_master_for_workspace(
+                                            wid, m_email, m_senha, m_nome,
+                                            telefone=m_telefone or "",
+                                            cargo=m_cargo.strip(),
+                                        )
+                                        if err:
+                                            st.error(err)
+                                        else:
+                                            st.success("Master criado.")
+                                            ou.track_usage_event("admin_master_created", workspace_id=wid, metadata={"workspace": wname, "email": m_email.strip().lower()})
+                                            st.rerun()
+                                    else:
+                                        st.warning("Preencha Nome, Email, Senha e Cargo.")
+                    with col2:
+                        st.markdown("**Usuários**")
+                        try:
+                            members = list_members(wid)
+                        except Exception:
+                            members = []
+                        for m in members:
+                            mid = m.get("id")
+                            m_nome = m.get("nome", "")
+                            m_email = m.get("email", "")
+                            m_cargo = m.get("cargo", "")
+                            m_active = m.get("active", True)
+                            badge_u = "🟢" if m_active else "🔴"
+                            with st.expander(f"{badge_u} {m_nome} — {m_email}", expanded=False):
+                                if m_cargo:
+                                    st.caption(f"Cargo: {m_cargo}")
+                                c1, c2, c3 = st.columns(3)
+                                with c1:
+                                    if m_active:
+                                        if st.button("Desativar", key=f"adm_deact_{mid}"):
+                                            if deactivate_member(mid):
+                                                ou.track_usage_event("admin_member_deactivated", workspace_id=wid, metadata={"member": mid})
+                                                st.success("Desativado.")
+                                                st.rerun()
+                                    else:
+                                        if st.button("Reativar", key=f"adm_react_{mid}"):
+                                            if reactivate_member(mid):
+                                                ou.track_usage_event("admin_member_reactivated", workspace_id=wid, metadata={"member": mid})
+                                                st.success("Reativado.")
+                                                st.rerun()
+                                with c2:
+                                    if st.button("Excluir", key=f"del_{mid}", type="secondary"):
+                                        if delete_member_permanently(mid):
+                                            st.success("Excluído.")
+                                            ou.track_usage_event("admin_member_deleted", workspace_id=wid, metadata={"member": mid})
+                                            st.rerun()
+                                        else:
+                                            st.error("Erro ao excluir.")
