@@ -1178,6 +1178,13 @@ def inject_hero_card_colors():
     color: #075985 !important;
 }
 
+/* PGI - Verde Teal (Plano de Gestão Inclusiva) */
+.c-pgi { background: #0F766E !important; }
+.bg-pgi-soft { 
+    background: #CCFBF1 !important;
+    color: #0F766E !important;
+}
+
 /* ===============================
    MOVIMENTO DO HERO CARD (IGUAL À HOME)
 ================================ */

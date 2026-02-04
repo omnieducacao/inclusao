@@ -46,20 +46,12 @@ except Exception:
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="PGI")
 ou.inject_compact_app_css()
+ou.inject_hero_card_colors()
 
 # CSS específico da página PGI
 st.markdown("""
 <style>
-.pgi-hero {
-    background: linear-gradient(135deg, #0F766E 0%, #0D9488 50%, #14B8A6 100%);
-    border-radius: 20px;
-    padding: 2rem 2.5rem;
-    margin-bottom: 2rem;
-    color: white;
-    box-shadow: 0 10px 40px rgba(13, 148, 136, 0.25);
-}
-.pgi-hero h1 { color: white !important; font-size: 1.85rem !important; margin: 0 0 0.5rem 0 !important; }
-.pgi-hero p { color: rgba(255,255,255,0.95) !important; font-size: 1rem !important; margin: 0 !important; line-height: 1.5; }
+.pgi-badge-gestao { background: #FEF3C7; color: #B45309; font-size: 0.7rem; padding: 3px 8px; border-radius: 99px; font-weight: 600; }
 .pgi-card {
     background: white;
     border-radius: 16px;
@@ -108,14 +100,32 @@ TIPOS_ACAO = {
 PERFIS_ATENDIMENTO = ["TEA", "Deficiência física", "Deficiência intelectual", "Dificuldades de aprendizagem", "Altas habilidades", "Comportamentos disruptivos", "Outro"]
 
 # ==============================================================================
-# 1. HERO SECTION
+# 1. HERO SECTION (padrão das outras páginas)
 # ==============================================================================
-st.markdown("""
-<div class="pgi-hero">
-    <h1>Plano de Gestão Inclusiva — PGI</h1>
-    <p>Estruture o acolhimento antes da matrícula. Organize sua escola nos eixos de <strong>Infraestrutura</strong>, <strong>Equipe</strong> e <strong>Cultura</strong>.</p>
+hora = datetime.now(ZoneInfo("America/Sao_Paulo")).hour
+saudacao = "Bom dia" if 5 <= hora < 12 else "Boa tarde" if 12 <= hora < 18 else "Boa noite"
+USUARIO_NOME = st.session_state.get("usuario_nome", "Visitante").split()[0]
+WORKSPACE_NAME = st.session_state.get("workspace_name", "Workspace")
+
+st.markdown(f"""
+<div class="mod-card-wrapper">
+    <div class="mod-card-rect">
+        <div class="mod-bar c-pgi"></div>
+        <div class="mod-icon-area bg-pgi-soft" style="display: flex; align-items: center; justify-content: center;">
+            <i class="ri-clipboard-line" style="font-size: 2rem; color: #0F766E; display: inline-block; visibility: visible; opacity: 1; font-style: normal;"></i>
+        </div>
+        <div class="mod-content">
+            <div class="mod-title">Plano de Gestão Inclusiva — PGI</div>
+            <div class="mod-desc">
+                <span class="pgi-badge-gestao">Recurso destinado à gestão escolar</span>
+                {saudacao}, <strong>{USUARIO_NOME}</strong>! Estruture o acolhimento antes da matrícula. Organize sua escola nos eixos de Infraestrutura, Equipe e Cultura no workspace <strong>{WORKSPACE_NAME}</strong>.
+            </div>
+        </div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
+
+st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
 # ==============================================================================
 # 2. ABAS: INICIAL (Acolhimento) | GERADOR (5W2H)
@@ -124,6 +134,13 @@ tab_inicial, tab_gerador = st.tabs(["Inicial — Acolhimento", "Gerador — O Pl
 
 # --- ABA INICIAL: Acolhimento dos estudantes ---
 with tab_inicial:
+    st.markdown("""
+    <div class="pgi-card" style="background: linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%); border-left: 4px solid #0F766E; padding: 1rem 1.25rem; border-radius: 0 12px 12px 0; margin-bottom: 1.5rem;">
+        <div style="font-size: 0.75rem; font-weight: 700; color: #0F766E; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Recurso destinado à gestão escolar</div>
+        <div style="font-size: 0.9rem; color: #334155;">Estas informações e o Gerador de Plano foram desenvolvidos para <strong>gestores escolares</strong> — direção, coordenação pedagógica e equipe de planejamento — que organizam o acolhimento inclusivo e o PGEI.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("### 1. Acolhimento dos estudantes")
 
     st.markdown("""
