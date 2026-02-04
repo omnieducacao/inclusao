@@ -100,6 +100,7 @@ def _normalize_workspace(row: dict) -> dict:
         "segments": row.get("segments") or [],
         "ai_engines": row.get("ai_engines") or [],
         "enabled_modules": row.get("enabled_modules"),  # None = todos habilitados (retrocompat)
+        "active": row.get("active", True) if row.get("active") is not False else False,
         "created_at": row.get("created_at"),
     }
 
@@ -139,19 +140,46 @@ def get_workspace(workspace_id: str) -> Optional[dict]:
         return None
 
 
-def update_workspace(workspace_id: str, enabled_modules: Optional[list] = None, **kwargs) -> tuple:
-    """Atualiza workspace (ex.: enabled_modules). Retorna (True, None) ou (False, erro)."""
+def update_workspace(workspace_id: str, enabled_modules: Optional[list] = None, name: str = None, segments: list = None, ai_engines: list = None, active: bool = None, **kwargs) -> tuple:
+    """Atualiza workspace. Retorna (True, None) ou (False, erro)."""
     if not workspace_id:
         return False, "workspace_id obrigatório"
     payload = {}
     if enabled_modules is not None:
         payload["enabled_modules"] = enabled_modules
+    if name is not None:
+        payload["name"] = str(name).strip()
+    if segments is not None:
+        payload["segments"] = segments
+    if ai_engines is not None:
+        payload["ai_engines"] = ai_engines
+    if active is not None:
+        payload["active"] = bool(active)
     payload.update(kwargs)
     if not payload:
         return True, None
     url = f"{_base()}/rest/v1/workspaces?id=eq.{workspace_id}"
     r = requests.patch(url, headers=_headers(), json=payload, timeout=10)
     return (r.status_code in (200, 204), None if r.status_code in (200, 204) else (r.text or str(r.status_code)))
+
+
+def deactivate_workspace(workspace_id: str) -> bool:
+    """Desativa escola (soft delete). Dados mantidos, login bloqueado."""
+    ok, _ = update_workspace(workspace_id, active=False)
+    return ok
+
+
+def reactivate_workspace(workspace_id: str) -> bool:
+    """Reativa escola desativada."""
+    ok, _ = update_workspace(workspace_id, active=True)
+    return ok
+
+
+def delete_workspace(workspace_id: str) -> bool:
+    """Remove escola do banco (hard delete). Atenção: remove dados relacionados."""
+    url = f"{_base()}/rest/v1/workspaces?id=eq.{workspace_id}"
+    r = requests.delete(url, headers=_headers(), timeout=15)
+    return r.status_code in (200, 204)
 
 
 def _generate_pin() -> str:

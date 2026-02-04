@@ -236,9 +236,10 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
                     st.session_state["gestao_show_form"] = False
                     st.rerun()
 
-# Lista de membros
+# Lista de membros (cada um em aba retrátil)
 st.markdown("### 👥 Usuários cadastrados")
 editing_id = st.session_state.get("gestao_editing_id")
+confirm_del_id = st.session_state.get("gestao_confirm_del_id")
 
 if not members:
     st.info("Nenhum usuário cadastrado. Use o formulário acima para adicionar.")
@@ -262,51 +263,83 @@ else:
         elif link_txt == "tutor":
             links = get_student_links(mid)
             link_txt = f"{len(links)} aluno(s)"
-        with st.container():
-            col1, col2, col3 = st.columns([2, 2, 1])
-            with col1:
-                cargo_str = f" — {m.get('cargo','')}" if m.get('cargo') else ""
-                st.markdown(f"**{m.get('nome','')}**{cargo_str}")
-                st.caption(f"{m.get('email','')} · {m.get('telefone','') or '—'}")
-            with col2:
+        cargo_str = f" · {m.get('cargo','')}" if m.get('cargo') else ""
+        exp_title = f"👤 {m.get('nome','')}{cargo_str}"
+        with st.expander(exp_title, expanded=(editing_id == mid or confirm_del_id == mid)):
+            if confirm_del_id == mid:
+                st.warning("Excluir permanentemente remove o usuário e libera o email. Confirma?")
+                c1, c2 = st.columns(2)
+                with c1:
+                    if st.button("Sim, excluir", key=f"del_yes_{mid}", type="primary"):
+                        if delete_member_permanently(mid):
+                            st.session_state.pop("gestao_confirm_del_id", None)
+                            st.session_state.pop("gestao_editing_id", None)
+                            st.success("Usuário excluído.")
+                            st.rerun()
+                        else:
+                            st.error("Erro ao excluir.")
+                with c2:
+                    if st.button("Cancelar", key=f"del_no_{mid}"):
+                        st.session_state.pop("gestao_confirm_del_id", None)
+                        st.rerun()
+            elif editing_id == mid:
+                st.caption("Use o formulário de edição abaixo para alterar os dados.")
+            else:
+                st.caption(f"**Email:** {m.get('email','')} · **Tel:** {m.get('telefone','') or '—'}")
                 st.markdown(" ".join([f"<span class='badge-perm'>{p}</span>" for p in perms]) or "—", unsafe_allow_html=True)
                 st.caption(f"Vínculo: {link_txt}")
-            with col3:
-                btn_edit, btn_des = st.columns(2)
-                with btn_edit:
-                    if st.button("✏️", key=f"editar_{mid}", help="Editar"):
+                col_a1, col_a2, col_a3, _ = st.columns([1, 1, 1, 3])
+                with col_a1:
+                    if st.button("✏️ Editar", key=f"editar_{mid}"):
                         st.session_state["gestao_editing_id"] = mid
                         st.rerun()
-                with btn_des:
-                    if st.button("Desativar", key=f"desativar_{mid}", type="secondary"):
+                with col_a2:
+                    if st.button("⏸️ Desativar", key=f"desativar_{mid}", type="secondary"):
                         if deactivate_member(mid):
                             st.success("Desativado.")
                             st.rerun()
                         else:
                             st.error("Erro ao desativar.")
+                with col_a3:
+                    if st.button("🗑️ Excluir", key=f"excluir_{mid}", type="secondary"):
+                        st.session_state["gestao_confirm_del_id"] = mid
+                        st.rerun()
 
-    # Usuários desativados (podem estar ocupando o email)
+    # Formulário de edição (expandido quando editing_id)
+    # Usuários desativados (aba retrátil cada um)
     inactive = [m for m in members if not m.get("active", True)]
     if inactive:
-        with st.expander("🗑️ Usuários desativados (excluir para liberar email)", expanded=True):
-            st.caption("Estes emails estão bloqueados. **Excluir permanentemente** libera o email para novo cadastro.")
-            for m in inactive:
-                mid = m.get("id")
-                col_a, col_b, col_c = st.columns([2, 1, 1])
-                with col_a:
-                    st.markdown(f"**{m.get('nome','')}** — {m.get('email','')}")
-                with col_b:
-                    if st.button("Reativar", key=f"reativar_{mid}"):
-                        if reactivate_member(mid):
-                            st.success("Reativado.")
+        st.markdown("### 🗑️ Usuários desativados")
+        st.caption("Excluir libera o email para novo cadastro.")
+        for m in inactive:
+            mid = m.get("id")
+            with st.expander(f"👤 {m.get('nome','')} — {m.get('email','')} (inativo)", expanded=(confirm_del_id == mid)):
+                if st.session_state.get("gestao_confirm_del_id") == mid:
+                    st.warning("Confirma exclusão permanente? O email será liberado.")
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        if st.button("Sim, excluir", key=f"inact_del_yes_{mid}", type="primary"):
+                            if delete_member_permanently(mid):
+                                st.session_state.pop("gestao_confirm_del_id", None)
+                                st.success("Excluído.")
+                                st.rerun()
+                            else:
+                                st.error("Erro ao excluir.")
+                    with c2:
+                        if st.button("Cancelar", key=f"inact_del_no_{mid}"):
+                            st.session_state.pop("gestao_confirm_del_id", None)
                             st.rerun()
-                with col_c:
-                    if st.button("Excluir permanentemente", key=f"excluir_{mid}", type="secondary"):
-                        if delete_member_permanently(mid):
-                            st.success("Excluído. O email está liberado.")
+                else:
+                    col_a, col_b = st.columns(2)
+                    with col_a:
+                        if st.button("▶️ Reativar", key=f"reativar_{mid}"):
+                            if reactivate_member(mid):
+                                st.success("Reativado.")
+                                st.rerun()
+                    with col_b:
+                        if st.button("🗑️ Excluir permanentemente", key=f"excluir_inact_{mid}", type="secondary"):
+                            st.session_state["gestao_confirm_del_id"] = mid
                             st.rerun()
-                        else:
-                            st.error("Erro ao excluir.")
 
     # Formulário de edição
     member_edit = next((m for m in members if m.get("id") == editing_id), None)

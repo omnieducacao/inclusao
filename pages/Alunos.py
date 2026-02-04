@@ -229,16 +229,11 @@ with c2:
 if q:
     alunos = [a for a in alunos if q.lower() in (a.get("name") or "").lower()]
 
-# Tabela
+# Lista de estudantes (cada um em aba retrátil)
 if not alunos:
     st.info("Nenhum estudante encontrado.")
 else:
     st.caption("Dados sensíveis: uso exclusivo da equipe pedagógica. Não compartilhar com estudantes ou famílias.")
-    st.markdown("""
-    <div class="student-table">
-        <div class="student-header"><div>Nome</div><div>Série</div><div>Turma</div><div>Contexto (equipe)</div><div>Ações</div></div>
-    """, unsafe_allow_html=True)
-    
     for a in alunos:
         sid, nome = a.get("id"), a.get("name", "—")
         serie, turma = a.get("grade", "—"), a.get("class_group", "—")
@@ -249,49 +244,38 @@ else:
             pei_data = {}
         if not isinstance(paee_ciclos, list):
             paee_ciclos = []
-        
         tem_relatorio = bool((pei_data.get("ia_sugestao") or "").strip())
         tem_jornada = bool((pei_data.get("ia_mapa_texto") or "").strip())
         n_ciclos = len(paee_ciclos)
-        
-        confirm_key = f"confirm_del_{sid}"
-        if confirm_key not in st.session_state:
-            st.session_state[confirm_key] = False
-        
-        st.markdown(f"""
-        <div class="student-row">
-            <div style="font-weight:700; color:#1E293B;">{nome}</div>
-            <div><span class="badge-grade">{serie}</span></div>
-            <div><span class="badge-class">{turma}</span></div>
-            <div style="font-size:0.8rem; color:#64748B;">{diag}</div>
-            <div>
-        """, unsafe_allow_html=True)
-        
-        if not st.session_state[confirm_key]:
-            c_btn, _ = st.columns([1, 4])
-            with c_btn:
-                if st.button("🗑️", key=f"btn_del_{sid}", help="Excluir"):
-                    st.session_state[confirm_key] = True
-                    st.rerun()
-        else:
-            st.markdown(f"""<div class="delete-confirm-banner"><i class="ri-alert-fill"></i> Excluir <b>{nome}</b>?</div>""", unsafe_allow_html=True)
-            c_s, c_n = st.columns(2)
-            with c_s:
-                if st.button("✅", key=f"yes_{sid}", type="primary"):
-                    delete_student_rest(sid, ws_id)
-                    list_students_rest.clear()
-                    st.session_state["students_cache_invalid"] = True
-                    st.session_state[confirm_key] = False
-                    st.rerun()
-            with c_n:
-                if st.button("❌", key=f"no_{sid}"):
-                    st.session_state[confirm_key] = False
-                    st.rerun()
 
-        st.markdown("</div></div>", unsafe_allow_html=True)
-        
-        # Lista suspensa (expander): o que está anexado a este aluno
-        with st.expander(f"📎 O que está anexado a **{nome}**", expanded=False):
+        confirm_key = f"confirm_del_{sid}"
+        confirmando = st.session_state.get(confirm_key, False)
+        exp_title = f"👤 {nome} · {serie} · {turma}"
+        with st.expander(exp_title, expanded=confirmando):
+            st.markdown(f"**Contexto (equipe):** {diag}")
+            if not confirmando:
+                c1, c2, _ = st.columns([1, 1, 4])
+                with c1:
+                    if st.button("🗑️ Excluir estudante", key=f"btn_del_{sid}", type="secondary"):
+                        st.session_state[confirm_key] = True
+                        st.rerun()
+            else:
+                st.warning(f"Excluir **{nome}**? Esta ação não pode ser desfeita.")
+                c_s, c_n = st.columns(2)
+                with c_s:
+                    if st.button("Sim, excluir", key=f"yes_{sid}", type="primary"):
+                        delete_student_rest(sid, ws_id)
+                        list_students_rest.clear()
+                        st.session_state["students_cache_invalid"] = True
+                        st.session_state[confirm_key] = False
+                        st.rerun()
+                with c_n:
+                    if st.button("Cancelar", key=f"no_{sid}"):
+                        st.session_state[confirm_key] = False
+                        st.rerun()
+
+            st.markdown("---")
+            st.markdown("**O que está anexado**")
             itens = []
             if tem_relatorio:
                 itens.append("📄 Relatório PEI (Consultoria IA)")
@@ -304,10 +288,10 @@ else:
             else:
                 for item in itens:
                     st.markdown(f"- {item}")
-                st.caption("Você pode apagar apenas os relatórios ou a jornada, sem excluir o estudante.")
+                st.caption("Apagar apenas relatórios ou jornada (sem excluir o estudante):")
                 col_r, col_j, col_c = st.columns(3)
                 with col_r:
-                    if tem_relatorio and st.button("Apagar apenas relatórios", key=f"apagar_rel_{sid}", type="secondary"):
+                    if tem_relatorio and st.button("Apagar relatórios", key=f"apagar_rel_{sid}", type="secondary"):
                         pei_novo = dict(pei_data)
                         pei_novo["ia_sugestao"] = ""
                         pei_novo["status_validacao_pei"] = "rascunho"
@@ -318,7 +302,7 @@ else:
                         else:
                             st.error("Erro ao atualizar.")
                 with col_j:
-                    if tem_jornada and st.button("Apagar jornada gamificada", key=f"apagar_jornada_{sid}", type="secondary"):
+                    if tem_jornada and st.button("Apagar jornada", key=f"apagar_jornada_{sid}", type="secondary"):
                         pei_novo = dict(pei_data)
                         pei_novo["ia_mapa_texto"] = ""
                         pei_novo["status_validacao_game"] = "rascunho"
@@ -336,8 +320,6 @@ else:
                             st.rerun()
                         else:
                             st.error("Erro ao atualizar.")
-    
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # Rodapé Simples
 st.markdown(f"<div style='text-align:center;color:#94A3B8;font-size:0.7rem;padding:20px;margin-top:20px;'>{len(alunos)} estudantes • {APP_VERSION}</div>", unsafe_allow_html=True)

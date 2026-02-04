@@ -324,26 +324,35 @@ def render_login():
                                 st.session_state.member = user
                                 st.session_state.usuario_nome = user.get("nome")
                         if ok:
-                            _try_init_supabase_client_into_session()
-                            st.session_state.workspace_id = ws_id
-                            st.session_state.workspace_name = ws_name
                             try:
                                 from services.admin_service import get_workspace
                                 ws = get_workspace(str(ws_id))
-                                # None ou ausente no DB = todos os módulos habilitados (retrocompat)
-                                st.session_state.enabled_modules = ws.get("enabled_modules") if ws else None
+                                if ws is not None and ws.get("active") is False:
+                                    st.error("Escola desativada. Entre em contato com o administrador da plataforma.")
+                                else:
+                                    _try_init_supabase_client_into_session()
+                                    st.session_state.workspace_id = ws_id
+                                    st.session_state.workspace_name = ws_name
+                                    st.session_state.enabled_modules = ws.get("enabled_modules") if ws else None
+                                    st.session_state.autenticado = True
+                                    st.session_state.usuario_cargo = "Usuário"
+                                    st.session_state.user_role = "master" if role == "master" else "member"
+                                    if hasattr(ou, "track_usage_event"):
+                                        try:
+                                            event_name = "login_master_success" if role == "master" else "login_member_success"
+                                            ou.track_usage_event(event_name, source="login_view", metadata={"email": user.get("email")})
+                                        except Exception:
+                                            pass
+                                    st.rerun()
                             except Exception:
+                                _try_init_supabase_client_into_session()
+                                st.session_state.workspace_id = ws_id
+                                st.session_state.workspace_name = ws_name
                                 st.session_state.enabled_modules = None
-                            st.session_state.autenticado = True
-                            st.session_state.usuario_cargo = "Usuário"
-                            st.session_state.user_role = "master" if role == "master" else "member"
-                            if hasattr(ou, "track_usage_event"):
-                                try:
-                                    event_name = "login_master_success" if role == "master" else "login_member_success"
-                                    ou.track_usage_event(event_name, source="login_view", metadata={"email": user.get("email")})
-                                except Exception:
-                                    pass
-                            st.rerun()
+                                st.session_state.autenticado = True
+                                st.session_state.usuario_cargo = "Usuário"
+                                st.session_state.user_role = "master" if role == "master" else "member"
+                                st.rerun()
                         else:
                             st.error("Senha incorreta.")
                 except Exception as e:
