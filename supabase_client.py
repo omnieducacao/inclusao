@@ -112,6 +112,15 @@ def _create_supabase_client(url: str, key: str):
     return create_client(url, key)
 
 
+def _is_production() -> bool:
+    """True se a escola não deve ver detalhes de configuração (nunca expor nomes de chaves)."""
+    try:
+        env = (os.environ.get("ENV") or st.secrets.get("ENV", "") or "").strip().upper()
+        return env != "TESTE"
+    except Exception:
+        return True
+
+
 def get_sb():
     """Garante sb na session_state. Lê secrets aqui (fora do cache) para funcionar no Streamlit Cloud."""
     if "sb" in st.session_state and st.session_state["sb"] is not None:
@@ -119,6 +128,11 @@ def get_sb():
 
     url, key = _get_supabase_url_and_key()
     if not url or not key:
+        if _is_production():
+            raise RuntimeError(
+                "Conexão com o banco de dados não disponível. Tente recarregar a página. "
+                "Se o problema continuar, entre em contato com o suporte da plataforma."
+            )
         _hint = (
             "Supabase: URL ou chave não encontrados. Em Streamlit Cloud: Manage app → Settings → Secrets. "
             "Use no nível raiz: SUPABASE_URL = \"...\", SUPABASE_SERVICE_KEY = \"...\" (ou SUPABASE_ANON_KEY). "

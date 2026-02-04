@@ -143,30 +143,54 @@ if "accepted_terms" not in st.session_state:
 HOME_PAGE = "pages/0_Home.py"
 ADMIN_PAGE = "pages/8_Admin_Plataforma.py"
 
-# ------------------------------------------------------------------------------
-# Router
-# ------------------------------------------------------------------------------
-if not st.session_state.autenticado:
-    render_login()
-elif not st.session_state.get("accepted_terms"):
-    terms_text = ""
-    try:
-        from services.admin_service import get_platform_config
-        terms_text = (get_platform_config("terms_of_use") or "").strip()
-    except Exception:
-        pass
-    if not terms_text:
-        terms_text = (
-            "1. Uso profissional: A Omnisfera é uma ferramenta profissional de apoio à inclusão e deve ser utilizada exclusivamente para fins educacionais e institucionais autorizados.\n\n"
-            "2. Confidencialidade: É proibido inserir dados pessoais sensíveis de estudantes fora de ambientes autorizados pela instituição. O usuário se compromete a proteger qualquer informação acessada na plataforma.\n\n"
-            "3. Responsabilidade: Recomendações e conteúdos gerados pela IA são auxiliares e devem ser validados por profissionais responsáveis. A decisão final é sempre humana.\n\n"
-            "4. Segurança: Credenciais de acesso são pessoais e intransferíveis. Qualquer uso indevido deve ser comunicado à coordenação responsável.\n\n"
-            "5. Conformidade: O uso deve seguir as políticas internas da escola, legislação vigente e boas práticas de proteção de dados."
-        )
-    import html
-    terms_html = html.escape(terms_text).replace("\n", "<br>")
+
+def _tela_erro_recarregar(msg: str = "Algo deu errado. Recarregue a página.", detalhe: str | None = None):
+    """Exibe mensagem amigável e botão Recarregar para evitar tela de crash do Streamlit."""
     st.markdown(
         f"""
+        <div style="max-width:480px; margin:80px auto; padding:32px; background:white; border-radius:18px;
+            border:1px solid #E2E8F0; box-shadow:0 20px 40px rgba(0,0,0,0.08); text-align:center;">
+            <div style="font-size:2.5rem; margin-bottom:12px;">⚠️</div>
+            <div style="font-weight:800; font-size:1.1rem; color:#1E293B; margin-bottom:8px;">{msg}</div>
+            <div style="color:#64748B; font-size:0.9rem;">Clique em <strong>Recarregar</strong> abaixo para tentar novamente.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🔄 Recarregar página", use_container_width=True, type="primary"):
+            st.rerun()
+    if detalhe and ENV == "TESTE":
+        st.code(detalhe)
+    st.stop()
+
+
+# ------------------------------------------------------------------------------
+# Router (com proteção para não quebrar a tela em produção)
+# ------------------------------------------------------------------------------
+try:
+    if not st.session_state.autenticado:
+        render_login()
+    elif not st.session_state.get("accepted_terms"):
+        terms_text = ""
+        try:
+            from services.admin_service import get_platform_config
+            terms_text = (get_platform_config("terms_of_use") or "").strip()
+        except Exception:
+            pass
+        if not terms_text:
+            terms_text = (
+                "1. Uso profissional: A Omnisfera é uma ferramenta profissional de apoio à inclusão e deve ser utilizada exclusivamente para fins educacionais e institucionais autorizados.\n\n"
+                "2. Confidencialidade: É proibido inserir dados pessoais sensíveis de estudantes fora de ambientes autorizados pela instituição. O usuário se compromete a proteger qualquer informação acessada na plataforma.\n\n"
+                "3. Responsabilidade: Recomendações e conteúdos gerados pela IA são auxiliares e devem ser validados por profissionais responsáveis. A decisão final é sempre humana.\n\n"
+                "4. Segurança: Credenciais de acesso são pessoais e intransferíveis. Qualquer uso indevido deve ser comunicado à coordenação responsável.\n\n"
+                "5. Conformidade: O uso deve seguir as políticas internas da escola, legislação vigente e boas práticas de proteção de dados."
+            )
+        import html
+        terms_html = html.escape(terms_text).replace("\n", "<br>")
+        st.markdown(
+            f"""
         <div style="
             max-width:720px;
             margin: 80px auto;
@@ -185,41 +209,48 @@ elif not st.session_state.get("accepted_terms"):
             </div>
         </div>
         """,
-        unsafe_allow_html=True,
-    )
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("Li e aceito. Continuar", use_container_width=True, type="primary"):
-            st.session_state.accepted_terms = True
-            try:
-                import omni_utils as ou  # lazy import para evitar ciclos
-                ou.track_usage_event("terms_accepted", source="terms_gate")
-            except Exception:
-                pass
-            st.rerun()
-    st.stop()
-elif st.session_state.get("is_platform_admin"):
-    # Admin da plataforma: vai direto para painel admin
-    try:
-        st.switch_page(ADMIN_PAGE)
-    except Exception:
-        st.switch_page("pages/8_Admin_Plataforma.py")
-else:
-    # Se por algum motivo entrou sem workspace, força relogar
-    if not st.session_state.workspace_id:
-        st.session_state.autenticado = False
-        st.warning("Workspace não encontrado. Faça login novamente.")
-        render_login()
-    else:
-        # ✅ GARANTE O CLIENT SUPABASE NA SESSÃO (resolve has_sb:false)
+            unsafe_allow_html=True,
+        )
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("Li e aceito. Continuar", use_container_width=True, type="primary"):
+                st.session_state.accepted_terms = True
+                try:
+                    import omni_utils as ou  # lazy import para evitar ciclos
+                    ou.track_usage_event("terms_accepted", source="terms_gate")
+                except Exception:
+                    pass
+                st.rerun()
+        st.stop()
+    elif st.session_state.get("is_platform_admin"):
+        # Admin da plataforma: vai direto para painel admin
         try:
-            from supabase_client import get_sb
+            st.switch_page(ADMIN_PAGE)
+        except Exception:
+            st.switch_page("pages/8_Admin_Plataforma.py")
+    else:
+        # Se por algum motivo entrou sem workspace, força relogar
+        if not st.session_state.workspace_id:
+            st.session_state.autenticado = False
+            st.warning("Workspace não encontrado. Faça login novamente.")
+            render_login()
+        else:
+            # ✅ GARANTE O CLIENT SUPABASE NA SESSÃO (resolve has_sb:false)
+            try:
+                from supabase_client import get_sb
 
-            get_sb()  # salva em st.session_state["sb"]
-        except Exception as e:
-            st.error("Supabase não inicializou. Verifique Secrets e requirements.")
-            st.code(str(e))
-            st.stop()
+                get_sb()  # salva em st.session_state["sb"]
+            except Exception as e:
+                st.error("Não foi possível conectar ao banco de dados. Tente recarregar a página.")
+                if ENV == "TESTE":
+                    st.code(str(e))
+                st.stop()
 
-        # Vai para Home real (multipage)
-        st.switch_page(HOME_PAGE)
+            # Vai para Home real (multipage)
+            st.switch_page(HOME_PAGE)
+
+except Exception as e:
+    _tela_erro_recarregar(
+        msg="Algo deu errado. Recarregue a página.",
+        detalhe=str(e) if ENV == "TESTE" else None,
+    )

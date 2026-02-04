@@ -1,0 +1,15 @@
+# Omnisfera — config para MVP/produção
+# https://docs.streamlit.io/develop/api-reference/configuration
+
+[browser]
+# Não abrir navegador automaticamente em alguns ambientes
+gatherUsageStats = false
+
+[client]
+# Em produção: não mostrar detalhes técnicos do erro na tela (a escola não deve ver traceback)
+# Deixe true apenas em desenvolvimento (ENV=TESTE no secrets)
+showErrorDetails = false
+
+[server]
+# Reduz risco de timeout em páginas pesadas
+maxUploadSize = 200
