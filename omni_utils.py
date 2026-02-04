@@ -711,6 +711,7 @@ def render_navbar(active_tab: str = "Início"):
         ("Hub de Recursos", "rocket"),
         ("Diário de Bordo", "journal"),
         ("Evolução & Dados", "bar-chart"),
+        ("PGI", "clipboard-check"),
         ("Gestão de Usuários", "gear"),
         ("Configuração Escola", "building"),
     ]
@@ -722,6 +723,7 @@ def render_navbar(active_tab: str = "Início"):
         "Hub de Recursos": "can_hub",
         "Diário de Bordo": "can_diario",
         "Evolução & Dados": "can_avaliacao",
+        "PGI": "can_gestao",
         "Gestão de Usuários": "can_gestao",
         "Configuração Escola": "can_gestao",
     }
@@ -803,6 +805,7 @@ def render_navbar(active_tab: str = "Início"):
         "Hub de Recursos": {"bg": "#CFFAFE", "color": "#0891B2"},
         "Diário de Bordo": {"bg": "#FFE4E6", "color": "#E11D48"},
         "Evolução & Dados": {"bg": "#BAE6FD", "color": "#075985"},
+        "PGI": {"bg": "#CCFBF1", "color": "#0F766E"},
         "Gestão de Usuários": {"bg": "#F5F3FF", "color": "#6366F1"},
         "Configuração Escola": {"bg": "#ECFDF5", "color": "#059669"},
     }
@@ -833,6 +836,7 @@ def render_navbar(active_tab: str = "Início"):
             "Hub de Recursos": "pages/3_Hub_Inclusao.py",
             "Diário de Bordo": "pages/4_Diario_de_Bordo.py",
             "Evolução & Dados": "pages/5_Monitoramento_Avaliacao.py",
+            "PGI": "pages/9_PGI.py",
             "Gestão de Usuários": "pages/6_Gestao_Usuarios.py",
             "Configuração Escola": "pages/7_Configuracao_Escola.py",
         }
