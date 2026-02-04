@@ -87,6 +87,16 @@ ICON_EMOJI = {
     "aviso": "⚠️", "erro": "❌", "sucesso": "✅",
 }
 
+# =============================================================================
+# MOTORES DE IA — CODENAMES (para uso em textos visíveis ao professor)
+# Omnisfera Red   = ChatGPT + DALL-E (ecossistema OpenAI)
+# Omnisfera Blue  = Gemini, NanoBanana, Gemini imagens (ecossistema Google)
+# Omnisfera Green = Kimi e derivados
+# =============================================================================
+AI_RED = "Omnisfera Red"
+AI_BLUE = "Omnisfera Blue"
+AI_GREEN = "Omnisfera Green"
+
 def get_icon(key: str, size: int = 20, color: str = None, use_emoji: bool = None) -> str:
     """
     Retorna HTML do ícone RemixIcon com cor personalizada, ou emoji quando
@@ -2056,7 +2066,7 @@ def exportar_jornada_para_sheets(
             linhas = [texto_jornada.strip()[:50000] or "(sem conteúdo)"]
         hiperfoco_txt = (str(hiperfoco_estudante).strip() if hiperfoco_estudante is not None else "") or "—"
         cabecalho = [
-            ["HIPERFOCO DO ESTUDANTE:"],
+            ["INTERESSES / FOCO DO ESTUDANTE:"],
             [hiperfoco_txt],
             [""],
             ["CÓDIGO ÚNICO (use no app gamificado):"],

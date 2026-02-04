@@ -14,6 +14,7 @@ import requests
 import pandas as pd
 from PIL import Image
 from io import BytesIO
+import omni_utils as ou
 from omni_utils import get_icon, icon_title, get_icon_emoji
 
 # Importações OpenAI e ML
@@ -2606,7 +2607,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
     st.markdown("---")
     if st.button("✨ CRIAR ATIVIDADE", type="primary", key="btn_c", use_container_width=True):
         if not api_key:
-            st.error("❌ Insira a chave da OpenAI nas configurações")
+            st.error(f"❌ Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
         else:
             with st.spinner("Elaborando atividade..."):
                 qtd_final = qtd_img_sel if usar_img else 0
@@ -2716,10 +2717,10 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
 
 def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
     """Renderiza a aba de estúdio visual (Gemini ou OpenAI + Unsplash)."""
-    st.markdown("""
+    st.markdown(f"""
     <div class="pedagogia-box">
         <div class="pedagogia-title"><i class="ri-image-line"></i> Recursos Visuais</div>
-        Gere flashcards, rotinas visuais e símbolos de comunicação. Usa <strong>Gemini</strong> (se GEMINI_API_KEY) ou OpenAI/Unsplash.
+        Gere flashcards, rotinas visuais e símbolos de comunicação. Usa <strong>{ou.AI_BLUE}</strong> (imagens) ou <strong>{ou.AI_RED}</strong> (DALL-E)/Unsplash. Configure as chaves na sidebar.
     </div>
     """, unsafe_allow_html=True)
     
@@ -3225,11 +3226,11 @@ def render_aba_ei_experiencia(aluno, api_key):
 
 def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
     """Renderiza a aba de estúdio visual da Educação Infantil (Gemini ou OpenAI + Unsplash)."""
-    st.markdown("""
+    st.markdown(f"""
     <div class="pedagogia-box">
         <div class="pedagogia-title"><i class="ri-eye-line"></i> Apoio Visual & Comunicação</div>
         Crianças atípicas processam melhor imagens do que fala. 
-        Use <strong>Cenas</strong> para histórias sociais e <strong>Pictogramas (CAA)</strong>. Usa <strong>Gemini</strong> (se GEMINI_API_KEY) ou OpenAI/Unsplash.
+        Use <strong>Cenas</strong> para histórias sociais e <strong>Pictogramas (CAA)</strong>. Usa <strong>{ou.AI_BLUE}</strong> ou <strong>{ou.AI_RED}</strong> (DALL-E)/Unsplash.
     </div>
     """, unsafe_allow_html=True)
     
@@ -3512,8 +3513,8 @@ def main():
     
     # 2. PEI RETRÁTIL (Aqui está a mudança solicitada)
     # Mostra os detalhes pesados apenas se o usuário clicar
-    with st.expander(f"📄 Ver Detalhes do PEI e Diagnóstico de {aluno['nome'].split()[0]}", expanded=False):
-        
+    with st.expander(f"📄 Ver Detalhes do PEI — {aluno['nome'].split()[0]} (uso interno da equipe)", expanded=False):
+        st.caption("Contexto pedagógico e clínico. Estas informações permanecem na Omnisfera e não são compartilhadas com o estudante ou a família.")
         # Buscar diagnóstico - IMPORTANTE: usar diretamente do aluno que já foi processado
         # O diagnóstico já foi extraído corretamente na função carregar_estudantes_supabase
         diagnostico_pei = aluno.get('diagnosis', '') or ""
@@ -3552,13 +3553,13 @@ def main():
         
         c_diag, c_hip = st.columns(2)
         with c_diag:
-            st.markdown(f"**🏥 Diagnóstico/CID:**")
+            st.markdown("**🏥 Contexto clínico (apenas equipe):**")
             # Garantir que está usando o campo correto
             diag_final = diagnostico_pei if diagnostico_pei and diagnostico_pei != "Não informado no cadastro" else "Não informado no cadastro"
             st.info(diag_final)
             
         with c_hip:
-            st.markdown(f"**🎯 Hiperfoco/Interesses:**")
+            st.markdown("**🎯 Interesses / Hiperfoco:**")
             # Garantir que está usando o campo correto - NÃO usar diagnóstico aqui
             hip_final = hiperfoco_aluno if hiperfoco_aluno and hiperfoco_aluno != "Não informado no cadastro" else "Interesses gerais (A descobrir)"
             st.success(hip_final)

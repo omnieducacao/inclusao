@@ -448,8 +448,8 @@ if nome_selecionado != "Selecione...":
             for obj in objetivos:
                 st.info(f"📍 {obj}")
         else:
-            # Se não tiver estrutura, mostra o diagnóstico
-            st.info(f"**Diagnóstico Base:** {aluno['diagnosis']}")
+            # Se não tiver estrutura, mostra o contexto (uso interno)
+            st.info(f"**Contexto (equipe):** {aluno.get('diagnosis', '—')}")
             st.write("Sem objetivos específicos estruturados no JSON.")
     
     with c2:

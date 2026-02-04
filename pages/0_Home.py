@@ -1349,7 +1349,7 @@ def render_central_conhecimento():
             <p>Tudo começa na página <strong>Estratégias & PEI</strong>. Antes de pensar em recursos, precisamos mapear quem é o estudante.</p>
             <p><strong>Ação na Plataforma:</strong></p>
             <ul>
-                <li>Registre o histórico e o diagnóstico na aba Estudante.</li>
+                <li>Registre o histórico e o contexto clínico na aba Estudante (uso interno da equipe).</li>
                 <li>Mapeie as barreiras de aprendizagem (cognitivas, sensoriais ou físicas).</li>
                 <li>Use a IA para estruturar metas de curto, médio e longo prazo.</li>
             </ul>

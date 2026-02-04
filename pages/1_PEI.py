@@ -1497,7 +1497,7 @@ def ler_pdf(uploaded_file, max_pages=6):
 
 def extrair_dados_pdf_ia(api_key: str, texto_pdf: str):
     if not api_key:
-        return None, "Configure a Chave API OpenAI."
+        return None, f"Configure a chave da IA ({ou.AI_RED}) nas configurações."
     try:
         client = OpenAI(api_key=api_key)
         prompt = (
@@ -1516,7 +1516,7 @@ def extrair_dados_pdf_ia(api_key: str, texto_pdf: str):
 
 def consultar_gpt_pedagogico(api_key: str, dados: dict, contexto_pdf: str = "", modo_pratico: bool = False, feedback_usuario: str = ""):
     if not api_key:
-        return None, "⚠️ Configure a Chave API OpenAI."
+        return None, f"⚠️ Configure a chave da IA ({ou.AI_RED}) nas configurações."
     try:
         client = OpenAI(api_key=api_key)
 
@@ -1745,7 +1745,7 @@ GUIA PRÁTICO PARA SALA DE AULA.
 
 def gerar_roteiro_gamificado(api_key: str, dados: dict, pei_tecnico: str, feedback_game: str = ""):
     if not api_key:
-        return None, "Configure a chave OpenAI."
+        return None, f"Configure a chave da IA ({ou.AI_RED})."
     try:
         client = OpenAI(api_key=api_key)
         serie = dados.get("serie") or ""
@@ -1760,12 +1760,13 @@ def gerar_roteiro_gamificado(api_key: str, dados: dict, pei_tecnico: str, feedba
 
         prompt_feedback = f"AJUSTE: {feedback_game}" if feedback_game else ""
 
+        regra_sem_diagnostico = " REGRA: NUNCA inclua diagnóstico clínico, CID ou condições médicas — este material será entregue ao estudante e à família."
         if nivel_ensino == "EI":
-            prompt_sys = "Crie uma história visual (4-5 anos) com emojis. Estrutura: começo, desafio, ajuda, conquista, rotina."
+            prompt_sys = "Crie uma história visual (4-5 anos) com emojis. Estrutura: começo, desafio, ajuda, conquista, rotina." + regra_sem_diagnostico
         elif nivel_ensino == "FI":
-            prompt_sys = "Crie um quadro de missões RPG (6-10 anos). Estrutura: mapa, missões, recompensas, superpoder."
+            prompt_sys = "Crie um quadro de missões RPG (6-10 anos). Estrutura: mapa, missões, recompensas, superpoder." + regra_sem_diagnostico
         else:
-            prompt_sys = "Crie uma ficha RPG (adolescente). Estrutura: quest, skills, buffs, checklists e metas."
+            prompt_sys = "Crie uma ficha RPG (adolescente). Estrutura: quest, skills, buffs, checklists e metas." + regra_sem_diagnostico
 
         full_sys = f"{prompt_sys}\n{prompt_feedback}"
         res = client.chat.completions.create(
@@ -3105,7 +3106,7 @@ with tab7_hab:
     if st.session_state.get("_run_auxilio_hab"):
         st.session_state["_run_auxilio_hab"] = False
         if not api_key:
-            st.error("Configure a chave OpenAI: variável OPENAI_API_KEY (ambiente), secrets do app ou session_state.")
+            st.error(f"Configure a chave da IA ({ou.AI_RED}): variável OPENAI_API_KEY, secrets ou session_state.")
         elif not ano_atual:
             st.warning("Não há habilidades do ano atual para sugerir.")
         else:
@@ -3176,7 +3177,7 @@ HABILIDADES DO ANO ATUAL:
     if st.session_state.get("_run_auxilio_hab_anteriores"):
         st.session_state["_run_auxilio_hab_anteriores"] = False
         if not api_key:
-            st.error("Configure a chave OpenAI: variável OPENAI_API_KEY (ambiente), secrets do app ou session_state.")
+            st.error(f"Configure a chave da IA ({ou.AI_RED}): variável OPENAI_API_KEY, secrets ou session_state.")
         elif not anos_anteriores:
             st.warning("Não há habilidades de anos anteriores para sugerir.")
         else:

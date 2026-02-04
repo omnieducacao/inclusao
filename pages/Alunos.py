@@ -233,9 +233,10 @@ if q:
 if not alunos:
     st.info("Nenhum estudante encontrado.")
 else:
+    st.caption("Dados sensíveis: uso exclusivo da equipe pedagógica. Não compartilhar com estudantes ou famílias.")
     st.markdown("""
     <div class="student-table">
-        <div class="student-header"><div>Nome</div><div>Série</div><div>Turma</div><div>Diagnóstico</div><div>Ações</div></div>
+        <div class="student-header"><div>Nome</div><div>Série</div><div>Turma</div><div>Contexto (equipe)</div><div>Ações</div></div>
     """, unsafe_allow_html=True)
     
     for a in alunos:

@@ -775,6 +775,7 @@ serie_aluno = aluno.get('serie', '').lower()
 is_ei = any(term in serie_aluno for term in ["infantil", "creche", "pré", "maternal", "berçario", "jardim"])
 
 # --- HEADER DO ESTUDANTE ---
+st.caption("Informações do cabeçalho: uso interno da equipe. O diagnóstico não aparece em materiais entregues ao estudante ou à família.")
 st.markdown(f"""
     <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 20px 30px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
         <div><div style="font-size: 0.8rem; color: #64748B; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Nome</div><div style="font-size: 1.2rem; color: #1E293B; font-weight: 800;">{aluno.get('nome')}</div></div>
@@ -1237,7 +1238,7 @@ def gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo, feedback_game=""):
     """Gera roteiro gamificado para o estudante a partir do planejamento do ciclo (metas, cronograma, foco). Usa Gemini."""
     gemini_key = ou.get_gemini_api_key()
     if not gemini_key:
-        return None, "Configure GEMINI_API_KEY (ambiente, secrets ou configuração) para gerar a jornada gamificada."
+        return None, f"Configure GEMINI_API_KEY (ambiente ou secrets) para gerar a jornada. A geração usa o assistente {ou.AI_BLUE}."
     try:
         nome_curto = (aluno.get("nome", "").split() or ["Estudante"])[0]
         cfg = ciclo.get("config_ciclo") or {}
@@ -1269,8 +1270,9 @@ def gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo, feedback_game=""):
         prompt_feedback = f"\nAJUSTE SOLICITADO: {feedback_game}" if feedback_game else ""
         prompt_sys = (
             "Você é um Game Master. Crie uma versão GAMIFICADA do planejamento do ciclo AEE "
-            "para o estudante e a família: linguagem motivadora, missões, recompensas, sem dados sensíveis. "
-            "É o mesmo planejamento das outras abas, só que em formato de roteiro para o estudante. "
+            "para o estudante e a família: linguagem motivadora, missões, recompensas. "
+            "REGRA OBRIGATÓRIA: NUNCA inclua diagnóstico clínico, CID, condições médicas ou qualquer informação de saúde no texto. "
+            "Este material será entregue ao estudante e à família — use apenas desafios, conquistas, metas e estratégias pedagógicas. "
             "Estrutura: título da missão/jornada, mapa das fases ou semanas como etapas, desafios e conquistas. "
             "Use títulos e listas em markdown de forma clara (##, -, *)."
             + prompt_feedback
@@ -1288,7 +1290,7 @@ def gerar_roteiro_gamificado_de_texto(api_key, aluno, texto_origem, nome_fonte, 
     """Gera roteiro gamificado para o estudante a partir do texto de uma aba (barreiras, plano, tech, etc.). Usa Gemini."""
     gemini_key = ou.get_gemini_api_key()
     if not gemini_key:
-        return None, "Configure GEMINI_API_KEY (ambiente, secrets ou configuração) para gerar a jornada gamificada."
+        return None, f"Configure GEMINI_API_KEY (ambiente ou secrets) para gerar a jornada. A geração usa o assistente {ou.AI_BLUE}."
     if not (texto_origem or "").strip():
         return None, f"Não há conteúdo na aba selecionada. Gere o conteúdo na aba **{nome_fonte}** primeiro."
     try:
@@ -1302,8 +1304,9 @@ def gerar_roteiro_gamificado_de_texto(api_key, aluno, texto_origem, nome_fonte, 
         prompt_feedback = f"\nAJUSTE SOLICITADO: {feedback_game}" if feedback_game else ""
         prompt_sys = (
             "Você é um Game Master. Transforme o conteúdo abaixo em uma versão GAMIFICADA para o estudante e a família: "
-            "linguagem motivadora, missões, recompensas, sem dados sensíveis. "
-            "É o mesmo planejamento da aba de origem, em formato de roteiro para o estudante. "
+            "linguagem motivadora, missões, recompensas. "
+            "REGRA OBRIGATÓRIA: NUNCA inclua diagnóstico clínico, CID, condições médicas ou qualquer informação de saúde no texto. "
+            "Este material será entregue ao estudante e à família — remova qualquer menção clínica e use apenas desafios, conquistas e estratégias pedagógicas. "
             "Estrutura: título da missão/jornada, etapas/desafios, conquistas. O estudante deve se ver como protagonista. "
             "Use títulos e listas em markdown de forma clara (##, -, *)."
             + prompt_feedback
@@ -1663,7 +1666,7 @@ else:
 # ==============================================================================
 if is_ei:
     with tab_barreiras:
-        st.markdown("<div class='pedagogia-box'><strong>Diagnóstico do Brincar:</strong> Identifique barreiras na interação e no brincar.</div>", unsafe_allow_html=True)
+        st.markdown("<div class='pedagogia-box'><strong>Diagnóstico do Brincar:</strong> Mapeie barreiras na interação e no brincar (uso interno da equipe). O resultado ajuda a planejar estratégias; não será exposto ao estudante.</div>", unsafe_allow_html=True)
         if st.session_state.get('status_diagnostico_barreiras', 'rascunho') != 'rascunho':
             if st.button("Limpar / Abandonar", key="limpar_tab_barreiras_ei", help="Descarta o conteúdo gerado e volta ao início"):
                 st.session_state.status_diagnostico_barreiras = 'rascunho'
@@ -1681,7 +1684,7 @@ if is_ei:
             
             if st.button("🔍 Mapear Barreiras", type="primary", use_container_width=True):
                 if not api_key:
-                    st.error("Insira a chave OpenAI nas configurações.")
+                    st.error(f"Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
                 elif not obs_aee:
                     st.warning("Por favor, descreva suas observações antes de mapear.")
                 else:
@@ -1719,7 +1722,7 @@ if is_ei:
                     st.rerun()
 else:
     with tab_barreiras:
-        st.markdown("<div class='pedagogia-box'><strong>Diagnóstico de Acessibilidade:</strong> O que impede a participação plena do aluno?</div>", unsafe_allow_html=True)
+        st.markdown("<div class='pedagogia-box'><strong>Diagnóstico de Acessibilidade:</strong> Identifique o que impede a participação plena do estudante (barreiras atitudinais, arquitetônicas, tecnológicas). Resultado para uso da equipe.</div>", unsafe_allow_html=True)
         if st.session_state.get('status_diagnostico_barreiras', 'rascunho') != 'rascunho':
             if st.button("Limpar / Abandonar", key="limpar_tab_barreiras", help="Descarta o conteúdo gerado e volta ao início"):
                 st.session_state.status_diagnostico_barreiras = 'rascunho'
@@ -1736,7 +1739,7 @@ else:
             
             if st.button("🔍 Analisar Barreiras", type="primary", use_container_width=True):
                 if not api_key:
-                    st.error("Insira a chave OpenAI nas configurações.")
+                    st.error(f"Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
                 elif not obs_aee:
                     st.warning("Por favor, descreva suas observações antes de analisar.")
                 else:
@@ -1795,7 +1798,7 @@ if is_ei:
             
             if st.button("✨ Gerar Atividades", type="primary", use_container_width=True):
                 if not api_key:
-                    st.error("Insira a chave OpenAI nas configurações.")
+                    st.error(f"Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
                 else:
                     with st.spinner("Criando banco de experiências..."):
                         resultado = gerar_projetos_ei_bncc(api_key, aluno, campo_bncc)
@@ -1848,7 +1851,7 @@ else:
             
             if st.button("📋 Gerar Plano", type="primary", use_container_width=True):
                 if not api_key:
-                    st.error("Insira a chave OpenAI nas configurações.")
+                    st.error(f"Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
                 else:
                     with st.spinner("Elaborando plano de intervenção..."):
                         resultado = gerar_plano_habilidades(api_key, aluno, foco)
@@ -1903,7 +1906,7 @@ if is_ei:
             
             if st.button("🛠️ Sugerir Adaptação", type="primary", use_container_width=True):
                 if not api_key:
-                    st.error("Insira a chave OpenAI nas configurações.")
+                    st.error(f"Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
                 elif not dif_rotina:
                     st.warning("Por favor, descreva a dificuldade específica.")
                 else:
@@ -1958,7 +1961,7 @@ else:
             
             if st.button("🔧 Sugerir Recursos", type="primary", use_container_width=True):
                 if not api_key:
-                    st.error("Insira a chave OpenAI nas configurações.")
+                    st.error(f"Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
                 elif not dif_especifica:
                     st.warning("Por favor, descreva a dificuldade específica.")
                 else:
@@ -2029,7 +2032,7 @@ with tab_ponte:
         
         if st.button("📄 Gerar Documento", type="primary", use_container_width=True):
             if not api_key:
-                st.error("Insira a chave OpenAI na sidebar.")
+                st.error(f"Insira a chave da IA ({ou.AI_RED}) na sidebar.")
             elif not acoes_resumo:
                 st.warning("Por favor, descreva o trabalho desenvolvido no AEE.")
             else:
@@ -2616,13 +2619,17 @@ with tab_jornada:
           Missão do(a) {aluno.get('nome','')}
         </div>
         <div style="font-size:.9rem;color:#64748B;margin-top:6px;">
-          Transforme em roteiro gamificado o que foi gerado em qualquer aba — para o estudante e a família.
+          Gere missões motivadoras a partir do planejamento. O roteiro será entregue ao estudante e à família — use linguagem de conquistas, nunca diagnósticos.
         </div>
       </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.info("Cada aba do PAE pode virar uma **jornada gamificada** para o estudante. Escolha a **origem** na lista abaixo: Execução e Metas SMART, Mapear Barreiras, Plano de Habilidades ou Tecnologia Assistiva. A geração da missão usa **Gemini** (configure GEMINI_API_KEY).")
+    st.info(
+        "Cada aba do PAE pode virar uma **jornada gamificada** para o estudante e a família. "
+        "Escolha a **origem** na lista abaixo. A geração usa o assistente **" + ou.AI_BLUE + "** (configure GEMINI_API_KEY). "
+        "⚠️ O material gerado será entregue ao estudante — diagnósticos e dados clínicos não são incluídos."
+    )
 
     # Opções de origem para a jornada (cada aba pode virar roteiro gamificado)
     if is_ei:
@@ -2698,7 +2705,7 @@ with tab_jornada:
             st.rerun()
 
     if status_game == "rascunho":
-        st.markdown("**Como funciona:** A IA transforma o conteúdo da aba escolhida em uma missão gamificada para o estudante.")
+        st.markdown("**Como funciona:** O assistente transforma o conteúdo da aba escolhida em uma missão gamificada para o estudante e a família. O texto final não inclui diagnósticos — apenas desafios e conquistas.")
         estilo_j = st.text_input("Preferência de estilo (opcional)", placeholder="Ex: super-heróis, exploração, futebol...", key="jg_estilo")
         if st.button("Criar Roteiro Gamificado", type="primary", use_container_width=True, key="btn_jg_gerar"):
             if usa_ciclo:
@@ -2738,8 +2745,8 @@ with tab_jornada:
             st.markdown(estado.get("texto", ""))
         # Representação visual (Nano Banana)
         st.markdown("---")
-        st.markdown("**Mapa mental do roteiro** — Gere um mapa mental rico e visual a partir do roteiro gamificado (Gemini Pro Image).")
-        st.caption("Estrutura: nó central → missões → etapas. Texto em português. Requer GEMINI_API_KEY nos secrets.")
+        st.markdown("**Mapa mental do roteiro** — Gere um mapa mental visual a partir do roteiro gamificado (assistente " + ou.AI_BLUE + ").")
+        st.caption("Estrutura: nó central → missões → etapas. Requer GEMINI_API_KEY. O mapa não inclui informações clínicas.")
         usar_hiperfoco_tema_revisao = st.checkbox(
             "Usar hiperfoco do estudante como tema do mapa mental (nó central)",
             value=True,
@@ -2759,7 +2766,7 @@ with tab_jornada:
         if estado.get("imagem_bytes"):
             st.image(estado["imagem_bytes"], caption="Mapa mental da jornada", use_container_width=True)
             st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_revisao")
-        if st.button("Gerar mapa mental do roteiro (Gemini Pro Image)", key="btn_jg_imagem_revisao", help="Gera um mapa mental colorido: centro → missões → etapas, a partir do roteiro gamificado."):
+        if st.button("Gerar mapa mental do roteiro", key="btn_jg_imagem_revisao", help="Gera um mapa mental colorido a partir do roteiro. Usa o assistente " + ou.AI_BLUE + "."):
             with st.spinner("Gerando ilustração..."):
                 try:
                     gemini_key = ou.get_gemini_api_key()
@@ -2812,8 +2819,8 @@ with tab_jornada:
         novo_texto = st.text_area("Edição final (opcional)", value=estado.get("texto", ""), height=280, key="jg_texto_final")
         jg[chave_jornada]["texto"] = novo_texto
         # Representação visual (Nano Banana)
-        with st.expander("Mapa mental do roteiro (Gemini Pro Image)", expanded=bool(estado.get("imagem_bytes"))):
-            st.caption("Gera um mapa mental rico e visual: nó central, ramos para missões e etapas. Texto em português. Requer GEMINI_API_KEY.")
+        with st.expander("Mapa mental do roteiro", expanded=bool(estado.get("imagem_bytes"))):
+            st.caption("Gera um mapa mental visual: nó central, ramos para missões e etapas. Usa o assistente " + ou.AI_BLUE + ". Requer GEMINI_API_KEY.")
             usar_hiperfoco_tema_aprovado = st.checkbox(
                 "Usar hiperfoco do estudante como tema do mapa mental (nó central)",
                 value=True,
@@ -2833,7 +2840,7 @@ with tab_jornada:
             if estado.get("imagem_bytes"):
                 st.image(estado["imagem_bytes"], caption="Mapa mental da jornada", use_container_width=True)
                 st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_aprovado")
-            if st.button("Gerar mapa mental do roteiro (Gemini Pro Image)", key="btn_jg_imagem_aprovado", help="Gera um mapa mental colorido: centro → missões → etapas, a partir do roteiro gamificado."):
+            if st.button("Gerar mapa mental do roteiro", key="btn_jg_imagem_aprovado", help="Gera um mapa mental colorido a partir do roteiro. Usa o assistente " + ou.AI_BLUE + "."):
                 with st.spinner("Gerando ilustração..."):
                     try:
                         gemini_key = ou.get_gemini_api_key()
@@ -2903,7 +2910,7 @@ with tab_jornada:
                 use_container_width=True,
                 key="btn_jg_csv"
             )
-        st.caption("Dica: imprima e entregue ao estudante ou à família. Use «Sincronizar na Minha Jornada» e informe o código ao estudante para ele acessar no app gamificado.")
+        st.caption("Dica: Baixe o PDF para imprimir ou use «Sincronizar na Minha Jornada» para gerar o código de acesso. O material está em linguagem adequada para o estudante e a família — sem informações clínicas.")
         if st.button("Criar Nova Missão (outra origem)", use_container_width=True, key="btn_jg_nova"):
             jg[chave_jornada]["status"] = "rascunho"
             jg[chave_jornada]["feedback"] = ""
