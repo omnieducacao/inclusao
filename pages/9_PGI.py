@@ -82,6 +82,7 @@ st.markdown("""
 .pgi-badge-pedag { background: #D1FAE5; color: #047857; }
 .pgi-badge-pgei { background: #E0E7FF; color: #4338CA; }
 .pgi-badge-com { background: #FCE7F3; color: #BE185D; }
+.pgi-badge-srm { background: #E0F2FE; color: #0369A1; }
 .pgi-info-box { background: #F0FDFA; border-left: 4px solid #0F766E; padding: 1rem 1.25rem; border-radius: 0 12px 12px 0; margin: 1rem 0; }
 .pgi-info-box h4 { color: #0F766E; margin: 0 0 0.5rem 0; font-size: 1rem; }
 .pgi-quote { background: #F8FAFC; border-left: 3px solid #CBD5E1; padding: 1rem; border-radius: 0 8px 8px 0; font-style: italic; color: #475569; margin: 1rem 0; }
@@ -98,6 +99,7 @@ if "pgi_dimensionamento" not in st.session_state:
 
 TIPOS_ACAO = {
     "infraestrutura": ("Infraestrutura (Acessibilidade física)", "pgi-badge-infra", "ri-building-line"),
+    "sala_multifuncional": ("Sala Multifuncional (SRM)", "pgi-badge-srm", "ri-home-gear-line"),
     "formacao_equipe": ("Formação de Equipe (Capacitação docente/staff)", "pgi-badge-equipe", "ri-team-line"),
     "recursos_pedagogicos": ("Recursos Pedagógicos (Tecnologia assistiva)", "pgi-badge-pedag", "ri-tools-line"),
     "dimensionamento_pgei": ("Dimensionamento / Equipe (PGEI)", "pgi-badge-pgei", "ri-bar-chart-line"),
@@ -285,6 +287,46 @@ with tab_inicial:
         Uma das questões fundamentais é a **comunicação interna** entre profissionais que atuam com o aluno, a troca com profissionais externos e o **diálogo com as famílias**. Em todos os casos, o sigilo e a reserva de informações devem ser respeitados conforme o limite da atuação de cada profissional. A responsabilidade pela privacidade do aluno é de todos; cabe à equipe de educação inclusiva a tarefa de filtrar dados e informações.
         """)
 
+    st.markdown("---")
+    st.markdown("### 4. Salas Multifuncionais (SRM)")
+
+    with st.expander("📖 Bloco 4.1 — Fundamentos legais e função social", expanded=True):
+        st.markdown("""
+        Em 2008, o **Decreto nº 6.571** instituiu as salas de recursos multifuncionais: ambientes dotados de equipamentos, mobiliários, materiais didáticos e pedagógicos para a realização do Atendimento Educacional Especializado (AEE).
+
+        O trabalho nas salas multifuncionais **não substitui** o das classes comuns. O objetivo é superar o modelo que separa escolas comuns de classes especiais. A escola deve construir uma proposta pedagógica capaz de valorizar as diferenças, com escolarização nas classes comuns e atendimento às necessidades específicas.
+
+        *Decreto nº 6.571, de 17 de setembro de 2008 — Dispõe sobre o AEE e regulamenta o parágrafo único do art. 60 da LDB (Lei 9.394/96).*
+        """)
+
+    with st.expander("🏫 Bloco 4.2 — Organização e equipamentos da SRM"):
+        st.markdown("""
+        As salas de recursos multifuncionais (SRM), instaladas na própria escola comum, devem receber **equipamentos**, **recursos de acessibilidade** e **materiais pedagógicos** que facilitem a escolarização, eliminando obstáculos e promovendo autonomia, independência, integração educacional e social.
+        """)
+
+    with st.expander("💡 Bloco 4.3 — Sugestões práticas de baixo custo"):
+        st.markdown("""
+        1. **Equipamentos essenciais:** Mesas adaptáveis, cadeiras confortáveis, materiais de apoio visual (cartazes com sinais e pictogramas).
+        2. **Tecnologias assistivas simples:** Softwares gratuitos de leitura de tela, livros digitais, programas de leitura e escrita para dificuldades de aprendizagem.
+        3. **Espaços organizados:** Áreas bem delimitadas para facilitar mobilidade e garantir que todos os materiais estejam acessíveis.
+        4. **Apoios pedagógicos:** Jogos, fantoches, livros em braille e outras opções adaptadas que incentivem autonomia e participação ativa.
+        5. **Parcerias locais:** Doações ou parcerias com ONGs, universidades ou empresas para equipar a sala sem sobrecarregar o orçamento.
+        """)
+
+    with st.expander("👥 Bloco 4.4 — Público-alvo do AEE na SRM"):
+        st.markdown("""
+        - **Alunos com deficiência:** Impedimentos duradouros de natureza física, intelectual, mental ou sensorial; prejudicados na interação por obstáculos físicos, materiais ou ausência de recursos específicos.
+        - **Alunos com transtornos globais do desenvolvimento:** Alterações no desenvolvimento neuropsicomotor (autismo, síndromes do espectro autista, psicose infantil).
+        - **Alunos com altas habilidades ou superdotação:** Potencial diferenciado nas áreas intelectual, acadêmica, liderança, psicomotora, artes e criatividade.
+        """)
+
+    with st.expander("🤝 Bloco 4.5 — Articulação AEE e classe comum"):
+        st.markdown("""
+        A baixa porcentagem de salas de recursos nas escolas comuns prejudica a permanência dos estudantes, obrigando deslocamentos para outras unidades. Além disso, reduz o trabalho colaborativo entre professores(as) do AEE e da classe comum.
+
+        É fundamental **alinhamentos constantes** entre os professores do AEE e os da classe comum, mesmo a distância, com mediação da coordenação pedagógica quando não for possível o encontro presencial. As trocas garantirão a coerência do programa e a prática inclusiva.
+        """)
+
 # --- ABA GERADOR: Formulário 5W2H e tabela ---
 with tab_gerador:
     st.markdown(f"### {icon_title('O Gerador', 'fluxo', 22, '#0F766E')}", unsafe_allow_html=True)
@@ -305,6 +347,7 @@ with tab_gerador:
     with st.expander("💡 Dicas do PGEI — use na aba Inicial para referência", expanded=False):
         st.markdown("""
         - **Infraestrutura:** rampas, banheiros adaptados, tecnologias assistivas  
+        - **Sala Multifuncional (SRM):** equipamentos, materiais adaptados, parcerias locais, organização do espaço (Decreto 6.571/2008)  
         - **Formação:** capacitação docente, HTPC, formação sobre LDB/BNCC  
         - **Recursos pedagógicos:** materiais adaptados, intérpretes de Libras  
         - **Dimensionamento PGEI:** alocação de mediadores, ampliação de carga horária, reorganização de turnos  
@@ -312,7 +355,7 @@ with tab_gerador:
         """)
 
     st.markdown("**Ações sugeridas** (clique para adicionar rapidamente ao plano)")
-    sug_cols = st.columns(4)
+    sug_cols = st.columns(6)
     def _add_acao_rapida(o_que, por_que, tipo):
         st.session_state.pgi_acoes.append({
             "tipo": tipo,
@@ -339,6 +382,12 @@ with tab_gerador:
     with sug_cols[3]:
         if st.button("➕ Fluxo recepção/doc.", key="sug_fluxo", use_container_width=True):
             _add_acao_rapida("Estabelecer fluxo de recepção à família e arquivamento de documentação PEI/PDI", "Garantir sigilo e disponibilizar ao setor pedagógico", "comunicacao_procedimentos")
+    with sug_cols[4]:
+        if st.button("➕ Equipar SRM", key="sug_srm", use_container_width=True):
+            _add_acao_rapida("Equipar sala multifuncional com mesas adaptáveis, materiais de apoio visual e recursos de acessibilidade", "Decreto 6.571/2008 — eliminar obstáculos à plena participação", "sala_multifuncional")
+    with sug_cols[5]:
+        if st.button("➕ Alinhamento AEE + classe", key="sug_aee", use_container_width=True):
+            _add_acao_rapida("Estabelecer alinhamentos constantes entre professores do AEE e da classe comum", "Garantir coerência do programa e prática inclusiva (mediação da coordenação)", "comunicacao_procedimentos")
 
     tipo_acao = st.radio(
         "Tipo de Ação:",
@@ -353,8 +402,8 @@ with tab_gerador:
         with c1:
             o_que = st.text_input(
                 "O QUE (Ação prática)",
-                placeholder="Ex: Adaptação de banheiros / Aquisição de rampas móveis / Formação sobre LDB / Contratar mediador adicional / Grupo de enriquecimento para altas habilidades",
-                help="Descreva a ação concreta. Para PGEI: contratar mediador, ampliar carga horária, mapear perfis.",
+                placeholder="Ex: Adaptação de banheiros / Equipar SRM com mesas adaptáveis / Parcerias para materiais da sala multifuncional / Formação sobre LDB / Contratar mediador",
+                help="Para SRM: equipamentos, materiais adaptados, parcerias locais, organização do espaço.",
             )
             por_que = st.text_area(
                 "POR QUE (Justificativa)",
@@ -368,7 +417,7 @@ with tab_gerador:
             )
             onde = st.text_input(
                 "ONDE (Local)",
-                placeholder="Ex: Bloco A, sala 12 / Salas de aula / Laboratório de informática",
+                placeholder="Ex: Bloco A, sala 12 / Sala multifuncional (SRM) / Salas de aula / Laboratório de informática",
             )
             col_prazo, col_custo = st.columns(2)
             with col_prazo:
@@ -492,6 +541,7 @@ with tab_gerador:
                 "recursos_pedagogicos": "Recursos Pedagogicos (Tecnologia assistiva)",
                 "dimensionamento_pgei": "Dimensionamento / Equipe (PGEI)",
                 "comunicacao_procedimentos": "Comunicacao e procedimentos institucionais",
+                "sala_multifuncional": "Sala Multifuncional (SRM)",
             }
 
             for i, a in enumerate(acoes_list, 1):
