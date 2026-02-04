@@ -653,7 +653,8 @@ def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str, aluno: dict = N
     """
     if not kimi_key:
         kimi_key = (
-            os.environ.get("OPENROUTER_API_KEY")
+            st.session_state.get("_kimi_key_cached")
+            or os.environ.get("OPENROUTER_API_KEY")
             or os.environ.get("KIMI_API_KEY")
             or ou.get_setting("OPENROUTER_API_KEY", "")
             or ou.get_setting("KIMI_API_KEY", "")
@@ -666,7 +667,11 @@ def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str, aluno: dict = N
             pass
         kimi_key = (kimi_key or "").strip() or None
     if not kimi_key:
-        return None, "Configure OPENROUTER_API_KEY ou KIMI_API_KEY em secrets (chave sk-or-... do openrouter.ai/keys)"
+        return None, (
+            "Configure OPENROUTER_API_KEY ou KIMI_API_KEY em .streamlit/secrets.toml ou variáveis de ambiente. "
+            "Chave OpenRouter (sk-or-...) em openrouter.ai/keys. "
+            "Em deploy (Streamlit Cloud/Render): adicione nas Secrets/Env Vars do serviço."
+        )
 
     # Usa OPENROUTER_BASE_URL, KIMI_MODEL se configurados; senão detecta por prefixo da chave
     base_url = (
@@ -3799,7 +3804,8 @@ def main():
     
     gemini_key = ou.get_gemini_api_key()
     kimi_key = (
-        os.environ.get("OPENROUTER_API_KEY")
+        st.session_state.get("_kimi_key_cached")
+        or os.environ.get("OPENROUTER_API_KEY")
         or os.environ.get("KIMI_API_KEY")
         or ou.get_setting("OPENROUTER_API_KEY", "")
         or ou.get_setting("KIMI_API_KEY", "")
@@ -3811,6 +3817,8 @@ def main():
     except Exception:
         pass
     kimi_key = (kimi_key or "").strip() or None
+    if kimi_key:
+        st.session_state["_kimi_key_cached"] = kimi_key
 
     # Carregar dados dos estudantes
     if 'banco_estudantes' not in st.session_state or not st.session_state.banco_estudantes:
