@@ -695,35 +695,49 @@ def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str, aluno: dict = N
     hiperfoco = (aluno or {}).get("hiperfoco", "") or "aprendizado e descobertas"
     nome_aluno = (aluno or {}).get("nome", "") or "estudante"
 
-    prompt = f"""Crie uma APRESENTAÇÃO PARA O PROFESSOR USAR NA AULA — visualmente rica, inspirada no interesse do aluno.
+    prompt = f"""Você é um designer de apresentações profissionais. Crie uma APRESENTAÇÃO IMPACTANTE para o professor usar em sala — nível executivo/corporativo, não amador.
 
 CONTEXTO:
 - Plano de aula: {titulo_plano[:80]}
-- Hiperfoco do aluno (use na estética/theme): {hiperfoco[:200]}
+- Hiperfoco do aluno (estética/theme): {hiperfoco[:200]}
 - Nome do aluno: {nome_aluno}
 
-Objetivo: PPT que o professor projeta na aula — engajante, com poucos bullets por slide, frases de destaque, sugestões visuais. A estética (cores, tema) deve refletir o hiperfoco.
+OBJETIVO: PPT profissional, engajante, com hierarquia visual clara. Use o plano de aula para extrair os CONCEITOS-CHAVE, OBJETIVOS, ATIVIDADES e DESTAQUES. Cada slide deve ter propósito — não preencha com texto genérico.
 
 Retorne APENAS um JSON válido, sem markdown:
 {{
-  "theme": "nome do tema baseado no hiperfoco (ex: dinossauros, espaço, natureza, jogos)",
+  "theme": "tema visual baseado no hiperfoco (ex: exploração espacial, floresta, dinossauros, jogos)",
   "palette": {{
-    "primary": "hex sem # (ex: 0F766E para teal)",
-    "accent": "hex sem # (ex: F59E0B para âmbar)",
-    "background_light": "hex (ex: F0FDFA)"
+    "primary": "hex sem # (cor principal)",
+    "accent": "hex sem # (cor de destaque)",
+    "background_light": "hex (fundo claro)",
+    "text_dark": "hex (texto principal)",
+    "text_muted": "hex (texto secundário)"
   }},
   "slides": [
-    {{"title": "Título impactante", "bullets": ["Frase curta", "..."], "visual_cue": "Sugestão de imagem/ícone (ex: foguete, lupa)"}},
-    ...
+    {{"slide_type": "cover", "title": "Título da aula", "subtitle": "Frase de impacto com foco no hiperfoco"}},
+    {{"slide_type": "section", "title": "Objetivos", "statement": "Frase curta e poderosa"}},
+    {{"slide_type": "content", "title": "Conceito 1", "bullets": ["Bullet curto", "Outro bullet"], "callout": "Frase para destacar em caixa"}},
+    {{"slide_type": "quote", "quote_text": "Frase inspiradora do plano", "quote_author": "contexto"}},
+    {{"slide_type": "key_takeaway", "title": "O que levar", "bullets": ["Ponto 1", "Ponto 2"], "highlight": [0]}}
   ]
 }}
 
-Regras:
-- 8 a 16 slides
-- Slide 1: capa com título da aula, subtítulo com foco no hiperfoco
-- Slides 2+: títulos chamativos, 2-5 bullets curtos (máx 60 chars), visual_cue por slide
-- palette: cores que combinem com o hiperfoco (ex: espaço=azul escuro/roxo, natureza=verde, dinossauros=marrom/verde)
-- Texto em português
+TIPOS DE SLIDE:
+- cover: título grande + subtitle
+- section: divisor de seção, statement grande (1 frase)
+- content: título + bullets + callout opcional (frase em destaque)
+- quote: citação centralizada, impactante
+- key_takeaway: resumo com bullets, highlight = índices dos bullets mais importantes (0-based)
+
+REGRAS:
+- 8 a 14 slides
+- Use o PLANO DE AULA para extrair conteúdo real — objetivos, metodologia, avaliação
+- Títulos curtos e impactantes (máx 8 palavras)
+- Bullets concisos (máx 50 chars cada)
+- Cores que combinem com o tema/hiperfoco
+- callout: frase curta para caixa de destaque (opcional)
+- highlight: array de índices (ex: [0,2]) para bullets a enfatizar
 
 --- PLANO DE AULA ---
 {texto_plano[:5500]}
@@ -759,6 +773,7 @@ Regras:
         from pptx.util import Inches, Pt
         from pptx.dml.color import RGBColor as PptxRgb
         from pptx.enum.shapes import MSO_SHAPE
+        from pptx.enum.text import PP_ALIGN
 
         def _hex_to_rgb(hex_str):
             if not hex_str or not isinstance(hex_str, str):
@@ -775,81 +790,166 @@ Regras:
         rgb_primary = _hex_to_rgb(palette.get("primary") or palette.get("primary_rgb") or "0F766E")
         rgb_accent = _hex_to_rgb(palette.get("accent") or palette.get("accent_rgb") or "F59E0B")
         rgb_bg = _hex_to_rgb(palette.get("background_light") or "F0FDFA")
+        rgb_text = _hex_to_rgb(palette.get("text_dark") or "0F172A")
+        rgb_muted = _hex_to_rgb(palette.get("text_muted") or "64748B")
         clr_primary = PptxRgb(*rgb_primary)
         clr_accent = PptxRgb(*rgb_accent)
         clr_bg = PptxRgb(*rgb_bg)
-        clr_text = PptxRgb(15, 23, 42)
-        clr_text_light = PptxRgb(71, 85, 105)
+        clr_text = PptxRgb(*rgb_text)
+        clr_text_light = PptxRgb(*rgb_muted)
+        margin = Inches(0.6)
+        content_w = Inches(8.8)
+        content_left = margin
 
         prs = Presentation()
         prs.slide_width = Inches(10)
         prs.slide_height = Inches(7.5)
 
         for i, s in enumerate(slides_data):
+            slide_type = str(s.get("slide_type") or "content").lower()
             title = str(s.get("title") or f"Slide {i+1}")[:200]
+            subtitle = str(s.get("subtitle") or "")[:150]
+            statement = str(s.get("statement") or "")[:200]
+            quote_text = str(s.get("quote_text") or "")[:300]
+            quote_author = str(s.get("quote_author") or "")[:80]
+            callout = str(s.get("callout") or "")[:120]
             bullets = s.get("bullets") or []
             if isinstance(bullets, str):
                 bullets = [bullets] if bullets.strip() else []
-            visual_cue = str(s.get("visual_cue") or "")[:80]
+            bullets = [str(b)[:100] for b in bullets[:6]]
+            highlight = s.get("highlight") or []
+            if not isinstance(highlight, (list, tuple)):
+                highlight = []
+            highlight_set = set(int(x) for x in highlight if isinstance(x, (int, float)))
 
             layout = prs.slide_layouts[6]
             slide = prs.slides.add_slide(layout)
-
-            # Acessar e preencher o background já interrompe herança do master (evita follow_master_background)
             bg = slide.background
             bg.fill.solid()
             bg.fill.fore_color.rgb = clr_bg
 
-            left = Inches(0.5)
-            top = Inches(0.3)
-            width = Inches(9)
-            height_bar = Inches(0.08)
-            bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height_bar)
-            bar.fill.solid()
-            bar.fill.fore_color.rgb = clr_primary
-            bar.line.fill.background()
-
-            top_title = Inches(0.55)
-            height_title = Inches(1.4)
-            tx = slide.shapes.add_textbox(left, top_title, width, height_title)
-            tf = tx.text_frame
-            tf.word_wrap = True
-            p = tf.paragraphs[0]
-            p.text = title
-            p.font.size = Pt(32 if i == 0 else 24)
-            p.font.bold = True
-            for r in p.runs:
-                r.font.color.rgb = clr_primary if i == 0 else clr_text
-
-            if bullets:
-                top_body = Inches(2.1)
-                height_body = Inches(4.5)
-                tx_body = slide.shapes.add_textbox(left, top_body, width, height_body)
-                tf_body = tx_body.text_frame
-                tf_body.word_wrap = True
-                for j, b in enumerate(bullets[:6]):
-                    bullet_text = str(b)[:100]
-                    if j == 0:
-                        p_b = tf_body.paragraphs[0]
-                    else:
-                        p_b = tf_body.add_paragraph()
-                    p_b.text = f"• {bullet_text}"
-                    p_b.font.size = Pt(18)
-                    for r in p_b.runs:
+            if slide_type == "cover":
+                bar_h = Inches(0.12)
+                bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, margin, Inches(2.2), content_w, bar_h)
+                bar.fill.solid()
+                bar.fill.fore_color.rgb = clr_primary
+                bar.line.fill.background()
+                tx = slide.shapes.add_textbox(margin, Inches(0.8), content_w, Inches(1.8))
+                tf = tx.text_frame
+                tf.word_wrap = True
+                p = tf.paragraphs[0]
+                p.text = title
+                p.font.size = Pt(44)
+                p.font.bold = True
+                for r in p.runs:
+                    r.font.color.rgb = clr_primary
+                if subtitle:
+                    p2 = tf.add_paragraph()
+                    p2.text = subtitle
+                    p2.font.size = Pt(22)
+                    p2.font.italic = True
+                    for r in p2.runs:
+                        r.font.color.rgb = clr_text_light
+                    p2.space_before = Pt(12)
+            elif slide_type == "section":
+                bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, margin, Inches(0.4), Inches(0.08), Inches(6.2))
+                bar.fill.solid()
+                bar.fill.fore_color.rgb = clr_primary
+                bar.line.fill.background()
+                tx = slide.shapes.add_textbox(Inches(1.2), Inches(2.2), Inches(7.6), Inches(2.5))
+                tf = tx.text_frame
+                tf.word_wrap = True
+                p = tf.paragraphs[0]
+                p.text = statement or title
+                p.font.size = Pt(36)
+                p.font.bold = True
+                for r in p.runs:
+                    r.font.color.rgb = clr_primary
+                if title and not statement:
+                    p2 = tf.add_paragraph()
+                    p2.text = title
+                    p2.font.size = Pt(28)
+                    for r in p2.runs:
                         r.font.color.rgb = clr_text
-                    p_b.space_after = Pt(10)
-
-            if visual_cue:
-                top_cue = Inches(6.4)
-                tx_cue = slide.shapes.add_textbox(left, top_cue, width, Inches(0.6))
-                tf_cue = tx_cue.text_frame
-                tf_cue.word_wrap = True
-                p_cue = tf_cue.paragraphs[0]
-                p_cue.text = f"🖼 {visual_cue}"
-                p_cue.font.size = Pt(12)
-                p_cue.font.italic = True
-                for r in p_cue.runs:
-                    r.font.color.rgb = clr_text_light
+            elif slide_type == "quote":
+                box = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1), Inches(2), Inches(8), Inches(2.8))
+                box.fill.solid()
+                box.fill.fore_color.rgb = PptxRgb(248, 250, 252)
+                box.line.color.rgb = clr_primary
+                box.line.width = Pt(2)
+                tx = box.text_frame
+                tx.word_wrap = True
+                p = tx.paragraphs[0]
+                p.text = f'"{quote_text}"'
+                p.font.size = Pt(26)
+                p.font.italic = True
+                p.alignment = PP_ALIGN.CENTER
+                for r in p.runs:
+                    r.font.color.rgb = clr_text
+                if quote_author:
+                    p2 = tx.add_paragraph()
+                    p2.text = f"— {quote_author}"
+                    p2.font.size = Pt(16)
+                    p2.alignment = PP_ALIGN.CENTER
+                    for r in p2.runs:
+                        r.font.color.rgb = clr_text_light
+            else:
+                bar_h = Inches(0.06)
+                bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, margin, Inches(0.35), content_w, bar_h)
+                bar.fill.solid()
+                bar.fill.fore_color.rgb = clr_primary
+                bar.line.fill.background()
+                top = Inches(0.6)
+                tx = slide.shapes.add_textbox(content_left, top, content_w, Inches(1))
+                tf = tx.text_frame
+                tf.word_wrap = True
+                p = tf.paragraphs[0]
+                p.text = title
+                p.font.size = Pt(28)
+                p.font.bold = True
+                for r in p.runs:
+                    r.font.color.rgb = clr_primary
+                top = Inches(1.4)
+                if bullets:
+                    tx_body = slide.shapes.add_textbox(content_left, top, content_w, Inches(3.8))
+                    tf_body = tx_body.text_frame
+                    tf_body.word_wrap = True
+                    for j, b in enumerate(bullets):
+                        if j == 0:
+                            p_b = tf_body.paragraphs[0]
+                        else:
+                            p_b = tf_body.add_paragraph()
+                        p_b.text = f"• {b}"
+                        p_b.font.size = Pt(20 if j in highlight_set else 18)
+                        p_b.font.bold = (j in highlight_set)
+                        for r in p_b.runs:
+                            r.font.color.rgb = clr_primary if j in highlight_set else clr_text
+                        p_b.space_after = Pt(12)
+                callout_top = Inches(5.2) if bullets else Inches(1.5)
+                if callout:
+                    call_h = Inches(0.9)
+                    call_box = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, content_left, callout_top, content_w, call_h)
+                    call_box.fill.solid()
+                    call_box.fill.fore_color.rgb = clr_primary
+                    call_box.line.fill.background()
+                    tx_call = call_box.text_frame
+                    tx_call.word_wrap = True
+                    p_call = tx_call.paragraphs[0]
+                    p_call.text = callout
+                    p_call.font.size = Pt(18)
+                    p_call.font.bold = True
+                    for r in p_call.runs:
+                        r.font.color.rgb = PptxRgb(255, 255, 255)
+                visual_cue = str(s.get("visual_cue") or "")[:80]
+                if visual_cue:
+                    tx_cue = slide.shapes.add_textbox(content_left, Inches(6.5), content_w, Inches(0.5))
+                    tf_cue = tx_cue.text_frame
+                    p_cue = tf_cue.paragraphs[0]
+                    p_cue.text = f"🖼 {visual_cue}"
+                    p_cue.font.size = Pt(12)
+                    p_cue.font.italic = True
+                    for r in p_cue.runs:
+                        r.font.color.rgb = clr_text_light
 
         buf = BytesIO()
         prs.save(buf)
