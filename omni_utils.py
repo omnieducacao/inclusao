@@ -1749,6 +1749,30 @@ def get_gemini_api_key():
     return key if key else None
 
 
+def get_kimi_api_key():
+    """
+    Retorna a chave da API Kimi/Moonshot (Omnisfera Green).
+    Ordem: env KIMI_API_KEY, secrets, session_state.
+    Obtém em platform.moonshot.ai/console/api-keys
+    """
+    raw = (
+        os.environ.get("KIMI_API_KEY")
+        or get_setting("KIMI_API_KEY", "")
+        or (getattr(st, "session_state", None) or {}).get("KIMI_API_KEY", "")
+    )
+    if not raw:
+        try:
+            sec = getattr(st, "secrets", None)
+            if sec:
+                raw = sec.get("KIMI_API_KEY") or (sec.get("kimi") or {}).get("api_key") or (sec.get("kimi") or {}).get("KIMI_API_KEY")
+        except Exception:
+            pass
+    if not raw:
+        return None
+    key = str(raw).strip().strip('"\'')
+    return key if key else None
+
+
 def consultar_gemini(prompt: str, model: str = "gemini-2.0-flash", api_key: str | None = None) -> tuple[str | None, str | None]:
     """
     Chama a API Gemini para geração de texto.

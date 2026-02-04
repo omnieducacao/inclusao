@@ -644,6 +644,119 @@ def criar_pdf_generico(texto):
     pdf.multi_cell(0, 10, texto_safe)
     return pdf.output(dest='S').encode('latin-1')
 
+
+def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str) -> tuple[bytes | None, str | None]:
+    """
+    Gera PowerPoint a partir do plano de aula usando Omnisfera Green (Kimi/Moonshot).
+    Kimi estrutura o conteúdo em slides; python-pptx monta o arquivo.
+    Retorna (bytes_pptx, None) em sucesso ou (None, mensagem_erro).
+    """
+    kimi_key = ou.get_kimi_api_key()
+    if not kimi_key:
+        return None, f"Configure KIMI_API_KEY (Omnisfera Green) em secrets ou variável de ambiente."
+
+    prompt = f"""Transforme este plano de aula em estrutura para apresentação PowerPoint.
+Retorne APENAS um JSON válido, sem markdown ou texto extra:
+{{"slides": [
+  {{"title": "Título do slide", "bullets": ["Item 1", "Item 2"]}},
+  ...
+]}}
+
+Regras:
+- Mínimo 6 slides, máximo 14
+- Primeiro slide = slide de capa com título principal (ex: {titulo_plano[:80]})
+- Demais slides: extrair seções do plano (Objetivos, Conteúdos, Desenvolvimento, DUA, Avaliação etc)
+- Cada bullet: máximo 80 caracteres, conciso
+- Máximo 6 bullets por slide
+- Texto em português, sem emojis nos títulos/bullets
+
+--- PLANO DE AULA ---
+{texto_plano[:6000]}
+--- FIM ---"""
+
+    try:
+        client = OpenAI(
+            api_key=kimi_key,
+            base_url="https://api.moonshot.ai/v1",
+        )
+        resp = client.chat.completions.create(
+            model="kimi-k2-turbo-preview",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.4,
+        )
+        raw = (resp.choices[0].message.content or "").strip()
+        if not raw:
+            return None, "Resposta vazia do Kimi."
+
+        # Extrair JSON (pode vir em ```json ... ```)
+        if "```" in raw:
+            for sep in ("```json", "```"):
+                if sep in raw:
+                    idx = raw.find(sep) + len(sep)
+                    raw = raw[idx:].split("```")[0].strip()
+                    break
+        data = json.loads(raw)
+        slides_data = data.get("slides") or []
+        if not slides_data:
+            return None, "Kimi não retornou slides estruturados."
+
+        from pptx import Presentation
+        from pptx.util import Inches, Pt
+
+        prs = Presentation()
+        prs.slide_width = Inches(10)
+        prs.slide_height = Inches(7.5)
+
+        for i, s in enumerate(slides_data):
+            title = str(s.get("title") or f"Slide {i+1}")[:200]
+            bullets = s.get("bullets") or []
+            if isinstance(bullets, str):
+                bullets = [bullets] if bullets.strip() else []
+
+            if i == 0:
+                layout = prs.slide_layouts[6]
+            else:
+                layout = prs.slide_layouts[6]
+            slide = prs.slides.add_slide(layout)
+
+            left = Inches(0.5)
+            top = Inches(0.5)
+            width = Inches(9)
+            height = Inches(1.2)
+            tx = slide.shapes.add_textbox(left, top, width, height)
+            tf = tx.text_frame
+            tf.word_wrap = True
+            p = tf.paragraphs[0]
+            p.text = title
+            p.font.size = Pt(28 if i == 0 else 24)
+            p.font.bold = True
+
+            if bullets:
+                top_body = Inches(1.8)
+                height_body = Inches(5.2)
+                tx_body = slide.shapes.add_textbox(left, top_body, width, height_body)
+                tf_body = tx_body.text_frame
+                tf_body.word_wrap = True
+                for j, b in enumerate(bullets[:8]):
+                    bullet_text = str(b)[:120]
+                    if j == 0:
+                        p_b = tf_body.paragraphs[0]
+                    else:
+                        p_b = tf_body.add_paragraph()
+                    p_b.text = f"• {bullet_text}"
+                    p_b.font.size = Pt(16)
+                    p_b.space_after = Pt(8)
+
+        buf = BytesIO()
+        prs.save(buf)
+        buf.seek(0)
+        return buf.read(), None
+    except json.JSONDecodeError as e:
+        return None, f"Resposta do Kimi não é JSON válido: {str(e)[:100]}"
+    except Exception as e:
+        return None, str(e)[:200]
+
+
 # ==============================================================================
 # FUNÇÕES DE CONEXÃO COM SUPABASE (CORRIGIDO PARA SEPARAR DIAGNÓSTICO DE HIPERFOCO)
 # ==============================================================================
@@ -3262,6 +3375,7 @@ def render_aba_plano_aula(aluno, api_key):
                 if st.button("🗑️ Descartar", key="del_plano", use_container_width=True):
                     del st.session_state['res_plano']
                     del st.session_state['res_plano_valid']
+                    st.session_state.pop('res_plano_pptx', None)
                     st.rerun()
         
         st.markdown(res)
@@ -3269,7 +3383,7 @@ def render_aba_plano_aula(aluno, api_key):
         # Botões de Download
         st.markdown("---")
         st.markdown("### 📥 Download")
-        col_down1, col_down2 = st.columns(2)
+        col_down1, col_down2, col_down3 = st.columns(3)
         
         with col_down1:
             docx_plano = criar_docx_simples(res, "Plano de Aula DUA")
@@ -3290,6 +3404,34 @@ def render_aba_plano_aula(aluno, api_key):
                 mime="application/pdf",
                 use_container_width=True
             )
+        
+        with col_down3:
+            ppt_key = "res_plano_pptx"
+            if ppt_key not in st.session_state:
+                st.session_state[ppt_key] = None
+            if st.button(
+                "🎯 Criar PPT (Omnisfera Green)",
+                key="btn_ppt_plano",
+                use_container_width=True,
+                help="Gera PowerPoint a partir do plano usando Kimi (Omnisfera Green)"
+            ):
+                with st.spinner("Gerando PPT com Omnisfera Green..."):
+                    ppt_bytes, err = gerar_ppt_do_plano_kimi(res, objeto_bncc or disciplina_bncc or "Plano de Aula")
+                    if err:
+                        st.session_state[ppt_key] = None
+                        st.error(err)
+                    else:
+                        st.session_state[ppt_key] = ppt_bytes
+                        st.rerun()
+            if st.session_state.get(ppt_key):
+                st.download_button(
+                    label="📊 Baixar PPTX",
+                    data=st.session_state[ppt_key],
+                    file_name=f"Plano_Aula_{disciplina_bncc}_{date.today().strftime('%Y%m%d')}.pptx",
+                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                    key="dl_ppt_plano",
+                    use_container_width=True
+                )
     # ==============================================================================
 # FUNÇÕES DA EDUCAÇÃO INFANTIL
 # ==============================================================================
@@ -3601,6 +3743,7 @@ def main():
                 # Outras abas
                 'res_roteiro', 'res_roteiro_valid', 'res_papo', 'res_papo_valid',
                 'res_dinamica', 'res_dinamica_valid', 'res_plano_aula', 'res_plano_aula_valid',
+                'res_plano', 'res_plano_valid', 'res_plano_pptx',
                 # Configurações de adaptação
                 'necessidades_selecionadas_adaptar_prova',
                 # Estados de Bloom (limpar todos os prefixos)
