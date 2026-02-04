@@ -335,6 +335,16 @@ footer {
     opacity: 1 !important;
 }
 
+/* PGI - Verde Teal Escuro (Plano Gestão Inclusiva) */
+.c-pgi { background: #0F766E !important; }
+.bg-pgi-soft {
+    background: #CCFBF1 !important;
+    color: #0F766E !important;
+}
+.bg-pgi-soft i {
+    color: #0F766E !important;
+}
+
 /* Hub - Verde Água Vibrante */
 .c-teal { background: #06B6D4 !important; }
 .bg-teal-soft { 
@@ -878,7 +888,7 @@ def render_topbar():
 
 def create_module_card(title, desc, icon, color_cls, bg_cls, page, key):
     """Cria um card de módulo com botão de acesso. Home usa sempre ícones flat (Remixicon)."""
-    icon_color = "#9333EA" if "purple" in bg_cls else "#2563EB" if "indigo" in bg_cls else "#0EA5E9" if "blue" in bg_cls else "#06B6D4" if "teal" in bg_cls else "#F43F5E" if "rose" in bg_cls else "#0C4A6E"
+    icon_color = "#9333EA" if "purple" in bg_cls else "#2563EB" if "indigo" in bg_cls else "#0EA5E9" if "blue" in bg_cls else "#06B6D4" if "teal" in bg_cls else "#0F766E" if "pgi" in bg_cls else "#F43F5E" if "rose" in bg_cls else "#0C4A6E"
     icon_content = f'<i class="{icon}" style="font-size: 2rem; color: {icon_color}; display: inline-block; visibility: visible; opacity: 1; font-style: normal;"></i>'
     st.markdown(
         f"""
@@ -1579,6 +1589,7 @@ modules_all = [
     {"title": "Hub de Recursos", "desc": "Biblioteca de materiais, modelos e inteligência artificial para apoio.", "icon": "ri-rocket-fill", "color_cls": "c-teal", "bg_cls": "bg-teal-soft", "page": "pages/3_Hub_Inclusao.py", "key": "m_hub", "perm": "hub"},
     {"title": "Diário de Bordo", "desc": "Registro diário de observações, evidências e intervenções.", "icon": "ri-edit-box-fill", "color_cls": "c-rose", "bg_cls": "bg-rose-soft", "page": "pages/4_Diario_de_Bordo.py", "key": "m_diario", "perm": "diario"},
     {"title": "Evolução & Dados", "desc": "Indicadores, gráficos e relatórios de progresso dos estudantes.", "icon": "ri-line-chart-fill", "color_cls": "c-sky", "bg_cls": "bg-sky-soft", "page": "pages/5_Monitoramento_Avaliacao.py", "key": "m_dados", "perm": "avaliacao"},
+    {"title": "PGI", "desc": "Plano de Gestão Inclusiva. Estruture infraestrutura, formação e recursos da escola.", "icon": "ri-clipboard-line", "color_cls": "c-pgi", "bg_cls": "bg-pgi-soft", "page": "pages/9_PGI.py", "key": "m_pgi", "perm": "gestao"},
     {"title": "Gestão de Usuários", "desc": "Cadastrar usuários, atribuir permissões e vínculos com alunos.", "icon": "ri-user-settings-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/6_Gestao_Usuarios.py", "key": "m_gestao", "perm": "gestao"},
     {"title": "Configuração Escola", "desc": "Ano letivo, séries e turmas. Configure antes de cadastrar professores.", "icon": "ri-building-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/7_Configuracao_Escola.py", "key": "m_config", "perm": "gestao"},
 ]
