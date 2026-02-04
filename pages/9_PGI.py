@@ -206,7 +206,7 @@ with tab_inicial:
 
 # --- ABA GERADOR: Formulário 5W2H e tabela ---
 with tab_gerador:
-    st.markdown(f"### {icon_title('O Gerador', 'fluxo', 22, '#0F766E')}")
+    st.markdown(f"### {icon_title('O Gerador', 'fluxo', 22, '#0F766E')}", unsafe_allow_html=True)
     st.caption("Cadastre ações usando o framework 5W2H. Cada ação pode ser de Infraestrutura, Formação de Equipe ou Recursos Pedagógicos.")
 
     tipo_acao = st.radio(
@@ -272,7 +272,7 @@ with tab_gerador:
 
     # ÁREA DE RESULTADO — O PLANO DA ESCOLA
     st.markdown("---")
-    st.markdown(f"### {icon_title('O Plano da Escola', 'visualizar', 22, '#0F766E')}")
+    st.markdown(f"### {icon_title('O Plano da Escola', 'visualizar', 22, '#0F766E')}", unsafe_allow_html=True)
 
     acoes = st.session_state.pgi_acoes
 
