@@ -46,9 +46,141 @@ except Exception:
 ou.render_omnisfera_header()
 ou.render_navbar(active_tab="PGI")
 ou.inject_compact_app_css()
-ou.inject_hero_card_colors()
 
-# CSS específico da página PGI
+# Adiciona classe no body para cores específicas das abas
+st.markdown("<script>document.body.classList.add('page-pgi');</script>", unsafe_allow_html=True)
+
+# ==============================================================================
+# AJUSTE FINO DE LAYOUT (ANTES DO HERO - PADRONIZADO COMO PAE/HUB)
+# ==============================================================================
+def forcar_layout_pgi():
+    st.markdown("""
+        <style>
+            /* 1. Remove o cabeçalho padrão do Streamlit */
+            header[data-testid="stHeader"] {
+                visibility: hidden !important;
+                height: 0px !important;
+            }
+            /* 2. Puxa conteúdo para cima */
+            body .main .block-container,
+            body .block-container,
+            .main .block-container,
+            .block-container {
+                padding-top: 0px !important;
+                padding-bottom: 1rem !important;
+                margin-top: 0px !important;
+            }
+            /* 3. Remove espaçamento do Streamlit */
+            [data-testid="stVerticalBlock"],
+            div[data-testid="stVerticalBlock"] > div:first-child,
+            .main .block-container > div:first-child,
+            .main .block-container > *:first-child {
+                padding-top: 0px !important;
+                margin-top: 0px !important;
+            }
+            /* 4. Remove espaçamento do stMarkdown do hero */
+            .main .block-container > div:first-child .stMarkdown {
+                margin-top: 0px !important;
+                padding-top: 0px !important;
+            }
+            /* 5. Hero card colado no menu */
+            body .mod-card-wrapper,
+            .main .mod-card-wrapper,
+            .block-container .mod-card-wrapper,
+            .mod-card-wrapper {
+                margin-top: -120px !important;
+                position: relative;
+                z-index: 1;
+            }
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+        </style>
+    """, unsafe_allow_html=True)
+
+forcar_layout_pgi()
+
+# Cores dos hero cards + CSS padronizado
+ou.inject_hero_card_colors()
+ou.inject_unified_ui_css()
+
+# RemixIcon para ícones do hero
+st.markdown("""
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+""", unsafe_allow_html=True)
+
+# CSS do hero card (igual PAE/Hub)
+st.markdown("""
+<style>
+    .mod-card-wrapper {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+        margin-top: -120px !important;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        position: relative;
+        z-index: 1;
+    }
+    .mod-card-rect {
+        background: white;
+        border-radius: 16px 16px 0 0;
+        padding: 0;
+        border: 1px solid #E2E8F0;
+        border-bottom: none;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        height: 130px !important;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .mod-card-rect:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        border-color: #CBD5E1;
+    }
+    .mod-bar { width: 6px; height: 100%; flex-shrink: 0; }
+    .mod-icon-area {
+        width: 90px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        flex-shrink: 0;
+        background: #FAFAFA !important;
+        border-right: 1px solid #F1F5F9;
+        transition: all 0.3s ease;
+    }
+    .mod-card-rect:hover .mod-icon-area {
+        background: white !important;
+        transform: scale(1.05) !important;
+    }
+    .mod-content {
+        flex-grow: 1;
+        padding: 0 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+        align-items: flex-start;
+    }
+    .mod-title { font-weight: 800; font-size: 1.1rem; color: #1E293B; margin-bottom: 6px; }
+    .mod-card-rect:hover .mod-title { color: #0F766E; }
+    .bg-pgi-soft i { color: #0F766E !important; }
+    .mod-desc { font-size: 0.8rem; color: #64748B; line-height: 1.4; }
+    @media (max-width: 768px) {
+        .mod-card-rect { height: auto !important; flex-direction: column; padding: 16px; }
+        .mod-bar { width: 100%; height: 4px; }
+        .mod-icon-area { width: 100%; height: 50px; border-right: none; border-bottom: 1px solid #F1F5F9; }
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# CSS específico da página PGI (badges, tabelas, etc.)
 st.markdown("""
 <style>
 .pgi-badge-gestao { background: #FEF3C7; color: #B45309; font-size: 0.7rem; padding: 3px 8px; border-radius: 99px; font-weight: 600; }
@@ -111,8 +243,8 @@ st.markdown(f"""
 <div class="mod-card-wrapper">
     <div class="mod-card-rect">
         <div class="mod-bar c-pgi"></div>
-        <div class="mod-icon-area bg-pgi-soft" style="display: flex; align-items: center; justify-content: center;">
-            <i class="ri-clipboard-line" style="font-size: 2rem; color: #0F766E; display: inline-block; visibility: visible; opacity: 1; font-style: normal;"></i>
+        <div class="mod-icon-area bg-pgi-soft">
+            <i class="ri-clipboard-line"></i>
         </div>
         <div class="mod-content">
             <div class="mod-title">Plano de Gestão Inclusiva — PGI</div>
