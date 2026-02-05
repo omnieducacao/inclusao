@@ -26,7 +26,7 @@ def carregar_bncc_ei() -> list[dict]:
     """
     Carrega bncc_ei.csv.
     Retorna lista de dicts: {idade, campo_experiencia, objetivo}.
-    Colunas esperadas: Idade;Campo de Experiência;Objetivo de Aprendizagem
+    Colunas: Idade;Campo de Experiência;Objetivo de Aprendizagem ou OBJETIVOS DE APRENDIZAGEM E DESENVOLVIMENTO
     """
     global _bncc_ei_cache
     if _bncc_ei_cache is not None:
@@ -37,11 +37,20 @@ def carregar_bncc_ei() -> list[dict]:
     rows = []
     try:
         with open(path, "r", encoding="utf-8-sig") as f:
-            reader = csv.DictReader(f, delimiter=";")
+            reader = csv.DictReader(f, delimiter=";", skipinitialspace=True)
             for row in reader:
-                idade = (row.get("Idade") or "").strip()
-                campo = (row.get("Campo de Experiência") or row.get("Campo de Experiencia") or "").strip()
-                obj = (row.get("Objetivo de Aprendizagem") or row.get("Objetivo") or "").strip()
+                def _get(d, *keys):
+                    for k in keys:
+                        v = d.get(k) or (d.get((k or "").strip() + " ") if k else None)
+                        if v is not None and str(v).strip():
+                            return str(v).strip()
+                    for kk, v in d.items():
+                        if kk and str(kk).strip() in [str(q).strip() for q in keys if q] and v and str(v).strip():
+                            return str(v).strip()
+                    return ""
+                idade = _get(row, "Idade")
+                campo = _get(row, "Campo de Experiência", "Campo de Experiencia")
+                obj = _get(row, "OBJETIVOS DE APRENDIZAGEM E DESENVOLVIMENTO", "Objetivo de Aprendizagem", "Objetivo")
                 if campo and obj:
                     rows.append({
                         "idade": idade,
