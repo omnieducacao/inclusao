@@ -9,8 +9,9 @@ Para evitar expor nomes comerciais de modelos, usamos codenames na interface:
 | **Omnisfera Red** | ChatGPT + DALL-E (OpenAI) | Relatórios, metas, cronogramas, imagens DALL-E |
 | **Omnisfera Blue** | Gemini, NanoBanana, Gemini imagens (Google) | Jornada gamificada, mapas mentais, ilustrações |
 | **Omnisfera Green** | Kimi e derivados | Assistência de texto/chat |
+| **Omnisfera Yellow** | DeepSeek | Assistência de texto/chat |
 
-Constantes em `omni_utils.py`: `AI_RED`, `AI_BLUE`, `AI_GREEN`.
+Constantes em `omni_utils.py`: `AI_RED`, `AI_BLUE`, `AI_GREEN`, `AI_YELLOW`.
 
 ---
 

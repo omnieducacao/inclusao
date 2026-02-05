@@ -92,10 +92,12 @@ ICON_EMOJI = {
 # Omnisfera Red   = ChatGPT + DALL-E (ecossistema OpenAI)
 # Omnisfera Blue  = Gemini, NanoBanana, Gemini imagens (ecossistema Google)
 # Omnisfera Green = Kimi e derivados
+# Omnisfera Yellow = DeepSeek
 # =============================================================================
 AI_RED = "Omnisfera Red"
 AI_BLUE = "Omnisfera Blue"
 AI_GREEN = "Omnisfera Green"
+AI_YELLOW = "Omnisfera Yellow"
 
 def get_icon(key: str, size: int = 20, color: str = None, use_emoji: bool = None) -> str:
     """
@@ -1807,6 +1809,100 @@ def get_kimi_api_key():
         return None
     key = str(raw).strip().strip('"\'')
     return key if key else None
+
+
+def get_deepseek_api_key():
+    """
+    Retorna a chave da API DeepSeek (Omnisfera Yellow).
+    Ordem: DEEPSEEK_API_KEY em env, secrets ou session_state.
+    """
+    for name in ("DEEPSEEK_API_KEY",):
+        raw = os.environ.get(name) or get_setting(name, "")
+        if raw:
+            break
+        try:
+            raw = (getattr(st, "secrets", None) or {}).get(name, "") or ""
+            if raw:
+                break
+            raw = (getattr(st, "session_state", None) or {}).get(name, "") or ""
+            if raw:
+                break
+        except Exception:
+            pass
+    if not raw:
+        try:
+            sec = getattr(st, "secrets", None)
+            if sec:
+                raw = sec.get("DEEPSEEK_API_KEY") or (sec.get("deepseek") or {}).get("api_key")
+        except Exception:
+            pass
+    if not raw:
+        return None
+    key = str(raw).strip().replace("\n", "").replace("\r", "")
+    return key if key else None
+
+
+def chat_completion_multi_engine(engine: str, messages: list, temperature: float = 0.7, api_key: str | None = None) -> str:
+    """
+    Chat completion unificado. engine: red (OpenAI), blue (Gemini), green (Kimi), yellow (DeepSeek).
+    Retorna o texto gerado ou levanta Exception em erro.
+    """
+    from openai import OpenAI
+    engine = (engine or "red").strip().lower()
+    if engine not in ("red", "blue", "green", "yellow"):
+        engine = "red"
+
+    if engine == "blue":
+        full = ""
+        for m in messages:
+            role = m.get("role", "user")
+            cont = (m.get("content") or "").strip()
+            if role == "system":
+                full = f"[INSTRUÇÕES]\n{cont}\n\n" + full
+            else:
+                full += f"\n[ENTRADA]\n{cont}" if full else cont
+        full = full.strip() or "Responda."
+        txt, err = consultar_gemini(full, model="gemini-2.0-flash")
+        if err:
+            raise Exception(err)
+        return txt or ""
+
+    if engine == "green":
+        k = get_kimi_api_key() or api_key
+        try:
+            k = k or (getattr(st, "secrets", None) or {}).get("OPENROUTER_API_KEY", "") or (getattr(st, "secrets", None) or {}).get("KIMI_API_KEY", "")
+        except Exception:
+            pass
+        k = (k or "").strip().replace("\n", "").replace("\r", "")
+        if not k:
+            raise Exception(f"Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({AI_GREEN}).")
+        use_or = k.startswith("sk-or-")
+        base_url = get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if use_or else "https://api.moonshot.ai/v1")
+        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://openrouter.ai/api/v1"
+        model = get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_or else "kimi-k2-turbo-preview")
+        model = (model or "").strip() or "moonshotai/kimi-k2.5"
+        client = OpenAI(api_key=k, base_url=base_url)
+        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
+        return (resp.choices[0].message.content or "").strip()
+
+    if engine == "yellow":
+        k = get_deepseek_api_key()
+        if not k:
+            raise Exception(f"Configure DEEPSEEK_API_KEY ({AI_YELLOW}).")
+        base_url = get_setting("DEEPSEEK_BASE_URL", "") or "https://api.deepseek.com"
+        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://api.deepseek.com"
+        model = get_setting("DEEPSEEK_MODEL", "") or "deepseek-chat"
+        model = (model or "").strip() or "deepseek-chat"
+        client = OpenAI(api_key=k, base_url=base_url)
+        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
+        return (resp.choices[0].message.content or "").strip()
+
+    # Red (OpenAI)
+    if not api_key or not str(api_key).strip():
+        raise Exception(f"Configure OPENAI_API_KEY ({AI_RED}).")
+    client = OpenAI(api_key=str(api_key).strip())
+    resp = client.chat.completions.create(model="gpt-4o-mini", messages=messages, temperature=temperature)
+    return (resp.choices[0].message.content or "").strip()
 
 
 def consultar_gemini(prompt: str, model: str = "gemini-2.0-flash", api_key: str | None = None) -> tuple[str | None, str | None]:

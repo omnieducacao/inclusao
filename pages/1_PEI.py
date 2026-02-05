@@ -1522,10 +1522,10 @@ def extrair_dados_pdf_ia(api_key: str, texto_pdf: str):
 def consultar_gpt_pedagogico(api_key: str, dados: dict, contexto_pdf: str = "", modo_pratico: bool = False, feedback_usuario: str = "", engine: str = "red"):
     """
     Gera relatório da Consultoria IA.
-    engine: "red" (OpenAI), "blue" (Gemini), "green" (Kimi/OpenRouter)
+    engine: "red" (OpenAI), "blue" (Gemini), "green" (Kimi), "yellow" (DeepSeek)
     """
     engine = (engine or "red").strip().lower()
-    if engine not in ("red", "blue", "green"):
+    if engine not in ("red", "blue", "green", "yellow"):
         engine = "red"
 
     if engine == "red" and not api_key:
@@ -1542,6 +1542,10 @@ def consultar_gpt_pedagogico(api_key: str, dados: dict, contexto_pdf: str = "", 
             pass
         if not kimi_key:
             return None, f"⚠️ Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({ou.AI_GREEN}) nas configurações."
+    if engine == "yellow":
+        deep_key = ou.get_deepseek_api_key()
+        if not deep_key:
+            return None, f"⚠️ Configure DEEPSEEK_API_KEY ({ou.AI_YELLOW}) nas configurações."
 
     try:
 
@@ -1771,6 +1775,18 @@ GUIA PRÁTICO PARA SALA DE AULA.
             model = ou.get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_openrouter else "kimi-k2-turbo-preview")
             model = (model or "").strip() or "moonshotai/kimi-k2.5"
             client = OpenAI(api_key=kimi_key.strip(), base_url=base_url)
+            res = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}],
+            )
+            texto_relatorio = res.choices[0].message.content or ""
+        elif engine == "yellow":
+            k = ou.get_deepseek_api_key()
+            base_url = ou.get_setting("DEEPSEEK_BASE_URL", "") or "https://api.deepseek.com"
+            base_url = (base_url or "").strip() or "https://api.deepseek.com"
+            model = ou.get_setting("DEEPSEEK_MODEL", "") or "deepseek-chat"
+            model = (model or "").strip() or "deepseek-chat"
+            client = OpenAI(api_key=k, base_url=base_url)
             res = client.chat.completions.create(
                 model=model,
                 messages=[{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}],
@@ -3420,12 +3436,12 @@ with tab8:
     if (not st.session_state.dados.get("ia_sugestao")) or (st.session_state.dados.get("status_validacao_pei") == "rascunho"):
         with st.expander("🔧 Escolher motor de IA (Red, Blue ou Green)", expanded=True):
             st.caption("Selecione qual IA gerará o relatório. Útil para comparar resultados.")
-            engine_map = {"red": f"🔴 {ou.AI_RED} — ChatGPT (OpenAI)", "blue": f"🔵 {ou.AI_BLUE} — Gemini", "green": f"🟢 {ou.AI_GREEN} — Kimi (OpenRouter)"}
+            engine_map = {"red": f"🔴 {ou.AI_RED} — ChatGPT (OpenAI)", "blue": f"🔵 {ou.AI_BLUE} — Gemini", "green": f"🟢 {ou.AI_GREEN} — Kimi (OpenRouter)", "yellow": f"🟡 {ou.AI_YELLOW} — DeepSeek"}
             engine_sel = st.radio(
                 "Motor de IA",
-                options=["red", "blue", "green"],
+                options=["red", "blue", "green", "yellow"],
                 format_func=lambda x: engine_map.get(x, x),
-                index={"red": 0, "blue": 1, "green": 2}.get(st.session_state.dados.get("consultoria_engine", "red"), 0),
+                index={"red": 0, "blue": 1, "green": 2, "yellow": 3}.get(st.session_state.dados.get("consultoria_engine", "red"), 0),
                 key="consultoria_engine_radio",
                 horizontal=True,
             )

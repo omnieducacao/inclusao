@@ -1149,9 +1149,9 @@ def gerar_pictograma_caa(api_key, conceito, feedback_anterior="", gemini_key=Non
         return None
 
 def _hub_chat_completion(engine, messages, temperature=0.7, api_key=None):
-    """Chat completion unificado para Hub. engine: red (ChatGPT), blue (Gemini), green (Kimi)."""
+    """Chat completion unificado para Hub. engine: red (ChatGPT), blue (Gemini), green (Kimi), yellow (DeepSeek)."""
     engine = (engine or "red").strip().lower()
-    if engine not in ("red", "blue", "green"):
+    if engine not in ("red", "blue", "green", "yellow"):
         engine = "red"
     if engine == "blue":
         full = ""
@@ -1184,6 +1184,18 @@ def _hub_chat_completion(engine, messages, temperature=0.7, api_key=None):
         client = OpenAI(api_key=k, base_url=base_url)
         resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
         return (resp.choices[0].message.content or "").strip()
+    if engine == "yellow":
+        k = ou.get_deepseek_api_key()
+        if not k:
+            raise Exception(f"Configure DEEPSEEK_API_KEY ({ou.AI_YELLOW}).")
+        base_url = ou.get_setting("DEEPSEEK_BASE_URL", "") or "https://api.deepseek.com"
+        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://api.deepseek.com"
+        model = ou.get_setting("DEEPSEEK_MODEL", "") or "deepseek-chat"
+        model = (model or "").strip() or "deepseek-chat"
+        client = OpenAI(api_key=k, base_url=base_url)
+        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
+        return (resp.choices[0].message.content or "").strip()
+
     # Red (OpenAI)
     if not api_key or not str(api_key).strip():
         raise Exception(f"Configure OPENAI_API_KEY ({ou.AI_RED}).")
@@ -1193,20 +1205,21 @@ def _hub_chat_completion(engine, messages, temperature=0.7, api_key=None):
 
 
 def _render_engine_selector(key_suffix=""):
-    """Renderiza expander para escolher motor IA (Red/Blue/Green). Retorna engine escolhido."""
+    """Renderiza expander para escolher motor IA (Red/Blue/Green/Yellow). Retorna engine escolhido."""
     sk = f"hub_engine_{key_suffix}" if key_suffix else "hub_engine_default"
     st.session_state.setdefault(sk, "red")
-    with st.expander("🔧 Escolher motor de IA (Red, Blue ou Green)", expanded=False):
+    with st.expander("🔧 Escolher motor de IA (Red, Blue, Green ou Yellow)", expanded=False):
         engine_map = {
             "red": f"🔴 {ou.AI_RED} — ChatGPT (OpenAI)",
             "blue": f"🔵 {ou.AI_BLUE} — Gemini",
-            "green": f"🟢 {ou.AI_GREEN} — Kimi (OpenRouter)"
+            "green": f"🟢 {ou.AI_GREEN} — Kimi (OpenRouter)",
+            "yellow": f"🟡 {ou.AI_YELLOW} — DeepSeek"
         }
         eng = st.radio(
             "Motor",
-            options=["red", "blue", "green"],
+            options=["red", "blue", "green", "yellow"],
             format_func=lambda x: engine_map.get(x, x),
-            index={"red": 0, "blue": 1, "green": 2}.get(st.session_state.get(sk, "red"), 0),
+            index={"red": 0, "blue": 1, "green": 2, "yellow": 3}.get(st.session_state.get(sk, "red"), 0),
             key=f"engine_radio_{key_suffix}",
             horizontal=True
         )
@@ -1720,8 +1733,8 @@ def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alun
     except Exception as e:
         return str(e)
 
-def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, qtd_alunos, recursos, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, aluno_info=None, engine="red"):
-    """Gera plano de aula completo com BNCC. engine: red (ChatGPT), blue (Gemini), green (Kimi)."""
+def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, qtd_alunos, recursos, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, aluno_info=None, engine="red", duracao_minutos=50):
+    """Gera plano de aula completo com BNCC. engine: red/blue/green/yellow. duracao_minutos: 50 ou 100."""
     # Construir informações da BNCC
     info_bncc = ""
     if habilidades_bncc:
@@ -1764,6 +1777,7 @@ def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, q
     - Metodologia: {metodologia}
     - Técnica: {tecnica if tecnica else 'Não especificada'}
     - Quantidade de Estudantes: {qtd_alunos}
+    - Duração da aula: {duracao_minutos} minutos ({'1 aula' if duracao_minutos == 50 else '2 aulas'})
     - Recursos Disponíveis: {', '.join(recursos)}
     
     {info_bncc}
@@ -1785,7 +1799,7 @@ def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, q
     - Conteúdos atitudinais
     
     ### ⏰ TEMPO ESTIMADO
-    - Duração total: __ minutos
+    - Duração total: {duracao_minutos} minutos — distribua o tempo entre as etapas (acolhida, desenvolvimento, avaliação) de forma coerente.
     
     ### 🛠 RECURSOS DIDÁTICOS
     - Lista de recursos necessários
@@ -2914,10 +2928,12 @@ def render_aba_adaptar_atividade(aluno, api_key):
 
         st.markdown(f"<div class='analise-box'><div class='analise-title'>{get_icon('pedagogia', 20, '#06B6D4')} Análise Pedagógica</div>{res['rac']}</div>", unsafe_allow_html=True)
         with st.container(border=True):
-            partes = re.split(r'(\[\[IMG.*?\]\])', res['txt'], flags=re.IGNORECASE)
+            partes = re.split(r'(\[\[IMG_?\d*\]\])', res['txt'], flags=re.IGNORECASE)
             for p in partes:
-                if "IMG" in p.upper():
-                    im = res['map'].get(1)
+                num_match = re.search(r'IMG_?(\d+)', p, re.IGNORECASE)
+                if num_match:
+                    num = int(num_match.group(1))
+                    im = res['map'].get(num) or res['map'].get(1)
                     if im:
                         st.image(im, width=300)
                 elif p.strip():
@@ -3606,10 +3622,18 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
     else:
         c2.info(f"Metodologia selecionada: {metodologia}")
 
-    c3, c4 = st.columns(2)
+    c3, c4, c5 = st.columns(3)
     with c3:
         qtd_alunos_plano = st.number_input("Qtd Estudantes:", min_value=1, value=30, key="plano_qtd")
     with c4:
+        duracao_aula = st.selectbox(
+            "Duração da aula:",
+            options=["50 minutos (1 aula)", "100 minutos (2 aulas)"],
+            index=0,
+            key="plano_duracao"
+        )
+        duracao_min = 50 if "50" in duracao_aula else 100
+    with c5:
         recursos_plano = st.multiselect("Recursos Disponíveis:", RECURSOS_DISPONIVEIS, key="plano_rec")
     
     # Motor de IA
@@ -3636,7 +3660,8 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
                         unidade_tematica=unidade_bncc,
                         objeto_conhecimento=objeto_bncc,
                         aluno_info=aluno,
-                        engine=engine_plano
+                        engine=engine_plano,
+                        duracao_minutos=duracao_min
                     )
                 except Exception as e:
                     res = str(e)
