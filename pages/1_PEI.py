@@ -625,7 +625,7 @@ def _extrair_ano_serie_bncc(serie: str) -> str | None:
 
 def carregar_habilidades_bncc_por_serie(serie: str, max_caracteres: int = 11000) -> str:
     """
-    Carrega do bncc.csv (em pages/) as habilidades BNCC do ano/série do estudante.
+    Carrega habilidades BNCC do ano/série (EF via bncc_service).
     Retorna texto formatado para injetar no prompt, para a IA usar APENAS essas habilidades
     e não inventar. Se o arquivo não existir ou a série não bater, retorna string vazia.
     """
@@ -633,68 +633,17 @@ def carregar_habilidades_bncc_por_serie(serie: str, max_caracteres: int = 11000)
     return d.get("ano_atual", "")
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
 def carregar_habilidades_bncc_ano_atual_e_anteriores(
     serie: str,
     max_ano_atual: int = 10000,
     max_anos_anteriores: int = 8000,
 ) -> dict:
     """
-    Carrega do bncc.csv as habilidades do ano/série atual e dos anos anteriores.
+    Carrega BNCC do ano/série atual e anteriores (EF via bncc_service).
     Retorna {"ano_atual": "...", "anos_anteriores": "..."} para injetar no prompt.
-    Cada habilidade vem por escrito com o código (ex: (EF01LP02) Descrição).
     """
-    ano_serie = _extrair_ano_serie_bncc(serie)
-    if not ano_serie:
-        return {"ano_atual": "", "anos_anteriores": ""}
-    try:
-        ano_num = int(ano_serie[0])  # 1º -> 1, 2º -> 2, ...
-    except (ValueError, IndexError):
-        return {"ano_atual": "", "anos_anteriores": ""}
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    path_csv = os.path.join(base_dir, "bncc.csv")
-    if not os.path.exists(path_csv):
-        return {"ano_atual": "", "anos_anteriores": ""}
-    anteriores_str = [f"{n}º" for n in range(1, ano_num)]  # 3º -> ["1º", "2º"]
-    linhas_atual = []
-    linhas_anteriores = []
-    try:
-        with open(path_csv, "r", encoding="utf-8") as f:
-            next(f)
-            reader = csv.DictReader(f, delimiter=";")
-            raw = list(reader)
-            if not raw:
-                return {"ano_atual": "", "anos_anteriores": ""}
-            col_disciplina = "Disciplina"
-            col_ano = "Ano"
-            col_habilidade = "Habilidade"
-            if col_ano not in raw[0] or col_habilidade not in raw[0]:
-                return {"ano_atual": "", "anos_anteriores": ""}
-            for row in raw:
-                ano_celula = (row.get(col_ano) or "").strip()
-                disc = (row.get(col_disciplina) or "").strip()
-                hab = (row.get(col_habilidade) or "").strip()
-                if not hab:
-                    continue
-                linha = f"- {disc}: {hab}"
-                if ano_serie in ano_celula:
-                    linhas_atual.append(linha)
-                elif anteriores_str and any(ant in ano_celula for ant in anteriores_str):
-                    linhas_anteriores.append(linha)
-        def truncar(texto: str, limite: int) -> str:
-            if not texto:
-                return ""
-            if len(texto) <= limite:
-                return texto
-            return texto[: limite - 80] + "\n\n[... lista truncada ...]"
-        texto_atual = "\n".join(linhas_atual) if linhas_atual else ""
-        texto_anteriores = "\n".join(linhas_anteriores) if linhas_anteriores else ""
-        return {
-            "ano_atual": truncar(texto_atual, max_ano_atual),
-            "anos_anteriores": truncar(texto_anteriores, max_anos_anteriores),
-        }
-    except Exception:
-        return {"ano_atual": "", "anos_anteriores": ""}
+    from services.bncc_service import carregar_habilidades_ef_ano_atual_e_anteriores
+    return carregar_habilidades_ef_ano_atual_e_anteriores(serie, max_ano_atual, max_anos_anteriores)
 
 
 def _parse_hab_row(hab: str) -> tuple:
@@ -759,59 +708,13 @@ def carregar_habilidades_bncc_por_componente(serie: str) -> dict:
     return atual
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
 def carregar_habilidades_bncc_por_componente_ano_e_anteriores(serie: str) -> dict:
     """
-    Carrega do bncc.csv as habilidades do ano/série atual E dos anos anteriores,
-    agrupadas por Disciplina. Retorna:
-    { "ano_atual": { "Disciplina": [ {codigo, descricao, habilidade_completa}, ... ] },
-      "anos_anteriores": { "Disciplina": [ ... ] } }
+    Carrega BNCC do ano/série atual e anteriores agrupadas por Disciplina (EF via bncc_service).
+    Retorna { "ano_atual": { "Disciplina": [...] }, "anos_anteriores": {...} }
     """
-    ano_serie = _extrair_ano_serie_bncc(serie)
-    if not ano_serie:
-        return {"ano_atual": {}, "anos_anteriores": {}}
-    try:
-        ano_num = int(ano_serie[0])
-    except (ValueError, IndexError):
-        return {"ano_atual": {}, "anos_anteriores": {}}
-    anteriores_str = [f"{n}º" for n in range(1, ano_num)]
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    path_csv = os.path.join(base_dir, "bncc.csv")
-    if not os.path.exists(path_csv):
-        return {"ano_atual": {}, "anos_anteriores": {}}
-    ano_atual = {}
-    anos_anteriores = {}
-    try:
-        with open(path_csv, "r", encoding="utf-8") as f:
-            next(f)
-            reader = csv.DictReader(f, delimiter=";")
-            raw = list(reader)
-            if not raw:
-                return {"ano_atual": {}, "anos_anteriores": {}}
-            col_disciplina = "Disciplina"
-            col_ano = "Ano"
-            col_habilidade = "Habilidade"
-            if col_ano not in raw[0] or col_habilidade not in raw[0]:
-                return {"ano_atual": {}, "anos_anteriores": {}}
-            for row in raw:
-                ano_celula = (row.get(col_ano) or "").strip()
-                disc = (row.get(col_disciplina) or "").strip()
-                hab = (row.get(col_habilidade) or "").strip()
-                if not hab:
-                    continue
-                codigo, descricao = _parse_hab_row(hab)
-                item = {"codigo": codigo, "descricao": descricao, "habilidade_completa": hab}
-                if ano_serie in ano_celula:
-                    if disc not in ano_atual:
-                        ano_atual[disc] = []
-                    ano_atual[disc].append(item)
-                elif anteriores_str and any(ant in ano_celula for ant in anteriores_str):
-                    if disc not in anos_anteriores:
-                        anos_anteriores[disc] = []
-                    anos_anteriores[disc].append(item)
-        return {"ano_atual": ano_atual, "anos_anteriores": anos_anteriores}
-    except Exception:
-        return {"ano_atual": {}, "anos_anteriores": {}}
+    from services.bncc_service import carregar_habilidades_ef_por_componente
+    return carregar_habilidades_ef_por_componente(serie)
 
 
 def get_segmento_info_visual(serie: str | None):
@@ -3184,7 +3087,7 @@ with tab7_hab:
         st.stop()
 
     # EF/EM: Habilidades BNCC (fluxo existente)
-    # EM usa bncc_em.csv (áreas de conhecimento); EF usa bncc.csv (componentes)
+    # EM usa bncc_em.csv (áreas); EF usa bncc_ef.csv (componentes) via bncc_service
 
     st.caption("Selecione as habilidades do ano/série do estudante. A Consultoria IA usará apenas estas para o relatório.")
 
@@ -3204,7 +3107,7 @@ with tab7_hab:
     anos_anteriores = blocos.get("anos_anteriores") or {}
     if not ano_atual and not anos_anteriores:
         msg_em = "Para Ensino Médio: adicione bncc_em.csv na raiz (Área;Componente;Série;Unidade Temática;Habilidade). " if detectar_nivel_ensino(serie_hab) == "EM" else ""
-        st.info(f"Nenhuma habilidade BNCC encontrada para esta série. {msg_em}O arquivo bncc.csv (EF) ou bncc_em.csv (EM) deve conter as habilidades.")
+        st.info(f"Nenhuma habilidade BNCC encontrada para esta série. {msg_em}Os arquivos bncc_ef.csv (EF) ou bncc_em.csv (EM) na raiz devem conter as habilidades.")
         st.stop()
 
     def _opcao_label(h: dict) -> str:

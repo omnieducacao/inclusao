@@ -1936,43 +1936,17 @@ def ordenar_anos(anos_lista):
     anos_padronizados.sort(key=lambda x: x[0])
     return [ano_original for _, ano_original in anos_padronizados]
 
-@st.cache_data
 def carregar_bncc_completa():
-    """Carrega o CSV da BNCC com todas as colunas necessárias"""
+    """Carrega BNCC EF via bncc_service (bncc_ef.csv ou bncc.csv na raiz)."""
     try:
-        if not os.path.exists('bncc.csv'):
-            st.warning("📄 Arquivo 'bncc.csv' não encontrado na pasta do script")
+        from services.bncc_service import carregar_bncc_ef_completa
+        df = carregar_bncc_ef_completa()
+        if df is None or df.empty:
+            st.warning("📄 BNCC (bncc_ef.csv ou bncc.csv) não encontrada na raiz do projeto")
             return None
-        
-        try:
-            df = pd.read_csv('bncc.csv', delimiter=',', encoding='utf-8')
-        except:
-            try:
-                df = pd.read_csv('bncc.csv', delimiter=';', encoding='utf-8')
-            except Exception as e:
-                st.error(f"❌ Erro ao ler CSV: {str(e)[:100]}")
-                return None
-        
-        colunas_necessarias = ['Ano', 'Disciplina', 'Unidade Temática', 
-                              'Objeto do Conhecimento', 'Habilidade']
-        
-        colunas_faltando = []
-        for col in colunas_necessarias:
-            if col not in df.columns:
-                colunas_faltando.append(col)
-        
-        if colunas_faltando:
-            st.error(f"❌ Colunas faltando: {colunas_faltando}")
-            return None
-        
-        df = df.dropna(subset=['Ano', 'Disciplina', 'Objeto do Conhecimento'])
-        df['Ano'] = df['Ano'].astype(str).str.strip()
-        df['Disciplina'] = df['Disciplina'].str.replace('Ed. Física', 'Educação Física')
-        
         return df
-    
     except Exception as e:
-        st.error(f"❌ Erro: {str(e)[:100]}")
+        st.error(f"❌ Erro ao carregar BNCC: {str(e)[:100]}")
         return None
 
 def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=True, aluno=None):

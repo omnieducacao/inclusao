@@ -1,6 +1,6 @@
 """
-Serviço para carregar BNCC Educação Infantil e Ensino Médio.
-BNCC EF está em pages/bncc.csv e é usada diretamente pelo PEI/Hub.
+Serviço unificado para carregar BNCC EI, EF e EM.
+Arquivos na raiz: bncc_ei.csv, bncc_ef.csv, bncc_em.csv
 """
 import os
 import csv
@@ -26,6 +26,7 @@ def _path_csv(nome: str) -> str:
         return p
     return os.path.join(os.getcwd(), nome)
 
+
 def _get_cell(d: dict, *keys) -> str:
     """Obtém valor de célula aceitando chaves com espaços ou variações."""
     for k in keys:
@@ -36,6 +37,170 @@ def _get_cell(d: dict, *keys) -> str:
         if kk and str(kk).strip() in [str(q).strip() for q in keys if q] and v and str(v).strip():
             return str(v).strip()
     return ""
+
+
+# =============================================================================
+# BNCC ENSINO FUNDAMENTAL (bncc_ef.csv)
+# Colunas: Disciplina;Ano;Unidade Temática;Objeto do Conhecimento;Habilidade
+# =============================================================================
+
+
+def _extrair_ano_serie_bncc(serie: str):
+    """Extrai ano/série no formato BNCC (1º, 7º, 1EM) a partir da série do estudante."""
+    if not serie or not isinstance(serie, str):
+        return None
+    s = serie.strip()
+    m_em = re.search(r"(\d)\s*ª?\s*série", s, re.IGNORECASE)
+    if m_em or "em" in s.lower() or "médio" in s.lower():
+        num = m_em.group(1) if m_em else re.search(r"(\d)", s)
+        if num:
+            n = int(num.group(1)) if hasattr(num, "group") else int(num)
+            return f"{n}EM"
+    m = re.search(r"(\d\s*º)", s)
+    return m.group(1).replace(" ", "") if m else None
+
+
+@_cache_bncc
+def carregar_bncc_ef() -> list[dict]:
+    """
+    Carrega bncc_ef.csv (Ensino Fundamental).
+    Retorna lista de dicts: {ano, disciplina, unidade_tematica, objeto_conhecimento, habilidade}.
+    """
+    path = _path_csv("bncc_ef.csv")
+    if not os.path.exists(path):
+        path = _path_csv("bncc.csv")
+    if not os.path.exists(path):
+        return []
+    rows = []
+    try:
+        with open(path, "r", encoding="utf-8-sig") as f:
+            first = f.readline()
+            reader = csv.DictReader(f, delimiter=";", skipinitialspace=True)
+            for row in reader:
+                ano = _get_cell(row, "Ano")
+                disc = _get_cell(row, "Disciplina")
+                unidade = _get_cell(row, "Unidade Temática", "Unidade Tematica")
+                objeto = _get_cell(row, "Objeto do Conhecimento", "Objeto do Conhecimento")
+                hab = _get_cell(row, "Habilidade")
+                if ano and disc and hab:
+                    rows.append({
+                        "ano": ano,
+                        "disciplina": disc,
+                        "unidade_tematica": unidade,
+                        "objeto_conhecimento": objeto,
+                        "habilidade": hab,
+                    })
+    except Exception:
+        rows = []
+    return rows
+
+
+@_cache_bncc
+def carregar_habilidades_ef_ano_atual_e_anteriores(
+    serie: str,
+    max_ano_atual: int = 10000,
+    max_anos_anteriores: int = 8000,
+) -> dict:
+    """
+    Retorna {"ano_atual": str, "anos_anteriores": str} para injetar no prompt.
+    Só considera EF (1º-9º); para EM retorna vazio.
+    """
+    ano_serie = _extrair_ano_serie_bncc(serie)
+    if not ano_serie or "EM" in ano_serie:
+        return {"ano_atual": "", "anos_anteriores": ""}
+    try:
+        ano_num = int(re.search(r"\d+", ano_serie).group())
+    except (ValueError, AttributeError):
+        return {"ano_atual": "", "anos_anteriores": ""}
+    raw = carregar_bncc_ef()
+    if not raw:
+        return {"ano_atual": "", "anos_anteriores": ""}
+    anteriores_str = [f"{n}º" for n in range(1, ano_num)]
+    linhas_atual, linhas_anteriores = [], []
+    for r in raw:
+        ano_celula = (r.get("ano") or "").strip()
+        disc = (r.get("disciplina") or "").strip()
+        hab = (r.get("habilidade") or "").strip()
+        if not hab:
+            continue
+        linha = f"- {disc}: {hab}"
+        if ano_serie in ano_celula:
+            linhas_atual.append(linha)
+        elif anteriores_str and any(ant in ano_celula for ant in anteriores_str):
+            linhas_anteriores.append(linha)
+    def truncar(t, lim):
+        return t if len(t) <= lim else t[: lim - 80] + "\n\n[... lista truncada ...]"
+    return {
+        "ano_atual": truncar("\n".join(linhas_atual), max_ano_atual),
+        "anos_anteriores": truncar("\n".join(linhas_anteriores), max_anos_anteriores),
+    }
+
+
+@_cache_bncc
+def carregar_habilidades_ef_por_componente(serie: str) -> dict:
+    """
+    Retorna { "ano_atual": { "Disciplina": [{codigo, descricao, habilidade_completa}] },
+              "anos_anteriores": {...} }.
+    Só considera EF (1º-9º).
+    """
+
+    def _parse_hab(hab: str):
+        m = re.match(r"\(([A-Za-z0-9]+)\)\s*(.*)", hab or "")
+        if m:
+            return m.group(1), (m.group(2) or "").strip()[:200] + ("..." if len((m.group(2) or "")) > 200 else "")
+        return "(sem código)", (hab or "")[:200]
+
+    ano_serie = _extrair_ano_serie_bncc(serie)
+    if not ano_serie or "EM" in ano_serie:
+        return {"ano_atual": {}, "anos_anteriores": {}}
+    try:
+        ano_num = int(re.search(r"\d+", ano_serie).group())
+    except (ValueError, AttributeError):
+        return {"ano_atual": {}, "anos_anteriores": {}}
+    raw = carregar_bncc_ef()
+    if not raw:
+        return {"ano_atual": {}, "anos_anteriores": {}}
+    anteriores_str = [f"{n}º" for n in range(1, ano_num)]
+    ano_atual, anos_anteriores = {}, {}
+    for r in raw:
+        ano_celula = (r.get("ano") or "").strip()
+        disc = (r.get("disciplina") or "").strip()
+        hab = (r.get("habilidade") or "").strip()
+        if not hab:
+            continue
+        codigo, descricao = _parse_hab(hab)
+        item = {"codigo": codigo, "descricao": descricao, "habilidade_completa": hab}
+        if ano_serie in ano_celula:
+            ano_atual.setdefault(disc, []).append(item)
+        elif anteriores_str and any(ant in ano_celula for ant in anteriores_str):
+            anos_anteriores.setdefault(disc, []).append(item)
+    return {"ano_atual": ano_atual, "anos_anteriores": anos_anteriores}
+
+
+@_cache_bncc
+def carregar_bncc_ef_completa():
+    """Retorna DataFrame da BNCC EF para o Hub (Ano, Disciplina, Unidade Temática, Objeto do Conhecimento, Habilidade)."""
+    try:
+        import pandas as pd
+    except ImportError:
+        return None
+    path = _path_csv("bncc_ef.csv")
+    if not os.path.exists(path):
+        path = _path_csv("bncc.csv")
+    if not os.path.exists(path):
+        return None
+    try:
+        df = pd.read_csv(path, delimiter=";", encoding="utf-8-sig", skiprows=1)
+        cols = ["Ano", "Disciplina", "Unidade Temática", "Objeto do Conhecimento", "Habilidade"]
+        missing = [c for c in cols if c not in df.columns]
+        if missing:
+            return None
+        df = df.dropna(subset=["Ano", "Disciplina", "Objeto do Conhecimento"])
+        df["Ano"] = df["Ano"].astype(str).str.strip()
+        df["Disciplina"] = df["Disciplina"].str.replace("Ed. Física", "Educação Física", regex=False)
+        return df
+    except Exception:
+        return None
 
 
 @_cache_bncc
@@ -221,7 +386,7 @@ def _parse_hab_em(hab: str) -> tuple:
     return "", hab
 
 
-def obter_area_por_componente_professor(componente: str) -> str | None:
+def obter_area_por_componente_professor(componente: str):
     """Retorna a área BNCC EM para o componente que o professor leciona."""
     return COMPONENTE_PARA_AREA_EM.get(componente) if componente else None
 
