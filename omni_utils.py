@@ -426,6 +426,11 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
     height: 32px !important;
     width: 32px !important;
     object-fit: contain !important;
+    animation: omni-logo-spin 45s linear infinite !important;
+  }}
+  @keyframes omni-logo-spin {{
+    0% {{ transform: rotate(0deg); }}
+    100% {{ transform: rotate(360deg); }}
   }}
   .omni-user-info {{
     display:flex !important;
