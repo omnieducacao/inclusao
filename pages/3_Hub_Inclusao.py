@@ -294,11 +294,12 @@ TAXONOMIA_BLOOM = {
     "6. Criar": ["Compor", "Construir", "Criar", "Desenhar", "Desenvolver", "Formular", "Investigar", "Planejar", "Produzir", "Propor"]
 }
 
-# Lista de componentes curriculares padrão
-DISCIPLINAS_PADRAO = ["Matemática", "Português", "Ciências", "História", "Geografia", "Artes", "Educação Física", "Inglês", "Filosofia", "Sociologia"]
+# Lista de componentes curriculares padrão (EI, EF, EM)
+DISCIPLINAS_PADRAO = ["Educação Infantil", "Matemática", "Português", "Ciências", "História", "Geografia", "Artes", "Educação Física", "Inglês", "Filosofia", "Sociologia", "Biologia", "Física", "Química"]
 
 # Mapeamento: label do components (DB) → nome usado no Hub/DISCIPLINAS_PADRAO
 COMPONENT_TO_HUB = {
+    "Educação Infantil": "Educação Infantil",
     "Língua Portuguesa": "Português",
     "Arte": "Artes",
     "Língua Inglesa": "Inglês",
@@ -361,8 +362,8 @@ def _filtrar_disciplinas_por_membro(disciplinas_bncc: list) -> tuple:
         return disciplinas_bncc, True, None
 
 
-# Campos de Experiência (Educação Infantil)
-CAMPOS_EXPERIENCIA_EI = [
+# Campos de Experiência (Educação Infantil) — fallback se bncc_ei.csv não tiver
+CAMPOS_EXPERIENCIA_EI_FALLBACK = [
     "O eu, o outro e o nós",
     "Corpo, gestos e movimentos",
     "Traços, sons, cores e formas",
@@ -1507,7 +1508,29 @@ def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, v
     except Exception as e:
         return str(e), ""
 
-def gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, objetivo, feedback_anterior=""):
+def _extrair_idade_ei_aluno(aluno):
+    """Extrai faixa de idade EI do estudante (serie/grade). Ex: '4 anos', '3 anos'. Usa faixas do bncc_ei.csv."""
+    if not aluno or not isinstance(aluno, dict):
+        return None
+    serie = (aluno.get("serie") or aluno.get("grade") or "").strip()
+    if not serie:
+        return None
+    s = serie.lower()
+    try:
+        from services.bncc_service import faixas_idade_ei
+        faixas = faixas_idade_ei()
+    except Exception:
+        faixas = ["5 anos", "4 anos", "3 anos", "2 anos"]
+    for idade in (faixas or ["5 anos", "4 anos", "3 anos", "2 anos"]):
+        idade_lower = (idade or "").lower()
+        if idade_lower and (idade_lower in s or idade_lower.replace(" ", "") in s.replace(" ", "")):
+            return idade
+    if "infantil" in s:
+        return faixas[-1] if faixas else "4 anos"  # default = última faixa
+    return None
+
+
+def gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, objetivo, feedback_anterior="", objetivos_lista=None):
     """Gera experiência para Educação Infantil"""
     client = OpenAI(api_key=api_key)
     hiperfoco = aluno.get('hiperfoco', 'Brincar')
@@ -1523,7 +1546,7 @@ def gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, objetivo, feedback_ante
     RESUMO DAS NECESSIDADES (PEI): {aluno.get('ia_sugestao', '')[:600]}
     
     SUA MISSÃO: Criar uma EXPERIÊNCIA LÚDICA, CONCRETA E VISUAL focada no Campo de Experiência: "{campo_exp}".
-    Objetivo Específico: {objetivo}
+    Objetivo(s) de Aprendizagem (BNCC - use APENAS estes, não invente): {objetivo}
     {ajuste_prompt}
     
     REGRAS:
@@ -2354,7 +2377,7 @@ def render_aba_adaptar_prova(aluno, api_key):
                 disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
                 disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_prova_compact")
             else:
-                lista_fallback = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"]
+                lista_fallback = ["Educação Infantil", "Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês", "Biologia", "Física", "Química", "Filosofia", "Sociologia"]
                 disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
                 disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_prova_compact")
         with col_bncc3:
@@ -2635,7 +2658,7 @@ def render_aba_adaptar_atividade(aluno, api_key):
                 disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
                 disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_atividade_compact")
             else:
-                lista_fallback = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"]
+                lista_fallback = ["Educação Infantil", "Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês", "Biologia", "Física", "Química", "Filosofia", "Sociologia"]
                 disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
                 disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_atividade_compact")
         with col_bncc3:
@@ -2961,7 +2984,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
                 disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
                 disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_criar_zero")
             else:
-                lista_fallback = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"]
+                lista_fallback = ["Educação Infantil", "Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês", "Biologia", "Física", "Química", "Filosofia", "Sociologia"]
                 disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
                 disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_criar_zero")
         with c3:
@@ -3697,18 +3720,50 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
 # ==============================================================================
 
 def render_aba_ei_experiencia(aluno, api_key):
-    """Renderiza a aba de experiência da Educação Infantil"""
+    """Renderiza a aba de experiência da Educação Infantil — usa bncc_ei.csv (Idade, Campos, Objetivos)."""
     st.markdown("""
     <div class="pedagogia-box">
         <div class="pedagogia-title"><i class="ri-lightbulb-line"></i> Pedagogia do Brincar (BNCC)</div>
         Na Educação Infantil, não fazemos "provas". Criamos <strong>experiências de aprendizagem</strong> intencionais. 
-        Esta ferramenta usa a BNCC para criar brincadeiras que ensinam, usando o hiperfoco da criança.
+        Esta ferramenta usa a BNCC EI para criar brincadeiras que ensinam, usando o hiperfoco da criança.
     </div>
     """, unsafe_allow_html=True)
     
+    try:
+        from services.bncc_service import carregar_bncc_ei, faixas_idade_ei, campos_experiencia_ei, objetivos_ei_por_idade_campo
+        bncc_ei = carregar_bncc_ei()
+        faixas = faixas_idade_ei()
+        campos = campos_experiencia_ei() if bncc_ei else CAMPOS_EXPERIENCIA_EI_FALLBACK
+    except Exception:
+        bncc_ei = []
+        faixas = ["2 anos", "3 anos", "4 anos", "5 anos"]
+        campos = CAMPOS_EXPERIENCIA_EI_FALLBACK
+        def objetivos_ei_por_idade_campo(idade, campo):
+            return []
+    
+    idade_padrao = _extrair_idade_ei_aluno(aluno) if aluno else None
+    idx_idade = faixas.index(idade_padrao) if idade_padrao and idade_padrao in faixas else 0
+    
     col_ei1, col_ei2 = st.columns(2)
-    campo_exp = col_ei1.selectbox("Campo de Experiência (BNCC)", CAMPOS_EXPERIENCIA_EI, key="campo_exp_ei")
-    obj_aprendizagem = col_ei2.text_input("Objetivo de Aprendizagem:", placeholder="Ex: Compartilhar brinquedos, Identificar cores...", key="obj_aprendizagem_ei")
+    with col_ei1:
+        if faixas:
+            idade_ei = st.selectbox("Faixa de Idade (BNCC EI)", faixas, index=min(idx_idade, len(faixas)-1), key="idade_ei_hub")
+        else:
+            idade_ei = st.text_input("Faixa de Idade:", placeholder="Ex: 4 anos", key="idade_ei_hub")
+        campo_exp = st.selectbox("Campo de Experiência (BNCC)", campos, key="campo_exp_ei")
+    
+    with col_ei2:
+        objetivos_opcoes = objetivos_ei_por_idade_campo(idade_ei, campo_exp) if bncc_ei and idade_ei and campo_exp else []
+        if objetivos_opcoes:
+            obj_selecionados = st.multiselect(
+                "Objetivos de Aprendizagem (BNCC — selecione um ou mais)",
+                objetivos_opcoes,
+                default=objetivos_opcoes[:1] if objetivos_opcoes else [],
+                key="obj_ei_multiselect"
+            )
+            obj_aprendizagem = "\n".join(obj_selecionados) if obj_selecionados else ""
+        else:
+            obj_aprendizagem = st.text_input("Objetivo de Aprendizagem:", placeholder="Ex: Compartilhar brinquedos, Identificar cores...", key="obj_aprendizagem_ei")
     
     if 'res_ei_exp' not in st.session_state:
         st.session_state.res_ei_exp = None

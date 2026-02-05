@@ -28,6 +28,7 @@ SEGMENTS = [
 ]
 
 COMPONENTS = [
+    ("educacao_infantil", "Educação Infantil"),
     ("arte", "Arte"),
     ("ciencias", "Ciências"),
     ("educacao_fisica", "Educação Física"),
@@ -36,6 +37,11 @@ COMPONENTS = [
     ("lingua_inglesa", "Língua Inglesa"),
     ("lingua_portuguesa", "Língua Portuguesa"),
     ("matematica", "Matemática"),
+    ("biologia", "Biologia"),
+    ("fisica", "Física"),
+    ("quimica", "Química"),
+    ("filosofia", "Filosofia"),
+    ("sociologia", "Sociologia"),
 ]
 
 

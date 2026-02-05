@@ -394,12 +394,33 @@ def db_update_pei_content(student_id: str, pei_dict: dict):
 # ==============================================================================
 # 4. LISTAS DE DADOS
 # ==============================================================================
-LISTA_SERIES = [
-    "Educação Infantil (0-2 anos)", "Educação Infantil (3-5 anos)",
+SERIES_EF_EM = [
     "1º Ano (EFAI)", "2º Ano (EFAI)", "3º Ano (EFAI)", "4º Ano (EFAI)", "5º Ano (EFAI)",
     "6º Ano (EFAF)", "7º Ano (EFAF)", "8º Ano (EFAF)", "9º Ano (EFAF)",
     "1ª Série (EM)", "2ª Série (EM)", "3ª Série (EM)", "EJA (Educação de Jovens e Adultos)"
 ]
+
+def _construir_lista_series(serie_atual: str | None = None) -> list[str]:
+    """
+    Constrói lista de séries com faixas EI dinâmicas do bncc_ei.csv.
+    Quando marcado Educação Infantil, usa Idade do CSV (2, 3, 4, 5 anos).
+    Fallback para (0-2) e (3-5) se CSV vazio. Inclui serie_atual se for legado EI.
+    """
+    try:
+        from services.bncc_service import faixas_idade_ei
+        faixas = faixas_idade_ei()
+    except Exception:
+        faixas = []
+    ei_opcoes = []
+    if faixas:
+        ei_opcoes = [f"Educação Infantil ({f})" for f in faixas]
+    else:
+        ei_opcoes = ["Educação Infantil (0-2 anos)", "Educação Infantil (3-5 anos)"]
+    # Retrocompatibilidade: se aluno salvo com EI legado e não está na lista, incluir
+    LEGADO_EI = ["Educação Infantil (0-2 anos)", "Educação Infantil (3-5 anos)"]
+    if serie_atual and serie_atual in LEGADO_EI and serie_atual not in ei_opcoes:
+        ei_opcoes = [serie_atual] + [e for e in ei_opcoes if e != serie_atual]
+    return ei_opcoes + SERIES_EF_EM
 
 LISTA_ALFABETIZACAO = [
     "Não se aplica (Educação Infantil)",
@@ -469,8 +490,11 @@ default_state = {
     "matricula": "",
     "meds_extraidas_tmp": [],
     "status_meds_extraidas": "idle",
-    "habilidades_bncc_selecionadas": [],  # lista da aba Habilidades BNCC
+    "habilidades_bncc_selecionadas": [],  # lista da aba BNCC (EF/EM)
     "habilidades_bncc_validadas": None,   # lista validada pelo professor (Consultoria IA usa só esta quando existir)
+    "bncc_ei_idade": "",                  # EI: faixa de idade
+    "bncc_ei_campo": "",                  # EI: campo de experiência
+    "bncc_ei_objetivos": [],              # EI: objetivos de aprendizagem selecionados
 }
 
 if "dados" not in st.session_state:
@@ -891,7 +915,7 @@ def inferir_componentes_impactados(dados: dict):
     if barreiras.get("Acadêmico") and any("Matemático" in b for b in barreiras["Acadêmico"]):
         impactados.add("Matemática")
         if nivel == "EM":
-            impactados.add("Física/Química")
+            impactados.add("Física/Química/Biologia")
         elif nivel == "FII":
             impactados.add("Ciências")
 
@@ -1628,12 +1652,27 @@ Não use placeholders genéricos. Personalize cada meta ao estudante e ao contex
 
         if nivel_ensino == "EI":
             perfil_ia = "Especialista em EDUCAÇÃO INFANTIL e BNCC."
+            bncc_ei_bloco = ""
+            idade_ei = dados.get("bncc_ei_idade") or ""
+            campo_ei = dados.get("bncc_ei_campo") or ""
+            obj_ei = dados.get("bncc_ei_objetivos") or []
+            if idade_ei or campo_ei or obj_ei:
+                obj_txt = "\n".join(f"- {o}" for o in obj_ei) if obj_ei else "(não selecionados)"
+                bncc_ei_bloco = f"""[MAPEAMENTO_BNCC_EI — REGRA OBRIGATÓRIA]
+Na seção "Avaliação de Repertório", use APENAS os dados abaixo (Campos de Experiência e Objetivos de Aprendizagem BNCC EI). Não invente outros.
+- Faixa de idade: {idade_ei or "não informada"}
+- Campo de Experiência: {campo_ei or "não informado"}
+- Objetivos de Aprendizagem (cite EXATAMENTE como abaixo, não parafraseie):
+{obj_txt}
+[/MAPEAMENTO_BNCC_EI]"""
+            else:
+                bncc_ei_bloco = "[CAMPOS_EXPERIENCIA_PRIORITARIOS] Destaque 2 ou 3 Campos BNCC da Educação Infantil. Se a escola preencheu a aba BNCC, use aqueles dados. [/CAMPOS_EXPERIENCIA_PRIORITARIOS]"
             estrutura_req = f"""
 {prompt_identidade}
 {prompt_diagnostico}
 
 ### 2. 🌟 AVALIAÇÃO DE REPERTÓRIO:
-[CAMPOS_EXPERIENCIA_PRIORITARIOS] Destaque 2 ou 3 Campos BNCC. [/CAMPOS_EXPERIENCIA_PRIORITARIOS]
+{bncc_ei_bloco}
 
 ### 3. 🚀 ESTRATÉGIAS DE INTERVENÇÃO:
 (Estratégias de acolhimento, rotina e adaptação sensorial).
@@ -2111,7 +2150,7 @@ def render_progresso():
 # ==============================================================================
 abas = [
     "INÍCIO", "ESTUDANTE", "EVIDÊNCIAS", "REDE DE APOIO", "MAPEAMENTO",
-    "PLANO DE AÇÃO", "MONITORAMENTO", "HABILIDADES BNCC", "CONSULTORIA IA", "DASHBOARD & DOCS"
+    "PLANO DE AÇÃO", "MONITORAMENTO", "BNCC", "CONSULTORIA IA", "DASHBOARD & DOCS"
 ]
 
 tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7_hab, tab8, tab9 = st.tabs(abas)
@@ -2453,13 +2492,14 @@ with tab1:
     st.session_state.dados["nome"] = c1.text_input("Nome Completo", st.session_state.dados.get("nome", ""))
     st.session_state.dados["nasc"] = c2.date_input("Nascimento", value=st.session_state.dados.get("nasc", date(2015, 1, 1)))
 
-    # Série/Ano
+    # Série/Ano — EI usa faixas do bncc_ei.csv (2, 3, 4, 5 anos)
+    lista_series = _construir_lista_series(st.session_state.dados.get("serie"))
     try:
-        serie_idx = LISTA_SERIES.index(st.session_state.dados.get("serie")) if st.session_state.dados.get("serie") in LISTA_SERIES else 0
-    except:
+        serie_val = st.session_state.dados.get("serie")
+        serie_idx = lista_series.index(serie_val) if serie_val in lista_series else 0
+    except Exception:
         serie_idx = 0
-
-    st.session_state.dados["serie"] = c3.selectbox("Série/Ano", LISTA_SERIES, index=serie_idx, placeholder="Selecione...")
+    st.session_state.dados["serie"] = c3.selectbox("Série/Ano", lista_series, index=serie_idx, placeholder="Selecione...")
 
     # Segmento guiado (badge + descrição)
     if st.session_state.dados.get("serie"):
@@ -3095,31 +3135,74 @@ with tab6:
 
 
 # ==============================================================================
-# 17A. ABA HABILIDADES BNCC (seleção por lista suspensa + preenchimento com auxílio da IA)
+# 17A. ABA BNCC — EI: Campos + Objetivos | EF/EM: Habilidades
 # ==============================================================================
 with tab7_hab:
     render_progresso()
-    st.markdown("### <i class='ri-list-check-2'></i> Habilidades BNCC", unsafe_allow_html=True)
+    st.markdown("### <i class='ri-list-check-2'></i> BNCC", unsafe_allow_html=True)
 
     serie_hab = st.session_state.dados.get("serie") or ""
     if not serie_hab:
-        st.warning("Selecione a **Série/Ano** na aba **Estudante** para carregar as habilidades BNCC.")
+        st.warning("Selecione a **Série/Ano** (ou faixa de idade para EI) na aba **Estudante**.")
         st.stop()
 
-    # Educação Infantil: esta aba não se aplica; seguir para Consultoria IA
+    # Educação Infantil: Campos de Experiência + Objetivos de Aprendizagem (bncc_ei.csv)
     if detectar_nivel_ensino(serie_hab) == "EI":
-        st.info("Para **Educação Infantil** esta aba não se aplica (BNCC por habilidades é a partir do Fundamental). Siga para a aba **Consultoria IA** para gerar o relatório do PEI.")
-        st.markdown("👉 Use a aba **Consultoria IA** para gerar o relatório.")
+        try:
+            from services.bncc_service import faixas_idade_ei, campos_experiencia_ei, objetivos_ei_por_idade_campo, carregar_bncc_ei
+            bncc_ei = carregar_bncc_ei()
+            faixas = faixas_idade_ei()
+            campos = campos_experiencia_ei() if bncc_ei else [
+                "O eu, o outro e o nós", "Corpo, gestos e movimentos", "Traços, sons, cores e formas",
+                "Escuta, fala, pensamento e imaginação", "Espaços, tempos, quantidades, relações e transformações"
+            ]
+        except Exception:
+            bncc_ei = []
+            faixas = ["2 anos", "3 anos", "4 anos", "5 anos"]
+            campos = ["O eu, o outro e o nós", "Corpo, gestos e movimentos", "Traços, sons, cores e formas",
+                      "Escuta, fala, pensamento e imaginação", "Espaços, tempos, quantidades, relações e transformações"]
+            def objetivos_ei_por_idade_campo(idade, campo):
+                return []
+        st.caption("Educação Infantil: selecione faixa de idade, campo de experiência e objetivos de aprendizagem. A Consultoria IA usará estes dados.")
+        col_ei1, col_ei2 = st.columns(2)
+        with col_ei1:
+            idade_ei = st.selectbox("Faixa de Idade", faixas, key="pei_idade_ei",
+                index=faixas.index(st.session_state.dados.get("bncc_ei_idade", "") or faixas[0]) if (st.session_state.dados.get("bncc_ei_idade") or "") in faixas else 0)
+            campo_ei = st.selectbox("Campo de Experiência", campos, key="pei_campo_ei",
+                index=campos.index(st.session_state.dados.get("bncc_ei_campo", "") or campos[0]) if (st.session_state.dados.get("bncc_ei_campo") or "") in campos else 0)
+        with col_ei2:
+            obj_opcoes = objetivos_ei_por_idade_campo(idade_ei, campo_ei) if bncc_ei else []
+            obj_atuais = st.session_state.dados.get("bncc_ei_objetivos") or []
+            obj_selecionados = st.multiselect("Objetivos de Aprendizagem", obj_opcoes or ["Selecione idade e campo primeiro"],
+                default=[o for o in obj_atuais if o in (obj_opcoes or [])], key="pei_obj_ei")
+        st.session_state.dados["bncc_ei_idade"] = idade_ei
+        st.session_state.dados["bncc_ei_campo"] = campo_ei
+        st.session_state.dados["bncc_ei_objetivos"] = obj_selecionados
+        st.info("👉 Com os campos e objetivos selecionados, siga para a aba **Consultoria IA** para gerar o relatório.")
         st.stop()
+
+    # EF/EM: Habilidades BNCC (fluxo existente)
+    # EM usa bncc_em.csv (áreas de conhecimento); EF usa bncc.csv (componentes)
 
     st.caption("Selecione as habilidades do ano/série do estudante. A Consultoria IA usará apenas estas para o relatório.")
 
     st.session_state.dados.setdefault("habilidades_bncc_selecionadas", [])
-    blocos = carregar_habilidades_bncc_por_componente_ano_e_anteriores(serie_hab)
+    if detectar_nivel_ensino(serie_hab) == "EM":
+        try:
+            from services.bncc_service import carregar_habilidades_em_por_componente, carregar_bncc_em
+            if carregar_bncc_em():
+                blocos = carregar_habilidades_em_por_componente(serie_hab)
+            else:
+                blocos = {"ano_atual": {}, "anos_anteriores": {}}
+        except Exception:
+            blocos = {"ano_atual": {}, "anos_anteriores": {}}
+    else:
+        blocos = carregar_habilidades_bncc_por_componente_ano_e_anteriores(serie_hab)
     ano_atual = blocos.get("ano_atual") or {}
     anos_anteriores = blocos.get("anos_anteriores") or {}
     if not ano_atual and not anos_anteriores:
-        st.info("Nenhuma habilidade BNCC encontrada para esta série no arquivo bncc.csv.")
+        msg_em = "Para Ensino Médio: adicione bncc_em.csv na raiz (Área;Componente;Série;Unidade Temática;Habilidade). " if detectar_nivel_ensino(serie_hab) == "EM" else ""
+        st.info(f"Nenhuma habilidade BNCC encontrada para esta série. {msg_em}O arquivo bncc.csv (EF) ou bncc_em.csv (EM) deve conter as habilidades.")
         st.stop()
 
     def _opcao_label(h: dict) -> str:
