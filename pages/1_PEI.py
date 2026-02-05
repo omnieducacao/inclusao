@@ -1522,7 +1522,7 @@ def extrair_dados_pdf_ia(api_key: str, texto_pdf: str):
 def consultar_gpt_pedagogico(api_key: str, dados: dict, contexto_pdf: str = "", modo_pratico: bool = False, feedback_usuario: str = "", engine: str = "red"):
     """
     Gera relatório da Consultoria IA.
-    engine: "red" (OpenAI), "blue" (Gemini), "green" (Kimi), "yellow" (DeepSeek)
+    engine: red, blue, green ou yellow
     """
     engine = (engine or "red").strip().lower()
     if engine not in ("red", "blue", "green", "yellow"):
@@ -3436,7 +3436,7 @@ with tab8:
     if (not st.session_state.dados.get("ia_sugestao")) or (st.session_state.dados.get("status_validacao_pei") == "rascunho"):
         with st.expander("🔧 Escolher motor de IA (Red, Blue ou Green)", expanded=True):
             st.caption("Selecione qual IA gerará o relatório. Útil para comparar resultados.")
-            engine_map = {"red": f"🔴 {ou.AI_RED} — ChatGPT (OpenAI)", "blue": f"🔵 {ou.AI_BLUE} — Gemini", "green": f"🟢 {ou.AI_GREEN} — Kimi (OpenRouter)", "yellow": f"🟡 {ou.AI_YELLOW} — DeepSeek"}
+            engine_map = {"red": f"🔴 {ou.AI_RED}", "blue": f"🔵 {ou.AI_BLUE}", "green": f"🟢 {ou.AI_GREEN}", "yellow": f"🟡 {ou.AI_YELLOW}"}
             engine_sel = st.radio(
                 "Motor de IA",
                 options=["red", "blue", "green", "yellow"],

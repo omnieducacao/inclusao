@@ -796,17 +796,17 @@ if is_ei:
 with st.expander("📄 Ver Dados Completos do PEI", expanded=False):
     st.write(aluno.get('ia_sugestao', 'Sem dados detalhados.'))
 
-# Motor de IA (Red/Blue/Green/Yellow) — não aplica a geração de imagens (Gemini fixo)
+# Motor de IA (Red/Blue/Green/Yellow) — não aplica geração de imagens (usa Omnisfera Blue)
 st.session_state.setdefault("pae_engine", "red")
 with st.expander("🔧 Escolher motor de IA (Red, Blue, Green ou Yellow)", expanded=False):
     engine_map = {
-        "red": f"🔴 {ou.AI_RED} — ChatGPT (OpenAI)",
-        "blue": f"🔵 {ou.AI_BLUE} — Gemini",
-        "green": f"🟢 {ou.AI_GREEN} — Kimi (OpenRouter)",
-        "yellow": f"🟡 {ou.AI_YELLOW} — DeepSeek"
+        "red": f"🔴 {ou.AI_RED}",
+        "blue": f"🔵 {ou.AI_BLUE}",
+        "green": f"🟢 {ou.AI_GREEN}",
+        "yellow": f"🟡 {ou.AI_YELLOW}"
     }
     eng = st.radio(
-        "Motor (texto). Imagens continuam com Gemini.",
+        "Motor (texto). Imagens usam Omnisfera Blue.",
         options=["red", "blue", "green", "yellow"],
         format_func=lambda x: engine_map.get(x, x),
         index={"red": 0, "blue": 1, "green": 2, "yellow": 3}.get(st.session_state.get("pae_engine", "red"), 0),
@@ -1203,7 +1203,7 @@ TECNOLOGIA ASSISTIVA:
 # JORNADA GAMIFICADA — ALIMENTADA PELA ABA EXECUÇÃO E METAS SMART
 # ==============================================================================
 def gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo, feedback_game=""):
-    """Gera roteiro gamificado para o estudante a partir do planejamento do ciclo (metas, cronograma, foco). Usa Gemini."""
+    """Gera roteiro gamificado para o estudante a partir do planejamento do ciclo (metas, cronograma, foco). Usa Omnisfera Blue."""
     gemini_key = ou.get_gemini_api_key()
     if not gemini_key:
         return None, f"Configure GEMINI_API_KEY (ambiente ou secrets) para gerar a jornada. A geração usa o assistente {ou.AI_BLUE}."
@@ -1255,7 +1255,7 @@ def gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo, feedback_game=""):
 
 
 def gerar_roteiro_gamificado_de_texto(api_key, aluno, texto_origem, nome_fonte, feedback_game=""):
-    """Gera roteiro gamificado para o estudante a partir do texto de uma aba (barreiras, plano, tech, etc.). Usa Gemini."""
+    """Gera roteiro gamificado para o estudante a partir do texto de uma aba (barreiras, plano, tech, etc.). Usa Omnisfera Blue."""
     gemini_key = ou.get_gemini_api_key()
     if not gemini_key:
         return None, f"Configure GEMINI_API_KEY (ambiente ou secrets) para gerar a jornada. A geração usa o assistente {ou.AI_BLUE}."

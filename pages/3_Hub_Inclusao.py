@@ -647,7 +647,7 @@ def criar_pdf_generico(texto):
 
 def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str, aluno: dict = None, kimi_key: str = None) -> tuple[bytes | None, str | None]:
     """
-    Gera PowerPoint rico visualmente a partir do plano de aula, usando Omnisfera Green (Kimi).
+    Gera PowerPoint rico visualmente a partir do plano de aula, usando Omnisfera Green.
     Estética inspirada no hiperfoco do aluno. Para o professor usar em aula.
     Retorna (bytes_pptx, None) em sucesso ou (None, mensagem_erro).
     """
@@ -755,7 +755,7 @@ REGRAS:
         )
         raw = (resp.choices[0].message.content or "").strip()
         if not raw:
-            return None, "Resposta vazia do Kimi."
+            return None, "Resposta vazia do motor."
 
         # Extrair JSON (pode vir em ```json ... ```)
         if "```" in raw:
@@ -767,7 +767,7 @@ REGRAS:
         data = json.loads(raw)
         slides_data = data.get("slides") or []
         if not slides_data:
-            return None, "Kimi não retornou slides estruturados."
+            return None, "Motor não retornou slides estruturados."
 
         from pptx import Presentation
         from pptx.util import Inches, Pt
@@ -956,14 +956,14 @@ REGRAS:
         buf.seek(0)
         return buf.read(), None
     except json.JSONDecodeError as e:
-        return None, f"Resposta do Kimi não é JSON válido: {str(e)[:100]}"
+        return None, f"Resposta não é JSON válido: {str(e)[:100]}"
     except Exception as e:
         err = str(e)
         if "401" in err or "Invalid Authentication" in err or "invalid_authentication" in err:
             return None, (
                 "Chave da API inválida (401). Verifique: "
                 "1) KIMI_API_KEY ou MOONSHOT_API_KEY em secrets.toml ou variável de ambiente; "
-                "2) Chave correta de platform.moonshot.ai (não use chave da OpenAI); "
+                "2) Chave correta de platform.moonshot.ai (não use chave de outro provedor); "
                 "3) Conta com saldo e chave ativa."
             )
         return None, err[:200]
@@ -1080,7 +1080,7 @@ def carregar_estudantes_supabase():
 
 def gerar_imagem_inteligente(api_key, prompt, unsplash_key=None, feedback_anterior="", prioridade="IA", gemini_key=None):
     """
-    Gera imagem: prioridade Gemini (se GEMINI_API_KEY), depois DALL-E, depois Unsplash.
+    Gera imagem: prioridade Omnisfera Blue, depois Red (DALL-E), depois Unsplash.
     Retorna bytes (PNG) ou URL (str); st.image() aceita ambos.
     """
     # 1. TENTATIVA GEMINI (se chave configurada)
@@ -1118,7 +1118,7 @@ def gerar_imagem_inteligente(api_key, prompt, unsplash_key=None, feedback_anteri
 
 def gerar_pictograma_caa(api_key, conceito, feedback_anterior="", gemini_key=None):
     """
-    Gera símbolo CAA: prioridade Gemini (se GEMINI_API_KEY), depois DALL-E.
+    Gera símbolo CAA: prioridade Omnisfera Blue, depois Red (DALL-E).
     Retorna bytes (PNG) ou URL (str); st.image() aceita ambos.
     """
     key_gemini = gemini_key or ou.get_gemini_api_key()
@@ -1149,7 +1149,7 @@ def gerar_pictograma_caa(api_key, conceito, feedback_anterior="", gemini_key=Non
         return None
 
 def _hub_chat_completion(engine, messages, temperature=0.7, api_key=None):
-    """Chat completion unificado para Hub. engine: red (ChatGPT), blue (Gemini), green (Kimi), yellow (DeepSeek)."""
+    """Chat completion unificado para Hub. engine: red, blue, green ou yellow."""
     engine = (engine or "red").strip().lower()
     if engine not in ("red", "blue", "green", "yellow"):
         engine = "red"
@@ -1210,10 +1210,10 @@ def _render_engine_selector(key_suffix=""):
     st.session_state.setdefault(sk, "red")
     with st.expander("🔧 Escolher motor de IA (Red, Blue, Green ou Yellow)", expanded=False):
         engine_map = {
-            "red": f"🔴 {ou.AI_RED} — ChatGPT (OpenAI)",
-            "blue": f"🔵 {ou.AI_BLUE} — Gemini",
-            "green": f"🟢 {ou.AI_GREEN} — Kimi (OpenRouter)",
-            "yellow": f"🟡 {ou.AI_YELLOW} — DeepSeek"
+            "red": f"🔴 {ou.AI_RED}",
+            "blue": f"🔵 {ou.AI_BLUE}",
+            "green": f"🟢 {ou.AI_GREEN}",
+            "yellow": f"🟡 {ou.AI_YELLOW}"
         }
         eng = st.radio(
             "Motor",
@@ -1656,9 +1656,8 @@ def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bn
     except Exception as e:
         return str(e)
 
-def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alunos, caracteristicas_turma, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior=""):
-    """Gera dinâmica inclusiva completa com BNCC"""
-    client = OpenAI(api_key=api_key)
+def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alunos, caracteristicas_turma, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior="", engine="red"):
+    """Gera dinâmica inclusiva completa com BNCC. engine: red/blue/green/yellow."""
     
     # Construir informações da BNCC
     info_bncc = ""
@@ -1724,12 +1723,8 @@ def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alun
     """
     
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=[{"role": "user", "content": prompt}], 
-            temperature=0.7
-        )
-        return resp.choices[0].message.content
+        text = _hub_chat_completion(api_key, prompt, engine=engine, temperature=0.7)
+        return text or ""
     except Exception as e:
         return str(e)
 
@@ -2765,11 +2760,13 @@ def render_aba_adaptar_atividade(aluno, api_key):
             )
             
             if tem_imagem_na_questao:
-                st.info("💡 Recorte apenas a área da imagem na questão. Esta imagem será inserida na questão adaptada.")
-                # Abrir a imagem original novamente para recortar só a imagem
-                img_pil_original = Image.open(BytesIO(st.session_state.img_raw))
-                img_pil_original.thumbnail((800, 800))
-                imagem_recortada = st_cropper(img_pil_original, realtime_update=True, box_color='#00FF00', aspect_ratio=None, key="crop_img_separada")
+                st.info("💡 Recorte apenas a área da imagem na questão (a partir da questão já recortada). Esta imagem será inserida na questão adaptada.")
+                # Usar a questão recortada como base, não a imagem original — o recorte da imagem é DENTRO da questão
+                img_questao = cropped_res.copy()
+                if img_questao.mode == 'RGBA':
+                    img_questao = img_questao.convert('RGB')
+                img_questao.thumbnail((800, 800))
+                imagem_recortada = st_cropper(img_questao, realtime_update=True, box_color='#00FF00', aspect_ratio=None, key="crop_img_separada")
                 if imagem_recortada:
                     st.image(imagem_recortada, width=200, caption="Imagem recortada separadamente")
 
@@ -3213,7 +3210,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
             )
 
 def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
-    """Renderiza a aba de estúdio visual (Gemini ou OpenAI + Unsplash)."""
+    """Renderiza a aba de estúdio visual (Omnisfera Blue ou Red + Unsplash)."""
     st.markdown(f"""
     <div class="pedagogia-box">
         <div class="pedagogia-title"><i class="ri-image-line"></i> Recursos Visuais</div>
@@ -3428,10 +3425,11 @@ def render_aba_papo_mestre(aluno, api_key):
     
     if st.button("🗣️ CRIAR CONEXÕES", type="primary"): 
         if assunto_papo:
-            try:
-                res = gerar_quebra_gelo_profundo(api_key, aluno, materia_papo, assunto_papo, hiperfoco_papo, tema_turma, engine=engine_papo)
-            except Exception as e:
-                res = str(e)
+            with st.spinner("Gerando conexões de engajamento..."):
+                try:
+                    res = gerar_quebra_gelo_profundo(api_key, aluno, materia_papo, assunto_papo, hiperfoco_papo, tema_turma, engine=engine_papo)
+                except Exception as e:
+                    res = str(e)
             st.session_state['res_papo'] = res
             st.session_state['res_papo_valid'] = False
         else:
@@ -3517,6 +3515,9 @@ def render_aba_dinamica_inclusiva(aluno, api_key):
             key="din_carac"
         )
     
+    # Motor de IA
+    engine_din = _render_engine_selector("dinamica")
+    
     # Botão para gerar
     st.markdown("---")
     
@@ -3534,7 +3535,8 @@ def render_aba_dinamica_inclusiva(aluno, api_key):
                     verbos_bloom=None, # Bloom Removido
                     ano=ano_bncc,
                     unidade_tematica=unidade_bncc,
-                    objeto_conhecimento=objeto_bncc
+                    objeto_conhecimento=objeto_bncc,
+                    engine=engine_din
                 )
                 st.session_state['res_dinamica'] = res
                 st.session_state['res_dinamica_valid'] = False
@@ -3772,7 +3774,7 @@ def render_aba_ei_experiencia(aluno, api_key):
                         st.rerun()
 
 def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
-    """Renderiza a aba de estúdio visual da Educação Infantil (Gemini ou OpenAI + Unsplash)."""
+    """Renderiza a aba de estúdio visual da Educação Infantil (Omnisfera Blue ou Red + Unsplash)."""
     st.markdown(f"""
     <div class="pedagogia-box">
         <div class="pedagogia-title"><i class="ri-eye-line"></i> Apoio Visual & Comunicação</div>
