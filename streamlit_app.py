@@ -1,11 +1,13 @@
 # streamlit_app.py
 import os
+from typing import Optional
+
 import streamlit as st
 
-# Warmup: lê chaves Supabase o mais cedo possível (mitiga race no Streamlit Cloud cold start)
+# Warmup: pré-carrega secrets para mitigar race no cold start do Streamlit Cloud
 try:
     import omni_utils as _ou
-    _ou.get_setting("SUPABASE_URL", "")
+    _ou.warmup_secrets()
 except Exception:
     pass
 
@@ -144,7 +146,7 @@ HOME_PAGE = "pages/0_Home.py"
 ADMIN_PAGE = "pages/8_Admin_Plataforma.py"
 
 
-def _tela_erro_recarregar(msg: str = "Algo deu errado. Recarregue a página.", detalhe: str | None = None):
+def _tela_erro_recarregar(msg: str = "Algo deu errado. Recarregue a página.", detalhe: Optional[str] = None):
     """Exibe mensagem amigável e botão Recarregar para evitar tela de crash do Streamlit."""
     st.markdown(
         f"""
@@ -185,7 +187,8 @@ try:
                 "2. Confidencialidade: É proibido inserir dados pessoais sensíveis de estudantes fora de ambientes autorizados pela instituição. O usuário se compromete a proteger qualquer informação acessada na plataforma.\n\n"
                 "3. Responsabilidade: Recomendações e conteúdos gerados pela IA são auxiliares e devem ser validados por profissionais responsáveis. A decisão final é sempre humana.\n\n"
                 "4. Segurança: Credenciais de acesso são pessoais e intransferíveis. Qualquer uso indevido deve ser comunicado à coordenação responsável.\n\n"
-                "5. Conformidade: O uso deve seguir as políticas internas da escola, legislação vigente e boas práticas de proteção de dados."
+                "5. Conformidade: O uso deve seguir as políticas internas da escola, legislação vigente e boas práticas de proteção de dados.\n\n"
+                "6. Motores de IA: A plataforma utiliza assistentes de IA (omnired, omniblue, omnigreen, omniyellow, omniorange) conforme configurado para sua escola. Quais motores estão disponíveis pode ser definido no perfil da escola pelo administrador."
             )
         import html
         terms_html = html.escape(terms_text).replace("\n", "<br>")
@@ -235,16 +238,39 @@ try:
             st.warning("Workspace não encontrado. Faça login novamente.")
             render_login()
         else:
-            # ✅ GARANTE O CLIENT SUPABASE NA SESSÃO (resolve has_sb:false)
-            try:
-                from supabase_client import get_sb
-
-                get_sb()  # salva em st.session_state["sb"]
-            except Exception as e:
-                st.error("Não foi possível conectar ao banco de dados. Tente recarregar a página.")
-                if ENV == "TESTE":
-                    st.code(str(e))
-                st.stop()
+            # Modo demo: pula conexão Supabase (teste local de UI)
+            if not st.session_state.get("modo_demo"):
+                try:
+                    from supabase_client import get_sb
+                    get_sb()  # salva em st.session_state["sb"]
+                except Exception as e:
+                    # Limpar cache para permitir nova tentativa ao recarregar
+                    st.session_state.pop("sb", None)
+                    st.markdown(
+                        """
+                        <div style="max-width:480px; margin:60px auto; padding:28px; background:white;
+                            border-radius:18px; border:1px solid #E2E8F0; box-shadow:0 20px 40px rgba(0,0,0,0.08);
+                            text-align:center;">
+                            <div style="font-size:2.2rem; margin-bottom:12px;">⚠️</div>
+                            <div style="font-weight:800; font-size:1.1rem; color:#1E293B; margin-bottom:8px;">
+                                Não foi possível conectar ao banco de dados
+                            </div>
+                            <div style="color:#64748B; font-size:0.95rem; line-height:1.5;">
+                                Chaves de configuração podem ainda estar carregando (Streamlit Cloud).<br>
+                                Clique em <strong>Recarregar</strong> para tentar novamente.
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                    col1, col2, col3 = st.columns([1, 2, 1])
+                    with col2:
+                        if st.button("🔄 Recarregar e tentar novamente", type="primary", use_container_width=True):
+                            st.rerun()
+                    if ENV == "TESTE":
+                        st.code(str(e))
+                        st.caption("Use o botão 'Entrar em modo demo' na tela de login para testar sem Supabase.")
+                    st.stop()
 
             # Vai para Home real (multipage)
             st.switch_page(HOME_PAGE)

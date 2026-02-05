@@ -186,6 +186,104 @@ def create_platform_issue(
         return False
 
 
+# =============================================================================
+# IA Usage (uso por escola + créditos)
+# =============================================================================
+def log_ia_usage(
+    workspace_id: str,
+    engine: str,
+    source: Optional[str] = None,
+    credits_consumed: float = 1.0,
+) -> bool:
+    """Registra uma chamada de IA na tabela ia_usage. Retorna True se sucesso."""
+    if not workspace_id or not engine:
+        return False
+    url = f"{_base()}/rest/v1/ia_usage"
+    payload: Dict[str, Any] = {
+        "workspace_id": workspace_id,
+        "engine": engine.strip().lower(),
+        "credits_consumed": credits_consumed,
+    }
+    if source:
+        payload["source"] = source
+    try:
+        h = {**_headers(), "Prefer": "return=minimal"}
+        r = requests.post(url, headers=h, json=payload, timeout=3)
+        return r.status_code < 400
+    except Exception:
+        return False
+
+
+def get_ia_usage_summary(
+    days: int = 30,
+    workspace_id: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Retorna resumo de uso de IA por escola (e opcionalmente por workspace).
+    Agrupa por workspace_id com contagem por engine e total de créditos.
+    """
+    since = (datetime.now(UTC) - timedelta(days=max(1, days))).isoformat()
+    url = f"{_base()}/rest/v1/ia_usage"
+    params = {
+        "select": "workspace_id,engine,credits_consumed,created_at",
+        "created_at": f"gte.{since}",
+        "order": "created_at.desc",
+        "limit": "10000",
+    }
+    if workspace_id:
+        params["workspace_id"] = f"eq.{workspace_id}"
+    try:
+        r = requests.get(
+            url,
+            headers={**_headers(), "Accept": "application/json"},
+            params=params,
+            timeout=15,
+        )
+        if r.status_code != 200:
+            return []
+        rows = r.json() if isinstance(r.json(), list) else []
+    except Exception:
+        return []
+
+    # Agregar por workspace
+    by_ws: Dict[str, Dict[str, Any]] = {}
+    for row in rows:
+        wid = row.get("workspace_id")
+        if not wid:
+            continue
+        wid_str = str(wid)
+        if wid_str not in by_ws:
+            by_ws[wid_str] = {
+                "workspace_id": wid_str,
+                "red": 0,
+                "blue": 0,
+                "green": 0,
+                "yellow": 0,
+                "orange": 0,
+                "total_calls": 0,
+                "credits_used": 0.0,
+            }
+        eng = (row.get("engine") or "").strip().lower()
+        cred = float(row.get("credits_consumed") or 1)
+        by_ws[wid_str]["total_calls"] += 1
+        by_ws[wid_str]["credits_used"] += cred
+        if eng in ("red", "blue", "green", "yellow", "orange"):
+            by_ws[wid_str][eng] = by_ws[wid_str].get(eng, 0) + 1
+
+    # Buscar nomes das escolas
+    try:
+        from services.admin_service import list_workspaces
+        workspaces = {str(w.get("id")): w.get("name", "—") for w in list_workspaces() if w.get("id")}
+    except Exception:
+        workspaces = {}
+    result = []
+    for wid_str, data in by_ws.items():
+        data["workspace_name"] = workspaces.get(wid_str, "—")
+        result.append(data)
+    result.sort(key=lambda x: (x["credits_used"], x["total_calls"]), reverse=True)
+    return result
+
+
 def update_platform_issue_status(
     issue_id: str,
     status: Optional[str] = None,

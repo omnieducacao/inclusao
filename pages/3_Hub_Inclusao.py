@@ -462,14 +462,22 @@ def buscar_imagem_unsplash(query, access_key):
         print(f"Erro ao buscar no Unsplash: {e}")
     return None
 
-def garantir_tag_imagem(texto):
-    """Garante que o texto tenha pelo menos uma tag de imagem"""
+def garantir_tag_imagem(texto, tag_a_inserir="IMG_1"):
+    """
+    Garante tag de imagem no texto quando aplicável.
+    - tag_a_inserir=None: não adiciona nenhuma tag (Adaptar Atividade sem Passo 2).
+    - tag_a_inserir="IMG_2": adiciona [[IMG_2]] se não houver tag (Adaptar Atividade com Passo 2).
+    - tag_a_inserir="IMG_1" (default): adiciona [[IMG_1]] se não houver tag (comportamento legado).
+    """
+    if tag_a_inserir is None:
+        return texto
     if "[[IMG" not in texto.upper() and "[[GEN_IMG" not in texto.upper():
+        tag = f"[[{tag_a_inserir}]]"
         match = re.search(r'(\n|\. )', texto)
         if match:
             pos = match.end()
-            return texto[:pos] + "\n\n[[IMG_1]]\n\n" + texto[pos:]
-        return texto + "\n\n[[IMG_1]]"
+            return texto[:pos] + "\n\n" + tag + "\n\n" + texto[pos:]
+        return texto + "\n\n" + tag
     return texto
 
 def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, tipo_atv, sem_cabecalho=False, checklist_adaptacao=None):
@@ -647,7 +655,7 @@ def criar_pdf_generico(texto):
 
 def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str, aluno: dict = None, kimi_key: str = None) -> tuple[bytes | None, str | None]:
     """
-    Gera PowerPoint rico visualmente a partir do plano de aula, usando Omnisfera Green (Kimi).
+    Gera PowerPoint rico visualmente a partir do plano de aula, usando Omnisfera Green.
     Estética inspirada no hiperfoco do aluno. Para o professor usar em aula.
     Retorna (bytes_pptx, None) em sucesso ou (None, mensagem_erro).
     """
@@ -673,52 +681,71 @@ def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str, aluno: dict = N
             "Em deploy (Streamlit Cloud/Render): adicione nas Secrets/Env Vars do serviço."
         )
 
+    def _clean(s):
+        return (s or "").strip().replace("\n", "").replace("\r", "").strip()
+
+    kimi_key = _clean(kimi_key)
+
     # Usa OPENROUTER_BASE_URL, KIMI_MODEL se configurados; senão detecta por prefixo da chave
     base_url = (
         os.environ.get("OPENROUTER_BASE_URL")
         or ou.get_setting("OPENROUTER_BASE_URL", "")
-        or ("https://openrouter.ai/api/v1" if (kimi_key or "").strip().startswith("sk-or-") else "https://api.moonshot.ai/v1")
+        or ("https://openrouter.ai/api/v1" if kimi_key.startswith("sk-or-") else "https://api.moonshot.ai/v1")
     )
-    base_url = (base_url or "").strip() or "https://openrouter.ai/api/v1"
+    base_url = _clean(base_url) or "https://openrouter.ai/api/v1"
     model = (
         os.environ.get("KIMI_MODEL")
         or ou.get_setting("KIMI_MODEL", "")
-        or ("moonshotai/kimi-k2.5" if (kimi_key or "").strip().startswith("sk-or-") else "kimi-k2-turbo-preview")
+        or ("moonshotai/kimi-k2.5" if kimi_key.startswith("sk-or-") else "kimi-k2-turbo-preview")
     )
-    model = (model or "").strip() or "moonshotai/kimi-k2.5"
+    model = _clean(model) or "moonshotai/kimi-k2.5"
 
     hiperfoco = (aluno or {}).get("hiperfoco", "") or "aprendizado e descobertas"
     nome_aluno = (aluno or {}).get("nome", "") or "estudante"
 
-    prompt = f"""Crie uma APRESENTAÇÃO PARA O PROFESSOR USAR NA AULA — visualmente rica, inspirada no interesse do aluno.
+    prompt = f"""Você é um designer de apresentações profissionais. Crie uma APRESENTAÇÃO IMPACTANTE para o professor usar em sala — nível executivo/corporativo, não amador.
 
 CONTEXTO:
 - Plano de aula: {titulo_plano[:80]}
-- Hiperfoco do aluno (use na estética/theme): {hiperfoco[:200]}
+- Hiperfoco do aluno (estética/theme): {hiperfoco[:200]}
 - Nome do aluno: {nome_aluno}
 
-Objetivo: PPT que o professor projeta na aula — engajante, com poucos bullets por slide, frases de destaque, sugestões visuais. A estética (cores, tema) deve refletir o hiperfoco.
+OBJETIVO: PPT profissional, engajante, com hierarquia visual clara. Use o plano de aula para extrair os CONCEITOS-CHAVE, OBJETIVOS, ATIVIDADES e DESTAQUES. Cada slide deve ter propósito — não preencha com texto genérico.
 
 Retorne APENAS um JSON válido, sem markdown:
 {{
-  "theme": "nome do tema baseado no hiperfoco (ex: dinossauros, espaço, natureza, jogos)",
+  "theme": "tema visual baseado no hiperfoco (ex: exploração espacial, floresta, dinossauros, jogos)",
   "palette": {{
-    "primary": "hex sem # (ex: 0F766E para teal)",
-    "accent": "hex sem # (ex: F59E0B para âmbar)",
-    "background_light": "hex (ex: F0FDFA)"
+    "primary": "hex sem # (cor principal)",
+    "accent": "hex sem # (cor de destaque)",
+    "background_light": "hex (fundo claro)",
+    "text_dark": "hex (texto principal)",
+    "text_muted": "hex (texto secundário)"
   }},
   "slides": [
-    {{"title": "Título impactante", "bullets": ["Frase curta", "..."], "visual_cue": "Sugestão de imagem/ícone (ex: foguete, lupa)"}},
-    ...
+    {{"slide_type": "cover", "title": "Título da aula", "subtitle": "Frase de impacto com foco no hiperfoco"}},
+    {{"slide_type": "section", "title": "Objetivos", "statement": "Frase curta e poderosa"}},
+    {{"slide_type": "content", "title": "Conceito 1", "bullets": ["Bullet curto", "Outro bullet"], "callout": "Frase para destacar em caixa"}},
+    {{"slide_type": "quote", "quote_text": "Frase inspiradora do plano", "quote_author": "contexto"}},
+    {{"slide_type": "key_takeaway", "title": "O que levar", "bullets": ["Ponto 1", "Ponto 2"], "highlight": [0]}}
   ]
 }}
 
-Regras:
-- 8 a 16 slides
-- Slide 1: capa com título da aula, subtítulo com foco no hiperfoco
-- Slides 2+: títulos chamativos, 2-5 bullets curtos (máx 60 chars), visual_cue por slide
-- palette: cores que combinem com o hiperfoco (ex: espaço=azul escuro/roxo, natureza=verde, dinossauros=marrom/verde)
-- Texto em português
+TIPOS DE SLIDE:
+- cover: título grande + subtitle
+- section: divisor de seção, statement grande (1 frase)
+- content: título + bullets + callout opcional (frase em destaque)
+- quote: citação centralizada, impactante
+- key_takeaway: resumo com bullets, highlight = índices dos bullets mais importantes (0-based)
+
+REGRAS:
+- 8 a 14 slides
+- Use o PLANO DE AULA para extrair conteúdo real — objetivos, metodologia, avaliação
+- Títulos curtos e impactantes (máx 8 palavras)
+- Bullets concisos (máx 50 chars cada)
+- Cores que combinem com o tema/hiperfoco
+- callout: frase curta para caixa de destaque (opcional)
+- highlight: array de índices (ex: [0,2]) para bullets a enfatizar
 
 --- PLANO DE AULA ---
 {texto_plano[:5500]}
@@ -736,7 +763,7 @@ Regras:
         )
         raw = (resp.choices[0].message.content or "").strip()
         if not raw:
-            return None, "Resposta vazia do Kimi."
+            return None, "Resposta vazia do motor."
 
         # Extrair JSON (pode vir em ```json ... ```)
         if "```" in raw:
@@ -748,12 +775,13 @@ Regras:
         data = json.loads(raw)
         slides_data = data.get("slides") or []
         if not slides_data:
-            return None, "Kimi não retornou slides estruturados."
+            return None, "Motor não retornou slides estruturados."
 
         from pptx import Presentation
         from pptx.util import Inches, Pt
         from pptx.dml.color import RGBColor as PptxRgb
         from pptx.enum.shapes import MSO_SHAPE
+        from pptx.enum.text import PP_ALIGN
 
         def _hex_to_rgb(hex_str):
             if not hex_str or not isinstance(hex_str, str):
@@ -770,95 +798,180 @@ Regras:
         rgb_primary = _hex_to_rgb(palette.get("primary") or palette.get("primary_rgb") or "0F766E")
         rgb_accent = _hex_to_rgb(palette.get("accent") or palette.get("accent_rgb") or "F59E0B")
         rgb_bg = _hex_to_rgb(palette.get("background_light") or "F0FDFA")
+        rgb_text = _hex_to_rgb(palette.get("text_dark") or "0F172A")
+        rgb_muted = _hex_to_rgb(palette.get("text_muted") or "64748B")
         clr_primary = PptxRgb(*rgb_primary)
         clr_accent = PptxRgb(*rgb_accent)
         clr_bg = PptxRgb(*rgb_bg)
-        clr_text = PptxRgb(15, 23, 42)
-        clr_text_light = PptxRgb(71, 85, 105)
+        clr_text = PptxRgb(*rgb_text)
+        clr_text_light = PptxRgb(*rgb_muted)
+        margin = Inches(0.6)
+        content_w = Inches(8.8)
+        content_left = margin
 
         prs = Presentation()
         prs.slide_width = Inches(10)
         prs.slide_height = Inches(7.5)
 
         for i, s in enumerate(slides_data):
+            slide_type = str(s.get("slide_type") or "content").lower()
             title = str(s.get("title") or f"Slide {i+1}")[:200]
+            subtitle = str(s.get("subtitle") or "")[:150]
+            statement = str(s.get("statement") or "")[:200]
+            quote_text = str(s.get("quote_text") or "")[:300]
+            quote_author = str(s.get("quote_author") or "")[:80]
+            callout = str(s.get("callout") or "")[:120]
             bullets = s.get("bullets") or []
             if isinstance(bullets, str):
                 bullets = [bullets] if bullets.strip() else []
-            visual_cue = str(s.get("visual_cue") or "")[:80]
+            bullets = [str(b)[:100] for b in bullets[:6]]
+            highlight = s.get("highlight") or []
+            if not isinstance(highlight, (list, tuple)):
+                highlight = []
+            highlight_set = set(int(x) for x in highlight if isinstance(x, (int, float)))
 
             layout = prs.slide_layouts[6]
             slide = prs.slides.add_slide(layout)
-
-            slide.follow_master_background = False
             bg = slide.background
             bg.fill.solid()
             bg.fill.fore_color.rgb = clr_bg
 
-            left = Inches(0.5)
-            top = Inches(0.3)
-            width = Inches(9)
-            height_bar = Inches(0.08)
-            bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height_bar)
-            bar.fill.solid()
-            bar.fill.fore_color.rgb = clr_primary
-            bar.line.fill.background()
-
-            top_title = Inches(0.55)
-            height_title = Inches(1.4)
-            tx = slide.shapes.add_textbox(left, top_title, width, height_title)
-            tf = tx.text_frame
-            tf.word_wrap = True
-            p = tf.paragraphs[0]
-            p.text = title
-            p.font.size = Pt(32 if i == 0 else 24)
-            p.font.bold = True
-            for r in p.runs:
-                r.font.color.rgb = clr_primary if i == 0 else clr_text
-
-            if bullets:
-                top_body = Inches(2.1)
-                height_body = Inches(4.5)
-                tx_body = slide.shapes.add_textbox(left, top_body, width, height_body)
-                tf_body = tx_body.text_frame
-                tf_body.word_wrap = True
-                for j, b in enumerate(bullets[:6]):
-                    bullet_text = str(b)[:100]
-                    if j == 0:
-                        p_b = tf_body.paragraphs[0]
-                    else:
-                        p_b = tf_body.add_paragraph()
-                    p_b.text = f"• {bullet_text}"
-                    p_b.font.size = Pt(18)
-                    for r in p_b.runs:
+            if slide_type == "cover":
+                bar_h = Inches(0.12)
+                bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, margin, Inches(2.2), content_w, bar_h)
+                bar.fill.solid()
+                bar.fill.fore_color.rgb = clr_primary
+                bar.line.fill.background()
+                tx = slide.shapes.add_textbox(margin, Inches(0.8), content_w, Inches(1.8))
+                tf = tx.text_frame
+                tf.word_wrap = True
+                p = tf.paragraphs[0]
+                p.text = title
+                p.font.size = Pt(44)
+                p.font.bold = True
+                for r in p.runs:
+                    r.font.color.rgb = clr_primary
+                if subtitle:
+                    p2 = tf.add_paragraph()
+                    p2.text = subtitle
+                    p2.font.size = Pt(22)
+                    p2.font.italic = True
+                    for r in p2.runs:
+                        r.font.color.rgb = clr_text_light
+                    p2.space_before = Pt(12)
+            elif slide_type == "section":
+                bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, margin, Inches(0.4), Inches(0.08), Inches(6.2))
+                bar.fill.solid()
+                bar.fill.fore_color.rgb = clr_primary
+                bar.line.fill.background()
+                tx = slide.shapes.add_textbox(Inches(1.2), Inches(2.2), Inches(7.6), Inches(2.5))
+                tf = tx.text_frame
+                tf.word_wrap = True
+                p = tf.paragraphs[0]
+                p.text = statement or title
+                p.font.size = Pt(36)
+                p.font.bold = True
+                for r in p.runs:
+                    r.font.color.rgb = clr_primary
+                if title and not statement:
+                    p2 = tf.add_paragraph()
+                    p2.text = title
+                    p2.font.size = Pt(28)
+                    for r in p2.runs:
                         r.font.color.rgb = clr_text
-                    p_b.space_after = Pt(10)
-
-            if visual_cue:
-                top_cue = Inches(6.4)
-                tx_cue = slide.shapes.add_textbox(left, top_cue, width, Inches(0.6))
-                tf_cue = tx_cue.text_frame
-                tf_cue.word_wrap = True
-                p_cue = tf_cue.paragraphs[0]
-                p_cue.text = f"🖼 {visual_cue}"
-                p_cue.font.size = Pt(12)
-                p_cue.font.italic = True
-                for r in p_cue.runs:
-                    r.font.color.rgb = clr_text_light
+            elif slide_type == "quote":
+                box = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1), Inches(2), Inches(8), Inches(2.8))
+                box.fill.solid()
+                box.fill.fore_color.rgb = PptxRgb(248, 250, 252)
+                box.line.color.rgb = clr_primary
+                box.line.width = Pt(2)
+                tx = box.text_frame
+                tx.word_wrap = True
+                p = tx.paragraphs[0]
+                p.text = f'"{quote_text}"'
+                p.font.size = Pt(26)
+                p.font.italic = True
+                p.alignment = PP_ALIGN.CENTER
+                for r in p.runs:
+                    r.font.color.rgb = clr_text
+                if quote_author:
+                    p2 = tx.add_paragraph()
+                    p2.text = f"— {quote_author}"
+                    p2.font.size = Pt(16)
+                    p2.alignment = PP_ALIGN.CENTER
+                    for r in p2.runs:
+                        r.font.color.rgb = clr_text_light
+            else:
+                bar_h = Inches(0.06)
+                bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, margin, Inches(0.35), content_w, bar_h)
+                bar.fill.solid()
+                bar.fill.fore_color.rgb = clr_primary
+                bar.line.fill.background()
+                top = Inches(0.6)
+                tx = slide.shapes.add_textbox(content_left, top, content_w, Inches(1))
+                tf = tx.text_frame
+                tf.word_wrap = True
+                p = tf.paragraphs[0]
+                p.text = title
+                p.font.size = Pt(28)
+                p.font.bold = True
+                for r in p.runs:
+                    r.font.color.rgb = clr_primary
+                top = Inches(1.4)
+                if bullets:
+                    tx_body = slide.shapes.add_textbox(content_left, top, content_w, Inches(3.8))
+                    tf_body = tx_body.text_frame
+                    tf_body.word_wrap = True
+                    for j, b in enumerate(bullets):
+                        if j == 0:
+                            p_b = tf_body.paragraphs[0]
+                        else:
+                            p_b = tf_body.add_paragraph()
+                        p_b.text = f"• {b}"
+                        p_b.font.size = Pt(20 if j in highlight_set else 18)
+                        p_b.font.bold = (j in highlight_set)
+                        for r in p_b.runs:
+                            r.font.color.rgb = clr_primary if j in highlight_set else clr_text
+                        p_b.space_after = Pt(12)
+                callout_top = Inches(5.2) if bullets else Inches(1.5)
+                if callout:
+                    call_h = Inches(0.9)
+                    call_box = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, content_left, callout_top, content_w, call_h)
+                    call_box.fill.solid()
+                    call_box.fill.fore_color.rgb = clr_primary
+                    call_box.line.fill.background()
+                    tx_call = call_box.text_frame
+                    tx_call.word_wrap = True
+                    p_call = tx_call.paragraphs[0]
+                    p_call.text = callout
+                    p_call.font.size = Pt(18)
+                    p_call.font.bold = True
+                    for r in p_call.runs:
+                        r.font.color.rgb = PptxRgb(255, 255, 255)
+                visual_cue = str(s.get("visual_cue") or "")[:80]
+                if visual_cue:
+                    tx_cue = slide.shapes.add_textbox(content_left, Inches(6.5), content_w, Inches(0.5))
+                    tf_cue = tx_cue.text_frame
+                    p_cue = tf_cue.paragraphs[0]
+                    p_cue.text = f"🖼 {visual_cue}"
+                    p_cue.font.size = Pt(12)
+                    p_cue.font.italic = True
+                    for r in p_cue.runs:
+                        r.font.color.rgb = clr_text_light
 
         buf = BytesIO()
         prs.save(buf)
         buf.seek(0)
         return buf.read(), None
     except json.JSONDecodeError as e:
-        return None, f"Resposta do Kimi não é JSON válido: {str(e)[:100]}"
+        return None, f"Resposta não é JSON válido: {str(e)[:100]}"
     except Exception as e:
         err = str(e)
         if "401" in err or "Invalid Authentication" in err or "invalid_authentication" in err:
             return None, (
                 "Chave da API inválida (401). Verifique: "
                 "1) KIMI_API_KEY ou MOONSHOT_API_KEY em secrets.toml ou variável de ambiente; "
-                "2) Chave correta de platform.moonshot.ai (não use chave da OpenAI); "
+                "2) Chave correta de platform.moonshot.ai (não use chave de outro provedor); "
                 "3) Conta com saldo e chave ativa."
             )
         return None, err[:200]
@@ -975,7 +1088,7 @@ def carregar_estudantes_supabase():
 
 def gerar_imagem_inteligente(api_key, prompt, unsplash_key=None, feedback_anterior="", prioridade="IA", gemini_key=None):
     """
-    Gera imagem: prioridade Gemini (se GEMINI_API_KEY), depois DALL-E, depois Unsplash.
+    Gera imagem: prioridade Omnisfera Blue, depois Red (DALL-E), depois Unsplash.
     Retorna bytes (PNG) ou URL (str); st.image() aceita ambos.
     """
     # 1. TENTATIVA GEMINI (se chave configurada)
@@ -1013,7 +1126,7 @@ def gerar_imagem_inteligente(api_key, prompt, unsplash_key=None, feedback_anteri
 
 def gerar_pictograma_caa(api_key, conceito, feedback_anterior="", gemini_key=None):
     """
-    Gera símbolo CAA: prioridade Gemini (se GEMINI_API_KEY), depois DALL-E.
+    Gera símbolo CAA: prioridade Omnisfera Blue, depois Red (DALL-E).
     Retorna bytes (PNG) ou URL (str); st.image() aceita ambos.
     """
     key_gemini = gemini_key or ou.get_gemini_api_key()
@@ -1043,9 +1156,37 @@ def gerar_pictograma_caa(api_key, conceito, feedback_anterior="", gemini_key=Non
         print(f"Erro ao gerar pictograma: {e}")
         return None
 
-def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remover_resp, questoes_mapeadas, modo_profundo=False, checklist_adaptacao=None):
+def _hub_chat_completion(engine, messages, temperature=0.7, api_key=None):
+    """Chat completion unificado para Hub. engine: blue (DeepSeek), green (Kimi), yellow (Gemini)."""
+    engine = (engine or "blue").strip().lower()
+    if engine not in ("blue", "green", "yellow"):
+        engine = "blue"
+    return ou.chat_completion_multi_engine(engine, messages, temperature=temperature, api_key=api_key)
+
+
+def _render_engine_selector(key_suffix=""):
+    """Renderiza expander para escolher motor IA (omnired/omniblue). omniyellow é usado para imagens/visão."""
+    sk = f"hub_engine_{key_suffix}" if key_suffix else "hub_engine_default"
+    st.session_state.setdefault(sk, "red")
+    with st.expander("🔧 Escolher motor de IA (omnired ou omniblue)", expanded=False):
+        engine_map = {
+            "red": f"🔴 {ou.AI_RED}",
+            "blue": f"🔵 {ou.AI_BLUE}",
+        }
+        eng = st.radio(
+            "Motor (texto). Imagens e Adaptar Atividades usam omniyellow.",
+            options=["red", "blue"],
+            format_func=lambda x: engine_map.get(x, x),
+            index={"red": 0, "blue": 1}.get(st.session_state.get(sk, "red"), 0),
+            key=f"engine_radio_{key_suffix}",
+            horizontal=True,
+        )
+        st.session_state[sk] = eng
+    return st.session_state[sk]
+
+
+def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remover_resp, questoes_mapeadas, modo_profundo=False, checklist_adaptacao=None, engine="red"):
     """Adapta conteúdo de um DOCX para o estudante"""
-    client = OpenAI(api_key=api_key)
     lista_q = ", ".join([str(n) for n in questoes_mapeadas]) if questoes_mapeadas else ""
     style = "Seja didático e use uma Cadeia de Pensamento para adaptar." if modo_profundo else "Seja objetivo."
     
@@ -1114,12 +1255,11 @@ def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remove
     """
     
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=[{"role": "user", "content": prompt}], 
-            temperature=0.7 if modo_profundo else 0.4
+        full_text = _hub_chat_completion(
+            engine, [{"role": "user", "content": prompt}],
+            temperature=0.7 if modo_profundo else 0.4,
+            api_key=api_key
         )
-        full_text = resp.choices[0].message.content
         if "---DIVISOR---" in full_text:
             parts = full_text.split("---DIVISOR---")
             return parts[0].replace("[ANÁLISE PEDAGÓGICA]", "").strip(), parts[1].replace("[ATIVIDADE]", "").strip()
@@ -1127,77 +1267,87 @@ def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remove
     except Exception as e:
         return str(e), ""
 
+def _comprimir_imagem_para_vision(img_bytes: bytes, max_bytes: int = 3_000_000) -> bytes:
+    """Reduz tamanho da imagem se necessário para evitar falhas na API de visão."""
+    if len(img_bytes) <= max_bytes:
+        return img_bytes
+    try:
+        img = Image.open(BytesIO(img_bytes)).convert("RGB")
+        w, h = img.size
+        scale = (max_bytes / len(img_bytes)) ** 0.5
+        new_w = max(256, min(w, int(w * scale)))
+        new_h = max(256, min(h, int(h * scale)))
+        img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        buf = BytesIO()
+        img.save(buf, format="JPEG", quality=85)
+        return buf.getvalue()
+    except Exception:
+        return img_bytes
+
+
 def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_atv, livro_professor, modo_profundo=False, checklist_adaptacao=None, imagem_separada=None):
-    """Adapta conteúdo de uma imagem para o estudante"""
-    client = OpenAI(api_key=api_key)
+    """Adapta conteúdo de uma imagem para o estudante (OCR + visão via Omnisfera Yellow — Gemini)."""
+    key = ou.get_gemini_api_key() or (api_key or "").strip()
+    key = (key or "").strip()
+    if not key:
+        return "Configure GEMINI_API_KEY nos Secrets do app (Omnisfera Yellow é necessário para OCR/visão).", ""
+
     if not imagem_bytes:
         return "Erro: Imagem vazia", ""
-    
-    b64 = base64.b64encode(imagem_bytes).decode('utf-8')
+
+    # Comprimir se muito grande
+    imagem_bytes = _comprimir_imagem_para_vision(imagem_bytes)
+    if imagem_separada:
+        imagem_separada = _comprimir_imagem_para_vision(imagem_separada)
+
     instrucao_livro = "ATENÇÃO: IMAGEM COM RESPOSTAS. Remova todo gabarito/respostas." if livro_professor else ""
     style = "Faça uma análise crítica para melhor adaptação." if modo_profundo else "Transcreva e adapte."
-    
-    # Buscar hiperfoco do aluno
     hiperfoco = aluno.get('hiperfoco', 'Geral') or 'Geral'
-    
-    # Instrução sobre imagem separada
+    # A primeira imagem (questão recortada) é APENAS para a IA ler/transcrever. NÃO inserir no texto.
+    # Só inserir imagem no texto quando o professor recortou a imagem separadamente (Passo 2).
     instrucao_imagem_separada = ""
     if imagem_separada:
-        instrucao_imagem_separada = "\n    - O professor recortou a imagem separadamente para melhor qualidade. Use a tag [[IMG_2]] para inserir esta imagem recortada no local apropriado da questão adaptada."
-    
-    # Montar instruções baseadas no checklist de adaptação (específico para questão única)
+        instrucao_imagem_separada = "\n    - O professor recortou a imagem da questão separadamente (Passo 2). Use APENAS a tag [[IMG_2]] para inserir ESSA imagem recortada no local correto da questão adaptada (onde a figura aparecia na questão original). NÃO use [[IMG_1]]. A imagem anexada a seguir é a que deve aparecer no documento."
+
     instrucoes_checklist = ""
     if checklist_adaptacao and isinstance(checklist_adaptacao, dict):
         necessidades_ativas = []
-        
         if checklist_adaptacao.get("questoes_desafiadoras"):
             necessidades_ativas.append("Aumentar o nível de desafio da questão")
         else:
             necessidades_ativas.append("Manter ou reduzir o nível de dificuldade")
-        
         if not checklist_adaptacao.get("compreende_instrucoes_complexas"):
             necessidades_ativas.append("Simplificar instruções complexas")
-        
         if checklist_adaptacao.get("instrucoes_passo_a_passo"):
             necessidades_ativas.append("Fornecer instruções passo a passo detalhadas")
-        
         if checklist_adaptacao.get("dividir_em_etapas"):
             necessidades_ativas.append("Dividir a questão em etapas menores e mais gerenciáveis")
-        
         if checklist_adaptacao.get("paragrafos_curtos"):
             necessidades_ativas.append("Usar parágrafos curtos para melhor compreensão")
-        
         if checklist_adaptacao.get("dicas_apoio"):
             necessidades_ativas.append("Incluir dicas de apoio específicas para resolver esta questão")
-        
         if not checklist_adaptacao.get("compreende_figuras_linguagem"):
             necessidades_ativas.append("Reduzir ou eliminar figuras de linguagem e inferências")
-        
         if checklist_adaptacao.get("descricao_imagens"):
             necessidades_ativas.append("Incluir descrição detalhada da imagem presente na questão")
-        
         if necessidades_ativas:
             instrucoes_checklist = f"""
-    
     CHECKLIST DE ADAPTAÇÃO (baseado no PEI - QUESTÃO ÚNICA):
     {chr(10).join([f"- {n}" for n in necessidades_ativas])}
-    
     REGRA CRÍTICA: Como esta é uma questão única, aplique as adaptações selecionadas de forma específica e pontual.
-    Selecione as 2-3 adaptações mais relevantes para esta questão específica e aplique-as de forma integrada.
     """
-    
+
     prompt = f"""
     ATUAR COMO: Especialista em Acessibilidade e OCR. {style}
     1. Transcreva o texto da imagem. {instrucao_livro}
     2. Adapte para o estudante (PEI: {aluno.get('ia_sugestao', '')[:800]}).
-    3. HIPERFOCO ({hiperfoco}): Use o hiperfoco do estudante sempre que possível para conectar e engajar na questão. 
-       Se o hiperfoco for relevante ao conteúdo, integre-o naturalmente na adaptação.
+    3. HIPERFOCO ({hiperfoco}): Use o hiperfoco do estudante sempre que possível para conectar e engajar na questão.
     {instrucoes_checklist}
-    4. REGRA ABSOLUTA DE IMAGEM: 
-    - Se a questão original tinha imagem, detecte-a na imagem fornecida e insira a tag [[IMG_1]] no mesmo local onde estava.
+    4. REGRA DE IMAGEM:
+    - A imagem que você recebeu primeiro é apenas para você LER e transcrever o conteúdo da questão. NÃO insira essa imagem no texto da atividade (não use [[IMG_1]]).
     {instrucao_imagem_separada}
-    - MANTENHA AS IMAGENS NO MESMO LOCAL ONDE ESTAVAM NA QUESTÃO ORIGINAL.
-    
+    - Se não houve imagem recortada separadamente pelo professor, não coloque nenhuma tag de imagem no texto.
+
     SAÍDA OBRIGATÓRIA (Respeite o divisor):
     [ANÁLISE PEDAGÓGICA]
     ...análise...
@@ -1205,53 +1355,52 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
     [ATIVIDADE]
     ...atividade...
     """
-    
-    # Preparar mensagens com imagem(s)
-    content_msgs = [
-        {"type": "text", "text": prompt}, 
-        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
-    ]
-    
-    # Se houver imagem separada, adicionar também
-    if imagem_separada:
-        b64_separada = base64.b64encode(imagem_separada).decode('utf-8')
-        content_msgs.append({
-            "type": "text", 
-            "text": "IMAGEM RECORTADA SEPARADAMENTE PELO PROFESSOR (use tag [[IMG_2]] para inserir no local apropriado):"
-        })
-        content_msgs.append({
-            "type": "image_url", 
-            "image_url": {"url": f"data:image/jpeg;base64,{b64_separada}"}
-        })
-    
-    msgs = [
-        {
-            "role": "user", 
-            "content": content_msgs
-        }
-    ]
-    
+
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=msgs, 
-            temperature=0.7 if modo_profundo else 0.4
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=key)
+        contents = [
+            types.Part.from_bytes(data=imagem_bytes, mime_type="image/jpeg"),
+            prompt.strip(),
+        ]
+        if imagem_separada:
+            contents.append("IMAGEM RECORTADA SEPARADAMENTE PELO PROFESSOR (use tag [[IMG_2]] para inserir no local apropriado):")
+            contents.append(types.Part.from_bytes(data=imagem_separada, mime_type="image/jpeg"))
+
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=contents,
+            config=types.GenerateContentConfig(temperature=0.7 if modo_profundo else 0.4, max_output_tokens=4096),
         )
-        full_text = resp.choices[0].message.content
+        full_text = (response.text or "").strip()
+        if not full_text:
+            return "A IA não retornou conteúdo. Tente recortar novamente a questão e enviar.", ""
+
         analise = "Análise indisponível."
         atividade = full_text
         if "---DIVISOR---" in full_text:
             parts = full_text.split("---DIVISOR---")
             analise = parts[0].replace("[ANÁLISE PEDAGÓGICA]", "").strip()
             atividade = parts[1].replace("[ATIVIDADE]", "").strip()
-        atividade = garantir_tag_imagem(atividade)
+        # Só inserir tag de imagem se o professor recortou a imagem separadamente (Passo 2)
+        tag = "IMG_2" if imagem_separada else None
+        atividade = garantir_tag_imagem(atividade, tag_a_inserir=tag)
+        ou.track_ia_usage("yellow", source="hub_adaptar_atividade")
         return analise, atividade
     except Exception as e:
-        return str(e), ""
+        err = str(e).strip()
+        if "rate_limit" in err.lower() or "429" in err:
+            return "Limite de uso atingido. Aguarde alguns minutos e tente novamente.", ""
+        if "API key" in err or "invalid" in err.lower() or "401" in err:
+            return "Chave da Omnisfera Yellow (GEMINI_API_KEY) inválida ou ausente. Verifique os Secrets do app.", ""
+        if "context_length" in err.lower() or "maximum" in err.lower():
+            return "Imagem muito grande. Recorte uma área menor da questão e tente novamente.", ""
+        return f"Erro no OCR/visão: {err[:300]}", ""
 
-def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, verbos_bloom=None, habilidades_bncc=None, modo_profundo=False, checklist_adaptacao=None):
+def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, verbos_bloom=None, habilidades_bncc=None, modo_profundo=False, checklist_adaptacao=None, engine="red"):
     """Cria atividade profissional do zero"""
-    client = OpenAI(api_key=api_key)
     hiperfoco = aluno.get('hiperfoco', 'Geral')
     
     # Instrução de imagens
@@ -1347,12 +1496,10 @@ def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, v
     """
     
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=[{"role": "user", "content": prompt}], 
-            temperature=0.8 if modo_profundo else 0.6
+        full_text = _hub_chat_completion(
+            engine, [{"role": "user", "content": prompt}],
+            temperature=0.8 if modo_profundo else 0.6, api_key=api_key
         )
-        full_text = resp.choices[0].message.content
         if "---DIVISOR---" in full_text:
             parts = full_text.split("---DIVISOR---")
             return parts[0].replace("[ANÁLISE PEDAGÓGICA]", "").strip(), parts[1].replace("[ATIVIDADE]", "").strip()
@@ -1403,9 +1550,8 @@ def gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, objetivo, feedback_ante
     except Exception as e:
         return str(e)
 
-def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior=""):
+def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior="", engine="red"):
     """Gera roteiro de aula completo com BNCC"""
-    client = OpenAI(api_key=api_key)
     
     # Construir informações da BNCC
     info_bncc = ""
@@ -1471,18 +1617,15 @@ def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bn
     """
     
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=[{"role": "user", "content": prompt}], 
-            temperature=0.7
+        return _hub_chat_completion(
+            engine, [{"role": "user", "content": prompt}],
+            temperature=0.7, api_key=api_key
         )
-        return resp.choices[0].message.content
     except Exception as e:
         return str(e)
 
-def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alunos, caracteristicas_turma, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior=""):
-    """Gera dinâmica inclusiva completa com BNCC"""
-    client = OpenAI(api_key=api_key)
+def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alunos, caracteristicas_turma, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior="", engine="red"):
+    """Gera dinâmica inclusiva completa com BNCC. engine: red/blue/green/yellow."""
     
     # Construir informações da BNCC
     info_bncc = ""
@@ -1548,19 +1691,13 @@ def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alun
     """
     
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=[{"role": "user", "content": prompt}], 
-            temperature=0.7
-        )
-        return resp.choices[0].message.content
+        text = _hub_chat_completion(engine, [{"role": "user", "content": prompt}], temperature=0.7, api_key=api_key)
+        return text or ""
     except Exception as e:
         return str(e)
 
-def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, qtd_alunos, recursos, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, aluno_info=None):
-    """Gera plano de aula completo com BNCC"""
-    client = OpenAI(api_key=api_key)
-    
+def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, qtd_alunos, recursos, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, aluno_info=None, engine="red", duracao_minutos=50):
+    """Gera plano de aula completo com BNCC. engine: red/blue/green/yellow. duracao_minutos: 50 ou 100."""
     # Construir informações da BNCC
     info_bncc = ""
     if habilidades_bncc:
@@ -1603,6 +1740,7 @@ def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, q
     - Metodologia: {metodologia}
     - Técnica: {tecnica if tecnica else 'Não especificada'}
     - Quantidade de Estudantes: {qtd_alunos}
+    - Duração da aula: {duracao_minutos} minutos ({'1 aula' if duracao_minutos == 50 else '2 aulas'})
     - Recursos Disponíveis: {', '.join(recursos)}
     
     {info_bncc}
@@ -1624,7 +1762,7 @@ def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, q
     - Conteúdos atitudinais
     
     ### ⏰ TEMPO ESTIMADO
-    - Duração total: __ minutos
+    - Duração total: {duracao_minutos} minutos — distribua o tempo entre as etapas (acolhida, desenvolvimento, avaliação) de forma coerente.
     
     ### 🛠 RECURSOS DIDÁTICOS
     - Lista de recursos necessários
@@ -1669,19 +1807,15 @@ def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, q
     """
     
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=[{"role": "user", "content": prompt}], 
-            temperature=0.7
+        return _hub_chat_completion(
+            engine, [{"role": "user", "content": prompt}],
+            temperature=0.7, api_key=api_key
         )
-        return resp.choices[0].message.content
     except Exception as e:
         return str(e)
 
-def gerar_quebra_gelo_profundo(api_key, aluno, materia, assunto, hiperfoco, tema_turma_extra=""):
+def gerar_quebra_gelo_profundo(api_key, aluno, materia, assunto, hiperfoco, tema_turma_extra="", engine="red"):
     """Gera quebra-gelo profundo para engajamento"""
-    client = OpenAI(api_key=api_key)
-    
     prompt = f"""
     Crie 3 sugestões de 'Papo de Mestre' (Quebra-gelo/Introdução) para conectar o estudante {aluno['nome']} à aula.
     Componente Curricular: {materia}. Assunto: {assunto}.
@@ -1693,16 +1827,14 @@ def gerar_quebra_gelo_profundo(api_key, aluno, materia, assunto, hiperfoco, tema
     """
     
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=[{"role": "user", "content": prompt}], 
-            temperature=0.8
+        return _hub_chat_completion(
+            engine, [{"role": "user", "content": prompt}],
+            temperature=0.8, api_key=api_key
         )
-        return resp.choices[0].message.content
     except Exception as e:
         return str(e)
 
-    # ==============================================================================
+# ==============================================================================
 # FUNÇÕES DE BNCC (DROPDOWNS)
 # ==============================================================================
 
@@ -2263,6 +2395,9 @@ def render_aba_adaptar_prova(aluno, api_key):
                 key="assunto_adaptar_prova_compact"
             )
     
+    # Motor de IA
+    engine_adaptar_prova = _render_engine_selector("adaptar_prova")
+    
     # Configuração (Tipo e Upload)
     st.markdown("---")
     c1, c2 = st.columns([1, 2])
@@ -2396,7 +2531,7 @@ def render_aba_adaptar_prova(aluno, api_key):
             st.session_state['checklist_adaptacao_prova'] = checklist_respostas
             rac, txt = adaptar_conteudo_docx(
                 api_key, aluno, st.session_state.docx_txt, materia_d, tema_d, tipo_d, True, qs_d,
-                checklist_adaptacao=checklist_respostas
+                checklist_adaptacao=checklist_respostas, engine=engine_adaptar_prova
             )
             st.session_state['res_docx'] = {'rac': rac, 'txt': txt, 'map': map_d, 'valid': False}
             st.rerun()
@@ -2416,9 +2551,10 @@ def render_aba_adaptar_prova(aluno, api_key):
                 with st.spinner("Refazendo com análise mais profunda..."):
                     # Recuperar checklist do session_state se disponível
                     checklist_redo = st.session_state.get('checklist_adaptacao_prova', {})
+                    eng_prova = st.session_state.get("hub_engine_adaptar_prova", "red")
                     rac, txt = adaptar_conteudo_docx(
                         api_key, aluno, st.session_state.docx_txt, materia_d, tema_d, tipo_d, True, qs_d, 
-                        modo_profundo=True, checklist_adaptacao=checklist_redo
+                        modo_profundo=True, checklist_adaptacao=checklist_redo, engine=eng_prova
                     )
                     st.session_state['res_docx'] = {'rac': rac, 'txt': txt, 'map': map_d, 'valid': False}
                     st.rerun()
@@ -2540,6 +2676,9 @@ def render_aba_adaptar_atividade(aluno, api_key):
                 key="assunto_adaptar_atividade_compact"
             )
     
+    # OCR/visão usa Omnisfera Yellow (Gemini)
+    st.caption("ℹ️ Esta função usa Omnisfera Yellow (OCR/visão).")
+    
     # Configuração (Tipo e Upload)
     st.markdown("---")
     c1, c2 = st.columns([1, 2])
@@ -2587,11 +2726,13 @@ def render_aba_adaptar_atividade(aluno, api_key):
             )
             
             if tem_imagem_na_questao:
-                st.info("💡 Recorte apenas a área da imagem na questão. Esta imagem será inserida na questão adaptada.")
-                # Abrir a imagem original novamente para recortar só a imagem
-                img_pil_original = Image.open(BytesIO(st.session_state.img_raw))
-                img_pil_original.thumbnail((800, 800))
-                imagem_recortada = st_cropper(img_pil_original, realtime_update=True, box_color='#00FF00', aspect_ratio=None, key="crop_img_separada")
+                st.info("💡 Recorte apenas a área da imagem na questão (a partir da questão já recortada). Esta imagem será inserida na questão adaptada.")
+                # Usar a questão recortada como base, não a imagem original — o recorte da imagem é DENTRO da questão
+                img_questao = cropped_res.copy()
+                if img_questao.mode == 'RGBA':
+                    img_questao = img_questao.convert('RGB')
+                img_questao.thumbnail((800, 800))
+                imagem_recortada = st_cropper(img_questao, realtime_update=True, box_color='#00FF00', aspect_ratio=None, key="crop_img_separada")
                 if imagem_recortada:
                     st.image(imagem_recortada, width=200, caption="Imagem recortada separadamente")
 
@@ -2716,11 +2857,12 @@ def render_aba_adaptar_atividade(aluno, api_key):
                 imagem_separada=img_separada_bytes
             )
             
-            # Mapear imagens: 1 = questão recortada, 2 = imagem recortada separadamente (se houver)
+            # Imagem 1 = questão recortada (só para Refazer enviar de novo à IA; não é inserida no texto).
+            # Imagem 2 = imagem recortada no Passo 2 — única que a IA insere no documento, no local correto.
             mapa_imgs = {1: img_bytes}
             if img_separada_bytes:
                 mapa_imgs[2] = img_separada_bytes
-            
+
             st.session_state['res_img'] = {'rac': rac, 'txt': txt, 'map': mapa_imgs, 'valid': False}
             st.rerun()
 
@@ -2750,10 +2892,12 @@ def render_aba_adaptar_atividade(aluno, api_key):
 
         st.markdown(f"<div class='analise-box'><div class='analise-title'>{get_icon('pedagogia', 20, '#06B6D4')} Análise Pedagógica</div>{res['rac']}</div>", unsafe_allow_html=True)
         with st.container(border=True):
-            partes = re.split(r'(\[\[IMG.*?\]\])', res['txt'], flags=re.IGNORECASE)
+            partes = re.split(r'(\[\[IMG_?\d*\]\])', res['txt'], flags=re.IGNORECASE)
             for p in partes:
-                if "IMG" in p.upper():
-                    im = res['map'].get(1)
+                num_match = re.search(r'IMG_?(\d+)', p, re.IGNORECASE)
+                if num_match:
+                    num = int(num_match.group(1))
+                    im = res['map'].get(num) or res['map'].get(1)
                     if im:
                         st.image(im, width=300)
                 elif p.strip():
@@ -2915,18 +3059,20 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
                 if verbos_finais_para_ia:
                     st.info(f"**Verbos:** {', '.join(verbos_finais_para_ia)}")
     
+    # Motor de IA
+    engine_criar_zero = _render_engine_selector("criar_zero")
+    
     st.markdown("---")
     if st.button("✨ CRIAR ATIVIDADE", type="primary", key="btn_c", use_container_width=True):
-        if not api_key:
-            st.error(f"❌ Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
-        else:
-            with st.spinner("Elaborando atividade..."):
+        with st.spinner("Elaborando atividade..."):
+            try:
                 qtd_final = qtd_img_sel if usar_img else 0
                 rac, txt = criar_profissional(
                     api_key, aluno, mat_c, obj_c, qtd_c, tipo_quest, qtd_final,
                     verbos_bloom=verbos_finais_para_ia if usar_bloom else None,
                     habilidades_bncc=habilidades_bncc,
-                    checklist_adaptacao=checklist_criar
+                    checklist_adaptacao=checklist_criar,
+                    engine=engine_criar_zero
                 )
                 novo_map = {}
                 count = 0
@@ -2946,6 +3092,8 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
                     txt_fin = re.sub(r'\[\[GEN_IMG: .*?\]\]', f"[[IMG_G{i}]]", txt_fin, count=1)
                 st.session_state['res_create'] = {'rac': rac, 'txt': txt_fin, 'map': novo_map, 'valid': False, 'mat_c': mat_c, 'obj_c': obj_c, 'checklist': checklist_criar}
                 st.rerun()
+            except Exception as e:
+                st.error(str(e))
     
     # Exibição do resultado
     if 'res_create' in st.session_state:
@@ -3029,11 +3177,11 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
             )
 
 def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
-    """Renderiza a aba de estúdio visual (Gemini ou OpenAI + Unsplash)."""
+    """Renderiza a aba de estúdio visual (Omnisfera Blue ou Red + Unsplash)."""
     st.markdown(f"""
     <div class="pedagogia-box">
         <div class="pedagogia-title"><i class="ri-image-line"></i> Recursos Visuais</div>
-        Gere flashcards, rotinas visuais e símbolos de comunicação. Usa <strong>{ou.AI_BLUE}</strong> (imagens) ou <strong>{ou.AI_RED}</strong> (DALL-E)/Unsplash. Configure as chaves na sidebar.
+        Gere flashcards, rotinas visuais e símbolos de comunicação. Usa <strong>{ou.AI_YELLOW}</strong> (imagens) ou Unsplash. Configure as chaves na sidebar.
     </div>
     """, unsafe_allow_html=True)
     
@@ -3130,23 +3278,30 @@ def render_aba_roteiro_individual(aluno, api_key):
     with st.expander("📚 BNCC e Habilidades", expanded=True):
         ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc = criar_dropdowns_bncc_completos_melhorado(key_suffix="roteiro", aluno=aluno)
     
+    # Motor de IA
+    engine_roteiro = _render_engine_selector("roteiro")
+    
     st.markdown("---")
     
     if st.button("📝 GERAR ROTEIRO INDIVIDUAL", type="primary", use_container_width=True):
         # Validação: Usa o objeto_bncc como assunto
         if objeto_bncc and habilidades_bncc:
             with st.spinner(f"Criando roteiro sobre '{objeto_bncc}'..."):
-                res = gerar_roteiro_aula_completo(
-                    api_key=api_key,
-                    aluno=aluno,
-                    materia=disciplina_bncc,
-                    assunto=objeto_bncc, # Passa o objeto BNCC como assunto
-                    habilidades_bncc=habilidades_bncc,
-                    verbos_bloom=None, # Bloom removido
-                    ano=ano_bncc,
-                    unidade_tematica=unidade_bncc,
-                    objeto_conhecimento=objeto_bncc
-                )
+                try:
+                    res = gerar_roteiro_aula_completo(
+                        api_key=api_key,
+                        aluno=aluno,
+                        materia=disciplina_bncc,
+                        assunto=objeto_bncc,
+                        habilidades_bncc=habilidades_bncc,
+                        verbos_bloom=None,
+                        ano=ano_bncc,
+                        unidade_tematica=unidade_bncc,
+                        objeto_conhecimento=objeto_bncc,
+                        engine=engine_roteiro
+                    )
+                except Exception as e:
+                    res = str(e)
                 st.session_state['res_roteiro'] = res
                 st.session_state['res_roteiro_valid'] = False
         else:
@@ -3232,9 +3387,16 @@ def render_aba_papo_mestre(aluno, api_key):
     hiperfoco_papo = c3.text_input("Hiperfoco (Estudante):", value=aluno.get('hiperfoco', 'Geral'), key="papo_hip")
     tema_turma = c4.text_input("Interesse da Turma (Opcional - DUA):", placeholder="Ex: Minecraft, Copa do Mundo...", key="papo_turma")
     
+    # Motor de IA
+    engine_papo = _render_engine_selector("papo_mestre")
+    
     if st.button("🗣️ CRIAR CONEXÕES", type="primary"): 
         if assunto_papo:
-            res = gerar_quebra_gelo_profundo(api_key, aluno, materia_papo, assunto_papo, hiperfoco_papo, tema_turma)
+            with st.spinner("Gerando conexões de engajamento..."):
+                try:
+                    res = gerar_quebra_gelo_profundo(api_key, aluno, materia_papo, assunto_papo, hiperfoco_papo, tema_turma, engine=engine_papo)
+                except Exception as e:
+                    res = str(e)
             st.session_state['res_papo'] = res
             st.session_state['res_papo_valid'] = False
         else:
@@ -3320,6 +3482,9 @@ def render_aba_dinamica_inclusiva(aluno, api_key):
             key="din_carac"
         )
     
+    # Motor de IA
+    engine_din = _render_engine_selector("dinamica")
+    
     # Botão para gerar
     st.markdown("---")
     
@@ -3337,7 +3502,8 @@ def render_aba_dinamica_inclusiva(aluno, api_key):
                     verbos_bloom=None, # Bloom Removido
                     ano=ano_bncc,
                     unidade_tematica=unidade_bncc,
-                    objeto_conhecimento=objeto_bncc
+                    objeto_conhecimento=objeto_bncc,
+                    engine=engine_din
                 )
                 st.session_state['res_dinamica'] = res
                 st.session_state['res_dinamica_valid'] = False
@@ -3425,11 +3591,22 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
     else:
         c2.info(f"Metodologia selecionada: {metodologia}")
 
-    c3, c4 = st.columns(2)
+    c3, c4, c5 = st.columns(3)
     with c3:
         qtd_alunos_plano = st.number_input("Qtd Estudantes:", min_value=1, value=30, key="plano_qtd")
     with c4:
+        duracao_aula = st.selectbox(
+            "Duração da aula:",
+            options=["50 minutos (1 aula)", "100 minutos (2 aulas)"],
+            index=0,
+            key="plano_duracao"
+        )
+        duracao_min = 50 if "50" in duracao_aula else 100
+    with c5:
         recursos_plano = st.multiselect("Recursos Disponíveis:", RECURSOS_DISPONIVEIS, key="plano_rec")
+    
+    # Motor de IA
+    engine_plano = _render_engine_selector("plano_aula")
     
     # Botão para gerar
     st.markdown("---")
@@ -3437,21 +3614,26 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
     if st.button("📅 GERAR PLANO DE AULA", type="primary", use_container_width=True):
         if objeto_bncc and habilidades_bncc:
             with st.spinner(f"Consultando BNCC e planejando aula sobre '{objeto_bncc}'..."):
-                res = gerar_plano_aula_completo(
-                    api_key=api_key,
-                    materia=disciplina_bncc,
-                    assunto=objeto_bncc, # Passa o objeto BNCC como assunto
-                    metodologia=metodologia,
-                    tecnica=tecnica_ativa,
-                    qtd_alunos=qtd_alunos_plano,
-                    recursos=recursos_plano,
-                    habilidades_bncc=habilidades_bncc,
-                    verbos_bloom=None, # Bloom Removido
-                    ano=ano_bncc,
-                    unidade_tematica=unidade_bncc,
-                    objeto_conhecimento=objeto_bncc,
-                    aluno_info=aluno
-                )
+                try:
+                    res = gerar_plano_aula_completo(
+                        api_key=api_key or "",
+                        materia=disciplina_bncc,
+                        assunto=objeto_bncc,
+                        metodologia=metodologia,
+                        tecnica=tecnica_ativa,
+                        qtd_alunos=qtd_alunos_plano,
+                        recursos=recursos_plano,
+                        habilidades_bncc=habilidades_bncc,
+                        verbos_bloom=None,
+                        ano=ano_bncc,
+                        unidade_tematica=unidade_bncc,
+                        objeto_conhecimento=objeto_bncc,
+                        aluno_info=aluno,
+                        engine=engine_plano,
+                        duracao_minutos=duracao_min
+                    )
+                except Exception as e:
+                    res = str(e)
                 st.session_state['res_plano'] = res
                 st.session_state['res_plano_valid'] = False
         else:
@@ -3482,7 +3664,6 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
                 if st.button("🗑️ Descartar", key="del_plano", use_container_width=True):
                     del st.session_state['res_plano']
                     del st.session_state['res_plano_valid']
-                    st.session_state.pop('res_plano_pptx', None)
                     st.rerun()
         
         st.markdown(res)
@@ -3490,7 +3671,7 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
         # Botões de Download
         st.markdown("---")
         st.markdown("### 📥 Download")
-        col_down1, col_down2, col_down3 = st.columns(3)
+        col_down1, col_down2 = st.columns(2)
         
         with col_down1:
             docx_plano = criar_docx_simples(res, "Plano de Aula DUA")
@@ -3511,34 +3692,6 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
                 mime="application/pdf",
                 use_container_width=True
             )
-        
-        with col_down3:
-            ppt_key = "res_plano_pptx"
-            if ppt_key not in st.session_state:
-                st.session_state[ppt_key] = None
-            if st.button(
-                "🎯 Criar PPT (Omnisfera Green)",
-                key="btn_ppt_plano",
-                use_container_width=True,
-                help="Gera PowerPoint a partir do plano usando Kimi (Omnisfera Green)"
-            ):
-                with st.spinner("Gerando PPT com Omnisfera Green..."):
-                    ppt_bytes, err = gerar_ppt_do_plano_kimi(res, objeto_bncc or disciplina_bncc or "Plano de Aula", aluno=aluno, kimi_key=kimi_key)
-                    if err:
-                        st.session_state[ppt_key] = None
-                        st.error(err)
-                    else:
-                        st.session_state[ppt_key] = ppt_bytes
-                        st.rerun()
-            if st.session_state.get(ppt_key):
-                st.download_button(
-                    label="📊 Baixar PPTX",
-                    data=st.session_state[ppt_key],
-                    file_name=f"Plano_Aula_{disciplina_bncc}_{date.today().strftime('%Y%m%d')}.pptx",
-                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                    key="dl_ppt_plano",
-                    use_container_width=True
-                )
     # ==============================================================================
 # FUNÇÕES DA EDUCAÇÃO INFANTIL
 # ==============================================================================
@@ -3588,12 +3741,12 @@ def render_aba_ei_experiencia(aluno, api_key):
                         st.rerun()
 
 def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
-    """Renderiza a aba de estúdio visual da Educação Infantil (Gemini ou OpenAI + Unsplash)."""
+    """Renderiza a aba de estúdio visual da Educação Infantil (Omnisfera Blue ou Red + Unsplash)."""
     st.markdown(f"""
     <div class="pedagogia-box">
         <div class="pedagogia-title"><i class="ri-eye-line"></i> Apoio Visual & Comunicação</div>
         Crianças atípicas processam melhor imagens do que fala. 
-        Use <strong>Cenas</strong> para histórias sociais e <strong>Pictogramas (CAA)</strong>. Usa <strong>{ou.AI_BLUE}</strong> ou <strong>{ou.AI_RED}</strong> (DALL-E)/Unsplash.
+        Use <strong>Cenas</strong> para histórias sociais e <strong>Pictogramas (CAA)</strong>. Usa <strong>{ou.AI_YELLOW}</strong> ou Unsplash.
     </div>
     """, unsafe_allow_html=True)
     

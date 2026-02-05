@@ -29,11 +29,16 @@ echo "  Omnisfera - Testes massivos"
 echo "=============================================="
 echo ""
 
-if $USE_PYTEST && command -v pytest &> /dev/null; then
-  echo "Usando pytest..."
+if $USE_PYTEST; then
+  if command -v pytest &> /dev/null; then
+    PYTEST_CMD=pytest
+  else
+    PYTEST_CMD="python3 -m pytest"
+  fi
+  echo "Usando pytest ($PYTEST_CMD)..."
   for i in $(seq 1 "$REPEAT"); do
     echo "--- Rodada $i de $REPEAT ---"
-    pytest tests/ --tb=short -q -v 2>&1 || exit 1
+    $PYTEST_CMD tests/ --tb=short -q -v 2>&1 || exit 1
   done
 else
   echo "Usando run_simple.py (python3)..."

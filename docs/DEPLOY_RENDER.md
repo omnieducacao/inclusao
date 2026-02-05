@@ -29,7 +29,7 @@ Se o menu “não navegava” ou “pedia login toda vez” no Render, as causas
    Estava rodando outro script (ex.: `streamlit run pages/0_Home.py`) em vez de `streamlit run streamlit_app.py`. Corrija para o comando da seção 1.
 
 2. **Acesso por URL direta a uma página**  
-   Se o usuário abrir direto uma URL do tipo `.../page/2_PAE` (ou similar), o Render pode abrir essa “página” em uma sessão nova. O fluxo correto é: **sempre entrar pela URL raiz do app** (onde roda o `streamlit_app.py`), fazer login e usar o menu para navegar.
+   Se o usuário abrir direto uma URL do tipo `.../page/2_PAEE` (ou similar), o Render pode abrir essa “página” em uma sessão nova. O fluxo correto é: **sempre entrar pela URL raiz do app** (onde roda o `streamlit_app.py`), fazer login e usar o menu para navegar.
 
 3. **Key do menu**  
    O menu usa `key="omni_navbar"` para ter identidade estável em qualquer host (incluindo Render). Isso já está no código.

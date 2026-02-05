@@ -94,7 +94,7 @@ def forcar_layout_hub():
             
             /* 5. Hero card colado no menu - margin negativo (ajustado para não ficar muito colado) */
             .mod-card-wrapper {
-                margin-top: -96px !important; /* Puxa o hero para cima, mas não tanto quanto Alunos */
+                margin-top: -96px !important; /* Puxa o hero para cima, mas não tanto quanto Estudantes */
                 position: relative;
                 z-index: 1;
             }
@@ -144,7 +144,7 @@ st.markdown(f"""
 st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
 # ==============================================================================
-# OPENAI (env, secrets ou session_state — mesma lógica do PAE)
+# OPENAI (env, secrets ou session_state — mesma lógica do PAEE)
 # ==============================================================================
 api_key = os.environ.get("OPENAI_API_KEY") or ou.get_setting("OPENAI_API_KEY", "") or st.session_state.get("OPENAI_API_KEY", "")
 api_key = (api_key or "").strip() or None
@@ -454,6 +454,7 @@ default_state = {
     "estrategias_ensino": [],
     "estrategias_avaliacao": [],
     "ia_sugestao": "",
+    "consultoria_engine": "red",  # motor que gerou o relatório (red/blue/green/yellow/orange)
     "ia_mapa_texto": "",
     "outros_acesso": "",
     "outros_ensino": "",
@@ -933,51 +934,58 @@ def finding_logo():
             return logo_file
     return None
 
+# Margens e largura útil do PDF (layout mais respirável)
+PDF_LEFT = 15
+PDF_RIGHT = 15
+PDF_TOP = 20
+PDF_BOTTOM = 22
+PDF_PAGE_WIDTH = 210
+PDF_CONTENT_WIDTH = PDF_PAGE_WIDTH - PDF_LEFT - PDF_RIGHT  # 180
+
 class PDF_Classic(FPDF):
     def header(self):
-        self.set_fill_color(248, 248, 248)
-        self.rect(0, 0, 210, 40, "F")
+        self.set_fill_color(248, 250, 252)
+        self.rect(0, 0, PDF_PAGE_WIDTH, 42, "F")
         logo = finding_logo()
-        x_offset = 40 if logo else 12
+        x_offset = 45 if logo else PDF_LEFT
         if logo:
-            self.image(logo, 10, 8, 25)
-        self.set_xy(x_offset, 12)
-        self.set_font("Arial", "B", 14)
-        self.set_text_color(50, 50, 50)
+            self.image(logo, PDF_LEFT, 10, 28)
+        self.set_xy(x_offset, 14)
+        self.set_font("Arial", "B", 15)
+        self.set_text_color(30, 41, 59)
         self.cell(0, 8, "PEI - PLANO DE ENSINO INDIVIDUALIZADO", 0, 1, "L")
-        self.set_xy(x_offset, 19)
+        self.set_xy(x_offset, 22)
         self.set_font("Arial", "", 9)
-        self.set_text_color(100, 100, 100)
-        self.cell(0, 5, "Documento de Planejamento e Flexibilização Curricular", 0, 1, "L")
-        self.ln(15)
+        self.set_text_color(100, 116, 139)
+        self.cell(0, 5, "Documento de Planejamento e Flexibiliza\u00e7\u00e3o Curricular", 0, 1, "L")
+        self.set_draw_color(226, 232, 240)
+        self.line(PDF_LEFT, 42, PDF_PAGE_WIDTH - PDF_RIGHT, 42)
+        self.ln(18)
 
     def footer(self):
-        self.set_y(-15)
+        self.set_y(-PDF_BOTTOM)
         self.set_font("Arial", "I", 8)
-        self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f"Página {self.page_no()} | Gerado via Omnisfera", 0, 0, "C")
+        self.set_text_color(148, 163, 184)
+        self.cell(0, 10, f"P\u00e1gina {self.page_no()} | Gerado via Omnisfera", 0, 0, "C")
 
     def section_title(self, label):
-        self.ln(6)
-        self.set_fill_color(230, 230, 230)
-        self.rect(10, self.get_y(), 190, 8, "F")
-        self.set_font("ZapfDingbats", "", 10)
-        self.set_text_color(80, 80, 80)
-        self.set_xy(12, self.get_y() + 1)
-        self.cell(5, 6, "o", 0, 0)
+        self.ln(8)
+        self.set_fill_color(241, 245, 249)
+        self.rect(PDF_LEFT, self.get_y(), PDF_CONTENT_WIDTH, 10, "F")
         self.set_font("Arial", "B", 11)
-        self.set_text_color(50, 50, 50)
+        self.set_text_color(30, 41, 59)
+        self.set_xy(PDF_LEFT + 4, self.get_y() + 2)
         self.cell(0, 6, label.upper(), 0, 1, "L")
-        self.ln(4)
+        self.ln(6)
 
     def add_flat_icon_item(self, texto, bullet_type="check"):
-        self.set_font("ZapfDingbats", "", 10)
-        self.set_text_color(80, 80, 80)
+        self.set_font("ZapfDingbats", "", 9)
+        self.set_text_color(100, 116, 139)
         char = "3" if bullet_type == "check" else "l"
-        self.cell(6, 5, char, 0, 0)
+        self.cell(6, 6, char, 0, 0)
         self.set_font("Arial", "", 10)
-        self.set_text_color(0)
-        self.multi_cell(0, 5, texto)
+        self.set_text_color(51, 65, 85)
+        self.multi_cell(0, 6, texto)
         self.ln(1)
 
 class PDF_Simple_Text(FPDF):
@@ -990,10 +998,11 @@ class PDF_Simple_Text(FPDF):
         self.ln(10)
 
 def gerar_pdf_final(dados: dict):
-    """Gera PDF completo do PEI com todas as seções - Documento Oficial"""
+    """Gera PDF completo do PEI com todas as seções - Documento Oficial (layout otimizado)"""
     pdf = PDF_Classic()
+    pdf.set_margins(PDF_LEFT, PDF_TOP, PDF_RIGHT)
+    pdf.set_auto_page_break(auto=True, margin=PDF_BOTTOM)
     pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=20)
 
     # ======================================================================
     # 1. IDENTIFICAÇÃO E CONTEXTO
@@ -1225,6 +1234,15 @@ def gerar_pdf_final(dados: dict):
     if dados.get("ia_sugestao"):
         pdf.add_page()
         pdf.section_title("7. PLANEJAMENTO PEDAGÓGICO DETALHADO")
+        _em = {"red": ou.AI_RED, "blue": ou.AI_BLUE, "green": ou.AI_GREEN, "yellow": ou.AI_YELLOW, "orange": ou.AI_ORANGE}
+        _eng = dados.get("consultoria_engine", "red")
+        motor_pdf = _em.get(_eng, ou.AI_RED)
+        pdf.set_font("Arial", "I", 9)
+        pdf.set_text_color(100, 100, 100)
+        pdf.cell(0, 6, f"Gerado por {motor_pdf}. Input: série, diagnóstico e barreiras mapeadas; cruzei com BNCC + DUA.", 0, 1, "L")
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_font("Arial", "", 10)
+        pdf.ln(4)
         texto_limpo = limpar_texto_pdf(dados["ia_sugestao"])
         texto_limpo = re.sub(r"\[.*?\]", "", texto_limpo)
 
@@ -1426,6 +1444,13 @@ def gerar_docx_final(dados: dict):
     # 7. PLANEJAMENTO PEDAGÓGICO
     if dados.get("ia_sugestao"):
         doc.add_heading("7. PLANEJAMENTO PEDAGÓGICO DETALHADO", level=2)
+        _em = {"red": ou.AI_RED, "blue": ou.AI_BLUE, "green": ou.AI_GREEN, "yellow": ou.AI_YELLOW, "orange": ou.AI_ORANGE}
+        _eng = dados.get("consultoria_engine", "red")
+        motor_docx = _em.get(_eng, ou.AI_RED)
+        p_motor = doc.add_paragraph()
+        p_motor.add_run(f"Gerado por {motor_docx}. ").italic = True
+        p_motor.add_run("Input: série, diagnóstico e barreiras mapeadas; cruzei com BNCC + DUA.")
+        doc.add_paragraph()
         texto_limpo = re.sub(r"\[.*?\]", "", dados["ia_sugestao"])
         for linha in texto_limpo.split("\n"):
             l = linha.strip()
@@ -1522,26 +1547,28 @@ def extrair_dados_pdf_ia(api_key: str, texto_pdf: str):
 def consultar_gpt_pedagogico(api_key: str, dados: dict, contexto_pdf: str = "", modo_pratico: bool = False, feedback_usuario: str = "", engine: str = "red"):
     """
     Gera relatório da Consultoria IA.
-    engine: "red" (OpenAI), "blue" (Gemini), "green" (Kimi/OpenRouter)
+    engine: red (DeepSeek), blue (Kimi), green (Claude), yellow (Gemini), orange (GPT fallback)
     """
     engine = (engine or "red").strip().lower()
-    if engine not in ("red", "blue", "green"):
+    if engine not in ("red", "blue", "green", "yellow", "orange"):
         engine = "red"
 
-    if engine == "red" and not api_key:
-        return None, f"⚠️ Configure a chave da IA ({ou.AI_RED}) nas configurações."
+    if engine == "red" and not ou.get_deepseek_api_key():
+        return None, f"⚠️ Configure DEEPSEEK_API_KEY ({ou.AI_RED}) nas configurações."
     if engine == "blue":
-        gemini_key = ou.get_gemini_api_key()
-        if not gemini_key:
-            return None, f"⚠️ Configure GEMINI_API_KEY ({ou.AI_BLUE}) nas configurações."
-    if engine == "green":
         kimi_key = ou.get_kimi_api_key() or (st.session_state.get("_kimi_key_cached") if hasattr(st, "session_state") else None)
         try:
             kimi_key = kimi_key or (st.secrets.get("OPENROUTER_API_KEY", "") or st.secrets.get("KIMI_API_KEY", "") or "").strip() or None
         except Exception:
             pass
         if not kimi_key:
-            return None, f"⚠️ Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({ou.AI_GREEN}) nas configurações."
+            return None, f"⚠️ Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({ou.AI_BLUE}) nas configurações."
+    if engine == "green" and not ou.get_anthropic_api_key():
+        return None, f"⚠️ Configure ANTHROPIC_API_KEY ({ou.AI_GREEN}) nas configurações."
+    if engine == "yellow" and not ou.get_gemini_api_key():
+        return None, f"⚠️ Configure GEMINI_API_KEY ({ou.AI_YELLOW}) nas configurações."
+    if engine == "orange" and not (ou.get_openai_api_key() or api_key):
+        return None, f"⚠️ Configure OPENAI_API_KEY ({ou.AI_ORANGE}) para usar fallback."
 
     try:
 
@@ -1753,36 +1780,8 @@ GUIA PRÁTICO PARA SALA DE AULA.
                     if at_u:
                         prompt_user += f"\n\nANO SÉRIE ATUAL:\n{at_u[:5000]}"
 
-        if engine == "blue":
-            full_prompt = f"{prompt_sys}\n\n---\n\n{prompt_user}"
-            texto_relatorio, err = ou.consultar_gemini(full_prompt, model="gemini-2.0-flash")
-            if err:
-                return None, err
-            texto_relatorio = texto_relatorio or ""
-        elif engine == "green":
-            kimi_key = ou.get_kimi_api_key() or st.session_state.get("_kimi_key_cached", "")
-            try:
-                kimi_key = kimi_key or (st.secrets.get("OPENROUTER_API_KEY", "") or st.secrets.get("KIMI_API_KEY", "") or "").strip()
-            except Exception:
-                pass
-            use_openrouter = (kimi_key or "").strip().startswith("sk-or-")
-            base_url = ou.get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if use_openrouter else "https://api.moonshot.ai/v1")
-            base_url = (base_url or "").strip() or "https://openrouter.ai/api/v1"
-            model = ou.get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_openrouter else "kimi-k2-turbo-preview")
-            model = (model or "").strip() or "moonshotai/kimi-k2.5"
-            client = OpenAI(api_key=kimi_key.strip(), base_url=base_url)
-            res = client.chat.completions.create(
-                model=model,
-                messages=[{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}],
-            )
-            texto_relatorio = res.choices[0].message.content or ""
-        else:
-            client = OpenAI(api_key=api_key)
-            res = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}],
-            )
-            texto_relatorio = res.choices[0].message.content or ""
+        messages = [{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}]
+        texto_relatorio = ou.chat_completion_multi_engine(engine, messages, temperature=0.7, api_key=api_key)
         # Pós-processamento: remover da Avaliação de Repertório qualquer habilidade que a IA tenha inventado
         if nivel_ensino != "EI" and texto_relatorio:
             lista_permitida = dados.get("habilidades_bncc_validadas") or dados.get("habilidades_bncc_selecionadas") or []
@@ -1855,6 +1854,7 @@ def limpar_formulario():
         'estrategias_ensino': [],
         'estrategias_avaliacao': [],
         'ia_sugestao': '',
+        'consultoria_engine': 'red',
         'ia_mapa_texto': '',
         'outros_acesso': '',
         'outros_ensino': '',
@@ -3418,14 +3418,20 @@ with tab8:
 
     # 1) Se ainda não tem texto, ou voltou para rascunho: botões de geração
     if (not st.session_state.dados.get("ia_sugestao")) or (st.session_state.dados.get("status_validacao_pei") == "rascunho"):
-        with st.expander("🔧 Escolher motor de IA (Red, Blue ou Green)", expanded=True):
-            st.caption("Selecione qual IA gerará o relatório. Útil para comparar resultados.")
-            engine_map = {"red": f"🔴 {ou.AI_RED} — ChatGPT (OpenAI)", "blue": f"🔵 {ou.AI_BLUE} — Gemini", "green": f"🟢 {ou.AI_GREEN} — Kimi (OpenRouter)"}
+        with st.expander("🔧 Escolher motor de IA (Red, Blue, Green, Yellow ou Orange)", expanded=True):
+            st.caption("Selecione qual IA gerará o relatório. Orange = fallback (GPT) se outros falharem.")
+            engine_map = {
+                "red": f"🔴 {ou.AI_RED}",
+                "blue": f"🔵 {ou.AI_BLUE}",
+                "green": f"🟢 {ou.AI_GREEN}",
+                "yellow": f"🟡 {ou.AI_YELLOW}",
+                "orange": f"🟠 {ou.AI_ORANGE}",
+            }
             engine_sel = st.radio(
                 "Motor de IA",
-                options=["red", "blue", "green"],
+                options=["red", "blue", "green", "yellow", "orange"],
                 format_func=lambda x: engine_map.get(x, x),
-                index={"red": 0, "blue": 1, "green": 2}.get(st.session_state.dados.get("consultoria_engine", "red"), 0),
+                index={"red": 0, "blue": 1, "green": 2, "yellow": 3, "orange": 4}.get(st.session_state.dados.get("consultoria_engine", "red"), 0),
                 key="consultoria_engine_radio",
                 horizontal=True,
             )
@@ -3436,7 +3442,7 @@ with tab8:
         with col_btn:
             engine = st.session_state.dados.get("consultoria_engine", "red")
             if st.button("✨ Gerar Estratégia Técnica", type="primary", use_container_width=True):
-                with st.spinner(f"Gerando estratégia técnica do PEI ({ou.AI_RED if engine=='red' else ou.AI_BLUE if engine=='blue' else ou.AI_GREEN})..."):
+                with st.spinner(ou.get_loading_message(engine)):
                     res, err = consultar_gpt_pedagogico(
                         api_key,
                         st.session_state.dados,
@@ -3453,7 +3459,7 @@ with tab8:
 
             st.write("")
             if st.button("🧰 Gerar Guia Prático (Sala de Aula)", use_container_width=True):
-                with st.spinner(f"Gerando guia prático ({ou.AI_RED if engine=='red' else ou.AI_BLUE if engine=='blue' else ou.AI_GREEN})..."):
+                with st.spinner(ou.get_loading_message(engine)):
                     res, err = consultar_gpt_pedagogico(
                         api_key,
                         st.session_state.dados,
@@ -3495,7 +3501,15 @@ with tab8:
             except Exception:
                 pass
 
+            _engine_map = {
+                "red": ou.AI_RED, "blue": ou.AI_BLUE, "green": ou.AI_GREEN,
+                "yellow": ou.AI_YELLOW, "orange": ou.AI_ORANGE,
+            }
+            _engine = st.session_state.dados.get("consultoria_engine", "red")
+            _motor_nome = _engine_map.get(_engine, ou.AI_RED)
+
             st.markdown(
+                f"**Gerado por {_motor_nome}**\n\n"
                 f"**1. Input do estudante:** Série **{st.session_state.dados.get('serie','-')}**, diagnóstico **{diag_show}**.\n\n"
                 f"**2. Barreiras ativas:** detectei **{n_barreiras}** barreiras e cruzei isso com BNCC + DUA.\n\n"
                 f"**3. Ponto crítico exemplo:** priorizei adaptações para reduzir impacto de **{exemplo_barreira}**."
@@ -3553,7 +3567,7 @@ with tab8:
         if st.button("Regerar com Ajustes", type="primary", use_container_width=True):
             ou.track_ai_feedback("pei", "refazer", content_type="relatorio_pei", feedback_text=feedback or "")
             engine = st.session_state.dados.get("consultoria_engine", "red")
-            with st.spinner(f"Aplicando ajustes e regerando ({ou.AI_RED if engine=='red' else ou.AI_BLUE if engine=='blue' else ou.AI_GREEN})..."):
+            with st.spinner(ou.get_loading_message(engine)):
                 res, err = consultar_gpt_pedagogico(
                     api_key,
                     st.session_state.dados,

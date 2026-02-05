@@ -58,11 +58,21 @@ Documento para rodar o MVP em produção e **blindar os secrets** para a escola 
 
 ---
 
-## 3. Eficiência e limite do Streamlit
+## 3. Resiliência no Streamlit Cloud (cold start)
+
+Para reduzir a necessidade de reiniciar o app quando chaves não carregam:
+
+- **Warmup no startup**: `warmup_secrets()` em `streamlit_app.py` pré-carrega SUPABASE_URL, SUPABASE_SERVICE_KEY e OPENAI_API_KEY antes do login.
+- **Retry ampliado**: Todas as chaves críticas (Supabase, OpenAI, Gemini, Kimi, DeepSeek, Unsplash) usam 6 tentativas com 0,5s entre cada, em `omni_utils.get_setting`.
+- **Supabase**: `_get_supabase_url_and_key` usa 6 retries × 0,55s antes de desistir.
+- **Botão Recarregar**: Se a conexão Supabase falhar, o usuário vê um botão "Recarregar e tentar novamente" em vez de precisar reiniciar o app pelo painel do Streamlit Cloud.
+- **Leitura multipla**: `get_setting` tenta `st.secrets.get()`, `getattr(st.secrets, name)` e `st.secrets[name]`, além de `os.environ`.
+
+## 4. Eficiência e limite do Streamlit
 
 - O app é grande (muitas páginas e lógica). Para reduzir risco de timeout e uso de memória:
   - **Imports pesados** já estão atrasados (lazy) onde faz sentido (ex.: dentro de funções ou no momento do uso).
-  - **Secrets**: leitura com retry para Supabase evita falhas intermitentes no cold start.
+  - **Secrets**: leitura com retry para todas as chaves críticas evita falhas intermitentes no cold start.
 - Se no futuro o app crescer muito, considere:
   - Quebrar módulos muito grandes em páginas ou componentes menores.
   - Reduzir dados carregados de uma vez (paginação, filtros).
@@ -70,7 +80,7 @@ Documento para rodar o MVP em produção e **blindar os secrets** para a escola 
 
 ---
 
-## 4. Checklist rápido para MVP em produção
+## 5. Checklist rápido para MVP em produção
 
 | Item | Conferir |
 |------|----------|

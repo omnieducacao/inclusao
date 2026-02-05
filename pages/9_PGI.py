@@ -464,9 +464,9 @@ with tab_inicial:
 
     with st.expander("👥 Bloco 4.4 — Público-alvo do AEE na SRM"):
         st.markdown("""
-        - **Alunos com deficiência:** Impedimentos duradouros de natureza física, intelectual, mental ou sensorial; prejudicados na interação por obstáculos físicos, materiais ou ausência de recursos específicos.
-        - **Alunos com transtornos globais do desenvolvimento:** Alterações no desenvolvimento neuropsicomotor (autismo, síndromes do espectro autista, psicose infantil).
-        - **Alunos com altas habilidades ou superdotação:** Potencial diferenciado nas áreas intelectual, acadêmica, liderança, psicomotora, artes e criatividade.
+        - **Estudantes com deficiência:** Impedimentos duradouros de natureza física, intelectual, mental ou sensorial; prejudicados na interação por obstáculos físicos, materiais ou ausência de recursos específicos.
+        - **Estudantes com transtornos globais do desenvolvimento:** Alterações no desenvolvimento neuropsicomotor (autismo, síndromes do espectro autista, psicose infantil).
+        - **Estudantes com altas habilidades ou superdotação:** Potencial diferenciado nas áreas intelectual, acadêmica, liderança, psicomotora, artes e criatividade.
         """)
 
     with st.expander("🤝 Bloco 4.5 — Articulação AEE e classe comum"):

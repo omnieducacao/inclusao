@@ -8,8 +8,8 @@ import streamlit as st
 RPC_NAME = "workspace_from_pin"
 
 # Retentativas para lidar com race do Streamlit Cloud (secrets podem não estar prontos no cold start)
-_SUPABASE_RETRIES = 3
-_SUPABASE_RETRY_DELAY = 0.4
+_SUPABASE_RETRIES = 6
+_SUPABASE_RETRY_DELAY = 0.55
 
 
 def _get_secret(name: str) -> Optional[str]:
@@ -92,6 +92,12 @@ def _get_supabase_url_and_key() -> Tuple[Optional[str], Optional[str]]:
         url, key = _try_read()
 
     return url or None, key or None
+
+
+def has_supabase_keys() -> bool:
+    """Retorna True se URL e chave do Supabase estão configurados (sem criar cliente)."""
+    url, key = _get_supabase_url_and_key()
+    return bool(url and key)
 
 
 @st.cache_resource(show_spinner=False)

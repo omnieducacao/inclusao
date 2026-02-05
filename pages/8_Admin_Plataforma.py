@@ -27,6 +27,7 @@ from services.admin_service import (
 from services.members_service import list_members, get_workspace_master, delete_member_permanently, deactivate_member, reactivate_member
 from services.monitoring_service import (
     get_usage_snapshot,
+    get_ia_usage_summary,
     list_platform_issues,
     create_platform_issue,
     update_platform_issue_status,
@@ -80,7 +81,48 @@ except Exception as e:
     cached_workspaces_error = str(e)
 
 # Abas do Admin
-tab_escolas, tab_termo, tab_dashboard, tab_bugs = st.tabs(["🏫 Escolas", "📜 Termo de Uso", "📊 Dashboard", "🐛 Bugs e Erros"])
+tab_escolas, tab_uso_ia, tab_termo, tab_dashboard, tab_bugs = st.tabs(["🏫 Escolas", "📊 Uso de IAs", "📜 Termo de Uso", "📊 Dashboard", "🐛 Bugs e Erros"])
+
+# --- Tab Uso de IAs ---
+with tab_uso_ia:
+    st.markdown("### 📊 Uso de IAs por escola")
+    st.caption("Controle de chamadas por motor e base para sistema de créditos. omnigreen disponível apenas no plano robusto.")
+    dias_uso = st.selectbox("Período", [7, 30, 90], index=1, format_func=lambda x: f"Últimos {x} dias", key="ia_usage_days")
+    try:
+        usage_list = get_ia_usage_summary(days=dias_uso)
+    except Exception as e:
+        usage_list = []
+        st.warning(f"Não foi possível carregar uso (tabela ia_usage pode não existir). Execute a migration 00022. {e}")
+    if not usage_list:
+        st.info("Ainda não há registros de uso de IA. As chamadas passam a ser contabilizadas após a migration 00022 estar aplicada.")
+    else:
+        # Enriquecer com plan e credits_limit das escolas
+        ws_by_id = {str(w.get("id")): w for w in cached_workspaces if w.get("id")}
+        for u in usage_list:
+            wid = u.get("workspace_id", "")
+            ws = ws_by_id.get(wid, {})
+            u["plan"] = ws.get("plan", "basic")
+            u["credits_limit"] = ws.get("credits_limit")
+        st.dataframe(
+            [
+                {
+                    "Escola": u.get("workspace_name", "—"),
+                    "omnired": u.get("red", 0),
+                    "omniblue": u.get("blue", 0),
+                    "omnigreen": u.get("green", 0),
+                    "omniyellow": u.get("yellow", 0),
+                    "omniorange": u.get("orange", 0),
+                    "Total chamadas": u.get("total_calls", 0),
+                    "Créditos usados": round(float(u.get("credits_used", 0)), 1),
+                    "Plano": u.get("plan", "basic"),
+                    "Limite créditos": u.get("credits_limit") or "—",
+                }
+                for u in usage_list
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
+        st.caption("Créditos usados = soma das unidades por chamada (1 por padrão). No futuro, planos terão limite; ao atingir, a escola migra para plano mais robusto.")
 
 # --- Tab Termo de Uso ---
 with tab_termo:
@@ -258,9 +300,11 @@ with tab_escolas:
         "EM": "Ensino Médio",
     }
     ENGINE_OPTIONS = {
-        "red": "Omnisfera Red",
-        "green": "Omnisfera Green",
-        "blue": "Omnisfera Blue",
+        "red": "omnired",
+        "blue": "omniblue",
+        "green": "omnigreen",
+        "yellow": "omniyellow",
+        "orange": "omniorange",
     }
     MODULE_OPTIONS = [
         ("pei", "Estratégias & PEI"),
@@ -362,6 +406,11 @@ with tab_escolas:
                         nome_ed = st.text_input("Nome", value=wname, key=f"edit_name_{wid}")
                         seg_ed = st.multiselect("Segmentos", options=list(SEGMENT_OPTIONS.keys()), default=wsegments, format_func=lambda k: SEGMENT_OPTIONS.get(k, k), key=f"edit_seg_{wid}")
                         eng_ed = st.multiselect("Motores IA", options=list(ENGINE_OPTIONS.keys()), default=wengines, format_func=lambda k: ENGINE_OPTIONS.get(k, k), key=f"edit_eng_{wid}")
+                        st.markdown("**Plano e créditos**")
+                        plan_ed = st.selectbox("Plano", options=["basic", "robusto"], index=0 if (ws.get("plan") or "basic") == "basic" else 1, format_func=lambda x: "Basic (sem omnigreen)" if x == "basic" else "Robusto (com omnigreen)", key=f"edit_plan_{wid}")
+                        credits_limit_ed = st.number_input("Limite de créditos no período (vazio = ilimitado)", min_value=0, value=ws.get("credits_limit") or 0, step=100, key=f"edit_credits_{wid}")
+                        if credits_limit_ed == 0:
+                            credits_limit_ed = None
                         wmodules = ws.get("enabled_modules")
                         st.markdown("**Módulos habilitados**")
                         checks_ed = {k: st.checkbox(l, value=(wmodules is None or k in (wmodules or [])), key=f"edit_mod_{wid}_{k}") for k, l in MODULE_OPTIONS}
@@ -369,7 +418,7 @@ with tab_escolas:
                         with col_s:
                             if st.form_submit_button("Salvar"):
                                 new_mods = [k for k, _ in MODULE_OPTIONS if checks_ed[k]]
-                                ok, err = update_workspace(wid, name=nome_ed, segments=seg_ed, ai_engines=eng_ed, enabled_modules=new_mods)
+                                ok, err = update_workspace(wid, name=nome_ed, segments=seg_ed, ai_engines=eng_ed, enabled_modules=new_mods, plan=plan_ed, credits_limit=credits_limit_ed)
                                 if ok:
                                     st.session_state.pop("admin_editing_ws", None)
                                     ou.track_usage_event("admin_workspace_updated", workspace_id=wid, metadata={"workspace": nome_ed})
@@ -416,6 +465,9 @@ with tab_escolas:
                     if wengines:
                         eng_labels = [ENGINE_OPTIONS.get(e, e) for e in wengines]
                         st.caption(f"Motores IA: {', '.join(eng_labels)}")
+                    wplan = ws.get("plan") or "basic"
+                    wlimit = ws.get("credits_limit")
+                    st.caption(f"Plano: {'Robusto (omnigreen)' if wplan == 'robusto' else 'Basic'} · Limite créditos: {wlimit if wlimit else 'ilimitado'}")
 
                     # Módulos habilitados (form rápido)
                     wmodules = ws.get("enabled_modules")

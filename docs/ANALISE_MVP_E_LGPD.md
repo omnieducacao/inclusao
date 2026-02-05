@@ -25,7 +25,7 @@
 | Admin cria master | Nome, Telefone, Email, Senha, Cargo ✅ |
 | Master cria membros | ✅ |
 | Master configura escola | Ano letivo, séries, turmas — depende de migrations 00007, 00009 |
-| Cadastro de estudantes | Página Alunos; precisa de classes configuradas |
+| Cadastro de estudantes | Página Estudantes; precisa de classes configuradas |
 
 ### 1.3 Pontos que Podem Quebrar no MVP
 

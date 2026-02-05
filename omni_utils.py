@@ -88,14 +88,35 @@ ICON_EMOJI = {
 }
 
 # =============================================================================
-# MOTORES DE IA — CODENAMES (para uso em textos visíveis ao professor)
-# Omnisfera Red   = ChatGPT + DALL-E (ecossistema OpenAI)
-# Omnisfera Blue  = Gemini, NanoBanana, Gemini imagens (ecossistema Google)
-# Omnisfera Green = Kimi e derivados
+# MOTORES DE IA — CODENAMES (omnired, omniblue, omnigreen, omniyellow, omniorange)
+# OmniRed   = DeepSeek (mais utilizado; texto, PEI, PAEE, adaptar provas, etc.)
+# OmniBlue  = Kimi (opção mais robusta; texto, PEI, PAEE, adaptar provas, etc.)
+# OmniGreen = Cloud/Claude (apenas PEI)
+# OmniYellow = Gemini — imagens, mapas mentais, Adaptar Atividades, Estúdio Visual
+# OmniOrange = ChatGPT (OpenAI) — reserva/fallback
 # =============================================================================
-AI_RED = "Omnisfera Red"
-AI_BLUE = "Omnisfera Blue"
-AI_GREEN = "Omnisfera Green"
+AI_RED = "omnired"
+AI_BLUE = "omniblue"
+AI_GREEN = "omnigreen"
+AI_YELLOW = "omniyellow"
+AI_ORANGE = "omniorange"
+
+# Mensagens de loading por motor (para st.spinner)
+LOADING_MESSAGES = {
+    "red": ("omnired", "Gerando com omnired. Resposta rápida e eficiente; pode levar alguns segundos."),
+    "blue": ("omniblue", "Gerando com omniblue. Processa mais dados para melhor qualidade; pode levar um pouco mais de tempo."),
+    "green": ("omnigreen", "Gerando com omnigreen. Pode levar um pouco mais de tempo."),
+    "yellow": ("omniyellow", "Gerando com omniyellow (imagens/visão). Pode levar um pouco mais de tempo."),
+    "orange": ("omniorange", "Gerando com omniorange (reserva). Pode levar um pouco mais de tempo."),
+}
+
+def get_loading_message(engine: str) -> str:
+    """Retorna mensagem para exibir no spinner de loading conforme o motor usado."""
+    e = (engine or "red").strip().lower()
+    if e not in LOADING_MESSAGES:
+        e = "red"
+    _, msg = LOADING_MESSAGES.get(e, LOADING_MESSAGES["red"])
+    return msg
 
 def get_icon(key: str, size: int = 20, color: str = None, use_emoji: bool = None) -> str:
     """
@@ -146,6 +167,17 @@ def icon_title(text: str, icon_key: str, size: int = 24, color: str = None) -> s
 # =============================================================================
 APP_VERSION = "omni_utils v2.5 (Layout colado: menu + hero bem perto)"
 
+# Chaves críticas que exigem retry no Streamlit Cloud (cold start: secrets demoram a carregar)
+_CRITICAL_KEYS = frozenset((
+    "SUPABASE_URL", "SUPABASE_SERVICE_KEY", "SUPABASE_ANON_KEY",
+    "ANTHROPIC_API_KEY", "GEMINI_API_KEY", "DEEPSEEK_API_KEY",
+    "OPENROUTER_API_KEY", "KIMI_API_KEY", "OPENAI_API_KEY",
+    "UNSPLASH_ACCESS_KEY",
+))
+_SECRETS_RETRIES = 6   # Streamlit Cloud: mais tentativas para cold start
+_SECRETS_RETRY_DELAY = 0.5  # segundos entre tentativas
+
+
 def get_setting(name: str, default: str = "") -> str:
     """
     Getter multi-plataforma:
@@ -153,28 +185,76 @@ def get_setting(name: str, default: str = "") -> str:
     - Streamlit Cloud: usa st.secrets
     Importante: em ambientes sem secrets.toml (ex.: Render), acessar st.secrets pode levantar
     StreamlitSecretNotFoundError, então fazemos try/except.
-    Para chaves Supabase, aplica retry (Streamlit Cloud pode demorar a carregar secrets no cold start).
+    Chaves críticas (Supabase, IAs): retry para mitigar race no cold start do Streamlit Cloud.
     """
     import time as _time
-    _SUPABASE_KEYS = ("SUPABASE_URL", "SUPABASE_SERVICE_KEY", "SUPABASE_ANON_KEY")
-    _max_tries = 3 if name in _SUPABASE_KEYS else 1
-    _delay = 0.35
+    _max_tries = _SECRETS_RETRIES if name in _CRITICAL_KEYS else 1
+    _delay = _SECRETS_RETRY_DELAY
 
-    for attempt in range(_max_tries):
+    def _read_secret():
         v = os.environ.get(name)
         if v is not None and str(v).strip() != "":
             return str(v).strip()
         try:
             v2 = st.secrets.get(name, default)
-            result = str(v2).strip() if v2 is not None else default
-            if result or name not in _SUPABASE_KEYS:
-                return result
+            if v2 is not None:
+                s = str(v2).strip()
+                if hasattr(v2, "get_secret_value"):
+                    try:
+                        s = str(v2.get_secret_value()).strip()
+                    except Exception:
+                        pass
+                if s:
+                    return s
         except Exception:
             pass
+        try:
+            v3 = getattr(st.secrets, name, None)
+            if v3 is not None:
+                s = str(v3).strip()
+                if hasattr(v3, "get_secret_value"):
+                    try:
+                        s = str(v3.get_secret_value()).strip()
+                    except Exception:
+                        pass
+                if s:
+                    return s
+        except Exception:
+            pass
+        try:
+            v4 = st.secrets[name]
+            if v4 is not None:
+                s = str(v4).strip()
+                if hasattr(v4, "get_secret_value"):
+                    try:
+                        s = str(v4.get_secret_value()).strip()
+                    except Exception:
+                        pass
+                if s:
+                    return s
+        except Exception:
+            pass
+        return default
+
+    for attempt in range(_max_tries):
+        result = _read_secret()
+        if result:
+            return result
         if attempt < _max_tries - 1:
             _time.sleep(_delay)
 
     return default
+
+
+def warmup_secrets() -> None:
+    """
+    Pré-carrega chaves críticas para reduzir falhas no cold start do Streamlit Cloud.
+    Chamar no início do app (ex.: streamlit_app.py) para dar tempo aos secrets carregarem.
+    """
+    import time as _time
+    for key in ("SUPABASE_URL", "SUPABASE_SERVICE_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY"):
+        get_setting(key, "")
+        _time.sleep(0.15)  # pequena pausa entre leituras
 
 def ensure_state():
     if "autenticado" not in st.session_state:
@@ -555,7 +635,7 @@ def inject_loading_overlay_css():
     if icon_b64:
         bg_img = f"url('data:image/png;base64,{icon_b64}')"
         spinner_inner = f"""
-        [data-testid="stSpinner"] > * {{ display: none !important; }}
+        [data-testid="stSpinner"] > *:first-child {{ display: none !important; }}
         [data-testid="stSpinner"]::before {{
             content: '' !important;
             display: block !important;
@@ -567,19 +647,16 @@ def inject_loading_overlay_css():
             background-position: center !important;
             animation: omni-spin 0.9s linear infinite !important;
         }}
-        [data-testid="stSpinner"]::after {{
-            content: 'Omnisfera trabalhando...' !important;
-            display: block !important;
+        [data-testid="stSpinner"] > *:not(:first-child) {{
             margin-top: 12px !important;
             font-size: 0.9rem !important;
             color: #64748B !important;
             font-weight: 600 !important;
-            letter-spacing: 0.02em !important;
         }}
         """
     else:
         spinner_inner = """
-        [data-testid="stSpinner"] > * { display: none !important; }
+        [data-testid="stSpinner"] > *:first-child { display: none !important; }
         [data-testid="stSpinner"]::before {
             content: '' !important;
             display: block !important;
@@ -590,13 +667,10 @@ def inject_loading_overlay_css():
             border-radius: 50% !important;
             animation: omni-spin 0.8s linear infinite !important;
         }
-        [data-testid="stSpinner"]::after {
-            content: 'Omnisfera trabalhando...' !important;
-            display: block !important;
+        [data-testid="stSpinner"] > *:not(:first-child) {
             margin-top: 12px !important;
             font-size: 0.9rem !important;
             color: #64748B !important;
-            font-weight: 600 !important;
         }
         """
 
@@ -800,49 +874,84 @@ def render_navbar(active_tab: str = "Início"):
     except ValueError:
         default_idx = 0
 
+    routes = {
+        "Admin Plataforma": "pages/8_Admin_Plataforma.py",
+        "Início": "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "Home.py",
+        "Estudantes": "pages/Estudantes.py",
+        "Estratégias & PEI": "pages/1_PEI.py",
+        "Plano de Ação (AEE)": "pages/2_PAEE.py",
+        "Hub de Recursos": "pages/3_Hub_Inclusao.py",
+        "Diário de Bordo": "pages/4_Diario_de_Bordo.py",
+        "Evolução & Dados": "pages/5_Monitoramento_Avaliacao.py",
+        "PGI": "pages/9_PGI.py",
+        "Gestão de Usuários": "pages/6_Gestao_Usuarios.py",
+        "Configuração Escola": "pages/7_Configuracao_Escola.py",
+    }
+
     st.markdown('<div class="omni-navbar"><div class="omni-navbar-inner">', unsafe_allow_html=True)
 
-    selected = option_menu(
-        menu_title=None,
-        options=opcoes,
-        icons=icones,
-        default_index=default_idx,
-        orientation="horizontal",
-        key="omni_navbar",
-        styles={
-            "container": {
-                "padding": "2px 4px",
-                "margin": "0px",
-                "background-color": "#ffffff",
-                "border": "1px solid #E2E8F0",
-                "border-radius": "14px",
-                "box-shadow": "0 1px 2px rgba(0,0,0,0.03)",
+    try:
+        selected = option_menu(
+            menu_title=None,
+            options=opcoes,
+            icons=icones,
+            default_index=default_idx,
+            orientation="horizontal",
+            key="omni_navbar",
+            styles={
+                "container": {
+                    "padding": "2px 4px",
+                    "margin": "0px",
+                    "background-color": "#ffffff",
+                    "border": "1px solid #E2E8F0",
+                    "border-radius": "14px",
+                    "box-shadow": "0 1px 2px rgba(0,0,0,0.03)",
+                },
+                "icon": {"color": "#64748B", "font-size": "15px"},
+                "nav-link": {
+                    "font-size": "12px",
+                    "text-align": "center",
+                    "margin": "0px",
+                    "padding": "6px 8px",
+                    "--hover-color": "#F8FAFC",
+                    "color": "#64748B",
+                    "white-space": "nowrap",
+                    "border-radius": "10px",
+                    "min-height": "32px",
+                    "display": "flex",
+                    "align-items": "center",
+                    "justify-content": "center",
+                    "border": "1px solid transparent",
+                    "gap": "6px",
+                },
+                "nav-link-selected": {
+                    "background-color": "#F1F5F9",
+                    "color": "#0F172A",
+                    "font-weight": "700",
+                    "border": "1px solid #E2E8F0",
+                },
             },
-            "icon": {"color": "#64748B", "font-size": "15px"},
-            "nav-link": {
-                "font-size": "12px",
-                "text-align": "center",
-                "margin": "0px",
-                "padding": "6px 8px",
-                "--hover-color": "#F8FAFC",
-                "color": "#64748B",
-                "white-space": "nowrap",
-                "border-radius": "10px",
-                "min-height": "32px",
-                "display": "flex",
-                "align-items": "center",
-                "justify-content": "center",
-                "border": "1px solid transparent",
-                "gap": "6px",
-            },
-            "nav-link-selected": {
-                "background-color": "#F1F5F9",
-                "color": "#0F172A",
-                "font-weight": "700",
-                "border": "1px solid #E2E8F0",
-            },
-        },
-    )
+        )
+    except Exception:
+        cols = st.columns(min(len(opcoes), 12))
+        selected = active_tab
+        for i, opt in enumerate(opcoes):
+            with cols[i % len(cols)]:
+                if st.button(
+                    opt,
+                    key=f"omni_nav_fb_{i}",
+                    type="primary" if opt == active_tab else "secondary",
+                    use_container_width=True,
+                    disabled=(opt == active_tab),
+                ):
+                    t = routes.get(opt)
+                    if opt == "Início" and t and not os.path.exists(t):
+                        t = "Home.py"
+                    if t:
+                        try:
+                            st.switch_page(t)
+                        except Exception:
+                            pass
 
     st.markdown("</div></div>", unsafe_allow_html=True)
 
@@ -883,19 +992,6 @@ def render_navbar(active_tab: str = "Início"):
         """, unsafe_allow_html=True)
 
     if selected and selected != active_tab:
-        routes = {
-            "Admin Plataforma": "pages/8_Admin_Plataforma.py",
-            "Início": "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "Home.py",
-            "Estudantes": "pages/Alunos.py",
-            "Estratégias & PEI": "pages/1_PEI.py",
-            "Plano de Ação (AEE)": "pages/2_PAE.py",
-            "Hub de Recursos": "pages/3_Hub_Inclusao.py",
-            "Diário de Bordo": "pages/4_Diario_de_Bordo.py",
-            "Evolução & Dados": "pages/5_Monitoramento_Avaliacao.py",
-            "PGI": "pages/9_PGI.py",
-            "Gestão de Usuários": "pages/6_Gestao_Usuarios.py",
-            "Configuração Escola": "pages/7_Configuracao_Escola.py",
-        }
         target = routes.get(selected)
         if target:
             if selected == "Início" and not os.path.exists(target):
@@ -1024,6 +1120,30 @@ def track_usage_event(event_type: str, **extra):
         )
     except Exception:
         pass
+
+
+def track_ia_usage(engine: str, source: str = None, credits_consumed: float = 1.0):
+    """
+    Registra uso de IA por escola (para métricas e futuro sistema de créditos).
+    Chamado após cada chamada bem-sucedida a um motor.
+    Executa em thread para não bloquear a resposta ao usuário (evita lentidão).
+    engine: red, blue, green, yellow, orange
+    source: pei, paee, hub_adaptar_prova, hub_adaptar_atividade, etc. (opcional)
+    """
+    if not engine:
+        return
+    workspace_id = st.session_state.get("workspace_id")
+    if not workspace_id:
+        return
+    import threading
+    def _run():
+        try:
+            from services.monitoring_service import log_ia_usage as _log
+            _log(workspace_id=str(workspace_id), engine=engine.strip().lower(), source=source, credits_consumed=credits_consumed)
+        except Exception:
+            pass
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
 
 
 def track_ai_feedback(source: str, action: str, content_type: str = None, feedback_text: str = None, metadata: dict = None):
@@ -1644,8 +1764,8 @@ def render_resumo_anexos_estudante(
 ):
     """
     Renderiza uma aba retrátil na parte de baixo da página com o que está
-    registrado para o estudante (relatório PEI, jornada gamificada, ciclos PAE).
-    Para apagar ou gerir, o usuário vai à página Alunos.
+    registrado para o estudante (relatório PEI, jornada gamificada, ciclos PAEE).
+    Para apagar ou gerir, o usuário vai à página Estudantes.
     """
     nome = (nome_estudante or "Estudante").strip() or "Estudante"
     with st.expander("📎 O que está registrado para este estudante", expanded=False):
@@ -1655,14 +1775,14 @@ def render_resumo_anexos_estudante(
             itens.append("📄 Relatório PEI (Consultoria IA)")
         if tem_jornada:
             itens.append("🎮 Jornada gamificada")
-        if pagina == "PAE" and n_ciclos_pae is not None and n_ciclos_pae > 0:
-            itens.append(f"📋 Ciclos PAE ({n_ciclos_pae})")
+        if pagina == "PAEE" and n_ciclos_pae is not None and n_ciclos_pae > 0:
+            itens.append(f"📋 Ciclos PAEE ({n_ciclos_pae})")
         if not itens:
             st.caption("Nenhum relatório ou jornada registrado ainda.")
         else:
             for item in itens:
                 st.markdown(f"- {item}")
-        st.caption("Para apagar ou gerir, use a página **Alunos**.")
+        st.caption("Para apagar ou gerir, use a página **Estudantes**.")
 
 # =============================================================================
 # 4.5) RODAPÉ COM ASSINATURA
@@ -1785,6 +1905,222 @@ def get_kimi_api_key():
         return None
     key = str(raw).strip().strip('"\'')
     return key if key else None
+
+
+def get_anthropic_api_key():
+    """
+    Retorna a chave da API Anthropic (OmniGreen — Claude).
+    Ordem: ANTHROPIC_API_KEY em env, secrets ou session_state.
+    """
+    raw = (
+        os.environ.get("ANTHROPIC_API_KEY")
+        or get_setting("ANTHROPIC_API_KEY", "")
+        or (getattr(st, "session_state", None) or {}).get("ANTHROPIC_API_KEY", "")
+    )
+    if not raw:
+        try:
+            sec = getattr(st, "secrets", None)
+            if sec:
+                raw = sec.get("ANTHROPIC_API_KEY") or (sec.get("anthropic") or {}).get("api_key")
+        except Exception:
+            pass
+    if not raw:
+        return None
+    key = str(raw).strip().replace("\n", "").replace("\r", "")
+    return key if key else None
+
+
+def get_openai_api_key():
+    """
+    Retorna a chave da API OpenAI (Omnisfera Orange — fallback opcional).
+    Ordem: OPENAI_API_KEY em env, secrets ou session_state.
+    """
+    raw = (
+        os.environ.get("OPENAI_API_KEY")
+        or get_setting("OPENAI_API_KEY", "")
+        or (getattr(st, "session_state", None) or {}).get("OPENAI_API_KEY", "")
+    )
+    if not raw:
+        try:
+            sec = getattr(st, "secrets", None)
+            if sec:
+                raw = sec.get("OPENAI_API_KEY")
+        except Exception:
+            pass
+    if not raw:
+        return None
+    key = str(raw).strip().replace("\n", "").replace("\r", "")
+    return key if key else None
+
+
+def get_deepseek_api_key():
+    """
+    Retorna a chave da API DeepSeek (Omnisfera Yellow).
+    Ordem: DEEPSEEK_API_KEY em env, secrets ou session_state.
+    """
+    for name in ("DEEPSEEK_API_KEY",):
+        raw = os.environ.get(name) or get_setting(name, "")
+        if raw:
+            break
+        try:
+            raw = (getattr(st, "secrets", None) or {}).get(name, "") or ""
+            if raw:
+                break
+            raw = (getattr(st, "session_state", None) or {}).get(name, "") or ""
+            if raw:
+                break
+        except Exception:
+            pass
+    if not raw:
+        try:
+            sec = getattr(st, "secrets", None)
+            if sec:
+                raw = sec.get("DEEPSEEK_API_KEY") or (sec.get("deepseek") or {}).get("api_key")
+        except Exception:
+            pass
+    if not raw:
+        return None
+    key = str(raw).strip().replace("\n", "").replace("\r", "")
+    return key if key else None
+
+
+def chat_completion_multi_engine(engine: str, messages: list, temperature: float = 0.7, api_key: str | None = None) -> str:
+    """
+    Chat completion unificado.
+    engine: red (DeepSeek), blue (Kimi), green (Claude), yellow (Gemini), orange (GPT fallback opcional).
+    Retorna o texto gerado ou levanta Exception em erro.
+    """
+    from openai import OpenAI
+    engine = (engine or "red").strip().lower()
+    if engine not in ("red", "blue", "green", "yellow", "orange"):
+        engine = "red"
+
+    # OmniGreen (Claude) só disponível no plano robusto
+    if engine == "green":
+        try:
+            from services.admin_service import get_workspace_plan
+            wid = st.session_state.get("workspace_id")
+            if wid and get_workspace_plan(wid) != "robusto":
+                raise Exception(f"{AI_GREEN} está disponível apenas no plano robusto. Entre em contato com o administrador da plataforma para migrar de plano.")
+        except Exception as e:
+            if "robusto" in str(e).lower() or "plano" in str(e).lower():
+                raise
+            pass
+
+    # Orange (OpenAI) — fallback opcional
+    if engine == "orange":
+        k = get_openai_api_key() or api_key
+        k = (k or "").strip()
+        if not k:
+            raise Exception(f"Configure OPENAI_API_KEY ({AI_ORANGE}) para usar fallback.")
+        client = OpenAI(api_key=k)
+        resp = client.chat.completions.create(model="gpt-4o-mini", messages=messages, temperature=temperature)
+        out = (resp.choices[0].message.content or "").strip()
+        track_ia_usage(engine)
+        return out
+
+    # Red (DeepSeek) — mais utilizado
+    if engine == "red":
+        k = get_deepseek_api_key()
+        if not k:
+            raise Exception(f"Configure DEEPSEEK_API_KEY ({AI_RED}).")
+        base_url = get_setting("DEEPSEEK_BASE_URL", "") or "https://api.deepseek.com"
+        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://api.deepseek.com"
+        model = get_setting("DEEPSEEK_MODEL", "") or "deepseek-chat"
+        model = (model or "").strip() or "deepseek-chat"
+        client = OpenAI(api_key=k, base_url=base_url)
+        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
+        out = (resp.choices[0].message.content or "").strip()
+        track_ia_usage(engine)
+        return out
+
+    # Blue (Kimi) — opção mais robusta
+    if engine == "blue":
+        k = get_kimi_api_key() or api_key
+        try:
+            k = k or (getattr(st, "secrets", None) or {}).get("OPENROUTER_API_KEY", "") or (getattr(st, "secrets", None) or {}).get("KIMI_API_KEY", "")
+        except Exception:
+            pass
+        k = (k or "").strip().replace("\n", "").replace("\r", "")
+        if not k:
+            raise Exception(f"Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({AI_BLUE}).")
+        use_or = k.startswith("sk-or-")
+        base_url = get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if use_or else "https://api.moonshot.ai/v1")
+        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://openrouter.ai/api/v1"
+        model = get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_or else "kimi-k2-turbo-preview")
+        model = (model or "").strip() or "moonshotai/kimi-k2.5"
+        client = OpenAI(api_key=k, base_url=base_url)
+        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
+        out = (resp.choices[0].message.content or "").strip()
+        track_ia_usage(engine)
+        return out
+
+    # Green (Anthropic Claude) — apenas PEI e plano robusto
+    if engine == "green":
+        k = get_anthropic_api_key() or api_key
+        k = (k or "").strip()
+        if not k:
+            raise Exception(f"Configure ANTHROPIC_API_KEY ({AI_GREEN}).")
+        try:
+            import anthropic
+            system_parts = []
+            user_texts = []
+            for m in messages:
+                role = m.get("role", "user")
+                cont = m.get("content", "")
+                if isinstance(cont, list):
+                    texts = [p.get("text", "") for p in cont if isinstance(p, dict) and p.get("type") == "text"]
+                    cont = "\n".join(texts) if texts else ""
+                else:
+                    cont = str(cont or "").strip()
+                if not cont:
+                    continue
+                if role == "system":
+                    system_parts.append(cont)
+                else:
+                    user_texts.append(cont)
+            system_text = "\n\n".join(system_parts) if system_parts else None
+            user_content = "\n\n".join(user_texts).strip() or "Responda."
+            client = anthropic.Anthropic(api_key=k)
+            model = get_setting("ANTHROPIC_MODEL", "").strip() or "claude-sonnet-4-20250514"
+            kwargs = {
+                "model": model,
+                "max_tokens": 4096,
+                "messages": [{"role": "user", "content": user_content}],
+                "temperature": temperature,
+            }
+            if system_text:
+                kwargs["system"] = system_text
+            resp = client.messages.create(**kwargs)
+            out = (resp.content[0].text if resp.content else "").strip()
+            track_ia_usage(engine)
+            return out
+        except ImportError:
+            raise Exception("Pacote 'anthropic' necessário. pip install anthropic")
+
+    # Yellow (Gemini)
+    if engine == "yellow":
+        full = ""
+        for m in messages:
+            role = m.get("role", "user")
+            cont = (m.get("content") or "").strip()
+            if isinstance(cont, list):
+                texts = [p.get("text", "") for p in cont if isinstance(p, dict) and p.get("type") == "text"]
+                cont = "\n".join(texts) if texts else ""
+            else:
+                cont = str(cont or "").strip()
+            if role == "system":
+                full = f"[INSTRUÇÕES]\n{cont}\n\n" + full
+            else:
+                full += f"\n[ENTRADA]\n{cont}" if full else cont
+        full = full.strip() or "Responda."
+        txt, err = consultar_gemini(full, model="gemini-2.0-flash")
+        if err:
+            raise Exception(err)
+        track_ia_usage(engine)
+        return txt or ""
+
+    raise Exception("Motor não suportado.")
 
 
 def consultar_gemini(prompt: str, model: str = "gemini-2.0-flash", api_key: str | None = None) -> tuple[str | None, str | None]:
