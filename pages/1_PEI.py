@@ -633,6 +633,7 @@ def carregar_habilidades_bncc_por_serie(serie: str, max_caracteres: int = 11000)
     return d.get("ano_atual", "")
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
 def carregar_habilidades_bncc_ano_atual_e_anteriores(
     serie: str,
     max_ano_atual: int = 10000,
@@ -758,6 +759,7 @@ def carregar_habilidades_bncc_por_componente(serie: str) -> dict:
     return atual
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
 def carregar_habilidades_bncc_por_componente_ano_e_anteriores(serie: str) -> dict:
     """
     Carrega do bncc.csv as habilidades do ano/série atual E dos anos anteriores,

@@ -5,7 +5,15 @@ BNCC EF está em pages/bncc.csv e é usada diretamente pelo PEI/Hub.
 import os
 import csv
 import re
-from typing import Optional
+
+try:
+    import streamlit as st
+
+    def _cache_bncc(f):
+        return st.cache_data(ttl=3600, show_spinner=False)(f)
+except ImportError:
+    def _cache_bncc(f):
+        return f
 
 # Caminhos dos CSVs (raiz do projeto)
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -18,19 +26,25 @@ def _path_csv(nome: str) -> str:
         return p
     return os.path.join(os.getcwd(), nome)
 
-# Cache em memória
-_bncc_ei_cache: Optional[list] = None
+def _get_cell(d: dict, *keys) -> str:
+    """Obtém valor de célula aceitando chaves com espaços ou variações."""
+    for k in keys:
+        v = d.get(k) or (d.get((k or "").strip() + " ") if k else None)
+        if v is not None and str(v).strip():
+            return str(v).strip()
+    for kk, v in d.items():
+        if kk and str(kk).strip() in [str(q).strip() for q in keys if q] and v and str(v).strip():
+            return str(v).strip()
+    return ""
 
 
+@_cache_bncc
 def carregar_bncc_ei() -> list[dict]:
     """
     Carrega bncc_ei.csv.
     Retorna lista de dicts: {idade, campo_experiencia, objetivo}.
     Colunas: Idade;Campo de Experiência;Objetivo de Aprendizagem ou OBJETIVOS DE APRENDIZAGEM E DESENVOLVIMENTO
     """
-    global _bncc_ei_cache
-    if _bncc_ei_cache is not None:
-        return _bncc_ei_cache
     path = _path_csv("bncc_ei.csv")
     if not os.path.exists(path):
         return []
@@ -39,27 +53,16 @@ def carregar_bncc_ei() -> list[dict]:
         with open(path, "r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f, delimiter=";", skipinitialspace=True)
             for row in reader:
-                def _get(d, *keys):
-                    for k in keys:
-                        v = d.get(k) or (d.get((k or "").strip() + " ") if k else None)
-                        if v is not None and str(v).strip():
-                            return str(v).strip()
-                    for kk, v in d.items():
-                        if kk and str(kk).strip() in [str(q).strip() for q in keys if q] and v and str(v).strip():
-                            return str(v).strip()
-                    return ""
-                idade = _get(row, "Idade")
-                campo = _get(row, "Campo de Experiência", "Campo de Experiencia")
-                obj = _get(row, "OBJETIVOS DE APRENDIZAGEM E DESENVOLVIMENTO", "Objetivo de Aprendizagem", "Objetivo")
+                idade = _get_cell(row, "Idade")
+                campo = _get_cell(row, "Campo de Experiência", "Campo de Experiencia")
+                obj = _get_cell(row, "OBJETIVOS DE APRENDIZAGEM E DESENVOLVIMENTO", "Objetivo de Aprendizagem", "Objetivo")
                 if campo and obj:
                     rows.append({
                         "idade": idade,
                         "campo_experiencia": campo,
                         "objetivo": obj,
                     })
-        _bncc_ei_cache = rows
     except Exception:
-        _bncc_ei_cache = []
         rows = []
     return rows
 
@@ -116,8 +119,6 @@ def obter_objetivos_ei_para_prompt(idade: str, campo: str, objetivos_selecionado
 # Estrutura: Área;Componente;Série;Unidade Temática;Habilidade
 # Áreas: Linguagens, Matemática, Ciências da Natureza, Ciências Humanas
 # =============================================================================
-_bncc_em_cache: Optional[list] = None
-
 COMPONENTE_PARA_AREA_EM = {
     "História": "Ciências Humanas e Sociais Aplicadas",
     "Geografia": "Ciências Humanas e Sociais Aplicadas",
@@ -134,15 +135,13 @@ COMPONENTE_PARA_AREA_EM = {
 }
 
 
+@_cache_bncc
 def carregar_bncc_em() -> list[dict]:
     """
     Carrega bncc_em.csv.
     Retorna lista de dicts: {area, componente, serie, unidade, habilidade}.
     Aceita: Área de conhecimento;Série;Habilidade ou Área;Componente;Série;Unidade Temática;Habilidade
     """
-    global _bncc_em_cache
-    if _bncc_em_cache is not None:
-        return _bncc_em_cache
     path = _path_csv("bncc_em.csv")
     if not os.path.exists(path):
         return []
@@ -150,21 +149,12 @@ def carregar_bncc_em() -> list[dict]:
     try:
         with open(path, "r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f, delimiter=";", skipinitialspace=True)
-            def _get_val(d, *keys):
-                for k in keys:
-                    v = d.get(k) or (d.get(k + " ") if k else None)
-                    if v is not None and str(v).strip():
-                        return str(v).strip()
-                for k, v in d.items():
-                    if k and str(k).strip() in [str(q).strip() for q in keys if q] and v and str(v).strip():
-                        return str(v).strip()
-                return ""
             for row in reader:
-                area = _get_val(row, "Área de conhecimento", "Área", "Area")
-                componente = _get_val(row, "Componente")
-                serie = _get_val(row, "Série", "Serie")
-                unidade = _get_val(row, "Unidade Temática", "Unidade Tematica")
-                hab = _get_val(row, "Habilidade")
+                area = _get_cell(row, "Área de conhecimento", "Área", "Area")
+                componente = _get_cell(row, "Componente")
+                serie = _get_cell(row, "Série", "Serie")
+                unidade = _get_cell(row, "Unidade Temática", "Unidade Tematica")
+                hab = _get_cell(row, "Habilidade")
                 if hab:
                     rows.append({
                         "area": area,
@@ -173,9 +163,7 @@ def carregar_bncc_em() -> list[dict]:
                         "unidade": unidade,
                         "habilidade": hab,
                     })
-        _bncc_em_cache = rows
     except Exception:
-        _bncc_em_cache = []
         rows = []
     return rows
 
