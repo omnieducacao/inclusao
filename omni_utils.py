@@ -248,13 +248,13 @@ def get_setting(name: str, default: str = "") -> str:
 
 def warmup_secrets() -> None:
     """
-    Pré-carrega chaves críticas para reduzir falhas no cold start do Streamlit Cloud.
+    Pré-carrega chaves críticas para reduzir falhas no cold start (Streamlit Cloud, Render).
     Chamar no início do app (ex.: streamlit_app.py) para dar tempo aos secrets carregarem.
     """
     import time as _time
-    for key in ("SUPABASE_URL", "SUPABASE_SERVICE_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY"):
+    for key in ("SUPABASE_URL", "SUPABASE_SERVICE_KEY", "DEEPSEEK_API_KEY", "OPENROUTER_API_KEY", "KIMI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY"):
         get_setting(key, "")
-        _time.sleep(0.15)  # pequena pausa entre leituras
+        _time.sleep(0.1)
 
 def ensure_state():
     if "autenticado" not in st.session_state:
@@ -1910,7 +1910,7 @@ def get_kimi_api_key():
             pass
     if not raw:
         return None
-    key = str(raw).strip().strip('"\'')
+    key = _sanitize_api_key(raw)
     return key if key else None
 
 
@@ -1960,34 +1960,30 @@ def get_openai_api_key():
     return key if key else None
 
 
+def _sanitize_api_key(raw) -> str:
+    """Remove newlines e caracteres inválidos de chaves (evita erros em URLs/headers)."""
+    if raw is None:
+        return ""
+    s = str(raw).strip().replace("\n", "").replace("\r", "").strip('"\'')
+    return s
+
+
 def get_deepseek_api_key():
     """
-    Retorna a chave da API DeepSeek (Omnisfera Yellow).
-    Ordem: DEEPSEEK_API_KEY em env, secrets ou session_state.
+    Retorna a chave da API DeepSeek (omnired).
+    Ordem: env DEEPSEEK_API_KEY, get_setting, st.secrets.
+    Render: use variáveis de ambiente (Environment) no dashboard.
     """
-    for name in ("DEEPSEEK_API_KEY",):
-        raw = os.environ.get(name) or get_setting(name, "")
-        if raw:
-            break
-        try:
-            raw = (getattr(st, "secrets", None) or {}).get(name, "") or ""
-            if raw:
-                break
-            raw = (getattr(st, "session_state", None) or {}).get(name, "") or ""
-            if raw:
-                break
-        except Exception:
-            pass
+    raw = os.environ.get("DEEPSEEK_API_KEY") or get_setting("DEEPSEEK_API_KEY", "")
     if not raw:
         try:
-            sec = getattr(st, "secrets", None)
-            if sec:
-                raw = sec.get("DEEPSEEK_API_KEY") or (sec.get("deepseek") or {}).get("api_key")
+            raw = (getattr(st, "secrets", None) or {}).get("DEEPSEEK_API_KEY", "") or ""
+            if not raw and hasattr(st, "secrets"):
+                sec = st.secrets
+                raw = sec.get("DEEPSEEK_API_KEY") or (sec.get("deepseek") or {}).get("api_key") or ""
         except Exception:
             pass
-    if not raw:
-        return None
-    key = str(raw).strip().replace("\n", "").replace("\r", "")
+    key = _sanitize_api_key(raw)
     return key if key else None
 
 
@@ -2002,15 +1998,15 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
     if engine not in ("red", "blue", "green", "yellow", "orange"):
         engine = "red"
 
-    # OmniGreen (Claude) só disponível no plano robusto
+    # OmniGreen (Claude) disponível conforme motores associados à escola no cadastro
     if engine == "green":
         try:
-            from services.admin_service import get_workspace_plan
+            from services.admin_service import workspace_has_engine
             wid = st.session_state.get("workspace_id")
-            if wid and get_workspace_plan(wid) != "robusto":
-                raise Exception(f"{AI_GREEN} está disponível apenas no plano robusto. Entre em contato com o administrador da plataforma para migrar de plano.")
+            if wid and not workspace_has_engine(wid, "green"):
+                raise Exception(f"{AI_GREEN} não está habilitado para sua escola. O administrador pode associar os motores no cadastro da escola.")
         except Exception as e:
-            if "robusto" in str(e).lower() or "plano" in str(e).lower():
+            if "não está habilitado" in str(e) or "habilitado" in str(e).lower():
                 raise
             pass
 
@@ -2030,16 +2026,20 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
     if engine == "red":
         k = get_deepseek_api_key()
         if not k:
-            raise Exception(f"Configure DEEPSEEK_API_KEY ({AI_RED}).")
-        base_url = get_setting("DEEPSEEK_BASE_URL", "") or "https://api.deepseek.com"
-        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://api.deepseek.com"
-        model = get_setting("DEEPSEEK_MODEL", "") or "deepseek-chat"
-        model = (model or "").strip() or "deepseek-chat"
-        client = OpenAI(api_key=k, base_url=base_url)
-        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
-        out = (resp.choices[0].message.content or "").strip()
-        track_ia_usage(engine)
-        return out
+            raise Exception(f"Configure DEEPSEEK_API_KEY ({AI_RED}). Render: Environment → DEEPSEEK_API_KEY. Local: .streamlit/secrets.toml.")
+        base_url = _sanitize_api_key(get_setting("DEEPSEEK_BASE_URL", "")) or "https://api.deepseek.com"
+        model = _sanitize_api_key(get_setting("DEEPSEEK_MODEL", "")) or "deepseek-chat"
+        try:
+            client = OpenAI(api_key=k, base_url=base_url)
+            resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
+            out = (resp.choices[0].message.content or "").strip()
+            track_ia_usage(engine)
+            return out
+        except Exception as e:
+            err = str(e).strip()[:350]
+            if "Invalid" in err or "non-printable" in err or "API key" in err or "401" in err:
+                raise Exception(f"Erro em {AI_RED}: verifique DEEPSEEK_API_KEY (sem espaços ou quebras de linha). {err[:150]}...")
+            raise Exception(f"Erro ao chamar {AI_RED}: {err}.")
 
     # Blue (Kimi) — opção mais robusta
     if engine == "blue":
@@ -2048,19 +2048,23 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
             k = k or (getattr(st, "secrets", None) or {}).get("OPENROUTER_API_KEY", "") or (getattr(st, "secrets", None) or {}).get("KIMI_API_KEY", "")
         except Exception:
             pass
-        k = (k or "").strip().replace("\n", "").replace("\r", "")
+        k = _sanitize_api_key(k) if k else ""
         if not k:
-            raise Exception(f"Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({AI_BLUE}).")
+            raise Exception(f"Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({AI_BLUE}). Render: Environment. Local: .streamlit/secrets.toml.")
         use_or = k.startswith("sk-or-")
-        base_url = get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if use_or else "https://api.moonshot.ai/v1")
-        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://openrouter.ai/api/v1"
-        model = get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_or else "kimi-k2-turbo-preview")
-        model = (model or "").strip() or "moonshotai/kimi-k2.5"
-        client = OpenAI(api_key=k, base_url=base_url)
-        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
-        out = (resp.choices[0].message.content or "").strip()
-        track_ia_usage(engine)
-        return out
+        base_url = _sanitize_api_key(get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if use_or else "https://api.moonshot.ai/v1")) or "https://openrouter.ai/api/v1"
+        model = _sanitize_api_key(get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_or else "kimi-k2-turbo-preview")) or "moonshotai/kimi-k2.5"
+        try:
+            client = OpenAI(api_key=k, base_url=base_url)
+            resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
+            out = (resp.choices[0].message.content or "").strip()
+            track_ia_usage(engine)
+            return out
+        except Exception as e:
+            err = str(e).strip()[:350]
+            if "Invalid" in err or "non-printable" in err or "ASCII" in err:
+                raise Exception(f"Chave da API pode ter caractere inválido (ex.: quebra de linha). Copie novamente sem espaços extras. Detalhe: {err[:120]}...")
+            raise Exception(f"Erro ao chamar {AI_BLUE}: {err}. Verifique OPENROUTER_API_KEY/KIMI_API_KEY e OPENROUTER_BASE_URL.")
 
     # Green (Anthropic Claude) — apenas PEI e plano robusto
     if engine == "green":

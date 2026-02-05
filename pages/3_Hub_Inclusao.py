@@ -966,14 +966,14 @@ REGRAS:
     except json.JSONDecodeError as e:
         return None, f"Resposta não é JSON válido: {str(e)[:100]}"
     except Exception as e:
-        err = str(e)
+        err = str(e).strip()[:400]
         if "401" in err or "Invalid Authentication" in err or "invalid_authentication" in err:
             return None, (
-                "Chave da API inválida (401). Verifique: "
-                "1) KIMI_API_KEY ou MOONSHOT_API_KEY em secrets.toml ou variável de ambiente; "
-                "2) Chave correta de platform.moonshot.ai (não use chave de outro provedor); "
-                "3) Conta com saldo e chave ativa."
+                "Chave da API inválida (401). Verifique OPENROUTER_API_KEY ou KIMI_API_KEY "
+                "(Render: Environment; Local: secrets.toml). Chave OpenRouter em openrouter.ai/keys."
             )
+        if "Invalid" in err or "non-printable" in err or "ASCII" in err:
+            return None, "Chave pode ter caractere inválido (quebra de linha). Copie novamente sem espaços extras."
         return None, err[:200]
 
 

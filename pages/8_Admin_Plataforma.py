@@ -86,7 +86,7 @@ tab_escolas, tab_uso_ia, tab_termo, tab_dashboard, tab_bugs = st.tabs(["🏫 Esc
 # --- Tab Uso de IAs ---
 with tab_uso_ia:
     st.markdown("### 📊 Uso de IAs por escola")
-    st.caption("Controle de chamadas por motor e base para sistema de créditos. omnigreen disponível apenas no plano robusto.")
+    st.caption("Controle de chamadas por motor e base para sistema de créditos. Motores disponíveis conforme associados à escola no cadastro.")
     dias_uso = st.selectbox("Período", [7, 30, 90], index=1, format_func=lambda x: f"Últimos {x} dias", key="ia_usage_days")
     try:
         usage_list = get_ia_usage_summary(days=dias_uso)
