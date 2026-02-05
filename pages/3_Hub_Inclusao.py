@@ -30,6 +30,13 @@ from streamlit_cropper import st_cropper
 # Serviços
 from services.hub_docs import criar_docx_simples, criar_pdf_generico, construir_docx_final
 from services.hub_bncc_utils import ano_celula_contem, extrair_ano_bncc_do_aluno, padronizar_ano, ordenar_anos
+from services.hub_ia import (
+    _comprimir_imagem_para_vision,
+    _hub_chat_completion,
+    buscar_imagem_unsplash,
+    gerar_imagem_inteligente,
+    gerar_pictograma_caa,
+)
 
 # ==============================================================================
 # CONFIGURAÇÃO INICIAL
@@ -471,20 +478,6 @@ def baixar_imagem_url(url):
             return BytesIO(resp.content)
     except Exception as e:
         print(f"Erro ao baixar imagem: {e}")
-    return None
-
-def buscar_imagem_unsplash(query, access_key):
-    """Busca imagem no Unsplash"""
-    if not access_key:
-        return None
-    url = f"https://api.unsplash.com/search/photos?query={query}&per_page=1&client_id={access_key}&lang=pt"
-    try:
-        resp = requests.get(url, timeout=5)
-        data = resp.json()
-        if data.get('results'):
-            return data['results'][0]['urls']['regular']
-    except Exception as e:
-        print(f"Erro ao buscar no Unsplash: {e}")
     return None
 
 def garantir_tag_imagem(texto, tag_a_inserir="IMG_1"):
@@ -935,86 +928,8 @@ def carregar_estudantes_supabase():
     return estudantes
 
 # ==============================================================================
-# FUNÇÕES DE IA (OPENAI)
+# FUNÇÕES DE IA (UI - engine selector)
 # ==============================================================================
-
-def gerar_imagem_inteligente(api_key, prompt, unsplash_key=None, feedback_anterior="", prioridade="IA", gemini_key=None):
-    """
-    Gera imagem: prioridade Omnisfera Blue, depois Red (DALL-E), depois Unsplash.
-    Retorna bytes (PNG) ou URL (str); st.image() aceita ambos.
-    """
-    # 1. TENTATIVA GEMINI (se chave configurada)
-    key_gemini = gemini_key or ou.get_gemini_api_key()
-    if key_gemini and prioridade == "IA":
-        img_bytes, err = ou.gerar_imagem_ilustracao_gemini(prompt, feedback_anterior=feedback_anterior, api_key=key_gemini)
-        if img_bytes:
-            return img_bytes
-
-    # 2. TENTATIVA BANCO DE IMAGENS (Se solicitado e configurado)
-    if prioridade == "BANCO" and unsplash_key:
-        termo = prompt.split('.')[0] if '.' in prompt else prompt
-        url_banco = buscar_imagem_unsplash(termo, unsplash_key)
-        if url_banco:
-            return url_banco
-
-    # 3. TENTATIVA OPENAI (DALL-E 3) — só se houver chave válida
-    if not api_key or not str(api_key).strip():
-        if unsplash_key and prioridade == "IA":
-            termo = prompt.split('.')[0] if '.' in prompt else prompt
-            return buscar_imagem_unsplash(termo, unsplash_key)
-        return None
-    try:
-        client = OpenAI(api_key=api_key)
-        prompt_final = f"{prompt}. Adjustment requested: {feedback_anterior}" if feedback_anterior else prompt
-        didactic_prompt = f"Educational textbook illustration, clean flat vector style, white background. CRITICAL RULE: STRICTLY NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS inside the image. Just the visual representation of: {prompt_final}"
-        resp = client.images.generate(model="dall-e-3", prompt=didactic_prompt, size="1024x1024", quality="standard", n=1)
-        return resp.data[0].url
-    except Exception as e:
-        if prioridade == "IA" and unsplash_key:
-            termo = prompt.split('.')[0] if '.' in prompt else prompt
-            return buscar_imagem_unsplash(termo, unsplash_key)
-        print(f"Erro ao gerar imagem: {e}")
-        return None
-
-def gerar_pictograma_caa(api_key, conceito, feedback_anterior="", gemini_key=None):
-    """
-    Gera símbolo CAA: prioridade Omnisfera Blue, depois Red (DALL-E).
-    Retorna bytes (PNG) ou URL (str); st.image() aceita ambos.
-    """
-    key_gemini = gemini_key or ou.get_gemini_api_key()
-    if key_gemini:
-        img_bytes, err = ou.gerar_imagem_pictograma_caa_gemini(conceito, feedback_anterior=feedback_anterior, api_key=key_gemini)
-        if img_bytes:
-            return img_bytes
-    if not api_key or not str(api_key).strip():
-        return None
-    try:
-        client = OpenAI(api_key=api_key)
-        ajuste = f" CORREÇÃO PEDIDA: {feedback_anterior}" if feedback_anterior else ""
-        prompt_caa = f"""
-    Create a COMMUNICATION SYMBOL (AAC/PECS) for the concept: '{conceito}'. {ajuste}
-    STYLE GUIDE:
-    - Flat vector icon (ARASAAC/Noun Project style).
-    - Solid WHITE background.
-    - Thick BLACK outlines.
-    - High contrast primary colors.
-    - No background details, no shadows.
-    - CRITICAL MANDATORY RULE: MUTE IMAGE. NO TEXT. NO WORDS. NO LETTERS. NO NUMBERS. 
-    - The image must be a purely visual symbol.
-    """
-        resp = client.images.generate(model="dall-e-3", prompt=prompt_caa, size="1024x1024", quality="standard", n=1)
-        return resp.data[0].url
-    except Exception as e:
-        print(f"Erro ao gerar pictograma: {e}")
-        return None
-
-def _hub_chat_completion(engine, messages, temperature=0.7, api_key=None):
-    """Chat completion unificado para Hub. engine: blue (DeepSeek), green (Kimi), yellow (Gemini)."""
-    engine = (engine or "blue").strip().lower()
-    if engine not in ("blue", "green", "yellow"):
-        engine = "blue"
-    return ou.chat_completion_multi_engine(engine, messages, temperature=temperature, api_key=api_key)
-
 
 def _render_engine_selector(key_suffix=""):
     """Renderiza expander para escolher motor IA (omnired/omniblue). omniyellow é usado para imagens/visão."""
@@ -1118,23 +1033,6 @@ def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remove
         return "Análise indisponível.", full_text
     except Exception as e:
         return str(e), ""
-
-def _comprimir_imagem_para_vision(img_bytes: bytes, max_bytes: int = 3_000_000) -> bytes:
-    """Reduz tamanho da imagem se necessário para evitar falhas na API de visão."""
-    if len(img_bytes) <= max_bytes:
-        return img_bytes
-    try:
-        img = Image.open(BytesIO(img_bytes)).convert("RGB")
-        w, h = img.size
-        scale = (max_bytes / len(img_bytes)) ** 0.5
-        new_w = max(256, min(w, int(w * scale)))
-        new_h = max(256, min(h, int(h * scale)))
-        img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-        buf = BytesIO()
-        img.save(buf, format="JPEG", quality=85)
-        return buf.getvalue()
-    except Exception:
-        return img_bytes
 
 
 def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_atv, livro_professor, modo_profundo=False, checklist_adaptacao=None, imagem_separada=None):

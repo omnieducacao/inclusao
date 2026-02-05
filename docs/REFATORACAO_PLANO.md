@@ -85,4 +85,6 @@ Similar ao Hub: identificar blocos de IA, documentos e BNCC que podem ser extra�
 - [x] Fase 1.1: `criar_docx_simples` e `criar_pdf_generico` → `services/hub_docs.py`
 - [x] Fase 1.2: `construir_docx_final` e `_adicionar_paragrafo_formatado` → `services/hub_docs.py`
 - [x] Fase 2: `ano_celula_contem`, `extrair_ano_bncc_do_aluno`, `padronizar_ano`, `ordenar_anos` → `services/hub_bncc_utils.py`
-- [ ] Fase 3–5: A definir conforme evolução
+- [x] Fase 3a: `_comprimir_imagem_para_vision`, `_hub_chat_completion` → `services/hub_ia.py`
+- [x] Fase 3b: `buscar_imagem_unsplash`, `gerar_imagem_inteligente`, `gerar_pictograma_caa` → `services/hub_ia.py`
+- [ ] Fase 4–5: omni_utils, PEI/PAEE — a definir
