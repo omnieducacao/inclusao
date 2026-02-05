@@ -3,8 +3,13 @@ Admin da plataforma: criar escolas (workspaces + PIN), gerenciar masters.
 """
 import os
 import random
+import time
 from typing import Optional, Tuple
 import requests
+
+# Cache do plano por workspace (evita chamadas repetidas ao Supabase)
+_workspace_plan_cache: dict = {}
+_WORKSPACE_PLAN_TTL_SEC = 300  # 5 minutos
 
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -144,11 +149,17 @@ def get_workspace(workspace_id: str) -> Optional[dict]:
 
 
 def get_workspace_plan(workspace_id: str) -> str:
-    """Retorna o plano da escola (basic ou robusto). OmniGreen só disponível em robusto."""
-    ws = get_workspace(workspace_id)
-    if not ws:
+    """Retorna o plano da escola (basic ou robusto). Cache de 5 min para evitar lentidão."""
+    if not workspace_id:
         return "basic"
-    return (ws.get("plan") or "basic").strip() or "basic"
+    now = time.time()
+    entry = _workspace_plan_cache.get(workspace_id)
+    if entry and (now - entry[0]) < _WORKSPACE_PLAN_TTL_SEC:
+        return entry[1]
+    ws = get_workspace(workspace_id)
+    plan = (ws.get("plan") or "basic").strip() or "basic" if ws else "basic"
+    _workspace_plan_cache[workspace_id] = (now, plan)
+    return plan
 
 
 def update_workspace(workspace_id: str, enabled_modules: Optional[list] = None, name: str = None, segments: list = None, ai_engines: list = None, active: bool = None, plan: Optional[str] = None, credits_limit: Optional[int] = None, credits_period_start=None, **kwargs) -> tuple:

@@ -1126,6 +1126,7 @@ def track_ia_usage(engine: str, source: str = None, credits_consumed: float = 1.
     """
     Registra uso de IA por escola (para métricas e futuro sistema de créditos).
     Chamado após cada chamada bem-sucedida a um motor.
+    Executa em thread para não bloquear a resposta ao usuário (evita lentidão).
     engine: red, blue, green, yellow, orange
     source: pei, paee, hub_adaptar_prova, hub_adaptar_atividade, etc. (opcional)
     """
@@ -1134,11 +1135,15 @@ def track_ia_usage(engine: str, source: str = None, credits_consumed: float = 1.
     workspace_id = st.session_state.get("workspace_id")
     if not workspace_id:
         return
-    try:
-        from services.monitoring_service import log_ia_usage as _log
-        _log(workspace_id=str(workspace_id), engine=engine.strip().lower(), source=source, credits_consumed=credits_consumed)
-    except Exception:
-        pass
+    import threading
+    def _run():
+        try:
+            from services.monitoring_service import log_ia_usage as _log
+            _log(workspace_id=str(workspace_id), engine=engine.strip().lower(), source=source, credits_consumed=credits_consumed)
+        except Exception:
+            pass
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
 
 
 def track_ai_feedback(source: str, action: str, content_type: str = None, feedback_text: str = None, metadata: dict = None):

@@ -208,7 +208,7 @@ def log_ia_usage(
         payload["source"] = source
     try:
         h = {**_headers(), "Prefer": "return=minimal"}
-        r = requests.post(url, headers=h, json=payload, timeout=10)
+        r = requests.post(url, headers=h, json=payload, timeout=3)
         return r.status_code < 400
     except Exception:
         return False

@@ -934,51 +934,58 @@ def finding_logo():
             return logo_file
     return None
 
+# Margens e largura útil do PDF (layout mais respirável)
+PDF_LEFT = 15
+PDF_RIGHT = 15
+PDF_TOP = 20
+PDF_BOTTOM = 22
+PDF_PAGE_WIDTH = 210
+PDF_CONTENT_WIDTH = PDF_PAGE_WIDTH - PDF_LEFT - PDF_RIGHT  # 180
+
 class PDF_Classic(FPDF):
     def header(self):
-        self.set_fill_color(248, 248, 248)
-        self.rect(0, 0, 210, 40, "F")
+        self.set_fill_color(248, 250, 252)
+        self.rect(0, 0, PDF_PAGE_WIDTH, 42, "F")
         logo = finding_logo()
-        x_offset = 40 if logo else 12
+        x_offset = 45 if logo else PDF_LEFT
         if logo:
-            self.image(logo, 10, 8, 25)
-        self.set_xy(x_offset, 12)
-        self.set_font("Arial", "B", 14)
-        self.set_text_color(50, 50, 50)
+            self.image(logo, PDF_LEFT, 10, 28)
+        self.set_xy(x_offset, 14)
+        self.set_font("Arial", "B", 15)
+        self.set_text_color(30, 41, 59)
         self.cell(0, 8, "PEI - PLANO DE ENSINO INDIVIDUALIZADO", 0, 1, "L")
-        self.set_xy(x_offset, 19)
+        self.set_xy(x_offset, 22)
         self.set_font("Arial", "", 9)
-        self.set_text_color(100, 100, 100)
-        self.cell(0, 5, "Documento de Planejamento e Flexibilização Curricular", 0, 1, "L")
-        self.ln(15)
+        self.set_text_color(100, 116, 139)
+        self.cell(0, 5, "Documento de Planejamento e Flexibiliza\u00e7\u00e3o Curricular", 0, 1, "L")
+        self.set_draw_color(226, 232, 240)
+        self.line(PDF_LEFT, 42, PDF_PAGE_WIDTH - PDF_RIGHT, 42)
+        self.ln(18)
 
     def footer(self):
-        self.set_y(-15)
+        self.set_y(-PDF_BOTTOM)
         self.set_font("Arial", "I", 8)
-        self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f"Página {self.page_no()} | Gerado via Omnisfera", 0, 0, "C")
+        self.set_text_color(148, 163, 184)
+        self.cell(0, 10, f"P\u00e1gina {self.page_no()} | Gerado via Omnisfera", 0, 0, "C")
 
     def section_title(self, label):
-        self.ln(6)
-        self.set_fill_color(230, 230, 230)
-        self.rect(10, self.get_y(), 190, 8, "F")
-        self.set_font("ZapfDingbats", "", 10)
-        self.set_text_color(80, 80, 80)
-        self.set_xy(12, self.get_y() + 1)
-        self.cell(5, 6, "o", 0, 0)
+        self.ln(8)
+        self.set_fill_color(241, 245, 249)
+        self.rect(PDF_LEFT, self.get_y(), PDF_CONTENT_WIDTH, 10, "F")
         self.set_font("Arial", "B", 11)
-        self.set_text_color(50, 50, 50)
+        self.set_text_color(30, 41, 59)
+        self.set_xy(PDF_LEFT + 4, self.get_y() + 2)
         self.cell(0, 6, label.upper(), 0, 1, "L")
-        self.ln(4)
+        self.ln(6)
 
     def add_flat_icon_item(self, texto, bullet_type="check"):
-        self.set_font("ZapfDingbats", "", 10)
-        self.set_text_color(80, 80, 80)
+        self.set_font("ZapfDingbats", "", 9)
+        self.set_text_color(100, 116, 139)
         char = "3" if bullet_type == "check" else "l"
-        self.cell(6, 5, char, 0, 0)
+        self.cell(6, 6, char, 0, 0)
         self.set_font("Arial", "", 10)
-        self.set_text_color(0)
-        self.multi_cell(0, 5, texto)
+        self.set_text_color(51, 65, 85)
+        self.multi_cell(0, 6, texto)
         self.ln(1)
 
 class PDF_Simple_Text(FPDF):
@@ -991,10 +998,11 @@ class PDF_Simple_Text(FPDF):
         self.ln(10)
 
 def gerar_pdf_final(dados: dict):
-    """Gera PDF completo do PEI com todas as seções - Documento Oficial"""
+    """Gera PDF completo do PEI com todas as seções - Documento Oficial (layout otimizado)"""
     pdf = PDF_Classic()
+    pdf.set_margins(PDF_LEFT, PDF_TOP, PDF_RIGHT)
+    pdf.set_auto_page_break(auto=True, margin=PDF_BOTTOM)
     pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=20)
 
     # ======================================================================
     # 1. IDENTIFICAÇÃO E CONTEXTO
