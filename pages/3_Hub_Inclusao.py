@@ -2009,7 +2009,8 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
                 else:
                     habilidades = habilidades_selecionadas
         
-        assunto_livre = st.text_input("📝 Assunto (opcional)", placeholder="Ex: Frações, Sistema Solar...", key=f"assunto_basico_{key_suffix}", help="Referência para criação/adaptação.")
+        st.markdown("---")
+        assunto_livre = st.text_input("📝 Assunto (opcional)", placeholder="Ex: Frações, Sistema Solar...", key=f"assunto_basico_{key_suffix}", help="Depois de todo o fluxo: referência para criação/adaptação.")
         return ano, disciplina, unidade, objeto, habilidades, (assunto_livre or "").strip()
     
     # TEMOS DADOS - Ano fixo pelo PEI (sem escolha), Componente filtrado por ano
@@ -2070,11 +2071,12 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
                         habilidades_selecionadas.extend([h.strip() for h in hab_extra.split("\n") if h.strip()])
             else:
                 st.info("ℹ️ Nenhuma habilidade para esta área.")
+        st.markdown("---")
         assunto_livre = st.text_input(
             "📝 Assunto (opcional)",
             placeholder="Ex: Equações do 2º grau, Genética, Leitura crítica...",
             key=f"assunto_bncc_{key_suffix}",
-            help="Algo específico dentro da habilidade ou referência para criação/adaptação."
+            help="Depois de todo o fluxo BNCC: algo específico dentro da habilidade ou referência para criação/adaptação."
         )
         return (ano_selecionado, area_selecionada, "EM", area_selecionada, habilidades_selecionadas, (assunto_livre or "").strip())
     
@@ -2189,11 +2191,12 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
                 st.info("ℹ️ Selecione Componente Curricular, Unidade e Objeto para ver as habilidades.")
                 habilidades_selecionadas = []
     
+    st.markdown("---")
     assunto_livre = st.text_input(
         "📝 Assunto (opcional)",
         placeholder="Ex: Frações, Sistema Solar, Equações do 2º grau...",
         key=f"assunto_bncc_{key_suffix}",
-        help="Algo específico dentro da habilidade ou referência para criação/adaptação."
+        help="Depois de todo o fluxo BNCC: algo específico dentro da habilidade ou referência para criação/adaptação."
     )
     return (ano_selecionado, disciplina_selecionada, unidade_selecionada, 
             objeto_selecionado, habilidades_selecionadas, (assunto_livre or "").strip())
