@@ -2009,7 +2009,8 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
                 else:
                     habilidades = habilidades_selecionadas
         
-        return ano, disciplina, unidade, objeto, habilidades
+        assunto_livre = st.text_input("📝 Assunto (opcional)", placeholder="Ex: Frações, Sistema Solar...", key=f"assunto_basico_{key_suffix}", help="Referência para criação/adaptação.")
+        return ano, disciplina, unidade, objeto, habilidades, (assunto_livre or "").strip()
     
     # TEMOS DADOS - Ano fixo pelo PEI (sem escolha), Componente filtrado por ano
     # O PEI é o documento norteador: ano/série vem dele. O sistema determina, não o usuário.
@@ -2047,7 +2048,7 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
             areas_list = []
         if not areas_list:
             st.warning("⚠️ BNCC do Ensino Médio (bncc_em.csv) não encontrada na raiz.")
-            return (ano_selecionado, None, None, None, [])
+            return (ano_selecionado, None, None, None, [], "")
         rotulo_em = _rotulo_ano(ano_selecionado)
         col1, col2 = st.columns([1, 2])
         with col1:
@@ -2069,7 +2070,13 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
                         habilidades_selecionadas.extend([h.strip() for h in hab_extra.split("\n") if h.strip()])
             else:
                 st.info("ℹ️ Nenhuma habilidade para esta área.")
-        return (ano_selecionado, area_selecionada, "EM", area_selecionada, habilidades_selecionadas)
+        assunto_livre = st.text_input(
+            "📝 Assunto (opcional)",
+            placeholder="Ex: Equações do 2º grau, Genética, Leitura crítica...",
+            key=f"assunto_bncc_{key_suffix}",
+            help="Algo específico dentro da habilidade ou referência para criação/adaptação."
+        )
+        return (ano_selecionado, area_selecionada, "EM", area_selecionada, habilidades_selecionadas, (assunto_livre or "").strip())
     
     # Linha 1: Ano (desabilitado, do PEI), Componente Curricular, Unidade Temática (EF)
     col1, col2, col3 = st.columns(3)
@@ -2182,8 +2189,14 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
                 st.info("ℹ️ Selecione Componente Curricular, Unidade e Objeto para ver as habilidades.")
                 habilidades_selecionadas = []
     
+    assunto_livre = st.text_input(
+        "📝 Assunto (opcional)",
+        placeholder="Ex: Frações, Sistema Solar, Equações do 2º grau...",
+        key=f"assunto_bncc_{key_suffix}",
+        help="Algo específico dentro da habilidade ou referência para criação/adaptação."
+    )
     return (ano_selecionado, disciplina_selecionada, unidade_selecionada, 
-            objeto_selecionado, habilidades_selecionadas)
+            objeto_selecionado, habilidades_selecionadas, (assunto_livre or "").strip())
 
 def criar_dropdowns_bncc_simplificado(key_suffix=""):
     """Cria dropdowns simplificados da BNCC (apenas até objeto do conhecimento)"""
@@ -2355,14 +2368,7 @@ def render_aba_adaptar_prova(aluno, api_key):
     
     # BNCC + Assunto em expander compacto
     with st.expander("📚 BNCC e Assunto", expanded=True):
-        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, _ = criar_dropdowns_bncc_completos_melhorado(key_suffix="adaptar_prova", mostrar_habilidades=False, aluno=aluno)
-        assunto_livre = st.text_input(
-            "📝 Assunto (opcional)",
-            value="",
-            placeholder="Ex: Frações, Sistema Solar...",
-            help="Preencha se quiser direcionar a adaptação para um assunto específico.",
-            key="assunto_adaptar_prova_compact"
-        )
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, _, assunto_livre = criar_dropdowns_bncc_completos_melhorado(key_suffix="adaptar_prova", mostrar_habilidades=False, aluno=aluno)
     
     # Motor de IA
     engine_adaptar_prova = _render_engine_selector("adaptar_prova")
@@ -2574,14 +2580,7 @@ def render_aba_adaptar_atividade(aluno, api_key):
     
     # BNCC + Assunto em expander compacto
     with st.expander("📚 BNCC e Assunto", expanded=True):
-        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, _ = criar_dropdowns_bncc_completos_melhorado(key_suffix="adaptar_atividade", mostrar_habilidades=False, aluno=aluno)
-        assunto_livre = st.text_input(
-            "📝 Assunto (opcional)",
-            value="",
-            placeholder="Ex: Frações, Sistema Solar...",
-            help="Preencha se quiser direcionar a adaptação para um assunto específico.",
-            key="assunto_adaptar_atividade_compact"
-        )
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, _, assunto_livre = criar_dropdowns_bncc_completos_melhorado(key_suffix="adaptar_atividade", mostrar_habilidades=False, aluno=aluno)
     
     # OCR/visão usa Omnisfera Yellow (Gemini)
     st.caption("ℹ️ Esta função usa Omnisfera Yellow (OCR/visão).")
@@ -2838,11 +2837,10 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
     
     # BNCC + Assunto em expander compacto
     with st.expander("📚 BNCC e Assunto", expanded=True):
-        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc = criar_dropdowns_bncc_completos_melhorado(key_suffix="criar_zero", mostrar_habilidades=True, aluno=aluno)
-        assunto_criar = st.text_input("📝 Assunto (opcional)", value="", placeholder="Ex: Frações, Sistema Solar...", key="assunto_criar_zero", help="Direciona melhor o tema da atividade.")
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc, assunto_criar = criar_dropdowns_bncc_completos_melhorado(key_suffix="criar_zero", mostrar_habilidades=True, aluno=aluno)
     
     mat_c = disciplina_bncc
-    obj_c = assunto_criar.strip() if assunto_criar and assunto_criar.strip() else objeto_bncc
+    obj_c = assunto_criar if assunto_criar else (objeto_bncc or "")
     
     # Configuração da atividade (uma linha)
     st.markdown("---")
@@ -3122,7 +3120,7 @@ def render_aba_roteiro_individual(aluno, api_key):
     
     # BNCC em expander
     with st.expander("📚 BNCC e Habilidades", expanded=True):
-        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc = criar_dropdowns_bncc_completos_melhorado(key_suffix="roteiro", aluno=aluno)
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc, assunto_livre = criar_dropdowns_bncc_completos_melhorado(key_suffix="roteiro", aluno=aluno)
     
     # Motor de IA
     engine_roteiro = _render_engine_selector("roteiro")
@@ -3130,15 +3128,15 @@ def render_aba_roteiro_individual(aluno, api_key):
     st.markdown("---")
     
     if st.button("📝 GERAR ROTEIRO INDIVIDUAL", type="primary", use_container_width=True):
-        # Validação: Usa o objeto_bncc como assunto
+        assunto_ref = assunto_livre if assunto_livre else objeto_bncc
         if objeto_bncc and habilidades_bncc:
-            with st.spinner(f"Criando roteiro sobre '{objeto_bncc}'..."):
+            with st.spinner(f"Criando roteiro sobre '{assunto_ref or objeto_bncc}'..."):
                 try:
                     res = gerar_roteiro_aula_completo(
                         api_key=api_key,
                         aluno=aluno,
                         materia=disciplina_bncc,
-                        assunto=objeto_bncc,
+                        assunto=assunto_ref or objeto_bncc,
                         habilidades_bncc=habilidades_bncc,
                         verbos_bloom=None,
                         ano=ano_bncc,
@@ -3313,7 +3311,7 @@ def render_aba_dinamica_inclusiva(aluno, api_key):
     
     # BNCC em expander
     with st.expander("📚 BNCC e Habilidades", expanded=True):
-        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc = criar_dropdowns_bncc_completos_melhorado(key_suffix="dinamica", aluno=aluno)
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc, assunto_livre = criar_dropdowns_bncc_completos_melhorado(key_suffix="dinamica", aluno=aluno)
     
     # Configuração da Turma
     st.markdown("---")
@@ -3335,13 +3333,14 @@ def render_aba_dinamica_inclusiva(aluno, api_key):
     st.markdown("---")
     
     if st.button("🤝 CRIAR DINÂMICA", type="primary", use_container_width=True): 
+        assunto_ref = assunto_livre or objeto_bncc
         if objeto_bncc and habilidades_bncc:
-            with st.spinner(f"Criando dinâmica sobre '{objeto_bncc}'..."):
+            with st.spinner(f"Criando dinâmica sobre '{assunto_ref}'..."):
                 res = gerar_dinamica_inclusiva_completa(
                     api_key=api_key,
                     aluno=aluno,
                     materia=disciplina_bncc,
-                    assunto=objeto_bncc, # Passa o objeto BNCC como assunto
+                    assunto=assunto_ref,
                     qtd_alunos=qtd_alunos,
                     caracteristicas_turma=carac_turma,
                     habilidades_bncc=habilidades_bncc,
@@ -3421,7 +3420,7 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
     
     # BNCC em expander
     with st.expander("📚 BNCC e Habilidades", expanded=True):
-        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc = criar_dropdowns_bncc_completos_melhorado(key_suffix="plano", aluno=aluno)
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc, assunto_livre = criar_dropdowns_bncc_completos_melhorado(key_suffix="plano", aluno=aluno)
     
     # Configuração Metodológica
     st.markdown("---")
@@ -3457,14 +3456,15 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
     # Botão para gerar
     st.markdown("---")
     
+    assunto_ref = assunto_livre or objeto_bncc
     if st.button("📅 GERAR PLANO DE AULA", type="primary", use_container_width=True):
         if objeto_bncc and habilidades_bncc:
-            with st.spinner(f"Consultando BNCC e planejando aula sobre '{objeto_bncc}'..."):
+            with st.spinner(f"Consultando BNCC e planejando aula sobre '{assunto_ref}'..."):
                 try:
                     res = gerar_plano_aula_completo(
                         api_key=api_key or "",
                         materia=disciplina_bncc,
-                        assunto=objeto_bncc,
+                        assunto=assunto_ref,
                         metodologia=metodologia,
                         tecnica=tecnica_ativa,
                         qtd_alunos=qtd_alunos_plano,
