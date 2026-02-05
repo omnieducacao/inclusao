@@ -2036,8 +2036,42 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
         anos_originais = dados['Ano'].dropna().unique().tolist()
         anos_ordenados = ordenar_anos(anos_originais)
         ano_selecionado = st.selectbox("Ano (escolha enquanto o PEI não tiver série)", anos_ordenados, key=f"ano_bncc_fallback_{key_suffix}")
+
+    # Ensino Médio: usar bncc_em.csv via bncc_service (Área de conhecimento + Habilidades)
+    if ano_selecionado and "EM" in str(ano_selecionado).upper():
+        try:
+            from services.bncc_service import carregar_habilidades_em_por_area, areas_em
+            blocos_em = carregar_habilidades_em_por_area(ano_selecionado)
+            areas_list = areas_em()
+        except Exception:
+            areas_list = []
+        if not areas_list:
+            st.warning("⚠️ BNCC do Ensino Médio (bncc_em.csv) não encontrada na raiz.")
+            return (ano_selecionado, None, None, None, [])
+        rotulo_em = _rotulo_ano(ano_selecionado)
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.selectbox("Ano (PEI)", [rotulo_em], index=0, disabled=True, key=f"ano_em_display_{key_suffix}")
+        with col2:
+            area_selecionada = st.selectbox("Área de Conhecimento", areas_list, key=f"area_em_{key_suffix}")
+        st.markdown("---")
+        habilidades_selecionadas = []
+        if area_selecionada and mostrar_habilidades:
+            lista_area = (blocos_em.get("ano_atual") or {}).get(area_selecionada) or []
+            todas_hab = [h.get("habilidade_completa") or h.get("descricao", "") for h in lista_area if h.get("habilidade_completa") or h.get("descricao")]
+            if todas_hab:
+                st.markdown(f"**🔍 {len(todas_hab)} habilidade(s) para {area_selecionada}:**")
+                opcoes = st.multiselect("Selecione uma ou mais habilidades:", todas_hab, default=todas_hab[:min(3, len(todas_hab))], key=f"hab_em_{key_suffix}")
+                habilidades_selecionadas = opcoes
+                with st.expander("➕ Adicionar habilidade personalizada"):
+                    hab_extra = st.text_area("Digite habilidades adicionais (uma por linha):", placeholder="Ex:\n(EM13LP01) ...", key=f"hab_extra_em_{key_suffix}")
+                    if hab_extra:
+                        habilidades_selecionadas.extend([h.strip() for h in hab_extra.split("\n") if h.strip()])
+            else:
+                st.info("ℹ️ Nenhuma habilidade para esta área.")
+        return (ano_selecionado, area_selecionada, "EM", area_selecionada, habilidades_selecionadas)
     
-    # Linha 1: Ano (desabilitado, do PEI), Componente Curricular, Unidade Temática
+    # Linha 1: Ano (desabilitado, do PEI), Componente Curricular, Unidade Temática (EF)
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -2321,76 +2355,14 @@ def render_aba_adaptar_prova(aluno, api_key):
     
     # BNCC + Assunto em expander compacto
     with st.expander("📚 BNCC e Assunto", expanded=True):
-        if 'bncc_df_completo' not in st.session_state:
-            st.session_state.bncc_df_completo = carregar_bncc_completa()
-        dados = st.session_state.bncc_df_completo
-        
-        # Ano determinado pelo PEI — campo desabilitado para dar clareza (7º ano, 5º ano etc.)
-        ano_bncc = extrair_ano_bncc_do_aluno(aluno) if aluno else None
-        if not ano_bncc and aluno:
-            pei = (aluno.get("pei_data") or {}) if isinstance(aluno.get("pei_data"), dict) else {}
-            serie_pei = pei.get("serie") or aluno.get("grade") or ""
-            ano_bncc = extrair_ano_bncc_do_aluno({"serie": serie_pei, "grade": serie_pei}) if serie_pei else None
-        if not ano_bncc and dados is not None and not dados.empty:
-            st.warning("⚠️ Série não informada no PEI. Informe na aba Estudante do PEI.")
-            anos_ord = ordenar_anos(dados['Ano'].dropna().unique().tolist())
-            ano_bncc = st.selectbox("Ano (fallback)", anos_ord, key="ano_adaptar_prova_fallback")
-        # Linha 1: Ano (desabilitado), Componente, Unidade
-        col_bncc1, col_bncc2, col_bncc3 = st.columns(3)
-        with col_bncc1:
-            if ano_bncc:
-                rotulo = f"{ano_bncc} ano" if "EM" not in str(ano_bncc).upper() else f"{str(ano_bncc).replace('EM','')}ª série EM"
-                st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key="ano_adaptar_prova_display")
-            else:
-                st.empty()
-        with col_bncc2:
-            if dados is not None and not dados.empty and ano_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                df_por_ano = dados[mask_ano]
-                disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
-                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
-                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_prova_compact")
-            else:
-                lista_fallback = ["Educação Infantil", "Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês", "Biologia", "Física", "Química", "Filosofia", "Sociologia"]
-                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
-                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_prova_compact")
-        with col_bncc3:
-            if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                unid_filtradas = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc)]
-                unidades = sorted(unid_filtradas['Unidade Temática'].dropna().unique())
-                if unidades:
-                    unidade_bncc = st.selectbox("Unidade Temática", unidades, key="unid_adaptar_prova_compact")
-                else:
-                    unidade_bncc = st.text_input("Unidade Temática", placeholder="Ex: Números", 
-                                               key="unid_adaptar_prova_compact")
-            else:
-                unidade_bncc = st.text_input("Unidade Temática", placeholder="Ex: Números", 
-                                           key="unid_adaptar_prova_compact")
-        
-        # Linha 2: Objeto do Conhecimento e Assunto
-        col_obj, col_ass = st.columns(2)
-        with col_obj:
-            if dados is not None and not dados.empty and ano_bncc and disciplina_bncc and unidade_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                obj_filtrados = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc) & (dados['Unidade Temática'] == unidade_bncc)]
-                objetos = sorted(obj_filtrados['Objeto do Conhecimento'].dropna().unique())
-                if objetos:
-                    objeto_bncc = st.selectbox("Objeto do Conhecimento", objetos, key="obj_adaptar_prova_compact")
-                else:
-                    objeto_bncc = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
-                                               key="obj_adaptar_prova_compact")
-            else:
-                objeto_bncc = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
-                                           key="obj_adaptar_prova_compact")
-        with col_ass:
-            assunto_livre = st.text_input(
-                "📝 Assunto (opcional)",
-                value="",
-                placeholder="Ex: Frações, Sistema Solar...",
-                help="Preencha se quiser direcionar a adaptação para um assunto específico.",
-                key="assunto_adaptar_prova_compact"
-            )
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, _ = criar_dropdowns_bncc_completos_melhorado(key_suffix="adaptar_prova", mostrar_habilidades=False, aluno=aluno)
+        assunto_livre = st.text_input(
+            "📝 Assunto (opcional)",
+            value="",
+            placeholder="Ex: Frações, Sistema Solar...",
+            help="Preencha se quiser direcionar a adaptação para um assunto específico.",
+            key="assunto_adaptar_prova_compact"
+        )
     
     # Motor de IA
     engine_adaptar_prova = _render_engine_selector("adaptar_prova")
@@ -2602,76 +2574,14 @@ def render_aba_adaptar_atividade(aluno, api_key):
     
     # BNCC + Assunto em expander compacto
     with st.expander("📚 BNCC e Assunto", expanded=True):
-        if 'bncc_df_completo' not in st.session_state:
-            st.session_state.bncc_df_completo = carregar_bncc_completa()
-        dados = st.session_state.bncc_df_completo
-        
-        # Ano determinado pelo PEI — campo desabilitado para clareza (7º ano, 5º ano etc.)
-        ano_bncc = extrair_ano_bncc_do_aluno(aluno) if aluno else None
-        if not ano_bncc and aluno:
-            pei = (aluno.get("pei_data") or {}) if isinstance(aluno.get("pei_data"), dict) else {}
-            serie_pei = pei.get("serie") or aluno.get("grade") or ""
-            ano_bncc = extrair_ano_bncc_do_aluno({"serie": serie_pei, "grade": serie_pei}) if serie_pei else None
-        if not ano_bncc and dados is not None and not dados.empty:
-            st.warning("⚠️ Série não informada no PEI. Informe na aba Estudante do PEI.")
-            anos_ord = ordenar_anos(dados['Ano'].dropna().unique().tolist())
-            ano_bncc = st.selectbox("Ano (fallback)", anos_ord, key="ano_adaptar_atividade_fallback")
-        # Linha 1: Ano (desabilitado), Componente, Unidade
-        col_bncc1, col_bncc2, col_bncc3 = st.columns(3)
-        with col_bncc1:
-            if ano_bncc:
-                rotulo = f"{ano_bncc} ano" if "EM" not in str(ano_bncc).upper() else f"{str(ano_bncc).replace('EM','')}ª série EM"
-                st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key="ano_adaptar_atividade_display")
-            else:
-                st.empty()
-        with col_bncc2:
-            if dados is not None and not dados.empty and ano_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                df_por_ano = dados[mask_ano]
-                disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
-                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
-                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_atividade_compact")
-            else:
-                lista_fallback = ["Educação Infantil", "Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês", "Biologia", "Física", "Química", "Filosofia", "Sociologia"]
-                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
-                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_atividade_compact")
-        with col_bncc3:
-            if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                unid_filtradas = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc)]
-                unidades = sorted(unid_filtradas['Unidade Temática'].dropna().unique())
-                if unidades:
-                    unidade_bncc = st.selectbox("Unidade Temática", unidades, key="unid_adaptar_atividade_compact")
-                else:
-                    unidade_bncc = st.text_input("Unidade Temática", placeholder="Ex: Números", 
-                                               key="unid_adaptar_atividade_compact")
-            else:
-                unidade_bncc = st.text_input("Unidade Temática", placeholder="Ex: Números", 
-                                           key="unid_adaptar_atividade_compact")
-        
-        # Linha 2: Objeto do Conhecimento e Assunto
-        col_obj, col_ass = st.columns(2)
-        with col_obj:
-            if dados is not None and not dados.empty and ano_bncc and disciplina_bncc and unidade_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                obj_filtrados = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc) & (dados['Unidade Temática'] == unidade_bncc)]
-                objetos = sorted(obj_filtrados['Objeto do Conhecimento'].dropna().unique())
-                if objetos:
-                    objeto_bncc = st.selectbox("Objeto do Conhecimento", objetos, key="obj_adaptar_atividade_compact")
-                else:
-                    objeto_bncc = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
-                                               key="obj_adaptar_atividade_compact")
-            else:
-                objeto_bncc = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
-                                           key="obj_adaptar_atividade_compact")
-        with col_ass:
-            assunto_livre = st.text_input(
-                "📝 Assunto (opcional)",
-                value="",
-                placeholder="Ex: Frações, Sistema Solar...",
-                help="Preencha se quiser direcionar a adaptação para um assunto específico.",
-                key="assunto_adaptar_atividade_compact"
-            )
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, _ = criar_dropdowns_bncc_completos_melhorado(key_suffix="adaptar_atividade", mostrar_habilidades=False, aluno=aluno)
+        assunto_livre = st.text_input(
+            "📝 Assunto (opcional)",
+            value="",
+            placeholder="Ex: Frações, Sistema Solar...",
+            help="Preencha se quiser direcionar a adaptação para um assunto específico.",
+            key="assunto_adaptar_atividade_compact"
+        )
     
     # OCR/visão usa Omnisfera Yellow (Gemini)
     st.caption("ℹ️ Esta função usa Omnisfera Yellow (OCR/visão).")
@@ -2928,69 +2838,8 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
     
     # BNCC + Assunto em expander compacto
     with st.expander("📚 BNCC e Assunto", expanded=True):
-        if 'bncc_df_completo' not in st.session_state:
-            st.session_state.bncc_df_completo = carregar_bncc_completa()
-        dados = st.session_state.bncc_df_completo
-        
-        # Ano determinado pelo PEI — campo desabilitado para clareza (7º ano, 5º ano etc.)
-        ano_bncc = extrair_ano_bncc_do_aluno(aluno) if aluno else None
-        if not ano_bncc and aluno:
-            pei = (aluno.get("pei_data") or {}) if isinstance(aluno.get("pei_data"), dict) else {}
-            serie_pei = pei.get("serie") or aluno.get("grade") or ""
-            ano_bncc = extrair_ano_bncc_do_aluno({"serie": serie_pei, "grade": serie_pei}) if serie_pei else None
-        if not ano_bncc and dados is not None and not dados.empty:
-            st.warning("⚠️ Série não informada no PEI. Informe na aba Estudante do PEI.")
-            anos_ord = ordenar_anos(dados['Ano'].dropna().unique().tolist())
-            ano_bncc = st.selectbox("Ano (fallback)", anos_ord, key="ano_criar_zero_fallback")
-        # Linha 1: Ano (desabilitado), Componente, Unidade
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            if ano_bncc:
-                rotulo = f"{ano_bncc} ano" if "EM" not in str(ano_bncc).upper() else f"{str(ano_bncc).replace('EM','')}ª série EM"
-                st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key="ano_criar_zero_display")
-            else:
-                st.empty()
-        with c2:
-            if dados is not None and not dados.empty and ano_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                df_por_ano = dados[mask_ano]
-                disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
-                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
-                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_criar_zero")
-            else:
-                lista_fallback = ["Educação Infantil", "Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês", "Biologia", "Física", "Química", "Filosofia", "Sociologia"]
-                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
-                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_criar_zero")
-        with c3:
-            if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                unid_f = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc)]
-                unidades = sorted(unid_f['Unidade Temática'].dropna().unique())
-                unidade_bncc = st.selectbox("Unidade Temática", unidades, key="unid_criar_zero") if unidades else st.text_input("Unidade Temática", placeholder="Ex: Números", key="unid_criar_zero")
-            else:
-                unidade_bncc = st.text_input("Unidade Temática", placeholder="Ex: Números", key="unid_criar_zero")
-        
-        # Linha 2: Objeto do Conhecimento, Assunto (opcional)
-        c4, c5 = st.columns(2)
-        with c4:
-            if dados is not None and not dados.empty and ano_bncc and disciplina_bncc and unidade_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                obj_f = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc) & (dados['Unidade Temática'] == unidade_bncc)]
-                objetos = sorted(obj_f['Objeto do Conhecimento'].dropna().unique())
-                objeto_bncc = st.selectbox("Objeto do Conhecimento", objetos, key="obj_criar_zero") if objetos else st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", key="obj_criar_zero")
-            else:
-                objeto_bncc = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", key="obj_criar_zero")
-        with c5:
-            assunto_criar = st.text_input("📝 Assunto (opcional)", value="", placeholder="Ex: Frações, Sistema Solar...", key="assunto_criar_zero", help="Direciona melhor o tema da atividade.")
-        
-        # Habilidades (compacto)
-        habilidades_bncc = []
-        if dados is not None and not dados.empty and ano_bncc and disciplina_bncc and unidade_bncc and objeto_bncc:
-            mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-            hab_f = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc) & (dados['Unidade Temática'] == unidade_bncc) & (dados['Objeto do Conhecimento'] == objeto_bncc)]
-            todas_hab = sorted(hab_f['Habilidade'].dropna().unique())
-            if todas_hab:
-                habilidades_bncc = st.multiselect("Habilidades BNCC", todas_hab, default=todas_hab[:min(3, len(todas_hab))], key="hab_criar_zero")
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc = criar_dropdowns_bncc_completos_melhorado(key_suffix="criar_zero", mostrar_habilidades=True, aluno=aluno)
+        assunto_criar = st.text_input("📝 Assunto (opcional)", value="", placeholder="Ex: Frações, Sistema Solar...", key="assunto_criar_zero", help="Direciona melhor o tema da atividade.")
     
     mat_c = disciplina_bncc
     obj_c = assunto_criar.strip() if assunto_criar and assunto_criar.strip() else objeto_bncc
