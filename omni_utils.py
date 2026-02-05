@@ -111,12 +111,16 @@ LOADING_MESSAGES = {
 }
 
 def get_loading_message(engine: str) -> str:
-    """Retorna mensagem para exibir no spinner de loading conforme o motor usado."""
+    """
+    Retorna mensagem para exibir no spinner de loading.
+    Linha 1: 'Omnisfera trabalhando...'
+    Linha 2: explicação do motor (ex.: 'Gerando com omnired. Resposta rápida...')
+    """
     e = (engine or "red").strip().lower()
     if e not in LOADING_MESSAGES:
         e = "red"
-    _, msg = LOADING_MESSAGES.get(e, LOADING_MESSAGES["red"])
-    return msg
+    _, motor_msg = LOADING_MESSAGES.get(e, LOADING_MESSAGES["red"])
+    return f"Omnisfera trabalhando...\n\n{motor_msg}"
 
 def get_icon(key: str, size: int = 20, color: str = None, use_emoji: bool = None) -> str:
     """
@@ -659,6 +663,8 @@ def inject_loading_overlay_css():
             font-size: 0.9rem !important;
             color: #64748B !important;
             font-weight: 600 !important;
+            white-space: pre-line !important;
+            text-align: center !important;
         }}
         """
     else:
@@ -678,6 +684,8 @@ def inject_loading_overlay_css():
             margin-top: 12px !important;
             font-size: 0.9rem !important;
             color: #64748B !important;
+            white-space: pre-line !important;
+            text-align: center !important;
         }
         """
 
