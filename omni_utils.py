@@ -2060,7 +2060,10 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
         if not k:
             raise Exception(f"Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({AI_BLUE}). Render: Environment. Local: .streamlit/secrets.toml.")
         use_or = k.startswith("sk-or-")
-        base_url = _sanitize_api_key(get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if use_or else "https://api.moonshot.ai/v1")) or "https://openrouter.ai/api/v1"
+        if use_or:
+            base_url = "https://openrouter.ai/api/v1"
+        else:
+            base_url = _sanitize_api_key(get_setting("OPENROUTER_BASE_URL", "") or "https://api.moonshot.ai/v1") or "https://api.moonshot.ai/v1"
         model = _sanitize_api_key(get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_or else "kimi-k2-turbo-preview")) or "moonshotai/kimi-k2.5"
         try:
             client = OpenAI(api_key=k, base_url=base_url)
@@ -2069,10 +2072,15 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
             track_ia_usage(engine)
             return out
         except Exception as e:
-            err = str(e).strip()[:350]
+            err = str(e).strip()
+            if "<!DOCTYPE html" in err or "<html" in err.lower():
+                raise Exception(
+                    f"Resposta HTML em vez de API: verifique OPENROUTER_API_KEY (chave sk-or-... em openrouter.ai/keys). "
+                    "No Render: Environment → OPENROUTER_API_KEY exatamente como obtida. Não configure OPENROUTER_BASE_URL (usa fixo)."
+                )
             if "Invalid" in err or "non-printable" in err or "ASCII" in err:
                 raise Exception(f"Chave da API pode ter caractere inválido (ex.: quebra de linha). Copie novamente sem espaços extras. Detalhe: {err[:120]}...")
-            raise Exception(f"Erro ao chamar {AI_BLUE}: {err}. Verifique OPENROUTER_API_KEY/KIMI_API_KEY e OPENROUTER_BASE_URL.")
+            raise Exception(f"Erro ao chamar {AI_BLUE}: {err[:200]}. Verifique OPENROUTER_API_KEY (openrouter.ai/keys).")
 
     # Green (Anthropic Claude) — apenas PEI e plano robusto
     if engine == "green":
