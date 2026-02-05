@@ -148,6 +148,16 @@ def icon_title(text: str, icon_key: str, size: int = 24, color: str = None) -> s
 # =============================================================================
 APP_VERSION = "omni_utils v2.5 (Layout colado: menu + hero bem perto)"
 
+# Chaves críticas que exigem retry no Streamlit Cloud (cold start: secrets demoram a carregar)
+_CRITICAL_KEYS = frozenset((
+    "SUPABASE_URL", "SUPABASE_SERVICE_KEY", "SUPABASE_ANON_KEY",
+    "OPENAI_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY", "KIMI_API_KEY",
+    "DEEPSEEK_API_KEY", "UNSPLASH_ACCESS_KEY",
+))
+_SECRETS_RETRIES = 6   # Streamlit Cloud: mais tentativas para cold start
+_SECRETS_RETRY_DELAY = 0.5  # segundos entre tentativas
+
+
 def get_setting(name: str, default: str = "") -> str:
     """
     Getter multi-plataforma:
@@ -155,28 +165,76 @@ def get_setting(name: str, default: str = "") -> str:
     - Streamlit Cloud: usa st.secrets
     Importante: em ambientes sem secrets.toml (ex.: Render), acessar st.secrets pode levantar
     StreamlitSecretNotFoundError, então fazemos try/except.
-    Para chaves Supabase, aplica retry (Streamlit Cloud pode demorar a carregar secrets no cold start).
+    Chaves críticas (Supabase, IAs): retry para mitigar race no cold start do Streamlit Cloud.
     """
     import time as _time
-    _SUPABASE_KEYS = ("SUPABASE_URL", "SUPABASE_SERVICE_KEY", "SUPABASE_ANON_KEY")
-    _max_tries = 3 if name in _SUPABASE_KEYS else 1
-    _delay = 0.35
+    _max_tries = _SECRETS_RETRIES if name in _CRITICAL_KEYS else 1
+    _delay = _SECRETS_RETRY_DELAY
 
-    for attempt in range(_max_tries):
+    def _read_secret():
         v = os.environ.get(name)
         if v is not None and str(v).strip() != "":
             return str(v).strip()
         try:
             v2 = st.secrets.get(name, default)
-            result = str(v2).strip() if v2 is not None else default
-            if result or name not in _SUPABASE_KEYS:
-                return result
+            if v2 is not None:
+                s = str(v2).strip()
+                if hasattr(v2, "get_secret_value"):
+                    try:
+                        s = str(v2.get_secret_value()).strip()
+                    except Exception:
+                        pass
+                if s:
+                    return s
         except Exception:
             pass
+        try:
+            v3 = getattr(st.secrets, name, None)
+            if v3 is not None:
+                s = str(v3).strip()
+                if hasattr(v3, "get_secret_value"):
+                    try:
+                        s = str(v3.get_secret_value()).strip()
+                    except Exception:
+                        pass
+                if s:
+                    return s
+        except Exception:
+            pass
+        try:
+            v4 = st.secrets[name]
+            if v4 is not None:
+                s = str(v4).strip()
+                if hasattr(v4, "get_secret_value"):
+                    try:
+                        s = str(v4.get_secret_value()).strip()
+                    except Exception:
+                        pass
+                if s:
+                    return s
+        except Exception:
+            pass
+        return default
+
+    for attempt in range(_max_tries):
+        result = _read_secret()
+        if result:
+            return result
         if attempt < _max_tries - 1:
             _time.sleep(_delay)
 
     return default
+
+
+def warmup_secrets() -> None:
+    """
+    Pré-carrega chaves críticas para reduzir falhas no cold start do Streamlit Cloud.
+    Chamar no início do app (ex.: streamlit_app.py) para dar tempo aos secrets carregarem.
+    """
+    import time as _time
+    for key in ("SUPABASE_URL", "SUPABASE_SERVICE_KEY", "OPENAI_API_KEY"):
+        get_setting(key, "")
+        _time.sleep(0.15)  # pequena pausa entre leituras
 
 def ensure_state():
     if "autenticado" not in st.session_state:

@@ -4,10 +4,10 @@ from typing import Optional
 
 import streamlit as st
 
-# Warmup: lê chaves Supabase o mais cedo possível (mitiga race no Streamlit Cloud cold start)
+# Warmup: pré-carrega secrets para mitigar race no cold start do Streamlit Cloud
 try:
     import omni_utils as _ou
-    _ou.get_setting("SUPABASE_URL", "")
+    _ou.warmup_secrets()
 except Exception:
     pass
 
@@ -243,10 +243,32 @@ try:
                     from supabase_client import get_sb
                     get_sb()  # salva em st.session_state["sb"]
                 except Exception as e:
-                    st.error("Não foi possível conectar ao banco de dados. Tente recarregar a página.")
+                    # Limpar cache para permitir nova tentativa ao recarregar
+                    st.session_state.pop("sb", None)
+                    st.markdown(
+                        """
+                        <div style="max-width:480px; margin:60px auto; padding:28px; background:white;
+                            border-radius:18px; border:1px solid #E2E8F0; box-shadow:0 20px 40px rgba(0,0,0,0.08);
+                            text-align:center;">
+                            <div style="font-size:2.2rem; margin-bottom:12px;">⚠️</div>
+                            <div style="font-weight:800; font-size:1.1rem; color:#1E293B; margin-bottom:8px;">
+                                Não foi possível conectar ao banco de dados
+                            </div>
+                            <div style="color:#64748B; font-size:0.95rem; line-height:1.5;">
+                                Chaves de configuração podem ainda estar carregando (Streamlit Cloud).<br>
+                                Clique em <strong>Recarregar</strong> para tentar novamente.
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                    col1, col2, col3 = st.columns([1, 2, 1])
+                    with col2:
+                        if st.button("🔄 Recarregar e tentar novamente", type="primary", use_container_width=True):
+                            st.rerun()
                     if ENV == "TESTE":
                         st.code(str(e))
-                        st.caption("Use o botão 'Entrar em modo demo' na tela de login para testar a interface sem Supabase.")
+                        st.caption("Use o botão 'Entrar em modo demo' na tela de login para testar sem Supabase.")
                     st.stop()
 
             # Vai para Home real (multipage)

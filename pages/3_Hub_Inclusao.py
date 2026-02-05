@@ -1309,12 +1309,41 @@ def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remove
     except Exception as e:
         return str(e), ""
 
+def _comprimir_imagem_para_vision(img_bytes: bytes, max_bytes: int = 3_000_000) -> bytes:
+    """Reduz tamanho da imagem se necessário para evitar falhas na API de visão."""
+    if len(img_bytes) <= max_bytes:
+        return img_bytes
+    try:
+        img = Image.open(BytesIO(img_bytes)).convert("RGB")
+        w, h = img.size
+        scale = (max_bytes / len(img_bytes)) ** 0.5
+        new_w = max(256, min(w, int(w * scale)))
+        new_h = max(256, min(h, int(h * scale)))
+        img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        buf = BytesIO()
+        img.save(buf, format="JPEG", quality=85)
+        return buf.getvalue()
+    except Exception:
+        return img_bytes
+
+
 def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_atv, livro_professor, modo_profundo=False, checklist_adaptacao=None, imagem_separada=None):
-    """Adapta conteúdo de uma imagem para o estudante"""
-    client = OpenAI(api_key=api_key)
+    """Adapta conteúdo de uma imagem para o estudante (OCR + visão via Omnisfera Red)."""
+    # Fallback: chave OpenAI pode não ter carregado no Streamlit Cloud
+    key = (api_key or "").strip() or ou.get_setting("OPENAI_API_KEY", "")
+    key = (key or "").strip()
+    if not key:
+        return "Configure OPENAI_API_KEY nos Secrets do app (Omnisfera Red é necessário para OCR/visão).", ""
+
+    client = OpenAI(api_key=key)
     if not imagem_bytes:
         return "Erro: Imagem vazia", ""
-    
+
+    # Comprimir se muito grande para evitar timeout/erro na API
+    imagem_bytes = _comprimir_imagem_para_vision(imagem_bytes)
+    if imagem_separada:
+        imagem_separada = _comprimir_imagem_para_vision(imagem_separada)
+
     b64 = base64.b64encode(imagem_bytes).decode('utf-8')
     instrucao_livro = "ATENÇÃO: IMAGEM COM RESPOSTAS. Remova todo gabarito/respostas." if livro_professor else ""
     style = "Faça uma análise crítica para melhor adaptação." if modo_profundo else "Transcreva e adapte."
@@ -1388,22 +1417,22 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
     ...atividade...
     """
     
-    # Preparar mensagens com imagem(s)
+    # Preparar mensagens com imagem(s) — detail=high melhora OCR de texto
     content_msgs = [
-        {"type": "text", "text": prompt}, 
-        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
+        {"type": "text", "text": prompt},
+        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}", "detail": "high"}},
     ]
-    
+
     # Se houver imagem separada, adicionar também
     if imagem_separada:
         b64_separada = base64.b64encode(imagem_separada).decode('utf-8')
         content_msgs.append({
-            "type": "text", 
-            "text": "IMAGEM RECORTADA SEPARADAMENTE PELO PROFESSOR (use tag [[IMG_2]] para inserir no local apropriado):"
+            "type": "text",
+            "text": "IMAGEM RECORTADA SEPARADAMENTE PELO PROFESSOR (use tag [[IMG_2]] para inserir no local apropriado):",
         })
         content_msgs.append({
-            "type": "image_url", 
-            "image_url": {"url": f"data:image/jpeg;base64,{b64_separada}"}
+            "type": "image_url",
+            "image_url": {"url": f"data:image/jpeg;base64,{b64_separada}", "detail": "high"},
         })
     
     msgs = [
@@ -1415,11 +1444,15 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
     
     try:
         resp = client.chat.completions.create(
-            model="gpt-4o-mini", 
-            messages=msgs, 
-            temperature=0.7 if modo_profundo else 0.4
+            model="gpt-4o-mini",
+            messages=msgs,
+            temperature=0.7 if modo_profundo else 0.4,
+            max_tokens=4096,
         )
-        full_text = resp.choices[0].message.content
+        full_text = (resp.choices[0].message.content or "").strip()
+        if not full_text:
+            return "A IA não retornou conteúdo. Tente recortar novamente a questão e enviar.", ""
+
         analise = "Análise indisponível."
         atividade = full_text
         if "---DIVISOR---" in full_text:
@@ -1429,7 +1462,14 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
         atividade = garantir_tag_imagem(atividade)
         return analise, atividade
     except Exception as e:
-        return str(e), ""
+        err = str(e).strip()
+        if "rate_limit" in err.lower() or "429" in err:
+            return "Limite de uso atingido. Aguarde alguns minutos e tente novamente.", ""
+        if "invalid_api_key" in err.lower() or "authentication" in err.lower() or "401" in err:
+            return "Chave da Omnisfera Red (OPENAI_API_KEY) inválida ou ausente. Verifique os Secrets do app.", ""
+        if "context_length" in err.lower() or "maximum context" in err.lower():
+            return "Imagem muito grande. Recorte uma área menor da questão e tente novamente.", ""
+        return f"Erro no OCR/visão: {err[:300]}", ""
 
 def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, verbos_bloom=None, habilidades_bncc=None, modo_profundo=False, checklist_adaptacao=None, engine="red"):
     """Cria atividade profissional do zero"""
@@ -2708,10 +2748,8 @@ def render_aba_adaptar_atividade(aluno, api_key):
                 key="assunto_adaptar_atividade_compact"
             )
     
-    # Motor de IA (OCR/visão usa Red; Blue/Green em breve)
-    engine_adaptar_atividade = _render_engine_selector("adaptar_atividade")
-    if engine_adaptar_atividade != "red":
-        st.caption("ℹ️ OCR/visão usa apenas Omnisfera Red no momento. Será usado Red para esta função.")
+    # OCR/visão usa Omnisfera Red — selector oculto pois outros motores não suportam visão
+    st.caption("ℹ️ Esta função usa Omnisfera Red (OCR/visão).")
     
     # Configuração (Tipo e Upload)
     st.markdown("---")
