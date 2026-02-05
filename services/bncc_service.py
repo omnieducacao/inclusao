@@ -9,8 +9,14 @@ from typing import Optional
 
 # Caminhos dos CSVs (raiz do projeto)
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_PATH_BNCC_EI = os.path.join(_BASE_DIR, "bncc_ei.csv")
-_PATH_BNCC_EM = os.path.join(_BASE_DIR, "bncc_em.csv")
+
+
+def _path_csv(nome: str) -> str:
+    """Retorna caminho do CSV; tenta base_dir e cwd."""
+    p = os.path.join(_BASE_DIR, nome)
+    if os.path.exists(p):
+        return p
+    return os.path.join(os.getcwd(), nome)
 
 # Cache em memória
 _bncc_ei_cache: Optional[list] = None
@@ -25,11 +31,12 @@ def carregar_bncc_ei() -> list[dict]:
     global _bncc_ei_cache
     if _bncc_ei_cache is not None:
         return _bncc_ei_cache
-    if not os.path.exists(_PATH_BNCC_EI):
+    path = _path_csv("bncc_ei.csv")
+    if not os.path.exists(path):
         return []
     rows = []
     try:
-        with open(_PATH_BNCC_EI, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f, delimiter=";")
             for row in reader:
                 idade = (row.get("Idade") or "").strip()
@@ -43,6 +50,7 @@ def carregar_bncc_ei() -> list[dict]:
                     })
         _bncc_ei_cache = rows
     except Exception:
+        _bncc_ei_cache = []
         rows = []
     return rows
 
@@ -126,11 +134,12 @@ def carregar_bncc_em() -> list[dict]:
     global _bncc_em_cache
     if _bncc_em_cache is not None:
         return _bncc_em_cache
-    if not os.path.exists(_PATH_BNCC_EM):
+    path = _path_csv("bncc_em.csv")
+    if not os.path.exists(path):
         return []
     rows = []
     try:
-        with open(_PATH_BNCC_EM, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f, delimiter=";")
             for row in reader:
                 area = (row.get("Área") or row.get("Area") or "").strip()
@@ -148,6 +157,7 @@ def carregar_bncc_em() -> list[dict]:
                     })
         _bncc_em_cache = rows
     except Exception:
+        _bncc_em_cache = []
         rows = []
     return rows
 
@@ -212,15 +222,9 @@ def obter_area_por_componente_professor(componente: str) -> str | None:
 
 def carregar_habilidades_em_por_area(serie: str, area: str = None) -> dict:
     """
-    Retorna habilidades EM agrupadas por ÁREA DE CONHECIMENTO (não por componente).
-    { "ano_atual": { "Linguagens e suas Tecnologias": [ {codigo, descricao, habilidade_completa}, ... ] }, "anos_anteriores": {} }
-    No EM as habilidades são dadas por área; esta função lista por área.
+    Retorna habilidades EM agrupadas por ÁREA DE CONHECIMENTO.
+    Todas as habilidades do EM podem ser aplicadas nas três séries (1ª, 2ª, 3ª) — não filtra por série.
     """
-    ano_serie = (serie or "").replace("ª Série", "").replace("Série", "").strip()
-    if "EM" not in (serie or "").upper() and "MÉDIO" not in (serie or "").upper():
-        m = re.search(r"(\d)", serie or "")
-        if m:
-            ano_serie = f"{m.group(1)}EM"
     rows = carregar_bncc_em()
     ano_atual = {}
     for r in rows:
@@ -229,12 +233,6 @@ def carregar_habilidades_em_por_area(serie: str, area: str = None) -> dict:
             a = "Geral"
         if area and a != area:
             continue
-        celula = (r.get("serie") or "").strip()
-        num_serie = ano_serie.replace("EM", "").strip()
-        # Se o CSV tem Série vazia: incluir (válido para todas as séries)
-        if celula and ano_serie:
-            if num_serie not in celula and ano_serie not in celula and celula not in ano_serie:
-                continue
         cod, desc = _parse_hab_em(r.get("habilidade", ""))
         item = {"codigo": cod, "descricao": desc, "habilidade_completa": r.get("habilidade", ""), "disciplina": a}
         if a not in ano_atual:
