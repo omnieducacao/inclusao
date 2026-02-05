@@ -3146,19 +3146,19 @@ with tab7_hab:
         st.warning("Selecione a **Série/Ano** (ou faixa de idade para EI) na aba **Estudante**.")
         st.stop()
 
-    # Educação Infantil: Campos de Experiência + Objetivos de Aprendizagem (bncc_ei.csv)
+    # Educação Infantil: Campos de Experiência + Objetivos de Aprendizagem (bncc_ei.csv — todas as faixas do CSV)
     if detectar_nivel_ensino(serie_hab) == "EI":
         try:
             from services.bncc_service import faixas_idade_ei, campos_experiencia_ei, objetivos_ei_por_idade_campo, carregar_bncc_ei
             bncc_ei = carregar_bncc_ei()
-            faixas = faixas_idade_ei()
+            faixas = faixas_idade_ei() or ["0 a 1 ano e 6 meses", "1 ano e 7 meses a 3 anos e 11 meses", "4 anos a 5 anos e 11 meses"]
             campos = campos_experiencia_ei() if bncc_ei else [
                 "O eu, o outro e o nós", "Corpo, gestos e movimentos", "Traços, sons, cores e formas",
                 "Escuta, fala, pensamento e imaginação", "Espaços, tempos, quantidades, relações e transformações"
             ]
         except Exception:
             bncc_ei = []
-            faixas = ["2 anos", "3 anos", "4 anos", "5 anos"]
+            faixas = ["0 a 1 ano e 6 meses", "1 ano e 7 meses a 3 anos e 11 meses", "4 anos a 5 anos e 11 meses"]
             campos = ["O eu, o outro e o nós", "Corpo, gestos e movimentos", "Traços, sons, cores e formas",
                       "Escuta, fala, pensamento e imaginação", "Espaços, tempos, quantidades, relações e transformações"]
             def objetivos_ei_por_idade_campo(idade, campo):

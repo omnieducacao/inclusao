@@ -48,13 +48,14 @@ def carregar_bncc_ei() -> list[dict]:
 
 
 def faixas_idade_ei() -> list[str]:
-    """Retorna lista ordenada de faixas de idade presentes no bncc_ei.csv."""
+    """Retorna TODAS as faixas de idade presentes no bncc_ei.csv, na ordem do arquivo."""
     rows = carregar_bncc_ei()
     idades = list(dict.fromkeys(r["idade"] for r in rows if r.get("idade")))
-    # Ordem BNCC: bem pequenas (1a7m-3a11m) antes de pequenas (4a-5a11m)
-    ordem = ["1 ano e 7 meses a 3 anos e 11 meses", "4 anos a 5 anos e 11 meses"]
-    restantes = [i for i in idades if i not in ordem]
-    return [x for x in ordem if x in idades] + sorted(restantes)
+    # Ordenar por primeiro número encontrado (ex: 0, 1, 2, 3, 4, 5) para manter ordem lógica
+    def _key(s):
+        nums = re.findall(r"\d+", s or "")
+        return (int(nums[0]) if nums else 99, s)
+    return sorted(idades, key=_key)
 
 
 def campos_experiencia_ei() -> list[str]:
@@ -230,7 +231,8 @@ def carregar_habilidades_em_por_area(serie: str, area: str = None) -> dict:
             continue
         celula = (r.get("serie") or "").strip()
         num_serie = ano_serie.replace("EM", "").strip()
-        if ano_serie and celula:
+        # Se o CSV tem Série vazia: incluir (válido para todas as séries)
+        if celula and ano_serie:
             if num_serie not in celula and ano_serie not in celula and celula not in ano_serie:
                 continue
         cod, desc = _parse_hab_em(r.get("habilidade", ""))

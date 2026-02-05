@@ -1520,8 +1520,8 @@ def _extrair_idade_ei_aluno(aluno):
         from services.bncc_service import faixas_idade_ei
         faixas = faixas_idade_ei()
     except Exception:
-        faixas = ["5 anos", "4 anos", "3 anos", "2 anos"]
-    for idade in (faixas or ["5 anos", "4 anos", "3 anos", "2 anos"]):
+        faixas = ["0 a 1 ano e 6 meses", "1 ano e 7 meses a 3 anos e 11 meses", "4 anos a 5 anos e 11 meses"]
+    for idade in (faixas or ["0 a 1 ano e 6 meses", "1 ano e 7 meses a 3 anos e 11 meses", "4 anos a 5 anos e 11 meses"]):
         idade_lower = (idade or "").lower()
         if idade_lower and (idade_lower in s or idade_lower.replace(" ", "") in s.replace(" ", "")):
             return idade
@@ -3736,7 +3736,7 @@ def render_aba_ei_experiencia(aluno, api_key):
         campos = campos_experiencia_ei() if bncc_ei else CAMPOS_EXPERIENCIA_EI_FALLBACK
     except Exception:
         bncc_ei = []
-        faixas = ["2 anos", "3 anos", "4 anos", "5 anos"]
+        faixas = ["0 a 1 ano e 6 meses", "1 ano e 7 meses a 3 anos e 11 meses", "4 anos a 5 anos e 11 meses"]
         campos = CAMPOS_EXPERIENCIA_EI_FALLBACK
         def objetivos_ei_por_idade_campo(idade, campo):
             return []
