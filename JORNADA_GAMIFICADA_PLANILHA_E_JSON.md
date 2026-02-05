@@ -93,7 +93,7 @@ Na planilha, isso vira: A7 = primeira linha, A8 = segunda, … cada linha em uma
 
 ## 4. O que está no JSON (o que o app Minha Jornada espera)
 
-O app **Minha Jornada** não usa a planilha como tabela rígida: baixa o HTML público (pubhtml), vira **texto limpo**, e (se houver API key) envia ao **Gemini** para extrair um **JSON**. Esse JSON segue os tipos definidos em `minha_jornada_app/types.ts`.
+O app **Minha Jornada** (removido temporariamente; ver docs/MINHA_JORNADA_APP_PARA_FUTURO.md) não usa a planilha como tabela rígida: baixa o HTML público (pubhtml), vira **texto limpo**, e (se houver API key) envia ao **Gemini** para extrair um **JSON**. Esse JSON segue os tipos documentados em MINHA_JORNADA_APP_PARA_FUTURO.md.
 
 ### Estrutura do JSON
 
@@ -167,8 +167,8 @@ Normalmente vêm padrão do app ou da IA quando não há nada explícito na plan
 | Escrita na planilha (A1–A6 + A7+) | `omni_utils.py` → `exportar_jornada_para_sheets()` |
 | Geração do texto da jornada (Gemini) | `pages/2_PAEE.py` → `gerar_roteiro_gamificado_do_ciclo()`, `gerar_roteiro_gamificado_de_texto()` |
 | Formato MISSÃO #1, * tarefas, ## Olá Nome | Prompts em `pages/2_PAEE.py` (FORMATO OBRIGATÓRIO) |
-| Tipos do JSON (SheetStudentData, Journey, DailyMission) | `minha_jornada_app/types.ts` |
-| Leitura da planilha (fetch → texto → Gemini ou parsing legado) | `minha_jornada_app/services/sheetService.ts` |
+| Tipos do JSON (SheetStudentData, Journey, DailyMission) | `docs/MINHA_JORNADA_APP_PARA_FUTURO.md` |
+| Leitura da planilha (fetch → texto → Gemini ou parsing legado) | App removido — ver doc de reimplementação |
 | Prompt da IA para extrair JSON da planilha | `sheetService.ts` → `GEMINI_PROMPT`, `extractStudentDataWithGemini()` |
 
 ---

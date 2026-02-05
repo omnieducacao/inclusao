@@ -22,17 +22,14 @@ from openai import OpenAI
 
 # Importações para documentos
 from docx import Document
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.shared import Pt, Inches, RGBColor
-try:
-    from docx.oxml.ns import qn
-except ImportError:
-    qn = lambda x: x
-from fpdf import FPDF
 from pypdf import PdfReader
 
 # Importações UI
 from streamlit_cropper import st_cropper
+
+# Serviços
+from services.hub_docs import criar_docx_simples, criar_pdf_generico, construir_docx_final
+from services.hub_bncc_utils import ano_celula_contem, extrair_ano_bncc_do_aluno, padronizar_ano, ordenar_anos
 
 # ==============================================================================
 # CONFIGURAÇÃO INICIAL
@@ -507,179 +504,6 @@ def garantir_tag_imagem(texto, tag_a_inserir="IMG_1"):
             return texto[:pos] + "\n\n" + tag + "\n\n" + texto[pos:]
         return texto + "\n\n" + tag
     return texto
-
-def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, tipo_atv, sem_cabecalho=False, checklist_adaptacao=None):
-    """Constrói documento DOCX final com formatação melhorada baseada no checklist"""
-    doc = Document()
-    
-    # Determinar formatação baseada no checklist
-    usar_caixa_alta = False
-    usar_opendyslexic = False
-    espacamento_linhas = 1.5  # padrão
-    
-    if checklist_adaptacao:
-        # Se precisa de adaptação visual, usar formatação especial
-        if checklist_adaptacao.get("paragrafos_curtos") or not checklist_adaptacao.get("compreende_instrucoes_complexas"):
-            usar_caixa_alta = True
-            usar_opendyslexic = True
-            espacamento_linhas = 1.8
-    
-    # Estilos personalizados
-    style = doc.styles['Normal']
-    if usar_opendyslexic:
-        # Tentar usar OpenDyslexic, fallback para Arial se não disponível
-        try:
-            style.font.name = 'OpenDyslexic'
-            # Tentar registrar fonte alternativa (pode não funcionar se fonte não estiver instalada)
-            try:
-                rFonts = style.element.rPr.rFonts
-                if rFonts is not None:
-                    rFonts.set(qn('w:ascii'), 'OpenDyslexic')
-                    rFonts.set(qn('w:hAnsi'), 'OpenDyslexic')
-            except:
-                pass  # Se não conseguir registrar, continua com o nome
-        except:
-            style.font.name = 'Arial'
-    else:
-        style.font.name = 'Arial'
-    
-    style.font.size = Pt(14)  # Aumentado para melhor legibilidade
-    style.paragraph_format.space_after = Pt(8)
-    style.paragraph_format.line_spacing = espacamento_linhas
-    
-    if not sem_cabecalho:
-        # Título principal
-        titulo = doc.add_heading(f'{tipo_atv.upper()} ADAPTADA - {materia.upper()}', 0)
-        titulo.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        if titulo.runs:
-            titulo.runs[0].font.size = Pt(16)
-            titulo.runs[0].bold = True
-        
-        # Informações do estudante
-        p_estudante = doc.add_paragraph(f"Estudante: {aluno['nome']}")
-        p_estudante.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        if p_estudante.runs:
-            p_estudante.runs[0].font.size = Pt(11)
-        
-        # Linha separadora
-        linha_sep = doc.add_paragraph("_"*50)
-        linha_sep.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        
-        # Título de seção
-        secao = doc.add_heading('Atividades', level=2)
-        if secao.runs:
-            secao.runs[0].font.size = Pt(14)
-
-    linhas = texto_ia.split('\n')
-    for linha in linhas:
-        linha_limpa = linha.strip()
-        if not linha_limpa:
-            # Linha vazia - adiciona espaço
-            doc.add_paragraph()
-            continue
-            
-        tag_match = re.search(r'\[\[(IMG|GEN_IMG).*?(\d+)\]\]', linha, re.IGNORECASE)
-        if tag_match:
-            partes = re.split(r'(\[\[(?:IMG|GEN_IMG).*?\d+\]\])', linha, flags=re.IGNORECASE)
-            for parte in partes:
-                sub_match = re.search(r'(\d+)', parte)
-                if ("IMG" in parte.upper() or "GEN_IMG" in parte.upper()) and sub_match:
-                    num = int(sub_match.group(1))
-                    img_bytes = mapa_imgs.get(num)
-                    if not img_bytes and len(mapa_imgs) == 1:
-                        img_bytes = list(mapa_imgs.values())[0]
-                    if img_bytes:
-                        try:
-                            p = doc.add_paragraph()
-                            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                            r = p.add_run()
-                            r.add_picture(BytesIO(img_bytes), width=Inches(4.5))
-                            # Espaço após imagem
-                            doc.add_paragraph()
-                        except Exception as e:
-                            print(f"Erro ao adicionar imagem: {e}")
-                elif parte.strip():
-                    # Formatar texto com títulos e listas (passando parâmetros de formatação)
-                    _adicionar_paragrafo_formatado(doc, parte.strip(), usar_caixa_alta, usar_opendyslexic, espacamento_linhas)
-        else:
-            # Formatar texto com títulos e listas (passando parâmetros de formatação)
-            _adicionar_paragrafo_formatado(doc, linha_limpa, usar_caixa_alta, usar_opendyslexic, espacamento_linhas)
-            
-    buffer = BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
-    return buffer
-
-def _adicionar_paragrafo_formatado(doc, texto, usar_caixa_alta=False, usar_opendyslexic=False, espacamento=1.5):
-    """Adiciona parágrafo formatado com detecção de títulos e listas"""
-    try:
-        # Aplicar caixa alta se necessário
-        texto_formatado = texto.upper() if usar_caixa_alta else texto
-        
-        # Detectar títulos (começam com # ou são números seguidos de ponto)
-        if re.match(r'^#{1,3}\s+', texto_formatado):
-            nivel = len(re.match(r'^(#+)', texto_formatado).group(1))
-            texto_limpo = re.sub(r'^#+\s+', '', texto_formatado)
-            heading = doc.add_heading(texto_limpo, level=min(nivel, 3))
-            if heading.runs:
-                heading.runs[0].font.size = Pt(16 - nivel)
-                if usar_opendyslexic:
-                    heading.runs[0].font.name = 'OpenDyslexic'
-        elif re.match(r'^\d+[\.\)]\s+', texto_formatado):
-            # Lista numerada
-            p = doc.add_paragraph(texto_formatado, style='List Number')
-            if p.runs:
-                p.runs[0].font.size = Pt(14)
-                p.runs[0].font.name = 'OpenDyslexic' if usar_opendyslexic else 'Arial'
-                p.paragraph_format.line_spacing = espacamento
-        elif re.match(r'^[-•*]\s+', texto_formatado):
-            # Lista com marcadores
-            texto_limpo = re.sub(r'^[-•*]\s+', '', texto_formatado)
-            p = doc.add_paragraph(texto_limpo, style='List Bullet')
-            if p.runs:
-                p.runs[0].font.size = Pt(14)
-                p.runs[0].font.name = 'OpenDyslexic' if usar_opendyslexic else 'Arial'
-                p.paragraph_format.line_spacing = espacamento
-        elif texto_formatado.isupper() and len(texto_formatado) < 100:
-            # Título em maiúsculas
-            p = doc.add_paragraph(texto_formatado)
-            if p.runs:
-                p.runs[0].font.size = Pt(15)
-                p.runs[0].bold = True
-                p.runs[0].font.name = 'OpenDyslexic' if usar_opendyslexic else 'Arial'
-                p.paragraph_format.line_spacing = espacamento
-        else:
-            # Texto normal
-            p = doc.add_paragraph(texto_formatado)
-            if p.runs:
-                p.runs[0].font.size = Pt(14)
-                p.runs[0].font.name = 'OpenDyslexic' if usar_opendyslexic else 'Arial'
-                p.paragraph_format.line_spacing = espacamento
-    except Exception as e:
-        # Fallback: adiciona como parágrafo simples
-        doc.add_paragraph(texto_formatado if usar_caixa_alta else texto)
-
-def criar_docx_simples(texto, titulo="Documento"):
-    """Cria um DOCX simples a partir de texto"""
-    doc = Document()
-    doc.add_heading(titulo, 0)
-    for para in texto.split('\n'):
-        if para.strip():
-            doc.add_paragraph(para.strip())
-    buffer = BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
-    return buffer
-
-def criar_pdf_generico(texto):
-    """Cria um PDF simples a partir de texto"""
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    texto_safe = texto.encode('latin-1', 'replace').decode('latin-1')
-    pdf.multi_cell(0, 10, texto_safe)
-    return pdf.output(dest='S').encode('latin-1')
-
 
 def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str, aluno: dict = None, kimi_key: str = None) -> tuple[bytes | None, str | None]:
     """
@@ -1887,81 +1711,6 @@ def gerar_quebra_gelo_profundo(api_key, aluno, materia, assunto, hiperfoco, tema
 # ==============================================================================
 # FUNÇÕES DE BNCC (DROPDOWNS)
 # ==============================================================================
-
-def ano_celula_contem(ano_celula, ano_busca):
-    """
-    Verifica se ano_busca está na célula Ano da BNCC.
-    A célula pode ter múltiplos anos: "1º, 2º, 3º, 4º, 5º" (ex: Arte, Língua Portuguesa).
-    Retorna True se ano_busca (ex: "3º") está na lista.
-    """
-    if not ano_busca or not ano_celula:
-        return False
-    cell = str(ano_celula).strip()
-    busca = str(ano_busca).strip()
-    partes = [p.strip() for p in cell.split(",")]
-    return busca in partes
-
-
-def extrair_ano_bncc_do_aluno(aluno):
-    """
-    Extrai o ano/série no formato BNCC a partir do estudante (grade/serie do PEI).
-    Retorna ex: "3º", "7º", "1EM" ou None.
-    """
-    if not aluno or not isinstance(aluno, dict):
-        return None
-    serie = aluno.get("serie") or aluno.get("grade") or ""
-    if not serie or not isinstance(serie, str):
-        return None
-    s = str(serie).strip()
-    # 1ª Série (EM) -> 1EM
-    m_em = re.search(r"(\d)\s*ª?\s*série", s, re.IGNORECASE)
-    if m_em or "em" in s.lower() or "médio" in s.lower():
-        n = m_em.group(1) if m_em else re.search(r"(\d)", s)
-        if n:
-            return f"{int(n.group(1))}EM"
-    # 7º Ano, 3º ano, etc.
-    m = re.search(r"(\d\s*º)", s)
-    return m.group(1).replace(" ", "") if m else None
-
-
-def padronizar_ano(ano_str):
-    """Converte diferentes formatos de ano para um padrão ordenável"""
-    if not isinstance(ano_str, str):
-        ano_str = str(ano_str)
-    
-    ano_str = ano_str.strip()
-    
-    # Padrões comuns
-    padroes = [
-        (r'(\d+)\s*º?\s*ano', 'ano'),
-        (r'(\d+)\s*ª?\s*série', 'ano'),
-        (r'(\d+)\s*em', 'em'),
-        (r'ef\s*(\d+)', 'ano'),
-        (r'(\d+)\s*período', 'ano'),
-        (r'(\d+)\s*semestre', 'ano'),
-    ]
-    
-    for padrao, tipo in padroes:
-        match = re.search(padrao, ano_str.lower())
-        if match:
-            num = match.group(1)
-            if tipo == 'em':
-                return f"{int(num):02d}EM"
-            else:
-                return f"{int(num):02d}"
-    
-    return ano_str
-
-def ordenar_anos(anos_lista):
-    """Ordena anos de forma inteligente"""
-    anos_padronizados = []
-    
-    for ano in anos_lista:
-        padrao = padronizar_ano(str(ano))
-        anos_padronizados.append((padrao, ano))
-    
-    anos_padronizados.sort(key=lambda x: x[0])
-    return [ano_original for _, ano_original in anos_padronizados]
 
 def carregar_bncc_completa():
     """Carrega BNCC EF via bncc_service (bncc_ef.csv ou bncc.csv na raiz)."""

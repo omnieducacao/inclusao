@@ -60,7 +60,7 @@
 
 ### 2.3 Recursos que podem não fazer sentido
 
-1. **minha_jornada_app/** (TypeScript/React): App separado para Jornada Gamificada. Documentado em JORNADA_GAMIFICADA_PLANILHA_E_JSON.md. Se não estiver em uso, considerar remover ou mover para repositório separado.
+1. **minha_jornada_app/** (TypeScript/React): Removido temporariamente (02/2025). Documentação para reimplementação em docs/MINHA_JORNADA_APP_PARA_FUTURO.md.
 2. **pages/bncc.csv**: Duplicata — BNCC EF está em `bncc_ef.csv` na raiz. O serviço usa `bncc_ef.csv` ou `bncc.csv`. Verificar se `pages/bncc.csv` é legado.
 3. **Google Sheets:** Config opcional, "desativado por enquanto" (secrets.toml.example). Manter documentação, mas remover código morto se houver.
 4. **streamlit-cropper**: Usado no Hub para cortar imagens. Verificar se é essencial ou se pode ser substituído por upload simples.
@@ -125,7 +125,7 @@
 - [ ] Verificar que não há credenciais hardcoded (grep para sk-, eyJ)
 - [ ] README com instruções de setup
 - [ ] .gitignore com secrets.toml, venv, __pycache__
-- [ ] Remover ou documentar minha_jornada_app se não estiver em uso
+- [x] Remover ou documentar minha_jornada_app (removido; doc em MINHA_JORNADA_APP_PARA_FUTURO.md)
 - [ ] Remover pages/bncc.csv se for duplicata de bncc_ef.csv
 
 ---
