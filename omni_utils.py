@@ -375,8 +375,10 @@ def inject_layout_css(topbar_h: int = 56, navbar_h: int = 52, content_gap: int =
   }}
 
   /* Oculta chrome Streamlit (sem depender de classes internas) */
-  #MainMenu {{ visibility: hidden; }}
-  footer {{ visibility: hidden; }}
+  #MainMenu {{ visibility: hidden !important; display: none !important; }}
+  footer, [data-testid="stFooter"], .stDeployButton, a[href*="streamlit.io"] {{
+    visibility: hidden !important; display: none !important; height: 0 !important; overflow: hidden !important;
+  }}
   header[data-testid="stHeader"] {{ display:none !important; }}
   [data-testid="stToolbar"] {{ display:none !important; }}
   section[data-testid="stSidebar"] {{ display:none !important; }}

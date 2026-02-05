@@ -52,14 +52,16 @@ html, body, [class*="css"] {
     background-color: #F8FAFC !important;
 }
 
-/* --- OCULTAR SIDEBAR E HEADER NATIVOS DO STREAMLIT --- */
+/* --- OCULTAR SIDEBAR, HEADER, FOOTER E MENU STREAMLIT --- */
 [data-testid="stSidebarNav"],
 [data-testid="stHeader"],
 [data-testid="stToolbar"],
 [data-testid="collapsedControl"],
 [data-testid="stSidebar"],
 section[data-testid="stSidebar"],
-footer {
+footer, [data-testid="stFooter"],
+[data-testid="stBottom"], .stDeployButton,
+a[href*="streamlit.io"] {
     display: none !important;
 }
 

@@ -18,11 +18,12 @@ def hide_streamlit_chrome_if_needed(show_for_admin: bool = False):
         """
         <style>
           #MainMenu, [data-testid="stMainMenu"], .stMainMenu { display: none !important; visibility: hidden !important; }
-          footer, header, [data-testid="stHeader"] { display: none !important; visibility: hidden !important; }
+          footer, [data-testid="stFooter"], header, [data-testid="stHeader"] { display: none !important; visibility: hidden !important; }
           [data-testid="stToolbar"], [data-testid="stToolbarActions"] { display: none !important; visibility: hidden !important; }
           button[data-testid="collapsedControl"], button[aria-label*="Settings"], button[aria-label*="Menu"] { display: none !important; visibility: hidden !important; }
           button[title*="Settings"], button[title*="Manage"], button[title*="View app"], .stDeployButton { display: none !important; visibility: hidden !important; }
           [data-testid="stSidebar"], section[data-testid="stSidebar"], [data-testid="stSidebarNav"] { display: none !important; visibility: hidden !important; }
+          [data-testid="stBottom"], a[href*="streamlit.io"], [class*="stDeployButton"], [class*="stStatusWidget"] { display: none !important; visibility: hidden !important; }
         </style>
         """,
         unsafe_allow_html=True
