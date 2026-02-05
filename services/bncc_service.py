@@ -129,7 +129,7 @@ def carregar_bncc_em() -> list[dict]:
     """
     Carrega bncc_em.csv.
     Retorna lista de dicts: {area, componente, serie, unidade, habilidade}.
-    Colunas esperadas: Área;Componente;Série;Unidade Temática;Habilidade
+    Aceita: Área de conhecimento;Série;Habilidade ou Área;Componente;Série;Unidade Temática;Habilidade
     """
     global _bncc_em_cache
     if _bncc_em_cache is not None:
@@ -140,13 +140,22 @@ def carregar_bncc_em() -> list[dict]:
     rows = []
     try:
         with open(path, "r", encoding="utf-8-sig") as f:
-            reader = csv.DictReader(f, delimiter=";")
+            reader = csv.DictReader(f, delimiter=";", skipinitialspace=True)
+            def _get_val(d, *keys):
+                for k in keys:
+                    v = d.get(k) or (d.get(k + " ") if k else None)
+                    if v is not None and str(v).strip():
+                        return str(v).strip()
+                for k, v in d.items():
+                    if k and str(k).strip() in [str(q).strip() for q in keys if q] and v and str(v).strip():
+                        return str(v).strip()
+                return ""
             for row in reader:
-                area = (row.get("Área") or row.get("Area") or "").strip()
-                componente = (row.get("Componente") or "").strip()
-                serie = (row.get("Série") or row.get("Serie") or "").strip()
-                unidade = (row.get("Unidade Temática") or row.get("Unidade Tematica") or "").strip()
-                hab = (row.get("Habilidade") or "").strip()
+                area = _get_val(row, "Área de conhecimento", "Área", "Area")
+                componente = _get_val(row, "Componente")
+                serie = _get_val(row, "Série", "Serie")
+                unidade = _get_val(row, "Unidade Temática", "Unidade Tematica")
+                hab = _get_val(row, "Habilidade")
                 if hab:
                     rows.append({
                         "area": area,

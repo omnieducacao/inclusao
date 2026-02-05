@@ -1697,8 +1697,8 @@ Na seção "Avaliação de Repertório", use APENAS os dados abaixo (Campos de E
                 if texto_hab_sel.strip():
                     instrucao_bncc = f"""[MAPEAMENTO_BNCC — REGRA OBRIGATÓRIA]
 Na seção "Avaliação de Repertório", cite SOMENTE habilidades da lista abaixo. A lista é FECHADA e EXAUSTIVA: NÃO adicione nenhuma habilidade que não esteja nela. Ao citar cada habilidade, reproduza a linha INTEIRA EXATAMENTE como está na lista: código + descrição COMPLETA, palavra por palavra, sem parafrasear, resumir ou alterar. Proibido inventar ou modificar o texto.
-[HABILIDADES_VALIDADAS_PELO_PROFESSOR — USE SOMENTE ESTAS]
-{texto_hab_sel[:12000]}
+[HABILIDADES_VALIDADAS_PELO_PROFESSOR — USE SOMENTE ESTAS, NA ÍNTEGRA]
+{texto_hab_sel}
 [/HABILIDADES_VALIDADAS_PELO_PROFESSOR]
 [/MAPEAMENTO_BNCC]"""
                 else:
@@ -1807,7 +1807,7 @@ GUIA PRÁTICO PARA SALA DE AULA.
                     for h in hab_para_user if isinstance(h, dict)
                 )
                 if lista_user.strip():
-                    prompt_user += f"\n\n[LISTA ÚNICA DE HABILIDADES PERMITIDAS — na Avaliação de Repertório cite SOMENTE estas, COPIANDO a linha inteira EXATAMENTE como abaixo. NÃO invente outras:]\n{lista_user[:10000]}"
+                    prompt_user += f"\n\n[LISTA ÚNICA DE HABILIDADES PERMITIDAS — na Avaliação de Repertório cite SOMENTE estas, COPIANDO a linha inteira EXATAMENTE como abaixo. NÃO invente outras:]\n{lista_user}"
             else:
                 bncc_u = carregar_habilidades_bncc_ano_atual_e_anteriores(serie)
                 at_u = (bncc_u.get("ano_atual") or "").strip()
@@ -1815,9 +1815,9 @@ GUIA PRÁTICO PARA SALA DE AULA.
                 if at_u or ant_u:
                     prompt_user += "\n\n[LISTA ÚNICA DE HABILIDADES PERMITIDAS — na Avaliação de Repertório cite SOMENTE estas, COPIANDO a linha inteira EXATAMENTE como abaixo:]"
                     if ant_u:
-                        prompt_user += f"\n\nANOS ANTERIORES:\n{ant_u[:5000]}"
+                        prompt_user += f"\n\nANOS ANTERIORES:\n{ant_u}"
                     if at_u:
-                        prompt_user += f"\n\nANO SÉRIE ATUAL:\n{at_u[:5000]}"
+                        prompt_user += f"\n\nANO SÉRIE ATUAL:\n{at_u}"
 
         messages = [{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}]
         texto_relatorio = ou.chat_completion_multi_engine(engine, messages, temperature=0.7, api_key=api_key)
@@ -3272,8 +3272,8 @@ with tab7_hab:
             componentes_atual = sorted(ano_atual.keys())
             for disc in componentes_atual:
                 for h in ano_atual[disc]:
-                    lista_para_ia.append(f"- {disc}: {h.get('codigo','')} — {h.get('habilidade_completa','')[:150]}")
-            texto_lista = "\n".join(lista_para_ia[:400])
+                    lista_para_ia.append(f"- {disc}: {h.get('codigo','')} — {h.get('habilidade_completa','')}")
+            texto_lista = "\n".join(lista_para_ia)
             prompt_aux = f"""O estudante está no ano/série: {serie_hab}. Abaixo estão as habilidades BNCC do ano atual (código e descrição).
 Indique as habilidades mais fundamentais para esse ano (máximo 3 a 5 por componente curricular).
 
@@ -3343,8 +3343,8 @@ HABILIDADES DO ANO ATUAL:
             componentes_ant = sorted(anos_anteriores.keys())
             for disc in componentes_ant:
                 for h in anos_anteriores[disc]:
-                    lista_para_ia_ant.append(f"- {disc}: {h.get('codigo','')} — {h.get('habilidade_completa','')[:150]}")
-            texto_lista_ant = "\n".join(lista_para_ia_ant[:400])
+                    lista_para_ia_ant.append(f"- {disc}: {h.get('codigo','')} — {h.get('habilidade_completa','')}")
+            texto_lista_ant = "\n".join(lista_para_ia_ant)
             prompt_aux_ant = f"""O estudante está no ano/série: {serie_hab}. Abaixo estão habilidades BNCC de ANOS ANTERIORES (que podem merecer atenção ou reforço).
 Indique as habilidades mais relevantes para esse estudante (máximo 3 a 5 por componente curricular).
 
