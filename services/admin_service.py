@@ -162,6 +162,36 @@ def get_workspace_plan(workspace_id: str) -> str:
     return plan
 
 
+# Cache de ai_engines por workspace (evita chamadas repetidas)
+_workspace_engines_cache: dict = {}
+_WORKSPACE_ENGINES_TTL_SEC = 300  # 5 minutos
+
+
+def workspace_has_engine(workspace_id: str, engine: str) -> bool:
+    """
+    Verifica se o motor de IA está habilitado para a escola.
+    A associação é feita manualmente no cadastro da escola (ai_engines).
+    - Se ai_engines vazio/None: permite todos (retrocompatibilidade).
+    - Se ai_engines preenchido: só permite os listados (red, blue, green, yellow, orange).
+    """
+    if not workspace_id or not engine:
+        return True  # sem contexto, não bloqueia
+    engine = str(engine).strip().lower()
+    now = time.time()
+    cache_key = f"{workspace_id}:engines"
+    entry = _workspace_engines_cache.get(cache_key)
+    if entry and (now - entry[0]) < _WORKSPACE_ENGINES_TTL_SEC:
+        engines = entry[1]
+    else:
+        ws = get_workspace(workspace_id)
+        engines = ws.get("ai_engines") if ws else []
+        _workspace_engines_cache[cache_key] = (now, engines)
+    if not engines:  # vazio = todos permitidos (retrocompat)
+        return True
+    engines_lower = [str(e).strip().lower() for e in engines if e]
+    return engine in engines_lower
+
+
 def update_workspace(workspace_id: str, enabled_modules: Optional[list] = None, name: str = None, segments: list = None, ai_engines: list = None, active: bool = None, plan: Optional[str] = None, credits_limit: Optional[int] = None, credits_period_start=None, **kwargs) -> tuple:
     """Atualiza workspace. Retorna (True, None) ou (False, erro)."""
     if not workspace_id:

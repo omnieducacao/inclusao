@@ -9,6 +9,8 @@ gatherUsageStats = false
 # Em produção: não mostrar detalhes técnicos do erro na tela (a escola não deve ver traceback)
 # Deixe true apenas em desenvolvimento (ENV=TESTE no secrets)
 showErrorDetails = false
+# Esconde toolbar (menu três pontinhos, Manage app, logo Streamlit) - "minimal" ou "viewer"
+toolbarMode = "minimal"
 
 [server]
 # Reduz risco de timeout em páginas pesadas
