@@ -362,6 +362,36 @@ def _filtrar_disciplinas_por_membro(disciplinas_bncc: list) -> tuple:
         return disciplinas_bncc, True, None
 
 
+def _filtrar_areas_em_por_membro(areas_list: list) -> tuple:
+    """
+    Para formulários BNCC EM (áreas de conhecimento). Filtra áreas conforme os componentes
+    que o professor leciona (História -> Ciências Humanas, Matemática -> Matemática, etc.).
+    Retorna (areas_filtradas, mostrar_selector, default).
+    """
+    try:
+        from ui.permissions import get_member_from_session
+        from services.members_service import get_member_components
+        from services.bncc_service import COMPONENTE_PARA_AREA_EM
+        member = get_member_from_session()
+        if not member or member.get("link_type") != "turma":
+            return areas_list, True, None
+        mid = member.get("id")
+        comps = get_member_components(mid) if mid else []
+        if not comps:
+            return areas_list, True, None
+        # Área é exibida se algum componente do professor mapeia para ela
+        opcoes = [a for a in areas_list if any(COMPONENTE_PARA_AREA_EM.get(c) == a for c in comps)]
+        if not opcoes:
+            opcoes = [COMPONENTE_PARA_AREA_EM.get(c) for c in comps if COMPONENTE_PARA_AREA_EM.get(c) in areas_list]
+        if not opcoes:
+            opcoes = areas_list
+        if len(opcoes) == 1:
+            return opcoes, False, opcoes[0]
+        return opcoes, True, opcoes[0] if opcoes else None
+    except Exception:
+        return areas_list, True, None
+
+
 # Campos de Experiência (Educação Infantil) — fallback se bncc_ei.csv não tiver
 CAMPOS_EXPERIENCIA_EI_FALLBACK = [
     "O eu, o outro e o nós",
@@ -2050,12 +2080,13 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
         if not areas_list:
             st.warning("⚠️ BNCC do Ensino Médio (bncc_em.csv) não encontrada na raiz.")
             return (ano_selecionado, None, None, None, [], "")
+        areas_opcoes, areas_mostrar, areas_default = _filtrar_areas_em_por_membro(areas_list)
         rotulo_em = _rotulo_ano(ano_selecionado)
         col1, col2 = st.columns([1, 2])
         with col1:
             st.selectbox("Ano (PEI)", [rotulo_em], index=0, disabled=True, key=f"ano_em_display_{key_suffix}")
         with col2:
-            area_selecionada = st.selectbox("Área de Conhecimento", areas_list, key=f"area_em_{key_suffix}")
+            area_selecionada = st.selectbox("Área de Conhecimento", areas_opcoes, index=0, disabled=not areas_mostrar, key=f"area_em_{key_suffix}")
         st.markdown("---")
         habilidades_selecionadas = []
         if area_selecionada and mostrar_habilidades:
