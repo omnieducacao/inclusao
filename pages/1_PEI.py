@@ -3189,9 +3189,9 @@ with tab7_hab:
     st.session_state.dados.setdefault("habilidades_bncc_selecionadas", [])
     if detectar_nivel_ensino(serie_hab) == "EM":
         try:
-            from services.bncc_service import carregar_habilidades_em_por_componente, carregar_bncc_em
+            from services.bncc_service import carregar_habilidades_em_por_area, carregar_bncc_em
             if carregar_bncc_em():
-                blocos = carregar_habilidades_em_por_componente(serie_hab)
+                blocos = carregar_habilidades_em_por_area(serie_hab)
             else:
                 blocos = {"ano_atual": {}, "anos_anteriores": {}}
         except Exception:
@@ -3430,20 +3430,21 @@ HABILIDADES DE ANOS ANTERIORES:
                         break
 
     # Seção Ano atual: botão da IA + listas em expander retrátil
+    rotulo_em = "área de conhecimento" if detectar_nivel_ensino(serie_hab) == "EM" else "componente"
     with st.expander("📌 Habilidades do ano/série atual", expanded=True):
         if st.button("Preenchimento com auxílio da IA (ano atual)", type="secondary", use_container_width=True, key="btn_auxilio_hab_bncc"):
             st.session_state["_run_auxilio_hab"] = True
-        st.caption("Use o botão acima para a IA sugerir habilidades do ano atual; ou selecione manualmente nas listas abaixo.")
-        _render_multiselects(ano_atual, "Listas por componente (ano atual)", "ano_atual")
+        st.caption(f"Use o botão acima para a IA sugerir habilidades do ano atual; ou selecione manualmente nas listas por {rotulo_em} abaixo.")
+        _render_multiselects(ano_atual, f"Listas por {rotulo_em} (ano atual)", "ano_atual")
 
     st.markdown("---")
 
-    # Seção Anos anteriores: botão da IA + listas em expander retrátil
-    with st.expander("📌 Habilidades de anos anteriores (que merecem atenção)", expanded=True):
+    # Seção Anos anteriores: botão da IA + listas em expander retrátil (EM não tem anos anteriores no mesmo sentido)
+    with st.expander("📌 Habilidades de anos anteriores (que merecem atenção)", expanded=bool(anos_anteriores)):
         if st.button("Preenchimento com auxílio da IA (anos anteriores)", type="secondary", use_container_width=True, key="btn_auxilio_hab_anteriores"):
             st.session_state["_run_auxilio_hab_anteriores"] = True
-        st.caption("Use o botão acima para a IA sugerir habilidades de anos anteriores; ou selecione manualmente nas listas abaixo.")
-        _render_multiselects(anos_anteriores, "Listas por componente (anos anteriores)", "anos_anteriores")
+        st.caption(f"Use o botão acima para a IA sugerir habilidades de anos anteriores; ou selecione manualmente nas listas por {rotulo_em} abaixo.")
+        _render_multiselects(anos_anteriores, f"Listas por {rotulo_em} (anos anteriores)", "anos_anteriores")
 
     st.session_state.dados["habilidades_bncc_selecionadas"] = novas_selecoes
     n_hab = len(novas_selecoes)

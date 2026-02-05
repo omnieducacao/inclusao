@@ -50,15 +50,11 @@ def carregar_bncc_ei() -> list[dict]:
 def faixas_idade_ei() -> list[str]:
     """Retorna lista ordenada de faixas de idade presentes no bncc_ei.csv."""
     rows = carregar_bncc_ei()
-    idades = sorted(set(r["idade"] for r in rows if r.get("idade")))
-    # Ordenar por número quando possível: 2 anos, 3 anos, 4 anos, 5 anos
-    def _key(s):
-        try:
-            n = int("".join(c for c in s if c.isdigit()) or "0")
-            return (n, s)
-        except ValueError:
-            return (999, s)
-    return sorted(idades, key=_key)
+    idades = list(dict.fromkeys(r["idade"] for r in rows if r.get("idade")))
+    # Ordem BNCC: bem pequenas (1a7m-3a11m) antes de pequenas (4a-5a11m)
+    ordem = ["1 ano e 7 meses a 3 anos e 11 meses", "4 anos a 5 anos e 11 meses"]
+    restantes = [i for i in idades if i not in ordem]
+    return [x for x in ordem if x in idades] + sorted(restantes)
 
 
 def campos_experiencia_ei() -> list[str]:
@@ -141,7 +137,7 @@ def carregar_bncc_em() -> list[dict]:
                 serie = (row.get("Série") or row.get("Serie") or "").strip()
                 unidade = (row.get("Unidade Temática") or row.get("Unidade Tematica") or "").strip()
                 hab = (row.get("Habilidade") or "").strip()
-                if componente and hab:
+                if hab:
                     rows.append({
                         "area": area,
                         "componente": componente,
@@ -213,26 +209,24 @@ def obter_area_por_componente_professor(componente: str) -> str | None:
     return COMPONENTE_PARA_AREA_EM.get(componente) if componente else None
 
 
-def carregar_habilidades_em_por_componente(serie: str, area: str = None, componente: str = None) -> dict:
+def carregar_habilidades_em_por_area(serie: str, area: str = None) -> dict:
     """
-    Retorna habilidades EM no mesmo formato que carregar_habilidades_bncc_por_componente_ano_e_anteriores:
-    { "ano_atual": { "Componente": [ {codigo, descricao, habilidade_completa}, ... ] }, "anos_anteriores": {} }
-    Para EM não usamos anos_anteriores no mesmo sentido; agrupamos por componente.
-    area e componente opcionais: se None, inclui todos.
+    Retorna habilidades EM agrupadas por ÁREA DE CONHECIMENTO (não por componente).
+    { "ano_atual": { "Linguagens e suas Tecnologias": [ {codigo, descricao, habilidade_completa}, ... ] }, "anos_anteriores": {} }
+    No EM as habilidades são dadas por área; esta função lista por área.
     """
     ano_serie = (serie or "").replace("ª Série", "").replace("Série", "").strip()
-    if "EM" not in serie.upper() and "MÉDIO" not in serie.upper():
-        m = re.search(r"(\d)", serie)
+    if "EM" not in (serie or "").upper() and "MÉDIO" not in (serie or "").upper():
+        m = re.search(r"(\d)", serie or "")
         if m:
             ano_serie = f"{m.group(1)}EM"
     rows = carregar_bncc_em()
     ano_atual = {}
     for r in rows:
         a = (r.get("area") or "").strip()
-        c = (r.get("componente") or "").strip()
+        if not a:
+            a = "Geral"
         if area and a != area:
-            continue
-        if componente and c != componente:
             continue
         celula = (r.get("serie") or "").strip()
         num_serie = ano_serie.replace("EM", "").strip()
@@ -240,8 +234,8 @@ def carregar_habilidades_em_por_componente(serie: str, area: str = None, compone
             if num_serie not in celula and ano_serie not in celula and celula not in ano_serie:
                 continue
         cod, desc = _parse_hab_em(r.get("habilidade", ""))
-        item = {"codigo": cod, "descricao": desc, "habilidade_completa": r.get("habilidade", "")}
-        if c not in ano_atual:
-            ano_atual[c] = []
-        ano_atual[c].append(item)
+        item = {"codigo": cod, "descricao": desc, "habilidade_completa": r.get("habilidade", ""), "disciplina": a}
+        if a not in ano_atual:
+            ano_atual[a] = []
+        ano_atual[a].append(item)
     return {"ano_atual": ano_atual, "anos_anteriores": {}}
