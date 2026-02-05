@@ -462,14 +462,22 @@ def buscar_imagem_unsplash(query, access_key):
         print(f"Erro ao buscar no Unsplash: {e}")
     return None
 
-def garantir_tag_imagem(texto):
-    """Garante que o texto tenha pelo menos uma tag de imagem"""
+def garantir_tag_imagem(texto, tag_a_inserir="IMG_1"):
+    """
+    Garante tag de imagem no texto quando aplicável.
+    - tag_a_inserir=None: não adiciona nenhuma tag (Adaptar Atividade sem Passo 2).
+    - tag_a_inserir="IMG_2": adiciona [[IMG_2]] se não houver tag (Adaptar Atividade com Passo 2).
+    - tag_a_inserir="IMG_1" (default): adiciona [[IMG_1]] se não houver tag (comportamento legado).
+    """
+    if tag_a_inserir is None:
+        return texto
     if "[[IMG" not in texto.upper() and "[[GEN_IMG" not in texto.upper():
+        tag = f"[[{tag_a_inserir}]]"
         match = re.search(r'(\n|\. )', texto)
         if match:
             pos = match.end()
-            return texto[:pos] + "\n\n[[IMG_1]]\n\n" + texto[pos:]
-        return texto + "\n\n[[IMG_1]]"
+            return texto[:pos] + "\n\n" + tag + "\n\n" + texto[pos:]
+        return texto + "\n\n" + tag
     return texto
 
 def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, tipo_atv, sem_cabecalho=False, checklist_adaptacao=None):
@@ -1296,9 +1304,11 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
     instrucao_livro = "ATENÇÃO: IMAGEM COM RESPOSTAS. Remova todo gabarito/respostas." if livro_professor else ""
     style = "Faça uma análise crítica para melhor adaptação." if modo_profundo else "Transcreva e adapte."
     hiperfoco = aluno.get('hiperfoco', 'Geral') or 'Geral'
+    # A primeira imagem (questão recortada) é APENAS para a IA ler/transcrever. NÃO inserir no texto.
+    # Só inserir imagem no texto quando o professor recortou a imagem separadamente (Passo 2).
     instrucao_imagem_separada = ""
     if imagem_separada:
-        instrucao_imagem_separada = "\n    - O professor recortou a imagem separadamente para melhor qualidade. Use a tag [[IMG_2]] para inserir esta imagem recortada no local apropriado da questão adaptada."
+        instrucao_imagem_separada = "\n    - O professor recortou a imagem da questão separadamente (Passo 2). Use APENAS a tag [[IMG_2]] para inserir ESSA imagem recortada no local correto da questão adaptada (onde a figura aparecia na questão original). NÃO use [[IMG_1]]. A imagem anexada a seguir é a que deve aparecer no documento."
 
     instrucoes_checklist = ""
     if checklist_adaptacao and isinstance(checklist_adaptacao, dict):
@@ -1334,10 +1344,10 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
     2. Adapte para o estudante (PEI: {aluno.get('ia_sugestao', '')[:800]}).
     3. HIPERFOCO ({hiperfoco}): Use o hiperfoco do estudante sempre que possível para conectar e engajar na questão.
     {instrucoes_checklist}
-    4. REGRA ABSOLUTA DE IMAGEM:
-    - Se a questão original tinha imagem, detecte-a na imagem fornecida e insira a tag [[IMG_1]] no mesmo local onde estava.
+    4. REGRA DE IMAGEM:
+    - A imagem que você recebeu primeiro é apenas para você LER e transcrever o conteúdo da questão. NÃO insira essa imagem no texto da atividade (não use [[IMG_1]]).
     {instrucao_imagem_separada}
-    - MANTENHA AS IMAGENS NO MESMO LOCAL ONDE ESTAVAM NA QUESTÃO ORIGINAL.
+    - Se não houve imagem recortada separadamente pelo professor, não coloque nenhuma tag de imagem no texto.
 
     SAÍDA OBRIGATÓRIA (Respeite o divisor):
     [ANÁLISE PEDAGÓGICA]
@@ -1375,7 +1385,9 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
             parts = full_text.split("---DIVISOR---")
             analise = parts[0].replace("[ANÁLISE PEDAGÓGICA]", "").strip()
             atividade = parts[1].replace("[ATIVIDADE]", "").strip()
-        atividade = garantir_tag_imagem(atividade)
+        # Só inserir tag de imagem se o professor recortou a imagem separadamente (Passo 2)
+        tag = "IMG_2" if imagem_separada else None
+        atividade = garantir_tag_imagem(atividade, tag_a_inserir=tag)
         return analise, atividade
     except Exception as e:
         err = str(e).strip()
@@ -2845,11 +2857,12 @@ def render_aba_adaptar_atividade(aluno, api_key):
                 imagem_separada=img_separada_bytes
             )
             
-            # Mapear imagens: 1 = questão recortada, 2 = imagem recortada separadamente (se houver)
+            # Imagem 1 = questão recortada (só para Refazer enviar de novo à IA; não é inserida no texto).
+            # Imagem 2 = imagem recortada no Passo 2 — única que a IA insere no documento, no local correto.
             mapa_imgs = {1: img_bytes}
             if img_separada_bytes:
                 mapa_imgs[2] = img_separada_bytes
-            
+
             st.session_state['res_img'] = {'rac': rac, 'txt': txt, 'map': mapa_imgs, 'valid': False}
             st.rerun()
 
