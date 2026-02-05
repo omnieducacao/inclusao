@@ -115,7 +115,7 @@ ou.inject_hero_card_colors()
 # CSS padronizado: abas (pílulas), botões, selects, etc.
 ou.inject_unified_ui_css()
 
-# CSS Específico desta página (Hero Card - igual ao Alunos)
+# CSS Específico desta página (Hero Card - igual ao Estudantes)
 st.markdown("""
 <style>
     /* CARD HERO - PADRÃO VIA omni_utils.inject_hero_card_colors() */
@@ -273,7 +273,7 @@ def _headers() -> dict:
     key = _sb_key()
     return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
 
-# --- Carregamento de Alunos ---
+# --- Carregamento de Estudantes ---
 @st.cache_data(ttl=60, show_spinner=False)
 def list_students_rest(workspace_id: str = ""):
     """Busca estudantes do Supabase incluindo pei_data, paee_ciclos e dados do Hub. workspace_id como argumento evita cache incorreto."""

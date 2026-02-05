@@ -23,7 +23,7 @@ Constantes em `omni_utils.py`: `AI_RED`, `AI_BLUE`, `AI_GREEN`, `AI_YELLOW`, `AI
 
 **Regra:** Informações de diagnóstico clínico (incluindo CID) **nunca** devem aparecer em materiais entregues ao estudante ou à família.
 
-- **Uso interno (OK):** PEI, PAE, Hub, Monitoramento, lista de estudantes — apenas para a equipe pedagógica
+- **Uso interno (OK):** PEI, PAEE, Hub, Monitoramento, lista de estudantes — apenas para a equipe pedagógica
 - **Proibido:** Jornada gamificada (PDF, Google Sheets, app Minha Jornada), qualquer export para o estudante
 
 **Nomenclatura preferida em contexto interno:**

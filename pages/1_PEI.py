@@ -94,7 +94,7 @@ def forcar_layout_hub():
             
             /* 5. Hero card colado no menu - margin negativo (ajustado para não ficar muito colado) */
             .mod-card-wrapper {
-                margin-top: -96px !important; /* Puxa o hero para cima, mas não tanto quanto Alunos */
+                margin-top: -96px !important; /* Puxa o hero para cima, mas não tanto quanto Estudantes */
                 position: relative;
                 z-index: 1;
             }
@@ -144,7 +144,7 @@ st.markdown(f"""
 st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
 # ==============================================================================
-# OPENAI (env, secrets ou session_state — mesma lógica do PAE)
+# OPENAI (env, secrets ou session_state — mesma lógica do PAEE)
 # ==============================================================================
 api_key = os.environ.get("OPENAI_API_KEY") or ou.get_setting("OPENAI_API_KEY", "") or st.session_state.get("OPENAI_API_KEY", "")
 api_key = (api_key or "").strip() or None
@@ -454,6 +454,7 @@ default_state = {
     "estrategias_ensino": [],
     "estrategias_avaliacao": [],
     "ia_sugestao": "",
+    "consultoria_engine": "red",  # motor que gerou o relatório (red/blue/green/yellow/orange)
     "ia_mapa_texto": "",
     "outros_acesso": "",
     "outros_ensino": "",
@@ -1225,6 +1226,15 @@ def gerar_pdf_final(dados: dict):
     if dados.get("ia_sugestao"):
         pdf.add_page()
         pdf.section_title("7. PLANEJAMENTO PEDAGÓGICO DETALHADO")
+        _em = {"red": ou.AI_RED, "blue": ou.AI_BLUE, "green": ou.AI_GREEN, "yellow": ou.AI_YELLOW, "orange": ou.AI_ORANGE}
+        _eng = dados.get("consultoria_engine", "red")
+        motor_pdf = _em.get(_eng, ou.AI_RED)
+        pdf.set_font("Arial", "I", 9)
+        pdf.set_text_color(100, 100, 100)
+        pdf.cell(0, 6, f"Gerado por {motor_pdf}. Input: série, diagnóstico e barreiras mapeadas; cruzei com BNCC + DUA.", 0, 1, "L")
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_font("Arial", "", 10)
+        pdf.ln(4)
         texto_limpo = limpar_texto_pdf(dados["ia_sugestao"])
         texto_limpo = re.sub(r"\[.*?\]", "", texto_limpo)
 
@@ -1426,6 +1436,13 @@ def gerar_docx_final(dados: dict):
     # 7. PLANEJAMENTO PEDAGÓGICO
     if dados.get("ia_sugestao"):
         doc.add_heading("7. PLANEJAMENTO PEDAGÓGICO DETALHADO", level=2)
+        _em = {"red": ou.AI_RED, "blue": ou.AI_BLUE, "green": ou.AI_GREEN, "yellow": ou.AI_YELLOW, "orange": ou.AI_ORANGE}
+        _eng = dados.get("consultoria_engine", "red")
+        motor_docx = _em.get(_eng, ou.AI_RED)
+        p_motor = doc.add_paragraph()
+        p_motor.add_run(f"Gerado por {motor_docx}. ").italic = True
+        p_motor.add_run("Input: série, diagnóstico e barreiras mapeadas; cruzei com BNCC + DUA.")
+        doc.add_paragraph()
         texto_limpo = re.sub(r"\[.*?\]", "", dados["ia_sugestao"])
         for linha in texto_limpo.split("\n"):
             l = linha.strip()
@@ -1829,6 +1846,7 @@ def limpar_formulario():
         'estrategias_ensino': [],
         'estrategias_avaliacao': [],
         'ia_sugestao': '',
+        'consultoria_engine': 'red',
         'ia_mapa_texto': '',
         'outros_acesso': '',
         'outros_ensino': '',
@@ -3475,7 +3493,15 @@ with tab8:
             except Exception:
                 pass
 
+            _engine_map = {
+                "red": ou.AI_RED, "blue": ou.AI_BLUE, "green": ou.AI_GREEN,
+                "yellow": ou.AI_YELLOW, "orange": ou.AI_ORANGE,
+            }
+            _engine = st.session_state.dados.get("consultoria_engine", "red")
+            _motor_nome = _engine_map.get(_engine, ou.AI_RED)
+
             st.markdown(
+                f"**Gerado por {_motor_nome}**\n\n"
                 f"**1. Input do estudante:** Série **{st.session_state.dados.get('serie','-')}**, diagnóstico **{diag_show}**.\n\n"
                 f"**2. Barreiras ativas:** detectei **{n_barreiras}** barreiras e cruzei isso com BNCC + DUA.\n\n"
                 f"**3. Ponto crítico exemplo:** priorizei adaptações para reduzir impacto de **{exemplo_barreira}**."

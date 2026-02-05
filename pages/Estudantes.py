@@ -98,7 +98,7 @@ st.markdown("""
     .mod-title { font-weight: 800; font-size: 1.1rem; color: #1E293B; margin-bottom: 4px; }
     .mod-desc { font-size: 0.8rem; color: #64748B; }
 
-    /* TABELA DE ALUNOS */
+    /* TABELA DE ESTUDANTES */
     .student-table { background: white; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-top: 20px; }
     .student-header { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-weight: 800; color: #475569; font-size: 0.8rem; text-transform: uppercase; }
     .student-row { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; padding: 12px 20px; border-bottom: 1px solid #F1F5F9; align-items: center; background: white; }
@@ -198,9 +198,9 @@ if st.session_state.get("students_cache_invalid"):
     list_students_rest.clear()
     st.session_state.pop("students_cache_invalid", None)
 
-# Busca Alunos (com filtro por membro se gestão de usuários ativa)
-alunos_raw = list_students_rest(ws_id)
-alunos = apply_member_filter(alunos_raw)
+# Busca Estudantes (com filtro por membro se gestão de usuários ativa)
+estudantes_raw = list_students_rest(ws_id)
+alunos = apply_member_filter(estudantes_raw)
 
 # Renderiza Hero Card
 st.markdown(f"""
@@ -210,7 +210,7 @@ st.markdown(f"""
             <div class="mod-icon-area"><i class="ri-group-fill"></i></div>
             <div class="mod-content">
                 <div class="mod-title">Gestão de Estudantes</div>
-                <div class="mod-desc">{saudacao}, <strong>{user_first}</strong>! Gerencie os dados dos alunos vinculados aos PEIs neste workspace.</div>
+                <div class="mod-desc">{saudacao}, <strong>{user_first}</strong>! Gerencie os dados dos estudantes vinculados aos PEIs neste workspace.</div>
             </div>
         </div>
     </div>
@@ -282,7 +282,7 @@ else:
             if tem_jornada:
                 itens.append("🎮 Jornada gamificada")
             if n_ciclos > 0:
-                itens.append(f"📋 Ciclos PAE ({n_ciclos})")
+                itens.append(f"📋 Ciclos PAEE ({n_ciclos})")
             if not itens:
                 st.caption("Nenhum relatório ou jornada anexada ainda.")
             else:
@@ -313,10 +313,10 @@ else:
                         else:
                             st.error("Erro ao atualizar.")
                 with col_c:
-                    if n_ciclos > 0 and st.button("Apagar ciclos PAE", key=f"apagar_ciclos_{sid}", type="secondary"):
+                    if n_ciclos > 0 and st.button("Apagar ciclos PAEE", key=f"apagar_ciclos_{sid}", type="secondary"):
                         if update_student_paee_ciclos(sid, []):
                             list_students_rest.clear()
-                            st.success("Ciclos PAE apagados.")
+                            st.success("Ciclos PAEE apagados.")
                             st.rerun()
                         else:
                             st.error("Erro ao atualizar.")

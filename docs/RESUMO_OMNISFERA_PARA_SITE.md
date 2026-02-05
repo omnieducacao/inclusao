@@ -13,7 +13,7 @@
 | Módulo | O que faz |
 |--------|-----------|
 | **Início / Home** | Central de conhecimento, legislação, glossário e manual da inclusão |
-| **Estudantes** | Cadastro e gestão de alunos em inclusão |
+| **Estudantes** | Cadastro e gestão de estudantes em inclusão |
 | **Estratégias & PEI** | Criação e edição do Plano de Ensino Individualizado completo |
 | **Plano de Ação (AEE)** | Planejamento do Atendimento Educacional Especializado |
 | **Hub de Recursos** | Adaptação de provas, atividades, roteiros e materiais com DUA e IA |

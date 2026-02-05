@@ -48,7 +48,7 @@ Ou seja: o **Gemini** gera um texto com várias linhas; o Omnisfera faz `split("
 
 ## 3. Formatação do texto na planilha (o que o Gemini gera)
 
-O **prompt do Gemini** (em `pages/2_PAE.py`) exige o seguinte formato para o texto da jornada (que será colocado em A7, A8, A9, ...):
+O **prompt do Gemini** (em `pages/2_PAEE.py`) exige o seguinte formato para o texto da jornada (que será colocado em A7, A8, A9, ...):
 
 ### Palavras-chave e formato
 
@@ -165,8 +165,8 @@ Normalmente vêm padrão do app ou da IA quando não há nada explícito na plan
 | O quê | Onde |
 |-------|------|
 | Escrita na planilha (A1–A6 + A7+) | `omni_utils.py` → `exportar_jornada_para_sheets()` |
-| Geração do texto da jornada (Gemini) | `pages/2_PAE.py` → `gerar_roteiro_gamificado_do_ciclo()`, `gerar_roteiro_gamificado_de_texto()` |
-| Formato MISSÃO #1, * tarefas, ## Olá Nome | Prompts em `pages/2_PAE.py` (FORMATO OBRIGATÓRIO) |
+| Geração do texto da jornada (Gemini) | `pages/2_PAEE.py` → `gerar_roteiro_gamificado_do_ciclo()`, `gerar_roteiro_gamificado_de_texto()` |
+| Formato MISSÃO #1, * tarefas, ## Olá Nome | Prompts em `pages/2_PAEE.py` (FORMATO OBRIGATÓRIO) |
 | Tipos do JSON (SheetStudentData, Journey, DailyMission) | `minha_jornada_app/types.ts` |
 | Leitura da planilha (fetch → texto → Gemini ou parsing legado) | `minha_jornada_app/services/sheetService.ts` |
 | Prompt da IA para extrair JSON da planilha | `sheetService.ts` → `GEMINI_PROMPT`, `extractStudentDataWithGemini()` |

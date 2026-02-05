@@ -19,7 +19,7 @@ from omni_utils import get_icon, icon_title, get_icon_emoji
 
 # 1. CONFIGURAÇÃO INICIAL (topo absoluto)
 st.set_page_config(
-    page_title="Omnisfera | PAE",
+    page_title="Omnisfera | PAEE",
     page_icon="omni_icone.png",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -759,8 +759,8 @@ if not st.session_state.banco_estudantes:
         if st.button("📘 Ir para Estratégias & PEI", type="primary", key="btn_pae_pei"):
             st.switch_page("pages/1_PEI.py")
     with c2:
-        if st.button("👥 Ir para Estudantes", key="btn_pae_alunos"):
-            st.switch_page("pages/Alunos.py")
+        if st.button("👥 Ir para Estudantes", key="btn_paee_estudantes"):
+            st.switch_page("pages/Estudantes.py")
     st.stop()
 
 # --- SELEÇÃO DE ALUNO ---
@@ -2880,7 +2880,7 @@ if aluno:
         tem_relatorio_pei=tem_relatorio_pae,
         tem_jornada=tem_jornada_pae,
         n_ciclos_pae=n_ciclos_pae,
-        pagina="PAE",
+        pagina="PAEE",
     )
 
 # ==============================================================================

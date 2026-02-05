@@ -1686,14 +1686,14 @@ def _can(page):
         return True
 
 modules_all = [
-    {"title": "Estudantes", "desc": "Gestão completa de estudantes, histórico e acompanhamento individualizado.", "icon": "ri-user-star-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/Alunos.py", "key": "m_aluno", "perm": "estudantes"},
+    {"title": "Estudantes", "desc": "Gestão completa de estudantes, histórico e acompanhamento individualizado.", "icon": "ri-user-star-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/Estudantes.py", "key": "m_aluno", "perm": "estudantes"},
     {"title": "Estratégias & PEI", "desc": "Plano Educacional Individual com objetivos, avaliações e acompanhamento.", "icon": "ri-book-3-fill", "color_cls": "c-blue", "bg_cls": "bg-blue-soft", "page": "pages/1_PEI.py", "key": "m_pei", "perm": "pei"},
-    {"title": "Plano de Ação / PAEE", "desc": "Plano de Atendimento Educacional Especializado e sala de recursos.", "icon": "ri-puzzle-fill", "color_cls": "c-purple", "bg_cls": "bg-purple-soft", "page": "pages/2_PAE.py", "key": "m_pae", "perm": "paee"},
+    {"title": "Plano de Ação / PAEE", "desc": "Plano de Atendimento Educacional Especializado e sala de recursos.", "icon": "ri-puzzle-fill", "color_cls": "c-purple", "bg_cls": "bg-purple-soft", "page": "pages/2_PAEE.py", "key": "m_paee", "perm": "paee"},
     {"title": "Hub de Recursos", "desc": "Biblioteca de materiais, modelos e inteligência artificial para apoio.", "icon": "ri-rocket-fill", "color_cls": "c-teal", "bg_cls": "bg-teal-soft", "page": "pages/3_Hub_Inclusao.py", "key": "m_hub", "perm": "hub"},
     {"title": "Diário de Bordo", "desc": "Registro diário de observações, evidências e intervenções.", "icon": "ri-edit-box-fill", "color_cls": "c-rose", "bg_cls": "bg-rose-soft", "page": "pages/4_Diario_de_Bordo.py", "key": "m_diario", "perm": "diario"},
     {"title": "Evolução & Dados", "desc": "Indicadores, gráficos e relatórios de progresso dos estudantes.", "icon": "ri-line-chart-fill", "color_cls": "c-sky", "bg_cls": "bg-sky-soft", "page": "pages/5_Monitoramento_Avaliacao.py", "key": "m_dados", "perm": "avaliacao"},
     {"title": "PGI", "desc": "Plano de Gestão Inclusiva. Estruture infraestrutura, formação e recursos da escola.", "icon": "ri-clipboard-line", "color_cls": "c-pgi", "bg_cls": "bg-pgi-soft", "page": "pages/9_PGI.py", "key": "m_pgi", "perm": "gestao"},
-    {"title": "Gestão de Usuários", "desc": "Cadastrar usuários, atribuir permissões e vínculos com alunos.", "icon": "ri-user-settings-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/6_Gestao_Usuarios.py", "key": "m_gestao", "perm": "gestao"},
+    {"title": "Gestão de Usuários", "desc": "Cadastrar usuários, atribuir permissões e vínculos com estudantes.", "icon": "ri-user-settings-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/6_Gestao_Usuarios.py", "key": "m_gestao", "perm": "gestao"},
     {"title": "Configuração Escola", "desc": "Ano letivo, séries e turmas. Configure antes de cadastrar professores.", "icon": "ri-building-fill", "color_cls": "c-indigo", "bg_cls": "bg-indigo-soft", "page": "pages/7_Configuracao_Escola.py", "key": "m_config", "perm": "gestao"},
 ]
 # Filtro por permissão e por módulos habilitados para a escola (Admin)

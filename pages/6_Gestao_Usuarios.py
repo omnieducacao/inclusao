@@ -90,7 +90,7 @@ st.markdown(f"""
         <div class="mod-bar"></div>
         <div>
             <div class="mod-title">Gestão de Usuários</div>
-            <div class="mod-desc">{saudacao}, <strong>{user_first}</strong>! Cadastre e gerencie os usuários do workspace <strong>{ws_name}</strong>. Atribua permissões por página e vínculos com alunos.</div>
+            <div class="mod-desc">{saudacao}, <strong>{user_first}</strong>! Cadastre e gerencie os usuários do workspace <strong>{ws_name}</strong>. Atribua permissões por página e vínculos com estudantes.</div>
         </div>
     </div>
 </div>
@@ -149,7 +149,7 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
             cargo = st.text_input("Cargo", placeholder="Ex: Professor, Coordenador AEE")
         with col2:
             st.markdown("**Páginas que pode acessar**")
-            can_estudantes = st.checkbox("Estudantes", help="Cadastro de alunos")
+            can_estudantes = st.checkbox("Estudantes", help="Cadastro de estudantes")
             can_pei = st.checkbox("PEI (Estratégias)", help="Criar/editar PEI")
             can_paee = st.checkbox("PAEE", help="Plano de Ação AEE")
             can_hub = st.checkbox("Hub de Recursos", help="Recursos pedagógicos")
@@ -157,7 +157,7 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
             can_avaliacao = st.checkbox("Avaliação", help="Monitoramento e evolução")
             can_gestao = st.checkbox("Gestão de Usuários", help="Cadastrar outros usuários")
 
-        link_type = st.selectbox("Vínculo com alunos", ["todos", "turma", "tutor"], format_func=lambda x: {"todos": "Todos (coordenação/AEE)", "turma": "Por turma + componente curricular", "tutor": "Por vínculo (alunos específicos)"}[x])
+        link_type = st.selectbox("Vínculo com estudantes", ["todos", "turma", "tutor"], format_func=lambda x: {"todos": "Todos (coordenação/AEE)", "turma": "Por turma + componente curricular", "tutor": "Por vínculo (estudantes específicos)"}[x])
         teacher_assignments = []
         student_ids = []
         if link_type == "turma":
@@ -189,7 +189,7 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
                         if cl and comp_id:
                             teacher_assignments.append({"class_id": cl["id"], "component_id": comp_id})
         elif link_type == "tutor":
-            # Carregar alunos para multiselect
+            # Carregar estudantes para multiselect
             try:
                 import requests
                 base = ou.get_setting("SUPABASE_URL", "").rstrip("/")
@@ -198,7 +198,7 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
             except Exception:
                 alunos_raw = []
             alunos_opts = {f"{a.get('name','')} ({a.get('grade','')} - {a.get('class_group','')})": a.get("id") for a in alunos_raw if a.get("id")}
-            selecionados = st.multiselect("Alunos de que é tutor", list(alunos_opts.keys()))
+            selecionados = st.multiselect("Estudantes de que é tutor", list(alunos_opts.keys()))
             student_ids = [alunos_opts[k] for k in selecionados if k in alunos_opts]
 
         submitted = st.form_submit_button("Salvar")
@@ -409,7 +409,7 @@ else:
                             if vid == lid:
                                 default_links.append(k)
                                 break
-                    selecionados = st.multiselect("Alunos tutor", list(alunos_opts.keys()), default=default_links, key="edit_tutor")
+                    selecionados = st.multiselect("Estudantes tutor", list(alunos_opts.keys()), default=default_links, key="edit_tutor")
                     student_ids_ed = [alunos_opts[k] for k in selecionados if k in alunos_opts]
                 col_btn1, col_btn2 = st.columns(2)
                 with col_btn1:

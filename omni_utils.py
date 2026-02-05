@@ -866,9 +866,9 @@ def render_navbar(active_tab: str = "Início"):
     routes = {
         "Admin Plataforma": "pages/8_Admin_Plataforma.py",
         "Início": "pages/0_Home.py" if os.path.exists("pages/0_Home.py") else "Home.py",
-        "Estudantes": "pages/Alunos.py",
+        "Estudantes": "pages/Estudantes.py",
         "Estratégias & PEI": "pages/1_PEI.py",
-        "Plano de Ação (AEE)": "pages/2_PAE.py",
+        "Plano de Ação (AEE)": "pages/2_PAEE.py",
         "Hub de Recursos": "pages/3_Hub_Inclusao.py",
         "Diário de Bordo": "pages/4_Diario_de_Bordo.py",
         "Evolução & Dados": "pages/5_Monitoramento_Avaliacao.py",
@@ -1729,8 +1729,8 @@ def render_resumo_anexos_estudante(
 ):
     """
     Renderiza uma aba retrátil na parte de baixo da página com o que está
-    registrado para o estudante (relatório PEI, jornada gamificada, ciclos PAE).
-    Para apagar ou gerir, o usuário vai à página Alunos.
+    registrado para o estudante (relatório PEI, jornada gamificada, ciclos PAEE).
+    Para apagar ou gerir, o usuário vai à página Estudantes.
     """
     nome = (nome_estudante or "Estudante").strip() or "Estudante"
     with st.expander("📎 O que está registrado para este estudante", expanded=False):
@@ -1740,14 +1740,14 @@ def render_resumo_anexos_estudante(
             itens.append("📄 Relatório PEI (Consultoria IA)")
         if tem_jornada:
             itens.append("🎮 Jornada gamificada")
-        if pagina == "PAE" and n_ciclos_pae is not None and n_ciclos_pae > 0:
-            itens.append(f"📋 Ciclos PAE ({n_ciclos_pae})")
+        if pagina == "PAEE" and n_ciclos_pae is not None and n_ciclos_pae > 0:
+            itens.append(f"📋 Ciclos PAEE ({n_ciclos_pae})")
         if not itens:
             st.caption("Nenhum relatório ou jornada registrado ainda.")
         else:
             for item in itens:
                 st.markdown(f"- {item}")
-        st.caption("Para apagar ou gerir, use a página **Alunos**.")
+        st.caption("Para apagar ou gerir, use a página **Estudantes**.")
 
 # =============================================================================
 # 4.5) RODAPÉ COM ASSINATURA
