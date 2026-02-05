@@ -198,6 +198,28 @@ footer {
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
 
+.hero-motors {
+    position: absolute;
+    bottom: 12px;
+    right: 20px;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.hero-motors span {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.95);
+    letter-spacing: 0.03em;
+}
+
 /* --- MODULE CARDS --- */
 .mod-card-wrapper {
     display: flex;
@@ -1672,6 +1694,9 @@ st.markdown(
             <div class="hero-text">{mensagem_final}</div>
         </div>
         <div class="hero-icon"><i class="ri-heart-pulse-fill"></i></div>
+        <div class="hero-motors">
+            <span>{ou.AI_RED}</span><span>{ou.AI_BLUE}</span><span>{ou.AI_GREEN}</span><span>{ou.AI_YELLOW}</span><span>{ou.AI_ORANGE}</span>
+        </div>
     </div>
     """,
     unsafe_allow_html=True,

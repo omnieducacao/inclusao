@@ -258,9 +258,11 @@ with tab_escolas:
         "EM": "Ensino Médio",
     }
     ENGINE_OPTIONS = {
-        "red": "Omnisfera Red",
-        "green": "Omnisfera Green",
-        "blue": "Omnisfera Blue",
+        "red": "OmniRed",
+        "blue": "OmniBlue",
+        "green": "OmniGreen",
+        "yellow": "OmniYellow",
+        "orange": "OmniOrange",
     }
     MODULE_OPTIONS = [
         ("pei", "Estratégias & PEI"),

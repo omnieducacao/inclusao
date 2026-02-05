@@ -1165,20 +1165,19 @@ def _hub_chat_completion(engine, messages, temperature=0.7, api_key=None):
 
 
 def _render_engine_selector(key_suffix=""):
-    """Renderiza expander para escolher motor IA (Blue/Green/Yellow). Retorna engine escolhido."""
+    """Renderiza expander para escolher motor IA (OmniRed/OmniBlue). OmniYellow é usado para imagens/visão."""
     sk = f"hub_engine_{key_suffix}" if key_suffix else "hub_engine_default"
-    st.session_state.setdefault(sk, "blue")
-    with st.expander("🔧 Escolher motor de IA (Blue, Green ou Yellow)", expanded=False):
+    st.session_state.setdefault(sk, "red")
+    with st.expander("🔧 Escolher motor de IA (OmniRed ou OmniBlue)", expanded=False):
         engine_map = {
+            "red": f"🔴 {ou.AI_RED}",
             "blue": f"🔵 {ou.AI_BLUE}",
-            "green": f"🟢 {ou.AI_GREEN}",
-            "yellow": f"🟡 {ou.AI_YELLOW}",
         }
         eng = st.radio(
-            "Motor",
-            options=["blue", "green", "yellow"],
+            "Motor (texto). Imagens e Adaptar Atividades usam OmniYellow.",
+            options=["red", "blue"],
             format_func=lambda x: engine_map.get(x, x),
-            index={"blue": 0, "green": 1, "yellow": 2}.get(st.session_state.get(sk, "blue"), 0),
+            index={"red": 0, "blue": 1}.get(st.session_state.get(sk, "red"), 0),
             key=f"engine_radio_{key_suffix}",
             horizontal=True,
         )
@@ -1186,7 +1185,7 @@ def _render_engine_selector(key_suffix=""):
     return st.session_state[sk]
 
 
-def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remover_resp, questoes_mapeadas, modo_profundo=False, checklist_adaptacao=None, engine="blue"):
+def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remover_resp, questoes_mapeadas, modo_profundo=False, checklist_adaptacao=None, engine="red"):
     """Adapta conteúdo de um DOCX para o estudante"""
     lista_q = ", ".join([str(n) for n in questoes_mapeadas]) if questoes_mapeadas else ""
     style = "Seja didático e use uma Cadeia de Pensamento para adaptar." if modo_profundo else "Seja objetivo."
@@ -1399,7 +1398,7 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
             return "Imagem muito grande. Recorte uma área menor da questão e tente novamente.", ""
         return f"Erro no OCR/visão: {err[:300]}", ""
 
-def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, verbos_bloom=None, habilidades_bncc=None, modo_profundo=False, checklist_adaptacao=None, engine="blue"):
+def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, verbos_bloom=None, habilidades_bncc=None, modo_profundo=False, checklist_adaptacao=None, engine="red"):
     """Cria atividade profissional do zero"""
     hiperfoco = aluno.get('hiperfoco', 'Geral')
     
@@ -1550,7 +1549,7 @@ def gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, objetivo, feedback_ante
     except Exception as e:
         return str(e)
 
-def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior="", engine="blue"):
+def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior="", engine="red"):
     """Gera roteiro de aula completo com BNCC"""
     
     # Construir informações da BNCC
@@ -1624,7 +1623,7 @@ def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bn
     except Exception as e:
         return str(e)
 
-def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alunos, caracteristicas_turma, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior="", engine="blue"):
+def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alunos, caracteristicas_turma, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior="", engine="red"):
     """Gera dinâmica inclusiva completa com BNCC. engine: red/blue/green/yellow."""
     
     # Construir informações da BNCC
@@ -1696,7 +1695,7 @@ def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alun
     except Exception as e:
         return str(e)
 
-def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, qtd_alunos, recursos, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, aluno_info=None, engine="blue", duracao_minutos=50):
+def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, qtd_alunos, recursos, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, aluno_info=None, engine="red", duracao_minutos=50):
     """Gera plano de aula completo com BNCC. engine: red/blue/green/yellow. duracao_minutos: 50 ou 100."""
     # Construir informações da BNCC
     info_bncc = ""
@@ -1814,7 +1813,7 @@ def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, q
     except Exception as e:
         return str(e)
 
-def gerar_quebra_gelo_profundo(api_key, aluno, materia, assunto, hiperfoco, tema_turma_extra="", engine="blue"):
+def gerar_quebra_gelo_profundo(api_key, aluno, materia, assunto, hiperfoco, tema_turma_extra="", engine="red"):
     """Gera quebra-gelo profundo para engajamento"""
     prompt = f"""
     Crie 3 sugestões de 'Papo de Mestre' (Quebra-gelo/Introdução) para conectar o estudante {aluno['nome']} à aula.
@@ -3181,7 +3180,7 @@ def render_aba_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
     st.markdown(f"""
     <div class="pedagogia-box">
         <div class="pedagogia-title"><i class="ri-image-line"></i> Recursos Visuais</div>
-        Gere flashcards, rotinas visuais e símbolos de comunicação. Usa <strong>{ou.AI_BLUE}</strong> (imagens) ou <strong>{ou.AI_RED}</strong> (DALL-E)/Unsplash. Configure as chaves na sidebar.
+        Gere flashcards, rotinas visuais e símbolos de comunicação. Usa <strong>{ou.AI_YELLOW}</strong> (imagens) ou Unsplash. Configure as chaves na sidebar.
     </div>
     """, unsafe_allow_html=True)
     
@@ -3746,7 +3745,7 @@ def render_aba_ei_estudio_visual(aluno, api_key, unsplash_key, gemini_key=None):
     <div class="pedagogia-box">
         <div class="pedagogia-title"><i class="ri-eye-line"></i> Apoio Visual & Comunicação</div>
         Crianças atípicas processam melhor imagens do que fala. 
-        Use <strong>Cenas</strong> para histórias sociais e <strong>Pictogramas (CAA)</strong>. Usa <strong>{ou.AI_BLUE}</strong> ou <strong>{ou.AI_RED}</strong> (DALL-E)/Unsplash.
+        Use <strong>Cenas</strong> para histórias sociais e <strong>Pictogramas (CAA)</strong>. Usa <strong>{ou.AI_YELLOW}</strong> ou Unsplash.
     </div>
     """, unsafe_allow_html=True)
     

@@ -88,18 +88,35 @@ ICON_EMOJI = {
 }
 
 # =============================================================================
-# MOTORES DE IA — CODENAMES (para uso em textos visíveis ao professor)
-# Omnisfera Red   = Claude (Anthropic Cloud 3.5) — PEI
-# Omnisfera Blue  = DeepSeek — recursos do Hub (principal)
-# Omnisfera Green = Kimi
-# Omnisfera Yellow = Gemini — OCR/visão, imagens, mapas mentais
-# Omnisfera Orange = ChatGPT (OpenAI) — fallback opcional
+# MOTORES DE IA — CODENAMES (omnired, omniblue, omnigreen, omniyellow, omniorange)
+# OmniRed   = DeepSeek (mais utilizado; texto, PEI, PAEE, adaptar provas, etc.)
+# OmniBlue  = Kimi (opção mais robusta; texto, PEI, PAEE, adaptar provas, etc.)
+# OmniGreen = Cloud/Claude (apenas PEI)
+# OmniYellow = Gemini — imagens, mapas mentais, Adaptar Atividades, Estúdio Visual
+# OmniOrange = ChatGPT (OpenAI) — reserva/fallback
 # =============================================================================
-AI_RED = "Omnisfera Red"
-AI_BLUE = "Omnisfera Blue"
-AI_GREEN = "Omnisfera Green"
-AI_YELLOW = "Omnisfera Yellow"
-AI_ORANGE = "Omnisfera Orange"
+AI_RED = "OmniRed"
+AI_BLUE = "OmniBlue"
+AI_GREEN = "OmniGreen"
+AI_YELLOW = "OmniYellow"
+AI_ORANGE = "OmniOrange"
+
+# Mensagens de loading por motor (para st.spinner)
+LOADING_MESSAGES = {
+    "red": ("OmniRed", "Gerando com OmniRed. Resposta rápida e eficiente; pode levar alguns segundos."),
+    "blue": ("OmniBlue", "Gerando com OmniBlue. Processa mais dados para melhor qualidade; pode levar um pouco mais de tempo."),
+    "green": ("OmniGreen", "Gerando com OmniGreen. Pode levar um pouco mais de tempo."),
+    "yellow": ("OmniYellow", "Gerando com OmniYellow (imagens/visão). Pode levar um pouco mais de tempo."),
+    "orange": ("OmniOrange", "Gerando com OmniOrange (reserva). Pode levar um pouco mais de tempo."),
+}
+
+def get_loading_message(engine: str) -> str:
+    """Retorna mensagem para exibir no spinner de loading conforme o motor usado."""
+    e = (engine or "red").strip().lower()
+    if e not in LOADING_MESSAGES:
+        e = "red"
+    _, msg = LOADING_MESSAGES.get(e, LOADING_MESSAGES["red"])
+    return msg
 
 def get_icon(key: str, size: int = 20, color: str = None, use_emoji: bool = None) -> str:
     """
@@ -618,7 +635,7 @@ def inject_loading_overlay_css():
     if icon_b64:
         bg_img = f"url('data:image/png;base64,{icon_b64}')"
         spinner_inner = f"""
-        [data-testid="stSpinner"] > * {{ display: none !important; }}
+        [data-testid="stSpinner"] > *:first-child {{ display: none !important; }}
         [data-testid="stSpinner"]::before {{
             content: '' !important;
             display: block !important;
@@ -630,19 +647,16 @@ def inject_loading_overlay_css():
             background-position: center !important;
             animation: omni-spin 0.9s linear infinite !important;
         }}
-        [data-testid="stSpinner"]::after {{
-            content: 'Omnisfera trabalhando...' !important;
-            display: block !important;
+        [data-testid="stSpinner"] > *:not(:first-child) {{
             margin-top: 12px !important;
             font-size: 0.9rem !important;
             color: #64748B !important;
             font-weight: 600 !important;
-            letter-spacing: 0.02em !important;
         }}
         """
     else:
         spinner_inner = """
-        [data-testid="stSpinner"] > * { display: none !important; }
+        [data-testid="stSpinner"] > *:first-child { display: none !important; }
         [data-testid="stSpinner"]::before {
             content: '' !important;
             display: block !important;
@@ -653,13 +667,10 @@ def inject_loading_overlay_css():
             border-radius: 50% !important;
             animation: omni-spin 0.8s linear infinite !important;
         }
-        [data-testid="stSpinner"]::after {
-            content: 'Omnisfera trabalhando...' !important;
-            display: block !important;
+        [data-testid="stSpinner"] > *:not(:first-child) {
             margin-top: 12px !important;
             font-size: 0.9rem !important;
             color: #64748B !important;
-            font-weight: 600 !important;
         }
         """
 
@@ -1874,7 +1885,7 @@ def get_kimi_api_key():
 
 def get_anthropic_api_key():
     """
-    Retorna a chave da API Anthropic (Omnisfera Red — Claude).
+    Retorna a chave da API Anthropic (OmniGreen — Claude).
     Ordem: ANTHROPIC_API_KEY em env, secrets ou session_state.
     """
     raw = (
@@ -1952,13 +1963,13 @@ def get_deepseek_api_key():
 def chat_completion_multi_engine(engine: str, messages: list, temperature: float = 0.7, api_key: str | None = None) -> str:
     """
     Chat completion unificado.
-    engine: red (Claude), blue (DeepSeek), green (Kimi), yellow (Gemini), orange (GPT fallback opcional).
+    engine: red (DeepSeek), blue (Kimi), green (Claude), yellow (Gemini), orange (GPT fallback opcional).
     Retorna o texto gerado ou levanta Exception em erro.
     """
     from openai import OpenAI
-    engine = (engine or "blue").strip().lower()
+    engine = (engine or "red").strip().lower()
     if engine not in ("red", "blue", "green", "yellow", "orange"):
-        engine = "blue"
+        engine = "red"
 
     # Orange (OpenAI) — fallback opcional
     if engine == "orange":
@@ -1970,12 +1981,44 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
         resp = client.chat.completions.create(model="gpt-4o-mini", messages=messages, temperature=temperature)
         return (resp.choices[0].message.content or "").strip()
 
-    # Red (Anthropic Claude)
+    # Red (DeepSeek) — mais utilizado
     if engine == "red":
+        k = get_deepseek_api_key()
+        if not k:
+            raise Exception(f"Configure DEEPSEEK_API_KEY ({AI_RED}).")
+        base_url = get_setting("DEEPSEEK_BASE_URL", "") or "https://api.deepseek.com"
+        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://api.deepseek.com"
+        model = get_setting("DEEPSEEK_MODEL", "") or "deepseek-chat"
+        model = (model or "").strip() or "deepseek-chat"
+        client = OpenAI(api_key=k, base_url=base_url)
+        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
+        return (resp.choices[0].message.content or "").strip()
+
+    # Blue (Kimi) — opção mais robusta
+    if engine == "blue":
+        k = get_kimi_api_key() or api_key
+        try:
+            k = k or (getattr(st, "secrets", None) or {}).get("OPENROUTER_API_KEY", "") or (getattr(st, "secrets", None) or {}).get("KIMI_API_KEY", "")
+        except Exception:
+            pass
+        k = (k or "").strip().replace("\n", "").replace("\r", "")
+        if not k:
+            raise Exception(f"Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({AI_BLUE}).")
+        use_or = k.startswith("sk-or-")
+        base_url = get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if use_or else "https://api.moonshot.ai/v1")
+        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://openrouter.ai/api/v1"
+        model = get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_or else "kimi-k2-turbo-preview")
+        model = (model or "").strip() or "moonshotai/kimi-k2.5"
+        client = OpenAI(api_key=k, base_url=base_url)
+        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
+        return (resp.choices[0].message.content or "").strip()
+
+    # Green (Anthropic Claude) — apenas PEI
+    if engine == "green":
         k = get_anthropic_api_key() or api_key
         k = (k or "").strip()
         if not k:
-            raise Exception(f"Configure ANTHROPIC_API_KEY ({AI_RED}).")
+            raise Exception(f"Configure ANTHROPIC_API_KEY ({AI_GREEN}).")
         try:
             import anthropic
             system_parts = []
@@ -2010,38 +2053,6 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
             return (resp.content[0].text if resp.content else "").strip()
         except ImportError:
             raise Exception("Pacote 'anthropic' necessário. pip install anthropic")
-
-    # Blue (DeepSeek)
-    if engine == "blue":
-        k = get_deepseek_api_key()
-        if not k:
-            raise Exception(f"Configure DEEPSEEK_API_KEY ({AI_BLUE}).")
-        base_url = get_setting("DEEPSEEK_BASE_URL", "") or "https://api.deepseek.com"
-        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://api.deepseek.com"
-        model = get_setting("DEEPSEEK_MODEL", "") or "deepseek-chat"
-        model = (model or "").strip() or "deepseek-chat"
-        client = OpenAI(api_key=k, base_url=base_url)
-        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
-        return (resp.choices[0].message.content or "").strip()
-
-    # Green (Kimi)
-    if engine == "green":
-        k = get_kimi_api_key() or api_key
-        try:
-            k = k or (getattr(st, "secrets", None) or {}).get("OPENROUTER_API_KEY", "") or (getattr(st, "secrets", None) or {}).get("KIMI_API_KEY", "")
-        except Exception:
-            pass
-        k = (k or "").strip().replace("\n", "").replace("\r", "")
-        if not k:
-            raise Exception(f"Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({AI_GREEN}).")
-        use_or = k.startswith("sk-or-")
-        base_url = get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if use_or else "https://api.moonshot.ai/v1")
-        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://openrouter.ai/api/v1"
-        model = get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_or else "kimi-k2-turbo-preview")
-        model = (model or "").strip() or "moonshotai/kimi-k2.5"
-        client = OpenAI(api_key=k, base_url=base_url)
-        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
-        return (resp.choices[0].message.content or "").strip()
 
     # Yellow (Gemini)
     if engine == "yellow":

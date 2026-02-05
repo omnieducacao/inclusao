@@ -796,19 +796,18 @@ if is_ei:
 with st.expander("📄 Ver Dados Completos do PEI", expanded=False):
     st.write(aluno.get('ia_sugestao', 'Sem dados detalhados.'))
 
-# Motor de IA (Blue/Green/Yellow) — imagens/mapas mentais usam Omnisfera Yellow (Gemini)
-st.session_state.setdefault("pae_engine", "blue")
-with st.expander("🔧 Escolher motor de IA (Blue, Green ou Yellow)", expanded=False):
+# Motor de IA (OmniRed/OmniBlue para texto) — imagens e mapas mentais usam OmniYellow (Gemini)
+st.session_state.setdefault("pae_engine", "red")
+with st.expander("🔧 Escolher motor de IA (OmniRed ou OmniBlue)", expanded=False):
     engine_map = {
+        "red": f"🔴 {ou.AI_RED}",
         "blue": f"🔵 {ou.AI_BLUE}",
-        "green": f"🟢 {ou.AI_GREEN}",
-        "yellow": f"🟡 {ou.AI_YELLOW}",
     }
     eng = st.radio(
-        "Motor (texto). Imagens e mapas mentais usam Omnisfera Yellow.",
-        options=["blue", "green", "yellow"],
+        "Motor (texto). Imagens e mapas mentais usam OmniYellow (Gemini).",
+        options=["red", "blue"],
         format_func=lambda x: engine_map.get(x, x),
-        index={"blue": 0, "green": 1, "yellow": 2}.get(st.session_state.get("pae_engine", "blue"), 0),
+        index={"red": 0, "blue": 1}.get(st.session_state.get("pae_engine", "red"), 0),
         key="pae_engine_radio",
         horizontal=True,
     )
@@ -1205,7 +1204,7 @@ def gerar_roteiro_gamificado_do_ciclo(api_key, aluno, ciclo, feedback_game=""):
     """Gera roteiro gamificado para o estudante a partir do planejamento do ciclo (metas, cronograma, foco). Usa Omnisfera Blue."""
     gemini_key = ou.get_gemini_api_key()
     if not gemini_key:
-        return None, f"Configure GEMINI_API_KEY (ambiente ou secrets) para gerar a jornada. A geração usa o assistente {ou.AI_BLUE}."
+        return None, f"Configure GEMINI_API_KEY (ambiente ou secrets) para gerar a jornada. A geração usa o assistente {ou.AI_YELLOW}."
     try:
         nome_curto = (aluno.get("nome", "").split() or ["Estudante"])[0]
         cfg = ciclo.get("config_ciclo") or {}
@@ -1257,7 +1256,7 @@ def gerar_roteiro_gamificado_de_texto(api_key, aluno, texto_origem, nome_fonte, 
     """Gera roteiro gamificado para o estudante a partir do texto de uma aba (barreiras, plano, tech, etc.). Usa Omnisfera Blue."""
     gemini_key = ou.get_gemini_api_key()
     if not gemini_key:
-        return None, f"Configure GEMINI_API_KEY (ambiente ou secrets) para gerar a jornada. A geração usa o assistente {ou.AI_BLUE}."
+        return None, f"Configure GEMINI_API_KEY (ambiente ou secrets) para gerar a jornada. A geração usa o assistente {ou.AI_YELLOW}."
     if not (texto_origem or "").strip():
         return None, f"Não há conteúdo na aba selecionada. Gere o conteúdo na aba **{nome_fonte}** primeiro."
     try:
@@ -1658,7 +1657,7 @@ if is_ei:
                     st.warning("Por favor, descreva suas observações antes de mapear.")
                 else:
                     with st.spinner("Analisando barreiras no brincar..."):
-                        resultado = gerar_diagnostico_barreiras(api_key, aluno, obs_aee, engine=st.session_state.get("pae_engine", "blue"))
+                        resultado = gerar_diagnostico_barreiras(api_key, aluno, obs_aee, engine=st.session_state.get("pae_engine", "red"))
                         if "Erro:" in resultado:
                             st.error(resultado)
                         else:
@@ -1684,7 +1683,7 @@ if is_ei:
                 
                 with st.spinner("Aplicando ajustes solicitados..."):
                     resultado = gerar_diagnostico_barreiras(
-                        api_key, aluno, obs_original, feedback, engine=st.session_state.get("pae_engine", "blue")
+                        api_key, aluno, obs_original, feedback, engine=st.session_state.get("pae_engine", "red")
                     )
                     st.session_state.conteudo_diagnostico_barreiras = resultado
                     st.session_state.status_diagnostico_barreiras = 'revisao'
@@ -1713,7 +1712,7 @@ else:
                     st.warning("Por favor, descreva suas observações antes de analisar.")
                 else:
                     with st.spinner("Analisando barreiras de acessibilidade..."):
-                        resultado = gerar_diagnostico_barreiras(api_key, aluno, obs_aee, engine=st.session_state.get("pae_engine", "blue"))
+                        resultado = gerar_diagnostico_barreiras(api_key, aluno, obs_aee, engine=st.session_state.get("pae_engine", "red"))
                         if "Erro:" in resultado:
                             st.error(resultado)
                         else:
@@ -1737,7 +1736,7 @@ else:
                 
                 with st.spinner("Aplicando ajustes..."):
                     resultado = gerar_diagnostico_barreiras(
-                        api_key, aluno, obs_original, feedback, engine=st.session_state.get("pae_engine", "blue")
+                        api_key, aluno, obs_original, feedback, engine=st.session_state.get("pae_engine", "red")
                     )
                     st.session_state.conteudo_diagnostico_barreiras = resultado
                     st.session_state.status_diagnostico_barreiras = 'revisao'
@@ -1770,7 +1769,7 @@ if is_ei:
                     st.error(f"Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
                 else:
                     with st.spinner("Criando banco de experiências..."):
-                        resultado = gerar_projetos_ei_bncc(api_key, aluno, campo_bncc, engine=st.session_state.get("pae_engine", "blue"))
+                        resultado = gerar_projetos_ei_bncc(api_key, aluno, campo_bncc, engine=st.session_state.get("pae_engine", "red"))
                         if "Erro:" in resultado:
                             st.error(resultado)
                         else:
@@ -1794,7 +1793,7 @@ if is_ei:
                 
                 with st.spinner("Aplicando ajustes..."):
                     resultado = gerar_projetos_ei_bncc(
-                        api_key, aluno, campo_original, feedback, engine=st.session_state.get("pae_engine", "blue")
+                        api_key, aluno, campo_original, feedback, engine=st.session_state.get("pae_engine", "red")
                     )
                     st.session_state.conteudo_projetos_ei = resultado
                     st.session_state.status_projetos_ei = 'revisao'
@@ -1823,7 +1822,7 @@ else:
                     st.error(f"Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
                 else:
                     with st.spinner("Elaborando plano de intervenção..."):
-                        resultado = gerar_plano_habilidades(api_key, aluno, foco, engine=st.session_state.get("pae_engine", "blue"))
+                        resultado = gerar_plano_habilidades(api_key, aluno, foco, engine=st.session_state.get("pae_engine", "red"))
                         if "Erro:" in resultado:
                             st.error(resultado)
                         else:
@@ -1847,7 +1846,7 @@ else:
                 
                 with st.spinner("Aplicando ajustes..."):
                     resultado = gerar_plano_habilidades(
-                        api_key, aluno, foco_original, feedback, engine=st.session_state.get("pae_engine", "blue")
+                        api_key, aluno, foco_original, feedback, engine=st.session_state.get("pae_engine", "red")
                     )
                     st.session_state.conteudo_plano_habilidades = resultado
                     st.session_state.status_plano_habilidades = 'revisao'
@@ -1881,7 +1880,7 @@ if is_ei:
                 else:
                     with st.spinner("Buscando recursos de adaptação..."):
                         resultado = sugerir_tecnologia_assistiva(
-                            api_key, aluno, f"Rotina EI: {dif_rotina}", engine=st.session_state.get("pae_engine", "blue")
+                            api_key, aluno, f"Rotina EI: {dif_rotina}", engine=st.session_state.get("pae_engine", "red")
                         )
                         if "Erro:" in resultado:
                             st.error(resultado)
@@ -1906,7 +1905,7 @@ if is_ei:
                 
                 with st.spinner("Aplicando ajustes..."):
                     resultado = sugerir_tecnologia_assistiva(
-                        api_key, aluno, f"Rotina EI: {dif_original}", feedback, engine=st.session_state.get("pae_engine", "blue")
+                        api_key, aluno, f"Rotina EI: {dif_original}", feedback, engine=st.session_state.get("pae_engine", "red")
                     )
                     st.session_state.conteudo_tecnologia_assistiva = resultado
                     st.session_state.status_tecnologia_assistiva = 'revisao'
@@ -1935,7 +1934,7 @@ else:
                     st.warning("Por favor, descreva a dificuldade específica.")
                 else:
                     with st.spinner("Buscando tecnologias assistivas..."):
-                        resultado = sugerir_tecnologia_assistiva(api_key, aluno, dif_especifica, engine=st.session_state.get("pae_engine", "blue"))
+                        resultado = sugerir_tecnologia_assistiva(api_key, aluno, dif_especifica, engine=st.session_state.get("pae_engine", "red"))
                         if "Erro:" in resultado:
                             st.error(resultado)
                         else:
@@ -1959,7 +1958,7 @@ else:
                 
                 with st.spinner("Aplicando ajustes..."):
                     resultado = sugerir_tecnologia_assistiva(
-                        api_key, aluno, dif_original, feedback, engine=st.session_state.get("pae_engine", "blue")
+                        api_key, aluno, dif_original, feedback, engine=st.session_state.get("pae_engine", "red")
                     )
                     st.session_state.conteudo_tecnologia_assistiva = resultado
                     st.session_state.status_tecnologia_assistiva = 'revisao'
@@ -2007,7 +2006,7 @@ with tab_ponte:
             else:
                 with st.spinner("Gerando documento de articulação..."):
                     resultado = gerar_documento_articulacao(
-                        api_key, aluno, f"{freq} ({turno})", acoes_resumo, engine=st.session_state.get("pae_engine", "blue")
+                        api_key, aluno, f"{freq} ({turno})", acoes_resumo, engine=st.session_state.get("pae_engine", "red")
                     )
                     if "Erro:" in resultado:
                         st.error(resultado)
@@ -2042,7 +2041,7 @@ with tab_ponte:
                     f"{freq_original} ({turno_original})", 
                     acoes_original, 
                     feedback,
-                    engine=st.session_state.get("pae_engine", "blue")
+                    engine=st.session_state.get("pae_engine", "red")
                 )
                 st.session_state.conteudo_documento_articulacao = resultado
                 st.session_state.status_documento_articulacao = 'revisao'
@@ -2252,7 +2251,7 @@ with tab_planejamento:
 
                         if usar_ia and (api_key if "api_key" in globals() else None):
                             with st.spinner("🤖 IA planejando cronograma..."):
-                                cronograma_ia = gerar_cronograma_inteligente(api_key, aluno, duracao, foco_principal, metas_selecionadas, engine=st.session_state.get("pae_engine", "blue"))
+                                cronograma_ia = gerar_cronograma_inteligente(api_key, aluno, duracao, foco_principal, metas_selecionadas, engine=st.session_state.get("pae_engine", "red"))
                                 ciclo_data["cronograma"] = cronograma_ia or criar_cronograma_basico(duracao, metas_selecionadas)
                         else:
                             ciclo_data["cronograma"] = criar_cronograma_basico(duracao, metas_selecionadas)
@@ -2472,7 +2471,7 @@ with tab_execucao_smart:
                     contexto_escola_txt = f"Mapear Barreiras:\n{insumos_escola['barreiras']}\n\nPlano de Habilidades:\n{insumos_escola['plano_habilidades']}\n\nTecnologia Assistiva:\n{insumos_escola['tecnologia_assistiva']}"
                     texto_smart = ""
                     if desdobrar_smart and api_key:
-                        metas_es, texto_smart = desdobrar_metas_smart_ia(api_key, metas_es, periodo_txt, contexto_escola_txt, engine=st.session_state.get("pae_engine", "blue"))
+                        metas_es, texto_smart = desdobrar_metas_smart_ia(api_key, metas_es, periodo_txt, contexto_escola_txt, engine=st.session_state.get("pae_engine", "red"))
                     ciclo_es_data = {
                         "ciclo_id": None,
                         "status": "rascunho",
@@ -2491,7 +2490,7 @@ with tab_execucao_smart:
                         "versao": 1,
                     }
                     if usar_ia_cron and api_key:
-                        cron_es = gerar_cronograma_execucao_smart(api_key, aluno, duracao_es, metas_es, insumos_escola, engine=st.session_state.get("pae_engine", "blue"))
+                        cron_es = gerar_cronograma_execucao_smart(api_key, aluno, duracao_es, metas_es, insumos_escola, engine=st.session_state.get("pae_engine", "red"))
                         ciclo_es_data["cronograma"] = cron_es or criar_cronograma_basico(duracao_es, metas_es)
                     else:
                         ciclo_es_data["cronograma"] = criar_cronograma_basico(duracao_es, metas_es)
@@ -2597,7 +2596,7 @@ with tab_jornada:
 
     st.info(
         "Cada aba do PAE pode virar uma **jornada gamificada** para o estudante e a família. "
-        "Escolha a **origem** na lista abaixo. A geração usa o assistente **" + ou.AI_BLUE + "** (configure GEMINI_API_KEY). "
+        "Escolha a **origem** na lista abaixo. A geração usa o assistente **" + ou.AI_YELLOW + "** (configure GEMINI_API_KEY). "
         "⚠️ O material gerado será entregue ao estudante — diagnósticos e dados clínicos não são incluídos."
     )
 
@@ -2715,7 +2714,7 @@ with tab_jornada:
             st.markdown(estado.get("texto", ""))
         # Representação visual (Nano Banana)
         st.markdown("---")
-        st.markdown("**Mapa mental do roteiro** — Gere um mapa mental visual a partir do roteiro gamificado (assistente " + ou.AI_BLUE + ").")
+        st.markdown("**Mapa mental do roteiro** — Gere um mapa mental visual a partir do roteiro gamificado (assistente " + ou.AI_YELLOW + ").")
         st.caption("Estrutura: nó central → missões → etapas. Requer GEMINI_API_KEY. O mapa não inclui informações clínicas.")
         usar_hiperfoco_tema_revisao = st.checkbox(
             "Usar hiperfoco do estudante como tema do mapa mental (nó central)",
@@ -2736,7 +2735,7 @@ with tab_jornada:
         if estado.get("imagem_bytes"):
             st.image(estado["imagem_bytes"], caption="Mapa mental da jornada", use_container_width=True)
             st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_revisao")
-        if st.button("Gerar mapa mental do roteiro", key="btn_jg_imagem_revisao", help="Gera um mapa mental colorido a partir do roteiro. Usa o assistente " + ou.AI_BLUE + "."):
+        if st.button("Gerar mapa mental do roteiro", key="btn_jg_imagem_revisao", help="Gera um mapa mental colorido a partir do roteiro. Usa o assistente " + ou.AI_YELLOW + "."):
             with st.spinner("Gerando ilustração..."):
                 try:
                     gemini_key = ou.get_gemini_api_key()
@@ -2792,7 +2791,7 @@ with tab_jornada:
         jg[chave_jornada]["texto"] = novo_texto
         # Representação visual (Nano Banana)
         with st.expander("Mapa mental do roteiro", expanded=bool(estado.get("imagem_bytes"))):
-            st.caption("Gera um mapa mental visual: nó central, ramos para missões e etapas. Usa o assistente " + ou.AI_BLUE + ". Requer GEMINI_API_KEY.")
+            st.caption("Gera um mapa mental visual: nó central, ramos para missões e etapas. Usa o assistente " + ou.AI_YELLOW + ". Requer GEMINI_API_KEY.")
             usar_hiperfoco_tema_aprovado = st.checkbox(
                 "Usar hiperfoco do estudante como tema do mapa mental (nó central)",
                 value=True,
@@ -2812,7 +2811,7 @@ with tab_jornada:
             if estado.get("imagem_bytes"):
                 st.image(estado["imagem_bytes"], caption="Mapa mental da jornada", use_container_width=True)
                 st.download_button("Baixar imagem", estado["imagem_bytes"], file_name="missao_visual.png", mime="image/png", key="dl_img_aprovado")
-            if st.button("Gerar mapa mental do roteiro", key="btn_jg_imagem_aprovado", help="Gera um mapa mental colorido a partir do roteiro. Usa o assistente " + ou.AI_BLUE + "."):
+            if st.button("Gerar mapa mental do roteiro", key="btn_jg_imagem_aprovado", help="Gera um mapa mental colorido a partir do roteiro. Usa o assistente " + ou.AI_YELLOW + "."):
                 with st.spinner("Gerando ilustração..."):
                     try:
                         gemini_key = ou.get_gemini_api_key()

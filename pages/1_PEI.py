@@ -1539,24 +1539,24 @@ def extrair_dados_pdf_ia(api_key: str, texto_pdf: str):
 def consultar_gpt_pedagogico(api_key: str, dados: dict, contexto_pdf: str = "", modo_pratico: bool = False, feedback_usuario: str = "", engine: str = "red"):
     """
     Gera relatório da Consultoria IA.
-    engine: red (Claude), blue (DeepSeek), green (Kimi), yellow (Gemini), orange (GPT fallback)
+    engine: red (DeepSeek), blue (Kimi), green (Claude), yellow (Gemini), orange (GPT fallback)
     """
     engine = (engine or "red").strip().lower()
     if engine not in ("red", "blue", "green", "yellow", "orange"):
         engine = "red"
 
-    if engine == "red" and not ou.get_anthropic_api_key():
-        return None, f"⚠️ Configure ANTHROPIC_API_KEY ({ou.AI_RED}) nas configurações."
-    if engine == "blue" and not ou.get_deepseek_api_key():
-        return None, f"⚠️ Configure DEEPSEEK_API_KEY ({ou.AI_BLUE}) nas configurações."
-    if engine == "green":
+    if engine == "red" and not ou.get_deepseek_api_key():
+        return None, f"⚠️ Configure DEEPSEEK_API_KEY ({ou.AI_RED}) nas configurações."
+    if engine == "blue":
         kimi_key = ou.get_kimi_api_key() or (st.session_state.get("_kimi_key_cached") if hasattr(st, "session_state") else None)
         try:
             kimi_key = kimi_key or (st.secrets.get("OPENROUTER_API_KEY", "") or st.secrets.get("KIMI_API_KEY", "") or "").strip() or None
         except Exception:
             pass
         if not kimi_key:
-            return None, f"⚠️ Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({ou.AI_GREEN}) nas configurações."
+            return None, f"⚠️ Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({ou.AI_BLUE}) nas configurações."
+    if engine == "green" and not ou.get_anthropic_api_key():
+        return None, f"⚠️ Configure ANTHROPIC_API_KEY ({ou.AI_GREEN}) nas configurações."
     if engine == "yellow" and not ou.get_gemini_api_key():
         return None, f"⚠️ Configure GEMINI_API_KEY ({ou.AI_YELLOW}) nas configurações."
     if engine == "orange" and not (ou.get_openai_api_key() or api_key):
@@ -3434,7 +3434,7 @@ with tab8:
         with col_btn:
             engine = st.session_state.dados.get("consultoria_engine", "red")
             if st.button("✨ Gerar Estratégia Técnica", type="primary", use_container_width=True):
-                with st.spinner(f"Gerando estratégia técnica do PEI ({engine_map.get(engine, ou.AI_RED)})..."):
+                with st.spinner(ou.get_loading_message(engine)):
                     res, err = consultar_gpt_pedagogico(
                         api_key,
                         st.session_state.dados,
@@ -3451,7 +3451,7 @@ with tab8:
 
             st.write("")
             if st.button("🧰 Gerar Guia Prático (Sala de Aula)", use_container_width=True):
-                with st.spinner(f"Gerando guia prático ({engine_map.get(engine, ou.AI_RED)})..."):
+                with st.spinner(ou.get_loading_message(engine)):
                     res, err = consultar_gpt_pedagogico(
                         api_key,
                         st.session_state.dados,
@@ -3559,7 +3559,7 @@ with tab8:
         if st.button("Regerar com Ajustes", type="primary", use_container_width=True):
             ou.track_ai_feedback("pei", "refazer", content_type="relatorio_pei", feedback_text=feedback or "")
             engine = st.session_state.dados.get("consultoria_engine", "red")
-            with st.spinner(f"Aplicando ajustes e regerando ({ou.AI_RED if engine=='red' else ou.AI_BLUE if engine=='blue' else ou.AI_GREEN})..."):
+            with st.spinner(ou.get_loading_message(engine)):
                 res, err = consultar_gpt_pedagogico(
                     api_key,
                     st.session_state.dados,
