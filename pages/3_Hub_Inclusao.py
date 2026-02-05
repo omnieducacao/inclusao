@@ -1387,6 +1387,7 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
         # Só inserir tag de imagem se o professor recortou a imagem separadamente (Passo 2)
         tag = "IMG_2" if imagem_separada else None
         atividade = garantir_tag_imagem(atividade, tag_a_inserir=tag)
+        ou.track_ia_usage("yellow", source="hub_adaptar_atividade")
         return analise, atividade
     except Exception as e:
         err = str(e).strip()

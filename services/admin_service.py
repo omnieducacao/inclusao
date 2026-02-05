@@ -102,6 +102,9 @@ def _normalize_workspace(row: dict) -> dict:
         "enabled_modules": row.get("enabled_modules"),  # None = todos habilitados (retrocompat)
         "active": row.get("active", True) if row.get("active") is not False else False,
         "created_at": row.get("created_at"),
+        "plan": (row.get("plan") or "basic").strip() or "basic",
+        "credits_limit": row.get("credits_limit"),
+        "credits_period_start": row.get("credits_period_start"),
     }
 
 
@@ -140,7 +143,15 @@ def get_workspace(workspace_id: str) -> Optional[dict]:
         return None
 
 
-def update_workspace(workspace_id: str, enabled_modules: Optional[list] = None, name: str = None, segments: list = None, ai_engines: list = None, active: bool = None, **kwargs) -> tuple:
+def get_workspace_plan(workspace_id: str) -> str:
+    """Retorna o plano da escola (basic ou robusto). OmniGreen só disponível em robusto."""
+    ws = get_workspace(workspace_id)
+    if not ws:
+        return "basic"
+    return (ws.get("plan") or "basic").strip() or "basic"
+
+
+def update_workspace(workspace_id: str, enabled_modules: Optional[list] = None, name: str = None, segments: list = None, ai_engines: list = None, active: bool = None, plan: Optional[str] = None, credits_limit: Optional[int] = None, credits_period_start=None, **kwargs) -> tuple:
     """Atualiza workspace. Retorna (True, None) ou (False, erro)."""
     if not workspace_id:
         return False, "workspace_id obrigatório"
@@ -155,6 +166,12 @@ def update_workspace(workspace_id: str, enabled_modules: Optional[list] = None, 
         payload["ai_engines"] = ai_engines
     if active is not None:
         payload["active"] = bool(active)
+    if plan is not None:
+        payload["plan"] = str(plan).strip() or "basic"
+    if credits_limit is not None:
+        payload["credits_limit"] = credits_limit if credits_limit >= 0 else None
+    if credits_period_start is not None:
+        payload["credits_period_start"] = credits_period_start
     payload.update(kwargs)
     if not payload:
         return True, None

@@ -1122,6 +1122,25 @@ def track_usage_event(event_type: str, **extra):
         pass
 
 
+def track_ia_usage(engine: str, source: str = None, credits_consumed: float = 1.0):
+    """
+    Registra uso de IA por escola (para métricas e futuro sistema de créditos).
+    Chamado após cada chamada bem-sucedida a um motor.
+    engine: red, blue, green, yellow, orange
+    source: pei, paee, hub_adaptar_prova, hub_adaptar_atividade, etc. (opcional)
+    """
+    if not engine:
+        return
+    workspace_id = st.session_state.get("workspace_id")
+    if not workspace_id:
+        return
+    try:
+        from services.monitoring_service import log_ia_usage as _log
+        _log(workspace_id=str(workspace_id), engine=engine.strip().lower(), source=source, credits_consumed=credits_consumed)
+    except Exception:
+        pass
+
+
 def track_ai_feedback(source: str, action: str, content_type: str = None, feedback_text: str = None, metadata: dict = None):
     """
     Registra feedback de IA (validação ou refazer) para treinamento futuro.
@@ -1971,6 +1990,18 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
     if engine not in ("red", "blue", "green", "yellow", "orange"):
         engine = "red"
 
+    # OmniGreen (Claude) só disponível no plano robusto
+    if engine == "green":
+        try:
+            from services.admin_service import get_workspace_plan
+            wid = st.session_state.get("workspace_id")
+            if wid and get_workspace_plan(wid) != "robusto":
+                raise Exception(f"{AI_GREEN} está disponível apenas no plano robusto. Entre em contato com o administrador da plataforma para migrar de plano.")
+        except Exception as e:
+            if "robusto" in str(e).lower() or "plano" in str(e).lower():
+                raise
+            pass
+
     # Orange (OpenAI) — fallback opcional
     if engine == "orange":
         k = get_openai_api_key() or api_key
@@ -1979,7 +2010,9 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
             raise Exception(f"Configure OPENAI_API_KEY ({AI_ORANGE}) para usar fallback.")
         client = OpenAI(api_key=k)
         resp = client.chat.completions.create(model="gpt-4o-mini", messages=messages, temperature=temperature)
-        return (resp.choices[0].message.content or "").strip()
+        out = (resp.choices[0].message.content or "").strip()
+        track_ia_usage(engine)
+        return out
 
     # Red (DeepSeek) — mais utilizado
     if engine == "red":
@@ -1992,7 +2025,9 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
         model = (model or "").strip() or "deepseek-chat"
         client = OpenAI(api_key=k, base_url=base_url)
         resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
-        return (resp.choices[0].message.content or "").strip()
+        out = (resp.choices[0].message.content or "").strip()
+        track_ia_usage(engine)
+        return out
 
     # Blue (Kimi) — opção mais robusta
     if engine == "blue":
@@ -2011,9 +2046,11 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
         model = (model or "").strip() or "moonshotai/kimi-k2.5"
         client = OpenAI(api_key=k, base_url=base_url)
         resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
-        return (resp.choices[0].message.content or "").strip()
+        out = (resp.choices[0].message.content or "").strip()
+        track_ia_usage(engine)
+        return out
 
-    # Green (Anthropic Claude) — apenas PEI
+    # Green (Anthropic Claude) — apenas PEI e plano robusto
     if engine == "green":
         k = get_anthropic_api_key() or api_key
         k = (k or "").strip()
@@ -2050,7 +2087,9 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
             if system_text:
                 kwargs["system"] = system_text
             resp = client.messages.create(**kwargs)
-            return (resp.content[0].text if resp.content else "").strip()
+            out = (resp.content[0].text if resp.content else "").strip()
+            track_ia_usage(engine)
+            return out
         except ImportError:
             raise Exception("Pacote 'anthropic' necessário. pip install anthropic")
 
@@ -2073,6 +2112,7 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
         txt, err = consultar_gemini(full, model="gemini-2.0-flash")
         if err:
             raise Exception(err)
+        track_ia_usage(engine)
         return txt or ""
 
     raise Exception("Motor não suportado.")
