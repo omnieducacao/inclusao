@@ -27,15 +27,12 @@ from docx.shared import Pt, Inches, RGBColor
 try:
     from docx.oxml.ns import qn
 except ImportError:
-    # Fallback se qn não estiver disponível
-    qn = lambda x: x, RGBColor
-from docx.oxml.ns import qn
+    qn = lambda x: x
 from fpdf import FPDF
 from pypdf import PdfReader
 
 # Importações UI
 from streamlit_cropper import st_cropper
-import omni_utils as ou
 
 # ==============================================================================
 # CONFIGURAÇÃO INICIAL

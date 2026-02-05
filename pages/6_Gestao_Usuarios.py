@@ -30,19 +30,20 @@ from services.school_config_service import (
     SEGMENTS,
 )
 
-try:
-    from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
-    hide_streamlit_chrome_if_needed()
-    hide_default_sidebar_nav()
-except Exception:
-    pass
-
+# set_page_config deve ser a primeira chamada Streamlit
 st.set_page_config(
     page_title="Omnisfera | Gestão de Usuários",
     page_icon="omni_icone.png",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+try:
+    from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
+    hide_streamlit_chrome_if_needed()
+    hide_default_sidebar_nav()
+except Exception:
+    pass
 
 ou.ensure_state()
 
