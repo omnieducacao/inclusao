@@ -796,15 +796,15 @@ if is_ei:
 with st.expander("📄 Ver Dados Completos do PEI", expanded=False):
     st.write(aluno.get('ia_sugestao', 'Sem dados detalhados.'))
 
-# Motor de IA (OmniRed/OmniBlue para texto) — imagens e mapas mentais usam OmniYellow (Gemini)
+# Motor de IA (omnired/omniblue para texto) — imagens e mapas mentais usam omniyellow (Gemini)
 st.session_state.setdefault("pae_engine", "red")
-with st.expander("🔧 Escolher motor de IA (OmniRed ou OmniBlue)", expanded=False):
+with st.expander("🔧 Escolher motor de IA (omnired ou omniblue)", expanded=False):
     engine_map = {
         "red": f"🔴 {ou.AI_RED}",
         "blue": f"🔵 {ou.AI_BLUE}",
     }
     eng = st.radio(
-        "Motor (texto). Imagens e mapas mentais usam OmniYellow (Gemini).",
+        "Motor (texto). Imagens e mapas mentais usam omniyellow (Gemini).",
         options=["red", "blue"],
         format_func=lambda x: engine_map.get(x, x),
         index={"red": 0, "blue": 1}.get(st.session_state.get("pae_engine", "red"), 0),

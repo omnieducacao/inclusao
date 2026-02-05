@@ -213,12 +213,17 @@ footer {
 .hero-motors span {
     font-size: 0.65rem;
     font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.25);
-    color: rgba(255,255,255,0.95);
+    padding: 4px 10px;
+    border-radius: 8px;
     letter-spacing: 0.03em;
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
+.hero-motors .hero-motor-red   { background: #BE123C; }
+.hero-motors .hero-motor-blue  { background: #2563EB; }
+.hero-motors .hero-motor-green { background: #059669; }
+.hero-motors .hero-motor-yellow { background: #CA8A04; color: #fff; }
+.hero-motors .hero-motor-orange { background: #EA580C; }
 
 /* --- MODULE CARDS --- */
 .mod-card-wrapper {
@@ -1695,7 +1700,11 @@ st.markdown(
         </div>
         <div class="hero-icon"><i class="ri-heart-pulse-fill"></i></div>
         <div class="hero-motors">
-            <span>{ou.AI_RED}</span><span>{ou.AI_BLUE}</span><span>{ou.AI_GREEN}</span><span>{ou.AI_YELLOW}</span><span>{ou.AI_ORANGE}</span>
+            <span class="hero-motor hero-motor-red">{ou.AI_RED}</span>
+            <span class="hero-motor hero-motor-blue">{ou.AI_BLUE}</span>
+            <span class="hero-motor hero-motor-green">{ou.AI_GREEN}</span>
+            <span class="hero-motor hero-motor-yellow">{ou.AI_YELLOW}</span>
+            <span class="hero-motor hero-motor-orange">{ou.AI_ORANGE}</span>
         </div>
     </div>
     """,

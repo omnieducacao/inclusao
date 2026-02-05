@@ -1165,16 +1165,16 @@ def _hub_chat_completion(engine, messages, temperature=0.7, api_key=None):
 
 
 def _render_engine_selector(key_suffix=""):
-    """Renderiza expander para escolher motor IA (OmniRed/OmniBlue). OmniYellow é usado para imagens/visão."""
+    """Renderiza expander para escolher motor IA (omnired/omniblue). omniyellow é usado para imagens/visão."""
     sk = f"hub_engine_{key_suffix}" if key_suffix else "hub_engine_default"
     st.session_state.setdefault(sk, "red")
-    with st.expander("🔧 Escolher motor de IA (OmniRed ou OmniBlue)", expanded=False):
+    with st.expander("🔧 Escolher motor de IA (omnired ou omniblue)", expanded=False):
         engine_map = {
             "red": f"🔴 {ou.AI_RED}",
             "blue": f"🔵 {ou.AI_BLUE}",
         }
         eng = st.radio(
-            "Motor (texto). Imagens e Adaptar Atividades usam OmniYellow.",
+            "Motor (texto). Imagens e Adaptar Atividades usam omniyellow.",
             options=["red", "blue"],
             format_func=lambda x: engine_map.get(x, x),
             index={"red": 0, "blue": 1}.get(st.session_state.get(sk, "red"), 0),

@@ -95,19 +95,19 @@ ICON_EMOJI = {
 # OmniYellow = Gemini — imagens, mapas mentais, Adaptar Atividades, Estúdio Visual
 # OmniOrange = ChatGPT (OpenAI) — reserva/fallback
 # =============================================================================
-AI_RED = "OmniRed"
-AI_BLUE = "OmniBlue"
-AI_GREEN = "OmniGreen"
-AI_YELLOW = "OmniYellow"
-AI_ORANGE = "OmniOrange"
+AI_RED = "omnired"
+AI_BLUE = "omniblue"
+AI_GREEN = "omnigreen"
+AI_YELLOW = "omniyellow"
+AI_ORANGE = "omniorange"
 
 # Mensagens de loading por motor (para st.spinner)
 LOADING_MESSAGES = {
-    "red": ("OmniRed", "Gerando com OmniRed. Resposta rápida e eficiente; pode levar alguns segundos."),
-    "blue": ("OmniBlue", "Gerando com OmniBlue. Processa mais dados para melhor qualidade; pode levar um pouco mais de tempo."),
-    "green": ("OmniGreen", "Gerando com OmniGreen. Pode levar um pouco mais de tempo."),
-    "yellow": ("OmniYellow", "Gerando com OmniYellow (imagens/visão). Pode levar um pouco mais de tempo."),
-    "orange": ("OmniOrange", "Gerando com OmniOrange (reserva). Pode levar um pouco mais de tempo."),
+    "red": ("omnired", "Gerando com omnired. Resposta rápida e eficiente; pode levar alguns segundos."),
+    "blue": ("omniblue", "Gerando com omniblue. Processa mais dados para melhor qualidade; pode levar um pouco mais de tempo."),
+    "green": ("omnigreen", "Gerando com omnigreen. Pode levar um pouco mais de tempo."),
+    "yellow": ("omniyellow", "Gerando com omniyellow (imagens/visão). Pode levar um pouco mais de tempo."),
+    "orange": ("omniorange", "Gerando com omniorange (reserva). Pode levar um pouco mais de tempo."),
 }
 
 def get_loading_message(engine: str) -> str:

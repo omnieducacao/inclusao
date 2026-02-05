@@ -86,7 +86,7 @@ tab_escolas, tab_uso_ia, tab_termo, tab_dashboard, tab_bugs = st.tabs(["🏫 Esc
 # --- Tab Uso de IAs ---
 with tab_uso_ia:
     st.markdown("### 📊 Uso de IAs por escola")
-    st.caption("Controle de chamadas por motor e base para sistema de créditos. OmniGreen disponível apenas no plano robusto.")
+    st.caption("Controle de chamadas por motor e base para sistema de créditos. omnigreen disponível apenas no plano robusto.")
     dias_uso = st.selectbox("Período", [7, 30, 90], index=1, format_func=lambda x: f"Últimos {x} dias", key="ia_usage_days")
     try:
         usage_list = get_ia_usage_summary(days=dias_uso)
@@ -107,11 +107,11 @@ with tab_uso_ia:
             [
                 {
                     "Escola": u.get("workspace_name", "—"),
-                    "OmniRed": u.get("red", 0),
-                    "OmniBlue": u.get("blue", 0),
-                    "OmniGreen": u.get("green", 0),
-                    "OmniYellow": u.get("yellow", 0),
-                    "OmniOrange": u.get("orange", 0),
+                    "omnired": u.get("red", 0),
+                    "omniblue": u.get("blue", 0),
+                    "omnigreen": u.get("green", 0),
+                    "omniyellow": u.get("yellow", 0),
+                    "omniorange": u.get("orange", 0),
                     "Total chamadas": u.get("total_calls", 0),
                     "Créditos usados": round(float(u.get("credits_used", 0)), 1),
                     "Plano": u.get("plan", "basic"),
@@ -300,11 +300,11 @@ with tab_escolas:
         "EM": "Ensino Médio",
     }
     ENGINE_OPTIONS = {
-        "red": "OmniRed",
-        "blue": "OmniBlue",
-        "green": "OmniGreen",
-        "yellow": "OmniYellow",
-        "orange": "OmniOrange",
+        "red": "omnired",
+        "blue": "omniblue",
+        "green": "omnigreen",
+        "yellow": "omniyellow",
+        "orange": "omniorange",
     }
     MODULE_OPTIONS = [
         ("pei", "Estratégias & PEI"),
@@ -407,7 +407,7 @@ with tab_escolas:
                         seg_ed = st.multiselect("Segmentos", options=list(SEGMENT_OPTIONS.keys()), default=wsegments, format_func=lambda k: SEGMENT_OPTIONS.get(k, k), key=f"edit_seg_{wid}")
                         eng_ed = st.multiselect("Motores IA", options=list(ENGINE_OPTIONS.keys()), default=wengines, format_func=lambda k: ENGINE_OPTIONS.get(k, k), key=f"edit_eng_{wid}")
                         st.markdown("**Plano e créditos**")
-                        plan_ed = st.selectbox("Plano", options=["basic", "robusto"], index=0 if (ws.get("plan") or "basic") == "basic" else 1, format_func=lambda x: "Basic (sem OmniGreen)" if x == "basic" else "Robusto (com OmniGreen)", key=f"edit_plan_{wid}")
+                        plan_ed = st.selectbox("Plano", options=["basic", "robusto"], index=0 if (ws.get("plan") or "basic") == "basic" else 1, format_func=lambda x: "Basic (sem omnigreen)" if x == "basic" else "Robusto (com omnigreen)", key=f"edit_plan_{wid}")
                         credits_limit_ed = st.number_input("Limite de créditos no período (vazio = ilimitado)", min_value=0, value=ws.get("credits_limit") or 0, step=100, key=f"edit_credits_{wid}")
                         if credits_limit_ed == 0:
                             credits_limit_ed = None
@@ -467,7 +467,7 @@ with tab_escolas:
                         st.caption(f"Motores IA: {', '.join(eng_labels)}")
                     wplan = ws.get("plan") or "basic"
                     wlimit = ws.get("credits_limit")
-                    st.caption(f"Plano: {'Robusto (OmniGreen)' if wplan == 'robusto' else 'Basic'} · Limite créditos: {wlimit if wlimit else 'ilimitado'}")
+                    st.caption(f"Plano: {'Robusto (omnigreen)' if wplan == 'robusto' else 'Basic'} · Limite créditos: {wlimit if wlimit else 'ilimitado'}")
 
                     # Módulos habilitados (form rápido)
                     wmodules = ws.get("enabled_modules")

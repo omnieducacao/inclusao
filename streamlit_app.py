@@ -188,7 +188,7 @@ try:
                 "3. Responsabilidade: Recomendações e conteúdos gerados pela IA são auxiliares e devem ser validados por profissionais responsáveis. A decisão final é sempre humana.\n\n"
                 "4. Segurança: Credenciais de acesso são pessoais e intransferíveis. Qualquer uso indevido deve ser comunicado à coordenação responsável.\n\n"
                 "5. Conformidade: O uso deve seguir as políticas internas da escola, legislação vigente e boas práticas de proteção de dados.\n\n"
-                "6. Motores de IA: A plataforma utiliza assistentes de IA (OmniRed, OmniBlue, OmniGreen, OmniYellow, OmniOrange) conforme configurado para sua escola. Quais motores estão disponíveis pode ser definido no perfil da escola pelo administrador."
+                "6. Motores de IA: A plataforma utiliza assistentes de IA (omnired, omniblue, omnigreen, omniyellow, omniorange) conforme configurado para sua escola. Quais motores estão disponíveis pode ser definido no perfil da escola pelo administrador."
             )
         import html
         terms_html = html.escape(terms_text).replace("\n", "<br>")
