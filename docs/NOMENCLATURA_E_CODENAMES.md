@@ -6,12 +6,16 @@ Para evitar expor nomes comerciais de modelos, usamos codenames na interface:
 
 | Motor | Ecossistema | Exemplo de uso |
 |-------|-------------|----------------|
-| **Omnisfera Red** | ChatGPT + DALL-E (OpenAI) | Relatórios, metas, cronogramas, imagens DALL-E |
-| **Omnisfera Blue** | Gemini, NanoBanana, Gemini imagens (Google) | Jornada gamificada, mapas mentais, ilustrações |
-| **Omnisfera Green** | Kimi e derivados | Assistência de texto/chat |
-| **Omnisfera Yellow** | DeepSeek | Assistência de texto/chat |
+| **Omnisfera Red** | Claude (Anthropic Cloud 3.5) | Criação de PEI |
+| **Omnisfera Blue** | DeepSeek | Recursos do Hub (principal) |
+| **Omnisfera Green** | Kimi | Assistência de texto/chat |
+| **Omnisfera Yellow** | Gemini | OCR/visão (Adaptar Atividade), imagens, mapas mentais |
+| **Omnisfera Orange** | ChatGPT (OpenAI) | Fallback opcional — acionar se motores principais falharem |
 
-Constantes em `omni_utils.py`: `AI_RED`, `AI_BLUE`, `AI_GREEN`, `AI_YELLOW`.
+Constantes em `omni_utils.py`: `AI_RED`, `AI_BLUE`, `AI_GREEN`, `AI_YELLOW`, `AI_ORANGE`.
+
+**Chaves obrigatórias (4):** ANTHROPIC_API_KEY (Red), DEEPSEEK_API_KEY (Blue), KIMI_API_KEY (Green), GEMINI_API_KEY (Yellow).
+**Chave opcional:** OPENAI_API_KEY (Orange) — apenas se quiser fallback.
 
 ---
 

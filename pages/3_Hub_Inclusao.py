@@ -1149,85 +1149,36 @@ def gerar_pictograma_caa(api_key, conceito, feedback_anterior="", gemini_key=Non
         return None
 
 def _hub_chat_completion(engine, messages, temperature=0.7, api_key=None):
-    """Chat completion unificado para Hub. engine: red, blue, green ou yellow."""
-    engine = (engine or "red").strip().lower()
-    if engine not in ("red", "blue", "green", "yellow"):
-        engine = "red"
-    if engine == "blue":
-        full = ""
-        for m in messages:
-            role = m.get("role", "user")
-            cont = (m.get("content") or "").strip()
-            if role == "system":
-                full = f"[INSTRUÇÕES]\n{cont}\n\n" + full
-            else:
-                full += f"\n[ENTRADA]\n{cont}" if full else cont
-        full = full.strip() or "Responda."
-        txt, err = ou.consultar_gemini(full, model="gemini-2.0-flash")
-        if err:
-            raise Exception(err)
-        return txt or ""
-    if engine == "green":
-        k = ou.get_kimi_api_key() or api_key
-        try:
-            k = k or (st.secrets.get("OPENROUTER_API_KEY", "") or st.secrets.get("KIMI_API_KEY", "") or "")
-        except Exception:
-            pass
-        k = (k or "").strip().replace("\n", "").replace("\r", "")
-        if not k:
-            raise Exception(f"Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({ou.AI_GREEN}).")
-        use_or = k.startswith("sk-or-")
-        base_url = ou.get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if use_or else "https://api.moonshot.ai/v1")
-        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://openrouter.ai/api/v1"
-        model = ou.get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_or else "kimi-k2-turbo-preview")
-        model = (model or "").strip() or "moonshotai/kimi-k2.5"
-        client = OpenAI(api_key=k, base_url=base_url)
-        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
-        return (resp.choices[0].message.content or "").strip()
-    if engine == "yellow":
-        k = ou.get_deepseek_api_key()
-        if not k:
-            raise Exception(f"Configure DEEPSEEK_API_KEY ({ou.AI_YELLOW}).")
-        base_url = ou.get_setting("DEEPSEEK_BASE_URL", "") or "https://api.deepseek.com"
-        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://api.deepseek.com"
-        model = ou.get_setting("DEEPSEEK_MODEL", "") or "deepseek-chat"
-        model = (model or "").strip() or "deepseek-chat"
-        client = OpenAI(api_key=k, base_url=base_url)
-        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
-        return (resp.choices[0].message.content or "").strip()
-
-    # Red (OpenAI)
-    if not api_key or not str(api_key).strip():
-        raise Exception(f"Configure OPENAI_API_KEY ({ou.AI_RED}).")
-    client = OpenAI(api_key=str(api_key).strip())
-    resp = client.chat.completions.create(model="gpt-4o-mini", messages=messages, temperature=temperature)
-    return (resp.choices[0].message.content or "").strip()
+    """Chat completion unificado para Hub. engine: blue (DeepSeek), green (Kimi), yellow (Gemini)."""
+    engine = (engine or "blue").strip().lower()
+    if engine not in ("blue", "green", "yellow"):
+        engine = "blue"
+    return ou.chat_completion_multi_engine(engine, messages, temperature=temperature, api_key=api_key)
 
 
 def _render_engine_selector(key_suffix=""):
-    """Renderiza expander para escolher motor IA (Red/Blue/Green/Yellow). Retorna engine escolhido."""
+    """Renderiza expander para escolher motor IA (Blue/Green/Yellow). Retorna engine escolhido."""
     sk = f"hub_engine_{key_suffix}" if key_suffix else "hub_engine_default"
-    st.session_state.setdefault(sk, "red")
-    with st.expander("🔧 Escolher motor de IA (Red, Blue, Green ou Yellow)", expanded=False):
+    st.session_state.setdefault(sk, "blue")
+    with st.expander("🔧 Escolher motor de IA (Blue, Green ou Yellow)", expanded=False):
         engine_map = {
-            "red": f"🔴 {ou.AI_RED}",
             "blue": f"🔵 {ou.AI_BLUE}",
             "green": f"🟢 {ou.AI_GREEN}",
-            "yellow": f"🟡 {ou.AI_YELLOW}"
+            "yellow": f"🟡 {ou.AI_YELLOW}",
         }
         eng = st.radio(
             "Motor",
-            options=["red", "blue", "green", "yellow"],
+            options=["blue", "green", "yellow"],
             format_func=lambda x: engine_map.get(x, x),
-            index={"red": 0, "blue": 1, "green": 2, "yellow": 3}.get(st.session_state.get(sk, "red"), 0),
+            index={"blue": 0, "green": 1, "yellow": 2}.get(st.session_state.get(sk, "blue"), 0),
             key=f"engine_radio_{key_suffix}",
-            horizontal=True
+            horizontal=True,
         )
         st.session_state[sk] = eng
     return st.session_state[sk]
 
 
-def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remover_resp, questoes_mapeadas, modo_profundo=False, checklist_adaptacao=None, engine="red"):
+def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remover_resp, questoes_mapeadas, modo_profundo=False, checklist_adaptacao=None, engine="blue"):
     """Adapta conteúdo de um DOCX para o estudante"""
     lista_q = ", ".join([str(n) for n in questoes_mapeadas]) if questoes_mapeadas else ""
     style = "Seja didático e use uma Cadeia de Pensamento para adaptar." if modo_profundo else "Seja objetivo."
@@ -1328,87 +1279,66 @@ def _comprimir_imagem_para_vision(img_bytes: bytes, max_bytes: int = 3_000_000) 
 
 
 def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_atv, livro_professor, modo_profundo=False, checklist_adaptacao=None, imagem_separada=None):
-    """Adapta conteúdo de uma imagem para o estudante (OCR + visão via Omnisfera Red)."""
-    # Fallback: chave OpenAI pode não ter carregado no Streamlit Cloud
-    key = (api_key or "").strip() or ou.get_setting("OPENAI_API_KEY", "")
+    """Adapta conteúdo de uma imagem para o estudante (OCR + visão via Omnisfera Yellow — Gemini)."""
+    key = ou.get_gemini_api_key() or (api_key or "").strip()
     key = (key or "").strip()
     if not key:
-        return "Configure OPENAI_API_KEY nos Secrets do app (Omnisfera Red é necessário para OCR/visão).", ""
+        return "Configure GEMINI_API_KEY nos Secrets do app (Omnisfera Yellow é necessário para OCR/visão).", ""
 
-    client = OpenAI(api_key=key)
     if not imagem_bytes:
         return "Erro: Imagem vazia", ""
 
-    # Comprimir se muito grande para evitar timeout/erro na API
+    # Comprimir se muito grande
     imagem_bytes = _comprimir_imagem_para_vision(imagem_bytes)
     if imagem_separada:
         imagem_separada = _comprimir_imagem_para_vision(imagem_separada)
 
-    b64 = base64.b64encode(imagem_bytes).decode('utf-8')
     instrucao_livro = "ATENÇÃO: IMAGEM COM RESPOSTAS. Remova todo gabarito/respostas." if livro_professor else ""
     style = "Faça uma análise crítica para melhor adaptação." if modo_profundo else "Transcreva e adapte."
-    
-    # Buscar hiperfoco do aluno
     hiperfoco = aluno.get('hiperfoco', 'Geral') or 'Geral'
-    
-    # Instrução sobre imagem separada
     instrucao_imagem_separada = ""
     if imagem_separada:
         instrucao_imagem_separada = "\n    - O professor recortou a imagem separadamente para melhor qualidade. Use a tag [[IMG_2]] para inserir esta imagem recortada no local apropriado da questão adaptada."
-    
-    # Montar instruções baseadas no checklist de adaptação (específico para questão única)
+
     instrucoes_checklist = ""
     if checklist_adaptacao and isinstance(checklist_adaptacao, dict):
         necessidades_ativas = []
-        
         if checklist_adaptacao.get("questoes_desafiadoras"):
             necessidades_ativas.append("Aumentar o nível de desafio da questão")
         else:
             necessidades_ativas.append("Manter ou reduzir o nível de dificuldade")
-        
         if not checklist_adaptacao.get("compreende_instrucoes_complexas"):
             necessidades_ativas.append("Simplificar instruções complexas")
-        
         if checklist_adaptacao.get("instrucoes_passo_a_passo"):
             necessidades_ativas.append("Fornecer instruções passo a passo detalhadas")
-        
         if checklist_adaptacao.get("dividir_em_etapas"):
             necessidades_ativas.append("Dividir a questão em etapas menores e mais gerenciáveis")
-        
         if checklist_adaptacao.get("paragrafos_curtos"):
             necessidades_ativas.append("Usar parágrafos curtos para melhor compreensão")
-        
         if checklist_adaptacao.get("dicas_apoio"):
             necessidades_ativas.append("Incluir dicas de apoio específicas para resolver esta questão")
-        
         if not checklist_adaptacao.get("compreende_figuras_linguagem"):
             necessidades_ativas.append("Reduzir ou eliminar figuras de linguagem e inferências")
-        
         if checklist_adaptacao.get("descricao_imagens"):
             necessidades_ativas.append("Incluir descrição detalhada da imagem presente na questão")
-        
         if necessidades_ativas:
             instrucoes_checklist = f"""
-    
     CHECKLIST DE ADAPTAÇÃO (baseado no PEI - QUESTÃO ÚNICA):
     {chr(10).join([f"- {n}" for n in necessidades_ativas])}
-    
     REGRA CRÍTICA: Como esta é uma questão única, aplique as adaptações selecionadas de forma específica e pontual.
-    Selecione as 2-3 adaptações mais relevantes para esta questão específica e aplique-as de forma integrada.
     """
-    
+
     prompt = f"""
     ATUAR COMO: Especialista em Acessibilidade e OCR. {style}
     1. Transcreva o texto da imagem. {instrucao_livro}
     2. Adapte para o estudante (PEI: {aluno.get('ia_sugestao', '')[:800]}).
-    3. HIPERFOCO ({hiperfoco}): Use o hiperfoco do estudante sempre que possível para conectar e engajar na questão. 
-       Se o hiperfoco for relevante ao conteúdo, integre-o naturalmente na adaptação.
+    3. HIPERFOCO ({hiperfoco}): Use o hiperfoco do estudante sempre que possível para conectar e engajar na questão.
     {instrucoes_checklist}
-    4. REGRA ABSOLUTA DE IMAGEM: 
+    4. REGRA ABSOLUTA DE IMAGEM:
     - Se a questão original tinha imagem, detecte-a na imagem fornecida e insira a tag [[IMG_1]] no mesmo local onde estava.
     {instrucao_imagem_separada}
     - MANTENHA AS IMAGENS NO MESMO LOCAL ONDE ESTAVAM NA QUESTÃO ORIGINAL.
-    
+
     SAÍDA OBRIGATÓRIA (Respeite o divisor):
     [ANÁLISE PEDAGÓGICA]
     ...análise...
@@ -1416,40 +1346,26 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
     [ATIVIDADE]
     ...atividade...
     """
-    
-    # Preparar mensagens com imagem(s) — detail=high melhora OCR de texto
-    content_msgs = [
-        {"type": "text", "text": prompt},
-        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}", "detail": "high"}},
-    ]
 
-    # Se houver imagem separada, adicionar também
-    if imagem_separada:
-        b64_separada = base64.b64encode(imagem_separada).decode('utf-8')
-        content_msgs.append({
-            "type": "text",
-            "text": "IMAGEM RECORTADA SEPARADAMENTE PELO PROFESSOR (use tag [[IMG_2]] para inserir no local apropriado):",
-        })
-        content_msgs.append({
-            "type": "image_url",
-            "image_url": {"url": f"data:image/jpeg;base64,{b64_separada}", "detail": "high"},
-        })
-    
-    msgs = [
-        {
-            "role": "user", 
-            "content": content_msgs
-        }
-    ]
-    
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=msgs,
-            temperature=0.7 if modo_profundo else 0.4,
-            max_tokens=4096,
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=key)
+        contents = [
+            types.Part.from_bytes(data=imagem_bytes, mime_type="image/jpeg"),
+            prompt.strip(),
+        ]
+        if imagem_separada:
+            contents.append("IMAGEM RECORTADA SEPARADAMENTE PELO PROFESSOR (use tag [[IMG_2]] para inserir no local apropriado):")
+            contents.append(types.Part.from_bytes(data=imagem_separada, mime_type="image/jpeg"))
+
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=contents,
+            config=types.GenerateContentConfig(temperature=0.7 if modo_profundo else 0.4, max_output_tokens=4096),
         )
-        full_text = (resp.choices[0].message.content or "").strip()
+        full_text = (response.text or "").strip()
         if not full_text:
             return "A IA não retornou conteúdo. Tente recortar novamente a questão e enviar.", ""
 
@@ -1465,13 +1381,13 @@ def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_at
         err = str(e).strip()
         if "rate_limit" in err.lower() or "429" in err:
             return "Limite de uso atingido. Aguarde alguns minutos e tente novamente.", ""
-        if "invalid_api_key" in err.lower() or "authentication" in err.lower() or "401" in err:
-            return "Chave da Omnisfera Red (OPENAI_API_KEY) inválida ou ausente. Verifique os Secrets do app.", ""
-        if "context_length" in err.lower() or "maximum context" in err.lower():
+        if "API key" in err or "invalid" in err.lower() or "401" in err:
+            return "Chave da Omnisfera Yellow (GEMINI_API_KEY) inválida ou ausente. Verifique os Secrets do app.", ""
+        if "context_length" in err.lower() or "maximum" in err.lower():
             return "Imagem muito grande. Recorte uma área menor da questão e tente novamente.", ""
         return f"Erro no OCR/visão: {err[:300]}", ""
 
-def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, verbos_bloom=None, habilidades_bncc=None, modo_profundo=False, checklist_adaptacao=None, engine="red"):
+def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, verbos_bloom=None, habilidades_bncc=None, modo_profundo=False, checklist_adaptacao=None, engine="blue"):
     """Cria atividade profissional do zero"""
     hiperfoco = aluno.get('hiperfoco', 'Geral')
     
@@ -1622,7 +1538,7 @@ def gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, objetivo, feedback_ante
     except Exception as e:
         return str(e)
 
-def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior="", engine="red"):
+def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior="", engine="blue"):
     """Gera roteiro de aula completo com BNCC"""
     
     # Construir informações da BNCC
@@ -1696,7 +1612,7 @@ def gerar_roteiro_aula_completo(api_key, aluno, materia, assunto, habilidades_bn
     except Exception as e:
         return str(e)
 
-def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alunos, caracteristicas_turma, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior="", engine="red"):
+def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alunos, caracteristicas_turma, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, feedback_anterior="", engine="blue"):
     """Gera dinâmica inclusiva completa com BNCC. engine: red/blue/green/yellow."""
     
     # Construir informações da BNCC
@@ -1763,12 +1679,12 @@ def gerar_dinamica_inclusiva_completa(api_key, aluno, materia, assunto, qtd_alun
     """
     
     try:
-        text = _hub_chat_completion(api_key, prompt, engine=engine, temperature=0.7)
+        text = _hub_chat_completion(engine, [{"role": "user", "content": prompt}], temperature=0.7, api_key=api_key)
         return text or ""
     except Exception as e:
         return str(e)
 
-def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, qtd_alunos, recursos, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, aluno_info=None, engine="red", duracao_minutos=50):
+def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, qtd_alunos, recursos, habilidades_bncc=None, verbos_bloom=None, ano=None, unidade_tematica=None, objeto_conhecimento=None, aluno_info=None, engine="blue", duracao_minutos=50):
     """Gera plano de aula completo com BNCC. engine: red/blue/green/yellow. duracao_minutos: 50 ou 100."""
     # Construir informações da BNCC
     info_bncc = ""
@@ -1886,7 +1802,7 @@ def gerar_plano_aula_completo(api_key, materia, assunto, metodologia, tecnica, q
     except Exception as e:
         return str(e)
 
-def gerar_quebra_gelo_profundo(api_key, aluno, materia, assunto, hiperfoco, tema_turma_extra="", engine="red"):
+def gerar_quebra_gelo_profundo(api_key, aluno, materia, assunto, hiperfoco, tema_turma_extra="", engine="blue"):
     """Gera quebra-gelo profundo para engajamento"""
     prompt = f"""
     Crie 3 sugestões de 'Papo de Mestre' (Quebra-gelo/Introdução) para conectar o estudante {aluno['nome']} à aula.
@@ -2748,8 +2664,8 @@ def render_aba_adaptar_atividade(aluno, api_key):
                 key="assunto_adaptar_atividade_compact"
             )
     
-    # OCR/visão usa Omnisfera Red — selector oculto pois outros motores não suportam visão
-    st.caption("ℹ️ Esta função usa Omnisfera Red (OCR/visão).")
+    # OCR/visão usa Omnisfera Yellow (Gemini)
+    st.caption("ℹ️ Esta função usa Omnisfera Yellow (OCR/visão).")
     
     # Configuração (Tipo e Upload)
     st.markdown("---")

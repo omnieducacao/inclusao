@@ -796,22 +796,21 @@ if is_ei:
 with st.expander("📄 Ver Dados Completos do PEI", expanded=False):
     st.write(aluno.get('ia_sugestao', 'Sem dados detalhados.'))
 
-# Motor de IA (Red/Blue/Green/Yellow) — não aplica geração de imagens (usa Omnisfera Blue)
-st.session_state.setdefault("pae_engine", "red")
-with st.expander("🔧 Escolher motor de IA (Red, Blue, Green ou Yellow)", expanded=False):
+# Motor de IA (Blue/Green/Yellow) — imagens/mapas mentais usam Omnisfera Yellow (Gemini)
+st.session_state.setdefault("pae_engine", "blue")
+with st.expander("🔧 Escolher motor de IA (Blue, Green ou Yellow)", expanded=False):
     engine_map = {
-        "red": f"🔴 {ou.AI_RED}",
         "blue": f"🔵 {ou.AI_BLUE}",
         "green": f"🟢 {ou.AI_GREEN}",
-        "yellow": f"🟡 {ou.AI_YELLOW}"
+        "yellow": f"🟡 {ou.AI_YELLOW}",
     }
     eng = st.radio(
-        "Motor (texto). Imagens usam Omnisfera Blue.",
-        options=["red", "blue", "green", "yellow"],
+        "Motor (texto). Imagens e mapas mentais usam Omnisfera Yellow.",
+        options=["blue", "green", "yellow"],
         format_func=lambda x: engine_map.get(x, x),
-        index={"red": 0, "blue": 1, "green": 2, "yellow": 3}.get(st.session_state.get("pae_engine", "red"), 0),
+        index={"blue": 0, "green": 1, "yellow": 2}.get(st.session_state.get("pae_engine", "blue"), 0),
         key="pae_engine_radio",
-        horizontal=True
+        horizontal=True,
     )
     st.session_state["pae_engine"] = eng
 
@@ -822,7 +821,7 @@ with st.expander("🔧 Escolher motor de IA (Red, Blue, Green ou Yellow)", expan
 # ==============================================================================
 # FUNÇÕES DE IA ATUALIZADAS
 # ==============================================================================
-def gerar_diagnostico_barreiras(api_key, aluno, obs_prof, feedback=None, engine="red"):
+def gerar_diagnostico_barreiras(api_key, aluno, obs_prof, feedback=None, engine="blue"):
     contexto = aluno.get('ia_sugestao', '')
     
     prompt = f"""
@@ -880,7 +879,7 @@ def gerar_diagnostico_barreiras(api_key, aluno, obs_prof, feedback=None, engine=
     except Exception as e:
         return f"Erro: {str(e)}"
 
-def gerar_projetos_ei_bncc(api_key, aluno, campo_exp, feedback=None, engine="red"):
+def gerar_projetos_ei_bncc(api_key, aluno, campo_exp, feedback=None, engine="blue"):
     contexto = aluno.get('ia_sugestao', '')
     
     prompt = f"""
@@ -915,7 +914,7 @@ def gerar_projetos_ei_bncc(api_key, aluno, campo_exp, feedback=None, engine="red
     except Exception as e:
         return str(e)
 
-def gerar_plano_habilidades(api_key, aluno, foco_treino, feedback=None, engine="red"):
+def gerar_plano_habilidades(api_key, aluno, foco_treino, feedback=None, engine="blue"):
     contexto = aluno.get('ia_sugestao', '')
     
     prompt = f"""
@@ -954,7 +953,7 @@ def gerar_plano_habilidades(api_key, aluno, foco_treino, feedback=None, engine="
     except Exception as e:
         return str(e)
 
-def sugerir_tecnologia_assistiva(api_key, aluno, dificuldade, feedback=None, engine="red"):
+def sugerir_tecnologia_assistiva(api_key, aluno, dificuldade, feedback=None, engine="blue"):
     contexto = aluno.get('ia_sugestao', '')
     
     prompt = f"""
@@ -1000,7 +999,7 @@ def sugerir_tecnologia_assistiva(api_key, aluno, dificuldade, feedback=None, eng
     except Exception as e:
         return str(e)
 
-def gerar_documento_articulacao(api_key, aluno, frequencia, acoes, feedback=None, engine="red"):
+def gerar_documento_articulacao(api_key, aluno, frequencia, acoes, feedback=None, engine="blue"):
     
     prompt = f"""
     CARTA DE ARTICULAÇÃO (AEE -> SALA REGULAR).
@@ -1057,7 +1056,7 @@ def gerar_documento_articulacao(api_key, aluno, frequencia, acoes, feedback=None
     except Exception as e:
         return str(e)
 
-def gerar_cronograma_inteligente(api_key, aluno, semanas, foco, metas, engine="red"):
+def gerar_cronograma_inteligente(api_key, aluno, semanas, foco, metas, engine="blue"):
     """Gera cronograma de planejamento do AEE (documento de referência): visão em fases, para registro e articulação."""
     try:
         metas_texto = "\n".join([f"- {m['tipo']}: {m['descricao']}" for m in metas[:5]])
@@ -1120,7 +1119,7 @@ def gerar_cronograma_inteligente(api_key, aluno, semanas, foco, metas, engine="r
 # ==============================================================================
 # EXECUÇÃO E METAS SMART — NORTEADOR PARA A ESCOLA (por semanas)
 # ==============================================================================
-def desdobrar_metas_smart_ia(api_key, metas_selecionadas, periodo_texto, contexto_escola="", engine="red"):
+def desdobrar_metas_smart_ia(api_key, metas_selecionadas, periodo_texto, contexto_escola="", engine="blue"):
     """Desdobra metas em SMART como norteador de ações para a escola. Não foca em hiperfoco."""
     if not metas_selecionadas:
         return metas_selecionadas, ""
@@ -1149,7 +1148,7 @@ def desdobrar_metas_smart_ia(api_key, metas_selecionadas, periodo_texto, context
         return metas_selecionadas, ""
 
 
-def gerar_cronograma_execucao_smart(api_key, aluno, duracao_semanas, metas, insumos_escola, engine="red"):
+def gerar_cronograma_execucao_smart(api_key, aluno, duracao_semanas, metas, insumos_escola, engine="blue"):
     """Gera cronograma POR SEMANAS como norteador de ações para a escola (alimentado por barreiras, plano habilidades, tec assistiva)."""
     try:
         metas_txt = "\n".join([f"- {m.get('tipo','')}: {m.get('descricao','')}" for m in metas[:8]])
@@ -1659,7 +1658,7 @@ if is_ei:
                     st.warning("Por favor, descreva suas observações antes de mapear.")
                 else:
                     with st.spinner("Analisando barreiras no brincar..."):
-                        resultado = gerar_diagnostico_barreiras(api_key, aluno, obs_aee, engine=st.session_state.get("pae_engine", "red"))
+                        resultado = gerar_diagnostico_barreiras(api_key, aluno, obs_aee, engine=st.session_state.get("pae_engine", "blue"))
                         if "Erro:" in resultado:
                             st.error(resultado)
                         else:
@@ -1685,7 +1684,7 @@ if is_ei:
                 
                 with st.spinner("Aplicando ajustes solicitados..."):
                     resultado = gerar_diagnostico_barreiras(
-                        api_key, aluno, obs_original, feedback, engine=st.session_state.get("pae_engine", "red")
+                        api_key, aluno, obs_original, feedback, engine=st.session_state.get("pae_engine", "blue")
                     )
                     st.session_state.conteudo_diagnostico_barreiras = resultado
                     st.session_state.status_diagnostico_barreiras = 'revisao'
@@ -1714,7 +1713,7 @@ else:
                     st.warning("Por favor, descreva suas observações antes de analisar.")
                 else:
                     with st.spinner("Analisando barreiras de acessibilidade..."):
-                        resultado = gerar_diagnostico_barreiras(api_key, aluno, obs_aee, engine=st.session_state.get("pae_engine", "red"))
+                        resultado = gerar_diagnostico_barreiras(api_key, aluno, obs_aee, engine=st.session_state.get("pae_engine", "blue"))
                         if "Erro:" in resultado:
                             st.error(resultado)
                         else:
@@ -1738,7 +1737,7 @@ else:
                 
                 with st.spinner("Aplicando ajustes..."):
                     resultado = gerar_diagnostico_barreiras(
-                        api_key, aluno, obs_original, feedback, engine=st.session_state.get("pae_engine", "red")
+                        api_key, aluno, obs_original, feedback, engine=st.session_state.get("pae_engine", "blue")
                     )
                     st.session_state.conteudo_diagnostico_barreiras = resultado
                     st.session_state.status_diagnostico_barreiras = 'revisao'
@@ -1771,7 +1770,7 @@ if is_ei:
                     st.error(f"Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
                 else:
                     with st.spinner("Criando banco de experiências..."):
-                        resultado = gerar_projetos_ei_bncc(api_key, aluno, campo_bncc, engine=st.session_state.get("pae_engine", "red"))
+                        resultado = gerar_projetos_ei_bncc(api_key, aluno, campo_bncc, engine=st.session_state.get("pae_engine", "blue"))
                         if "Erro:" in resultado:
                             st.error(resultado)
                         else:
@@ -1795,7 +1794,7 @@ if is_ei:
                 
                 with st.spinner("Aplicando ajustes..."):
                     resultado = gerar_projetos_ei_bncc(
-                        api_key, aluno, campo_original, feedback, engine=st.session_state.get("pae_engine", "red")
+                        api_key, aluno, campo_original, feedback, engine=st.session_state.get("pae_engine", "blue")
                     )
                     st.session_state.conteudo_projetos_ei = resultado
                     st.session_state.status_projetos_ei = 'revisao'
@@ -1824,7 +1823,7 @@ else:
                     st.error(f"Insira a chave da IA ({ou.AI_RED}) nas configurações da sidebar.")
                 else:
                     with st.spinner("Elaborando plano de intervenção..."):
-                        resultado = gerar_plano_habilidades(api_key, aluno, foco, engine=st.session_state.get("pae_engine", "red"))
+                        resultado = gerar_plano_habilidades(api_key, aluno, foco, engine=st.session_state.get("pae_engine", "blue"))
                         if "Erro:" in resultado:
                             st.error(resultado)
                         else:
@@ -1848,7 +1847,7 @@ else:
                 
                 with st.spinner("Aplicando ajustes..."):
                     resultado = gerar_plano_habilidades(
-                        api_key, aluno, foco_original, feedback, engine=st.session_state.get("pae_engine", "red")
+                        api_key, aluno, foco_original, feedback, engine=st.session_state.get("pae_engine", "blue")
                     )
                     st.session_state.conteudo_plano_habilidades = resultado
                     st.session_state.status_plano_habilidades = 'revisao'
@@ -1882,7 +1881,7 @@ if is_ei:
                 else:
                     with st.spinner("Buscando recursos de adaptação..."):
                         resultado = sugerir_tecnologia_assistiva(
-                            api_key, aluno, f"Rotina EI: {dif_rotina}", engine=st.session_state.get("pae_engine", "red")
+                            api_key, aluno, f"Rotina EI: {dif_rotina}", engine=st.session_state.get("pae_engine", "blue")
                         )
                         if "Erro:" in resultado:
                             st.error(resultado)
@@ -1907,7 +1906,7 @@ if is_ei:
                 
                 with st.spinner("Aplicando ajustes..."):
                     resultado = sugerir_tecnologia_assistiva(
-                        api_key, aluno, f"Rotina EI: {dif_original}", feedback, engine=st.session_state.get("pae_engine", "red")
+                        api_key, aluno, f"Rotina EI: {dif_original}", feedback, engine=st.session_state.get("pae_engine", "blue")
                     )
                     st.session_state.conteudo_tecnologia_assistiva = resultado
                     st.session_state.status_tecnologia_assistiva = 'revisao'
@@ -1936,7 +1935,7 @@ else:
                     st.warning("Por favor, descreva a dificuldade específica.")
                 else:
                     with st.spinner("Buscando tecnologias assistivas..."):
-                        resultado = sugerir_tecnologia_assistiva(api_key, aluno, dif_especifica, engine=st.session_state.get("pae_engine", "red"))
+                        resultado = sugerir_tecnologia_assistiva(api_key, aluno, dif_especifica, engine=st.session_state.get("pae_engine", "blue"))
                         if "Erro:" in resultado:
                             st.error(resultado)
                         else:
@@ -1960,7 +1959,7 @@ else:
                 
                 with st.spinner("Aplicando ajustes..."):
                     resultado = sugerir_tecnologia_assistiva(
-                        api_key, aluno, dif_original, feedback, engine=st.session_state.get("pae_engine", "red")
+                        api_key, aluno, dif_original, feedback, engine=st.session_state.get("pae_engine", "blue")
                     )
                     st.session_state.conteudo_tecnologia_assistiva = resultado
                     st.session_state.status_tecnologia_assistiva = 'revisao'
@@ -2008,7 +2007,7 @@ with tab_ponte:
             else:
                 with st.spinner("Gerando documento de articulação..."):
                     resultado = gerar_documento_articulacao(
-                        api_key, aluno, f"{freq} ({turno})", acoes_resumo, engine=st.session_state.get("pae_engine", "red")
+                        api_key, aluno, f"{freq} ({turno})", acoes_resumo, engine=st.session_state.get("pae_engine", "blue")
                     )
                     if "Erro:" in resultado:
                         st.error(resultado)
@@ -2043,7 +2042,7 @@ with tab_ponte:
                     f"{freq_original} ({turno_original})", 
                     acoes_original, 
                     feedback,
-                    engine=st.session_state.get("pae_engine", "red")
+                    engine=st.session_state.get("pae_engine", "blue")
                 )
                 st.session_state.conteudo_documento_articulacao = resultado
                 st.session_state.status_documento_articulacao = 'revisao'
@@ -2253,7 +2252,7 @@ with tab_planejamento:
 
                         if usar_ia and (api_key if "api_key" in globals() else None):
                             with st.spinner("🤖 IA planejando cronograma..."):
-                                cronograma_ia = gerar_cronograma_inteligente(api_key, aluno, duracao, foco_principal, metas_selecionadas, engine=st.session_state.get("pae_engine", "red"))
+                                cronograma_ia = gerar_cronograma_inteligente(api_key, aluno, duracao, foco_principal, metas_selecionadas, engine=st.session_state.get("pae_engine", "blue"))
                                 ciclo_data["cronograma"] = cronograma_ia or criar_cronograma_basico(duracao, metas_selecionadas)
                         else:
                             ciclo_data["cronograma"] = criar_cronograma_basico(duracao, metas_selecionadas)
@@ -2473,7 +2472,7 @@ with tab_execucao_smart:
                     contexto_escola_txt = f"Mapear Barreiras:\n{insumos_escola['barreiras']}\n\nPlano de Habilidades:\n{insumos_escola['plano_habilidades']}\n\nTecnologia Assistiva:\n{insumos_escola['tecnologia_assistiva']}"
                     texto_smart = ""
                     if desdobrar_smart and api_key:
-                        metas_es, texto_smart = desdobrar_metas_smart_ia(api_key, metas_es, periodo_txt, contexto_escola_txt, engine=st.session_state.get("pae_engine", "red"))
+                        metas_es, texto_smart = desdobrar_metas_smart_ia(api_key, metas_es, periodo_txt, contexto_escola_txt, engine=st.session_state.get("pae_engine", "blue"))
                     ciclo_es_data = {
                         "ciclo_id": None,
                         "status": "rascunho",
@@ -2492,7 +2491,7 @@ with tab_execucao_smart:
                         "versao": 1,
                     }
                     if usar_ia_cron and api_key:
-                        cron_es = gerar_cronograma_execucao_smart(api_key, aluno, duracao_es, metas_es, insumos_escola, engine=st.session_state.get("pae_engine", "red"))
+                        cron_es = gerar_cronograma_execucao_smart(api_key, aluno, duracao_es, metas_es, insumos_escola, engine=st.session_state.get("pae_engine", "blue"))
                         ciclo_es_data["cronograma"] = cron_es or criar_cronograma_basico(duracao_es, metas_es)
                     else:
                         ciclo_es_data["cronograma"] = criar_cronograma_basico(duracao_es, metas_es)

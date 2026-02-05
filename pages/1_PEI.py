@@ -1522,18 +1522,16 @@ def extrair_dados_pdf_ia(api_key: str, texto_pdf: str):
 def consultar_gpt_pedagogico(api_key: str, dados: dict, contexto_pdf: str = "", modo_pratico: bool = False, feedback_usuario: str = "", engine: str = "red"):
     """
     Gera relatório da Consultoria IA.
-    engine: red, blue, green ou yellow
+    engine: red (Claude), blue (DeepSeek), green (Kimi), yellow (Gemini), orange (GPT fallback)
     """
     engine = (engine or "red").strip().lower()
-    if engine not in ("red", "blue", "green", "yellow"):
+    if engine not in ("red", "blue", "green", "yellow", "orange"):
         engine = "red"
 
-    if engine == "red" and not api_key:
-        return None, f"⚠️ Configure a chave da IA ({ou.AI_RED}) nas configurações."
-    if engine == "blue":
-        gemini_key = ou.get_gemini_api_key()
-        if not gemini_key:
-            return None, f"⚠️ Configure GEMINI_API_KEY ({ou.AI_BLUE}) nas configurações."
+    if engine == "red" and not ou.get_anthropic_api_key():
+        return None, f"⚠️ Configure ANTHROPIC_API_KEY ({ou.AI_RED}) nas configurações."
+    if engine == "blue" and not ou.get_deepseek_api_key():
+        return None, f"⚠️ Configure DEEPSEEK_API_KEY ({ou.AI_BLUE}) nas configurações."
     if engine == "green":
         kimi_key = ou.get_kimi_api_key() or (st.session_state.get("_kimi_key_cached") if hasattr(st, "session_state") else None)
         try:
@@ -1542,10 +1540,10 @@ def consultar_gpt_pedagogico(api_key: str, dados: dict, contexto_pdf: str = "", 
             pass
         if not kimi_key:
             return None, f"⚠️ Configure OPENROUTER_API_KEY ou KIMI_API_KEY ({ou.AI_GREEN}) nas configurações."
-    if engine == "yellow":
-        deep_key = ou.get_deepseek_api_key()
-        if not deep_key:
-            return None, f"⚠️ Configure DEEPSEEK_API_KEY ({ou.AI_YELLOW}) nas configurações."
+    if engine == "yellow" and not ou.get_gemini_api_key():
+        return None, f"⚠️ Configure GEMINI_API_KEY ({ou.AI_YELLOW}) nas configurações."
+    if engine == "orange" and not (ou.get_openai_api_key() or api_key):
+        return None, f"⚠️ Configure OPENAI_API_KEY ({ou.AI_ORANGE}) para usar fallback."
 
     try:
 
@@ -1757,48 +1755,8 @@ GUIA PRÁTICO PARA SALA DE AULA.
                     if at_u:
                         prompt_user += f"\n\nANO SÉRIE ATUAL:\n{at_u[:5000]}"
 
-        if engine == "blue":
-            full_prompt = f"{prompt_sys}\n\n---\n\n{prompt_user}"
-            texto_relatorio, err = ou.consultar_gemini(full_prompt, model="gemini-2.0-flash")
-            if err:
-                return None, err
-            texto_relatorio = texto_relatorio or ""
-        elif engine == "green":
-            kimi_key = ou.get_kimi_api_key() or st.session_state.get("_kimi_key_cached", "")
-            try:
-                kimi_key = kimi_key or (st.secrets.get("OPENROUTER_API_KEY", "") or st.secrets.get("KIMI_API_KEY", "") or "").strip()
-            except Exception:
-                pass
-            use_openrouter = (kimi_key or "").strip().startswith("sk-or-")
-            base_url = ou.get_setting("OPENROUTER_BASE_URL", "") or ("https://openrouter.ai/api/v1" if use_openrouter else "https://api.moonshot.ai/v1")
-            base_url = (base_url or "").strip() or "https://openrouter.ai/api/v1"
-            model = ou.get_setting("KIMI_MODEL", "") or ("moonshotai/kimi-k2.5" if use_openrouter else "kimi-k2-turbo-preview")
-            model = (model or "").strip() or "moonshotai/kimi-k2.5"
-            client = OpenAI(api_key=kimi_key.strip(), base_url=base_url)
-            res = client.chat.completions.create(
-                model=model,
-                messages=[{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}],
-            )
-            texto_relatorio = res.choices[0].message.content or ""
-        elif engine == "yellow":
-            k = ou.get_deepseek_api_key()
-            base_url = ou.get_setting("DEEPSEEK_BASE_URL", "") or "https://api.deepseek.com"
-            base_url = (base_url or "").strip() or "https://api.deepseek.com"
-            model = ou.get_setting("DEEPSEEK_MODEL", "") or "deepseek-chat"
-            model = (model or "").strip() or "deepseek-chat"
-            client = OpenAI(api_key=k, base_url=base_url)
-            res = client.chat.completions.create(
-                model=model,
-                messages=[{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}],
-            )
-            texto_relatorio = res.choices[0].message.content or ""
-        else:
-            client = OpenAI(api_key=api_key)
-            res = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}],
-            )
-            texto_relatorio = res.choices[0].message.content or ""
+        messages = [{"role": "system", "content": prompt_sys}, {"role": "user", "content": prompt_user}]
+        texto_relatorio = ou.chat_completion_multi_engine(engine, messages, temperature=0.7, api_key=api_key)
         # Pós-processamento: remover da Avaliação de Repertório qualquer habilidade que a IA tenha inventado
         if nivel_ensino != "EI" and texto_relatorio:
             lista_permitida = dados.get("habilidades_bncc_validadas") or dados.get("habilidades_bncc_selecionadas") or []
@@ -3434,14 +3392,20 @@ with tab8:
 
     # 1) Se ainda não tem texto, ou voltou para rascunho: botões de geração
     if (not st.session_state.dados.get("ia_sugestao")) or (st.session_state.dados.get("status_validacao_pei") == "rascunho"):
-        with st.expander("🔧 Escolher motor de IA (Red, Blue ou Green)", expanded=True):
-            st.caption("Selecione qual IA gerará o relatório. Útil para comparar resultados.")
-            engine_map = {"red": f"🔴 {ou.AI_RED}", "blue": f"🔵 {ou.AI_BLUE}", "green": f"🟢 {ou.AI_GREEN}", "yellow": f"🟡 {ou.AI_YELLOW}"}
+        with st.expander("🔧 Escolher motor de IA (Red, Blue, Green, Yellow ou Orange)", expanded=True):
+            st.caption("Selecione qual IA gerará o relatório. Orange = fallback (GPT) se outros falharem.")
+            engine_map = {
+                "red": f"🔴 {ou.AI_RED}",
+                "blue": f"🔵 {ou.AI_BLUE}",
+                "green": f"🟢 {ou.AI_GREEN}",
+                "yellow": f"🟡 {ou.AI_YELLOW}",
+                "orange": f"🟠 {ou.AI_ORANGE}",
+            }
             engine_sel = st.radio(
                 "Motor de IA",
-                options=["red", "blue", "green", "yellow"],
+                options=["red", "blue", "green", "yellow", "orange"],
                 format_func=lambda x: engine_map.get(x, x),
-                index={"red": 0, "blue": 1, "green": 2, "yellow": 3}.get(st.session_state.dados.get("consultoria_engine", "red"), 0),
+                index={"red": 0, "blue": 1, "green": 2, "yellow": 3, "orange": 4}.get(st.session_state.dados.get("consultoria_engine", "red"), 0),
                 key="consultoria_engine_radio",
                 horizontal=True,
             )
@@ -3452,7 +3416,7 @@ with tab8:
         with col_btn:
             engine = st.session_state.dados.get("consultoria_engine", "red")
             if st.button("✨ Gerar Estratégia Técnica", type="primary", use_container_width=True):
-                with st.spinner(f"Gerando estratégia técnica do PEI ({ou.AI_RED if engine=='red' else ou.AI_BLUE if engine=='blue' else ou.AI_GREEN})..."):
+                with st.spinner(f"Gerando estratégia técnica do PEI ({engine_map.get(engine, ou.AI_RED)})..."):
                     res, err = consultar_gpt_pedagogico(
                         api_key,
                         st.session_state.dados,
@@ -3469,7 +3433,7 @@ with tab8:
 
             st.write("")
             if st.button("🧰 Gerar Guia Prático (Sala de Aula)", use_container_width=True):
-                with st.spinner(f"Gerando guia prático ({ou.AI_RED if engine=='red' else ou.AI_BLUE if engine=='blue' else ou.AI_GREEN})..."):
+                with st.spinner(f"Gerando guia prático ({engine_map.get(engine, ou.AI_RED)})..."):
                     res, err = consultar_gpt_pedagogico(
                         api_key,
                         st.session_state.dados,

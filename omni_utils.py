@@ -89,15 +89,17 @@ ICON_EMOJI = {
 
 # =============================================================================
 # MOTORES DE IA — CODENAMES (para uso em textos visíveis ao professor)
-# Omnisfera Red   = ChatGPT + DALL-E (ecossistema OpenAI)
-# Omnisfera Blue  = Gemini, NanoBanana, Gemini imagens (ecossistema Google)
-# Omnisfera Green = Kimi e derivados
-# Omnisfera Yellow = DeepSeek
+# Omnisfera Red   = Claude (Anthropic Cloud 3.5) — PEI
+# Omnisfera Blue  = DeepSeek — recursos do Hub (principal)
+# Omnisfera Green = Kimi
+# Omnisfera Yellow = Gemini — OCR/visão, imagens, mapas mentais
+# Omnisfera Orange = ChatGPT (OpenAI) — fallback opcional
 # =============================================================================
 AI_RED = "Omnisfera Red"
 AI_BLUE = "Omnisfera Blue"
 AI_GREEN = "Omnisfera Green"
 AI_YELLOW = "Omnisfera Yellow"
+AI_ORANGE = "Omnisfera Orange"
 
 def get_icon(key: str, size: int = 20, color: str = None, use_emoji: bool = None) -> str:
     """
@@ -151,8 +153,9 @@ APP_VERSION = "omni_utils v2.5 (Layout colado: menu + hero bem perto)"
 # Chaves críticas que exigem retry no Streamlit Cloud (cold start: secrets demoram a carregar)
 _CRITICAL_KEYS = frozenset((
     "SUPABASE_URL", "SUPABASE_SERVICE_KEY", "SUPABASE_ANON_KEY",
-    "OPENAI_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY", "KIMI_API_KEY",
-    "DEEPSEEK_API_KEY", "UNSPLASH_ACCESS_KEY",
+    "ANTHROPIC_API_KEY", "GEMINI_API_KEY", "DEEPSEEK_API_KEY",
+    "OPENROUTER_API_KEY", "KIMI_API_KEY", "OPENAI_API_KEY",
+    "UNSPLASH_ACCESS_KEY",
 ))
 _SECRETS_RETRIES = 6   # Streamlit Cloud: mais tentativas para cold start
 _SECRETS_RETRY_DELAY = 0.5  # segundos entre tentativas
@@ -232,7 +235,7 @@ def warmup_secrets() -> None:
     Chamar no início do app (ex.: streamlit_app.py) para dar tempo aos secrets carregarem.
     """
     import time as _time
-    for key in ("SUPABASE_URL", "SUPABASE_SERVICE_KEY", "OPENAI_API_KEY"):
+    for key in ("SUPABASE_URL", "SUPABASE_SERVICE_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY"):
         get_setting(key, "")
         _time.sleep(0.15)  # pequena pausa entre leituras
 
@@ -1869,6 +1872,52 @@ def get_kimi_api_key():
     return key if key else None
 
 
+def get_anthropic_api_key():
+    """
+    Retorna a chave da API Anthropic (Omnisfera Red — Claude).
+    Ordem: ANTHROPIC_API_KEY em env, secrets ou session_state.
+    """
+    raw = (
+        os.environ.get("ANTHROPIC_API_KEY")
+        or get_setting("ANTHROPIC_API_KEY", "")
+        or (getattr(st, "session_state", None) or {}).get("ANTHROPIC_API_KEY", "")
+    )
+    if not raw:
+        try:
+            sec = getattr(st, "secrets", None)
+            if sec:
+                raw = sec.get("ANTHROPIC_API_KEY") or (sec.get("anthropic") or {}).get("api_key")
+        except Exception:
+            pass
+    if not raw:
+        return None
+    key = str(raw).strip().replace("\n", "").replace("\r", "")
+    return key if key else None
+
+
+def get_openai_api_key():
+    """
+    Retorna a chave da API OpenAI (Omnisfera Orange — fallback opcional).
+    Ordem: OPENAI_API_KEY em env, secrets ou session_state.
+    """
+    raw = (
+        os.environ.get("OPENAI_API_KEY")
+        or get_setting("OPENAI_API_KEY", "")
+        or (getattr(st, "session_state", None) or {}).get("OPENAI_API_KEY", "")
+    )
+    if not raw:
+        try:
+            sec = getattr(st, "secrets", None)
+            if sec:
+                raw = sec.get("OPENAI_API_KEY")
+        except Exception:
+            pass
+    if not raw:
+        return None
+    key = str(raw).strip().replace("\n", "").replace("\r", "")
+    return key if key else None
+
+
 def get_deepseek_api_key():
     """
     Retorna a chave da API DeepSeek (Omnisfera Yellow).
@@ -1902,29 +1951,80 @@ def get_deepseek_api_key():
 
 def chat_completion_multi_engine(engine: str, messages: list, temperature: float = 0.7, api_key: str | None = None) -> str:
     """
-    Chat completion unificado. engine: red (OpenAI), blue (Gemini), green (Kimi), yellow (DeepSeek).
+    Chat completion unificado.
+    engine: red (Claude), blue (DeepSeek), green (Kimi), yellow (Gemini), orange (GPT fallback opcional).
     Retorna o texto gerado ou levanta Exception em erro.
     """
     from openai import OpenAI
-    engine = (engine or "red").strip().lower()
-    if engine not in ("red", "blue", "green", "yellow"):
-        engine = "red"
+    engine = (engine or "blue").strip().lower()
+    if engine not in ("red", "blue", "green", "yellow", "orange"):
+        engine = "blue"
 
+    # Orange (OpenAI) — fallback opcional
+    if engine == "orange":
+        k = get_openai_api_key() or api_key
+        k = (k or "").strip()
+        if not k:
+            raise Exception(f"Configure OPENAI_API_KEY ({AI_ORANGE}) para usar fallback.")
+        client = OpenAI(api_key=k)
+        resp = client.chat.completions.create(model="gpt-4o-mini", messages=messages, temperature=temperature)
+        return (resp.choices[0].message.content or "").strip()
+
+    # Red (Anthropic Claude)
+    if engine == "red":
+        k = get_anthropic_api_key() or api_key
+        k = (k or "").strip()
+        if not k:
+            raise Exception(f"Configure ANTHROPIC_API_KEY ({AI_RED}).")
+        try:
+            import anthropic
+            system_parts = []
+            user_texts = []
+            for m in messages:
+                role = m.get("role", "user")
+                cont = m.get("content", "")
+                if isinstance(cont, list):
+                    texts = [p.get("text", "") for p in cont if isinstance(p, dict) and p.get("type") == "text"]
+                    cont = "\n".join(texts) if texts else ""
+                else:
+                    cont = str(cont or "").strip()
+                if not cont:
+                    continue
+                if role == "system":
+                    system_parts.append(cont)
+                else:
+                    user_texts.append(cont)
+            system_text = "\n\n".join(system_parts) if system_parts else None
+            user_content = "\n\n".join(user_texts).strip() or "Responda."
+            client = anthropic.Anthropic(api_key=k)
+            model = get_setting("ANTHROPIC_MODEL", "").strip() or "claude-sonnet-4-20250514"
+            kwargs = {
+                "model": model,
+                "max_tokens": 4096,
+                "messages": [{"role": "user", "content": user_content}],
+                "temperature": temperature,
+            }
+            if system_text:
+                kwargs["system"] = system_text
+            resp = client.messages.create(**kwargs)
+            return (resp.content[0].text if resp.content else "").strip()
+        except ImportError:
+            raise Exception("Pacote 'anthropic' necessário. pip install anthropic")
+
+    # Blue (DeepSeek)
     if engine == "blue":
-        full = ""
-        for m in messages:
-            role = m.get("role", "user")
-            cont = (m.get("content") or "").strip()
-            if role == "system":
-                full = f"[INSTRUÇÕES]\n{cont}\n\n" + full
-            else:
-                full += f"\n[ENTRADA]\n{cont}" if full else cont
-        full = full.strip() or "Responda."
-        txt, err = consultar_gemini(full, model="gemini-2.0-flash")
-        if err:
-            raise Exception(err)
-        return txt or ""
+        k = get_deepseek_api_key()
+        if not k:
+            raise Exception(f"Configure DEEPSEEK_API_KEY ({AI_BLUE}).")
+        base_url = get_setting("DEEPSEEK_BASE_URL", "") or "https://api.deepseek.com"
+        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://api.deepseek.com"
+        model = get_setting("DEEPSEEK_MODEL", "") or "deepseek-chat"
+        model = (model or "").strip() or "deepseek-chat"
+        client = OpenAI(api_key=k, base_url=base_url)
+        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
+        return (resp.choices[0].message.content or "").strip()
 
+    # Green (Kimi)
     if engine == "green":
         k = get_kimi_api_key() or api_key
         try:
@@ -1943,24 +2043,28 @@ def chat_completion_multi_engine(engine: str, messages: list, temperature: float
         resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
         return (resp.choices[0].message.content or "").strip()
 
+    # Yellow (Gemini)
     if engine == "yellow":
-        k = get_deepseek_api_key()
-        if not k:
-            raise Exception(f"Configure DEEPSEEK_API_KEY ({AI_YELLOW}).")
-        base_url = get_setting("DEEPSEEK_BASE_URL", "") or "https://api.deepseek.com"
-        base_url = (base_url or "").strip().replace("\n", "").replace("\r", "") or "https://api.deepseek.com"
-        model = get_setting("DEEPSEEK_MODEL", "") or "deepseek-chat"
-        model = (model or "").strip() or "deepseek-chat"
-        client = OpenAI(api_key=k, base_url=base_url)
-        resp = client.chat.completions.create(model=model, messages=messages, temperature=temperature)
-        return (resp.choices[0].message.content or "").strip()
+        full = ""
+        for m in messages:
+            role = m.get("role", "user")
+            cont = (m.get("content") or "").strip()
+            if isinstance(cont, list):
+                texts = [p.get("text", "") for p in cont if isinstance(p, dict) and p.get("type") == "text"]
+                cont = "\n".join(texts) if texts else ""
+            else:
+                cont = str(cont or "").strip()
+            if role == "system":
+                full = f"[INSTRUÇÕES]\n{cont}\n\n" + full
+            else:
+                full += f"\n[ENTRADA]\n{cont}" if full else cont
+        full = full.strip() or "Responda."
+        txt, err = consultar_gemini(full, model="gemini-2.0-flash")
+        if err:
+            raise Exception(err)
+        return txt or ""
 
-    # Red (OpenAI)
-    if not api_key or not str(api_key).strip():
-        raise Exception(f"Configure OPENAI_API_KEY ({AI_RED}).")
-    client = OpenAI(api_key=str(api_key).strip())
-    resp = client.chat.completions.create(model="gpt-4o-mini", messages=messages, temperature=temperature)
-    return (resp.choices[0].message.content or "").strip()
+    raise Exception("Motor não suportado.")
 
 
 def consultar_gemini(prompt: str, model: str = "gemini-2.0-flash", api_key: str | None = None) -> tuple[str | None, str | None]:
