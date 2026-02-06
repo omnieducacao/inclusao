@@ -3535,7 +3535,7 @@ def main():
             st.session_state.banco_estudantes = carregar_estudantes_supabase()
     
     if not st.session_state.banco_estudantes:
-        st.warning("⚠️ Nenhum estudante encontrado.")
+        st.info("**Nenhum estudante encontrado.** O Hub de Recursos precisa de estudantes com PEI cadastrado. Comece criando um PEI no módulo Estratégias & PEI.")
         try:
             from ui.permissions import get_member_from_session
             from services.members_service import get_class_assignments
@@ -3548,8 +3548,14 @@ def main():
                     st.info("💡 Nenhum aluno corresponde às suas turmas no momento. Verifique se o PEI dos alunos está com a mesma série/turma das suas atribuições.")
         except Exception:
             pass
-        if st.button("📘 Ir para o módulo PEI", type="primary"):
-            st.switch_page("pages/1_PEI.py")
+        st.markdown("---")
+        c_pei, c_est, _ = st.columns([1, 1, 3])
+        with c_pei:
+            if st.button("📘 Ir para Estratégias & PEI", type="primary", use_container_width=True, key="btn_hub_pei"):
+                st.switch_page("pages/1_PEI.py")
+        with c_est:
+            if st.button("👥 Ir para Estudantes", use_container_width=True, key="btn_hub_est"):
+                st.switch_page("pages/Estudantes.py")
         st.stop()
     
     # Seleção de aluno + Botão de Limpar Formulários
@@ -3594,13 +3600,13 @@ def main():
             for key in keys_to_remove:
                 del st.session_state[key]
             
-            st.success("✅ Formulários limpos!")
+            st.toast("Formulários limpos!")
             st.rerun()
     
     aluno = next((a for a in st.session_state.banco_estudantes if a.get('nome') == nome_aluno), None)
     
     if not aluno: 
-        st.error("Estudante não encontrado")
+        st.error("Estudante não encontrado. Selecione outro na lista ou recarregue a página.")
         st.stop()
     
     # --- ÁREA DO ALUNO (Visual + Expander) ---
@@ -3685,7 +3691,7 @@ def main():
     if is_ei:
         # Modo Educação Infantil
         st.info("🧸 **Modo Educação Infantil Ativado:** Foco em Experiências, BNCC e Brincar.")
-        
+        st.caption("📍 **Hub** — Educação Infantil: Criar Experiência | Estúdio Visual & CAA | Rotina & AVD | Inclusão no Brincar")
         tabs = st.tabs([
             "🧸 Criar Experiência (BNCC)",
             "🎨 Estúdio Visual & CAA",
@@ -3707,6 +3713,7 @@ def main():
     
     else:
         # Modo Padrão (Fundamental / Médio)
+        st.caption("📍 **Hub** — Navegue pelas abas: Adaptar Prova | Adaptar Atividade | Criar do Zero | Estúdio Visual | Roteiro | Papo de Mestre | Dinâmica | Plano de Aula")
         tabs = st.tabs([
             "📄 Adaptar Prova",
             "✂️ Adaptar Atividade",

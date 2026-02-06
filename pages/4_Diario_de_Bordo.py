@@ -584,7 +584,15 @@ try:
     alunos = st.session_state.alunos_cache or []
 
     if not alunos:
-        st.warning("Nenhum estudante encontrado.")
+        st.info("**Nenhum estudante encontrado.** Cadastre estudantes no PEI antes de registrar sessões no Diário de Bordo.")
+        st.markdown("---")
+        c_pei, c_est, _ = st.columns([1, 1, 3])
+        with c_pei:
+            if st.button("📘 Ir para Estratégias & PEI", type="primary", use_container_width=True, key="btn_diario_pei"):
+                st.switch_page("pages/1_PEI.py")
+        with c_est:
+            if st.button("👥 Ir para Estudantes", use_container_width=True, key="btn_diario_est"):
+                st.switch_page("pages/Estudantes.py")
         st.stop()
 except Exception as e:
     st.error(f"Erro ao carregar estudantes: {str(e)}")
@@ -1120,16 +1128,25 @@ with tab_lista:
                     with col_btn2:
                         registro_id = registro.get('registro_id') or registro.get('id')
                         student_id = registro.get('student_id')
-                        if st.button("🗑️ Excluir", key=f"del_{registro_id}", type="secondary", use_container_width=True):
-                            if student_id and registro_id:
-                                if excluir_registro_diario(student_id, registro_id):
-                                    st.success("Registro excluído!")
-                                    time.sleep(1)
+                        _conf_key = f"confirm_del_reg_{registro_id}"
+                        if st.session_state.get(_conf_key):
+                            st.warning("Excluir este registro? A ação não pode ser desfeita.")
+                            _dc1, _dc2 = st.columns(2)
+                            with _dc1:
+                                if st.button("Sim, excluir", key=f"yes_del_{registro_id}", type="primary", use_container_width=True):
+                                    if student_id and registro_id and excluir_registro_diario(student_id, registro_id):
+                                        st.session_state.pop(_conf_key, None)
+                                        st.toast("Registro excluído.")
+                                        st.rerun()
+                                    elif student_id and registro_id:
+                                        st.error("Não foi possível excluir. Verifique sua conexão e tente novamente.")
+                            with _dc2:
+                                if st.button("Cancelar", key=f"no_del_{registro_id}", use_container_width=True):
+                                    st.session_state.pop(_conf_key, None)
                                     st.rerun()
-                                else:
-                                    st.error("Erro ao excluir registro")
-                            else:
-                                st.error("Dados do registro incompletos")
+                        elif st.button("🗑️ Excluir", key=f"del_{registro_id}", type="secondary", use_container_width=True):
+                            st.session_state[_conf_key] = True
+                            st.rerun()
         
         # Paginação (simplificada)
         if len(registros_filtrados) > 10:

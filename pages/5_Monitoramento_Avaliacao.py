@@ -422,7 +422,15 @@ lista_alunos = carregar_estudantes_formatados()
 opcoes = {a['nome']: a for a in lista_alunos}
 
 if not opcoes:
-    st.warning("Nenhum estudante encontrado ou erro na conexão.")
+    st.info("**Nenhum estudante encontrado.** Cadastre estudantes no PEI e preencha os dados para acompanhar o monitoramento e avaliação.")
+    st.markdown("---")
+    c_pei, c_est, _ = st.columns([1, 1, 3])
+    with c_pei:
+        if st.button("📘 Ir para Estratégias & PEI", type="primary", use_container_width=True, key="btn_mon_pei"):
+            st.switch_page("pages/1_PEI.py")
+    with c_est:
+        if st.button("👥 Ir para Estudantes", use_container_width=True, key="btn_mon_est"):
+            st.switch_page("pages/Estudantes.py")
     st.stop()
 
 col_sel, col_blank = st.columns([1, 2])

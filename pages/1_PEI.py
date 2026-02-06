@@ -2053,6 +2053,7 @@ def render_progresso():
 # ==============================================================================
 # ABAS DO PEI (TEXTO EM MAIÚSCULAS, SEM EMOJIS)
 # ==============================================================================
+st.caption("📍 **PEI** — Navegue pelas abas: Início | Estudante | Evidências | Rede de Apoio | Mapeamento | Plano de Ação | Monitoramento | BNCC | Consultoria IA | Dashboard")
 abas = [
     "INÍCIO", "ESTUDANTE", "EVIDÊNCIAS", "REDE DE APOIO", "MAPEAMENTO",
     "PLANO DE AÇÃO", "MONITORAMENTO", "BNCC", "CONSULTORIA IA", "DASHBOARD & DOCS"
@@ -2318,7 +2319,7 @@ with tab0:
 
             # Pós sucesso: botão de download
             if st.session_state.get("sync_sucesso"):
-                st.success("✅ Tudo salvo no Supabase!")
+                st.toast("Tudo salvo no Supabase!")
 
                 timestamp = datetime.now().strftime("%d-%m_%Hh%M")
                 nome_clean = (d.get("nome") or "Estudante").replace(" ", "_")

@@ -233,7 +233,7 @@ with st.expander("➕ Novo usuário", expanded=st.session_state.get("gestao_show
                     else:
                         st.error(f"Erro ao salvar: {err}")
                 else:
-                    st.success(f"Usuário {nome} cadastrado. Peça para acessar com PIN da escola + email + senha no login.")
+                    st.toast(f"Usuário {nome} cadastrado!")
                     st.session_state["gestao_show_form"] = False
                     st.rerun()
 
@@ -243,7 +243,9 @@ editing_id = st.session_state.get("gestao_editing_id")
 confirm_del_id = st.session_state.get("gestao_confirm_del_id")
 
 if not members:
-    st.info("Nenhum usuário cadastrado. Use o formulário acima para adicionar.")
+    st.info("**Nenhum usuário cadastrado.** Configure o ano letivo e as turmas em **Configuração Escola** primeiro. Depois use o formulário acima para adicionar professores e membros.")
+    if st.button("⚙️ Ir para Configuração Escola", type="secondary", key="btn_gestao_config"):
+        st.switch_page("pages/7_Configuracao_Escola.py")
 else:
     for m in members:
         if not m.get("active", True):
@@ -275,10 +277,10 @@ else:
                         if delete_member_permanently(mid):
                             st.session_state.pop("gestao_confirm_del_id", None)
                             st.session_state.pop("gestao_editing_id", None)
-                            st.success("Usuário excluído.")
+                            st.toast("Usuário excluído.")
                             st.rerun()
                         else:
-                            st.error("Erro ao excluir.")
+                            st.error("Não foi possível excluir. Verifique sua conexão e tente novamente.")
                 with c2:
                     if st.button("Cancelar", key=f"del_no_{mid}"):
                         st.session_state.pop("gestao_confirm_del_id", None)
@@ -297,10 +299,10 @@ else:
                 with col_a2:
                     if st.button("⏸️ Desativar", key=f"desativar_{mid}", type="secondary"):
                         if deactivate_member(mid):
-                            st.success("Desativado.")
+                            st.toast("Usuário desativado.")
                             st.rerun()
                         else:
-                            st.error("Erro ao desativar.")
+                            st.error("Não foi possível desativar. Verifique sua conexão.")
                 with col_a3:
                     if st.button("🗑️ Excluir", key=f"excluir_{mid}", type="secondary"):
                         st.session_state["gestao_confirm_del_id"] = mid
@@ -322,10 +324,10 @@ else:
                         if st.button("Sim, excluir", key=f"inact_del_yes_{mid}", type="primary"):
                             if delete_member_permanently(mid):
                                 st.session_state.pop("gestao_confirm_del_id", None)
-                                st.success("Excluído.")
+                                st.toast("Usuário excluído.")
                                 st.rerun()
                             else:
-                                st.error("Erro ao excluir.")
+                                st.error("Não foi possível excluir. Verifique sua conexão e tente novamente.")
                     with c2:
                         if st.button("Cancelar", key=f"inact_del_no_{mid}"):
                             st.session_state.pop("gestao_confirm_del_id", None)
@@ -448,6 +450,6 @@ else:
                             else:
                                 st.error(f"Erro: {err}")
                         else:
-                            st.success("Usuário atualizado.")
+                            st.toast("Usuário atualizado.")
                             st.session_state.pop("gestao_editing_id", None)
                             st.rerun()

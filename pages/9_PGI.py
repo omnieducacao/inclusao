@@ -645,8 +645,19 @@ with tab_gerador:
                 if a.get("perfil"):
                     st.caption(f"📌 Perfis: {', '.join(a['perfil'])}")
             with col_act:
-                if st.button("🗑️", key=f"pgi_del_{i}", help="Remover"):
-                    st.session_state.pgi_acoes.pop(i)
+                _pgi_confirm = f"pgi_confirm_del_{i}"
+                if st.session_state.get(_pgi_confirm):
+                    st.caption("Remover esta ação?")
+                    if st.button("Sim", key=f"pgi_yes_{i}"):
+                        st.session_state.pgi_acoes.pop(i)
+                        st.session_state.pop(_pgi_confirm, None)
+                        st.toast("Ação removida.")
+                        st.rerun()
+                    if st.button("Não", key=f"pgi_no_{i}"):
+                        st.session_state.pop(_pgi_confirm, None)
+                        st.rerun()
+                elif st.button("🗑️", key=f"pgi_del_{i}", help="Remover"):
+                    st.session_state[_pgi_confirm] = True
                     st.rerun()
             st.divider()
 
