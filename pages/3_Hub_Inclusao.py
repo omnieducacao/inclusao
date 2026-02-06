@@ -120,6 +120,17 @@ def forcar_layout_hub():
             /* 6. Esconde o menu hambúrguer e rodapé */
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
+            
+            /* 7. Seletor de aluno sticky (Hub) - mantém visível ao rolar */
+            body.page-teal div[data-testid="stVerticalBlock"]:has(.hub-seletor-sticky) {
+                position: sticky;
+                top: 80px;
+                z-index: 50;
+                background: white;
+                padding: 12px 0 16px 0;
+                margin-bottom: 8px;
+                border-bottom: 1px solid #E2E8F0;
+            }
         </style>
     """, unsafe_allow_html=True)
 
@@ -1654,16 +1665,19 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
                 disc_opcoes,
                 index=0 if disc_opcoes else 0,
                 disabled=not disc_mostrar,
-                key=f"disc_basico_{key_suffix}"
+                key=f"disc_basico_{key_suffix}",
+                help="Matéria conforme BNCC (ex.: Língua Portuguesa, Matemática)."
             )
         with col3:
             objeto = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
-                                  key=f"obj_basico_{key_suffix}")
+                                  key=f"obj_basico_{key_suffix}",
+                                  help="Objeto de conhecimento BNCC (ex.: Frações, Leitura).")
         
         col4, col5 = st.columns(2)
         with col4:
             unidade = st.text_input("Unidade Temática", placeholder="Ex: Números", 
-                                   key=f"unid_basico_{key_suffix}")
+                                   key=f"unid_basico_{key_suffix}",
+                                   help="Unidade temática da BNCC da disciplina.")
         
         habilidades = []
         if mostrar_habilidades:
@@ -2543,6 +2557,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
     with col_check:
         with st.expander("🎯 Checklist de Adaptação (opcional)", expanded=False):
             st.info("Marque as adaptações que devem ser consideradas na criação da atividade.")
+            st.caption("💡 Estas opções orientam a IA a adaptar o conteúdo ao perfil do estudante (ex.: parágrafos curtos, instruções passo a passo).")
             col_c1, col_c2, col_c3, col_c4 = st.columns(4)
             with col_c1:
                 check_desafio = st.checkbox("Questões mais desafiadoras", value=False, key="c0_desafio")
@@ -2567,7 +2582,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
         with st.expander("🧠 Taxonomia de Bloom (opcional)", expanded=False):
             if 'bloom_memoria' not in st.session_state:
                 st.session_state.bloom_memoria = {cat: [] for cat in TAXONOMIA_BLOOM.keys()}
-            usar_bloom = st.checkbox(f"{get_icon_emoji('configurar')} Usar Taxonomia de Bloom (Revisada)", key="usar_bloom")
+            usar_bloom = st.checkbox(f"{get_icon_emoji('configurar')} Usar Taxonomia de Bloom (Revisada)", key="usar_bloom", help="A Taxonomia de Bloom define níveis cognitivos (Lembrar, Compreender, Aplicar, Analisar, Avaliar, Criar). Selecione verbos que alinham a atividade aos objetivos.")
             st.caption("[Saiba mais: Taxonomia de Bloom revisada (Wikipedia)](https://pt.wikipedia.org/wiki/Taxonomia_de_Bloom)")
             if usar_bloom:
                 col_b1, col_b2 = st.columns(2)
@@ -3558,11 +3573,12 @@ def main():
                 st.switch_page("pages/Estudantes.py")
         st.stop()
     
-    # Seleção de aluno + Botão de Limpar Formulários
+    # Seleção de aluno + Botão de Limpar Formulários (área sticky via CSS)
+    st.markdown('<div class="hub-seletor-sticky" style="display:none;"></div>', unsafe_allow_html=True)
     lista_alunos = [a['nome'] for a in st.session_state.banco_estudantes]
     col_sel, col_btn_limpar, col_info = st.columns([2, 1, 2])
     with col_sel:
-        nome_aluno = st.selectbox("📂 Selecione o Estudante:", lista_alunos)
+        nome_aluno = st.selectbox("📂 Selecione o Estudante:", lista_alunos, help="Troque de estudante para gerar recursos personalizados ao PEI dele.")
     
     with col_btn_limpar:
         st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)  # Alinhar com selectbox

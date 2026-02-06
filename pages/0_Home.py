@@ -5,6 +5,7 @@ import base64
 import os
 import graphviz
 import time
+import requests
 
 import omni_utils as ou
 
@@ -1739,6 +1740,46 @@ modules_data = [
     if _can(m.get("perm", ""))
     and (m.get("perm") not in ou.MODULE_KEYS or m.get("perm") in _enabled)
 ]
+
+# Card "Próximos passos" (resumo condicional)
+@st.cache_data(ttl=60, show_spinner=False)
+def _home_fetch_students(ws_id):
+    try:
+        url = ou.get_setting("SUPABASE_URL", "").rstrip("/") + "/rest/v1/students"
+        headers = ou._headers()
+        params = f"?select=id,pei_data&workspace_id=eq.{ws_id}"
+        r = requests.get(url + params, headers=headers, timeout=8)
+        return r.json() if r.status_code == 200 else []
+    except Exception:
+        return []
+
+_ws_id = st.session_state.get("workspace_id")
+if _ws_id:
+    _students = _home_fetch_students(str(_ws_id))
+    _n_total = len(_students)
+    _n_em_andamento = 0
+    for s in _students:
+        pd = s.get("pei_data") or {}
+        if isinstance(pd, dict) and pd.get("status_validacao_pei") in (None, "rascunho", "ajustando"):
+            _n_em_andamento += 1
+    if _n_total == 0:
+        st.markdown("""
+        <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+            <strong>📍 Próximos passos</strong>
+            <p style="margin:8px 0 0 0;color:#1E40AF;">Nenhum estudante cadastrado. O primeiro passo é criar um PEI no módulo <strong>Estratégias & PEI</strong> — o estudante é cadastrado junto com o plano.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("📘 Ir para Estratégias & PEI", type="primary", key="btn_home_pei"):
+            st.switch_page("pages/1_PEI.py")
+    elif _n_em_andamento > 0:
+        st.markdown(f"""
+        <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+            <strong>📍 Próximos passos</strong>
+            <p style="margin:8px 0 0 0;color:#15803D;">{_n_em_andamento} PEI(s) em andamento. Continue preenchendo no módulo Estratégias & PEI.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("📘 Ir para Estratégias & PEI", type="secondary", key="btn_home_pei2"):
+            st.switch_page("pages/1_PEI.py")
 
 st.markdown("### 🚀 Módulos da Plataforma")
 

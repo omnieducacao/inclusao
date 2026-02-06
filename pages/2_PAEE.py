@@ -106,7 +106,7 @@ def forcar_layout_hub():
             .main .mod-card-wrapper,
             .block-container .mod-card-wrapper,
             .mod-card-wrapper {
-                margin-top: -120px !important; /* Puxa o hero para cima, reduzindo espaço do navbar */
+                margin-top: -96px !important; /* Puxa o hero para cima, reduzindo espaço do navbar */
                 position: relative;
                 z-index: 1;
             }
@@ -141,7 +141,7 @@ st.markdown("""
     .main .block-container .mod-card-wrapper,
     .block-container .mod-card-wrapper,
     .mod-card-wrapper:first-of-type {
-        margin-top: -120px !important;
+        margin-top: -96px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -179,7 +179,7 @@ body .mod-card-wrapper,
 .block-container .mod-card-wrapper,
 .mod-card-wrapper {{
     margin-bottom: 20px !important;
-    margin-top: -120px !important; /* Mantém o espaçamento reduzido do navbar */
+    margin-top: -96px !important; /* Mantém o espaçamento reduzido do navbar */
 }}
 
 
@@ -194,7 +194,7 @@ body .mod-card-wrapper,
   .mod-card-wrapper {{
       display:flex; flex-direction:column;
       margin-bottom:20px;
-      margin-top: -120px !important; /* Garante que não seja sobrescrito */
+      margin-top: -96px !important; /* Garante que não seja sobrescrito */
       border-radius:16px;
       overflow:hidden;
       box-shadow:0 4px 6px rgba(0,0,0,0.02);

@@ -2590,9 +2590,10 @@ with tab2:
 
     atual = st.session_state.dados.get("nivel_alfabetizacao")
     idx = LISTA_ALFABETIZACAO.index(atual) if atual in LISTA_ALFABETIZACAO else 0
-    st.session_state.dados["nivel_alfabetizacao"] = st.selectbox("Hipótese de Escrita", LISTA_ALFABETIZACAO, index=idx)
+    st.session_state.dados["nivel_alfabetizacao"] = st.selectbox("Hipótese de Escrita", LISTA_ALFABETIZACAO, index=idx, help="Nível de apropriação do sistema de escrita (Emília Ferreiro).")
 
     st.divider()
+    st.caption("Marque as evidências observadas na rotina do estudante (pedagógicas, cognitivas e comportamentais).")
     c1, c2, c3 = st.columns(3)
 
     def _tog(label):

@@ -88,3 +88,13 @@ git checkout -- pages/Estudantes.py pages/1_PEI.py pages/2_PAEE.py pages/3_Hub_I
 | 3 | Confirmação antes de ações destrutivas (Config turma, Diário registro, PGI ação) | ✅ |
 | 4 | Feedback de sucesso com st.toast | ✅ |
 | 5 | Mensagens de erro amigáveis (login, Estudantes, Hub, Gestão, Config) | ✅ |
+
+### Fase 2 — Prioridade média (02/2025)
+
+| # | Melhoria | Status |
+|---|----------|--------|
+| 6 | Tooltips em BNCC, Bloom, checklist de adaptação (Hub + PEI) | ✅ |
+| 7 | Seletor de aluno sticky no Hub (CSS) | ✅ |
+| 8 | Card Próximos passos na Home | ✅ |
+| 9 | Atalhos mentais (Home + Estudantes vazia já na fase 1) | ✅ |
+| 10 | Consistência de layout (margin-top -96px em todas as páginas) | ✅ |

@@ -96,7 +96,7 @@ def forcar_layout_hub():
             
             /* 5. Hero card colado no menu - margin negativo MUITO agressivo */
             .mod-card-wrapper {
-                margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
+                margin-top: -96px !important; /* Puxa o hero para cima, quase colando no menu */
                 position: relative;
                 z-index: 1;
             }
@@ -126,7 +126,7 @@ st.markdown("""
         border-radius: 16px; 
         overflow: hidden; 
         box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
-        margin-top: -128px !important; /* Puxa o hero para cima, quase colando no menu */
+        margin-top: -96px !important; /* Puxa o hero para cima, quase colando no menu */
         position: relative;
         z-index: 1;
     }

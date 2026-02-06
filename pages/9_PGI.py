@@ -89,7 +89,7 @@ def forcar_layout_pgi():
             .main .mod-card-wrapper,
             .block-container .mod-card-wrapper,
             .mod-card-wrapper {
-                margin-top: -120px !important;
+                margin-top: -96px !important;
                 position: relative;
                 z-index: 1;
             }
@@ -116,7 +116,7 @@ st.markdown("""
         display: flex;
         flex-direction: column;
         margin-bottom: 20px;
-        margin-top: -120px !important;
+        margin-top: -96px !important;
         border-radius: 16px;
         overflow: hidden;
         box-shadow: 0 4px 6px rgba(0,0,0,0.02);
