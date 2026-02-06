@@ -291,7 +291,7 @@ def render_login():
                         else:
                             st.error("Email ou senha incorretos.")
                     except Exception as e:
-                        st.error("Não foi possível entrar. Verifique sua conexão.")
+                        st.error(f"Não foi possível entrar: {e}")
             st.caption("Admin cria escolas, gera PIN e gerencia masters. Primeiro admin: criar no Supabase.")
 
         st.markdown("**Entrar na plataforma**")
@@ -356,7 +356,7 @@ def render_login():
                         else:
                             st.error("Email ou senha incorretos. Verifique e tente novamente.")
                 except Exception as e:
-                    st.error("Não foi possível entrar. Verifique sua conexão e tente novamente.")
+                    st.error(f"Não foi possível entrar: {e}")
 
         # Modo demo: quando ENV=TESTE e Supabase não configurado (teste local de UI)
         try:
