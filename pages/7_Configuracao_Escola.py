@@ -49,19 +49,20 @@ else:
         st.error(f"Erro ao carregar configuração: {e}")
         st.stop()
 
-try:
-    from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
-    hide_streamlit_chrome_if_needed()
-    hide_default_sidebar_nav()
-except Exception:
-    pass
-
+# set_page_config deve ser a primeira chamada Streamlit
 st.set_page_config(
     page_title="Omnisfera | Configuração da Escola",
     page_icon="omni_icone.png",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+try:
+    from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
+    hide_streamlit_chrome_if_needed()
+    hide_default_sidebar_nav()
+except Exception:
+    pass
 
 ou.ensure_state()
 
@@ -94,6 +95,7 @@ st.markdown(f"""
 <div class="mod-card">
     <strong>Configuração da Escola</strong>
     <p style="color:#64748B;margin:8px 0 0 0;">{saudacao}, {user_first}! Configure o ano letivo, séries e turmas antes de cadastrar professores.</p>
+    <p style="color:#94A3B8;font-size:0.85rem;margin:6px 0 0 0;">📍 <strong>Ordem sugerida:</strong> 1) Ano letivo → 2) Séries da escola → 3) Turmas → 4) Depois cadastre usuários em Gestão de Usuários.</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -105,6 +107,7 @@ except Exception as e:
 
 # --- 1. Ano Letivo ---
 st.markdown("### 1. Ano Letivo")
+st.caption("💡 Dica: Pressione Enter para enviar formulários.")
 with st.expander("➕ Adicionar ano letivo"):
     with st.form("form_ano"):
         col1, col2 = st.columns(2)
@@ -115,9 +118,9 @@ with st.expander("➕ Adicionar ano letivo"):
         if st.form_submit_button("Adicionar"):
             _, err = create_school_year(ws_id, year, name or None)
             if err:
-                st.error(err)
+                st.error(f"Não foi possível salvar. {err}")
             else:
-                st.success("Ano letivo adicionado.")
+                st.toast("Ano letivo adicionado.")
                 st.rerun()
 
 with st.expander("📋 Anos cadastrados", expanded=bool(school_years)):
@@ -125,7 +128,7 @@ with st.expander("📋 Anos cadastrados", expanded=bool(school_years)):
         for y in school_years:
             st.markdown(f"• **{y.get('year')}** — {y.get('name','')}")
     else:
-        st.caption("Nenhum ano. Adicione acima.")
+        st.info("Nenhum ano letivo cadastrado. Adicione acima para poder criar turmas e vincular usuários.")
 
 # --- 2. Séries que a escola oferece ---
 st.markdown("### 2. Séries que a escola oferece")
@@ -151,7 +154,7 @@ selected_ids = st.multiselect(
 if st.button("Salvar séries"):
     try:
         set_workspace_grades(ws_id, selected_ids)
-        st.success("Séries salvas.")
+        st.toast("Séries salvas.")
         st.rerun()
     except Exception as e:
         st.warning("Execute a migration 00007 no Supabase (tabela workspace_grades). " + str(e))
@@ -180,9 +183,9 @@ else:
                 if year_opt and grade_opt:
                     _, err = create_class(ws_id, year_opt["id"], grade_opt["id"], class_group)
                     if err:
-                        st.error(err)
+                        st.error(f"Não foi possível salvar. {err}")
                     else:
-                        st.success("Turma adicionada.")
+                        st.toast("Turma adicionada.")
                         st.rerun()
 
     with st.expander("📋 Turmas criadas", expanded=True):
@@ -197,8 +200,25 @@ else:
                     with col_txt:
                         st.markdown(f"• **{lbl}** ({school_year_active.get('year')})")
                     with col_btn:
-                        if st.button("Remover", key=f"del_class_{c.get('id')}", type="secondary"):
-                            if delete_class(c.get("id")):
-                                st.rerun()
+                        _del_key = f"del_class_{c.get('id')}"
+                        _confirm_key = f"confirm_del_class_{c.get('id')}"
+                        if st.session_state.get(_confirm_key):
+                            st.warning("Remover esta turma? A ação não pode ser desfeita.")
+                            _c1, _c2 = st.columns(2)
+                            with _c1:
+                                if st.button("Sim, remover", key=f"yes_{_del_key}", type="primary"):
+                                    if delete_class(c.get("id")):
+                                        st.session_state.pop(_confirm_key, None)
+                                        st.toast("Turma removida.")
+                                        st.rerun()
+                                    else:
+                                        st.error("Não foi possível remover. Verifique sua conexão e tente novamente.")
+                            with _c2:
+                                if st.button("Cancelar", key=f"no_{_del_key}"):
+                                    st.session_state.pop(_confirm_key, None)
+                                    st.rerun()
+                        elif st.button("Remover", key=_del_key, type="secondary"):
+                            st.session_state[_confirm_key] = True
+                            st.rerun()
             else:
-                st.caption("Nenhuma turma. Adicione acima.")
+                st.info("Nenhuma turma cadastrada. Crie um ano letivo e selecione as séries acima; depois adicione turmas no expander **Adicionar turma**.")

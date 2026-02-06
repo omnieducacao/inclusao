@@ -14,19 +14,20 @@ from zoneinfo import ZoneInfo
 import omni_utils as ou
 from omni_utils import get_icon, icon_title, get_icon_emoji
 
-try:
-    from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
-    hide_streamlit_chrome_if_needed()
-    hide_default_sidebar_nav()
-except Exception:
-    pass
-
+# set_page_config deve ser a primeira chamada Streamlit
 st.set_page_config(
     page_title="Omnisfera | PGI - Plano de Gestão Inclusiva",
     page_icon="omni_icone.png",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+try:
+    from ui_lockdown import hide_streamlit_chrome_if_needed, hide_default_sidebar_nav
+    hide_streamlit_chrome_if_needed()
+    hide_default_sidebar_nav()
+except Exception:
+    pass
 
 ou.ensure_state()
 
@@ -88,7 +89,7 @@ def forcar_layout_pgi():
             .main .mod-card-wrapper,
             .block-container .mod-card-wrapper,
             .mod-card-wrapper {
-                margin-top: -120px !important;
+                margin-top: -96px !important;
                 position: relative;
                 z-index: 1;
             }
@@ -115,7 +116,7 @@ st.markdown("""
         display: flex;
         flex-direction: column;
         margin-bottom: 20px;
-        margin-top: -120px !important;
+        margin-top: -96px !important;
         border-radius: 16px;
         overflow: hidden;
         box-shadow: 0 4px 6px rgba(0,0,0,0.02);
@@ -644,8 +645,19 @@ with tab_gerador:
                 if a.get("perfil"):
                     st.caption(f"📌 Perfis: {', '.join(a['perfil'])}")
             with col_act:
-                if st.button("🗑️", key=f"pgi_del_{i}", help="Remover"):
-                    st.session_state.pgi_acoes.pop(i)
+                _pgi_confirm = f"pgi_confirm_del_{i}"
+                if st.session_state.get(_pgi_confirm):
+                    st.caption("Remover esta ação?")
+                    if st.button("Sim", key=f"pgi_yes_{i}"):
+                        st.session_state.pgi_acoes.pop(i)
+                        st.session_state.pop(_pgi_confirm, None)
+                        st.toast("Ação removida.")
+                        st.rerun()
+                    if st.button("Não", key=f"pgi_no_{i}"):
+                        st.session_state.pop(_pgi_confirm, None)
+                        st.rerun()
+                elif st.button("🗑️", key=f"pgi_del_{i}", help="Remover"):
+                    st.session_state[_pgi_confirm] = True
                     st.rerun()
             st.divider()
 

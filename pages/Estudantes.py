@@ -101,7 +101,7 @@ st.markdown("""
     /* TABELA DE ESTUDANTES */
     .student-table { background: white; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-top: 20px; }
     .student-header { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-weight: 800; color: #475569; font-size: 0.8rem; text-transform: uppercase; }
-    .student-row { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; padding: 12px 20px; border-bottom: 1px solid #F1F5F9; align-items: center; background: white; }
+    .student-row { display: grid; grid-template-columns: 3fr 1fr 1fr 2fr 1fr; padding: 12px 20px; border-bottom: 1px solid #F1F5F9; align-items: center; background: white; transition: background 0.2s ease; }
     .student-row:hover { background: #F8FAFC; }
     
     /* BADGES */
@@ -231,7 +231,16 @@ if q:
 
 # Lista de estudantes (cada um em aba retrátil)
 if not alunos:
-    st.info("Nenhum estudante encontrado.")
+    st.info("**Nenhum estudante encontrado.** Para começar, crie um PEI no módulo Estratégias & PEI — o estudante é cadastrado junto com o plano.")
+    st.markdown("---")
+    c_pei, c_home, _ = st.columns([1, 1, 3])
+    with c_pei:
+        if st.button("📘 Ir para Estratégias & PEI", type="primary", use_container_width=True, key="btn_est_pei"):
+            st.switch_page("pages/1_PEI.py")
+    with c_home:
+        if st.button("🏠 Ir para Página Inicial", use_container_width=True, key="btn_est_home"):
+            st.switch_page("pages/0_Home.py")
+    st.stop()
 else:
     st.caption("Dados sensíveis: uso exclusivo da equipe pedagógica. Não compartilhar com estudantes ou famílias.")
     for a in alunos:
@@ -268,6 +277,7 @@ else:
                         list_students_rest.clear()
                         st.session_state["students_cache_invalid"] = True
                         st.session_state[confirm_key] = False
+                        st.toast("Estudante excluído.")
                         st.rerun()
                 with c_n:
                     if st.button("Cancelar", key=f"no_{sid}"):
@@ -297,10 +307,10 @@ else:
                         pei_novo["status_validacao_pei"] = "rascunho"
                         if update_student_pei_data(sid, pei_novo):
                             list_students_rest.clear()
-                            st.success("Relatórios PEI apagados.")
+                            st.toast("Relatórios PEI apagados.")
                             st.rerun()
                         else:
-                            st.error("Erro ao atualizar.")
+                            st.error("Não foi possível atualizar. Verifique sua conexão e tente novamente.")
                 with col_j:
                     if tem_jornada and st.button("Apagar jornada", key=f"apagar_jornada_{sid}", type="secondary"):
                         pei_novo = dict(pei_data)
@@ -308,18 +318,18 @@ else:
                         pei_novo["status_validacao_game"] = "rascunho"
                         if update_student_pei_data(sid, pei_novo):
                             list_students_rest.clear()
-                            st.success("Jornada gamificada apagada.")
+                            st.toast("Jornada gamificada apagada.")
                             st.rerun()
                         else:
-                            st.error("Erro ao atualizar.")
+                            st.error("Não foi possível atualizar. Verifique sua conexão e tente novamente.")
                 with col_c:
                     if n_ciclos > 0 and st.button("Apagar ciclos PAEE", key=f"apagar_ciclos_{sid}", type="secondary"):
                         if update_student_paee_ciclos(sid, []):
                             list_students_rest.clear()
-                            st.success("Ciclos PAEE apagados.")
+                            st.toast("Ciclos PAEE apagados.")
                             st.rerun()
                         else:
-                            st.error("Erro ao atualizar.")
+                            st.error("Não foi possível atualizar. Verifique sua conexão e tente novamente.")
 
 # Rodapé Simples
 st.markdown(f"<div style='text-align:center;color:#94A3B8;font-size:0.7rem;padding:20px;margin-top:20px;'>{len(alunos)} estudantes • {APP_VERSION}</div>", unsafe_allow_html=True)

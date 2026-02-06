@@ -621,6 +621,14 @@ def inject_compact_app_css(accent: str = "#0D9488"):
   }}
 
   .stDivider {{ margin: 0.75rem 0 !important; }}
+
+  /* Micro-animações: expanders e elementos interativos */
+  .streamlit-expander {{
+    transition: all 0.2s ease !important;
+  }}
+  .streamlit-expander:hover {{
+    border-color: #CBD5E1 !important;
+  }}
 </style>
         """,
         unsafe_allow_html=True,

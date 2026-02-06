@@ -22,20 +22,21 @@ from openai import OpenAI
 
 # Importações para documentos
 from docx import Document
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.shared import Pt, Inches, RGBColor
-try:
-    from docx.oxml.ns import qn
-except ImportError:
-    # Fallback se qn não estiver disponível
-    qn = lambda x: x, RGBColor
-from docx.oxml.ns import qn
-from fpdf import FPDF
 from pypdf import PdfReader
 
 # Importações UI
 from streamlit_cropper import st_cropper
-import omni_utils as ou
+
+# Serviços
+from services.hub_docs import criar_docx_simples, criar_pdf_generico, construir_docx_final
+from services.hub_bncc_utils import ano_celula_contem, extrair_ano_bncc_do_aluno, padronizar_ano, ordenar_anos
+from services.hub_ia import (
+    _comprimir_imagem_para_vision,
+    _hub_chat_completion,
+    buscar_imagem_unsplash,
+    gerar_imagem_inteligente,
+    gerar_pictograma_caa,
+)
 
 # ==============================================================================
 # CONFIGURAÇÃO INICIAL
@@ -119,6 +120,17 @@ def forcar_layout_hub():
             /* 6. Esconde o menu hambúrguer e rodapé */
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
+            
+            /* 7. Seletor de aluno sticky (Hub) - mantém visível ao rolar */
+            body.page-teal div[data-testid="stVerticalBlock"]:has(.hub-seletor-sticky) {
+                position: sticky;
+                top: 80px;
+                z-index: 50;
+                background: white;
+                padding: 12px 0 16px 0;
+                margin-bottom: 8px;
+                border-bottom: 1px solid #E2E8F0;
+            }
         </style>
     """, unsafe_allow_html=True)
 
@@ -294,11 +306,12 @@ TAXONOMIA_BLOOM = {
     "6. Criar": ["Compor", "Construir", "Criar", "Desenhar", "Desenvolver", "Formular", "Investigar", "Planejar", "Produzir", "Propor"]
 }
 
-# Lista de componentes curriculares padrão
-DISCIPLINAS_PADRAO = ["Matemática", "Português", "Ciências", "História", "Geografia", "Artes", "Educação Física", "Inglês", "Filosofia", "Sociologia"]
+# Lista de componentes curriculares padrão (EI, EF, EM)
+DISCIPLINAS_PADRAO = ["Educação Infantil", "Matemática", "Português", "Ciências", "História", "Geografia", "Artes", "Educação Física", "Inglês", "Filosofia", "Sociologia", "Biologia", "Física", "Química"]
 
 # Mapeamento: label do components (DB) → nome usado no Hub/DISCIPLINAS_PADRAO
 COMPONENT_TO_HUB = {
+    "Educação Infantil": "Educação Infantil",
     "Língua Portuguesa": "Português",
     "Arte": "Artes",
     "Língua Inglesa": "Inglês",
@@ -361,8 +374,38 @@ def _filtrar_disciplinas_por_membro(disciplinas_bncc: list) -> tuple:
         return disciplinas_bncc, True, None
 
 
-# Campos de Experiência (Educação Infantil)
-CAMPOS_EXPERIENCIA_EI = [
+def _filtrar_areas_em_por_membro(areas_list: list) -> tuple:
+    """
+    Para formulários BNCC EM (áreas de conhecimento). Filtra áreas conforme os componentes
+    que o professor leciona (História -> Ciências Humanas, Matemática -> Matemática, etc.).
+    Retorna (areas_filtradas, mostrar_selector, default).
+    """
+    try:
+        from ui.permissions import get_member_from_session
+        from services.members_service import get_member_components
+        from services.bncc_service import COMPONENTE_PARA_AREA_EM
+        member = get_member_from_session()
+        if not member or member.get("link_type") != "turma":
+            return areas_list, True, None
+        mid = member.get("id")
+        comps = get_member_components(mid) if mid else []
+        if not comps:
+            return areas_list, True, None
+        # Área é exibida se algum componente do professor mapeia para ela
+        opcoes = [a for a in areas_list if any(COMPONENTE_PARA_AREA_EM.get(c) == a for c in comps)]
+        if not opcoes:
+            opcoes = [COMPONENTE_PARA_AREA_EM.get(c) for c in comps if COMPONENTE_PARA_AREA_EM.get(c) in areas_list]
+        if not opcoes:
+            opcoes = areas_list
+        if len(opcoes) == 1:
+            return opcoes, False, opcoes[0]
+        return opcoes, True, opcoes[0] if opcoes else None
+    except Exception:
+        return areas_list, True, None
+
+
+# Campos de Experiência (Educação Infantil) — fallback se bncc_ei.csv não tiver
+CAMPOS_EXPERIENCIA_EI_FALLBACK = [
     "O eu, o outro e o nós",
     "Corpo, gestos e movimentos",
     "Traços, sons, cores e formas",
@@ -448,20 +491,6 @@ def baixar_imagem_url(url):
         print(f"Erro ao baixar imagem: {e}")
     return None
 
-def buscar_imagem_unsplash(query, access_key):
-    """Busca imagem no Unsplash"""
-    if not access_key:
-        return None
-    url = f"https://api.unsplash.com/search/photos?query={query}&per_page=1&client_id={access_key}&lang=pt"
-    try:
-        resp = requests.get(url, timeout=5)
-        data = resp.json()
-        if data.get('results'):
-            return data['results'][0]['urls']['regular']
-    except Exception as e:
-        print(f"Erro ao buscar no Unsplash: {e}")
-    return None
-
 def garantir_tag_imagem(texto, tag_a_inserir="IMG_1"):
     """
     Garante tag de imagem no texto quando aplicável.
@@ -479,179 +508,6 @@ def garantir_tag_imagem(texto, tag_a_inserir="IMG_1"):
             return texto[:pos] + "\n\n" + tag + "\n\n" + texto[pos:]
         return texto + "\n\n" + tag
     return texto
-
-def construir_docx_final(texto_ia, aluno, materia, mapa_imgs, tipo_atv, sem_cabecalho=False, checklist_adaptacao=None):
-    """Constrói documento DOCX final com formatação melhorada baseada no checklist"""
-    doc = Document()
-    
-    # Determinar formatação baseada no checklist
-    usar_caixa_alta = False
-    usar_opendyslexic = False
-    espacamento_linhas = 1.5  # padrão
-    
-    if checklist_adaptacao:
-        # Se precisa de adaptação visual, usar formatação especial
-        if checklist_adaptacao.get("paragrafos_curtos") or not checklist_adaptacao.get("compreende_instrucoes_complexas"):
-            usar_caixa_alta = True
-            usar_opendyslexic = True
-            espacamento_linhas = 1.8
-    
-    # Estilos personalizados
-    style = doc.styles['Normal']
-    if usar_opendyslexic:
-        # Tentar usar OpenDyslexic, fallback para Arial se não disponível
-        try:
-            style.font.name = 'OpenDyslexic'
-            # Tentar registrar fonte alternativa (pode não funcionar se fonte não estiver instalada)
-            try:
-                rFonts = style.element.rPr.rFonts
-                if rFonts is not None:
-                    rFonts.set(qn('w:ascii'), 'OpenDyslexic')
-                    rFonts.set(qn('w:hAnsi'), 'OpenDyslexic')
-            except:
-                pass  # Se não conseguir registrar, continua com o nome
-        except:
-            style.font.name = 'Arial'
-    else:
-        style.font.name = 'Arial'
-    
-    style.font.size = Pt(14)  # Aumentado para melhor legibilidade
-    style.paragraph_format.space_after = Pt(8)
-    style.paragraph_format.line_spacing = espacamento_linhas
-    
-    if not sem_cabecalho:
-        # Título principal
-        titulo = doc.add_heading(f'{tipo_atv.upper()} ADAPTADA - {materia.upper()}', 0)
-        titulo.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        if titulo.runs:
-            titulo.runs[0].font.size = Pt(16)
-            titulo.runs[0].bold = True
-        
-        # Informações do estudante
-        p_estudante = doc.add_paragraph(f"Estudante: {aluno['nome']}")
-        p_estudante.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        if p_estudante.runs:
-            p_estudante.runs[0].font.size = Pt(11)
-        
-        # Linha separadora
-        linha_sep = doc.add_paragraph("_"*50)
-        linha_sep.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        
-        # Título de seção
-        secao = doc.add_heading('Atividades', level=2)
-        if secao.runs:
-            secao.runs[0].font.size = Pt(14)
-
-    linhas = texto_ia.split('\n')
-    for linha in linhas:
-        linha_limpa = linha.strip()
-        if not linha_limpa:
-            # Linha vazia - adiciona espaço
-            doc.add_paragraph()
-            continue
-            
-        tag_match = re.search(r'\[\[(IMG|GEN_IMG).*?(\d+)\]\]', linha, re.IGNORECASE)
-        if tag_match:
-            partes = re.split(r'(\[\[(?:IMG|GEN_IMG).*?\d+\]\])', linha, flags=re.IGNORECASE)
-            for parte in partes:
-                sub_match = re.search(r'(\d+)', parte)
-                if ("IMG" in parte.upper() or "GEN_IMG" in parte.upper()) and sub_match:
-                    num = int(sub_match.group(1))
-                    img_bytes = mapa_imgs.get(num)
-                    if not img_bytes and len(mapa_imgs) == 1:
-                        img_bytes = list(mapa_imgs.values())[0]
-                    if img_bytes:
-                        try:
-                            p = doc.add_paragraph()
-                            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                            r = p.add_run()
-                            r.add_picture(BytesIO(img_bytes), width=Inches(4.5))
-                            # Espaço após imagem
-                            doc.add_paragraph()
-                        except Exception as e:
-                            print(f"Erro ao adicionar imagem: {e}")
-                elif parte.strip():
-                    # Formatar texto com títulos e listas (passando parâmetros de formatação)
-                    _adicionar_paragrafo_formatado(doc, parte.strip(), usar_caixa_alta, usar_opendyslexic, espacamento_linhas)
-        else:
-            # Formatar texto com títulos e listas (passando parâmetros de formatação)
-            _adicionar_paragrafo_formatado(doc, linha_limpa, usar_caixa_alta, usar_opendyslexic, espacamento_linhas)
-            
-    buffer = BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
-    return buffer
-
-def _adicionar_paragrafo_formatado(doc, texto, usar_caixa_alta=False, usar_opendyslexic=False, espacamento=1.5):
-    """Adiciona parágrafo formatado com detecção de títulos e listas"""
-    try:
-        # Aplicar caixa alta se necessário
-        texto_formatado = texto.upper() if usar_caixa_alta else texto
-        
-        # Detectar títulos (começam com # ou são números seguidos de ponto)
-        if re.match(r'^#{1,3}\s+', texto_formatado):
-            nivel = len(re.match(r'^(#+)', texto_formatado).group(1))
-            texto_limpo = re.sub(r'^#+\s+', '', texto_formatado)
-            heading = doc.add_heading(texto_limpo, level=min(nivel, 3))
-            if heading.runs:
-                heading.runs[0].font.size = Pt(16 - nivel)
-                if usar_opendyslexic:
-                    heading.runs[0].font.name = 'OpenDyslexic'
-        elif re.match(r'^\d+[\.\)]\s+', texto_formatado):
-            # Lista numerada
-            p = doc.add_paragraph(texto_formatado, style='List Number')
-            if p.runs:
-                p.runs[0].font.size = Pt(14)
-                p.runs[0].font.name = 'OpenDyslexic' if usar_opendyslexic else 'Arial'
-                p.paragraph_format.line_spacing = espacamento
-        elif re.match(r'^[-•*]\s+', texto_formatado):
-            # Lista com marcadores
-            texto_limpo = re.sub(r'^[-•*]\s+', '', texto_formatado)
-            p = doc.add_paragraph(texto_limpo, style='List Bullet')
-            if p.runs:
-                p.runs[0].font.size = Pt(14)
-                p.runs[0].font.name = 'OpenDyslexic' if usar_opendyslexic else 'Arial'
-                p.paragraph_format.line_spacing = espacamento
-        elif texto_formatado.isupper() and len(texto_formatado) < 100:
-            # Título em maiúsculas
-            p = doc.add_paragraph(texto_formatado)
-            if p.runs:
-                p.runs[0].font.size = Pt(15)
-                p.runs[0].bold = True
-                p.runs[0].font.name = 'OpenDyslexic' if usar_opendyslexic else 'Arial'
-                p.paragraph_format.line_spacing = espacamento
-        else:
-            # Texto normal
-            p = doc.add_paragraph(texto_formatado)
-            if p.runs:
-                p.runs[0].font.size = Pt(14)
-                p.runs[0].font.name = 'OpenDyslexic' if usar_opendyslexic else 'Arial'
-                p.paragraph_format.line_spacing = espacamento
-    except Exception as e:
-        # Fallback: adiciona como parágrafo simples
-        doc.add_paragraph(texto_formatado if usar_caixa_alta else texto)
-
-def criar_docx_simples(texto, titulo="Documento"):
-    """Cria um DOCX simples a partir de texto"""
-    doc = Document()
-    doc.add_heading(titulo, 0)
-    for para in texto.split('\n'):
-        if para.strip():
-            doc.add_paragraph(para.strip())
-    buffer = BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
-    return buffer
-
-def criar_pdf_generico(texto):
-    """Cria um PDF simples a partir de texto"""
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    texto_safe = texto.encode('latin-1', 'replace').decode('latin-1')
-    pdf.multi_cell(0, 10, texto_safe)
-    return pdf.output(dest='S').encode('latin-1')
-
 
 def gerar_ppt_do_plano_kimi(texto_plano: str, titulo_plano: str, aluno: dict = None, kimi_key: str = None) -> tuple[bytes | None, str | None]:
     """
@@ -1083,86 +939,8 @@ def carregar_estudantes_supabase():
     return estudantes
 
 # ==============================================================================
-# FUNÇÕES DE IA (OPENAI)
+# FUNÇÕES DE IA (UI - engine selector)
 # ==============================================================================
-
-def gerar_imagem_inteligente(api_key, prompt, unsplash_key=None, feedback_anterior="", prioridade="IA", gemini_key=None):
-    """
-    Gera imagem: prioridade Omnisfera Blue, depois Red (DALL-E), depois Unsplash.
-    Retorna bytes (PNG) ou URL (str); st.image() aceita ambos.
-    """
-    # 1. TENTATIVA GEMINI (se chave configurada)
-    key_gemini = gemini_key or ou.get_gemini_api_key()
-    if key_gemini and prioridade == "IA":
-        img_bytes, err = ou.gerar_imagem_ilustracao_gemini(prompt, feedback_anterior=feedback_anterior, api_key=key_gemini)
-        if img_bytes:
-            return img_bytes
-
-    # 2. TENTATIVA BANCO DE IMAGENS (Se solicitado e configurado)
-    if prioridade == "BANCO" and unsplash_key:
-        termo = prompt.split('.')[0] if '.' in prompt else prompt
-        url_banco = buscar_imagem_unsplash(termo, unsplash_key)
-        if url_banco:
-            return url_banco
-
-    # 3. TENTATIVA OPENAI (DALL-E 3) — só se houver chave válida
-    if not api_key or not str(api_key).strip():
-        if unsplash_key and prioridade == "IA":
-            termo = prompt.split('.')[0] if '.' in prompt else prompt
-            return buscar_imagem_unsplash(termo, unsplash_key)
-        return None
-    try:
-        client = OpenAI(api_key=api_key)
-        prompt_final = f"{prompt}. Adjustment requested: {feedback_anterior}" if feedback_anterior else prompt
-        didactic_prompt = f"Educational textbook illustration, clean flat vector style, white background. CRITICAL RULE: STRICTLY NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS inside the image. Just the visual representation of: {prompt_final}"
-        resp = client.images.generate(model="dall-e-3", prompt=didactic_prompt, size="1024x1024", quality="standard", n=1)
-        return resp.data[0].url
-    except Exception as e:
-        if prioridade == "IA" and unsplash_key:
-            termo = prompt.split('.')[0] if '.' in prompt else prompt
-            return buscar_imagem_unsplash(termo, unsplash_key)
-        print(f"Erro ao gerar imagem: {e}")
-        return None
-
-def gerar_pictograma_caa(api_key, conceito, feedback_anterior="", gemini_key=None):
-    """
-    Gera símbolo CAA: prioridade Omnisfera Blue, depois Red (DALL-E).
-    Retorna bytes (PNG) ou URL (str); st.image() aceita ambos.
-    """
-    key_gemini = gemini_key or ou.get_gemini_api_key()
-    if key_gemini:
-        img_bytes, err = ou.gerar_imagem_pictograma_caa_gemini(conceito, feedback_anterior=feedback_anterior, api_key=key_gemini)
-        if img_bytes:
-            return img_bytes
-    if not api_key or not str(api_key).strip():
-        return None
-    try:
-        client = OpenAI(api_key=api_key)
-        ajuste = f" CORREÇÃO PEDIDA: {feedback_anterior}" if feedback_anterior else ""
-        prompt_caa = f"""
-    Create a COMMUNICATION SYMBOL (AAC/PECS) for the concept: '{conceito}'. {ajuste}
-    STYLE GUIDE:
-    - Flat vector icon (ARASAAC/Noun Project style).
-    - Solid WHITE background.
-    - Thick BLACK outlines.
-    - High contrast primary colors.
-    - No background details, no shadows.
-    - CRITICAL MANDATORY RULE: MUTE IMAGE. NO TEXT. NO WORDS. NO LETTERS. NO NUMBERS. 
-    - The image must be a purely visual symbol.
-    """
-        resp = client.images.generate(model="dall-e-3", prompt=prompt_caa, size="1024x1024", quality="standard", n=1)
-        return resp.data[0].url
-    except Exception as e:
-        print(f"Erro ao gerar pictograma: {e}")
-        return None
-
-def _hub_chat_completion(engine, messages, temperature=0.7, api_key=None):
-    """Chat completion unificado para Hub. engine: blue (DeepSeek), green (Kimi), yellow (Gemini)."""
-    engine = (engine or "blue").strip().lower()
-    if engine not in ("blue", "green", "yellow"):
-        engine = "blue"
-    return ou.chat_completion_multi_engine(engine, messages, temperature=temperature, api_key=api_key)
-
 
 def _render_engine_selector(key_suffix=""):
     """Renderiza expander para escolher motor IA (omnired/omniblue). omniyellow é usado para imagens/visão."""
@@ -1266,23 +1044,6 @@ def adaptar_conteudo_docx(api_key, aluno, texto, materia, tema, tipo_atv, remove
         return "Análise indisponível.", full_text
     except Exception as e:
         return str(e), ""
-
-def _comprimir_imagem_para_vision(img_bytes: bytes, max_bytes: int = 3_000_000) -> bytes:
-    """Reduz tamanho da imagem se necessário para evitar falhas na API de visão."""
-    if len(img_bytes) <= max_bytes:
-        return img_bytes
-    try:
-        img = Image.open(BytesIO(img_bytes)).convert("RGB")
-        w, h = img.size
-        scale = (max_bytes / len(img_bytes)) ** 0.5
-        new_w = max(256, min(w, int(w * scale)))
-        new_h = max(256, min(h, int(h * scale)))
-        img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-        buf = BytesIO()
-        img.save(buf, format="JPEG", quality=85)
-        return buf.getvalue()
-    except Exception:
-        return img_bytes
 
 
 def adaptar_conteudo_imagem(api_key, aluno, imagem_bytes, materia, tema, tipo_atv, livro_professor, modo_profundo=False, checklist_adaptacao=None, imagem_separada=None):
@@ -1507,7 +1268,29 @@ def criar_profissional(api_key, aluno, materia, objeto, qtd, tipo_q, qtd_imgs, v
     except Exception as e:
         return str(e), ""
 
-def gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, objetivo, feedback_anterior=""):
+def _extrair_idade_ei_aluno(aluno):
+    """Extrai faixa de idade EI do estudante (serie/grade). Ex: '4 anos', '3 anos'. Usa faixas do bncc_ei.csv."""
+    if not aluno or not isinstance(aluno, dict):
+        return None
+    serie = (aluno.get("serie") or aluno.get("grade") or "").strip()
+    if not serie:
+        return None
+    s = serie.lower()
+    try:
+        from services.bncc_service import faixas_idade_ei
+        faixas = faixas_idade_ei()
+    except Exception:
+        faixas = ["0 a 1 ano e 6 meses", "1 ano e 7 meses a 3 anos e 11 meses", "4 anos a 5 anos e 11 meses"]
+    for idade in (faixas or ["0 a 1 ano e 6 meses", "1 ano e 7 meses a 3 anos e 11 meses", "4 anos a 5 anos e 11 meses"]):
+        idade_lower = (idade or "").lower()
+        if idade_lower and (idade_lower in s or idade_lower.replace(" ", "") in s.replace(" ", "")):
+            return idade
+    if "infantil" in s:
+        return faixas[-1] if faixas else "4 anos"  # default = última faixa
+    return None
+
+
+def gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, objetivo, feedback_anterior="", objetivos_lista=None):
     """Gera experiência para Educação Infantil"""
     client = OpenAI(api_key=api_key)
     hiperfoco = aluno.get('hiperfoco', 'Brincar')
@@ -1523,7 +1306,7 @@ def gerar_experiencia_ei_bncc(api_key, aluno, campo_exp, objetivo, feedback_ante
     RESUMO DAS NECESSIDADES (PEI): {aluno.get('ia_sugestao', '')[:600]}
     
     SUA MISSÃO: Criar uma EXPERIÊNCIA LÚDICA, CONCRETA E VISUAL focada no Campo de Experiência: "{campo_exp}".
-    Objetivo Específico: {objetivo}
+    Objetivo(s) de Aprendizagem (BNCC - use APENAS estes, não invente): {objetivo}
     {ajuste_prompt}
     
     REGRAS:
@@ -1838,118 +1621,17 @@ def gerar_quebra_gelo_profundo(api_key, aluno, materia, assunto, hiperfoco, tema
 # FUNÇÕES DE BNCC (DROPDOWNS)
 # ==============================================================================
 
-def ano_celula_contem(ano_celula, ano_busca):
-    """
-    Verifica se ano_busca está na célula Ano da BNCC.
-    A célula pode ter múltiplos anos: "1º, 2º, 3º, 4º, 5º" (ex: Arte, Língua Portuguesa).
-    Retorna True se ano_busca (ex: "3º") está na lista.
-    """
-    if not ano_busca or not ano_celula:
-        return False
-    cell = str(ano_celula).strip()
-    busca = str(ano_busca).strip()
-    partes = [p.strip() for p in cell.split(",")]
-    return busca in partes
-
-
-def extrair_ano_bncc_do_aluno(aluno):
-    """
-    Extrai o ano/série no formato BNCC a partir do estudante (grade/serie do PEI).
-    Retorna ex: "3º", "7º", "1EM" ou None.
-    """
-    if not aluno or not isinstance(aluno, dict):
-        return None
-    serie = aluno.get("serie") or aluno.get("grade") or ""
-    if not serie or not isinstance(serie, str):
-        return None
-    s = str(serie).strip()
-    # 1ª Série (EM) -> 1EM
-    m_em = re.search(r"(\d)\s*ª?\s*série", s, re.IGNORECASE)
-    if m_em or "em" in s.lower() or "médio" in s.lower():
-        n = m_em.group(1) if m_em else re.search(r"(\d)", s)
-        if n:
-            return f"{int(n.group(1))}EM"
-    # 7º Ano, 3º ano, etc.
-    m = re.search(r"(\d\s*º)", s)
-    return m.group(1).replace(" ", "") if m else None
-
-
-def padronizar_ano(ano_str):
-    """Converte diferentes formatos de ano para um padrão ordenável"""
-    if not isinstance(ano_str, str):
-        ano_str = str(ano_str)
-    
-    ano_str = ano_str.strip()
-    
-    # Padrões comuns
-    padroes = [
-        (r'(\d+)\s*º?\s*ano', 'ano'),
-        (r'(\d+)\s*ª?\s*série', 'ano'),
-        (r'(\d+)\s*em', 'em'),
-        (r'ef\s*(\d+)', 'ano'),
-        (r'(\d+)\s*período', 'ano'),
-        (r'(\d+)\s*semestre', 'ano'),
-    ]
-    
-    for padrao, tipo in padroes:
-        match = re.search(padrao, ano_str.lower())
-        if match:
-            num = match.group(1)
-            if tipo == 'em':
-                return f"{int(num):02d}EM"
-            else:
-                return f"{int(num):02d}"
-    
-    return ano_str
-
-def ordenar_anos(anos_lista):
-    """Ordena anos de forma inteligente"""
-    anos_padronizados = []
-    
-    for ano in anos_lista:
-        padrao = padronizar_ano(str(ano))
-        anos_padronizados.append((padrao, ano))
-    
-    anos_padronizados.sort(key=lambda x: x[0])
-    return [ano_original for _, ano_original in anos_padronizados]
-
-@st.cache_data
 def carregar_bncc_completa():
-    """Carrega o CSV da BNCC com todas as colunas necessárias"""
+    """Carrega BNCC EF via bncc_service (bncc_ef.csv ou bncc.csv na raiz)."""
     try:
-        if not os.path.exists('bncc.csv'):
-            st.warning("📄 Arquivo 'bncc.csv' não encontrado na pasta do script")
+        from services.bncc_service import carregar_bncc_ef_completa
+        df = carregar_bncc_ef_completa()
+        if df is None or df.empty:
+            st.warning("📄 BNCC (bncc_ef.csv ou bncc.csv) não encontrada na raiz do projeto")
             return None
-        
-        try:
-            df = pd.read_csv('bncc.csv', delimiter=',', encoding='utf-8')
-        except:
-            try:
-                df = pd.read_csv('bncc.csv', delimiter=';', encoding='utf-8')
-            except Exception as e:
-                st.error(f"❌ Erro ao ler CSV: {str(e)[:100]}")
-                return None
-        
-        colunas_necessarias = ['Ano', 'Disciplina', 'Unidade Temática', 
-                              'Objeto do Conhecimento', 'Habilidade']
-        
-        colunas_faltando = []
-        for col in colunas_necessarias:
-            if col not in df.columns:
-                colunas_faltando.append(col)
-        
-        if colunas_faltando:
-            st.error(f"❌ Colunas faltando: {colunas_faltando}")
-            return None
-        
-        df = df.dropna(subset=['Ano', 'Disciplina', 'Objeto do Conhecimento'])
-        df['Ano'] = df['Ano'].astype(str).str.strip()
-        df['Disciplina'] = df['Disciplina'].str.replace('Ed. Física', 'Educação Física')
-        
         return df
-    
     except Exception as e:
-        st.error(f"❌ Erro: {str(e)[:100]}")
+        st.error(f"❌ Erro ao carregar BNCC: {str(e)[:100]}")
         return None
 
 def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=True, aluno=None):
@@ -1983,16 +1665,19 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
                 disc_opcoes,
                 index=0 if disc_opcoes else 0,
                 disabled=not disc_mostrar,
-                key=f"disc_basico_{key_suffix}"
+                key=f"disc_basico_{key_suffix}",
+                help="Matéria conforme BNCC (ex.: Língua Portuguesa, Matemática)."
             )
         with col3:
             objeto = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
-                                  key=f"obj_basico_{key_suffix}")
+                                  key=f"obj_basico_{key_suffix}",
+                                  help="Objeto de conhecimento BNCC (ex.: Frações, Leitura).")
         
         col4, col5 = st.columns(2)
         with col4:
             unidade = st.text_input("Unidade Temática", placeholder="Ex: Números", 
-                                   key=f"unid_basico_{key_suffix}")
+                                   key=f"unid_basico_{key_suffix}",
+                                   help="Unidade temática da BNCC da disciplina.")
         
         habilidades = []
         if mostrar_habilidades:
@@ -2012,7 +1697,9 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
                 else:
                     habilidades = habilidades_selecionadas
         
-        return ano, disciplina, unidade, objeto, habilidades
+        st.markdown("---")
+        assunto_livre = st.text_input("📝 Assunto (opcional)", placeholder="Ex: Frações, Sistema Solar...", key=f"assunto_basico_{key_suffix}", help="Depois de todo o fluxo: referência para criação/adaptação.")
+        return ano, disciplina, unidade, objeto, habilidades, (assunto_livre or "").strip()
     
     # TEMOS DADOS - Ano fixo pelo PEI (sem escolha), Componente filtrado por ano
     # O PEI é o documento norteador: ano/série vem dele. O sistema determina, não o usuário.
@@ -2039,8 +1726,50 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
         anos_originais = dados['Ano'].dropna().unique().tolist()
         anos_ordenados = ordenar_anos(anos_originais)
         ano_selecionado = st.selectbox("Ano (escolha enquanto o PEI não tiver série)", anos_ordenados, key=f"ano_bncc_fallback_{key_suffix}")
+
+    # Ensino Médio: usar bncc_em.csv via bncc_service (Área de conhecimento + Habilidades)
+    if ano_selecionado and "EM" in str(ano_selecionado).upper():
+        try:
+            from services.bncc_service import carregar_habilidades_em_por_area, areas_em
+            blocos_em = carregar_habilidades_em_por_area(ano_selecionado)
+            areas_list = areas_em()
+        except Exception:
+            areas_list = []
+        if not areas_list:
+            st.warning("⚠️ BNCC do Ensino Médio (bncc_em.csv) não encontrada na raiz.")
+            return (ano_selecionado, None, None, None, [], "")
+        areas_opcoes, areas_mostrar, areas_default = _filtrar_areas_em_por_membro(areas_list)
+        rotulo_em = _rotulo_ano(ano_selecionado)
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.selectbox("Ano (PEI)", [rotulo_em], index=0, disabled=True, key=f"ano_em_display_{key_suffix}")
+        with col2:
+            area_selecionada = st.selectbox("Área de Conhecimento", areas_opcoes, index=0, disabled=not areas_mostrar, key=f"area_em_{key_suffix}")
+        st.markdown("---")
+        habilidades_selecionadas = []
+        if area_selecionada and mostrar_habilidades:
+            lista_area = (blocos_em.get("ano_atual") or {}).get(area_selecionada) or []
+            todas_hab = [h.get("habilidade_completa") or h.get("descricao", "") for h in lista_area if h.get("habilidade_completa") or h.get("descricao")]
+            if todas_hab:
+                st.markdown(f"**🔍 {len(todas_hab)} habilidade(s) para {area_selecionada}:**")
+                opcoes = st.multiselect("Selecione uma ou mais habilidades:", todas_hab, default=todas_hab[:min(3, len(todas_hab))], key=f"hab_em_{key_suffix}")
+                habilidades_selecionadas = opcoes
+                with st.expander("➕ Adicionar habilidade personalizada"):
+                    hab_extra = st.text_area("Digite habilidades adicionais (uma por linha):", placeholder="Ex:\n(EM13LP01) ...", key=f"hab_extra_em_{key_suffix}")
+                    if hab_extra:
+                        habilidades_selecionadas.extend([h.strip() for h in hab_extra.split("\n") if h.strip()])
+            else:
+                st.info("ℹ️ Nenhuma habilidade para esta área.")
+        st.markdown("---")
+        assunto_livre = st.text_input(
+            "📝 Assunto (opcional)",
+            placeholder="Ex: Equações do 2º grau, Genética, Leitura crítica...",
+            key=f"assunto_bncc_{key_suffix}",
+            help="Depois de todo o fluxo BNCC: algo específico dentro da habilidade ou referência para criação/adaptação."
+        )
+        return (ano_selecionado, area_selecionada, "EM", area_selecionada, habilidades_selecionadas, (assunto_livre or "").strip())
     
-    # Linha 1: Ano (desabilitado, do PEI), Componente Curricular, Unidade Temática
+    # Linha 1: Ano (desabilitado, do PEI), Componente Curricular, Unidade Temática (EF)
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -2151,8 +1880,15 @@ def criar_dropdowns_bncc_completos_melhorado(key_suffix="", mostrar_habilidades=
                 st.info("ℹ️ Selecione Componente Curricular, Unidade e Objeto para ver as habilidades.")
                 habilidades_selecionadas = []
     
+    st.markdown("---")
+    assunto_livre = st.text_input(
+        "📝 Assunto (opcional)",
+        placeholder="Ex: Frações, Sistema Solar, Equações do 2º grau...",
+        key=f"assunto_bncc_{key_suffix}",
+        help="Depois de todo o fluxo BNCC: algo específico dentro da habilidade ou referência para criação/adaptação."
+    )
     return (ano_selecionado, disciplina_selecionada, unidade_selecionada, 
-            objeto_selecionado, habilidades_selecionadas)
+            objeto_selecionado, habilidades_selecionadas, (assunto_livre or "").strip())
 
 def criar_dropdowns_bncc_simplificado(key_suffix=""):
     """Cria dropdowns simplificados da BNCC (apenas até objeto do conhecimento)"""
@@ -2324,76 +2060,7 @@ def render_aba_adaptar_prova(aluno, api_key):
     
     # BNCC + Assunto em expander compacto
     with st.expander("📚 BNCC e Assunto", expanded=True):
-        if 'bncc_df_completo' not in st.session_state:
-            st.session_state.bncc_df_completo = carregar_bncc_completa()
-        dados = st.session_state.bncc_df_completo
-        
-        # Ano determinado pelo PEI — campo desabilitado para dar clareza (7º ano, 5º ano etc.)
-        ano_bncc = extrair_ano_bncc_do_aluno(aluno) if aluno else None
-        if not ano_bncc and aluno:
-            pei = (aluno.get("pei_data") or {}) if isinstance(aluno.get("pei_data"), dict) else {}
-            serie_pei = pei.get("serie") or aluno.get("grade") or ""
-            ano_bncc = extrair_ano_bncc_do_aluno({"serie": serie_pei, "grade": serie_pei}) if serie_pei else None
-        if not ano_bncc and dados is not None and not dados.empty:
-            st.warning("⚠️ Série não informada no PEI. Informe na aba Estudante do PEI.")
-            anos_ord = ordenar_anos(dados['Ano'].dropna().unique().tolist())
-            ano_bncc = st.selectbox("Ano (fallback)", anos_ord, key="ano_adaptar_prova_fallback")
-        # Linha 1: Ano (desabilitado), Componente, Unidade
-        col_bncc1, col_bncc2, col_bncc3 = st.columns(3)
-        with col_bncc1:
-            if ano_bncc:
-                rotulo = f"{ano_bncc} ano" if "EM" not in str(ano_bncc).upper() else f"{str(ano_bncc).replace('EM','')}ª série EM"
-                st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key="ano_adaptar_prova_display")
-            else:
-                st.empty()
-        with col_bncc2:
-            if dados is not None and not dados.empty and ano_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                df_por_ano = dados[mask_ano]
-                disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
-                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
-                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_prova_compact")
-            else:
-                lista_fallback = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"]
-                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
-                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_prova_compact")
-        with col_bncc3:
-            if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                unid_filtradas = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc)]
-                unidades = sorted(unid_filtradas['Unidade Temática'].dropna().unique())
-                if unidades:
-                    unidade_bncc = st.selectbox("Unidade Temática", unidades, key="unid_adaptar_prova_compact")
-                else:
-                    unidade_bncc = st.text_input("Unidade Temática", placeholder="Ex: Números", 
-                                               key="unid_adaptar_prova_compact")
-            else:
-                unidade_bncc = st.text_input("Unidade Temática", placeholder="Ex: Números", 
-                                           key="unid_adaptar_prova_compact")
-        
-        # Linha 2: Objeto do Conhecimento e Assunto
-        col_obj, col_ass = st.columns(2)
-        with col_obj:
-            if dados is not None and not dados.empty and ano_bncc and disciplina_bncc and unidade_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                obj_filtrados = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc) & (dados['Unidade Temática'] == unidade_bncc)]
-                objetos = sorted(obj_filtrados['Objeto do Conhecimento'].dropna().unique())
-                if objetos:
-                    objeto_bncc = st.selectbox("Objeto do Conhecimento", objetos, key="obj_adaptar_prova_compact")
-                else:
-                    objeto_bncc = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
-                                               key="obj_adaptar_prova_compact")
-            else:
-                objeto_bncc = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
-                                           key="obj_adaptar_prova_compact")
-        with col_ass:
-            assunto_livre = st.text_input(
-                "📝 Assunto (opcional)",
-                value="",
-                placeholder="Ex: Frações, Sistema Solar...",
-                help="Preencha se quiser direcionar a adaptação para um assunto específico.",
-                key="assunto_adaptar_prova_compact"
-            )
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, _, assunto_livre = criar_dropdowns_bncc_completos_melhorado(key_suffix="adaptar_prova", mostrar_habilidades=False, aluno=aluno)
     
     # Motor de IA
     engine_adaptar_prova = _render_engine_selector("adaptar_prova")
@@ -2605,76 +2272,7 @@ def render_aba_adaptar_atividade(aluno, api_key):
     
     # BNCC + Assunto em expander compacto
     with st.expander("📚 BNCC e Assunto", expanded=True):
-        if 'bncc_df_completo' not in st.session_state:
-            st.session_state.bncc_df_completo = carregar_bncc_completa()
-        dados = st.session_state.bncc_df_completo
-        
-        # Ano determinado pelo PEI — campo desabilitado para clareza (7º ano, 5º ano etc.)
-        ano_bncc = extrair_ano_bncc_do_aluno(aluno) if aluno else None
-        if not ano_bncc and aluno:
-            pei = (aluno.get("pei_data") or {}) if isinstance(aluno.get("pei_data"), dict) else {}
-            serie_pei = pei.get("serie") or aluno.get("grade") or ""
-            ano_bncc = extrair_ano_bncc_do_aluno({"serie": serie_pei, "grade": serie_pei}) if serie_pei else None
-        if not ano_bncc and dados is not None and not dados.empty:
-            st.warning("⚠️ Série não informada no PEI. Informe na aba Estudante do PEI.")
-            anos_ord = ordenar_anos(dados['Ano'].dropna().unique().tolist())
-            ano_bncc = st.selectbox("Ano (fallback)", anos_ord, key="ano_adaptar_atividade_fallback")
-        # Linha 1: Ano (desabilitado), Componente, Unidade
-        col_bncc1, col_bncc2, col_bncc3 = st.columns(3)
-        with col_bncc1:
-            if ano_bncc:
-                rotulo = f"{ano_bncc} ano" if "EM" not in str(ano_bncc).upper() else f"{str(ano_bncc).replace('EM','')}ª série EM"
-                st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key="ano_adaptar_atividade_display")
-            else:
-                st.empty()
-        with col_bncc2:
-            if dados is not None and not dados.empty and ano_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                df_por_ano = dados[mask_ano]
-                disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
-                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
-                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_atividade_compact")
-            else:
-                lista_fallback = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"]
-                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
-                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_adaptar_atividade_compact")
-        with col_bncc3:
-            if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                unid_filtradas = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc)]
-                unidades = sorted(unid_filtradas['Unidade Temática'].dropna().unique())
-                if unidades:
-                    unidade_bncc = st.selectbox("Unidade Temática", unidades, key="unid_adaptar_atividade_compact")
-                else:
-                    unidade_bncc = st.text_input("Unidade Temática", placeholder="Ex: Números", 
-                                               key="unid_adaptar_atividade_compact")
-            else:
-                unidade_bncc = st.text_input("Unidade Temática", placeholder="Ex: Números", 
-                                           key="unid_adaptar_atividade_compact")
-        
-        # Linha 2: Objeto do Conhecimento e Assunto
-        col_obj, col_ass = st.columns(2)
-        with col_obj:
-            if dados is not None and not dados.empty and ano_bncc and disciplina_bncc and unidade_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                obj_filtrados = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc) & (dados['Unidade Temática'] == unidade_bncc)]
-                objetos = sorted(obj_filtrados['Objeto do Conhecimento'].dropna().unique())
-                if objetos:
-                    objeto_bncc = st.selectbox("Objeto do Conhecimento", objetos, key="obj_adaptar_atividade_compact")
-                else:
-                    objeto_bncc = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
-                                               key="obj_adaptar_atividade_compact")
-            else:
-                objeto_bncc = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", 
-                                           key="obj_adaptar_atividade_compact")
-        with col_ass:
-            assunto_livre = st.text_input(
-                "📝 Assunto (opcional)",
-                value="",
-                placeholder="Ex: Frações, Sistema Solar...",
-                help="Preencha se quiser direcionar a adaptação para um assunto específico.",
-                key="assunto_adaptar_atividade_compact"
-            )
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, _, assunto_livre = criar_dropdowns_bncc_completos_melhorado(key_suffix="adaptar_atividade", mostrar_habilidades=False, aluno=aluno)
     
     # OCR/visão usa Omnisfera Yellow (Gemini)
     st.caption("ℹ️ Esta função usa Omnisfera Yellow (OCR/visão).")
@@ -2931,72 +2529,10 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
     
     # BNCC + Assunto em expander compacto
     with st.expander("📚 BNCC e Assunto", expanded=True):
-        if 'bncc_df_completo' not in st.session_state:
-            st.session_state.bncc_df_completo = carregar_bncc_completa()
-        dados = st.session_state.bncc_df_completo
-        
-        # Ano determinado pelo PEI — campo desabilitado para clareza (7º ano, 5º ano etc.)
-        ano_bncc = extrair_ano_bncc_do_aluno(aluno) if aluno else None
-        if not ano_bncc and aluno:
-            pei = (aluno.get("pei_data") or {}) if isinstance(aluno.get("pei_data"), dict) else {}
-            serie_pei = pei.get("serie") or aluno.get("grade") or ""
-            ano_bncc = extrair_ano_bncc_do_aluno({"serie": serie_pei, "grade": serie_pei}) if serie_pei else None
-        if not ano_bncc and dados is not None and not dados.empty:
-            st.warning("⚠️ Série não informada no PEI. Informe na aba Estudante do PEI.")
-            anos_ord = ordenar_anos(dados['Ano'].dropna().unique().tolist())
-            ano_bncc = st.selectbox("Ano (fallback)", anos_ord, key="ano_criar_zero_fallback")
-        # Linha 1: Ano (desabilitado), Componente, Unidade
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            if ano_bncc:
-                rotulo = f"{ano_bncc} ano" if "EM" not in str(ano_bncc).upper() else f"{str(ano_bncc).replace('EM','')}ª série EM"
-                st.selectbox("Ano (PEI)", [rotulo], index=0, disabled=True, key="ano_criar_zero_display")
-            else:
-                st.empty()
-        with c2:
-            if dados is not None and not dados.empty and ano_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                df_por_ano = dados[mask_ano]
-                disciplinas_raw = sorted(df_por_ano['Disciplina'].dropna().unique())
-                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(disciplinas_raw)
-                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_criar_zero")
-            else:
-                lista_fallback = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Inglês"]
-                disc_opcoes, disc_mostrar, _ = _filtrar_disciplinas_por_membro(lista_fallback)
-                disciplina_bncc = st.selectbox("Componente Curricular", disc_opcoes, index=0, disabled=not disc_mostrar, key="disc_criar_zero")
-        with c3:
-            if dados is not None and not dados.empty and ano_bncc and disciplina_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                unid_f = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc)]
-                unidades = sorted(unid_f['Unidade Temática'].dropna().unique())
-                unidade_bncc = st.selectbox("Unidade Temática", unidades, key="unid_criar_zero") if unidades else st.text_input("Unidade Temática", placeholder="Ex: Números", key="unid_criar_zero")
-            else:
-                unidade_bncc = st.text_input("Unidade Temática", placeholder="Ex: Números", key="unid_criar_zero")
-        
-        # Linha 2: Objeto do Conhecimento, Assunto (opcional)
-        c4, c5 = st.columns(2)
-        with c4:
-            if dados is not None and not dados.empty and ano_bncc and disciplina_bncc and unidade_bncc:
-                mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-                obj_f = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc) & (dados['Unidade Temática'] == unidade_bncc)]
-                objetos = sorted(obj_f['Objeto do Conhecimento'].dropna().unique())
-                objeto_bncc = st.selectbox("Objeto do Conhecimento", objetos, key="obj_criar_zero") if objetos else st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", key="obj_criar_zero")
-            else:
-                objeto_bncc = st.text_input("Objeto do Conhecimento", placeholder="Ex: Frações", key="obj_criar_zero")
-        with c5:
-            assunto_criar = st.text_input("📝 Assunto (opcional)", value="", placeholder="Ex: Frações, Sistema Solar...", key="assunto_criar_zero", help="Direciona melhor o tema da atividade.")
-        
-        # Habilidades (compacto)
-        habilidades_bncc = []
-        if dados is not None and not dados.empty and ano_bncc and disciplina_bncc and unidade_bncc and objeto_bncc:
-            mask_ano = dados['Ano'].apply(lambda x: str(x).strip() == str(ano_bncc).strip() or ano_celula_contem(x, ano_bncc))
-            hab_f = dados[mask_ano & (dados['Disciplina'] == disciplina_bncc) & (dados['Unidade Temática'] == unidade_bncc) & (dados['Objeto do Conhecimento'] == objeto_bncc)]
-            todas_hab = sorted(hab_f['Habilidade'].dropna().unique())
-            if todas_hab:
-                habilidades_bncc = st.multiselect("Habilidades BNCC", todas_hab, default=todas_hab[:min(3, len(todas_hab))], key="hab_criar_zero")
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc, assunto_criar = criar_dropdowns_bncc_completos_melhorado(key_suffix="criar_zero", mostrar_habilidades=True, aluno=aluno)
     
     mat_c = disciplina_bncc
-    obj_c = assunto_criar.strip() if assunto_criar and assunto_criar.strip() else objeto_bncc
+    obj_c = assunto_criar if assunto_criar else (objeto_bncc or "")
     
     # Configuração da atividade (uma linha)
     st.markdown("---")
@@ -3021,6 +2557,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
     with col_check:
         with st.expander("🎯 Checklist de Adaptação (opcional)", expanded=False):
             st.info("Marque as adaptações que devem ser consideradas na criação da atividade.")
+            st.caption("💡 Estas opções orientam a IA a adaptar o conteúdo ao perfil do estudante (ex.: parágrafos curtos, instruções passo a passo).")
             col_c1, col_c2, col_c3, col_c4 = st.columns(4)
             with col_c1:
                 check_desafio = st.checkbox("Questões mais desafiadoras", value=False, key="c0_desafio")
@@ -3045,7 +2582,7 @@ def render_aba_criar_do_zero(aluno, api_key, unsplash_key):
         with st.expander("🧠 Taxonomia de Bloom (opcional)", expanded=False):
             if 'bloom_memoria' not in st.session_state:
                 st.session_state.bloom_memoria = {cat: [] for cat in TAXONOMIA_BLOOM.keys()}
-            usar_bloom = st.checkbox(f"{get_icon_emoji('configurar')} Usar Taxonomia de Bloom (Revisada)", key="usar_bloom")
+            usar_bloom = st.checkbox(f"{get_icon_emoji('configurar')} Usar Taxonomia de Bloom (Revisada)", key="usar_bloom", help="A Taxonomia de Bloom define níveis cognitivos (Lembrar, Compreender, Aplicar, Analisar, Avaliar, Criar). Selecione verbos que alinham a atividade aos objetivos.")
             st.caption("[Saiba mais: Taxonomia de Bloom revisada (Wikipedia)](https://pt.wikipedia.org/wiki/Taxonomia_de_Bloom)")
             if usar_bloom:
                 col_b1, col_b2 = st.columns(2)
@@ -3276,7 +2813,7 @@ def render_aba_roteiro_individual(aluno, api_key):
     
     # BNCC em expander
     with st.expander("📚 BNCC e Habilidades", expanded=True):
-        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc = criar_dropdowns_bncc_completos_melhorado(key_suffix="roteiro", aluno=aluno)
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc, assunto_livre = criar_dropdowns_bncc_completos_melhorado(key_suffix="roteiro", aluno=aluno)
     
     # Motor de IA
     engine_roteiro = _render_engine_selector("roteiro")
@@ -3284,15 +2821,15 @@ def render_aba_roteiro_individual(aluno, api_key):
     st.markdown("---")
     
     if st.button("📝 GERAR ROTEIRO INDIVIDUAL", type="primary", use_container_width=True):
-        # Validação: Usa o objeto_bncc como assunto
+        assunto_ref = assunto_livre if assunto_livre else objeto_bncc
         if objeto_bncc and habilidades_bncc:
-            with st.spinner(f"Criando roteiro sobre '{objeto_bncc}'..."):
+            with st.spinner(f"Criando roteiro sobre '{assunto_ref or objeto_bncc}'..."):
                 try:
                     res = gerar_roteiro_aula_completo(
                         api_key=api_key,
                         aluno=aluno,
                         materia=disciplina_bncc,
-                        assunto=objeto_bncc,
+                        assunto=assunto_ref or objeto_bncc,
                         habilidades_bncc=habilidades_bncc,
                         verbos_bloom=None,
                         ano=ano_bncc,
@@ -3467,7 +3004,7 @@ def render_aba_dinamica_inclusiva(aluno, api_key):
     
     # BNCC em expander
     with st.expander("📚 BNCC e Habilidades", expanded=True):
-        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc = criar_dropdowns_bncc_completos_melhorado(key_suffix="dinamica", aluno=aluno)
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc, assunto_livre = criar_dropdowns_bncc_completos_melhorado(key_suffix="dinamica", aluno=aluno)
     
     # Configuração da Turma
     st.markdown("---")
@@ -3489,13 +3026,14 @@ def render_aba_dinamica_inclusiva(aluno, api_key):
     st.markdown("---")
     
     if st.button("🤝 CRIAR DINÂMICA", type="primary", use_container_width=True): 
+        assunto_ref = assunto_livre or objeto_bncc
         if objeto_bncc and habilidades_bncc:
-            with st.spinner(f"Criando dinâmica sobre '{objeto_bncc}'..."):
+            with st.spinner(f"Criando dinâmica sobre '{assunto_ref}'..."):
                 res = gerar_dinamica_inclusiva_completa(
                     api_key=api_key,
                     aluno=aluno,
                     materia=disciplina_bncc,
-                    assunto=objeto_bncc, # Passa o objeto BNCC como assunto
+                    assunto=assunto_ref,
                     qtd_alunos=qtd_alunos,
                     caracteristicas_turma=carac_turma,
                     habilidades_bncc=habilidades_bncc,
@@ -3575,7 +3113,7 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
     
     # BNCC em expander
     with st.expander("📚 BNCC e Habilidades", expanded=True):
-        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc = criar_dropdowns_bncc_completos_melhorado(key_suffix="plano", aluno=aluno)
+        ano_bncc, disciplina_bncc, unidade_bncc, objeto_bncc, habilidades_bncc, assunto_livre = criar_dropdowns_bncc_completos_melhorado(key_suffix="plano", aluno=aluno)
     
     # Configuração Metodológica
     st.markdown("---")
@@ -3611,14 +3149,15 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
     # Botão para gerar
     st.markdown("---")
     
+    assunto_ref = assunto_livre or objeto_bncc
     if st.button("📅 GERAR PLANO DE AULA", type="primary", use_container_width=True):
         if objeto_bncc and habilidades_bncc:
-            with st.spinner(f"Consultando BNCC e planejando aula sobre '{objeto_bncc}'..."):
+            with st.spinner(f"Consultando BNCC e planejando aula sobre '{assunto_ref}'..."):
                 try:
                     res = gerar_plano_aula_completo(
                         api_key=api_key or "",
                         materia=disciplina_bncc,
-                        assunto=objeto_bncc,
+                        assunto=assunto_ref,
                         metodologia=metodologia,
                         tecnica=tecnica_ativa,
                         qtd_alunos=qtd_alunos_plano,
@@ -3697,18 +3236,50 @@ def render_aba_plano_aula(aluno, api_key, kimi_key=None):
 # ==============================================================================
 
 def render_aba_ei_experiencia(aluno, api_key):
-    """Renderiza a aba de experiência da Educação Infantil"""
+    """Renderiza a aba de experiência da Educação Infantil — usa bncc_ei.csv (Idade, Campos, Objetivos)."""
     st.markdown("""
     <div class="pedagogia-box">
         <div class="pedagogia-title"><i class="ri-lightbulb-line"></i> Pedagogia do Brincar (BNCC)</div>
         Na Educação Infantil, não fazemos "provas". Criamos <strong>experiências de aprendizagem</strong> intencionais. 
-        Esta ferramenta usa a BNCC para criar brincadeiras que ensinam, usando o hiperfoco da criança.
+        Esta ferramenta usa a BNCC EI para criar brincadeiras que ensinam, usando o hiperfoco da criança.
     </div>
     """, unsafe_allow_html=True)
     
+    try:
+        from services.bncc_service import carregar_bncc_ei, faixas_idade_ei, campos_experiencia_ei, objetivos_ei_por_idade_campo
+        bncc_ei = carregar_bncc_ei()
+        faixas = faixas_idade_ei()
+        campos = campos_experiencia_ei() if bncc_ei else CAMPOS_EXPERIENCIA_EI_FALLBACK
+    except Exception:
+        bncc_ei = []
+        faixas = ["0 a 1 ano e 6 meses", "1 ano e 7 meses a 3 anos e 11 meses", "4 anos a 5 anos e 11 meses"]
+        campos = CAMPOS_EXPERIENCIA_EI_FALLBACK
+        def objetivos_ei_por_idade_campo(idade, campo):
+            return []
+    
+    idade_padrao = _extrair_idade_ei_aluno(aluno) if aluno else None
+    idx_idade = faixas.index(idade_padrao) if idade_padrao and idade_padrao in faixas else 0
+    
     col_ei1, col_ei2 = st.columns(2)
-    campo_exp = col_ei1.selectbox("Campo de Experiência (BNCC)", CAMPOS_EXPERIENCIA_EI, key="campo_exp_ei")
-    obj_aprendizagem = col_ei2.text_input("Objetivo de Aprendizagem:", placeholder="Ex: Compartilhar brinquedos, Identificar cores...", key="obj_aprendizagem_ei")
+    with col_ei1:
+        if faixas:
+            idade_ei = st.selectbox("Faixa de Idade (BNCC EI)", faixas, index=min(idx_idade, len(faixas)-1), key="idade_ei_hub")
+        else:
+            idade_ei = st.text_input("Faixa de Idade:", placeholder="Ex: 4 anos", key="idade_ei_hub")
+        campo_exp = st.selectbox("Campo de Experiência (BNCC)", campos, key="campo_exp_ei")
+    
+    with col_ei2:
+        objetivos_opcoes = objetivos_ei_por_idade_campo(idade_ei, campo_exp) if bncc_ei and idade_ei and campo_exp else []
+        if objetivos_opcoes:
+            obj_selecionados = st.multiselect(
+                "Objetivos de Aprendizagem (BNCC — selecione um ou mais)",
+                objetivos_opcoes,
+                default=objetivos_opcoes[:1] if objetivos_opcoes else [],
+                key="obj_ei_multiselect"
+            )
+            obj_aprendizagem = "\n".join(obj_selecionados) if obj_selecionados else ""
+        else:
+            obj_aprendizagem = st.text_input("Objetivo de Aprendizagem:", placeholder="Ex: Compartilhar brinquedos, Identificar cores...", key="obj_aprendizagem_ei")
     
     if 'res_ei_exp' not in st.session_state:
         st.session_state.res_ei_exp = None
@@ -3979,7 +3550,7 @@ def main():
             st.session_state.banco_estudantes = carregar_estudantes_supabase()
     
     if not st.session_state.banco_estudantes:
-        st.warning("⚠️ Nenhum estudante encontrado.")
+        st.info("**Nenhum estudante encontrado.** O Hub de Recursos precisa de estudantes com PEI cadastrado. Comece criando um PEI no módulo Estratégias & PEI.")
         try:
             from ui.permissions import get_member_from_session
             from services.members_service import get_class_assignments
@@ -3992,15 +3563,22 @@ def main():
                     st.info("💡 Nenhum aluno corresponde às suas turmas no momento. Verifique se o PEI dos alunos está com a mesma série/turma das suas atribuições.")
         except Exception:
             pass
-        if st.button("📘 Ir para o módulo PEI", type="primary"):
-            st.switch_page("pages/1_PEI.py")
+        st.markdown("---")
+        c_pei, c_est, _ = st.columns([1, 1, 3])
+        with c_pei:
+            if st.button("📘 Ir para Estratégias & PEI", type="primary", use_container_width=True, key="btn_hub_pei"):
+                st.switch_page("pages/1_PEI.py")
+        with c_est:
+            if st.button("👥 Ir para Estudantes", use_container_width=True, key="btn_hub_est"):
+                st.switch_page("pages/Estudantes.py")
         st.stop()
     
-    # Seleção de aluno + Botão de Limpar Formulários
+    # Seleção de aluno + Botão de Limpar Formulários (área sticky via CSS)
+    st.markdown('<div class="hub-seletor-sticky" style="display:none;"></div>', unsafe_allow_html=True)
     lista_alunos = [a['nome'] for a in st.session_state.banco_estudantes]
     col_sel, col_btn_limpar, col_info = st.columns([2, 1, 2])
     with col_sel:
-        nome_aluno = st.selectbox("📂 Selecione o Estudante:", lista_alunos)
+        nome_aluno = st.selectbox("📂 Selecione o Estudante:", lista_alunos, help="Troque de estudante para gerar recursos personalizados ao PEI dele.")
     
     with col_btn_limpar:
         st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)  # Alinhar com selectbox
@@ -4038,13 +3616,13 @@ def main():
             for key in keys_to_remove:
                 del st.session_state[key]
             
-            st.success("✅ Formulários limpos!")
+            st.toast("Formulários limpos!")
             st.rerun()
     
     aluno = next((a for a in st.session_state.banco_estudantes if a.get('nome') == nome_aluno), None)
     
     if not aluno: 
-        st.error("Estudante não encontrado")
+        st.error("Estudante não encontrado. Selecione outro na lista ou recarregue a página.")
         st.stop()
     
     # --- ÁREA DO ALUNO (Visual + Expander) ---
@@ -4129,7 +3707,7 @@ def main():
     if is_ei:
         # Modo Educação Infantil
         st.info("🧸 **Modo Educação Infantil Ativado:** Foco em Experiências, BNCC e Brincar.")
-        
+        st.caption("📍 **Hub** — Educação Infantil: Criar Experiência | Estúdio Visual & CAA | Rotina & AVD | Inclusão no Brincar")
         tabs = st.tabs([
             "🧸 Criar Experiência (BNCC)",
             "🎨 Estúdio Visual & CAA",
@@ -4151,6 +3729,7 @@ def main():
     
     else:
         # Modo Padrão (Fundamental / Médio)
+        st.caption("📍 **Hub** — Navegue pelas abas: Adaptar Prova | Adaptar Atividade | Criar do Zero | Estúdio Visual | Roteiro | Papo de Mestre | Dinâmica | Plano de Aula")
         tabs = st.tabs([
             "📄 Adaptar Prova",
             "✂️ Adaptar Atividade",

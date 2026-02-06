@@ -1740,6 +1740,26 @@ modules_data = [
     and (m.get("perm") not in ou.MODULE_KEYS or m.get("perm") in _enabled)
 ]
 
+# Tour guiado (primeiro acesso)
+if not st.session_state.get("tour_omnisfera_done"):
+    with st.expander("👋 Conheça a Omnisfera — Passo a passo", expanded=True):
+        st.markdown("""
+        **1. PEI (Estratégias & PEI)** — Cadastre o estudante e elabore o Plano Educacional Individualizado. O estudante é criado junto com o PEI.
+
+        **2. PAEE** — Com o PEI pronto, estruture o Atendimento Educacional Especializado (ciclos, recursos, planejamento).
+
+        **3. Hub de Recursos** — Crie adaptações, atividades e materiais personalizados com apoio de IA.
+
+        **4. Diário de Bordo** — Registre sessões e evidências do atendimento.
+
+        **5. Evolução & Dados** — Acompanhe indicadores e relatórios.
+
+        💡 *Dica: Pressione **Enter** para enviar formulários rapidamente.*
+        """)
+        if st.button("✓ Entendi, não mostrar novamente", key="btn_tour_done"):
+            st.session_state["tour_omnisfera_done"] = True
+            st.rerun()
+
 st.markdown("### 🚀 Módulos da Plataforma")
 
 # Organiza módulos em grid responsivo
