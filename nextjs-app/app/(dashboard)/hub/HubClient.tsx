@@ -344,7 +344,7 @@ function CriarDoZero({
           Fechar
         </button>
       </div>
-      <EngineSelector value={engine} onChange={onEngineChange} />
+      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
       {!eiMode && estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
         <details className="border border-slate-200 rounded-lg" open>
           <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto</summary>
@@ -705,7 +705,7 @@ function PlanoAulaDua({
           Fechar
         </button>
       </div>
-      <EngineSelector value={engine} onChange={onEngineChange} />
+      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Componente Curricular</label>
@@ -865,7 +865,7 @@ function RotinaAvdTool({
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
       </div>
       <p className="text-sm text-slate-600">Sequências e orientações para autonomia e rotina.</p>
-      <EngineSelector value={engine} onChange={onEngineChange} />
+      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Contexto</label>
         <input type="text" value={contexto} onChange={(e) => setContexto(e.target.value)} className="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Rotina escolar" />
@@ -941,7 +941,7 @@ function InclusaoBrincarTool({
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
       </div>
       <p className="text-sm text-slate-600">Brincadeiras acessíveis para Educação Infantil.</p>
-      <EngineSelector value={engine} onChange={onEngineChange} />
+      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Tema / tipo de brincadeira</label>
@@ -1071,6 +1071,10 @@ function AdaptarProva({
           estudante: { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 800) },
           texto: texto || undefined,
           questoes_com_imagem: questoesComImagem,
+          ano: serie || undefined,
+          unidade_tematica: unidadeSel || undefined,
+          objeto_conhecimento: objetoSel || undefined,
+          habilidades_bncc: habsDoObjeto ? habsDoObjeto.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`) : undefined,
         })
       );
       const res = await fetch("/api/hub/adaptar-prova", { method: "POST", body: formData });
@@ -1083,6 +1087,10 @@ function AdaptarProva({
       setLoading(false);
     }
   };
+
+  const discData = estruturaBncc?.porDisciplina?.[componenteSel];
+  const unidadeData = componenteSel && discData?.porUnidade?.[unidadeSel];
+  const habsDoObjeto = objetoSel && unidadeData?.porObjeto?.[objetoSel];
 
   const mapaImagensParaDocx: Record<number, string> = {};
   if (docxExtraido?.imagens?.length) {
@@ -1105,7 +1113,7 @@ function AdaptarProva({
         </button>
       </div>
       <p className="text-sm text-slate-600">Transforme provas padrão em avaliações acessíveis.</p>
-      <EngineSelector value={engine} onChange={onEngineChange} />
+      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
       <details className="border border-slate-200 rounded-lg" open>
         <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC e Assunto</summary>
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1366,7 +1374,7 @@ function RoteiroIndividual({
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
       </div>
       <p className="text-sm text-slate-600">Passo a passo de aula específico para o estudante, usando o hiperfoco.</p>
-      <EngineSelector value={engine} onChange={onEngineChange} />
+      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Componente</label>
@@ -1538,7 +1546,7 @@ function DinamicaInclusiva({
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
       </div>
       <p className="text-sm text-slate-600">Atividades em grupo onde todos participam, respeitando as singularidades.</p>
-      <EngineSelector value={engine} onChange={onEngineChange} />
+      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Componente</label>
@@ -1881,6 +1889,10 @@ function AdaptarAtividade({
     }
   };
 
+  const discData = estruturaBncc?.porDisciplina?.[componenteSel];
+  const unidadeData = componenteSel && discData?.porUnidade?.[unidadeSel];
+  const habsDoObjeto = objetoSel && unidadeData?.porObjeto?.[objetoSel];
+
   const imagemParaEnvio = croppedFile || file;
 
   const gerar = async () => {
@@ -1904,6 +1916,10 @@ function AdaptarAtividade({
           checklist,
           modo_profundo: modoProfundo,
           estudante: { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 600) },
+          ano: serie || undefined,
+          unidade_tematica: unidadeSel || undefined,
+          objeto_conhecimento: objetoSel || undefined,
+          habilidades_bncc: habsDoObjeto ? habsDoObjeto.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`) : undefined,
         })
       );
       const res = await fetch("/api/hub/adaptar-atividade", { method: "POST", body: formData });

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { chatCompletionText } from "@/lib/ai-engines";
+import { selectEngine, withFallback } from "@/lib/engine-selector";
 
 export async function POST(req: Request) {
   let body: {
@@ -22,9 +23,13 @@ export async function POST(req: Request) {
   const aluno = body.aluno || {};
   const materia = (body.materia || "Geral").trim();
   const assunto = (body.assunto || "").trim();
-  const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
-    ? (body.engine as EngineId)
-    : "red";
+  
+  // Hub: DeepSeek (red) padrão, opções Kimi (blue) e Claude (green)
+  const { engine, error: engineErr } = selectEngine("hub", body.engine, true);
+  
+  if (engineErr) {
+    return NextResponse.json({ error: engineErr }, { status: 500 });
+  }
 
   if (!assunto) {
     return NextResponse.json({ error: "Informe o assunto." }, { status: 400 });
@@ -80,11 +85,10 @@ ESTRUTURA OBRIGATÓRIA:
 
 Regra LGPD: NUNCA inclua diagnóstico ou CID.`;
 
-  const err = getEngineError(engine);
-  if (err) return NextResponse.json({ error: err }, { status: 500 });
-
   try {
-    const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.7 });
+    const texto = await withFallback("hub", body.engine, async (selectedEngine) => {
+      return await chatCompletionText(selectedEngine, [{ role: "user", content: prompt }], { temperature: 0.7 });
+    });
     return NextResponse.json({ texto });
   } catch (e) {
     console.error("Hub roteiro:", e);

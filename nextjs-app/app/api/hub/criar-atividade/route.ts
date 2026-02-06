@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { chatCompletionText } from "@/lib/ai-engines";
+import { selectEngine, withFallback } from "@/lib/engine-selector";
 
 export async function POST(req: Request) {
   let body: {
@@ -25,13 +26,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Informe o assunto." }, { status: 400 });
   }
 
+  // Hub: DeepSeek (red) padrão, opções Kimi (blue) e Claude (green)
+  const { engine, error: engineErr } = selectEngine("hub", body.engine, true);
+  
+  if (engineErr) {
+    return NextResponse.json({ error: engineErr }, { status: 500 });
+  }
+
   const habilidades = body.habilidades || [];
   const eiMode = !!body.ei_mode;
   const eiObjetivos = body.ei_objetivos || [];
   const estudante = body.estudante || {};
-  const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
-    ? (body.engine as EngineId)
-    : "red";
   const ctxEstudante = estudante.nome
     ? `Estudante: ${estudante.nome}. Série: ${estudante.serie || "-"}. Interesses: ${estudante.hiperfoco || "gerais"}.`
     : "";
@@ -52,11 +57,10 @@ Regras:
 - Retorne a atividade pronta para uso (enunciados, orientações, se aplicável).
 ${body.usar_imagens ? `- INCLUA 1 a 3 marcadores de imagem no formato [[GEN_IMG: termo descritivo em português]] nos locais onde figuras seriam úteis (ex: [[GEN_IMG: frações em pizza]], [[GEN_IMG: sistema solar]]). Use termos claros para busca.` : ""}`;
 
-  const engineErr = getEngineError(engine);
-  if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
-
   try {
-    const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.7 });
+    const texto = await withFallback("hub", body.engine, async (selectedEngine) => {
+      return await chatCompletionText(selectedEngine, [{ role: "user", content: prompt }], { temperature: 0.7 });
+    });
     return NextResponse.json({ texto });
   } catch (err) {
     console.error("Hub criar-atividade:", err);

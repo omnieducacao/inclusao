@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
-import type { EngineId } from "@/lib/ai-engines";
+import { chatCompletionText } from "@/lib/ai-engines";
+import { selectEngine, withFallback } from "@/lib/engine-selector";
 
 export async function POST(req: Request) {
   let body: { tema?: string; faixa?: string; engine?: string; estudante?: { nome?: string; hiperfoco?: string } };
@@ -9,11 +9,13 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
   }
-  const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
-    ? (body.engine as EngineId)
-    : "red";
-  const err = getEngineError(engine);
-  if (err) return NextResponse.json({ error: err }, { status: 500 });
+  
+  // Hub: DeepSeek (red) padrão, opções Kimi (blue) e Claude (green)
+  const { engine, error: engineErr } = selectEngine("hub", body.engine, true);
+  
+  if (engineErr) {
+    return NextResponse.json({ error: engineErr }, { status: 500 });
+  }
 
   const prompt = `Especialista em Educação Infantil e INCLUSÃO NO BRINCAR.
 Sugira brincadeiras ACESSÍVEIS para: ${body.tema || "brincadeiras em grupo"}.
@@ -24,7 +26,9 @@ Retorne: 1) Nome da brincadeira; 2) Objetivos; 3) Materiais; 4) Passo a passo; 5
 Use linguagem simples. NÃO inclua diagnóstico ou CID.`;
 
   try {
-    const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.7 });
+    const texto = await withFallback("hub", body.engine, async (selectedEngine) => {
+      return await chatCompletionText(selectedEngine, [{ role: "user", content: prompt }], { temperature: 0.7 });
+    });
     return NextResponse.json({ texto: (texto || "").trim() });
   } catch (e) {
     console.error("Inclusão Brincar:", e);

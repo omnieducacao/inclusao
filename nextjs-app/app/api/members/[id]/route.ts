@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { getSupabase } from "@/lib/supabase";
 import {
   updateMember,
   deactivateMember,
@@ -46,19 +47,36 @@ export async function PATCH(
     return NextResponse.json({ assignments, student_ids: studentIds });
   }
 
+  // Validar que só pode atribuir permissões de módulos liberados pelo admin
+  const sb = getSupabase();
+  const { data: workspace } = await sb
+    .from("workspaces")
+    .select("enabled_modules")
+    .eq("id", session.workspace_id)
+    .single();
+
+  const enabledModules = (workspace?.enabled_modules as string[]) || [];
+  
+  // Filtrar permissões para incluir apenas módulos liberados
+  // Estudantes sempre disponível (não precisa estar em enabled_modules)
+  const filteredPerms: Record<string, boolean | undefined> = {
+    can_estudantes: body.can_estudantes,
+  };
+  if (enabledModules.includes("pei")) filteredPerms.can_pei = body.can_pei;
+  if (enabledModules.includes("paee")) filteredPerms.can_paee = body.can_paee;
+  if (enabledModules.includes("hub")) filteredPerms.can_hub = body.can_hub;
+  if (enabledModules.includes("diario")) filteredPerms.can_diario = body.can_diario;
+  if (enabledModules.includes("avaliacao")) filteredPerms.can_avaliacao = body.can_avaliacao;
+  // Gestão sempre disponível para master (não precisa estar em enabled_modules)
+  filteredPerms.can_gestao = body.can_gestao;
+
   const result = await updateMember(id, {
     nome: body.nome,
     email: body.email,
     password: body.password,
     telefone: body.telefone,
     cargo: body.cargo,
-    can_estudantes: body.can_estudantes,
-    can_pei: body.can_pei,
-    can_paee: body.can_paee,
-    can_hub: body.can_hub,
-    can_diario: body.can_diario,
-    can_avaliacao: body.can_avaliacao,
-    can_gestao: body.can_gestao,
+    ...filteredPerms,
     link_type: body.link_type,
     teacher_assignments: body.teacher_assignments,
     student_ids: body.student_ids,

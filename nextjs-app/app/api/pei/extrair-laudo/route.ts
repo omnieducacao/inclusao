@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { chatCompletionText } from "@/lib/ai-engines";
+import { selectEngine } from "@/lib/engine-selector";
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
   const { PDFParse } = await import("pdf-parse");
@@ -12,12 +13,10 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    const engineRaw = formData.get("engine");
-    const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(String(engineRaw || ""))
-      ? (engineRaw as EngineId)
-      : "red";
-
-    const engineErr = getEngineError(engine);
+    
+    // Extrair laudo sempre usa ChatGPT (orange), sem opções
+    const { engine, error: engineErr } = selectEngine("extrair_laudo", null, false);
+    
     if (engineErr) {
       return NextResponse.json({ error: engineErr }, { status: 500 });
     }

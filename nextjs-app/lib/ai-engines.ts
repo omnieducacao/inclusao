@@ -6,11 +6,11 @@
 export type EngineId = "red" | "blue" | "green" | "yellow" | "orange";
 
 export const ENGINE_NAMES: Record<EngineId, string> = {
-  red: "OmniRed (DeepSeek)",
-  blue: "OmniBlue (Kimi)",
-  green: "OmniGreen (Claude)",
-  yellow: "OmniYellow (Gemini)",
-  orange: "OmniOrange (OpenAI)",
+  red: "OmniRed",
+  blue: "OmniBlue",
+  green: "OmniGreen",
+  yellow: "OmniYellow",
+  orange: "OmniOrange",
 };
 
 function getEnv(key: string): string {
@@ -39,6 +39,7 @@ function getApiKey(engine: EngineId, overrideKey?: string): string {
 export function getEngineError(engine: EngineId): string | null {
   const key = getApiKey(engine);
   if (key) return null;
+  // Sempre usa codenome para o usuário
   return `Configure a chave para ${ENGINE_NAMES[engine]}. Ver .env.local.example.`;
 }
 

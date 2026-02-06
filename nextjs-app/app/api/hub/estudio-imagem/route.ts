@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server";
 import { generateImageWithGemini } from "@/lib/gemini-image";
 import OpenAI from "openai";
+import { selectEngine } from "@/lib/engine-selector";
 
 export async function POST(req: Request) {
+  // Imagens sempre usam Gemini (yellow)
+  const { engine, error: engineErr } = selectEngine("imagens", null, false);
+  
+  if (engineErr) {
+    return NextResponse.json(
+      { error: engineErr },
+      { status: 500 }
+    );
+  }
+
   const geminiKey = (process.env.GEMINI_API_KEY || "").trim();
   const openaiKey = (process.env.OPENAI_API_KEY || "").trim();
   if (!geminiKey && !openaiKey) {

@@ -30,13 +30,13 @@ type Props = {
   student: StudentFull | null;
 };
 
-type TabId = "planejamento" | "execucao" | "jornada";
+type TabId = "barreiras" | "habilidades" | "assistiva" | "articulacao" | "planejamento" | "execucao" | "jornada";
 
 export function PAEEClient({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
   const currentId = studentId || searchParams.get("student");
 
-  const [activeTab, setActiveTab] = useState<TabId>("planejamento");
+  const [activeTab, setActiveTab] = useState<TabId>("barreiras");
   const [cicloSelecionadoPlanejamento, setCicloSelecionadoPlanejamento] = useState<CicloPAEE | null>(null);
   const [cicloSelecionadoExecucao, setCicloSelecionadoExecucao] = useState<CicloPAEE | null>(null);
   const [cicloPreview, setCicloPreview] = useState<CicloPAEE | null>(null);
@@ -46,6 +46,33 @@ export function PAEEClient({ students, studentId, student }: Props) {
   const [jornadaTexto, setJornadaTexto] = useState("");
   const [jornadaLoading, setJornadaLoading] = useState(false);
   const [jornadaErro, setJornadaErro] = useState<string | null>(null);
+
+  // Estados para as novas abas
+  const [barreirasEngine, setBarreirasEngine] = useState<EngineId>("blue");
+  const [barreirasObservacao, setBarreirasObservacao] = useState("");
+  const [barreirasTexto, setBarreirasTexto] = useState("");
+  const [barreirasLoading, setBarreirasLoading] = useState(false);
+  const [barreirasErro, setBarreirasErro] = useState<string | null>(null);
+
+  const [habilidadesEngine, setHabilidadesEngine] = useState<EngineId>("blue");
+  const [habilidadesFoco, setHabilidadesFoco] = useState("Funções Executivas");
+  const [habilidadesTexto, setHabilidadesTexto] = useState("");
+  const [habilidadesLoading, setHabilidadesLoading] = useState(false);
+  const [habilidadesErro, setHabilidadesErro] = useState<string | null>(null);
+
+  const [assistivaEngine, setAssistivaEngine] = useState<EngineId>("blue");
+  const [assistivaDificuldade, setAssistivaDificuldade] = useState("");
+  const [assistivaTexto, setAssistivaTexto] = useState("");
+  const [assistivaLoading, setAssistivaLoading] = useState(false);
+  const [assistivaErro, setAssistivaErro] = useState<string | null>(null);
+
+  const [articulacaoEngine, setArticulacaoEngine] = useState<EngineId>("blue");
+  const [articulacaoFrequencia, setArticulacaoFrequencia] = useState("1x/sem");
+  const [articulacaoTurno, setArticulacaoTurno] = useState("Manhã");
+  const [articulacaoAcoes, setArticulacaoAcoes] = useState("");
+  const [articulacaoTexto, setArticulacaoTexto] = useState("");
+  const [articulacaoLoading, setArticulacaoLoading] = useState(false);
+  const [articulacaoErro, setArticulacaoErro] = useState<string | null>(null);
 
   const ciclos = (student?.paee_ciclos || []) as CicloPAEE[];
   const cicloAtivoId = student?.planejamento_ativo ?? null;
@@ -249,11 +276,55 @@ export function PAEEClient({ students, studentId, student }: Props) {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-slate-200">
+      <div className="flex gap-2 border-b border-slate-200 overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setActiveTab("barreiras")}
+          className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
+            activeTab === "barreiras"
+              ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
+              : "text-slate-500 hover:bg-slate-100"
+          }`}
+        >
+          Mapear Barreiras
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("habilidades")}
+          className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
+            activeTab === "habilidades"
+              ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
+              : "text-slate-500 hover:bg-slate-100"
+          }`}
+        >
+          Plano de Habilidades
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("assistiva")}
+          className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
+            activeTab === "assistiva"
+              ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
+              : "text-slate-500 hover:bg-slate-100"
+          }`}
+        >
+          Tec. Assistiva
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("articulacao")}
+          className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
+            activeTab === "articulacao"
+              ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
+              : "text-slate-500 hover:bg-slate-100"
+          }`}
+        >
+          Articulação
+        </button>
         <button
           type="button"
           onClick={() => setActiveTab("planejamento")}
-          className={`px-4 py-2 rounded-t-lg text-sm font-medium ${
+          className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
             activeTab === "planejamento"
               ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
               : "text-slate-500 hover:bg-slate-100"
@@ -264,7 +335,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
         <button
           type="button"
           onClick={() => setActiveTab("execucao")}
-          className={`px-4 py-2 rounded-t-lg text-sm font-medium ${
+          className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
             activeTab === "execucao"
               ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
               : "text-slate-500 hover:bg-slate-100"
@@ -275,7 +346,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
         <button
           type="button"
           onClick={() => setActiveTab("jornada")}
-          className={`px-4 py-2 rounded-t-lg text-sm font-medium ${
+          className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
             activeTab === "jornada"
               ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
               : "text-slate-500 hover:bg-slate-100"
@@ -413,6 +484,77 @@ export function PAEEClient({ students, studentId, student }: Props) {
         </div>
       )}
 
+      {activeTab === "barreiras" && (
+        <BarreirasTab
+          student={student}
+          peiData={peiData}
+          engine={barreirasEngine}
+          onEngineChange={setBarreirasEngine}
+          observacao={barreirasObservacao}
+          onObservacaoChange={setBarreirasObservacao}
+          texto={barreirasTexto}
+          onTextoChange={setBarreirasTexto}
+          loading={barreirasLoading}
+          onLoadingChange={setBarreirasLoading}
+          erro={barreirasErro}
+          onErroChange={setBarreirasErro}
+        />
+      )}
+
+      {activeTab === "habilidades" && (
+        <HabilidadesTab
+          student={student}
+          peiData={peiData}
+          engine={habilidadesEngine}
+          onEngineChange={setHabilidadesEngine}
+          foco={habilidadesFoco}
+          onFocoChange={setHabilidadesFoco}
+          texto={habilidadesTexto}
+          onTextoChange={setHabilidadesTexto}
+          loading={habilidadesLoading}
+          onLoadingChange={setHabilidadesLoading}
+          erro={habilidadesErro}
+          onErroChange={setHabilidadesErro}
+        />
+      )}
+
+      {activeTab === "assistiva" && (
+        <AssistivaTab
+          student={student}
+          peiData={peiData}
+          engine={assistivaEngine}
+          onEngineChange={setAssistivaEngine}
+          dificuldade={assistivaDificuldade}
+          onDificuldadeChange={setAssistivaDificuldade}
+          texto={assistivaTexto}
+          onTextoChange={setAssistivaTexto}
+          loading={assistivaLoading}
+          onLoadingChange={setAssistivaLoading}
+          erro={assistivaErro}
+          onErroChange={setAssistivaErro}
+        />
+      )}
+
+      {activeTab === "articulacao" && (
+        <ArticulacaoTab
+          student={student}
+          engine={articulacaoEngine}
+          onEngineChange={setArticulacaoEngine}
+          frequencia={articulacaoFrequencia}
+          onFrequenciaChange={setArticulacaoFrequencia}
+          turno={articulacaoTurno}
+          onTurnoChange={setArticulacaoTurno}
+          acoes={articulacaoAcoes}
+          onAcoesChange={setArticulacaoAcoes}
+          texto={articulacaoTexto}
+          onTextoChange={setArticulacaoTexto}
+          loading={articulacaoLoading}
+          onLoadingChange={setArticulacaoLoading}
+          erro={articulacaoErro}
+          onErroChange={setArticulacaoErro}
+        />
+      )}
+
       {activeTab === "jornada" && (
         <JornadaTab
           student={student}
@@ -430,6 +572,534 @@ export function PAEEClient({ students, studentId, student }: Props) {
           erro={jornadaErro}
           onErroChange={setJornadaErro}
         />
+      )}
+    </div>
+  );
+}
+
+function BarreirasTab({
+  student,
+  peiData,
+  engine,
+  onEngineChange,
+  observacao,
+  onObservacaoChange,
+  texto,
+  onTextoChange,
+  loading,
+  onLoadingChange,
+  erro,
+  onErroChange,
+}: {
+  student: StudentFull;
+  peiData: Record<string, unknown>;
+  engine: EngineId;
+  onEngineChange: (e: EngineId) => void;
+  observacao: string;
+  onObservacaoChange: (o: string) => void;
+  texto: string;
+  onTextoChange: (t: string) => void;
+  loading: boolean;
+  onLoadingChange: (l: boolean) => void;
+  erro: string | null;
+  onErroChange: (e: string | null) => void;
+}) {
+  const diagnosis = (peiData.diagnostico as string) || student?.diagnosis || "Não informado";
+  const iaSugestao = (peiData.ia_sugestao as string) || "";
+
+  const gerar = async () => {
+    if (!observacao.trim()) {
+      onErroChange("Informe a observação do AEE.");
+      return;
+    }
+    onLoadingChange(true);
+    onErroChange(null);
+    try {
+      const res = await fetch("/api/paee/mapear-barreiras", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          estudante: {
+            nome: student.name,
+            diagnosis,
+            ia_sugestao: iaSugestao,
+          },
+          observacao,
+          engine,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar análise de barreiras.");
+      onTextoChange(data.texto || "");
+    } catch (e) {
+      onErroChange(e instanceof Error ? e.message : "Erro ao gerar.");
+    } finally {
+      onLoadingChange(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4 p-4 rounded-xl border border-slate-200 bg-white">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+        <strong>Diagnóstico de Acessibilidade:</strong> Identifique o que impede a participação plena do estudante (barreiras atitudinais, arquitetônicas, tecnológicas). Resultado para uso da equipe.
+      </div>
+      {!texto ? (
+        <div className="space-y-4">
+          {/* PAEE sempre usa OmniRed (DeepSeek), sem seleção */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Observações Iniciais do AEE</label>
+            <textarea
+              value={observacao}
+              onChange={(e) => onObservacaoChange(e.target.value)}
+              rows={6}
+              placeholder="Exemplo: O estudante se recusa a escrever quando solicitado, demonstrando ansiedade e evitamento. Durante atividades de escrita, ele tenta sair da sala ou distrai os colegas..."
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={gerar}
+            disabled={loading || !observacao.trim()}
+            className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
+          >
+            {loading ? "Analisando…" : "🔍 Analisar Barreiras"}
+          </button>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center flex-wrap gap-2">
+            <span className="text-sm font-medium text-slate-700">Análise de Barreiras</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  onTextoChange("");
+                  onObservacaoChange("");
+                  onErroChange(null);
+                }}
+                className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm hover:bg-slate-200"
+              >
+                Limpar / Abandonar
+              </button>
+              <PdfDownloadButton
+                text={texto}
+                filename={`Barreiras_${student.name.replace(/\s+/g, "_")}.pdf`}
+                title={`Análise de Barreiras - ${student.name}`}
+              />
+            </div>
+          </div>
+          <div className="prose max-w-none">
+            <pre className="whitespace-pre-wrap font-sans text-sm text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-200">
+              {texto}
+            </pre>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HabilidadesTab({
+  student,
+  peiData,
+  engine,
+  onEngineChange,
+  foco,
+  onFocoChange,
+  texto,
+  onTextoChange,
+  loading,
+  onLoadingChange,
+  erro,
+  onErroChange,
+}: {
+  student: StudentFull;
+  peiData: Record<string, unknown>;
+  engine: EngineId;
+  onEngineChange: (e: EngineId) => void;
+  foco: string;
+  onFocoChange: (f: string) => void;
+  texto: string;
+  onTextoChange: (t: string) => void;
+  loading: boolean;
+  onLoadingChange: (l: boolean) => void;
+  erro: string | null;
+  onErroChange: (e: string | null) => void;
+}) {
+  const iaSugestao = (peiData.ia_sugestao as string) || "";
+
+  const gerar = async () => {
+    onLoadingChange(true);
+    onErroChange(null);
+    try {
+      const res = await fetch("/api/paee/plano-habilidades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          estudante: {
+            nome: student.name,
+            ia_sugestao: iaSugestao,
+          },
+          foco,
+          engine,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar plano de habilidades.");
+      onTextoChange(data.texto || "");
+    } catch (e) {
+      onErroChange(e instanceof Error ? e.message : "Erro ao gerar.");
+    } finally {
+      onLoadingChange(false);
+    }
+  };
+
+  const focos = [
+    "Funções Executivas",
+    "Autonomia",
+    "Coordenação Motora",
+    "Comunicação",
+    "Habilidades Sociais",
+    "Leitura e Escrita",
+    "Matemática",
+    "Tecnologias Assistivas",
+    "Organização e Planejamento",
+  ];
+
+  return (
+    <div className="space-y-4 p-4 rounded-xl border border-slate-200 bg-white">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+        <strong>Treino de Habilidades:</strong> Desenvolvimento de competências específicas no AEE.
+      </div>
+      {!texto ? (
+        <div className="space-y-4">
+          {/* PAEE sempre usa OmniRed (DeepSeek), sem seleção */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Foco do Atendimento</label>
+            <select
+              value={foco}
+              onChange={(e) => onFocoChange(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            >
+              {focos.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={gerar}
+            disabled={loading}
+            className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
+          >
+            {loading ? "Elaborando…" : "📋 Gerar Plano"}
+          </button>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center flex-wrap gap-2">
+            <span className="text-sm font-medium text-slate-700">Plano de Habilidades</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  onTextoChange("");
+                  onErroChange(null);
+                }}
+                className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm hover:bg-slate-200"
+              >
+                Limpar / Abandonar
+              </button>
+              <PdfDownloadButton
+                text={texto}
+                filename={`Plano_Habilidades_${student.name.replace(/\s+/g, "_")}.pdf`}
+                title={`Plano de Habilidades - ${student.name}`}
+              />
+            </div>
+          </div>
+          <div className="prose max-w-none">
+            <pre className="whitespace-pre-wrap font-sans text-sm text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-200">
+              {texto}
+            </pre>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AssistivaTab({
+  student,
+  peiData,
+  engine,
+  onEngineChange,
+  dificuldade,
+  onDificuldadeChange,
+  texto,
+  onTextoChange,
+  loading,
+  onLoadingChange,
+  erro,
+  onErroChange,
+}: {
+  student: StudentFull;
+  peiData: Record<string, unknown>;
+  engine: EngineId;
+  onEngineChange: (e: EngineId) => void;
+  dificuldade: string;
+  onDificuldadeChange: (d: string) => void;
+  texto: string;
+  onTextoChange: (t: string) => void;
+  loading: boolean;
+  onLoadingChange: (l: boolean) => void;
+  erro: string | null;
+  onErroChange: (e: string | null) => void;
+}) {
+  const iaSugestao = (peiData.ia_sugestao as string) || "";
+
+  const gerar = async () => {
+    if (!dificuldade.trim()) {
+      onErroChange("Informe a dificuldade específica.");
+      return;
+    }
+    onLoadingChange(true);
+    onErroChange(null);
+    try {
+      const res = await fetch("/api/paee/tecnologia-assistiva", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          estudante: {
+            nome: student.name,
+            ia_sugestao: iaSugestao,
+          },
+          dificuldade,
+          engine,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar sugestões de tecnologia assistiva.");
+      onTextoChange(data.texto || "");
+    } catch (e) {
+      onErroChange(e instanceof Error ? e.message : "Erro ao gerar.");
+    } finally {
+      onLoadingChange(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4 p-4 rounded-xl border border-slate-200 bg-white">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+        <strong>Tecnologia Assistiva:</strong> Recursos para promover autonomia e participação.
+      </div>
+      {!texto ? (
+        <div className="space-y-4">
+          {/* PAEE sempre usa OmniRed (DeepSeek), sem seleção */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Dificuldade Específica</label>
+            <input
+              type="text"
+              value={dificuldade}
+              onChange={(e) => onDificuldadeChange(e.target.value)}
+              placeholder="Ex: Dificuldade na escrita, comunicação, mobilidade, organização..."
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={gerar}
+            disabled={loading || !dificuldade.trim()}
+            className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
+          >
+            {loading ? "Buscando…" : "🔧 Sugerir Recursos"}
+          </button>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center flex-wrap gap-2">
+            <span className="text-sm font-medium text-slate-700">Sugestões de Tecnologia Assistiva</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  onTextoChange("");
+                  onDificuldadeChange("");
+                  onErroChange(null);
+                }}
+                className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm hover:bg-slate-200"
+              >
+                Limpar / Abandonar
+              </button>
+              <PdfDownloadButton
+                text={texto}
+                filename={`Tec_Assistiva_${student.name.replace(/\s+/g, "_")}.pdf`}
+                title={`Tecnologia Assistiva - ${student.name}`}
+              />
+            </div>
+          </div>
+          <div className="prose max-w-none">
+            <pre className="whitespace-pre-wrap font-sans text-sm text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-200">
+              {texto}
+            </pre>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ArticulacaoTab({
+  student,
+  engine,
+  onEngineChange,
+  frequencia,
+  onFrequenciaChange,
+  turno,
+  onTurnoChange,
+  acoes,
+  onAcoesChange,
+  texto,
+  onTextoChange,
+  loading,
+  onLoadingChange,
+  erro,
+  onErroChange,
+}: {
+  student: StudentFull;
+  engine: EngineId;
+  onEngineChange: (e: EngineId) => void;
+  frequencia: string;
+  onFrequenciaChange: (f: string) => void;
+  turno: string;
+  onTurnoChange: (t: string) => void;
+  acoes: string;
+  onAcoesChange: (a: string) => void;
+  texto: string;
+  onTextoChange: (t: string) => void;
+  loading: boolean;
+  onLoadingChange: (l: boolean) => void;
+  erro: string | null;
+  onErroChange: (e: string | null) => void;
+}) {
+  const gerar = async () => {
+    if (!acoes.trim()) {
+      onErroChange("Informe o trabalho desenvolvido no AEE.");
+      return;
+    }
+    onLoadingChange(true);
+    onErroChange(null);
+    try {
+      const res = await fetch("/api/paee/articulacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          estudante: {
+            nome: student.name,
+          },
+          frequencia: `${frequencia} (${turno})`,
+          acoes,
+          engine,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar documento de articulação.");
+      onTextoChange(data.texto || "");
+    } catch (e) {
+      onErroChange(e instanceof Error ? e.message : "Erro ao gerar.");
+    } finally {
+      onLoadingChange(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4 p-4 rounded-xl border border-slate-200 bg-white">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+        <strong>Ponte com a Sala Regular:</strong> Documento colaborativo para articulação entre AEE e sala de aula.
+      </div>
+      {!texto ? (
+        <div className="space-y-4">
+          {/* PAEE sempre usa OmniRed (DeepSeek), sem seleção */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Frequência no AEE</label>
+              <select
+                value={frequencia}
+                onChange={(e) => onFrequenciaChange(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              >
+                <option value="1x/sem">1x/sem</option>
+                <option value="2x/sem">2x/sem</option>
+                <option value="3x/sem">3x/sem</option>
+                <option value="Diário">Diário</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Turno</label>
+              <select
+                value={turno}
+                onChange={(e) => onTurnoChange(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              >
+                <option value="Manhã">Manhã</option>
+                <option value="Tarde">Tarde</option>
+                <option value="Integral">Integral</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Trabalho Desenvolvido no AEE</label>
+            <textarea
+              value={acoes}
+              onChange={(e) => onAcoesChange(e.target.value)}
+              rows={6}
+              placeholder="Descreva as principais ações, estratégias e recursos utilizados no AEE..."
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={gerar}
+            disabled={loading || !acoes.trim()}
+            className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
+          >
+            {loading ? "Gerando…" : "📄 Gerar Documento"}
+          </button>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center flex-wrap gap-2">
+            <span className="text-sm font-medium text-slate-700">Documento de Articulação</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  onTextoChange("");
+                  onAcoesChange("");
+                  onErroChange(null);
+                }}
+                className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm hover:bg-slate-200"
+              >
+                Limpar / Abandonar
+              </button>
+              <PdfDownloadButton
+                text={texto}
+                filename={`Articulacao_${student.name.replace(/\s+/g, "_")}.pdf`}
+                title={`Documento de Articulação - ${student.name}`}
+              />
+            </div>
+          </div>
+          <div className="prose max-w-none">
+            <pre className="whitespace-pre-wrap font-sans text-sm text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-200">
+              {texto}
+            </pre>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -519,7 +1189,7 @@ function JornadaTab({
       <p className="text-sm text-slate-600">
         Transforme o planejamento ou o relatório do PEI em uma missão gamificada para o estudante e a família.
       </p>
-      <EngineSelector value={engine} onChange={onEngineChange} />
+      {/* PAEE sempre usa OmniRed (DeepSeek), sem seleção */}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Origem</label>
         <select value={origem} onChange={(e) => setOrigem(e.target.value as "ciclo" | "texto")} className="w-full max-w-xs px-3 py-2 border border-slate-200 rounded-lg">

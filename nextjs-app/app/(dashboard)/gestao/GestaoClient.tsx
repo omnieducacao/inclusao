@@ -46,21 +46,32 @@ export function GestaoClient() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDelId, setConfirmDelId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [workspaceConfig, setWorkspaceConfig] = useState<{
+    enabled_modules: string[];
+    ai_engines: string[];
+  } | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [membersRes, masterRes] = await Promise.all([
+      const [membersRes, masterRes, configRes] = await Promise.all([
         fetch("/api/members"),
         fetch("/api/members?master=1"),
+        fetch("/api/workspace/config"),
       ]);
       const membersData = await membersRes.json();
       const masterData = await masterRes.json();
+      const configData = await configRes.json();
       setMembers(membersData.members ?? []);
       setMaster(masterData.master ?? null);
+      setWorkspaceConfig({
+        enabled_modules: configData.enabled_modules || [],
+        ai_engines: configData.ai_engines || [],
+      });
     } catch {
       setMembers([]);
       setMaster(null);
+      setWorkspaceConfig(null);
     } finally {
       setLoading(false);
     }
@@ -103,6 +114,7 @@ export function GestaoClient() {
         {showForm && (
           <div className="border-t border-slate-100 p-4 bg-slate-50">
             <NovoUsuarioForm
+              enabledModules={workspaceConfig?.enabled_modules || []}
               onSuccess={() => {
                 loadData();
                 setShowForm(false);
@@ -147,6 +159,7 @@ export function GestaoClient() {
               <MemberCard
                 key={m.id}
                 member={m}
+                enabledModules={workspaceConfig?.enabled_modules || []}
                 editingId={editingId}
                 confirmDelId={confirmDelId}
                 setEditingId={setEditingId}
@@ -288,9 +301,11 @@ function MasterSetupForm({
 }
 
 function NovoUsuarioForm({
+  enabledModules,
   onSuccess,
   onError,
 }: {
+  enabledModules: string[];
   onSuccess: () => void;
   onError: (err: string) => void;
 }) {
@@ -391,18 +406,47 @@ function NovoUsuarioForm({
         </div>
         <div>
           <p className="text-sm font-medium text-slate-700 mb-2">Páginas que pode acessar</p>
+          {enabledModules.length === 0 ? (
+            <p className="text-xs text-amber-600 mb-2">
+              ⚠️ Nenhuma página liberada pelo admin. Entre em contato com o administrador da plataforma.
+            </p>
+          ) : (
+            <p className="text-xs text-slate-500 mb-2">
+              Páginas liberadas pelo admin: {enabledModules.map((m) => PERM_LABELS[m] || m).join(", ")}
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-2">
-            {Object.entries(PERM_LABELS).map(([key, label]) => (
-              <label key={key} className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={perms[key] ?? false}
-                  onChange={(e) => setPerms((p) => ({ ...p, [key]: e.target.checked }))}
-                  className="rounded border-slate-300"
-                />
-                {label}
-              </label>
-            ))}
+            {Object.entries(PERM_LABELS).map(([key, label]) => {
+              const moduleKey = key.replace("can_", "");
+              const isEnabled = enabledModules.includes(moduleKey);
+              return (
+                <label
+                  key={key}
+                  className={`flex items-center gap-2 text-sm ${
+                    !isEnabled ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  title={
+                    !isEnabled
+                      ? "Esta página não foi liberada pelo admin da plataforma para sua escola"
+                      : undefined
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    checked={perms[key] ?? false}
+                    disabled={!isEnabled}
+                    onChange={(e) => {
+                      if (isEnabled) {
+                        setPerms((p) => ({ ...p, [key]: e.target.checked }));
+                      }
+                    }}
+                    className="rounded border-slate-300"
+                  />
+                  {label}
+                  {!isEnabled && <span className="text-xs text-slate-400">(não liberada)</span>}
+                </label>
+              );
+            })}
           </div>
           <p className="text-sm font-medium text-slate-700 mt-4 mb-2">Vínculo com estudantes</p>
           <select
@@ -436,6 +480,7 @@ function NovoUsuarioForm({
 
 function MemberCard({
   member,
+  enabledModules,
   editingId,
   confirmDelId,
   setEditingId,
@@ -444,6 +489,7 @@ function MemberCard({
   onError,
 }: {
   member: WorkspaceMember;
+  enabledModules: string[];
   editingId: string | null;
   confirmDelId: string | null;
   setEditingId: (id: string | null) => void;
@@ -498,6 +544,7 @@ function MemberCard({
     return (
       <EditarUsuarioForm
         member={member}
+        enabledModules={enabledModules}
         onSuccess={() => {
           setEditingId(null);
           onAction();
@@ -572,11 +619,13 @@ function MemberCard({
 
 function EditarUsuarioForm({
   member,
+  enabledModules,
   onSuccess,
   onCancel,
   onError,
 }: {
   member: WorkspaceMember;
+  enabledModules: string[];
   onSuccess: () => void;
   onCancel: () => void;
   onError: (err: string) => void;
@@ -678,20 +727,49 @@ function EditarUsuarioForm({
           </div>
           <div>
             <p className="text-sm font-medium text-slate-700 mb-2">Páginas que pode acessar</p>
+            {enabledModules.length === 0 ? (
+              <p className="text-xs text-amber-600 mb-2">
+                ⚠️ Nenhuma página liberada pelo admin. Entre em contato com o administrador da plataforma.
+              </p>
+            ) : (
+              <p className="text-xs text-slate-500 mb-2">
+                Páginas liberadas pelo admin: {enabledModules.map((m) => PERM_LABELS[`can_${m}`] || m).join(", ")}
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-2">
-              {Object.entries(PERM_LABELS).map(([key, label]) => (
-                <label key={key} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={perms[key as keyof typeof perms]}
-                    onChange={(e) =>
-                      setPerms((p) => ({ ...p, [key]: e.target.checked }))
+              {Object.entries(PERM_LABELS).map(([key, label]) => {
+                const moduleKey = key.replace("can_", "");
+                // Estudantes e Gestão sempre disponíveis
+                const isAlwaysAvailable = moduleKey === "estudantes" || moduleKey === "gestao";
+                const isEnabled = isAlwaysAvailable || enabledModules.includes(moduleKey);
+                return (
+                  <label
+                    key={key}
+                    className={`flex items-center gap-2 text-sm ${
+                      !isEnabled ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    title={
+                      !isEnabled
+                        ? "Esta página não foi liberada pelo admin da plataforma para sua escola"
+                        : undefined
                     }
-                    className="rounded border-slate-300"
-                  />
-                  {label}
-                </label>
-              ))}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={perms[key as keyof typeof perms]}
+                      disabled={!isEnabled}
+                      onChange={(e) => {
+                        if (isEnabled) {
+                          setPerms((p) => ({ ...p, [key]: e.target.checked }));
+                        }
+                      }}
+                      className="rounded border-slate-300"
+                    />
+                    {label}
+                    {!isEnabled && <span className="text-xs text-slate-400">(não liberada)</span>}
+                  </label>
+                );
+              })}
             </div>
             <p className="text-sm font-medium text-slate-700 mt-4 mb-2">Vínculo</p>
             <select

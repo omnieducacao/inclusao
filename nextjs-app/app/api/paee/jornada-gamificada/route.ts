@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
-import type { EngineId } from "@/lib/ai-engines";
+import { getSession } from "@/lib/session";
+import { chatCompletionText } from "@/lib/ai-engines";
+import { isEngineAvailable } from "@/lib/workspace";
+import { selectEngine, withFallback } from "@/lib/engine-selector";
 
 type CicloPayload = {
   config_ciclo?: {
@@ -12,6 +14,11 @@ type CicloPayload = {
 };
 
 export async function POST(req: Request) {
+  const session = await getSession();
+  if (!session?.workspace_id) {
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
   let body: {
     origem: "ciclo" | "texto";
     engine?: string;
@@ -27,12 +34,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
   }
 
-  const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
-    ? (body.engine as EngineId)
-    : "yellow";
+  // PAEE: DeepSeek (red) sempre
+  const { engine, error: engineErr } = selectEngine("paee", null, true);
+  
+  if (engineErr) {
+    return NextResponse.json({ error: engineErr }, { status: 500 });
+  }
 
-  const engineErr = getEngineError(engine);
-  if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
+  // Validar se o motor está disponível para o workspace
+  const isAvailable = await isEngineAvailable(session.workspace_id, engine);
+  if (!isAvailable) {
+    return NextResponse.json(
+      { error: `O motor não está disponível para sua escola. Entre em contato com o administrador da plataforma.` },
+      { status: 403 }
+    );
+  }
 
   const estudante = body.estudante || {};
   const nome = estudante.nome || "Estudante";
@@ -86,11 +102,14 @@ REGRA: NUNCA inclua diagnóstico clínico ou CID. Use linguagem motivadora e lú
   }
 
   try {
-    const texto = await chatCompletionText(
-      engine,
-      [{ role: "user", content: prompt }],
-      { temperature: 0.7 }
-    );
+    // Usa fallback automático se DeepSeek falhar
+    const texto = await withFallback("paee", null, async (selectedEngine) => {
+      return await chatCompletionText(
+        selectedEngine,
+        [{ role: "user", content: prompt }],
+        { temperature: 0.7 }
+      );
+    });
     return NextResponse.json({ texto: (texto || "").trim() });
   } catch (err) {
     console.error("PAEE jornada gamificada:", err);

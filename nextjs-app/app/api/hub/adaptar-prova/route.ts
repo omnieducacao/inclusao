@@ -12,6 +12,10 @@ export async function POST(req: Request) {
   let engine: EngineId = "red";
   let modoProfundo = false;
   let questoesComImagem: number[] = [];
+  let ano: string | undefined;
+  let unidadeTematica: string | undefined;
+  let objetoConhecimento: string | undefined;
+  let habilidadesBncc: string[] | undefined;
 
   try {
     const formData = await req.formData();
@@ -34,6 +38,12 @@ export async function POST(req: Request) {
         }
         if (parsed.engine && ["red", "blue", "green", "yellow", "orange"].includes(parsed.engine)) {
           engine = parsed.engine;
+        }
+        ano = parsed.ano;
+        unidadeTematica = parsed.unidade_tematica;
+        objetoConhecimento = parsed.objeto_conhecimento;
+        if (Array.isArray(parsed.habilidades_bncc)) {
+          habilidadesBncc = parsed.habilidades_bncc;
         }
       } catch {
         // ignore
@@ -91,6 +101,15 @@ export async function POST(req: Request) {
     questoesComImagem.length > 0
       ? `\nREGRA DE IMAGENS: O professor indicou imagens nas questões: ${questoesComImagem.join(", ")}. Para cada questão com imagem, use a tag [[IMG_N]] (onde N é o número da questão) EXATAMENTE no local onde a figura deve aparecer (após o enunciado, antes das alternativas). Exemplo: Questão 1 tem imagem → use [[IMG_1]]. NUNCA remova ou mova imagens de posição.\n`
       : "";
+  
+  let infoBncc = "";
+  if (habilidadesBncc?.length) {
+    infoBncc += "\nHabilidades BNCC:\n" + habilidadesBncc.map((h) => `- ${h}`).join("\n");
+  }
+  if (ano) infoBncc += `\nAno: ${ano}`;
+  if (unidadeTematica) infoBncc += `\nUnidade Temática: ${unidadeTematica}`;
+  if (objetoConhecimento) infoBncc += `\nObjeto do Conhecimento: ${objetoConhecimento}`;
+  
   const prompt = `ESPECIALISTA EM DUA E INCLUSÃO. ${modoInstrucao}${instrucaoImagens}
 1. ANALISE O PERFIL: ${perfil}
 2. ADAPTE A ${tipo}: Use o hiperfoco (${hiperfoco}) em até 30% das questões.
@@ -105,7 +124,7 @@ SAÍDA OBRIGATÓRIA (Use EXATAMENTE este divisor):
 [ATIVIDADE]
 ...prova/atividade adaptada...
 
-CONTEXTO: ${materia} | ${tema}
+CONTEXTO: ${materia} | ${tema}${infoBncc}
 TEXTO ORIGINAL:
 ${texto.slice(0, 12000)}`;
 

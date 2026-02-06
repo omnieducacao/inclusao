@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { chatCompletionText } from "@/lib/ai-engines";
+import { selectEngine, withFallback } from "@/lib/engine-selector";
 
 export async function POST(req: Request) {
   let body: {
@@ -40,11 +41,10 @@ O objetivo é usar o hiperfoco ou o interesse da turma como UMA PONTE (estratég
 Seja criativo e profundo.
 Regra LGPD: NUNCA inclua diagnóstico ou CID no texto.`;
 
-  const engineErr = getEngineError(engine);
-  if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
-
   try {
-    const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.8 });
+    const texto = await withFallback("hub", body.engine, async (selectedEngine) => {
+      return await chatCompletionText(selectedEngine, [{ role: "user", content: prompt }], { temperature: 0.8 });
+    });
     return NextResponse.json({ texto });
   } catch (err) {
     console.error("Hub papo-mestre:", err);

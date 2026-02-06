@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server";
 import { generateImageWithGemini } from "@/lib/gemini-image";
 import OpenAI from "openai";
+import { selectEngine } from "@/lib/engine-selector";
 
 export async function POST(req: Request) {
+  // Mapa mental sempre usa Gemini (yellow)
+  const { engine, error: engineErr } = selectEngine("paee_mapa_mental", null, false);
+  
+  if (engineErr) {
+    return NextResponse.json(
+      { error: engineErr },
+      { status: 500 }
+    );
+  }
+
   const geminiKey = (process.env.GEMINI_API_KEY || "").trim();
   const openaiKey = (process.env.OPENAI_API_KEY || "").trim();
   if (!geminiKey && !openaiKey) {

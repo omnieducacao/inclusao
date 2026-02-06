@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { getSupabase } from "@/lib/supabase";
 import {
   listMembers,
   createMember,
@@ -71,19 +72,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  // Validar que só pode atribuir permissões de módulos liberados pelo admin
+  const sb = getSupabase();
+  const { data: workspace } = await sb
+    .from("workspaces")
+    .select("enabled_modules")
+    .eq("id", workspaceId)
+    .single();
+
+  const enabledModules = (workspace?.enabled_modules as string[]) || [];
+  
+  // Filtrar permissões para incluir apenas módulos liberados
+  // Estudantes sempre disponível (não precisa estar em enabled_modules)
+  const filteredPerms: Record<string, boolean> = {
+    can_estudantes: body.can_estudantes ?? false,
+  };
+  if (enabledModules.includes("pei")) filteredPerms.can_pei = body.can_pei ?? false;
+  if (enabledModules.includes("paee")) filteredPerms.can_paee = body.can_paee ?? false;
+  if (enabledModules.includes("hub")) filteredPerms.can_hub = body.can_hub ?? false;
+  if (enabledModules.includes("diario")) filteredPerms.can_diario = body.can_diario ?? false;
+  if (enabledModules.includes("avaliacao")) filteredPerms.can_avaliacao = body.can_avaliacao ?? false;
+  // Gestão sempre disponível para master (não precisa estar em enabled_modules)
+  filteredPerms.can_gestao = body.can_gestao ?? false;
+
   const result = await createMember(workspaceId, {
     nome: body.nome ?? "",
     email: body.email ?? "",
     password: body.password ?? "",
     telefone: body.telefone ?? "",
     cargo: body.cargo ?? "",
-    can_estudantes: body.can_estudantes ?? false,
-    can_pei: body.can_pei ?? false,
-    can_paee: body.can_paee ?? false,
-    can_hub: body.can_hub ?? false,
-    can_diario: body.can_diario ?? false,
-    can_avaliacao: body.can_avaliacao ?? false,
-    can_gestao: body.can_gestao ?? false,
+    ...filteredPerms,
     link_type: body.link_type ?? "todos",
     teacher_assignments: body.teacher_assignments,
     student_ids: body.student_ids,
