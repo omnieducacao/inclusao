@@ -24,6 +24,8 @@ import {
   detectarNivelEnsino,
 } from "@/lib/pei";
 import type { PEIData } from "@/lib/pei";
+import type { EngineId } from "@/lib/ai-engines";
+import { EngineSelector } from "@/components/EngineSelector";
 
 type HabilidadeBncc = {
   disciplina: string;
@@ -1021,6 +1023,7 @@ function LaudoPdfSection({
   onMedicamentos: (meds: { nome: string; posologia?: string; escola?: boolean }[]) => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
+  const [engine, setEngine] = useState<EngineId>("red");
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [extraido, setExtraido] = useState<{ diagnostico: string; medicamentos: { nome: string; posologia?: string }[] } | null>(null);
@@ -1036,6 +1039,7 @@ function LaudoPdfSection({
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("engine", engine);
       const res = await fetch("/api/pei/extrair-laudo", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao extrair dados.");
@@ -1065,6 +1069,7 @@ function LaudoPdfSection({
     <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3">
       <h4 className="font-medium text-slate-800">Laudo médico/escolar (PDF)</h4>
       <p className="text-sm text-slate-600">Anexe o laudo e use a IA para extrair diagnóstico e medicamentos.</p>
+      <EngineSelector value={engine} onChange={setEngine} />
       <div className="flex flex-wrap gap-3 items-end">
         <div>
           <label className="block text-xs text-slate-600 mb-1">Arquivo PDF</label>

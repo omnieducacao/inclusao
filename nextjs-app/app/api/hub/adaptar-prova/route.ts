@@ -1,22 +1,16 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 import mammoth from "mammoth";
+import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey?.trim()) {
-    return NextResponse.json(
-      { error: "Configure OPENAI_API_KEY no ambiente." },
-      { status: 500 }
-    );
-  }
-
   let texto = "";
   let materia = "Geral";
   let tema = "Geral";
   let tipo = "Prova";
   let checklist: Record<string, boolean> = {};
   let estudante: { hiperfoco?: string; perfil?: string } = {};
+  let engine: EngineId = "red";
+  let modoProfundo = false;
 
   try {
     const formData = await req.formData();
@@ -38,6 +32,10 @@ export async function POST(req: Request) {
         tipo = parsed.tipo || tipo;
         checklist = parsed.checklist || {};
         estudante = parsed.estudante || {};
+        modoProfundo = !!parsed.modo_profundo;
+        if (parsed.engine && ["red", "blue", "green", "yellow", "orange"].includes(parsed.engine)) {
+          engine = parsed.engine;
+        }
       } catch {
         // ignore
       }
@@ -79,7 +77,10 @@ export async function POST(req: Request) {
   const hiperfoco = estudante.hiperfoco || "Geral";
   const perfil = (estudante.perfil || "").slice(0, 800);
 
-  const prompt = `ESPECIALISTA EM DUA E INCLUSÃO. Seja objetivo.
+  const modoInstrucao = modoProfundo
+    ? "Seja didático e use Cadeia de Pensamento para fundamentar cada adaptação."
+    : "Seja objetivo.";
+  const prompt = `ESPECIALISTA EM DUA E INCLUSÃO. ${modoInstrucao}
 1. ANALISE O PERFIL: ${perfil}
 2. ADAPTE A ${tipo}: Use o hiperfoco (${hiperfoco}) em até 30% das questões.
 ${instrucoesChecklist}
@@ -97,15 +98,17 @@ CONTEXTO: ${materia} | ${tema}
 TEXTO ORIGINAL:
 ${texto.slice(0, 12000)}`;
 
-  try {
-    const client = new OpenAI({ apiKey });
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.4,
-    });
+  const engineErr = getEngineError(engine);
+  if (engineErr) {
+    return NextResponse.json({ error: engineErr }, { status: 500 });
+  }
 
-    const fullText = (completion.choices[0]?.message?.content || "").trim();
+  try {
+    const fullText = await chatCompletionText(
+      engine,
+      [{ role: "user", content: prompt }],
+      { temperature: modoProfundo ? 0.7 : 0.4 }
+    );
     let analise = "Análise indisponível.";
     let atividade = fullText;
 

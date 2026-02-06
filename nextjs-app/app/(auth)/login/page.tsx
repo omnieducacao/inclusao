@@ -67,7 +67,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7FAFC] flex flex-col items-center justify-center p-6 font-[Nunito,sans-serif]">
+    <div className="min-h-screen bg-[#F7FAFC] flex flex-col items-center justify-center p-6 font-sans">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-[#0f172a] tracking-tight">

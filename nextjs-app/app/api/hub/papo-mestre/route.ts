@@ -1,21 +1,14 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey?.trim()) {
-    return NextResponse.json(
-      { error: "Configure OPENAI_API_KEY no ambiente." },
-      { status: 500 }
-    );
-  }
-
   let body: {
     materia?: string;
     assunto?: string;
     hiperfoco?: string;
     tema_turma?: string;
     nome_estudante?: string;
+    engine?: string;
   };
 
   try {
@@ -23,6 +16,10 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
   }
+
+  const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
+    ? (body.engine as EngineId)
+    : "red";
 
   const materia = (body.materia || "Geral").trim();
   const assunto = (body.assunto || "").trim();
@@ -43,15 +40,11 @@ O objetivo é usar o hiperfoco ou o interesse da turma como UMA PONTE (estratég
 Seja criativo e profundo.
 Regra LGPD: NUNCA inclua diagnóstico ou CID no texto.`;
 
-  try {
-    const client = new OpenAI({ apiKey });
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.8,
-    });
+  const engineErr = getEngineError(engine);
+  if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
 
-    const texto = completion.choices[0]?.message?.content?.trim() || "";
+  try {
+    const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.8 });
     return NextResponse.json({ texto });
   } catch (err) {
     console.error("Hub papo-mestre:", err);

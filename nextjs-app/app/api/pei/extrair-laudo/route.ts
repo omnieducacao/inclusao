@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
   const { PDFParse } = await import("pdf-parse");
@@ -9,17 +9,18 @@ async function extractTextFromPdf(buffer: Buffer): Promise<string> {
 }
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey?.trim()) {
-    return NextResponse.json(
-      { error: "Configure OPENAI_API_KEY no ambiente." },
-      { status: 500 }
-    );
-  }
-
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
+    const engineRaw = formData.get("engine");
+    const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(String(engineRaw || ""))
+      ? (engineRaw as EngineId)
+      : "red";
+
+    const engineErr = getEngineError(engine);
+    if (engineErr) {
+      return NextResponse.json({ error: engineErr }, { status: 500 });
+    }
 
     if (!file || !file.size) {
       return NextResponse.json(
@@ -49,23 +50,12 @@ export async function POST(req: Request) {
     }
 
     const textoLimitado = textoPdf.slice(0, 6000);
-    const client = new OpenAI({ apiKey });
+    const prompt =
+      "Analise este laudo médico/escolar. Extraia: 1) Diagnóstico; 2) Medicamentos. " +
+      'Responda APENAS em JSON, sem markdown: { "diagnostico": "...", "medicamentos": [ {"nome": "...", "posologia": "..."} ] }. ' +
+      `Texto: ${textoLimitado}`;
 
-    const res = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "user",
-          content:
-            "Analise este laudo médico/escolar. Extraia: 1) Diagnóstico; 2) Medicamentos. " +
-            'Responda em JSON no formato: { "diagnostico": "...", "medicamentos": [ {"nome": "...", "posologia": "..."} ] }. ' +
-            `Texto: ${textoLimitado}`,
-        },
-      ],
-      response_format: { type: "json_object" },
-    });
-
-    const raw = res.choices[0]?.message?.content;
+    const raw = (await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.2 })).trim();
     if (!raw) {
       return NextResponse.json(
         { error: "A IA não retornou dados válidos." },
@@ -73,7 +63,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const parsed = JSON.parse(raw) as {
+    let jsonStr = raw;
+    const codeBlock = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlock) jsonStr = codeBlock[1].trim();
+    const parsed = JSON.parse(jsonStr) as {
       diagnostico?: string;
       medicamentos?: { nome?: string; posologia?: string }[];
     };

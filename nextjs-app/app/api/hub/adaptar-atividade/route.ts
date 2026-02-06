@@ -1,24 +1,23 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { visionAdapt, getVisionError } from "@/lib/ai-engines";
 
-const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB para gpt-4o
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey?.trim()) {
-    return NextResponse.json(
-      { error: "Configure OPENAI_API_KEY no ambiente." },
-      { status: 500 }
-    );
+  const err = getVisionError();
+  if (err) {
+    return NextResponse.json({ error: err }, { status: 500 });
   }
 
   let imagemBase64 = "";
+  let mime = "image/jpeg";
   let materia = "Geral";
   let tema = "Geral";
   let tipo = "Atividade";
   let livroProfessor = false;
   let checklist: Record<string, boolean> = {};
   let estudante: { hiperfoco?: string; perfil?: string } = {};
+  let modoProfundo = false;
 
   try {
     const formData = await req.formData();
@@ -41,6 +40,7 @@ export async function POST(req: Request) {
         livroProfessor = !!parsed.livro_professor;
         checklist = parsed.checklist || {};
         estudante = parsed.estudante || {};
+        modoProfundo = !!parsed.modo_profundo;
       } catch {
         // ignore
       }
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       );
     }
     imagemBase64 = Buffer.from(bytes).toString("base64");
-    const mime = file.type || "image/jpeg";
+    mime = file.type || "image/jpeg";
   } catch (err) {
     console.error("Adaptar Atividade parse:", err);
     return NextResponse.json(
@@ -85,8 +85,11 @@ export async function POST(req: Request) {
   const instrucaoLivro = livroProfessor
     ? "ATENÇÃO: Imagem com respostas. Remova todo gabarito/respostas."
     : "";
+  const modoInstrucao = modoProfundo
+    ? "Seja didático e use Cadeia de Pensamento para fundamentar cada adaptação."
+    : "Seja objetivo.";
 
-  const prompt = `ATUAR COMO: Especialista em Acessibilidade e OCR.
+  const prompt = `ATUAR COMO: Especialista em Acessibilidade e OCR. ${modoInstrucao}
 1. Transcreva o texto da imagem. ${instrucaoLivro}
 2. Adapte para o estudante. Perfil (PEI): ${perfil}
 3. HIPERFOCO (${hiperfoco}): Use o hiperfoco do estudante quando possível.
@@ -102,28 +105,7 @@ SAÍDA OBRIGATÓRIA (Use EXATAMENTE este divisor):
 CONTEXTO: ${materia} | ${tema} | ${tipo}`;
 
   try {
-    const client = new OpenAI({ apiKey });
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${imagemBase64}`,
-              },
-            },
-            { type: "text", text: prompt },
-          ],
-        },
-      ],
-      max_tokens: 4096,
-      temperature: 0.4,
-    });
-
-    const fullText = (completion.choices[0]?.message?.content || "").trim();
+    const fullText = await visionAdapt(prompt, imagemBase64, mime);
     let analise = "Análise indisponível.";
     let atividade = fullText;
 

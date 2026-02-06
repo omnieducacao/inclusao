@@ -1,17 +1,10 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey?.trim()) {
-    return NextResponse.json(
-      { error: "Configure OPENAI_API_KEY no ambiente." },
-      { status: 500 }
-    );
-  }
-
   let body: {
     assunto?: string;
+    engine?: string;
     habilidades?: string[];
     estudante?: { nome?: string; serie?: string; hiperfoco?: string };
   };
@@ -29,6 +22,9 @@ export async function POST(req: Request) {
 
   const habilidades = body.habilidades || [];
   const estudante = body.estudante || {};
+  const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
+    ? (body.engine as EngineId)
+    : "red";
   const ctxEstudante = estudante.nome
     ? `Estudante: ${estudante.nome}. Série: ${estudante.serie || "-"}. Interesses: ${estudante.hiperfoco || "gerais"}.`
     : "";
@@ -45,15 +41,11 @@ Regras:
 - NÃO inclua diagnóstico ou CID em nenhum material.
 - Retorne a atividade pronta para uso (enunciados, orientações, se aplicável).`;
 
-  try {
-    const client = new OpenAI({ apiKey });
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-    });
+  const engineErr = getEngineError(engine);
+  if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
 
-    const texto = completion.choices[0]?.message?.content?.trim() || "";
+  try {
+    const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.7 });
     return NextResponse.json({ texto });
   } catch (err) {
     console.error("Hub criar-atividade:", err);
