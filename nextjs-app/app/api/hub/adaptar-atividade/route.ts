@@ -18,10 +18,6 @@ export async function POST(req: Request) {
   let checklist: Record<string, boolean> = {};
   let estudante: { hiperfoco?: string; perfil?: string } = {};
   let modoProfundo = false;
-  let ano: string | undefined;
-  let unidadeTematica: string | undefined;
-  let objetoConhecimento: string | undefined;
-  let habilidadesBncc: string[] | undefined;
 
   try {
     const formData = await req.formData();
@@ -45,12 +41,6 @@ export async function POST(req: Request) {
         checklist = parsed.checklist || {};
         estudante = parsed.estudante || {};
         modoProfundo = !!parsed.modo_profundo;
-        ano = parsed.ano;
-        unidadeTematica = parsed.unidade_tematica;
-        objetoConhecimento = parsed.objeto_conhecimento;
-        if (Array.isArray(parsed.habilidades_bncc)) {
-          habilidadesBncc = parsed.habilidades_bncc;
-        }
       } catch {
         // ignore
       }
@@ -99,14 +89,6 @@ export async function POST(req: Request) {
     ? "Seja didático e use Cadeia de Pensamento para fundamentar cada adaptação."
     : "Seja objetivo.";
 
-  let infoBncc = "";
-  if (habilidadesBncc?.length) {
-    infoBncc += "\nHabilidades BNCC:\n" + habilidadesBncc.map((h) => `- ${h}`).join("\n");
-  }
-  if (ano) infoBncc += `\nAno: ${ano}`;
-  if (unidadeTematica) infoBncc += `\nUnidade Temática: ${unidadeTematica}`;
-  if (objetoConhecimento) infoBncc += `\nObjeto do Conhecimento: ${objetoConhecimento}`;
-
   const prompt = `ATUAR COMO: Especialista em Acessibilidade e OCR. ${modoInstrucao}
 1. Transcreva o texto da imagem. ${instrucaoLivro}
 2. Adapte para o estudante. Perfil (PEI): ${perfil}
@@ -120,7 +102,7 @@ SAÍDA OBRIGATÓRIA (Use EXATAMENTE este divisor):
 [ATIVIDADE]
 ...atividade adaptada...
 
-CONTEXTO: ${materia} | ${tema} | ${tipo}${infoBncc}`;
+CONTEXTO: ${materia} | ${tema} | ${tipo}`;
 
   try {
     const fullText = await visionAdapt(prompt, imagemBase64, mime);

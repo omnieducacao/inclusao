@@ -1,7 +1,5 @@
 import { getSession } from "@/lib/session";
 import Link from "next/link";
-import { Suspense } from "react";
-import { InfosClient } from "@/app/(dashboard)/infos/InfosClient";
 
 export default async function HomePage() {
   const session = await getSession();
@@ -68,24 +66,7 @@ export default async function HomePage() {
       desc: "Plano de Gestão Inclusiva (5W2H)",
       color: "slate",
     },
-    {
-      href: "/infos",
-      icon: "📚",
-      title: "Central de Inteligência",
-      desc: "Fundamentos, legislação e ferramentas práticas",
-      color: "blue",
-    },
   ];
-
-  if (session?.is_platform_admin) {
-    modules.push({
-      href: "/admin",
-      icon: "🔧",
-      title: "Admin Plataforma",
-      desc: "Gerenciamento completo da plataforma",
-      color: "slate",
-    });
-  }
 
   const colorClasses: Record<string, string> = {
     sky: "from-sky-50 to-white border-sky-100 hover:border-sky-200 hover:bg-sky-50/50",
@@ -141,13 +122,6 @@ export default async function HomePage() {
           <strong>Omnisfera</strong> — Plataforma de inclusão educacional.
           Legislação: Decretos 12.686/2025 e 12.773/2025. Alinhada à BNCC.
         </p>
-      </div>
-
-      {/* Central de Inteligência Inclusiva */}
-      <div className="mt-12">
-        <Suspense fallback={<div className="text-slate-500 p-4">Carregando Central de Inteligência...</div>}>
-          <InfosClient session={session} />
-        </Suspense>
       </div>
     </div>
   );

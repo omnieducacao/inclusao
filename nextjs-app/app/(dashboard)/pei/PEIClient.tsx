@@ -62,26 +62,16 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
 ];
 
-type StudentFull = {
-  id: string;
-  name: string;
-  grade?: string | null;
-  class_group?: string | null;
-  birth_date?: string | null;
-  diagnosis?: string | null;
-};
-
 type Props = {
   students: { id: string; name: string }[];
   studentId: string | null;
-  student: StudentFull | null;
+  studentName: string | null;
   initialPeiData: Record<string, unknown>;
 };
 
 export function PEIClient({
   students,
   studentId,
-  student,
   initialPeiData,
 }: Props) {
   const searchParams = useSearchParams();
@@ -89,8 +79,6 @@ export function PEIClient({
   const [peiData, setPeiData] = useState<PEIData>(initialPeiData as PEIData);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [integrating, setIntegrating] = useState(false);
-  const [integrated, setIntegrated] = useState(false);
 
   const currentStudentId = studentId || searchParams.get("student");
 
@@ -148,136 +136,28 @@ export function PEIClient({
     }
   }
 
-  async function handleIntegrar() {
-    const nome = (peiData.nome || "").trim();
-    if (!nome) {
-      alert("Preencha o nome do estudante na aba 'Estudante' antes de integrar.");
-      return;
-    }
-
-    setIntegrating(true);
-    try {
-      // Extrai dados básicos do peiData
-      const nasc = peiData.nasc ? (typeof peiData.nasc === "string" ? peiData.nasc.split("T")[0] : peiData.nasc) : null;
-      
-      // Cria o estudante com todos os dados do PEI
-      const res = await fetch("/api/students", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: nome,
-          grade: peiData.serie || null,
-          class_group: peiData.turma || null,
-          diagnosis: peiData.diagnostico || null,
-          birth_date: nasc,
-          pei_data: peiData,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Erro ao integrar estudante");
-      }
-
-      const data = await res.json();
-      setIntegrated(true);
-      
-      // Redireciona para o estudante criado
-      setTimeout(() => {
-        window.location.href = `/pei?student=${data.student.id}`;
-      }, 1500);
-    } catch (err) {
-      console.error("Erro ao integrar:", err);
-      alert(err instanceof Error ? err.message : "Erro ao integrar estudante na Omnisfera.");
-    } finally {
-      setIntegrating(false);
-    }
+  if (students.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
+        <p className="text-slate-600">
+          Nenhum estudante cadastrado. Crie um estudante em{" "}
+          <Link href="/estudantes" className="text-sky-600 hover:underline">
+            Estudantes
+          </Link>{" "}
+          ou no PEI do Streamlit.
+        </p>
+      </div>
+    );
   }
-
-  const nomePreenchido = (peiData.nome || "").trim().length > 0;
-  const podeIntegrar = !currentStudentId && nomePreenchido;
-
-  // Calcular progresso do PEI (mesma lógica do Streamlit)
-  function calcularProgresso(): number {
-    const d = peiData;
-    const _isFilled = (val: unknown): boolean => {
-      if (val === null || val === undefined) return false;
-      if (typeof val === "string") return val.trim().length > 0;
-      if (Array.isArray(val)) return val.length > 0;
-      if (typeof val === "object") {
-        const obj = val as Record<string, unknown>;
-        return Object.keys(obj).length > 0 && Object.values(obj).some((v) => Boolean(v));
-      }
-      return Boolean(val);
-    };
-
-    const checkpoints = [
-      {
-        key: "ESTUDANTE",
-        check: () => _isFilled(d.nome) && _isFilled(d.serie) && _isFilled(d.turma),
-      },
-      {
-        key: "EVIDENCIAS",
-        check: () => {
-          const chk = (d.checklist_evidencias || {}) as Record<string, boolean>;
-          return Object.values(chk).some(Boolean) || _isFilled(d.orientacoes_especialistas);
-        },
-      },
-      {
-        key: "REDE",
-        check: () =>
-          _isFilled(d.rede_apoio) ||
-          _isFilled(d.orientacoes_gerais) ||
-          _isFilled(d.orientacoes_por_profissional),
-      },
-      {
-        key: "MAPEAMENTO",
-        check: () => {
-          const barreiras = (d.barreiras_selecionadas || {}) as Record<string, unknown[]>;
-          const nBar = Object.values(barreiras).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
-          return _isFilled(d.hiperfoco) || _isFilled(d.potencias) || nBar > 0;
-        },
-      },
-      {
-        key: "PLANO",
-        check: () =>
-          _isFilled(d.estrategias_acesso) ||
-          _isFilled(d.estrategias_ensino) ||
-          _isFilled(d.estrategias_avaliacao) ||
-          _isFilled(d.outros_acesso) ||
-          _isFilled(d.outros_ensino),
-      },
-      {
-        key: "MONITORAMENTO",
-        check: () => _isFilled(d.monitoramento_data) && _isFilled(d.status_meta),
-      },
-      {
-        key: "IA",
-        check: () => {
-          const status = String(d.status_validacao_pei || "");
-          return _isFilled(d.ia_sugestao) && (status === "revisao" || status === "aprovado");
-        },
-      },
-      {
-        key: "DASH",
-        check: () => _isFilled(d.ia_sugestao),
-      },
-    ];
-
-    const done = checkpoints.filter((cp) => cp.check()).length;
-    return Math.max(0, Math.min(100, Math.round((done / checkpoints.length) * 100)));
-  }
-
-  const progresso = calcularProgresso();
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="p-4 border-b border-slate-100 flex flex-wrap items-center gap-4">
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">Estudante</label>
-          <StudentSelector students={students} currentId={currentStudentId} placeholder={currentStudentId ? "Estudante selecionado" : "Novo estudante — preencha o PEI abaixo"} />
+          <StudentSelector students={students} currentId={currentStudentId} placeholder="Selecione o estudante" />
         </div>
-        {currentStudentId ? (
+        {currentStudentId && (
           <>
             <button
               onClick={handleSave}
@@ -290,66 +170,50 @@ export function PEIClient({
               ← Estudantes
             </Link>
           </>
-        ) : podeIntegrar ? (
-          <button
-            onClick={handleIntegrar}
-            disabled={integrating}
-            className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-60 mt-6"
-          >
-            {integrating ? "Integrando…" : integrated ? "Integrado ✓" : "🔗 Integrar na Omnisfera"}
-          </button>
-        ) : null}
-      </div>
-
-      {/* Barra de Progresso */}
-      <div className="px-6 pt-4 pb-2">
-        <div className="relative w-full h-1 bg-slate-200 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              progresso >= 100
-                ? "bg-gradient-to-r from-emerald-400 to-emerald-600"
-                : "bg-gradient-to-r from-red-400 to-orange-500"
-            }`}
-            style={{ width: `${Math.min(progresso, 100)}%` }}
-          />
-          {progresso > 0 && progresso < 100 && (
-            <div
-              className="absolute top-0 -mt-2 text-xs font-semibold text-slate-600 transition-all duration-500"
-              style={{ left: `${Math.min(progresso, 100)}%`, transform: "translateX(-50%)" }}
-            >
-              ✨
-            </div>
-          )}
-        </div>
-        <div className="flex justify-between items-center mt-1">
-          <span className="text-xs text-slate-500">Progresso do PEI</span>
-          <span className="text-xs font-semibold text-slate-700">{progresso}%</span>
-        </div>
-      </div>
-
-      <div className="flex border-b border-slate-100 overflow-x-auto">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTab(t.id)}
-            className={`px-3 py-2.5 text-xs font-medium whitespace-nowrap ${
-              activeTab === t.id ? "text-sky-600 border-b-2 border-sky-600 bg-sky-50/50" : "text-slate-600 hover:bg-slate-50"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="p-6 max-h-[70vh] overflow-y-auto">
-        {activeTab === "inicio" && (
-          <InicioTab
-            currentStudentId={currentStudentId}
-            peiData={peiData}
-            onPeiDataChange={setPeiData}
-            students={students}
-          />
         )}
+      </div>
+
+      {!currentStudentId ? (
+        <div className="p-8 text-center text-slate-500">Selecione um estudante para editar o PEI.</div>
+      ) : (
+        <>
+          <div className="flex border-b border-slate-100 overflow-x-auto">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                className={`px-3 py-2.5 text-xs font-medium whitespace-nowrap ${
+                  activeTab === t.id ? "text-sky-600 border-b-2 border-sky-600 bg-sky-50/50" : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="p-6 max-h-[70vh] overflow-y-auto">
+            {activeTab === "inicio" && (
+              <div className="space-y-4 max-w-2xl">
+                <div className="rounded-lg border border-slate-200 p-4 bg-slate-50/50">
+                  <h3 className="font-semibold text-slate-800">Fundamentos do PEI</h3>
+                  <p className="text-sm text-slate-600 mt-2">
+                    O PEI organiza o planejamento individualizado com foco em barreiras e apoios. Equidade: ajustar
+                    acesso, ensino e avaliação, sem baixar expectativas. Base: LBI (Lei 13.146/2015), LDB.
+                  </p>
+                </div>
+                <div className="rounded-lg border border-slate-200 p-4">
+                  <h3 className="font-semibold text-slate-800">Como usar</h3>
+                  <ol className="list-decimal list-inside text-sm text-slate-600 mt-2 space-y-1">
+                    <li>Estudante: identificação + contexto</li>
+                    <li>Evidências: o que foi observado</li>
+                    <li>Mapeamento: barreiras + potências</li>
+                    <li>Plano de Ação: acesso/ensino/avaliação</li>
+                    <li>Consultoria IA: gerar documento técnico</li>
+                    <li>Dashboard: exportações</li>
+                  </ol>
+                </div>
+              </div>
+            )}
 
             {activeTab === "estudante" && (
               <div className="space-y-4 max-w-3xl">
@@ -763,308 +627,49 @@ export function PEIClient({
             )}
 
             {activeTab === "dashboard" && (
-              <DashboardTab peiData={peiData} student={student} currentStudentId={currentStudentId} />
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-3 items-center">
+                  <span className="text-sm font-medium text-slate-700">Exportar PEI completo:</span>
+                  <PeiExportDocxButton peiData={peiData} />
+                  <PdfDownloadButton
+                    text={peiDataToFullText(peiData)}
+                    filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
+                    title={`PEI - ${peiData.nome || "Estudante"}`}
+                    className="px-3 py-1.5 text-sm bg-cyan-100 text-cyan-800 rounded-lg hover:bg-cyan-200"
+                  >
+                    📥 Baixar PDF
+                  </PdfDownloadButton>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 rounded-lg border border-slate-200 bg-slate-50">
+                    <div className="text-2xl font-bold text-slate-800">{peiData.potencias?.length || 0}</div>
+                    <div className="text-xs text-slate-500">Potencialidades</div>
+                  </div>
+                  <div className="p-4 rounded-lg border border-slate-200 bg-slate-50">
+                    <div className="text-2xl font-bold text-slate-800">
+                      {Object.values(peiData.barreiras_selecionadas || {}).reduce((a, v) => a + (v?.length || 0), 0)}
+                    </div>
+                    <div className="text-xs text-slate-500">Barreiras</div>
+                  </div>
+                  <div className="p-4 rounded-lg border border-slate-200 bg-slate-50">
+                    <div className="text-lg font-bold text-slate-800 truncate">{peiData.hiperfoco || "—"}</div>
+                    <div className="text-xs text-slate-500">Hiperfoco</div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Jornada Gamificada (ia_mapa_texto)</label>
+                  <textarea
+                    value={peiData.ia_mapa_texto || ""}
+                    onChange={(e) => updateField("ia_mapa_texto", e.target.value)}
+                    rows={8}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
+                  />
+                </div>
+              </div>
             )}
           </div>
-    </div>
-  );
-}
-
-function calcularIdade(nasc: string | undefined | null): string {
-  if (!nasc) return "—";
-  try {
-    const nascDate = new Date(nasc);
-    if (isNaN(nascDate.getTime())) return "—";
-    const hoje = new Date();
-    let anos = hoje.getFullYear() - nascDate.getFullYear();
-    const mesDiff = hoje.getMonth() - nascDate.getMonth();
-    if (mesDiff < 0 || (mesDiff === 0 && hoje.getDate() < nascDate.getDate())) {
-      anos--;
-    }
-    return anos > 0 ? `${anos} anos` : "Menos de 1 ano";
-  } catch {
-    return "—";
-  }
-}
-
-function extrairMetasEstruturadas(textoIa: string | undefined): { Curto: string; Medio: string; Longo: string } {
-  if (!textoIa) return { Curto: "Definir...", Medio: "Definir...", Longo: "Definir..." };
-  const texto = textoIa.toLowerCase();
-  const metas: { Curto: string; Medio: string; Longo: string } = { Curto: "Definir...", Medio: "Definir...", Longo: "Definir..." };
-  
-  // Tentar extrair metas por padrões comuns
-  const curtoMatch = texto.match(/(?:curto|curto prazo|curto termo)[:\-]?\s*([^\.]+)/i);
-  const medioMatch = texto.match(/(?:médio|medio|médio prazo|medio prazo|médio termo|medio termo)[:\-]?\s*([^\.]+)/i);
-  const longoMatch = texto.match(/(?:longo|longo prazo|longo termo)[:\-]?\s*([^\.]+)/i);
-  
-  if (curtoMatch) metas.Curto = curtoMatch[1].trim().slice(0, 100);
-  if (medioMatch) metas.Medio = medioMatch[1].trim().slice(0, 100);
-  if (longoMatch) metas.Longo = longoMatch[1].trim().slice(0, 100);
-  
-  return metas;
-}
-
-function getHiperfocoEmoji(hiperfoco: string | undefined): string {
-  if (!hiperfoco) return "🚀";
-  const h = hiperfoco.toLowerCase();
-  if (h.includes("dinossauro")) return "🦕";
-  if (h.includes("minecraft")) return "🎮";
-  if (h.includes("mapa")) return "🗺️";
-  if (h.includes("carro")) return "🚗";
-  if (h.includes("desenho")) return "✏️";
-  return "🚀";
-}
-
-function calcularComplexidadePei(peiData: PEIData): { texto: string; bgCor: string; txtCor: string } {
-  const barreiras = Object.values(peiData.barreiras_selecionadas || {}).reduce((a, v) => a + (Array.isArray(v) ? v.length : 0), 0);
-  if (barreiras === 0) return { texto: "BAIXA", bgCor: "#F0FDF4", txtCor: "#15803D" };
-  if (barreiras <= 3) return { texto: "MODERADA", bgCor: "#FEF3C7", txtCor: "#D69E2E" };
-  if (barreiras <= 6) return { texto: "ALTA", bgCor: "#FED7AA", txtCor: "#EA580C" };
-  return { texto: "MUITO ALTA", bgCor: "#FEE2E2", txtCor: "#DC2626" };
-}
-
-function getProIcon(profissional: string): string {
-  const icons: Record<string, string> = {
-    "Fonoaudiólogo": "🗣️",
-    "Psicólogo": "🧠",
-    "Terapeuta Ocupacional": "🤲",
-    "Fisioterapeuta": "🏃",
-    "Neurologista": "🧬",
-    "Psiquiatra": "💊",
-    "Pediatra": "👨‍⚕️",
-    "Oftalmologista": "👁️",
-    "Ortopedista": "🦴",
-  };
-  return icons[profissional] || "👨‍⚕️";
-}
-
-function DashboardTab({
-  peiData,
-  student,
-  currentStudentId,
-}: {
-  peiData: PEIData;
-  student: StudentFull | null;
-  currentStudentId: string | null;
-}) {
-  if (!peiData.nome) {
-    return (
-      <div className="bg-blue-50 text-blue-800 p-4 rounded-lg">
-        Preencha o estudante na aba <strong>Estudante</strong> para visualizar o dashboard.
-      </div>
-    );
-  }
-
-  const idadeStr = calcularIdade(peiData.nasc || student?.birth_date);
-  const serieTxt = peiData.serie || student?.grade || "-";
-  const turmaTxt = peiData.turma || student?.class_group || "-";
-  const matriculaTxt = peiData.matricula || peiData.ra || "-";
-  const vinculoTxt = currentStudentId ? "Vinculado ao Supabase ✅" : "Rascunho (não sincronizado)";
-  const initAvatar = (peiData.nome || "?")[0].toUpperCase();
-
-  const nPot = (peiData.potencias || []).length;
-  const barreiras = peiData.barreiras_selecionadas || {};
-  const nBar = Object.values(barreiras).reduce((a, v) => a + (Array.isArray(v) ? v.length : 0), 0);
-  const hf = peiData.hiperfoco || "—";
-  const hfEmoji = getHiperfocoEmoji(hf);
-  const complexidade = calcularComplexidadePei(peiData);
-  const metas = extrairMetasEstruturadas(peiData.ia_sugestao as string | undefined);
-  const listaMeds = (peiData.lista_medicamentos || []) as Array<{ nome?: string; escola?: boolean }>;
-  const alertaEscola = listaMeds.some((m) => m.escola);
-  const redeApoio = (peiData.rede_apoio || []) as string[];
-
-  return (
-    <div className="space-y-6">
-      {/* Hero Card */}
-      <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 p-6 text-white shadow-lg">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center text-2xl font-bold">
-              {initAvatar}
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold mb-1">{peiData.nome}</h1>
-              <p className="text-blue-100 text-sm">
-                {serieTxt} • Turma {turmaTxt} • Matrícula/RA: {matriculaTxt}
-              </p>
-              <p className="text-blue-200 text-xs mt-1">{vinculoTxt}</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-xs text-blue-200 uppercase tracking-wide">IDADE</div>
-            <div className="text-xl font-bold">{idadeStr}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-5 rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center h-36 shadow-sm">
-          <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-3 relative">
-            <div
-              className="absolute inset-0 rounded-full"
-              style={{
-                background: `conic-gradient(#10B981 ${Math.min(nPot * 10, 100)}%, #E5E7EB 0%)`,
-              }}
-            />
-            <div className="absolute inset-0 rounded-full bg-white m-2" />
-            <div className="relative z-10 text-xl font-bold text-slate-800">{nPot}</div>
-          </div>
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Potencialidades</div>
-        </div>
-
-        <div className="p-5 rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center h-36 shadow-sm">
-          <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-3 relative">
-            <div
-              className="absolute inset-0 rounded-full"
-              style={{
-                background: `conic-gradient(${nBar > 5 ? "#EF4444" : "#F97316"} ${Math.min(nBar * 5, 100)}%, #E5E7EB 0%)`,
-              }}
-            />
-            <div className="absolute inset-0 rounded-full bg-white m-2" />
-            <div className="relative z-10 text-xl font-bold text-slate-800">{nBar}</div>
-          </div>
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Barreiras</div>
-        </div>
-
-        <div className="p-5 rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center h-36 shadow-sm">
-          <div className="text-4xl mb-2">{hfEmoji}</div>
-          <div className="text-lg font-bold text-slate-800 truncate w-full text-center px-2">{hf}</div>
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-1">Hiperfoco</div>
-        </div>
-
-        <div className="p-5 rounded-xl border border-slate-200 flex flex-col items-center justify-center h-36 shadow-sm" style={{ backgroundColor: complexidade.bgCor, borderColor: complexidade.txtCor }}>
-          <div className="w-12 h-12 rounded-full bg-white/50 flex items-center justify-center mb-2">
-            <span className="text-2xl">⚠️</span>
-          </div>
-          <div className="text-lg font-bold" style={{ color: complexidade.txtCor }}>
-            {complexidade.texto}
-          </div>
-          <div className="text-xs font-semibold uppercase tracking-wide mt-1" style={{ color: complexidade.txtCor }}>
-            Nível de Atenção
-          </div>
-        </div>
-      </div>
-
-      {/* Cards Principais */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Card Farmacológico */}
-        <div className={`rounded-xl border-l-4 p-5 shadow-sm ${alertaEscola ? "bg-red-50 border-red-400" : listaMeds.length > 0 ? "bg-orange-50 border-orange-400" : "bg-green-50 border-green-400"}`}>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xl">💊</span>
-            <h3 className="font-bold text-slate-800">Atenção Farmacológica</h3>
-            {alertaEscola && <span className="text-red-600 animate-pulse">🚨</span>}
-          </div>
-          {listaMeds.length > 0 ? (
-            <>
-              <p className="text-sm text-slate-700 mb-2">
-                <strong>Uso Contínuo:</strong> {listaMeds.map((m) => m.nome).filter(Boolean).join(", ")}
-              </p>
-              {alertaEscola && (
-                <div className="mt-2 text-xs font-bold text-red-700">
-                  🚨 ATENÇÃO: ADMINISTRAÇÃO NA ESCOLA NECESSÁRIA
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="text-sm text-slate-600">Nenhuma medicação informada.</p>
-          )}
-        </div>
-
-        {/* Card Metas */}
-        <div className="rounded-xl border-l-4 border-yellow-400 bg-yellow-50 p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xl">🏁</span>
-            <h3 className="font-bold text-slate-800">Cronograma de Metas</h3>
-          </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-start gap-2">
-              <span className="text-lg">🏁</span>
-              <div>
-                <strong>Curto:</strong> {metas.Curto}
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-lg">🧗</span>
-              <div>
-                <strong>Médio:</strong> {metas.Medio}
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-lg">🏔️</span>
-              <div>
-                <strong>Longo:</strong> {metas.Longo}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card DNA do Estudante */}
-        <div className="rounded-xl border-l-4 border-cyan-400 bg-cyan-50 p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-xl">🧬</span>
-            <h3 className="font-bold text-slate-800">DNA de Suporte</h3>
-          </div>
-          <div className="space-y-3">
-            {Object.entries(LISTAS_BARREIRAS).map(([area, lista]) => {
-              const qtd = (barreiras[area] as string[] | undefined)?.length || 0;
-              const val = Math.min(qtd * 20, 100);
-              let color = "#3B82F6";
-              if (val > 40) color = "#F97316";
-              if (val > 70) color = "#EF4444";
-              return (
-                <div key={area} className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold text-slate-700">
-                    <span>{area}</span>
-                    <span>{qtd} barreiras</span>
-                  </div>
-                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${val}%`, backgroundColor: color }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Card Rede de Apoio */}
-        <div className="rounded-xl border-l-4 border-teal-400 bg-teal-50 p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xl">🤝</span>
-            <h3 className="font-bold text-slate-800">Rede de Apoio</h3>
-          </div>
-          {redeApoio.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {redeApoio.map((prof, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white rounded-full text-sm font-medium text-slate-700 border border-slate-200 shadow-sm"
-                >
-                  {getProIcon(prof)} {prof}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-slate-600 opacity-60">Sem rede cadastrada.</p>
-          )}
-        </div>
-      </div>
-
-      {/* Exportação */}
-      <div className="border-t border-slate-200 pt-6">
-        <h3 className="font-bold text-slate-800 mb-4">📤 Exportação e Sincronização</h3>
-        <div className="flex flex-wrap gap-3">
-          <PeiExportDocxButton peiData={peiData} />
-          <PdfDownloadButton
-            text={peiDataToFullText(peiData)}
-            filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
-            title={`PEI - ${peiData.nome || "Estudante"}`}
-            className="px-4 py-2 bg-cyan-100 text-cyan-800 rounded-lg hover:bg-cyan-200 text-sm font-medium"
-          >
-            📥 Baixar PDF
-          </PdfDownloadButton>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1151,7 +756,7 @@ function ConsultoriaTab({
       <p className="text-slate-600 text-sm">
         Documento técnico gerado pela IA. Escolha o motor e clique em Gerar.
       </p>
-      <EngineSelector value={engine} onChange={(e) => setEngine(e)} module="pei" />
+      <EngineSelector value={engine} onChange={(e) => setEngine(e)} />
       <div className="flex flex-wrap gap-3">
         <button
           type="button"
@@ -1222,9 +827,7 @@ function BNCCTab({
         .catch(() => setEiLoading(false));
     } else if (nivel === "EF" || nivel === "EM") {
       setBlocosLoading(true);
-      const url = nivel === "EF" 
-        ? `/api/bncc/ef?serie=${encodeURIComponent(serie)}` 
-        : `/api/bncc/em?serie=${encodeURIComponent(serie)}`;
+      const url = nivel === "EF" ? `/api/bncc/ef?serie=${encodeURIComponent(serie)}` : "/api/bncc/em";
       fetch(url)
         .then((r) => r.json())
         .then((d) => {
@@ -1586,7 +1189,7 @@ function LaudoPdfSection({
     <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3">
       <h4 className="font-medium text-slate-800">Laudo médico/escolar (PDF)</h4>
       <p className="text-sm text-slate-600">Anexe o laudo e use a IA para extrair diagnóstico e medicamentos.</p>
-      <EngineSelector value={engine} onChange={setEngine} module="extrair_laudo" />
+      <EngineSelector value={engine} onChange={setEngine} />
       <div className="flex flex-wrap gap-3 items-end">
         <div>
           <label className="block text-xs text-slate-600 mb-1">Arquivo PDF</label>
@@ -1761,301 +1364,6 @@ function BarreirasDominio({
         rows={2}
         className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg text-sm"
       />
-    </div>
-  );
-}
-
-function InicioTab({
-  currentStudentId,
-  peiData,
-  onPeiDataChange,
-  students,
-}: {
-  currentStudentId: string | null;
-  peiData: PEIData;
-  onPeiDataChange: (data: PEIData) => void;
-  students: { id: string; name: string }[];
-}) {
-  const [jsonPending, setJsonPending] = useState<Record<string, unknown> | null>(null);
-  const [jsonFileName, setJsonFileName] = useState("");
-  const [syncing, setSyncing] = useState(false);
-  const [syncSuccess, setSyncSuccess] = useState(false);
-  const [showPeiInfo, setShowPeiInfo] = useState(false);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const content = event.target?.result as string;
-        const parsed = JSON.parse(content);
-        setJsonPending(parsed);
-        setJsonFileName(file.name);
-      } catch (err) {
-        alert("Erro ao ler JSON: " + (err instanceof Error ? err.message : "Erro desconhecido"));
-        setJsonPending(null);
-        setJsonFileName("");
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const handleApplyJson = () => {
-    if (!jsonPending) return;
-    onPeiDataChange({ ...peiData, ...jsonPending } as PEIData);
-    setJsonPending(null);
-    setJsonFileName("");
-    alert("Backup aplicado ao formulário ✅");
-  };
-
-  const handleSyncAll = async () => {
-    if (!currentStudentId) {
-      alert("Selecione um estudante primeiro ou integre um novo estudante.");
-      return;
-    }
-
-    setSyncing(true);
-    try {
-      const nasc = peiData.nasc ? (typeof peiData.nasc === "string" ? peiData.nasc.split("T")[0] : peiData.nasc) : null;
-
-      // Atualiza dados básicos do estudante
-      const resStudent = await fetch(`/api/students/${currentStudentId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: peiData.nome || null,
-          grade: peiData.serie || null,
-          class_group: peiData.turma || null,
-          diagnosis: peiData.diagnostico || null,
-          birth_date: nasc,
-        }),
-      });
-
-      if (!resStudent.ok) throw new Error("Erro ao atualizar dados básicos");
-
-      // Salva conteúdo completo do PEI
-      const resPei = await fetch(`/api/students/${currentStudentId}/pei`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(peiData),
-      });
-
-      if (!resPei.ok) throw new Error("Erro ao salvar PEI completo");
-
-      setSyncSuccess(true);
-      setTimeout(() => setSyncSuccess(false), 5000);
-      alert("PEI completo salvo na nuvem com sucesso! ☁️");
-    } catch (err) {
-      alert("Erro na sincronização: " + (err instanceof Error ? err.message : "Erro desconhecido"));
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const handleDownloadBackup = () => {
-    const dataStr = JSON.stringify(peiData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    const timestamp = new Date().toISOString().slice(0, 16).replace(/:/g, "-");
-    const nomeClean = (peiData.nome || "Estudante").replace(/\s+/g, "_");
-    link.download = `PEI_${nomeClean}_${timestamp}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-6 max-w-6xl">
-      {/* Coluna Esquerda: Fundamentos */}
-      <div className="space-y-4">
-        <div className="rounded-lg border border-slate-200 p-4 bg-slate-50/50">
-          <h3 className="font-semibold text-slate-800 mb-2">📘 Fundamentos do PEI</h3>
-          <p className="text-sm text-slate-600">
-            O <strong>PEI</strong> organiza o planejamento individualizado com foco em <strong>barreiras</strong> e{" "}
-            <strong>apoios</strong>.
-          </p>
-          <p className="text-sm text-slate-600 mt-2">
-            A lógica é <strong>equidade</strong>: ajustar <strong>acesso, ensino e avaliação</strong>, sem baixar
-            expectativas.
-          </p>
-          <p className="text-sm text-slate-600 mt-2">
-            Base: <strong>LBI (Lei 13.146/2015)</strong>, LDB e diretrizes de Educação Especial na Perspectiva Inclusiva.
-          </p>
-        </div>
-
-        <div className="rounded-lg border border-slate-200 p-4">
-          <h3 className="font-semibold text-slate-800 mb-2">ℹ️ Como usar a Omnisfera</h3>
-          <ol className="list-decimal list-inside text-sm text-slate-600 space-y-1">
-            <li>
-              <strong>Estudante:</strong> identificação + contexto + laudo (opcional)
-            </li>
-            <li>
-              <strong>Evidências:</strong> o que foi observado e como aparece na rotina
-            </li>
-            <li>
-              <strong>Mapeamento:</strong> barreiras + nível de apoio + potências
-            </li>
-            <li>
-              <strong>Plano de Ação:</strong> acesso/ensino/avaliação
-            </li>
-            <li>
-              <strong>Consultoria IA:</strong> gerar o documento técnico (validação do educador)
-            </li>
-            <li>
-              <strong>Dashboard:</strong> KPIs + exportações + sincronização
-            </li>
-          </ol>
-        </div>
-
-        <details className="rounded-lg border border-slate-200 p-4">
-          <summary className="font-semibold text-slate-800 cursor-pointer">
-            📘 PEI/PDI e a Prática Inclusiva — Amplie o conhecimento
-          </summary>
-          <div className="mt-4 text-sm text-slate-600 space-y-3">
-            <p>
-              O <strong>Plano Educacional Individualizado (PEI)</strong>, também denominado{" "}
-              <strong>Plano de Desenvolvimento Individual (PDI)</strong>, é um roteiro de intervenção pedagógica
-              personalizado e flexível que norteia o processo de aprendizagem em sala comum para público-alvo da educação
-              inclusiva. Tem o objetivo de <strong>remover obstáculos</strong> e <strong>promover a escolarização</strong>.
-            </p>
-            <p>
-              O PEI/PDI leva em conta as particularidades do(a) aluno(a), incluindo-o no repertório da classe que frequenta
-              e tendo como referência a <strong>mesma matriz curricular</strong> do ano a ser cursado.
-            </p>
-            <p>
-              <strong>Caráter obrigatório:</strong> deve ser atualizado sistematicamente e compor a documentação escolar de
-              alunos com deficiência, transtorno global do desenvolvimento e altas habilidades/superdotação. Respeita as
-              orientações do laudo médico, quando houver.
-            </p>
-            <p>
-              <strong>Elaboração:</strong> pela equipe multidisciplinar da escola; discutido com a família e profissionais
-              externos no início do ano letivo; replanejado ao final de cada unidade e/ou período de avaliação.
-            </p>
-            <div className="mt-3">
-              <strong>Registros fundamentais:</strong>
-              <ul className="list-disc list-inside mt-1 space-y-1">
-                <li>Identidade do aluno</li>
-                <li>Necessidades específicas (características mais recorrentes)</li>
-                <li>Dados sobre autonomia</li>
-                <li>Dados atualizados sobre atendimentos externos</li>
-                <li>Desenvolvimento escolar (leitura e raciocínio lógico-matemático)</li>
-                <li>Necessidades de material pedagógico e tecnologias assistivas</li>
-              </ul>
-            </div>
-            <p className="text-xs text-slate-500 mt-3">
-              A família deve acompanhar a elaboração do PEI/PDI e consentir formalmente, participando da análise das
-              avaliações sistemáticas.
-            </p>
-          </div>
-        </details>
-      </div>
-
-      {/* Coluna Direita: Gestão de Estudantes */}
-      <div className="space-y-4">
-        <h3 className="font-semibold text-slate-800">👥 Gestão de Estudantes</h3>
-
-        {/* Status vínculo */}
-        {currentStudentId ? (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
-            <div className="text-sm font-semibold text-emerald-800">✅ Estudante vinculado ao Supabase (nuvem)</div>
-            <div className="text-xs text-slate-500 mt-1">student_id: {currentStudentId.slice(0, 8)}...</div>
-          </div>
-        ) : (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
-            <div className="text-sm font-semibold text-amber-800">📝 Modo rascunho (sem vínculo na nuvem)</div>
-          </div>
-        )}
-
-        {/* Backup Local */}
-        <div className="rounded-lg border border-slate-200 p-4">
-          <h4 className="font-semibold text-slate-800 mb-2">1) Carregar Backup Local (.JSON)</h4>
-          <p className="text-xs text-slate-500 mb-3">
-            ✅ Não comunica com Supabase. Envie o arquivo e clique em <strong>Carregar no formulário</strong>.
-          </p>
-
-          <input
-            type="file"
-            accept=".json"
-            onChange={handleFileUpload}
-            className="w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100"
-          />
-
-          {jsonPending && (
-            <div className="mt-3 space-y-2">
-              <div className="text-sm text-emerald-600">✅ Arquivo pronto ({jsonFileName})</div>
-              <p className="text-xs text-slate-500">Agora clique no botão abaixo para aplicar os dados no formulário.</p>
-              <details className="text-xs">
-                <summary className="cursor-pointer text-slate-600">👀 Prévia do backup</summary>
-                <pre className="mt-2 p-2 bg-slate-50 rounded text-xs overflow-auto max-h-32">
-                  {JSON.stringify(
-                    {
-                      nome: jsonPending.nome,
-                      serie: jsonPending.serie,
-                      turma: jsonPending.turma,
-                      diagnostico: jsonPending.diagnostico,
-                      tem_ia_sugestao: !!jsonPending.ia_sugestao,
-                    },
-                    null,
-                    2
-                  )}
-                </pre>
-              </details>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleApplyJson}
-                  className="flex-1 px-3 py-2 bg-sky-600 text-white text-sm rounded-lg hover:bg-sky-700"
-                >
-                  📥 Carregar no formulário
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setJsonPending(null);
-                    setJsonFileName("");
-                  }}
-                  className="px-3 py-2 border border-slate-200 text-sm rounded-lg hover:bg-slate-50"
-                >
-                  🧹 Limpar
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Cloud Sync */}
-        <div className="rounded-lg border border-slate-200 p-4">
-          <h4 className="font-semibold text-slate-800 mb-2">🌐 Omnisfera Cloud</h4>
-          <p className="text-xs text-slate-500 mb-3">
-            Sincroniza o cadastro e <strong>salva todo o conteúdo do PEI</strong> na nuvem (coluna pei_data).
-          </p>
-
-          <button
-            type="button"
-            onClick={handleSyncAll}
-            disabled={syncing || !currentStudentId}
-            className="w-full px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {syncing ? "Sincronizando…" : "🔗 Sincronizar Tudo"}
-          </button>
-
-          {syncSuccess && (
-            <div className="mt-3">
-              <div className="text-sm text-emerald-600 mb-2">✅ Tudo salvo no Supabase!</div>
-              <button
-                type="button"
-                onClick={handleDownloadBackup}
-                className="w-full px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm"
-              >
-                📂 BAIXAR BACKUP (.JSON)
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

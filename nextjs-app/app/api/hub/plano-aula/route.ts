@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { chatCompletionText } from "@/lib/ai-engines";
-import { selectEngine, withFallback } from "@/lib/engine-selector";
+import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 
 export async function POST(req: Request) {
   let body: {
@@ -31,13 +30,9 @@ export async function POST(req: Request) {
   const recursos = body.recursos?.length ? body.recursos : ["Quadro", "Material impresso", "Projetor"];
   const habilidadesBncc = body.habilidades_bncc || [];
   const estudante = body.estudante || {};
-  
-  // Hub: DeepSeek (red) padrão, opções Kimi (blue) e Claude (green)
-  const { engine, error: engineErr } = selectEngine("hub", body.engine, true);
-  
-  if (engineErr) {
-    return NextResponse.json({ error: engineErr }, { status: 500 });
-  }
+  const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
+    ? (body.engine as EngineId)
+    : "red";
 
   if (!assunto) {
     return NextResponse.json({ error: "Informe o assunto/tema da aula." }, { status: 400 });
@@ -109,10 +104,11 @@ ESTRUTURA DO PLANO (Markdown):
 
 Regra LGPD: NUNCA inclua diagnóstico ou CID no plano.`;
 
+  const engineErr = getEngineError(engine);
+  if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
+
   try {
-    const texto = await withFallback("hub", body.engine, async (selectedEngine) => {
-      return await chatCompletionText(selectedEngine, [{ role: "user", content: prompt }], { temperature: 0.7 });
-    });
+    const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.7 });
     return NextResponse.json({ texto });
   } catch (err) {
     console.error("Hub plano-aula:", err);

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { chatCompletionText } from "@/lib/ai-engines";
-import { selectEngine, withFallback } from "@/lib/engine-selector";
+import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
+import type { EngineId } from "@/lib/ai-engines";
 import {
   detectarNivelEnsino,
   carregarHabilidadesEFPorComponente,
@@ -195,19 +195,21 @@ ${habTxt || "(carregue do contexto BNCC do ano/série)"}`;
 
 export async function POST(req: Request) {
   let dados: PEIDataPayload = {};
+  let engine: EngineId = "red";
   let modoPratico = false;
 
   try {
     const body = await req.json();
     dados = (body.peiData || body) as PEIDataPayload;
+    if (body.engine && ["red", "blue", "green", "yellow", "orange"].includes(body.engine)) {
+      engine = body.engine as EngineId;
+    }
     modoPratico = !!body.modo_pratico;
   } catch {
     return NextResponse.json({ error: "Corpo da requisição inválido." }, { status: 400 });
   }
 
-  // PEI: DeepSeek (red) padrão, opções Kimi (blue) e Claude (green)
-  const { engine, error: engineErr } = selectEngine("pei", null, true);
-  
+  const engineErr = getEngineError(engine);
   if (engineErr) {
     return NextResponse.json({ error: engineErr }, { status: 500 });
   }
@@ -222,17 +224,14 @@ export async function POST(req: Request) {
   const { system, user } = buildPrompt(dados, modoPratico);
 
   try {
-    // Usa fallback automático se o motor padrão falhar
-    const texto = await withFallback("pei", null, async (selectedEngine) => {
-      return await chatCompletionText(
-        selectedEngine,
-        [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-        { temperature: 0.7 }
-      );
-    });
+    const texto = await chatCompletionText(
+      engine,
+      [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      { temperature: 0.7 }
+    );
     return NextResponse.json({ texto: (texto || "").trim() });
   } catch (err) {
     console.error("PEI Consultoria IA:", err);

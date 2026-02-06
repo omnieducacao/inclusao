@@ -8,6 +8,22 @@ import { ImageCropper } from "@/components/ImageCropper";
 import { detectarNivelEnsino } from "@/lib/pei";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
+import {
+  FileText,
+  Image as ImageIcon,
+  Sparkles,
+  Palette,
+  FileEdit,
+  MessageSquare,
+  Handshake,
+  ClipboardList,
+  Star,
+  RefreshCw,
+  ToyBrick,
+  BookOpen,
+  Loader2,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -38,22 +54,22 @@ type ToolIdEI = "criar-experiencia" | "estudio-visual" | "rotina-avd" | "inclusa
 type ToolId = ToolIdEFEM | ToolIdEI;
 type EngineId = "red" | "blue" | "green" | "yellow" | "orange";
 
-const TOOLS_EF_EM: { id: ToolIdEFEM; icon: string; title: string; desc: string }[] = [
-  { id: "adaptar-prova", icon: "📄", title: "Adaptar Prova", desc: "Upload DOCX, adaptação com DUA" },
-  { id: "adaptar-atividade", icon: "🖼️", title: "Adaptar Atividade", desc: "Imagem → OCR → IA adapta" },
-  { id: "criar-zero", icon: "✨", title: "Criar do Zero", desc: "BNCC + assunto → atividade gerada" },
-  { id: "estudio-visual", icon: "🎨", title: "Estúdio Visual", desc: "Pictogramas, cenas sociais" },
-  { id: "roteiro", icon: "📝", title: "Roteiro Individual", desc: "Passo a passo de aula personalizado" },
-  { id: "papo-mestre", icon: "💬", title: "Papo de Mestre", desc: "Sugestões de mediação" },
-  { id: "dinamica", icon: "🤝", title: "Dinâmica Inclusiva", desc: "Atividades em grupo DUA" },
-  { id: "plano-aula", icon: "📋", title: "Plano de Aula DUA", desc: "Desenho Universal" },
+const TOOLS_EF_EM: { id: ToolIdEFEM; icon: LucideIcon; title: string; desc: string }[] = [
+  { id: "adaptar-prova", icon: FileText, title: "Adaptar Prova", desc: "Upload DOCX, adaptação com DUA" },
+  { id: "adaptar-atividade", icon: ImageIcon, title: "Adaptar Atividade", desc: "Imagem → OCR → IA adapta" },
+  { id: "criar-zero", icon: Sparkles, title: "Criar do Zero", desc: "BNCC + assunto → atividade gerada" },
+  { id: "estudio-visual", icon: Palette, title: "Estúdio Visual", desc: "Pictogramas, cenas sociais" },
+  { id: "roteiro", icon: FileEdit, title: "Roteiro Individual", desc: "Passo a passo de aula personalizado" },
+  { id: "papo-mestre", icon: MessageSquare, title: "Papo de Mestre", desc: "Sugestões de mediação" },
+  { id: "dinamica", icon: Handshake, title: "Dinâmica Inclusiva", desc: "Atividades em grupo DUA" },
+  { id: "plano-aula", icon: ClipboardList, title: "Plano de Aula DUA", desc: "Desenho Universal" },
 ];
 
-const TOOLS_EI: { id: ToolIdEI; icon: string; title: string; desc: string }[] = [
-  { id: "criar-experiencia", icon: "🌟", title: "Criar Experiência", desc: "BNCC EI: campos e objetivos" },
-  { id: "estudio-visual", icon: "🎨", title: "Estúdio Visual & CAA", desc: "Pictogramas, cenas, símbolos" },
-  { id: "rotina-avd", icon: "🔄", title: "Rotina & AVD", desc: "Sequências e autonomia" },
-  { id: "inclusao-brincar", icon: "🪀", title: "Inclusão no Brincar", desc: "Brincadeiras acessíveis" },
+const TOOLS_EI: { id: ToolIdEI; icon: LucideIcon; title: string; desc: string }[] = [
+  { id: "criar-experiencia", icon: Star, title: "Criar Experiência", desc: "BNCC EI: campos e objetivos" },
+  { id: "estudio-visual", icon: Palette, title: "Estúdio Visual & CAA", desc: "Pictogramas, cenas, símbolos" },
+  { id: "rotina-avd", icon: RefreshCw, title: "Rotina & AVD", desc: "Sequências e autonomia" },
+  { id: "inclusao-brincar", icon: ToyBrick, title: "Inclusão no Brincar", desc: "Brincadeiras acessíveis" },
 ];
 
 export function HubClient({ students, studentId, student }: Props) {
@@ -76,7 +92,8 @@ export function HubClient({ students, studentId, student }: Props) {
         <div className="space-y-2">
           {isEI && (
             <div className="px-4 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
-              🌟 <strong>Modo Educação Infantil</strong> — Ferramentas específicas para EI.
+              <Star className="w-4 h-4 inline mr-1" />
+              <strong>Modo Educação Infantil</strong> — Ferramentas específicas para EI.
             </div>
           )}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
@@ -103,22 +120,27 @@ export function HubClient({ students, studentId, student }: Props) {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {TOOLS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setActiveTool(activeTool === t.id ? null : t.id)}
-            className={`text-left p-4 rounded-xl border-2 transition-all ${
-              activeTool === t.id
-                ? "border-cyan-500 bg-cyan-50 shadow-md"
-                : "border-slate-200 hover:border-cyan-300 hover:bg-slate-50"
-            }`}
-          >
-            <div className="text-2xl mb-2">{t.icon}</div>
-            <div className="font-bold text-slate-800">{t.title}</div>
-            <div className="text-sm text-slate-500 mt-0.5">{t.desc}</div>
-          </button>
-        ))}
+        {TOOLS.map((t) => {
+          const Icon = t.icon;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setActiveTool(activeTool === t.id ? null : t.id)}
+              className={`text-left p-4 rounded-xl border-2 transition-all ${
+                activeTool === t.id
+                  ? "border-cyan-500 bg-cyan-50 shadow-md"
+                  : "border-slate-200 hover:border-cyan-300 hover:bg-slate-50"
+              }`}
+            >
+              <div className="mb-2">
+                <Icon className="w-8 h-8 text-slate-700" />
+              </div>
+              <div className="font-bold text-slate-800">{t.title}</div>
+              <div className="text-sm text-slate-500 mt-0.5">{t.desc}</div>
+            </button>
+          );
+        })}
       </div>
 
       {activeTool === "criar-zero" && (
@@ -249,7 +271,7 @@ function CriarDoZero({
 
   const discData = estruturaBncc?.porDisciplina?.[componenteSel];
   const unidadeData = componenteSel && discData?.porUnidade?.[unidadeSel];
-  const habsDoObjeto = objetoSel && unidadeData?.porObjeto?.[objetoSel];
+  const habsDoObjeto = objetoSel && unidadeData && typeof unidadeData === "object" && "porObjeto" in unidadeData ? unidadeData.porObjeto?.[objetoSel] : undefined;
 
   const todasHabilidades = eiMode
     ? eiObjetivos
@@ -344,10 +366,13 @@ function CriarDoZero({
           Fechar
         </button>
       </div>
-      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
+      <EngineSelector value={engine} onChange={onEngineChange} />
       {!eiMode && estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
         <details className="border border-slate-200 rounded-lg" open>
-          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto</summary>
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            BNCC: Unidade e Objeto
+          </summary>
           <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs text-slate-600 mb-1">Componente</label>
@@ -448,7 +473,7 @@ function CriarDoZero({
       </div>
       <label className="flex items-center gap-2">
         <input type="checkbox" checked={usarImagens} onChange={(e) => setUsarImagens(e.target.checked)} />
-        <span className="text-sm">Incluir imagens ilustrativas (IA gera descrições; imagens via Gemini/DALL-E)</span>
+        <span className="text-sm">Incluir imagens ilustrativas (IA gera descrições; imagens via DALL-E)</span>
       </label>
       <button
         type="button"
@@ -705,7 +730,7 @@ function PlanoAulaDua({
           Fechar
         </button>
       </div>
-      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
+      <EngineSelector value={engine} onChange={onEngineChange} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Componente Curricular</label>
@@ -861,11 +886,14 @@ function RotinaAvdTool({
   return (
     <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="font-bold text-slate-800">🔄 Rotina & AVD</h3>
+        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+          <RefreshCw className="w-5 h-5" />
+          Rotina & AVD
+        </h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
       </div>
       <p className="text-sm text-slate-600">Sequências e orientações para autonomia e rotina.</p>
-      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
+      <EngineSelector value={engine} onChange={onEngineChange} />
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Contexto</label>
         <input type="text" value={contexto} onChange={(e) => setContexto(e.target.value)} className="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Rotina escolar" />
@@ -941,7 +969,7 @@ function InclusaoBrincarTool({
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
       </div>
       <p className="text-sm text-slate-600">Brincadeiras acessíveis para Educação Infantil.</p>
-      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
+      <EngineSelector value={engine} onChange={onEngineChange} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Tema / tipo de brincadeira</label>
@@ -993,10 +1021,6 @@ function AdaptarProva({
   const [tema, setTema] = useState("");
   const [serie, setSerie] = useState(student?.grade || "");
   const [componentes, setComponentes] = useState<Record<string, unknown[]>>({});
-  const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
-  const [componenteSel, setComponenteSel] = useState("");
-  const [unidadeSel, setUnidadeSel] = useState("");
-  const [objetoSel, setObjetoSel] = useState("");
   const [modoProfundo, setModoProfundo] = useState(false);
   const [tipo, setTipo] = useState("Prova");
   const [checklist, setChecklist] = useState<ChecklistAdaptacao>({});
@@ -1009,18 +1033,10 @@ function AdaptarProva({
 
   useEffect(() => {
     if (!serie?.trim()) return;
-    Promise.all([
-      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`).then((r) => r.json()),
-      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}&estrutura=1`).then((r) => r.json()),
-    ])
-      .then(([d, e]) => {
-        setComponentes(d.ano_atual || d || {});
-        setEstruturaBncc(e.disciplinas ? e : null);
-      })
-      .catch(() => {
-        setComponentes({});
-        setEstruturaBncc(null);
-      });
+    fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`)
+      .then((r) => r.json())
+      .then((d) => setComponentes(d.ano_atual || d || {}))
+      .catch(() => setComponentes({}));
   }, [serie]);
 
   const handleFileChange = async (f: File | null) => {
@@ -1071,10 +1087,6 @@ function AdaptarProva({
           estudante: { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 800) },
           texto: texto || undefined,
           questoes_com_imagem: questoesComImagem,
-          ano: serie || undefined,
-          unidade_tematica: unidadeSel || undefined,
-          objeto_conhecimento: objetoSel || undefined,
-          habilidades_bncc: habsDoObjeto ? habsDoObjeto.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`) : undefined,
         })
       );
       const res = await fetch("/api/hub/adaptar-prova", { method: "POST", body: formData });
@@ -1087,10 +1099,6 @@ function AdaptarProva({
       setLoading(false);
     }
   };
-
-  const discData = estruturaBncc?.porDisciplina?.[componenteSel];
-  const unidadeData = componenteSel && discData?.porUnidade?.[unidadeSel];
-  const habsDoObjeto = objetoSel && unidadeData?.porObjeto?.[objetoSel];
 
   const mapaImagensParaDocx: Record<number, string> = {};
   if (docxExtraido?.imagens?.length) {
@@ -1113,7 +1121,7 @@ function AdaptarProva({
         </button>
       </div>
       <p className="text-sm text-slate-600">Transforme provas padrão em avaliações acessíveis.</p>
-      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
+      <EngineSelector value={engine} onChange={onEngineChange} />
       <details className="border border-slate-200 rounded-lg" open>
         <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC e Assunto</summary>
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1135,34 +1143,6 @@ function AdaptarProva({
           </div>
         </div>
       </details>
-      {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
-        <details className="border border-slate-200 rounded-lg">
-          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto (opcional)</summary>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Componente</label>
-              <select value={componenteSel} onChange={(e) => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm">
-                <option value="">Todos</option>
-                {estruturaBncc.disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
-              <select value={unidadeSel} onChange={(e) => { setUnidadeSel(e.target.value); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!componenteSel}>
-                <option value="">Todas</option>
-                {(estruturaBncc.porDisciplina?.[componenteSel]?.unidades || []).map((u) => <option key={u} value={u}>{u}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
-              <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
-                <option value="">Todos</option>
-                {(estruturaBncc.porDisciplina?.[componenteSel]?.porUnidade?.[unidadeSel]?.objetos || []).map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </div>
-          </div>
-        </details>
-      )}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Arquivo DOCX *</label>
         <input
@@ -1319,7 +1299,7 @@ function RoteiroIndividual({
 
   const discData = estruturaBncc?.porDisciplina?.[componenteSel];
   const unidadeData = componenteSel && discData?.porUnidade?.[unidadeSel];
-  const habsDoObjeto = objetoSel && unidadeData?.porObjeto?.[objetoSel];
+  const habsDoObjeto = objetoSel && unidadeData && typeof unidadeData === "object" && "porObjeto" in unidadeData ? unidadeData.porObjeto?.[objetoSel] : undefined;
   const todasHabilidades = habsDoObjeto
     ? habsDoObjeto.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
     : unidadeData
@@ -1374,7 +1354,7 @@ function RoteiroIndividual({
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
       </div>
       <p className="text-sm text-slate-600">Passo a passo de aula específico para o estudante, usando o hiperfoco.</p>
-      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
+      <EngineSelector value={engine} onChange={onEngineChange} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Componente</label>
@@ -1393,7 +1373,10 @@ function RoteiroIndividual({
       </div>
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
         <details className="border border-slate-200 rounded-lg">
-          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto</summary>
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            BNCC: Unidade e Objeto
+          </summary>
           <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs text-slate-600 mb-1">Componente</label>
@@ -1546,7 +1529,7 @@ function DinamicaInclusiva({
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
       </div>
       <p className="text-sm text-slate-600">Atividades em grupo onde todos participam, respeitando as singularidades.</p>
-      <EngineSelector value={engine} onChange={onEngineChange} module="hub" />
+      <EngineSelector value={engine} onChange={onEngineChange} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Componente</label>
@@ -1573,7 +1556,10 @@ function DinamicaInclusiva({
       </div>
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
         <details className="border border-slate-200 rounded-lg">
-          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto</summary>
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            BNCC: Unidade e Objeto
+          </summary>
           <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs text-slate-600 mb-1">Componente</label>
@@ -1646,7 +1632,7 @@ function EstudioVisual({
         </button>
       </div>
       <p className="text-sm text-slate-600">
-        Gere ilustrações educacionais e pictogramas CAA. Usa OmniYellow (Gemini) para imagens, com fallback para OmniOrange (OpenAI).
+        Gere ilustrações educacionais e pictogramas CAA. Usa OmniOrange (OpenAI) para imagens.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <IlustracaoSection hiperfoco={hiperfoco} />
@@ -1837,10 +1823,6 @@ function AdaptarAtividade({
   const [tema, setTema] = useState("");
   const [serie, setSerie] = useState(student?.grade || "");
   const [componentes, setComponentes] = useState<Record<string, unknown[]>>({});
-  const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
-  const [componenteSel, setComponenteSel] = useState("");
-  const [unidadeSel, setUnidadeSel] = useState("");
-  const [objetoSel, setObjetoSel] = useState("");
   const [modoProfundo, setModoProfundo] = useState(false);
   const [tipo, setTipo] = useState("Atividade");
   const [livroProfessor, setLivroProfessor] = useState(false);
@@ -1853,18 +1835,10 @@ function AdaptarAtividade({
 
   useEffect(() => {
     if (!serie?.trim()) return;
-    Promise.all([
-      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`).then((r) => r.json()),
-      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}&estrutura=1`).then((r) => r.json()),
-    ])
-      .then(([d, e]) => {
-        setComponentes(d.ano_atual || d || {});
-        setEstruturaBncc(e.disciplinas ? e : null);
-      })
-      .catch(() => {
-        setComponentes({});
-        setEstruturaBncc(null);
-      });
+    fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`)
+      .then((r) => r.json())
+      .then((d) => setComponentes(d.ano_atual || d || {}))
+      .catch(() => setComponentes({}));
   }, [serie]);
 
   const handleFileSelect = (f: File | null) => {
@@ -1889,10 +1863,6 @@ function AdaptarAtividade({
     }
   };
 
-  const discData = estruturaBncc?.porDisciplina?.[componenteSel];
-  const unidadeData = componenteSel && discData?.porUnidade?.[unidadeSel];
-  const habsDoObjeto = objetoSel && unidadeData?.porObjeto?.[objetoSel];
-
   const imagemParaEnvio = croppedFile || file;
 
   const gerar = async () => {
@@ -1916,10 +1886,6 @@ function AdaptarAtividade({
           checklist,
           modo_profundo: modoProfundo,
           estudante: { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 600) },
-          ano: serie || undefined,
-          unidade_tematica: unidadeSel || undefined,
-          objeto_conhecimento: objetoSel || undefined,
-          habilidades_bncc: habsDoObjeto ? habsDoObjeto.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`) : undefined,
         })
       );
       const res = await fetch("/api/hub/adaptar-atividade", { method: "POST", body: formData });
@@ -1963,34 +1929,6 @@ function AdaptarAtividade({
           </div>
         </div>
       </details>
-      {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
-        <details className="border border-slate-200 rounded-lg">
-          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto (opcional)</summary>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Componente</label>
-              <select value={componenteSel} onChange={(e) => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm">
-                <option value="">Todos</option>
-                {estruturaBncc.disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
-              <select value={unidadeSel} onChange={(e) => { setUnidadeSel(e.target.value); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!componenteSel}>
-                <option value="">Todas</option>
-                {(estruturaBncc.porDisciplina?.[componenteSel]?.unidades || []).map((u) => <option key={u} value={u}>{u}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
-              <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
-                <option value="">Todos</option>
-                {(estruturaBncc.porDisciplina?.[componenteSel]?.porUnidade?.[unidadeSel]?.objetos || []).map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </div>
-          </div>
-        </details>
-      )}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Imagem (PNG/JPG) *</label>
         <input

@@ -264,37 +264,7 @@ export function carregarHabilidadesEMPorArea(serie?: string): {
 } {
   const raw = loadBnccEM();
   const ano_atual: Record<string, { codigo: string; descricao: string; habilidade_completa: string; disciplina: string }[]> = {};
-  const anos_anteriores: Record<string, { codigo: string; descricao: string; habilidade_completa: string; disciplina: string }[]> = {};
-  
-  // Extrair série do EM (ex: "1ª Série" -> "1", "2EM" -> "2")
-  let serieNum = 0;
-  if (serie) {
-    const match = serie.match(/(\d)\s*ª?\s*série/i) || serie.match(/(\d)EM/i) || (serie.toLowerCase().includes("em") || serie.toLowerCase().includes("médio") ? serie.match(/(\d)/) : null);
-    if (match) {
-      serieNum = parseInt(match[1], 10);
-    }
-  }
-
   for (const r of raw) {
-    const serieRaw = (r.serie || "").trim();
-    const serieRawNum = parseInt(serieRaw.match(/(\d)/)?.[1] || "0", 10) || 0;
-    
-    // Se não especificou série ou série não corresponde, pular
-    if (serie && serieNum > 0 && serieRawNum !== serieNum && serieRawNum !== 0) {
-      // Se é de série anterior, adicionar em anos_anteriores
-      if (serieRawNum < serieNum) {
-        const a = (r.area || "").trim() || "Geral";
-        const { codigo, descricao } = parseHabEM(r.habilidade);
-        (anos_anteriores[a] = anos_anteriores[a] || []).push({
-          codigo,
-          descricao,
-          habilidade_completa: r.habilidade,
-          disciplina: a,
-        });
-      }
-      continue;
-    }
-    
     const a = (r.area || "").trim() || "Geral";
     const { codigo, descricao } = parseHabEM(r.habilidade);
     (ano_atual[a] = ano_atual[a] || []).push({
@@ -304,7 +274,7 @@ export function carregarHabilidadesEMPorArea(serie?: string): {
       disciplina: a,
     });
   }
-  return { ano_atual, anos_anteriores };
+  return { ano_atual, anos_anteriores: {} };
 }
 
 // --- Helpers para detectar nível ---

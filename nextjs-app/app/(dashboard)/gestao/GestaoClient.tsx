@@ -2,6 +2,18 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import {
+  Users,
+  Settings,
+  Trash2,
+  Edit,
+  Plus,
+  CheckCircle2,
+  User,
+  Pause,
+  Play,
+  AlertTriangle,
+} from "lucide-react";
 
 type WorkspaceMember = {
   id: string;
@@ -46,32 +58,21 @@ export function GestaoClient() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDelId, setConfirmDelId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
-  const [workspaceConfig, setWorkspaceConfig] = useState<{
-    enabled_modules: string[];
-    ai_engines: string[];
-  } | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [membersRes, masterRes, configRes] = await Promise.all([
+      const [membersRes, masterRes] = await Promise.all([
         fetch("/api/members"),
         fetch("/api/members?master=1"),
-        fetch("/api/workspace/config"),
       ]);
       const membersData = await membersRes.json();
       const masterData = await masterRes.json();
-      const configData = await configRes.json();
       setMembers(membersData.members ?? []);
       setMaster(masterData.master ?? null);
-      setWorkspaceConfig({
-        enabled_modules: configData.enabled_modules || [],
-        ai_engines: configData.ai_engines || [],
-      });
     } catch {
       setMembers([]);
       setMaster(null);
-      setWorkspaceConfig(null);
     } finally {
       setLoading(false);
     }
@@ -98,7 +99,10 @@ export function GestaoClient() {
       )}
 
       {!loading && master && (
-        <p className="text-sm text-slate-600">✅ Usuário master configurado. Login: PIN + email + senha.</p>
+        <p className="text-sm text-slate-600 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          Usuário master configurado. Login: PIN + email + senha.
+        </p>
       )}
 
       {/* Novo usuário */}
@@ -114,7 +118,6 @@ export function GestaoClient() {
         {showForm && (
           <div className="border-t border-slate-100 p-4 bg-slate-50">
             <NovoUsuarioForm
-              enabledModules={workspaceConfig?.enabled_modules || []}
               onSuccess={() => {
                 loadData();
                 setShowForm(false);
@@ -138,7 +141,10 @@ export function GestaoClient() {
 
       {/* Lista de membros ativos */}
       <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-3">👥 Usuários cadastrados</h3>
+        <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
+          <Users className="w-5 h-5" />
+          Usuários cadastrados
+        </h3>
         {loading ? (
           <p className="text-slate-500">Carregando…</p>
         ) : activeMembers.length === 0 ? (
@@ -150,7 +156,8 @@ export function GestaoClient() {
               href="/config-escola"
               className="inline-flex items-center gap-1 text-sm text-sky-600 hover:underline"
             >
-              ⚙️ Ir para Configuração Escola
+              <Settings className="w-4 h-4 mr-2" />
+              Ir para Configuração Escola
             </Link>
           </div>
         ) : (
@@ -159,7 +166,6 @@ export function GestaoClient() {
               <MemberCard
                 key={m.id}
                 member={m}
-                enabledModules={workspaceConfig?.enabled_modules || []}
                 editingId={editingId}
                 confirmDelId={confirmDelId}
                 setEditingId={setEditingId}
@@ -175,7 +181,10 @@ export function GestaoClient() {
       {/* Usuários desativados */}
       {inactiveMembers.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold text-slate-800 mb-3">🗑️ Usuários desativados</h3>
+          <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
+            <Trash2 className="w-5 h-5" />
+            Usuários desativados
+          </h3>
           <p className="text-xs text-slate-500 mb-2">Excluir libera o email para novo cadastro.</p>
           <div className="space-y-2">
             {inactiveMembers.map((m) => (
@@ -301,11 +310,9 @@ function MasterSetupForm({
 }
 
 function NovoUsuarioForm({
-  enabledModules,
   onSuccess,
   onError,
 }: {
-  enabledModules: string[];
   onSuccess: () => void;
   onError: (err: string) => void;
 }) {
@@ -406,47 +413,18 @@ function NovoUsuarioForm({
         </div>
         <div>
           <p className="text-sm font-medium text-slate-700 mb-2">Páginas que pode acessar</p>
-          {enabledModules.length === 0 ? (
-            <p className="text-xs text-amber-600 mb-2">
-              ⚠️ Nenhuma página liberada pelo admin. Entre em contato com o administrador da plataforma.
-            </p>
-          ) : (
-            <p className="text-xs text-slate-500 mb-2">
-              Páginas liberadas pelo admin: {enabledModules.map((m) => PERM_LABELS[m] || m).join(", ")}
-            </p>
-          )}
           <div className="grid grid-cols-2 gap-2">
-            {Object.entries(PERM_LABELS).map(([key, label]) => {
-              const moduleKey = key.replace("can_", "");
-              const isEnabled = enabledModules.includes(moduleKey);
-              return (
-                <label
-                  key={key}
-                  className={`flex items-center gap-2 text-sm ${
-                    !isEnabled ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  title={
-                    !isEnabled
-                      ? "Esta página não foi liberada pelo admin da plataforma para sua escola"
-                      : undefined
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    checked={perms[key] ?? false}
-                    disabled={!isEnabled}
-                    onChange={(e) => {
-                      if (isEnabled) {
-                        setPerms((p) => ({ ...p, [key]: e.target.checked }));
-                      }
-                    }}
-                    className="rounded border-slate-300"
-                  />
-                  {label}
-                  {!isEnabled && <span className="text-xs text-slate-400">(não liberada)</span>}
-                </label>
-              );
-            })}
+            {Object.entries(PERM_LABELS).map(([key, label]) => (
+              <label key={key} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={perms[key] ?? false}
+                  onChange={(e) => setPerms((p) => ({ ...p, [key]: e.target.checked }))}
+                  className="rounded border-slate-300"
+                />
+                {label}
+              </label>
+            ))}
           </div>
           <p className="text-sm font-medium text-slate-700 mt-4 mb-2">Vínculo com estudantes</p>
           <select
@@ -480,7 +458,6 @@ function NovoUsuarioForm({
 
 function MemberCard({
   member,
-  enabledModules,
   editingId,
   confirmDelId,
   setEditingId,
@@ -489,7 +466,6 @@ function MemberCard({
   onError,
 }: {
   member: WorkspaceMember;
-  enabledModules: string[];
   editingId: string | null;
   confirmDelId: string | null;
   setEditingId: (id: string | null) => void;
@@ -544,7 +520,6 @@ function MemberCard({
     return (
       <EditarUsuarioForm
         member={member}
-        enabledModules={enabledModules}
         onSuccess={() => {
           setEditingId(null);
           onAction();
@@ -559,7 +534,10 @@ function MemberCard({
     <div className="p-4 rounded-xl border border-slate-200 bg-white">
       <div className="flex justify-between items-start gap-4">
         <div>
-          <h4 className="font-medium text-slate-800">👤 {member.nome}</h4>
+          <h4 className="font-medium text-slate-800 flex items-center gap-2">
+            <User className="w-5 h-5" />
+            {member.nome}
+          </h4>
           {member.cargo && <span className="text-sm text-slate-500"> · {member.cargo}</span>}
           <p className="text-sm text-slate-600 mt-0.5">
             {member.email} · Tel: {member.telefone || "—"}
@@ -583,7 +561,8 @@ function MemberCard({
             onClick={() => setEditingId(member.id)}
             className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm hover:bg-slate-50"
           >
-            ✏️ Editar
+            <Edit className="w-4 h-4 mr-2" />
+            Editar
           </button>
           <button
             type="button"
@@ -602,14 +581,16 @@ function MemberCard({
             }}
             className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm hover:bg-slate-50"
           >
-            ⏸️ Desativar
+            <Pause className="w-4 h-4 mr-2" />
+            Desativar
           </button>
           <button
             type="button"
             onClick={() => setConfirmDelId(member.id)}
-            className="px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-sm hover:bg-red-50"
+            className="px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-sm hover:bg-red-50 flex items-center gap-2"
           >
-            🗑️ Excluir
+            <Trash2 className="w-4 h-4" />
+            Excluir
           </button>
         </div>
       </div>
@@ -619,13 +600,11 @@ function MemberCard({
 
 function EditarUsuarioForm({
   member,
-  enabledModules,
   onSuccess,
   onCancel,
   onError,
 }: {
   member: WorkspaceMember;
-  enabledModules: string[];
   onSuccess: () => void;
   onCancel: () => void;
   onError: (err: string) => void;
@@ -685,7 +664,10 @@ function EditarUsuarioForm({
 
   return (
     <div className="p-4 rounded-xl border border-sky-200 bg-sky-50/50">
-      <h4 className="font-medium text-slate-800 mb-3">✏️ Editar: {member.nome}</h4>
+      <h4 className="font-medium text-slate-800 mb-3 flex items-center gap-2">
+        <Edit className="w-5 h-5" />
+        Editar: {member.nome}
+      </h4>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -727,49 +709,20 @@ function EditarUsuarioForm({
           </div>
           <div>
             <p className="text-sm font-medium text-slate-700 mb-2">Páginas que pode acessar</p>
-            {enabledModules.length === 0 ? (
-              <p className="text-xs text-amber-600 mb-2">
-                ⚠️ Nenhuma página liberada pelo admin. Entre em contato com o administrador da plataforma.
-              </p>
-            ) : (
-              <p className="text-xs text-slate-500 mb-2">
-                Páginas liberadas pelo admin: {enabledModules.map((m) => PERM_LABELS[`can_${m}`] || m).join(", ")}
-              </p>
-            )}
             <div className="grid grid-cols-2 gap-2">
-              {Object.entries(PERM_LABELS).map(([key, label]) => {
-                const moduleKey = key.replace("can_", "");
-                // Estudantes e Gestão sempre disponíveis
-                const isAlwaysAvailable = moduleKey === "estudantes" || moduleKey === "gestao";
-                const isEnabled = isAlwaysAvailable || enabledModules.includes(moduleKey);
-                return (
-                  <label
-                    key={key}
-                    className={`flex items-center gap-2 text-sm ${
-                      !isEnabled ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                    title={
-                      !isEnabled
-                        ? "Esta página não foi liberada pelo admin da plataforma para sua escola"
-                        : undefined
+              {Object.entries(PERM_LABELS).map(([key, label]) => (
+                <label key={key} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={perms[key as keyof typeof perms]}
+                    onChange={(e) =>
+                      setPerms((p) => ({ ...p, [key]: e.target.checked }))
                     }
-                  >
-                    <input
-                      type="checkbox"
-                      checked={perms[key as keyof typeof perms]}
-                      disabled={!isEnabled}
-                      onChange={(e) => {
-                        if (isEnabled) {
-                          setPerms((p) => ({ ...p, [key]: e.target.checked }));
-                        }
-                      }}
-                      className="rounded border-slate-300"
-                    />
-                    {label}
-                    {!isEnabled && <span className="text-xs text-slate-400">(não liberada)</span>}
-                  </label>
-                );
-              })}
+                    className="rounded border-slate-300"
+                  />
+                  {label}
+                </label>
+              ))}
             </div>
             <p className="text-sm font-medium text-slate-700 mt-4 mb-2">Vínculo</p>
             <select
@@ -856,7 +809,8 @@ function InactiveMemberCard({
     <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
       <div className="flex justify-between items-center">
         <p className="text-slate-700">
-          👤 {member.nome} — {member.email} (inativo)
+          <User className="w-4 h-4 inline mr-1" />
+          {member.nome} — {member.email} (inativo)
         </p>
         <div className="flex gap-2">
           <button
@@ -876,14 +830,16 @@ function InactiveMemberCard({
             }}
             className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm hover:bg-slate-100"
           >
-            ▶️ Reativar
+            <Play className="w-4 h-4 mr-2" />
+            Reativar
           </button>
           <button
             type="button"
             onClick={() => setConfirmDelId(member.id)}
             className="px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-sm hover:bg-red-50"
           >
-            🗑️ Excluir permanentemente
+            <Trash2 className="w-4 h-4 mr-2" />
+            Excluir permanentemente
           </button>
         </div>
       </div>

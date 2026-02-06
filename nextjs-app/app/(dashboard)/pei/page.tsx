@@ -35,7 +35,7 @@ export default async function PEIPage({ searchParams }: Props) {
         <PEIClient
           students={students.map((s) => ({ id: s.id, name: s.name }))}
           studentId={studentId}
-          student={student}
+          studentName={student?.name || null}
           initialPeiData={peiData}
         />
       </Suspense>
