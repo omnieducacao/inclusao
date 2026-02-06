@@ -603,7 +603,14 @@ function AdaptarProva({
             <pre className="whitespace-pre-wrap text-sm text-slate-700">{resultado.analise}</pre>
           </div>
           <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-            <div className="text-xs font-semibold text-slate-600 uppercase mb-2">Prova adaptada</div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs font-semibold text-slate-600 uppercase">Prova adaptada</span>
+              <PdfDownloadButton
+                text={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
+                filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.pdf`}
+                title="Prova Adaptada (DUA)"
+              />
+            </div>
             <pre className="whitespace-pre-wrap text-sm text-slate-600">{resultado.texto}</pre>
           </div>
         </div>
@@ -748,7 +755,14 @@ function AdaptarAtividade({
             <pre className="whitespace-pre-wrap text-sm text-slate-700">{resultado.analise}</pre>
           </div>
           <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-            <div className="text-xs font-semibold text-slate-600 uppercase mb-2">Atividade adaptada</div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs font-semibold text-slate-600 uppercase">Atividade adaptada</span>
+              <PdfDownloadButton
+                text={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
+                filename={`Atividade_${new Date().toISOString().slice(0, 10)}.pdf`}
+                title="Atividade Adaptada (DUA)"
+              />
+            </div>
             <pre className="whitespace-pre-wrap text-sm text-slate-600">{resultado.texto}</pre>
           </div>
         </div>

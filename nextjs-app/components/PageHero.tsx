@@ -2,7 +2,7 @@ type PageHeroProps = {
   icon: string;
   title: string;
   desc: string;
-  color?: "sky" | "cyan" | "violet" | "rose" | "slate";
+  color?: "sky" | "cyan" | "violet" | "rose" | "slate" | "teal";
 };
 
 const colors: Record<string, string> = {
@@ -11,6 +11,7 @@ const colors: Record<string, string> = {
   violet: "from-violet-50 to-white border-violet-100",
   rose: "from-rose-50 to-white border-rose-100",
   slate: "from-slate-50 to-white border-slate-100",
+  teal: "from-teal-50 to-white border-teal-100",
 };
 
 export function PageHero({ icon, title, desc, color = "sky" }: PageHeroProps) {

@@ -59,6 +59,13 @@ export default async function HomePage() {
       desc: "Ano letivo, séries e turmas",
       color: "slate",
     },
+    {
+      href: "/pgi",
+      icon: "📋",
+      title: "PGI",
+      desc: "Plano de Gestão Inclusiva (5W2H)",
+      color: "slate",
+    },
   ];
 
   const colorClasses: Record<string, string> = {

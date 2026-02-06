@@ -29,6 +29,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/monitoramento", label: "Monitoramento", permission: "can_avaliacao" },
   { href: "/config-escola", label: "Config Escola", permission: "can_gestao" },
   { href: "/gestao", label: "Gestão", permission: "can_gestao" },
+  { href: "/pgi", label: "PGI", permission: "can_gestao" },
 ];
 
 function canAccess(
