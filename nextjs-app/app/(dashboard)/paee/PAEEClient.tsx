@@ -467,6 +467,9 @@ function JornadaTab({
   onErroChange: (e: string | null) => void;
 }) {
   const [origem, setOrigem] = useState<"ciclo" | "texto">("ciclo");
+  const [mapaMental, setMapaMental] = useState<string | null>(null);
+  const [mapaLoading, setMapaLoading] = useState(false);
+  const [mapaErro, setMapaErro] = useState<string | null>(null);
   const hiperfoco = (peiData.hiperfoco as string) || (peiData.interesses as string) || "Interesses gerais";
 
   const cicloPlanejamento = cicloSelecionadoPlanejamento || (cicloAtivo?.tipo === "planejamento_aee" ? cicloAtivo : ciclos.find((c) => c.tipo === "planejamento_aee"));
@@ -535,14 +538,51 @@ function JornadaTab({
       {erro && <p className="text-red-600 text-sm">{erro}</p>}
       {texto && (
         <div className="space-y-2">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center flex-wrap gap-2">
             <span className="text-sm font-medium text-slate-700">Resultado</span>
-            <PdfDownloadButton
-              text={texto}
-              filename={`Jornada_${student.name.replace(/\s+/g, "_")}.pdf`}
-              title={`Jornada - ${student.name}`}
-            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  setMapaLoading(true);
+                  setMapaErro(null);
+                  try {
+                    const res = await fetch("/api/paee/mapa-mental", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        texto,
+                        nome: student.name,
+                        hiperfoco,
+                      }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || "Erro");
+                    setMapaMental(data.image || null);
+                  } catch (e) {
+                    setMapaErro(e instanceof Error ? e.message : "Erro ao gerar mapa mental.");
+                  } finally {
+                    setMapaLoading(false);
+                  }
+                }}
+                disabled={mapaLoading}
+                className="px-3 py-1.5 bg-violet-100 text-violet-800 rounded-lg text-sm hover:bg-violet-200 disabled:opacity-50"
+              >
+                {mapaLoading ? "Gerando…" : "🗺️ Gerar mapa mental"}
+              </button>
+              <PdfDownloadButton
+                text={texto}
+                filename={`Jornada_${student.name.replace(/\s+/g, "_")}.pdf`}
+                title={`Jornada - ${student.name}`}
+              />
+            </div>
           </div>
+          {mapaErro && <p className="text-red-600 text-sm">{mapaErro}</p>}
+          {mapaMental && (
+            <div className="rounded-lg border border-slate-200 overflow-hidden">
+              <img src={mapaMental} alt="Mapa mental da jornada" className="max-w-full max-h-[400px] object-contain" />
+            </div>
+          )}
           <textarea
             value={texto}
             onChange={(e) => onTextoChange(e.target.value)}

@@ -175,20 +175,19 @@ export function carregarHabilidadesEFPorComponente(serie: string): {
   return { ano_atual, anos_anteriores };
 }
 
-/** Estrutura hierárquica EF: disciplina → unidade temática → objeto do conhecimento → habilidades */
-export function carregarEstruturaEF(serie: string): {
+export type EstruturaBnccEF = {
   disciplinas: string[];
   porDisciplina: Record<
     string,
     {
       unidades: string[];
-      porUnidade: Record<
-        string,
-        { objetos: string[]; porObjeto: Record<string, { codigo: string; descricao: string; habilidade_completa: string }[]> }
-      >;
+      porUnidade: Record<string, { objetos: string[]; porObjeto: Record<string, { codigo: string; descricao: string; habilidade_completa: string }[]> }>;
     }
   >;
-} {
+};
+
+/** Estrutura hierárquica EF: disciplina → unidade temática → objeto do conhecimento → habilidades */
+export function carregarEstruturaEF(serie: string): EstruturaBnccEF {
   const anoSerie = extrairAnoSerieBncc(serie);
   if (!anoSerie || anoSerie.includes("EM")) return { disciplinas: [], porDisciplina: {} };
   const raw = loadBnccEF();
@@ -211,10 +210,7 @@ export function carregarEstruturaEF(serie: string): {
     porDisciplina[disc][unidade][objeto].push({ codigo, descricao, habilidade_completa: hab });
   }
 
-  const result: {
-    disciplinas: string[];
-    porDisciplina: Record<string, { unidades: string[]; porUnidade: Record<string, { objetos: string[]; porObjeto: Record<string, { codigo: string; descricao: string; habilidade_completa: string }[]> }> };
-  } = { disciplinas: [...disciplinas].sort(), porDisciplina: {} };
+  const result: EstruturaBnccEF = { disciplinas: [...disciplinas].sort(), porDisciplina: {} };
 
   for (const disc of result.disciplinas) {
     const unids = Object.keys(porDisciplina[disc] || {}).sort();

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
 import { EngineSelector } from "@/components/EngineSelector";
+import { ImageCropper } from "@/components/ImageCropper";
 import { detectarNivelEnsino } from "@/lib/pei";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
@@ -200,8 +201,10 @@ function CriarDoZero({
   const [eiCampo, setEiCampo] = useState("");
   const [assunto, setAssunto] = useState("");
   const [habilidadesSel, setHabilidadesSel] = useState<string[]>([]);
+  const [usarImagens, setUsarImagens] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
+  const [mapaImagensResultado, setMapaImagensResultado] = useState<Record<number, string>>({});
   const [erro, setErro] = useState<string | null>(null);
 
   const serieAluno = student?.grade || "";
@@ -274,6 +277,7 @@ function CriarDoZero({
     setLoading(true);
     setErro(null);
     setResultado(null);
+    setMapaImagensResultado({});
     try {
       const res = await fetch("/api/hub/criar-atividade", {
         method: "POST",
@@ -287,11 +291,44 @@ function CriarDoZero({
           ei_objetivos: eiMode && habilidadesSel.length ? habilidadesSel : undefined,
           habilidades: !eiMode && habilidadesSel.length > 0 ? habilidadesSel : undefined,
           estudante: student ? { nome: student.name, serie: student.grade, hiperfoco: (student.pei_data as Record<string, unknown>)?.hiperfoco } : undefined,
+          usar_imagens: usarImagens,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao gerar");
-      setResultado(data.texto || "Atividade gerada.");
+      let textoFinal = data.texto || "Atividade gerada.";
+      let mapa: Record<number, string> = {};
+      if (usarImagens) {
+        const genImgRegex = /\[\[GEN_IMG:\s*([^\]]+)\]\]/gi;
+        const termos: string[] = [];
+        let m: RegExpExecArray | null;
+        while ((m = genImgRegex.exec(textoFinal)) !== null) {
+          termos.push(m[1].trim());
+        }
+        for (let i = 0; i < termos.length; i++) {
+          try {
+            const imgRes = await fetch("/api/hub/estudio-imagem", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ tipo: "ilustracao", prompt: termos[i] }),
+            });
+            const imgData = await imgRes.json();
+            if (imgRes.ok && imgData.image) {
+              const base64 = (imgData.image as string).replace(/^data:image\/\w+;base64,/, "");
+              mapa[i + 1] = base64;
+            }
+          } catch {
+            // ignora falha em uma imagem
+          }
+        }
+        let idx = 0;
+        textoFinal = textoFinal.replace(/\[\[GEN_IMG:\s*[^\]]+\]\]/gi, () => {
+          idx++;
+          return `[[IMG_${idx}]]`;
+        });
+      }
+      setMapaImagensResultado(mapa);
+      setResultado(textoFinal);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar atividade.");
     } finally {
@@ -409,6 +446,10 @@ function CriarDoZero({
         </select>
         <p className="text-xs text-slate-500 mt-1">Segure Ctrl/Cmd para múltipla seleção.</p>
       </div>
+      <label className="flex items-center gap-2">
+        <input type="checkbox" checked={usarImagens} onChange={(e) => setUsarImagens(e.target.checked)} />
+        <span className="text-sm">Incluir imagens ilustrativas (IA gera descrições; imagens via DALL-E)</span>
+      </label>
       <button
         type="button"
         onClick={gerar}
@@ -423,7 +464,12 @@ function CriarDoZero({
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-slate-700">Resultado</span>
             <span className="flex gap-2">
-              <DocxDownloadButton texto={resultado} titulo="Atividade Criada" filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`} />
+              <DocxDownloadButton
+                texto={resultado}
+                titulo="Atividade Criada"
+                filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`}
+                mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
+              />
               <PdfDownloadButton text={resultado} filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Atividade Criada" />
             </span>
           </div>
@@ -941,6 +987,8 @@ function AdaptarProva({
   onClose: () => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
+  const [docxExtraido, setDocxExtraido] = useState<{ texto: string; imagens: { base64: string; contentType: string }[] } | null>(null);
+  const [mapaQuestoes, setMapaQuestoes] = useState<Record<number, number>>({});
   const [materia, setMateria] = useState("Língua Portuguesa");
   const [tema, setTema] = useState("");
   const [serie, setSerie] = useState(student?.grade || "");
@@ -949,6 +997,7 @@ function AdaptarProva({
   const [tipo, setTipo] = useState("Prova");
   const [checklist, setChecklist] = useState<ChecklistAdaptacao>({});
   const [loading, setLoading] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [resultado, setResultado] = useState<{ analise: string; texto: string } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -962,8 +1011,32 @@ function AdaptarProva({
       .catch(() => setComponentes({}));
   }, [serie]);
 
+  const handleFileChange = async (f: File | null) => {
+    setFile(f);
+    setDocxExtraido(null);
+    setMapaQuestoes({});
+    setResultado(null);
+    if (!f) return;
+    setExtracting(true);
+    setErro(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", f);
+      const res = await fetch("/api/hub/extrair-docx", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao extrair");
+      setDocxExtraido({ texto: data.texto, imagens: data.imagens || [] });
+      setMapaQuestoes({});
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro ao extrair DOCX.");
+    } finally {
+      setExtracting(false);
+    }
+  };
+
   const gerar = async () => {
-    if (!file) {
+    const texto = docxExtraido?.texto;
+    if (!texto && !file) {
       setErro("Selecione um arquivo DOCX.");
       return;
     }
@@ -971,8 +1044,9 @@ function AdaptarProva({
     setErro(null);
     setResultado(null);
     try {
+      const questoesComImagem = [...new Set(Object.values(mapaQuestoes).filter((q) => q > 0))];
       const formData = new FormData();
-      formData.append("file", file);
+      if (file) formData.append("file", file);
       formData.append(
         "meta",
         JSON.stringify({
@@ -983,6 +1057,8 @@ function AdaptarProva({
           engine,
           modo_profundo: modoProfundo,
           estudante: { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 800) },
+          texto: texto || undefined,
+          questoes_com_imagem: questoesComImagem,
         })
       );
       const res = await fetch("/api/hub/adaptar-prova", { method: "POST", body: formData });
@@ -995,6 +1071,18 @@ function AdaptarProva({
       setLoading(false);
     }
   };
+
+  const mapaImagensParaDocx: Record<number, string> = {};
+  if (docxExtraido?.imagens?.length) {
+    for (const [imgIdxStr, questao] of Object.entries(mapaQuestoes)) {
+      if (questao > 0) {
+        const idx = parseInt(imgIdxStr, 10);
+        const img = docxExtraido.imagens[idx];
+        if (img?.base64) mapaImagensParaDocx[questao] = img.base64;
+      }
+    }
+  }
+  const temDados = !!docxExtraido?.texto || !!file;
 
   return (
     <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
@@ -1032,10 +1120,37 @@ function AdaptarProva({
         <input
           type="file"
           accept=".docx"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
           className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-100 file:text-cyan-800"
         />
+        {extracting && <p className="text-sm text-amber-600 mt-1">Extraindo texto e imagens…</p>}
+        {docxExtraido?.imagens?.length ? (
+          <p className="text-sm text-emerald-600 mt-1">{docxExtraido.imagens.length} imagem(ns) encontrada(s).</p>
+        ) : null}
       </div>
+      {docxExtraido?.imagens?.length ? (
+        <details className="border border-slate-200 rounded-lg" open>
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">Mapeamento de imagens</summary>
+          <div className="p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+            {docxExtraido.imagens.map((img, i) => (
+              <div key={i} className="flex flex-col gap-2">
+                <img src={`data:${img.contentType};base64,${img.base64}`} alt="" className="max-w-[80px] max-h-[80px] object-contain border rounded" />
+                <label className="text-xs text-slate-600">
+                  Pertence à questão:
+                  <input
+                    type="number"
+                    min={0}
+                    max={50}
+                    value={mapaQuestoes[i] ?? 0}
+                    onChange={(e) => setMapaQuestoes((m) => ({ ...m, [i]: parseInt(e.target.value, 10) || 0 }))}
+                    className="ml-1 w-14 px-2 py-1 border rounded text-sm"
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
+        </details>
+      ) : null}
       <div className="flex flex-wrap gap-4 items-center">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
@@ -1077,7 +1192,7 @@ function AdaptarProva({
       <button
         type="button"
         onClick={gerar}
-        disabled={loading || !file}
+        disabled={loading || !temDados}
         className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50"
       >
         {loading ? "Adaptando…" : "Adaptar prova"}
@@ -1093,7 +1208,12 @@ function AdaptarProva({
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs font-semibold text-slate-600 uppercase">Prova adaptada</span>
               <span className="flex gap-2">
-                <DocxDownloadButton texto={`${resultado.analise}\n\n---\n\n${resultado.texto}`} titulo="Prova Adaptada (DUA)" filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.docx`} />
+                <DocxDownloadButton
+                  texto={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
+                  titulo="Prova Adaptada (DUA)"
+                  filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.docx`}
+                  mapaImagens={Object.keys(mapaImagensParaDocx).length > 0 ? mapaImagensParaDocx : undefined}
+                />
                 <PdfDownloadButton
                 text={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
                 filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.pdf`}
@@ -1662,6 +1782,9 @@ function AdaptarAtividade({
   onClose: () => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [croppedFile, setCroppedFile] = useState<File | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
   const [materia, setMateria] = useState("Língua Portuguesa");
   const [tema, setTema] = useState("");
   const [serie, setSerie] = useState(student?.grade || "");
@@ -1684,8 +1807,32 @@ function AdaptarAtividade({
       .catch(() => setComponentes({}));
   }, [serie]);
 
+  const handleFileSelect = (f: File | null) => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setCroppedFile(null);
+    setShowCropper(false);
+    setFile(f);
+    if (f) {
+      setPreviewUrl(URL.createObjectURL(f));
+      setShowCropper(true);
+    }
+  };
+
+  const handleCropComplete = (blob: Blob, mime: string) => {
+    const f = new File([blob], "questao.jpg", { type: mime });
+    setCroppedFile(f);
+    setShowCropper(false);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+  };
+
+  const imagemParaEnvio = croppedFile || file;
+
   const gerar = async () => {
-    if (!file) {
+    if (!imagemParaEnvio) {
       setErro("Selecione uma imagem.");
       return;
     }
@@ -1694,7 +1841,7 @@ function AdaptarAtividade({
     setResultado(null);
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", imagemParaEnvio);
       formData.append(
         "meta",
         JSON.stringify({
@@ -1753,10 +1900,35 @@ function AdaptarAtividade({
         <input
           type="file"
           accept="image/png,image/jpeg,image/jpg"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
           className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-100 file:text-cyan-800"
         />
         <p className="text-xs text-slate-500 mt-1">Máx. 4MB. Recorte a área da questão para melhor resultado.</p>
+        {showCropper && previewUrl && (
+          <div className="mt-4 p-4 rounded-lg border border-slate-200 bg-slate-50">
+            <ImageCropper
+              src={previewUrl}
+              caption="Recorte a área da questão ou atividade"
+              onCropComplete={handleCropComplete}
+            />
+            <div className="mt-2 flex gap-4">
+              <button type="button" onClick={() => { if (file) { setCroppedFile(file); setShowCropper(false); if (previewUrl) URL.revokeObjectURL(previewUrl); setPreviewUrl(null); } }} className="text-sm text-slate-600 hover:text-slate-800">
+                Usar imagem inteira
+              </button>
+              <button type="button" onClick={() => handleFileSelect(null)} className="text-sm text-slate-500 hover:text-slate-700">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+        {croppedFile && !showCropper && (
+          <div className="mt-4 flex items-center gap-2">
+            <span className="text-sm text-emerald-600">✓ Recorte aplicado</span>
+            <button type="button" onClick={() => { setCroppedFile(null); if (file) { setPreviewUrl(URL.createObjectURL(file)); setShowCropper(true); } }} className="text-sm text-cyan-600 hover:text-cyan-800">
+              Refazer recorte
+            </button>
+          </div>
+        )}
       </div>
       <div className="flex flex-wrap gap-4 items-center">
         <div>
@@ -1803,7 +1975,7 @@ function AdaptarAtividade({
       <button
         type="button"
         onClick={gerar}
-        disabled={loading || !file}
+        disabled={loading || !imagemParaEnvio}
         className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50"
       >
         {loading ? "Adaptando…" : "Adaptar atividade"}

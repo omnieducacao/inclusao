@@ -11,19 +11,12 @@ export async function POST(req: Request) {
   let estudante: { hiperfoco?: string; perfil?: string } = {};
   let engine: EngineId = "red";
   let modoProfundo = false;
+  let questoesComImagem: number[] = [];
 
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const meta = formData.get("meta") as string | null;
-
-    if (!file || !file.size) {
-      return NextResponse.json(
-        { error: "Envie um arquivo DOCX." },
-        { status: 400 }
-      );
-    }
-
     if (meta) {
       try {
         const parsed = JSON.parse(meta);
@@ -33,6 +26,12 @@ export async function POST(req: Request) {
         checklist = parsed.checklist || {};
         estudante = parsed.estudante || {};
         modoProfundo = !!parsed.modo_profundo;
+        if (Array.isArray(parsed.questoes_com_imagem)) {
+          questoesComImagem = parsed.questoes_com_imagem.filter((n: unknown) => typeof n === "number");
+        }
+        if (typeof parsed.texto === "string" && parsed.texto.length > 20) {
+          texto = parsed.texto;
+        }
         if (parsed.engine && ["red", "blue", "green", "yellow", "orange"].includes(parsed.engine)) {
           engine = parsed.engine;
         }
@@ -41,9 +40,17 @@ export async function POST(req: Request) {
       }
     }
 
-    const buf = Buffer.from(await file.arrayBuffer());
-    const result = await mammoth.extractRawText({ buffer: buf });
-    texto = (result.value || "").trim();
+    if (!texto) {
+      if (!file || !file.size) {
+        return NextResponse.json(
+          { error: "Envie um arquivo DOCX." },
+          { status: 400 }
+        );
+      }
+      const buf = Buffer.from(await file.arrayBuffer());
+      const result = await mammoth.extractRawText({ buffer: buf });
+      texto = (result.value || "").trim();
+    }
     if (!texto || texto.length < 20) {
       return NextResponse.json(
         { error: "Não foi possível extrair texto do DOCX ou arquivo vazio." },
@@ -80,7 +87,11 @@ export async function POST(req: Request) {
   const modoInstrucao = modoProfundo
     ? "Seja didático e use Cadeia de Pensamento para fundamentar cada adaptação."
     : "Seja objetivo.";
-  const prompt = `ESPECIALISTA EM DUA E INCLUSÃO. ${modoInstrucao}
+  const instrucaoImagens =
+    questoesComImagem.length > 0
+      ? `\nREGRA DE IMAGENS: O professor indicou imagens nas questões: ${questoesComImagem.join(", ")}. Para cada questão com imagem, use a tag [[IMG_N]] (onde N é o número da questão) EXATAMENTE no local onde a figura deve aparecer (após o enunciado, antes das alternativas). Exemplo: Questão 1 tem imagem → use [[IMG_1]]. NUNCA remova ou mova imagens de posição.\n`
+      : "";
+  const prompt = `ESPECIALISTA EM DUA E INCLUSÃO. ${modoInstrucao}${instrucaoImagens}
 1. ANALISE O PERFIL: ${perfil}
 2. ADAPTE A ${tipo}: Use o hiperfoco (${hiperfoco}) em até 30% das questões.
 ${instrucoesChecklist}

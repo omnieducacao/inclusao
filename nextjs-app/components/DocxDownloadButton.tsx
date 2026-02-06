@@ -4,17 +4,27 @@ type Props = {
   texto: string;
   titulo: string;
   filename: string;
+  /** Mapa de número da questão -> base64 da imagem. Usado para DOCX com imagens. */
+  mapaImagens?: Record<number, string>;
   className?: string;
   children?: React.ReactNode;
 };
 
-export function DocxDownloadButton({ texto, titulo, filename, className, children }: Props) {
+export function DocxDownloadButton({ texto, titulo, filename, mapaImagens, className, children }: Props) {
   async function handleClick() {
     try {
+      const body: Record<string, unknown> = { texto, titulo, filename };
+      if (mapaImagens && Object.keys(mapaImagens).length > 0) {
+        const mapa: Record<string, string> = {};
+        for (const [k, v] of Object.entries(mapaImagens)) {
+          if (v) mapa[k] = v;
+        }
+        body.mapa_imagens = mapa;
+      }
       const res = await fetch("/api/hub/gerar-docx", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texto, titulo, filename }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error("Erro ao gerar DOCX");
       const blob = await res.blob();

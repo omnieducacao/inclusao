@@ -11,6 +11,7 @@ export async function POST(req: Request) {
     ei_campo?: string;
     ei_objetivos?: string[];
     estudante?: { nome?: string; serie?: string; hiperfoco?: string };
+    usar_imagens?: boolean;
   };
 
   try {
@@ -48,7 +49,8 @@ Regras:
 - Seja didático e acessível.
 - Se houver contexto do estudante, adapte a linguagem e os exemplos ao perfil.
 - NÃO inclua diagnóstico ou CID em nenhum material.
-- Retorne a atividade pronta para uso (enunciados, orientações, se aplicável).`;
+- Retorne a atividade pronta para uso (enunciados, orientações, se aplicável).
+${body.usar_imagens ? `- INCLUA 1 a 3 marcadores de imagem no formato [[GEN_IMG: termo descritivo em português]] nos locais onde figuras seriam úteis (ex: [[GEN_IMG: frações em pizza]], [[GEN_IMG: sistema solar]]). Use termos claros para busca.` : ""}`;
 
   const engineErr = getEngineError(engine);
   if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
