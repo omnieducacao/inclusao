@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getSession } from "@/lib/session";
-import { listStudents } from "@/lib/students";
+import { listStudents, getStudent } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
 import { DiarioClient } from "./DiarioClient";
 
@@ -13,13 +13,17 @@ export default async function DiarioPage({ searchParams }: Props) {
   const studentId = params.student || null;
 
   const students = workspaceId ? await listStudents(workspaceId) : [];
+  const student =
+    workspaceId && studentId
+      ? await getStudent(workspaceId, studentId)
+      : null;
 
   return (
     <div className="space-y-6">
       <PageHero
         icon="📝"
         title="Diário de Bordo"
-        desc="Registro de atendimentos e sessões."
+        desc="Registro de atendimentos e sessões AEE."
         color="rose"
       />
 
@@ -27,6 +31,16 @@ export default async function DiarioPage({ searchParams }: Props) {
         <DiarioClient
           students={students.map((s) => ({ id: s.id, name: s.name }))}
           studentId={studentId}
+          student={
+            student
+              ? {
+                  id: student.id,
+                  name: student.name,
+                  grade: student.grade,
+                  daily_logs: (student.daily_logs || []) as Record<string, unknown>[],
+                }
+              : null
+          }
         />
       </Suspense>
     </div>

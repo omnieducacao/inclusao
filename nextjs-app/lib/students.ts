@@ -10,6 +10,7 @@ export type Student = {
   pei_data?: Record<string, unknown>;
   paee_ciclos?: unknown[];
   planejamento_ativo?: string | null;
+  daily_logs?: unknown[];
   created_at?: string;
 };
 
@@ -39,7 +40,7 @@ export async function getStudent(
   const sb = getSupabase();
   const { data, error } = await sb
     .from("students")
-    .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, created_at")
+    .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, daily_logs, created_at")
     .eq("workspace_id", workspaceId)
     .eq("id", studentId)
     .maybeSingle();
@@ -90,6 +91,25 @@ export async function updateStudentPaeeCiclos(
   const { error } = await sb
     .from("students")
     .update(payload)
+    .eq("id", studentId)
+    .eq("workspace_id", workspaceId);
+
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+export async function updateStudentDailyLogs(
+  workspaceId: string,
+  studentId: string,
+  dailyLogs: unknown[]
+): Promise<{ success: boolean; error?: string }> {
+  const sb = getSupabase();
+  const { error } = await sb
+    .from("students")
+    .update({
+      daily_logs: dailyLogs,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", studentId)
     .eq("workspace_id", workspaceId);
 
