@@ -175,6 +175,59 @@ export function carregarHabilidadesEFPorComponente(serie: string): {
   return { ano_atual, anos_anteriores };
 }
 
+/** Estrutura hierárquica EF: disciplina → unidade temática → objeto do conhecimento → habilidades */
+export function carregarEstruturaEF(serie: string): {
+  disciplinas: string[];
+  porDisciplina: Record<
+    string,
+    {
+      unidades: string[];
+      porUnidade: Record<
+        string,
+        { objetos: string[]; porObjeto: Record<string, { codigo: string; descricao: string; habilidade_completa: string }[]> }
+      >;
+    }
+  >;
+} {
+  const anoSerie = extrairAnoSerieBncc(serie);
+  if (!anoSerie || anoSerie.includes("EM")) return { disciplinas: [], porDisciplina: {} };
+  const raw = loadBnccEF();
+  const porDisciplina: Record<string, Record<string, Record<string, { codigo: string; descricao: string; habilidade_completa: string }[]>>> = {};
+  const disciplinas = new Set<string>();
+
+  for (const r of raw) {
+    const anoCelula = (r.ano || "").trim();
+    if (!anoCelula.includes(anoSerie) && !anoSerie.split("").some((c) => anoCelula.includes(c))) continue;
+    const disc = (r.disciplina || "").trim();
+    const unidade = (r.unidade_tematica || "").trim() || "(sem unidade)";
+    const objeto = (r.objeto_conhecimento || "").trim() || "(sem objeto)";
+    const hab = (r.habilidade || "").trim();
+    if (!disc || !hab) continue;
+    disciplinas.add(disc);
+    if (!porDisciplina[disc]) porDisciplina[disc] = {};
+    if (!porDisciplina[disc][unidade]) porDisciplina[disc][unidade] = {};
+    if (!porDisciplina[disc][unidade][objeto]) porDisciplina[disc][unidade][objeto] = [];
+    const { codigo, descricao } = parseHab(hab);
+    porDisciplina[disc][unidade][objeto].push({ codigo, descricao, habilidade_completa: hab });
+  }
+
+  const result: {
+    disciplinas: string[];
+    porDisciplina: Record<string, { unidades: string[]; porUnidade: Record<string, { objetos: string[]; porObjeto: Record<string, { codigo: string; descricao: string; habilidade_completa: string }[]> }> };
+  } = { disciplinas: [...disciplinas].sort(), porDisciplina: {} };
+
+  for (const disc of result.disciplinas) {
+    const unids = Object.keys(porDisciplina[disc] || {}).sort();
+    const porUnidade: Record<string, { objetos: string[]; porObjeto: Record<string, { codigo: string; descricao: string; habilidade_completa: string }[]> }> = {};
+    for (const u of unids) {
+      const objs = Object.keys(porDisciplina[disc][u] || {}).sort();
+      porUnidade[u] = { objetos: objs, porObjeto: porDisciplina[disc][u] };
+    }
+    result.porDisciplina[disc] = { unidades: unids, porUnidade };
+  }
+  return result;
+}
+
 // --- EM ---
 export type BnccEMRow = {
   area: string;

@@ -26,6 +26,8 @@ import {
 import type { PEIData } from "@/lib/pei";
 import type { EngineId } from "@/lib/ai-engines";
 import { EngineSelector } from "@/components/EngineSelector";
+import { PdfDownloadButton } from "@/components/PdfDownloadButton";
+import { peiDataToFullText } from "@/lib/pei-export";
 
 type HabilidadeBncc = {
   disciplina: string;
@@ -617,24 +619,27 @@ export function PEIClient({
             )}
 
             {activeTab === "consultoria" && (
-              <div className="space-y-4">
-                <p className="text-slate-600 text-sm">
-                  Documento técnico gerado pela IA. Em breve: botão para gerar.
-                </p>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Sugestão IA (consultoria)</label>
-                  <textarea
-                    value={peiData.ia_sugestao || ""}
-                    onChange={(e) => updateField("ia_sugestao", e.target.value)}
-                    rows={14}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
-                  />
-                </div>
-              </div>
+              <ConsultoriaTab
+                peiData={peiData}
+                updateField={updateField}
+                serie={peiData.serie || ""}
+              />
             )}
 
             {activeTab === "dashboard" && (
               <div className="space-y-4">
+                <div className="flex flex-wrap gap-3 items-center">
+                  <span className="text-sm font-medium text-slate-700">Exportar PEI completo:</span>
+                  <PeiExportDocxButton peiData={peiData} />
+                  <PdfDownloadButton
+                    text={peiDataToFullText(peiData)}
+                    filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
+                    title={`PEI - ${peiData.nome || "Estudante"}`}
+                    className="px-3 py-1.5 text-sm bg-cyan-100 text-cyan-800 rounded-lg hover:bg-cyan-200"
+                  >
+                    📥 Baixar PDF
+                  </PdfDownloadButton>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="p-4 rounded-lg border border-slate-200 bg-slate-50">
                     <div className="text-2xl font-bold text-slate-800">{peiData.potencias?.length || 0}</div>
@@ -665,6 +670,121 @@ export function PEIClient({
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function PeiExportDocxButton({ peiData }: { peiData: PEIData }) {
+  const [loading, setLoading] = useState(false);
+  async function handleClick() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/pei/exportar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ peiData }),
+      });
+      if (!res.ok) throw new Error("Erro ao gerar DOCX");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Export PEI DOCX:", e);
+    } finally {
+      setLoading(false);
+    }
+  }
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className="px-3 py-1.5 text-sm bg-emerald-100 text-emerald-800 rounded-lg hover:bg-emerald-200 disabled:opacity-50"
+    >
+      {loading ? "Gerando…" : "📄 Baixar DOCX"}
+    </button>
+  );
+}
+
+function ConsultoriaTab({
+  peiData,
+  updateField,
+  serie,
+}: {
+  peiData: PEIData;
+  updateField: <K extends keyof PEIData>(key: K, value: PEIData[K]) => void;
+  serie: string;
+}) {
+  const [engine, setEngine] = useState<EngineId>((peiData.consultoria_engine as EngineId) || "red");
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const gerar = async (modoPratico: boolean) => {
+    if (!serie) {
+      setErro("Selecione a Série/Ano na aba Estudante.");
+      return;
+    }
+    setLoading(true);
+    setErro(null);
+    try {
+      const res = await fetch("/api/pei/consultoria", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          peiData,
+          engine,
+          modo_pratico: modoPratico,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar relatório.");
+      updateField("ia_sugestao", data.texto || "");
+      updateField("consultoria_engine", engine);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro ao gerar.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-slate-600 text-sm">
+        Documento técnico gerado pela IA. Escolha o motor e clique em Gerar.
+      </p>
+      <EngineSelector value={engine} onChange={(e) => setEngine(e)} />
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => gerar(false)}
+          disabled={loading}
+          className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50"
+        >
+          {loading ? "Gerando…" : "✨ Gerar Estratégia Técnica"}
+        </button>
+        <button
+          type="button"
+          onClick={() => gerar(true)}
+          disabled={loading}
+          className="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg disabled:opacity-50"
+        >
+          {loading ? "Gerando…" : "🧰 Gerar Guia Prático (Sala)"}
+        </button>
+      </div>
+      {erro && <p className="text-red-600 text-sm">{erro}</p>}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Sugestão IA (consultoria)</label>
+        <textarea
+          value={peiData.ia_sugestao || ""}
+          onChange={(e) => updateField("ia_sugestao", e.target.value)}
+          rows={14}
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
+        />
+      </div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
 import { EngineSelector } from "@/components/EngineSelector";
+import { detectarNivelEnsino } from "@/lib/pei";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 
@@ -19,10 +20,24 @@ type Props = {
   student: StudentFull | null;
 };
 
-type ToolId = "adaptar-prova" | "adaptar-atividade" | "criar-zero" | "estudio-visual" | "papo-mestre" | "plano-aula" | "roteiro" | "dinamica";
+/** Estrutura BNCC para dropdowns (componente → unidade → objeto → habilidades) */
+type EstruturaBncc = {
+  disciplinas: string[];
+  porDisciplina: Record<string, {
+    unidades: string[];
+    porUnidade: Record<string, {
+      objetos: string[];
+      porObjeto: Record<string, { codigo: string; descricao: string; habilidade_completa?: string }[]>;
+    }>;
+  }>;
+} | null;
+
+type ToolIdEFEM = "adaptar-prova" | "adaptar-atividade" | "criar-zero" | "estudio-visual" | "papo-mestre" | "plano-aula" | "roteiro" | "dinamica";
+type ToolIdEI = "criar-experiencia" | "estudio-visual" | "rotina-avd" | "inclusao-brincar";
+type ToolId = ToolIdEFEM | ToolIdEI;
 type EngineId = "red" | "blue" | "green" | "yellow" | "orange";
 
-const TOOLS: { id: ToolId; icon: string; title: string; desc: string }[] = [
+const TOOLS_EF_EM: { id: ToolIdEFEM; icon: string; title: string; desc: string }[] = [
   { id: "adaptar-prova", icon: "📄", title: "Adaptar Prova", desc: "Upload DOCX, adaptação com DUA" },
   { id: "adaptar-atividade", icon: "🖼️", title: "Adaptar Atividade", desc: "Imagem → OCR → IA adapta" },
   { id: "criar-zero", icon: "✨", title: "Criar do Zero", desc: "BNCC + assunto → atividade gerada" },
@@ -33,6 +48,13 @@ const TOOLS: { id: ToolId; icon: string; title: string; desc: string }[] = [
   { id: "plano-aula", icon: "📋", title: "Plano de Aula DUA", desc: "Desenho Universal" },
 ];
 
+const TOOLS_EI: { id: ToolIdEI; icon: string; title: string; desc: string }[] = [
+  { id: "criar-experiencia", icon: "🌟", title: "Criar Experiência", desc: "BNCC EI: campos e objetivos" },
+  { id: "estudio-visual", icon: "🎨", title: "Estúdio Visual & CAA", desc: "Pictogramas, cenas, símbolos" },
+  { id: "rotina-avd", icon: "🔄", title: "Rotina & AVD", desc: "Sequências e autonomia" },
+  { id: "inclusao-brincar", icon: "🪀", title: "Inclusão no Brincar", desc: "Brincadeiras acessíveis" },
+];
+
 export function HubClient({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
   const currentId = studentId || searchParams.get("student");
@@ -41,13 +63,22 @@ export function HubClient({ students, studentId, student }: Props) {
 
   const peiData = student?.pei_data || {};
   const hiperfoco = (peiData.hiperfoco as string) || (peiData.interesses as string) || "Interesses gerais";
+  const serie = (student?.grade as string) || (peiData.serie as string) || "";
+  const isEI = detectarNivelEnsino(serie) === "EI";
+  const TOOLS = isEI ? TOOLS_EI : TOOLS_EF_EM;
 
   return (
     <div className="space-y-6">
       <StudentSelector students={students} currentId={currentId} placeholder="Selecione o estudante" />
 
       {currentId && student && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+        <div className="space-y-2">
+          {isEI && (
+            <div className="px-4 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+              🌟 <strong>Modo Educação Infantil</strong> — Ferramentas específicas para EI.
+            </div>
+          )}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Nome</div>
             <div className="font-bold text-slate-800">{student.name}</div>
@@ -59,6 +90,7 @@ export function HubClient({ students, studentId, student }: Props) {
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Hiperfoco</div>
             <div className="font-bold text-slate-800 truncate" title={String(hiperfoco)}>{String(hiperfoco)}</div>
+          </div>
           </div>
         </div>
       )}
@@ -112,6 +144,17 @@ export function HubClient({ students, studentId, student }: Props) {
         <EstudioVisual student={student} hiperfoco={hiperfoco} onClose={() => setActiveTool(null)} />
       )}
 
+      {activeTool === "criar-experiencia" && (
+        <CriarDoZero student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} eiMode />
+      )}
+
+      {activeTool === "rotina-avd" && (
+        <RotinaAvdTool student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
+      )}
+      {activeTool === "inclusao-brincar" && (
+        <InclusaoBrincarTool student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
+      )}
+
       {activeTool === "roteiro" && (
         <RoteiroIndividual student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
       )}
@@ -120,7 +163,7 @@ export function HubClient({ students, studentId, student }: Props) {
         <DinamicaInclusiva student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
       )}
 
-      {activeTool && !["criar-zero", "papo-mestre", "plano-aula", "adaptar-prova", "adaptar-atividade", "estudio-visual", "roteiro", "dinamica"].includes(activeTool) && (
+      {activeTool && !["criar-zero", "criar-experiencia", "papo-mestre", "plano-aula", "adaptar-prova", "adaptar-atividade", "estudio-visual", "roteiro", "dinamica", "rotina-avd", "inclusao-brincar"].includes(activeTool) && (
         <div className="p-6 rounded-xl border border-slate-200 bg-slate-50">
           <p className="text-slate-600">
             <strong>{TOOLS.find((t) => t.id === activeTool)?.title}</strong> — Em breve nesta versão.
@@ -136,14 +179,25 @@ function CriarDoZero({
   engine,
   onEngineChange,
   onClose,
+  eiMode = false,
 }: {
   student: StudentFull | null;
   engine: EngineId;
   onEngineChange: (e: EngineId) => void;
   onClose: () => void;
+  eiMode?: boolean;
 }) {
   const [serie, setSerie] = useState("");
   const [componentes, setComponentes] = useState<Record<string, { codigo: string; descricao: string }[]>>({});
+  const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
+  const [componenteSel, setComponenteSel] = useState("");
+  const [unidadeSel, setUnidadeSel] = useState("");
+  const [objetoSel, setObjetoSel] = useState("");
+  const [eiFaixas, setEiFaixas] = useState<string[]>([]);
+  const [eiCampos, setEiCampos] = useState<string[]>([]);
+  const [eiObjetivos, setEiObjetivos] = useState<string[]>([]);
+  const [eiIdade, setEiIdade] = useState("");
+  const [eiCampo, setEiCampo] = useState("");
   const [assunto, setAssunto] = useState("");
   const [habilidadesSel, setHabilidadesSel] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -153,20 +207,64 @@ function CriarDoZero({
   const serieAluno = student?.grade || "";
 
   useEffect(() => {
+    if (eiMode) {
+      fetch("/api/bncc/ei")
+        .then((r) => r.json())
+        .then((d) => {
+          setEiFaixas(d.faixas || []);
+          setEiCampos(d.campos || []);
+        })
+        .catch(() => {});
+      return;
+    }
     if (!serieAluno) return;
     setSerie(serieAluno);
-    fetch(`/api/bncc/ef?serie=${encodeURIComponent(serieAluno)}`)
-      .then((r) => r.json())
-      .then((d) => {
-        const ano = d.ano_atual || {};
-        setComponentes(ano);
+    Promise.all([
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serieAluno)}`).then((r) => r.json()),
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serieAluno)}&estrutura=1`).then((r) => r.json()),
+    ])
+      .then(([d, e]) => {
+        setComponentes(d.ano_atual || {});
+        setEstruturaBncc(e.disciplinas ? e : null);
       })
-      .catch(() => setComponentes({}));
-  }, [serieAluno]);
+      .catch(() => {
+        setComponentes({});
+        setEstruturaBncc(null);
+      });
+  }, [serieAluno, eiMode]);
 
-  const todasHabilidades = Object.entries(componentes).flatMap(([disc, habs]) =>
-    (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
-  );
+  useEffect(() => {
+    if (!eiMode || !eiIdade || !eiCampo) {
+      setEiObjetivos([]);
+      return;
+    }
+    fetch(`/api/bncc/ei?idade=${encodeURIComponent(eiIdade)}&campo=${encodeURIComponent(eiCampo)}`)
+      .then((r) => r.json())
+      .then((d) => setEiObjetivos(d.objetivos || []))
+      .catch(() => setEiObjetivos([]));
+  }, [eiMode, eiIdade, eiCampo]);
+
+  const discData = estruturaBncc?.porDisciplina?.[componenteSel];
+  const unidadeData = componenteSel && discData?.porUnidade?.[unidadeSel];
+  const habsDoObjeto = objetoSel && unidadeData?.porObjeto?.[objetoSel];
+
+  const todasHabilidades = eiMode
+    ? eiObjetivos
+    : habsDoObjeto
+      ? habsDoObjeto.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+      : unidadeData
+        ? Object.entries(unidadeData.porObjeto || {}).flatMap(([, habs]) =>
+            (habs || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+          )
+        : discData
+          ? Object.values(discData.porUnidade || {}).flatMap((v) =>
+              Object.values(v.porObjeto || {}).flatMap((habList) =>
+                (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+              )
+            )
+          : Object.entries(componentes).flatMap(([disc, habs]) =>
+              (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
+            );
 
   const gerar = async () => {
     if (!assunto.trim()) {
@@ -183,7 +281,11 @@ function CriarDoZero({
         body: JSON.stringify({
           assunto,
           engine,
-          habilidades: habilidadesSel.length > 0 ? habilidadesSel : undefined,
+          ei_mode: eiMode,
+          ei_idade: eiMode ? eiIdade : undefined,
+          ei_campo: eiMode ? eiCampo : undefined,
+          ei_objetivos: eiMode && habilidadesSel.length ? habilidadesSel : undefined,
+          habilidades: !eiMode && habilidadesSel.length > 0 ? habilidadesSel : undefined,
           estudante: student ? { nome: student.name, serie: student.grade, hiperfoco: (student.pei_data as Record<string, unknown>)?.hiperfoco } : undefined,
         }),
       });
@@ -200,14 +302,91 @@ function CriarDoZero({
   return (
     <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="font-bold text-slate-800">Criar do Zero</h3>
+        <h3 className="font-bold text-slate-800">{eiMode ? "Criar Experiência (EI)" : "Criar do Zero"}</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
           Fechar
         </button>
       </div>
       <EngineSelector value={engine} onChange={onEngineChange} />
+      {!eiMode && estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
+        <details className="border border-slate-200 rounded-lg" open>
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto</summary>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Componente</label>
+              <select
+                value={componenteSel}
+                onChange={(e) => {
+                  setComponenteSel(e.target.value);
+                  setUnidadeSel("");
+                  setObjetoSel("");
+                }}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              >
+                <option value="">Todos</option>
+                {estruturaBncc.disciplinas.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
+              <select
+                value={unidadeSel}
+                onChange={(e) => {
+                  setUnidadeSel(e.target.value);
+                  setObjetoSel("");
+                }}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                disabled={!componenteSel}
+              >
+                <option value="">Todas</option>
+                {(discData?.unidades || []).map((u) => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
+              <select
+                value={objetoSel}
+                onChange={(e) => setObjetoSel(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                disabled={!unidadeSel}
+              >
+                <option value="">Todos</option>
+                {(unidadeData?.objetos || []).map((o) => (
+                  <option key={o} value={o}>{o}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </details>
+      )}
+      {eiMode && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Faixa de Idade</label>
+            <select value={eiIdade} onChange={(e) => setEiIdade(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              <option value="">Selecione</option>
+              {eiFaixas.map((f) => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Campo de Experiência</label>
+            <select value={eiCampo} onChange={(e) => setEiCampo(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              <option value="">Selecione</option>
+              {eiCampos.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Assunto / tema</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">{eiMode ? "Assunto / tema da experiência" : "Assunto / tema"}</label>
         <input
           type="text"
           value={assunto}
@@ -217,14 +396,14 @@ function CriarDoZero({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Habilidades BNCC (opcional)</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">{eiMode ? "Objetivos de Aprendizagem (opcional)" : "Habilidades BNCC (opcional)"}</label>
         <select
           multiple
           value={habilidadesSel}
           onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))}
           className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[100px]"
         >
-          {todasHabilidades.slice(0, 50).map((h, i) => (
+          {todasHabilidades.slice(0, 120).map((h, i) => (
             <option key={i} value={h}>{h}</option>
           ))}
         </select>
@@ -396,15 +575,46 @@ function PlanoAulaDua({
 }) {
   const [materia, setMateria] = useState("Língua Portuguesa");
   const [assunto, setAssunto] = useState("");
+  const [serie, setSerie] = useState(student?.grade || "");
   const [duracao, setDuracao] = useState(50);
   const [metodologia, setMetodologia] = useState("Metodologias ativas");
   const [qtdAlunos, setQtdAlunos] = useState(25);
+  const [componentes, setComponentes] = useState<Record<string, { codigo: string; descricao: string }[]>>({});
+  const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
+  const [componenteSel, setComponenteSel] = useState("");
+  const [unidadeSel, setUnidadeSel] = useState("");
+  const [objetoSel, setObjetoSel] = useState("");
+  const [habilidadesSel, setHabilidadesSel] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
   const peiData = student?.pei_data || {};
   const hiperfoco = (peiData.hiperfoco as string) || (peiData.interesses as string) || "";
+
+  useEffect(() => {
+    if (!serie) return;
+    Promise.all([
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`).then((r) => r.json()),
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}&estrutura=1`).then((r) => r.json()),
+    ])
+      .then(([d, e]) => {
+        setComponentes(d.ano_atual || d || {});
+        setEstruturaBncc(e.disciplinas ? e : null);
+      })
+      .catch(() => { setComponentes({}); setEstruturaBncc(null); });
+  }, [serie]);
+
+  const discDataP = estruturaBncc?.porDisciplina?.[componenteSel];
+  const unidadeDataP = componenteSel && discDataP?.porUnidade?.[unidadeSel];
+  const habsDoObjetoP = objetoSel && unidadeDataP?.porObjeto?.[objetoSel];
+  const todasHabilidadesPlano = habsDoObjetoP
+    ? habsDoObjetoP.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+    : unidadeDataP
+      ? Object.entries(unidadeDataP.porObjeto || {}).flatMap(([, habs]) => (habs || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`))
+      : discDataP
+        ? Object.values(discDataP.porUnidade || {}).flatMap((v) => Object.values(v.porObjeto || {}).flatMap((habList) => (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)))
+        : Object.entries(componentes).flatMap(([disc, habs]) => (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`));
 
   const gerar = async () => {
     if (!assunto.trim()) {
@@ -425,6 +635,7 @@ function PlanoAulaDua({
           metodologia,
           qtd_alunos: qtdAlunos,
           recursos: ["Quadro", "Material impresso", "Projetor", "Computador"],
+          habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
           estudante: student
             ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 300) }
             : undefined,
@@ -490,6 +701,40 @@ function PlanoAulaDua({
           />
         </div>
       </div>
+      {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
+        <details className="border border-slate-200 rounded-lg">
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto (opcional)</summary>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Componente</label>
+              <select value={componenteSel} onChange={(e) => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm">
+                <option value="">Todos</option>
+                {estruturaBncc.disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
+              <select value={unidadeSel} onChange={(e) => { setUnidadeSel(e.target.value); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!componenteSel}>
+                <option value="">Todas</option>
+                {(discDataP?.unidades || []).map((u) => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
+              <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
+                <option value="">Todos</option>
+                {(unidadeDataP?.objetos || []).map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="px-4 pb-4">
+            <label className="block text-xs text-slate-600 mb-1">Habilidades BNCC (opcional)</label>
+            <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border rounded-lg text-sm min-h-[60px]">
+              {todasHabilidadesPlano.slice(0, 60).map((h, i) => <option key={i} value={h}>{h}</option>)}
+            </select>
+          </div>
+        </details>
+      )}
       <button
         type="button"
         onClick={gerar}
@@ -525,6 +770,162 @@ type ChecklistAdaptacao = {
   compreende_figuras_linguagem?: boolean;
   descricao_imagens?: boolean;
 };
+
+function RotinaAvdTool({
+  student,
+  engine,
+  onEngineChange,
+  onClose,
+}: {
+  student: StudentFull | null;
+  engine: EngineId;
+  onEngineChange: (e: EngineId) => void;
+  onClose: () => void;
+}) {
+  const [contexto, setContexto] = useState("Rotina escolar");
+  const [sequencia, setSequencia] = useState("Rotina de chegada, lanche, saída");
+  const [loading, setLoading] = useState(false);
+  const [resultado, setResultado] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const gerar = async () => {
+    setLoading(true);
+    setErro(null);
+    try {
+      const res = await fetch("/api/hub/rotina-avd", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contexto,
+          sequencia,
+          engine,
+          estudante: student ? { nome: student.name } : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro");
+      setResultado(data.texto || "");
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="font-bold text-slate-800">🔄 Rotina & AVD</h3>
+        <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
+      </div>
+      <p className="text-sm text-slate-600">Sequências e orientações para autonomia e rotina.</p>
+      <EngineSelector value={engine} onChange={onEngineChange} />
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Contexto</label>
+        <input type="text" value={contexto} onChange={(e) => setContexto(e.target.value)} className="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Rotina escolar" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Sequência solicitada</label>
+        <textarea value={sequencia} onChange={(e) => setSequencia(e.target.value)} rows={2} className="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Rotina de chegada, lanche..." />
+      </div>
+      <button type="button" onClick={gerar} disabled={loading} className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50">
+        {loading ? "Gerando…" : "Gerar orientações"}
+      </button>
+      {erro && <p className="text-red-600 text-sm">{erro}</p>}
+      {resultado && (
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <DocxDownloadButton texto={resultado} titulo="Rotina e AVD" filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.docx`} />
+            <PdfDownloadButton text={resultado} filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.pdf`} title="Rotina e AVD" />
+          </div>
+          <pre className="whitespace-pre-wrap text-sm text-slate-600 p-4 rounded-lg bg-slate-50 border">{resultado}</pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InclusaoBrincarTool({
+  student,
+  engine,
+  onEngineChange,
+  onClose,
+}: {
+  student: StudentFull | null;
+  engine: EngineId;
+  onEngineChange: (e: EngineId) => void;
+  onClose: () => void;
+}) {
+  const peiData = student?.pei_data || {};
+  const hiperfoco = (peiData.hiperfoco as string) || "";
+  const [tema, setTema] = useState("Brincadeiras em grupo");
+  const [faixa, setFaixa] = useState("3-5 anos");
+  const [loading, setLoading] = useState(false);
+  const [resultado, setResultado] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const gerar = async () => {
+    setLoading(true);
+    setErro(null);
+    try {
+      const res = await fetch("/api/hub/inclusao-brincar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tema,
+          faixa,
+          engine,
+          estudante: student ? { nome: student.name, hiperfoco } : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro");
+      setResultado(data.texto || "");
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="font-bold text-slate-800">🪀 Inclusão no Brincar</h3>
+        <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
+      </div>
+      <p className="text-sm text-slate-600">Brincadeiras acessíveis para Educação Infantil.</p>
+      <EngineSelector value={engine} onChange={onEngineChange} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Tema / tipo de brincadeira</label>
+          <input type="text" value={tema} onChange={(e) => setTema(e.target.value)} className="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Brincadeiras em grupo" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Faixa etária</label>
+          <select value={faixa} onChange={(e) => setFaixa(e.target.value)} className="w-full px-3 py-2 border rounded-lg">
+            <option value="0-2 anos">0-2 anos</option>
+            <option value="3-5 anos">3-5 anos</option>
+            <option value="4-5 anos">4-5 anos</option>
+          </select>
+        </div>
+      </div>
+      <button type="button" onClick={gerar} disabled={loading} className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50">
+        {loading ? "Gerando…" : "Gerar brincadeiras"}
+      </button>
+      {erro && <p className="text-red-600 text-sm">{erro}</p>}
+      {resultado && (
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <DocxDownloadButton texto={resultado} titulo="Inclusão no Brincar" filename={`Inclusao_Brincar_${new Date().toISOString().slice(0, 10)}.docx`} />
+            <PdfDownloadButton text={resultado} filename={`Inclusao_Brincar_${new Date().toISOString().slice(0, 10)}.pdf`} title="Inclusão no Brincar" />
+          </div>
+          <pre className="whitespace-pre-wrap text-sm text-slate-600 p-4 rounded-lg bg-slate-50 border">{resultado}</pre>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function AdaptarProva({
   student,
@@ -723,6 +1124,10 @@ function RoteiroIndividual({
   const [assunto, setAssunto] = useState("");
   const [serie, setSerie] = useState(student?.grade || "");
   const [componentes, setComponentes] = useState<Record<string, { codigo: string; descricao: string }[]>>({});
+  const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
+  const [componenteSel, setComponenteSel] = useState("");
+  const [unidadeSel, setUnidadeSel] = useState("");
+  const [objetoSel, setObjetoSel] = useState("");
   const [habilidadesSel, setHabilidadesSel] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
@@ -730,15 +1135,38 @@ function RoteiroIndividual({
 
   useEffect(() => {
     if (!serie) return;
-    fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`)
-      .then((r) => r.json())
-      .then((d) => setComponentes(d.ano_atual || d || {}))
-      .catch(() => setComponentes({}));
+    Promise.all([
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`).then((r) => r.json()),
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}&estrutura=1`).then((r) => r.json()),
+    ])
+      .then(([d, e]) => {
+        setComponentes(d.ano_atual || d || {});
+        setEstruturaBncc(e.disciplinas ? e : null);
+      })
+      .catch(() => {
+        setComponentes({});
+        setEstruturaBncc(null);
+      });
   }, [serie]);
 
-  const todasHabilidades = Object.entries(componentes).flatMap(([disc, habs]) =>
-    (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
-  );
+  const discData = estruturaBncc?.porDisciplina?.[componenteSel];
+  const unidadeData = componenteSel && discData?.porUnidade?.[unidadeSel];
+  const habsDoObjeto = objetoSel && unidadeData?.porObjeto?.[objetoSel];
+  const todasHabilidades = habsDoObjeto
+    ? habsDoObjeto.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+    : unidadeData
+      ? Object.entries(unidadeData.porObjeto || {}).flatMap(([, habs]) =>
+          (habs || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+        )
+      : discData
+        ? Object.values(discData.porUnidade || {}).flatMap((v) =>
+            Object.values(v.porObjeto || {}).flatMap((habList) =>
+              (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+            )
+          )
+        : Object.entries(componentes).flatMap(([disc, habs]) =>
+            (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
+          );
 
   const gerar = async () => {
     if (!assunto.trim()) {
@@ -795,10 +1223,38 @@ function RoteiroIndividual({
           <input type="text" value={serie} onChange={(e) => setSerie(e.target.value)} placeholder="Ex: 5º Ano (EFAI)" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
         </div>
       </div>
+      {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
+        <details className="border border-slate-200 rounded-lg">
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto</summary>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Componente</label>
+              <select value={componenteSel} onChange={(e) => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm">
+                <option value="">Todos</option>
+                {estruturaBncc.disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
+              <select value={unidadeSel} onChange={(e) => { setUnidadeSel(e.target.value); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!componenteSel}>
+                <option value="">Todas</option>
+                {(discData?.unidades || []).map((u) => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
+              <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
+                <option value="">Todos</option>
+                {(unidadeData?.objetos || []).map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+          </div>
+        </details>
+      )}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Habilidades BNCC (opcional)</label>
         <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[80px]">
-          {todasHabilidades.slice(0, 40).map((h, i) => <option key={i} value={h}>{h}</option>)}
+          {todasHabilidades.slice(0, 80).map((h, i) => <option key={i} value={h}>{h}</option>)}
         </select>
       </div>
       <button type="button" onClick={gerar} disabled={loading} className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50">
@@ -838,6 +1294,10 @@ function DinamicaInclusiva({
   const [caracteristicas, setCaracteristicas] = useState("");
   const [serie, setSerie] = useState(student?.grade || "");
   const [componentes, setComponentes] = useState<Record<string, { codigo: string; descricao: string }[]>>({});
+  const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
+  const [componenteSel, setComponenteSel] = useState("");
+  const [unidadeSel, setUnidadeSel] = useState("");
+  const [objetoSel, setObjetoSel] = useState("");
   const [habilidadesSel, setHabilidadesSel] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
@@ -845,15 +1305,38 @@ function DinamicaInclusiva({
 
   useEffect(() => {
     if (!serie) return;
-    fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`)
-      .then((r) => r.json())
-      .then((d) => setComponentes(d.ano_atual || d || {}))
-      .catch(() => setComponentes({}));
+    Promise.all([
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`).then((r) => r.json()),
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}&estrutura=1`).then((r) => r.json()),
+    ])
+      .then(([d, e]) => {
+        setComponentes(d.ano_atual || d || {});
+        setEstruturaBncc(e.disciplinas ? e : null);
+      })
+      .catch(() => {
+        setComponentes({});
+        setEstruturaBncc(null);
+      });
   }, [serie]);
 
-  const todasHabilidades = Object.entries(componentes).flatMap(([disc, habs]) =>
-    (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
-  );
+  const discDataD = estruturaBncc?.porDisciplina?.[componenteSel];
+  const unidadeDataD = componenteSel && discDataD?.porUnidade?.[unidadeSel];
+  const habsDoObjetoD = objetoSel && unidadeDataD?.porObjeto?.[objetoSel];
+  const todasHabilidades = habsDoObjetoD
+    ? habsDoObjetoD.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+    : unidadeDataD
+      ? Object.entries(unidadeDataD.porObjeto || {}).flatMap(([, habs]) =>
+          (habs || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+        )
+      : discDataD
+        ? Object.values(discDataD.porUnidade || {}).flatMap((v) =>
+            Object.values(v.porObjeto || {}).flatMap((habList) =>
+              (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+            )
+          )
+        : Object.entries(componentes).flatMap(([disc, habs]) =>
+            (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
+          );
 
   const gerar = async () => {
     if (!assunto.trim()) {
@@ -920,10 +1403,38 @@ function DinamicaInclusiva({
           <input type="text" value={serie} onChange={(e) => setSerie(e.target.value)} placeholder="Ex: 5º Ano" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
         </div>
       </div>
+      {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
+        <details className="border border-slate-200 rounded-lg">
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto</summary>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Componente</label>
+              <select value={componenteSel} onChange={(e) => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm">
+                <option value="">Todos</option>
+                {estruturaBncc.disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
+              <select value={unidadeSel} onChange={(e) => { setUnidadeSel(e.target.value); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!componenteSel}>
+                <option value="">Todas</option>
+                {(discDataD?.unidades || []).map((u) => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
+              <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
+                <option value="">Todos</option>
+                {(unidadeDataD?.objetos || []).map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+          </div>
+        </details>
+      )}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Habilidades BNCC (opcional)</label>
         <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[80px]">
-          {todasHabilidades.slice(0, 40).map((h, i) => <option key={i} value={h}>{h}</option>)}
+          {todasHabilidades.slice(0, 80).map((h, i) => <option key={i} value={h}>{h}</option>)}
         </select>
       </div>
       <button type="button" onClick={gerar} disabled={loading} className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50">
@@ -1045,16 +1556,19 @@ function IlustracaoSection({ hiperfoco }: { hiperfoco: string }) {
       {imagem && (
         <div>
           <img src={imagem} alt="Ilustração" className="max-w-full rounded-lg border" />
-          <div className="mt-2 flex gap-2">
+          <div className="mt-2 flex flex-wrap gap-2 items-center">
             <input
               type="text"
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="Ajuste (ex: mais cores, menos detalhes)"
-              className="flex-1 px-2 py-1 border rounded text-sm"
+              className="flex-1 min-w-[120px] px-2 py-1 border rounded text-sm"
             />
-            <button type="button" onClick={() => gerar(true)} disabled={loading} className="px-3 py-1 bg-slate-200 rounded text-sm">
-              Refazer
+            <button type="button" onClick={() => gerar(true)} disabled={loading} className="px-3 py-1 bg-slate-200 rounded text-sm hover:bg-slate-300">
+              Refazer com ajuste
+            </button>
+            <button type="button" onClick={() => setImagem(null)} className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded text-sm hover:bg-emerald-200">
+              ✓ Validar
             </button>
           </div>
         </div>
@@ -1116,16 +1630,19 @@ function PictogramaCaaSection() {
       {imagem && (
         <div>
           <img src={imagem} alt="Pictograma CAA" className="max-w-[300px] rounded-lg border" />
-          <div className="mt-2 flex gap-2">
+          <div className="mt-2 flex flex-wrap gap-2 items-center">
             <input
               type="text"
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="Ajuste"
-              className="flex-1 px-2 py-1 border rounded text-sm"
+              className="flex-1 min-w-[120px] px-2 py-1 border rounded text-sm"
             />
-            <button type="button" onClick={() => gerar(true)} disabled={loading} className="px-3 py-1 bg-slate-200 rounded text-sm">
-              Refazer
+            <button type="button" onClick={() => gerar(true)} disabled={loading} className="px-3 py-1 bg-slate-200 rounded text-sm hover:bg-slate-300">
+              Refazer com ajuste
+            </button>
+            <button type="button" onClick={() => setImagem(null)} className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded text-sm hover:bg-emerald-200">
+              ✓ Validar
             </button>
           </div>
         </div>

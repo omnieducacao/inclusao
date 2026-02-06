@@ -3,7 +3,10 @@
 import { useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
+import { EngineSelector } from "@/components/EngineSelector";
+import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import type { CicloPAEE, MetaPei, ConfigCiclo } from "@/lib/paee";
+import type { EngineId } from "@/lib/ai-engines";
 import {
   extrairMetasDoPei,
   criarCronogramaBasico,
@@ -27,7 +30,7 @@ type Props = {
   student: StudentFull | null;
 };
 
-type TabId = "planejamento" | "execucao";
+type TabId = "planejamento" | "execucao" | "jornada";
 
 export function PAEEClient({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
@@ -39,6 +42,10 @@ export function PAEEClient({ students, studentId, student }: Props) {
   const [cicloPreview, setCicloPreview] = useState<CicloPAEE | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [jornadaEngine, setJornadaEngine] = useState<EngineId>("yellow");
+  const [jornadaTexto, setJornadaTexto] = useState("");
+  const [jornadaLoading, setJornadaLoading] = useState(false);
+  const [jornadaErro, setJornadaErro] = useState<string | null>(null);
 
   const ciclos = (student?.paee_ciclos || []) as CicloPAEE[];
   const cicloAtivoId = student?.planejamento_ativo ?? null;
@@ -265,6 +272,17 @@ export function PAEEClient({ students, studentId, student }: Props) {
         >
           Execução e Metas SMART
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("jornada")}
+          className={`px-4 py-2 rounded-t-lg text-sm font-medium ${
+            activeTab === "jornada"
+              ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
+              : "text-slate-500 hover:bg-slate-100"
+          }`}
+        >
+          Jornada Gamificada
+        </button>
       </div>
 
       {activeTab === "planejamento" && (
@@ -392,6 +410,145 @@ export function PAEEClient({ students, studentId, student }: Props) {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {activeTab === "jornada" && (
+        <JornadaTab
+          student={student}
+          ciclos={ciclos}
+          cicloAtivo={cicloAtivo}
+          cicloSelecionadoPlanejamento={cicloSelecionadoPlanejamento}
+          cicloSelecionadoExecucao={cicloSelecionadoExecucao}
+          peiData={peiData}
+          engine={jornadaEngine}
+          onEngineChange={setJornadaEngine}
+          texto={jornadaTexto}
+          onTextoChange={setJornadaTexto}
+          loading={jornadaLoading}
+          onLoadingChange={setJornadaLoading}
+          erro={jornadaErro}
+          onErroChange={setJornadaErro}
+        />
+      )}
+    </div>
+  );
+}
+
+function JornadaTab({
+  student,
+  ciclos,
+  cicloAtivo,
+  cicloSelecionadoPlanejamento,
+  cicloSelecionadoExecucao,
+  peiData,
+  engine,
+  onEngineChange,
+  texto,
+  onTextoChange,
+  loading,
+  onLoadingChange,
+  erro,
+  onErroChange,
+}: {
+  student: StudentFull;
+  ciclos: CicloPAEE[];
+  cicloAtivo: CicloPAEE | null | undefined;
+  cicloSelecionadoPlanejamento: CicloPAEE | null;
+  cicloSelecionadoExecucao: CicloPAEE | null;
+  peiData: Record<string, unknown>;
+  engine: EngineId;
+  onEngineChange: (e: EngineId) => void;
+  texto: string;
+  onTextoChange: (t: string) => void;
+  loading: boolean;
+  onLoadingChange: (l: boolean) => void;
+  erro: string | null;
+  onErroChange: (e: string | null) => void;
+}) {
+  const [origem, setOrigem] = useState<"ciclo" | "texto">("ciclo");
+  const hiperfoco = (peiData.hiperfoco as string) || (peiData.interesses as string) || "Interesses gerais";
+
+  const cicloPlanejamento = cicloSelecionadoPlanejamento || (cicloAtivo?.tipo === "planejamento_aee" ? cicloAtivo : ciclos.find((c) => c.tipo === "planejamento_aee"));
+  const cicloExecucao = cicloSelecionadoExecucao || (cicloAtivo?.tipo === "execucao_smart" ? cicloAtivo : ciclos.find((c) => c.tipo === "execucao_smart"));
+  const cicloParaJornada = cicloPlanejamento || cicloExecucao;
+  const textoFonte = (peiData.ia_sugestao as string) || "";
+
+  const gerar = async () => {
+    onLoadingChange(true);
+    onErroChange(null);
+    try {
+      const body: Record<string, unknown> = {
+        origem,
+        engine,
+        estudante: {
+          nome: student.name,
+          serie: student.grade,
+          hiperfoco,
+        },
+      };
+      if (origem === "ciclo" && cicloParaJornada) {
+        body.ciclo = cicloParaJornada;
+      } else if (origem === "texto" && textoFonte.trim()) {
+        body.texto_fonte = textoFonte;
+      } else {
+        onErroChange(origem === "ciclo" ? "Selecione ou gere um ciclo primeiro." : "O PEI precisa ter relatório da Consultoria IA (ia_sugestao).");
+        return;
+      }
+      const res = await fetch("/api/paee/jornada-gamificada", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar jornada.");
+      onTextoChange(data.texto || "");
+    } catch (e) {
+      onErroChange(e instanceof Error ? e.message : "Erro ao gerar.");
+    } finally {
+      onLoadingChange(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4 p-4 rounded-xl border border-slate-200 bg-white">
+      <h3 className="font-bold text-slate-800">Jornada Gamificada</h3>
+      <p className="text-sm text-slate-600">
+        Transforme o planejamento ou o relatório do PEI em uma missão gamificada para o estudante e a família.
+      </p>
+      <EngineSelector value={engine} onChange={onEngineChange} />
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Origem</label>
+        <select value={origem} onChange={(e) => setOrigem(e.target.value as "ciclo" | "texto")} className="w-full max-w-xs px-3 py-2 border border-slate-200 rounded-lg">
+          <option value="ciclo">Ciclo de planejamento/execução</option>
+          <option value="texto">Relatório PEI (ia_sugestao)</option>
+        </select>
+      </div>
+      <button
+        type="button"
+        onClick={gerar}
+        disabled={loading || (origem === "ciclo" && !cicloParaJornada) || (origem === "texto" && !textoFonte.trim())}
+        className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
+      >
+        {loading ? "Gerando…" : "✨ Gerar Jornada Gamificada"}
+      </button>
+      {erro && <p className="text-red-600 text-sm">{erro}</p>}
+      {texto && (
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium text-slate-700">Resultado</span>
+            <PdfDownloadButton
+              text={texto}
+              filename={`Jornada_${student.name.replace(/\s+/g, "_")}.pdf`}
+              title={`Jornada - ${student.name}`}
+            />
+          </div>
+          <textarea
+            value={texto}
+            onChange={(e) => onTextoChange(e.target.value)}
+            rows={14}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
+          />
         </div>
       )}
     </div>

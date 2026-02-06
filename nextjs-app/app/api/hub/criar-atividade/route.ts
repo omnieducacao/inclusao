@@ -6,6 +6,10 @@ export async function POST(req: Request) {
     assunto?: string;
     engine?: string;
     habilidades?: string[];
+    ei_mode?: boolean;
+    ei_idade?: string;
+    ei_campo?: string;
+    ei_objetivos?: string[];
     estudante?: { nome?: string; serie?: string; hiperfoco?: string };
   };
 
@@ -21,6 +25,8 @@ export async function POST(req: Request) {
   }
 
   const habilidades = body.habilidades || [];
+  const eiMode = !!body.ei_mode;
+  const eiObjetivos = body.ei_objetivos || [];
   const estudante = body.estudante || {};
   const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
     ? (body.engine as EngineId)
@@ -29,11 +35,14 @@ export async function POST(req: Request) {
     ? `Estudante: ${estudante.nome}. Série: ${estudante.serie || "-"}. Interesses: ${estudante.hiperfoco || "gerais"}.`
     : "";
 
+  const habParaPrompt = eiMode ? eiObjetivos : habilidades;
   const prompt = `Você é um especialista em DUA (Desenho Universal para Aprendizagem) e inclusão.
+${eiMode ? "Modo EDUCAÇÃO INFANTIL: use linguagem lúdica, atividades sensoriais e brincadeiras. Campos de experiência e objetivos BNCC EI." : ""}
 
 ${ctxEstudante ? `Contexto do estudante: ${ctxEstudante}\n` : ""}
 Crie uma atividade pedagógica sobre: **${assunto}**
-${habilidades.length > 0 ? `\nHabilidades BNCC a contemplar:\n${habilidades.map((h) => `- ${h}`).join("\n")}` : ""}
+${eiMode && body.ei_idade ? `Faixa de idade: ${body.ei_idade}. Campo de experiência: ${body.ei_campo || "-"}.\n` : ""}
+${habParaPrompt.length > 0 ? `\n${eiMode ? "Objetivos de Aprendizagem" : "Habilidades BNCC"} a contemplar:\n${habParaPrompt.map((h) => `- ${h}`).join("\n")}` : ""}
 
 Regras:
 - Seja didático e acessível.
