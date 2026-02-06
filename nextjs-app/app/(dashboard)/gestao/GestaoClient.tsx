@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 
 type WorkspaceMember = {
   id: string;
@@ -129,9 +130,17 @@ export function GestaoClient() {
         {loading ? (
           <p className="text-slate-500">Carregando…</p>
         ) : activeMembers.length === 0 ? (
-          <p className="text-slate-600 p-4 bg-slate-50 rounded-lg">
-            Nenhum usuário cadastrado. Configure o master acima (se necessário) e use o formulário para adicionar membros.
-          </p>
+          <div className="p-4 bg-slate-50 rounded-lg space-y-2">
+            <p className="text-slate-600">
+              Nenhum usuário cadastrado. Configure o master acima (se necessário) e use o formulário para adicionar membros.
+            </p>
+            <Link
+              href="/config-escola"
+              className="inline-flex items-center gap-1 text-sm text-sky-600 hover:underline"
+            >
+              ⚙️ Ir para Configuração Escola
+            </Link>
+          </div>
         ) : (
           <div className="space-y-2">
             {activeMembers.map((m) => (
