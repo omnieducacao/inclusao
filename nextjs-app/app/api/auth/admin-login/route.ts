@@ -1,0 +1,50 @@
+import { NextResponse } from "next/server";
+import { verifyPlatformAdmin } from "@/lib/auth";
+import { createSession } from "@/lib/session";
+import { getSupabase } from "@/lib/supabase";
+
+export async function POST(req: Request) {
+  try {
+    const { email, password } = await req.json();
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "Email e senha são obrigatórios." },
+        { status: 400 }
+      );
+    }
+
+    const ok = await verifyPlatformAdmin(email, password);
+    if (!ok) {
+      return NextResponse.json(
+        { error: "Credenciais inválidas." },
+        { status: 401 }
+      );
+    }
+
+    const sb = getSupabase();
+    const { data } = await sb
+      .from("platform_admins")
+      .select("nome")
+      .eq("email", (email as string).trim().toLowerCase())
+      .single();
+
+    await createSession({
+      workspace_id: null,
+      workspace_name: "Administração",
+      usuario_nome: (data?.nome as string) || email,
+      user_role: "platform_admin",
+      is_platform_admin: true,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      usuario_nome: data?.nome || email,
+    });
+  } catch (err) {
+    console.error("Admin login error:", err);
+    return NextResponse.json(
+      { error: "Erro ao fazer login. Tente novamente." },
+      { status: 500 }
+    );
+  }
+}
