@@ -107,6 +107,7 @@ except Exception as e:
 
 # --- 1. Ano Letivo ---
 st.markdown("### 1. Ano Letivo")
+st.caption("💡 Dica: Pressione Enter para enviar formulários.")
 with st.expander("➕ Adicionar ano letivo"):
     with st.form("form_ano"):
         col1, col2 = st.columns(2)

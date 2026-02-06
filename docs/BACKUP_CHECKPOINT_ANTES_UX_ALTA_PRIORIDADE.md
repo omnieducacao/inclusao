@@ -95,6 +95,15 @@ git checkout -- pages/Estudantes.py pages/1_PEI.py pages/2_PAEE.py pages/3_Hub_I
 |---|----------|--------|
 | 6 | Tooltips em BNCC, Bloom, checklist de adaptação (Hub + PEI) | ✅ |
 | 7 | Seletor de aluno sticky no Hub (CSS) | ✅ |
-| 8 | Card Próximos passos na Home | ✅ |
+| 8 | Card Próximos passos na Home | ❌ Removido (não combinou) |
 | 9 | Atalhos mentais (Home + Estudantes vazia já na fase 1) | ✅ |
 | 10 | Consistência de layout (margin-top -96px em todas as páginas) | ✅ |
+
+### Fase 3 — Prioridade baixa (02/2025)
+
+| # | Melhoria | Status |
+|---|----------|--------|
+| 11 | Micro-animações (expanders, student-row) | ✅ |
+| 12 | Dark mode (toggle no header) | ✅ |
+| 13 | Tour guiado no primeiro acesso (Home) | ✅ |
+| 14 | Atalhos de teclado (Enter = enviar; dica no tour e Config Escola) | ✅ |
