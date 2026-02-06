@@ -448,7 +448,7 @@ function CriarDoZero({
       </div>
       <label className="flex items-center gap-2">
         <input type="checkbox" checked={usarImagens} onChange={(e) => setUsarImagens(e.target.checked)} />
-        <span className="text-sm">Incluir imagens ilustrativas (IA gera descrições; imagens via DALL-E)</span>
+        <span className="text-sm">Incluir imagens ilustrativas (IA gera descrições; imagens via Gemini/DALL-E)</span>
       </label>
       <button
         type="button"
@@ -993,6 +993,10 @@ function AdaptarProva({
   const [tema, setTema] = useState("");
   const [serie, setSerie] = useState(student?.grade || "");
   const [componentes, setComponentes] = useState<Record<string, unknown[]>>({});
+  const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
+  const [componenteSel, setComponenteSel] = useState("");
+  const [unidadeSel, setUnidadeSel] = useState("");
+  const [objetoSel, setObjetoSel] = useState("");
   const [modoProfundo, setModoProfundo] = useState(false);
   const [tipo, setTipo] = useState("Prova");
   const [checklist, setChecklist] = useState<ChecklistAdaptacao>({});
@@ -1005,10 +1009,18 @@ function AdaptarProva({
 
   useEffect(() => {
     if (!serie?.trim()) return;
-    fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`)
-      .then((r) => r.json())
-      .then((d) => setComponentes(d.ano_atual || d || {}))
-      .catch(() => setComponentes({}));
+    Promise.all([
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`).then((r) => r.json()),
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}&estrutura=1`).then((r) => r.json()),
+    ])
+      .then(([d, e]) => {
+        setComponentes(d.ano_atual || d || {});
+        setEstruturaBncc(e.disciplinas ? e : null);
+      })
+      .catch(() => {
+        setComponentes({});
+        setEstruturaBncc(null);
+      });
   }, [serie]);
 
   const handleFileChange = async (f: File | null) => {
@@ -1115,6 +1127,34 @@ function AdaptarProva({
           </div>
         </div>
       </details>
+      {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
+        <details className="border border-slate-200 rounded-lg">
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto (opcional)</summary>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Componente</label>
+              <select value={componenteSel} onChange={(e) => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm">
+                <option value="">Todos</option>
+                {estruturaBncc.disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
+              <select value={unidadeSel} onChange={(e) => { setUnidadeSel(e.target.value); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!componenteSel}>
+                <option value="">Todas</option>
+                {(estruturaBncc.porDisciplina?.[componenteSel]?.unidades || []).map((u) => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
+              <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
+                <option value="">Todos</option>
+                {(estruturaBncc.porDisciplina?.[componenteSel]?.porUnidade?.[unidadeSel]?.objetos || []).map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+          </div>
+        </details>
+      )}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Arquivo DOCX *</label>
         <input
@@ -1598,7 +1638,7 @@ function EstudioVisual({
         </button>
       </div>
       <p className="text-sm text-slate-600">
-        Gere ilustrações educacionais e pictogramas CAA. Usa OmniOrange (OpenAI) para imagens.
+        Gere ilustrações educacionais e pictogramas CAA. Usa OmniYellow (Gemini) para imagens, com fallback para OmniOrange (OpenAI).
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <IlustracaoSection hiperfoco={hiperfoco} />
@@ -1789,6 +1829,10 @@ function AdaptarAtividade({
   const [tema, setTema] = useState("");
   const [serie, setSerie] = useState(student?.grade || "");
   const [componentes, setComponentes] = useState<Record<string, unknown[]>>({});
+  const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
+  const [componenteSel, setComponenteSel] = useState("");
+  const [unidadeSel, setUnidadeSel] = useState("");
+  const [objetoSel, setObjetoSel] = useState("");
   const [modoProfundo, setModoProfundo] = useState(false);
   const [tipo, setTipo] = useState("Atividade");
   const [livroProfessor, setLivroProfessor] = useState(false);
@@ -1801,10 +1845,18 @@ function AdaptarAtividade({
 
   useEffect(() => {
     if (!serie?.trim()) return;
-    fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`)
-      .then((r) => r.json())
-      .then((d) => setComponentes(d.ano_atual || d || {}))
-      .catch(() => setComponentes({}));
+    Promise.all([
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`).then((r) => r.json()),
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}&estrutura=1`).then((r) => r.json()),
+    ])
+      .then(([d, e]) => {
+        setComponentes(d.ano_atual || d || {});
+        setEstruturaBncc(e.disciplinas ? e : null);
+      })
+      .catch(() => {
+        setComponentes({});
+        setEstruturaBncc(null);
+      });
   }, [serie]);
 
   const handleFileSelect = (f: File | null) => {
@@ -1895,6 +1947,34 @@ function AdaptarAtividade({
           </div>
         </div>
       </details>
+      {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
+        <details className="border border-slate-200 rounded-lg">
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto (opcional)</summary>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Componente</label>
+              <select value={componenteSel} onChange={(e) => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm">
+                <option value="">Todos</option>
+                {estruturaBncc.disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
+              <select value={unidadeSel} onChange={(e) => { setUnidadeSel(e.target.value); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!componenteSel}>
+                <option value="">Todas</option>
+                {(estruturaBncc.porDisciplina?.[componenteSel]?.unidades || []).map((u) => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
+              <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
+                <option value="">Todos</option>
+                {(estruturaBncc.porDisciplina?.[componenteSel]?.porUnidade?.[unidadeSel]?.objetos || []).map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+          </div>
+        </details>
+      )}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Imagem (PNG/JPG) *</label>
         <input

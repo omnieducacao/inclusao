@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { generateImageWithGemini } from "@/lib/gemini-image";
 import OpenAI from "openai";
 
 export async function POST(req: Request) {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
-  if (!apiKey?.trim()) {
+  const geminiKey = (process.env.GEMINI_API_KEY || "").trim();
+  const openaiKey = (process.env.OPENAI_API_KEY || "").trim();
+  if (!geminiKey && !openaiKey) {
     return NextResponse.json(
       { error: "Configure GEMINI_API_KEY ou OPENAI_API_KEY para gerar imagens." },
       { status: 500 }
@@ -22,8 +24,43 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Informe o prompt ou conceito." }, { status: 400 });
   }
 
-  // Por ora usamos DALL-E (OpenAI). Gemini Imagen requer @google/genai ou Vertex AI.
-  const openaiKey = process.env.OPENAI_API_KEY;
+  // 1) Tentar Gemini (como no Streamlit: ilustração e pictograma CAA)
+  if (geminiKey) {
+    let promptGemini: string;
+    if (tipo === "caa") {
+      const ajuste = feedback?.trim() ? ` Ajuste solicitado: ${feedback}.` : "";
+      promptGemini =
+        `Símbolo de comunicação (CAA/PECS) para o conceito: '${prompt.trim()}'.${ajuste} ` +
+        "Estilo: ícone vetorial plano (estilo ARASAAC). Fundo BRANCO. Contornos PRETOS grossos. " +
+        "Cores sólidas, alto contraste. Sem detalhes de fundo, sem sombras. " +
+        "REGRA OBRIGATÓRIA: imagem MUDA, sem texto, palavras, letras ou números. Apenas o símbolo visual. " +
+        "Proporção quadrada (1:1). Público: Brasil.";
+    } else {
+      const ajuste = feedback?.trim() ? ` Ajuste solicitado: ${feedback}` : "";
+      promptGemini =
+        "Ilustração educacional, estilo vetorial plano, fundo claro. " +
+        "REGRA OBRIGATÓRIA: NÃO inclua texto, palavras, letras ou números na imagem. " +
+        "Apenas a representação visual do conceito. Público: Brasil. Proporção quadrada (1:1). " +
+        `Cena a representar: ${(prompt.trim() + ajuste).slice(0, 2000)}`;
+    }
+    try {
+      const b64 = await generateImageWithGemini(promptGemini, {
+        apiKey: geminiKey,
+        timeoutMs: 90_000,
+      });
+      return NextResponse.json({ image: `data:image/png;base64,${b64}` });
+    } catch (err) {
+      console.error("Estudio imagem (Gemini):", err);
+      if (!openaiKey) {
+        return NextResponse.json(
+          { error: err instanceof Error ? err.message : "Erro ao gerar imagem." },
+          { status: 500 }
+        );
+      }
+    }
+  }
+
+  // 2) Fallback DALL-E
   if (!openaiKey?.trim()) {
     return NextResponse.json(
       { error: "Configure OPENAI_API_KEY para gerar imagens (Estúdio Visual)." },
@@ -61,7 +98,7 @@ CRITICAL: NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS. Just the v
     const dataUrl = `data:image/png;base64,${(b64 as { b64_json?: string }).b64_json}`;
     return NextResponse.json({ image: dataUrl });
   } catch (err) {
-    console.error("Estudio imagem:", err);
+    console.error("Estudio imagem (DALL-E):", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao gerar imagem." },
       { status: 500 }
