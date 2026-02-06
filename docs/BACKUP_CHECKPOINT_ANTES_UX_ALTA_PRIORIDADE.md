@@ -104,6 +104,6 @@ git checkout -- pages/Estudantes.py pages/1_PEI.py pages/2_PAEE.py pages/3_Hub_I
 | # | Melhoria | Status |
 |---|----------|--------|
 | 11 | Micro-animações (expanders, student-row) | ✅ |
-| 12 | Dark mode (toggle no header) | ✅ |
+| 12 | Dark mode | ❌ Removido — usa modo nativo do Streamlit (seguindo preferência do sistema) |
 | 13 | Tour guiado no primeiro acesso (Home) | ✅ |
 | 14 | Atalhos de teclado (Enter = enviar; dica no tour e Config Escola) | ✅ |

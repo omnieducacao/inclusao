@@ -740,16 +740,6 @@ def render_omnisfera_header():
         if st.query_params.get("omni_logout") == "1":
             _do_logout()
             return
-        # Toggle dark mode via query param
-        if st.query_params.get("omni_dark") == "1":
-            cur = st.session_state.get("omni_dark_mode", False)
-            st.session_state["omni_dark_mode"] = not cur
-            try:
-                if "omni_dark" in st.query_params:
-                    del st.query_params["omni_dark"]
-            except Exception:
-                pass
-            st.rerun()
     except Exception:
         pass
 
@@ -794,7 +784,6 @@ def render_omnisfera_header():
   <div class="omni-user-info">
     <div class="omni-workspace" title="{ws_name}">{ws_name}</div>
     <div class="omni-avatar" title="{user_name}">{_get_initials(user_name)}</div>
-    <a href="/?omni_dark=1" target="_self" class="omni-btn-theme" title="Alternar tema claro/escuro">{"☀️" if st.session_state.get("omni_dark_mode") else "🌙"}</a>
     <a href="/?omni_logout=1" target="_self" class="omni-btn-sair" title="Encerrar sessão">🚪 Sair</a>
   </div>
 </div>
@@ -816,45 +805,10 @@ def render_omnisfera_header():
   color: #0F172A;
   border-color: #CBD5E1;
 }}
-.omni-btn-theme {{
-  margin-left: 8px;
-  padding: 4px 10px;
-  border-radius: 8px;
-  background: #F1F5F9;
-  color: #475569;
-  font-size: 16px;
-  text-decoration: none;
-  border: 1px solid #E2E8F0;
-  transition: all 0.2s;
-}}
-.omni-btn-theme:hover {{
-  background: #E2E8F0;
-  border-color: #CBD5E1;
-}}
 </style>
         """,
         unsafe_allow_html=True,
     )
-
-    # Dark mode: injeta CSS quando ativado
-    if st.session_state.get("omni_dark_mode"):
-        st.markdown("""
-        <style>
-        /* Dark mode - Override principal */
-        html, body, .stApp, [data-testid="stAppViewContainer"] { background: #0F172A !important; }
-        .block-container, .main .block-container { background: #0F172A !important; }
-        .mod-card-rect, .mod-card-wrapper, .content-card, .manual-box,
-        .stExpander, div[data-testid="stExpander"], .streamlit-expander { background: #1E293B !important; border-color: #334155 !important; }
-        .mod-title, .mod-desc, h1, h2, h3, h4, p, label, span { color: #E2E8F0 !important; }
-        .stMarkdown, .stMarkdown p { color: #CBD5E1 !important; }
-        .stSelectbox label, .stTextInput label, .stMultiSelect label { color: #94A3B8 !important; }
-        .omni-topbar { background: #1E293B !important; border-color: #334155 !important; }
-        .omni-workspace, .omni-btn-sair { color: #E2E8F0 !important; background: #334155 !important; border-color: #475569 !important; }
-        .omni-btn-sair:hover { background: #475569 !important; color: #F8FAFC !important; }
-        .omni-btn-theme { background: #334155 !important; border-color: #475569 !important; }
-        .omni-btn-theme:hover { background: #475569 !important; }
-        </style>
-        """, unsafe_allow_html=True)
 
 # Módulos configuráveis por escola (Admin). None/empty = todos habilitados.
 MODULE_KEYS = ["pei", "paee", "hub", "diario", "avaliacao"]
