@@ -24,6 +24,7 @@ export function ConfigEscolaClient() {
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [confirmDelClass, setConfirmDelClass] = useState<string | null>(null);
 
   const loadYears = useCallback(async () => {
     const res = await fetch("/api/school/years");
@@ -40,50 +41,52 @@ export function ConfigEscolaClient() {
 
   const loadClasses = useCallback(async () => {
     const activeYear = years.find((y) => y.active) ?? years[0];
-    if (!activeYear?.id) {
-      setClasses([]);
-      return;
-    }
-    const res = await fetch(
-      `/api/school/classes?school_year_id=${activeYear.id}`
-    );
+    if (!activeYear?.id) return;
+    const res = await fetch(`/api/school/classes?school_year_id=${activeYear.id}`);
     const data = await res.json();
     setClasses(data.classes ?? []);
   }, [years]);
 
   useEffect(() => {
-    (async () => {
+    async function init() {
       setLoading(true);
-      await loadYears();
-      await loadGrades();
-      setLoading(false);
-    })();
+      try {
+        await loadYears();
+        await loadGrades();
+      } catch {
+        setMessage({ type: "err", text: "Erro ao carregar dados." });
+      } finally {
+        setLoading(false);
+      }
+    }
+    init();
   }, [loadYears, loadGrades]);
 
   useEffect(() => {
     if (years.length > 0) loadClasses();
-    else setClasses([]);
   }, [years, loadClasses]);
 
+  const gradeOptions = SEGMENTS.flatMap((seg) => {
+    const segGrades = grades.filter((g) => g.segment_id === seg.id);
+    return segGrades.map((g) => ({
+      ...g,
+      _seg: seg.label,
+      _label: `${seg.label}: ${g.label || g.code}`,
+    }));
+  });
+
   const activeYear = years.find((y) => y.active) ?? years[0];
-  const gradeOpts = grades.map((g) => ({
-    id: g.id,
-    label: g.label || g.code || g.id,
-  }));
 
   return (
     <div className="space-y-8">
       <p className="text-sm text-slate-600">
-        Ordem sugerida: 1) Ano letivo → 2) Séries da escola → 3) Turmas → 4)
-        Depois cadastre usuários em Gestão de Usuários.
+        Ordem sugerida: 1) Ano letivo → 2) Séries da escola → 3) Turmas → 4) Depois cadastre usuários em Gestão.
       </p>
 
       {message && (
         <div
           className={`p-3 rounded-lg text-sm ${
-            message.type === "ok"
-              ? "bg-emerald-50 text-emerald-700"
-              : "bg-red-50 text-red-700"
+            message.type === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
           }`}
         >
           {message.text}
@@ -92,29 +95,19 @@ export function ConfigEscolaClient() {
 
       {/* 1. Ano Letivo */}
       <section>
-        <h3 className="text-lg font-semibold text-slate-800 mb-2">
-          1. Ano Letivo
-        </h3>
-        <NovoAnoForm
-          onSuccess={() => {
-            loadYears();
-            setMessage({ type: "ok", text: "Ano letivo adicionado." });
-          }}
-          onError={(e) => setMessage({ type: "err", text: e })}
-        />
+        <h3 className="text-lg font-semibold text-slate-800 mb-3">1. Ano Letivo</h3>
+        <AddYearForm onSuccess={() => { loadYears(); setMessage({ type: "ok", text: "Ano letivo adicionado." }); }} onError={(e) => setMessage({ type: "err", text: e })} />
         <div className="mt-4 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-          <p className="text-sm font-medium text-slate-600 mb-2">
-            Anos cadastrados
-          </p>
+          <p className="text-sm font-medium text-slate-600 mb-2">Anos cadastrados</p>
           {loading ? (
             <p className="text-slate-500">Carregando…</p>
           ) : years.length === 0 ? (
-            <p className="text-slate-600">Nenhum ano letivo. Adicione acima.</p>
+            <p className="text-slate-500">Nenhum ano letivo. Adicione acima.</p>
           ) : (
             <ul className="space-y-1">
               {years.map((y) => (
-                <li key={y.id}>
-                  • <strong>{y.year}</strong> — {y.name}
+                <li key={y.id} className="text-sm text-slate-700">
+                  • {y.year} — {y.name}
                 </li>
               ))}
             </ul>
@@ -124,73 +117,98 @@ export function ConfigEscolaClient() {
 
       {/* 2. Séries */}
       <section>
-        <h3 className="text-lg font-semibold text-slate-800 mb-2">
-          2. Séries que a escola oferece
-        </h3>
-        <p className="text-sm text-slate-600 mb-3">
-          Selecione as séries que sua escola tem.
-        </p>
-        {loading ? (
-          <p className="text-slate-500">Carregando…</p>
-        ) : (
-          <SalvarSeriesForm
-            grades={gradeOpts}
-            selectedIds={selectedGradeIds}
-            onSuccess={() => {
-              loadGrades();
-              setMessage({ type: "ok", text: "Séries salvas." });
-            }}
-            onError={(e) => setMessage({ type: "err", text: e })}
-          />
-        )}
+        <h3 className="text-lg font-semibold text-slate-800 mb-3">2. Séries que a escola oferece</h3>
+        <p className="text-sm text-slate-500 mb-2">Selecione as séries que sua escola tem.</p>
+        <GradesSelector
+          gradeOptions={gradeOptions}
+          selectedIds={selectedGradeIds}
+          onChange={setSelectedGradeIds}
+          onSave={async (ids) => {
+            const res = await fetch("/api/school/grades", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ grade_ids: ids }),
+            });
+            if (!res.ok) {
+              const d = await res.json();
+              setMessage({ type: "err", text: d.error || "Erro ao salvar." });
+              return;
+            }
+            setMessage({ type: "ok", text: "Séries salvas." });
+          }}
+          onError={(e) => setMessage({ type: "err", text: e })}
+        />
       </section>
 
       {/* 3. Turmas */}
       <section>
-        <h3 className="text-lg font-semibold text-slate-800 mb-2">
-          3. Turmas (série + turma)
-        </h3>
-        {!years.length ? (
-          <p className="text-slate-600">Crie um ano letivo antes de cadastrar turmas.</p>
+        <h3 className="text-lg font-semibold text-slate-800 mb-3">3. Turmas (série + turma)</h3>
+        {!activeYear ? (
+          <p className="text-slate-500">Crie um ano letivo antes de cadastrar turmas.</p>
         ) : (
           <>
-            <NovaTurmaForm
+            <AddClassForm
               years={years}
-              grades={grades}
+              activeYearId={activeYear.id}
               onSuccess={() => {
                 loadClasses();
+                loadGrades();
                 setMessage({ type: "ok", text: "Turma adicionada." });
               }}
               onError={(e) => setMessage({ type: "err", text: e })}
             />
             <div className="mt-4 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-              <p className="text-sm font-medium text-slate-600 mb-2">
-                Turmas criadas ({activeYear?.year ?? "—"})
-              </p>
+              <p className="text-sm font-medium text-slate-600 mb-2">Turmas criadas ({activeYear.year})</p>
               {classes.length === 0 ? (
-                <p className="text-slate-600">
-                  Nenhuma turma. Selecione séries acima e adicione turmas.
+                <p className="text-slate-500">
+                  Nenhuma turma. Selecione as séries acima e adicione turmas no formulário.
                 </p>
               ) : (
                 <ul className="space-y-2">
                   {classes.map((c) => {
-                    const lbl =
-                      (c.grades?.label || c.grades?.code || "") + " " + (c.class_group || "");
+                    const gr = c.grades ?? {};
+                    const lbl = `${gr?.label ?? ""} ${c.class_group ?? ""}`.trim();
+                    const isConfirm = confirmDelClass === c.id;
                     return (
-                      <li
-                        key={c.id}
-                        className="flex items-center justify-between py-1"
-                      >
-                        <span>• {lbl.trim()}</span>
-                        <RemoverTurmaBtn
-                          classId={c.id}
-                          label={lbl.trim()}
-                          onSuccess={() => {
-                            loadClasses();
-                            setMessage({ type: "ok", text: "Turma removida." });
-                          }}
-                          onError={(e) => setMessage({ type: "err", text: e })}
-                        />
+                      <li key={c.id} className="flex items-center justify-between text-sm">
+                        <span className="text-slate-700">• {lbl || c.class_group}</span>
+                        {isConfirm ? (
+                          <span className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const res = await fetch(`/api/school/classes/${c.id}`, {
+                                  method: "DELETE",
+                                });
+                                if (!res.ok) {
+                                  setMessage({ type: "err", text: "Erro ao remover." });
+                                  return;
+                                }
+                                setConfirmDelClass(null);
+                                loadClasses();
+                                setMessage({ type: "ok", text: "Turma removida." });
+                              }}
+                              className="px-2 py-1 bg-red-600 text-white rounded text-xs"
+                            >
+                              Sim, remover
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDelClass(null)}
+                              className="px-2 py-1 border border-slate-200 rounded text-xs"
+                            >
+                              Cancelar
+                            </button>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDelClass(c.id)}
+                            className="text-red-600 text-xs hover:underline"
+                          >
+                            Remover
+                          </button>
+                        )}
                       </li>
                     );
                   })}
@@ -204,12 +222,12 @@ export function ConfigEscolaClient() {
   );
 }
 
-function NovoAnoForm({
+function AddYearForm({
   onSuccess,
   onError,
 }: {
   onSuccess: () => void;
-  onError: (e: string) => void;
+  onError: (err: string) => void;
 }) {
   const [year, setYear] = useState(new Date().getFullYear());
   const [name, setName] = useState("");
@@ -226,11 +244,12 @@ function NovoAnoForm({
       });
       const data = await res.json();
       if (!res.ok) {
-        onError(data.error || "Erro ao salvar.");
+        onError(data.error || "Erro ao adicionar ano.");
         return;
       }
-      onSuccess();
+      setYear(new Date().getFullYear());
       setName("");
+      onSuccess();
     } catch {
       onError("Erro de conexão.");
     } finally {
@@ -241,24 +260,24 @@ function NovoAnoForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-wrap gap-3 items-end">
       <div>
-        <label className="block text-xs text-slate-500 mb-1">Ano</label>
+        <label className="block text-xs text-slate-600 mb-1">Ano</label>
         <input
           type="number"
           min={2020}
           max={2030}
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
-          className="px-3 py-2 border border-slate-200 rounded-lg text-sm w-24"
+          className="w-24 px-3 py-2 border border-slate-200 rounded-lg text-sm"
         />
       </div>
       <div>
-        <label className="block text-xs text-slate-500 mb-1">Nome (opcional)</label>
+        <label className="block text-xs text-slate-600 mb-1">Nome (opcional)</label>
         <input
           type="text"
           placeholder="Ex: 2025"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-lg text-sm w-32"
+          className="w-32 px-3 py-2 border border-slate-200 rounded-lg text-sm"
         />
       </div>
       <button
@@ -266,121 +285,112 @@ function NovoAnoForm({
         disabled={saving}
         className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 disabled:opacity-60"
       >
-        Adicionar
+        {saving ? "..." : "Adicionar ano letivo"}
       </button>
     </form>
   );
 }
 
-function SalvarSeriesForm({
-  grades,
+function GradesSelector({
+  gradeOptions,
   selectedIds,
-  onSuccess,
+  onChange,
+  onSave,
   onError,
 }: {
-  grades: { id: string; label: string }[];
+  gradeOptions: { id: string; _label: string }[];
   selectedIds: string[];
-  onSuccess: () => void;
-  onError: (e: string) => void;
+  onChange: (ids: string[]) => void;
+  onSave: (ids: string[]) => Promise<void>;
+  onError: (err: string) => void;
 }) {
-  const [selected, setSelected] = useState<string[]>(selectedIds);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    setSelected(selectedIds);
-  }, [selectedIds]);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      const res = await fetch("/api/school/grades", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ grade_ids: selected }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        onError(data.error || "Erro ao salvar.");
-        return;
-      }
-      onSuccess();
-    } catch {
-      onError("Erro de conexão.");
-    } finally {
-      setSaving(false);
+  function toggle(id: string) {
+    if (selectedIds.includes(id)) {
+      onChange(selectedIds.filter((x) => x !== id));
+    } else {
+      onChange([...selectedIds, id]);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="flex flex-wrap gap-2">
-        {grades.map((g) => (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 border border-slate-200 rounded-lg bg-white">
+        {gradeOptions.map((g) => (
           <label
             key={g.id}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 cursor-pointer text-sm"
           >
             <input
               type="checkbox"
-              checked={selected.includes(g.id)}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setSelected((p) => [...p, g.id]);
-                } else {
-                  setSelected((p) => p.filter((id) => id !== g.id));
-                }
-              }}
+              checked={selectedIds.includes(g.id)}
+              onChange={() => toggle(g.id)}
               className="rounded border-slate-300"
             />
-            <span className="text-sm">{g.label}</span>
+            {g._label}
           </label>
         ))}
       </div>
       <button
-        type="submit"
+        type="button"
+        onClick={async () => {
+          setSaving(true);
+          try {
+            await onSave(selectedIds);
+          } catch (e) {
+            onError(String(e));
+          } finally {
+            setSaving(false);
+          }
+        }}
         disabled={saving}
         className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 disabled:opacity-60"
       >
-        Salvar séries
+        {saving ? "Salvando…" : "Salvar séries"}
       </button>
-    </form>
+    </div>
   );
 }
 
-function NovaTurmaForm({
+function AddClassForm({
   years,
-  grades,
+  activeYearId,
   onSuccess,
   onError,
 }: {
   years: SchoolYear[];
-  grades: Grade[];
+  activeYearId: string;
   onSuccess: () => void;
-  onError: (e: string) => void;
+  onError: (err: string) => void;
 }) {
-  const [segmentId, setSegmentId] = useState(SEGMENTS[0]?.id ?? "EFAI");
-  const [yearId, setYearId] = useState(years[0]?.id ?? "");
+  const [segmentId, setSegmentId] = useState("EFAI");
+  const [gradesForWorkspace, setGradesForWorkspace] = useState<Grade[]>([]);
+  const [yearId, setYearId] = useState(activeYearId);
   const [gradeId, setGradeId] = useState("");
   const [classGroup, setClassGroup] = useState("A");
   const [saving, setSaving] = useState(false);
-  const [gradesForSegment, setGradesForSegment] = useState<Grade[]>([]);
 
   useEffect(() => {
-    setYearId(years[0]?.id ?? "");
-  }, [years]);
+    setYearId(activeYearId);
+  }, [activeYearId]);
 
   useEffect(() => {
-    const ids = new Set(
-      grades.filter((g) => g.segment_id === segmentId).map((g) => g.id)
-    );
-    setGradesForSegment(grades.filter((g) => ids.has(g.id)));
-    setGradeId("");
-  }, [segmentId, grades]);
+    fetch(`/api/school/grades?for_workspace=1&segment_id=${segmentId}`)
+      .then((r) => r.json())
+      .then((d) => {
+        setGradesForWorkspace(d.grades ?? []);
+        if (!gradeId && d.grades?.length) setGradeId(d.grades[0].id);
+        else if (gradeId && !d.grades?.some((g: Grade) => g.id === gradeId))
+          setGradeId(d.grades?.[0]?.id ?? "");
+      })
+      .catch(() => setGradesForWorkspace([]));
+  }, [segmentId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!yearId || !gradeId) {
-      onError("Selecione ano letivo e série.");
+    if (!gradeId) {
+      onError("Selecione as séries da escola antes de criar turmas.");
       return;
     }
     setSaving(true);
@@ -396,11 +406,11 @@ function NovaTurmaForm({
       });
       const data = await res.json();
       if (!res.ok) {
-        onError(data.error || "Erro ao salvar.");
+        onError(data.error || "Erro ao adicionar turma.");
         return;
       }
-      onSuccess();
       setClassGroup("A");
+      onSuccess();
     } catch {
       onError("Erro de conexão.");
     } finally {
@@ -409,63 +419,55 @@ function NovaTurmaForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-wrap gap-4 items-end">
+    <form onSubmit={handleSubmit} className="flex flex-wrap gap-4 items-end p-4 rounded-xl border border-slate-200 bg-white">
       <div>
-        <label className="block text-xs text-slate-500 mb-1">Segmento</label>
+        <label className="block text-xs text-slate-600 mb-1">Segmento</label>
         <select
           value={segmentId}
           onChange={(e) => setSegmentId(e.target.value)}
           className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
         >
           {SEGMENTS.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.label}
-            </option>
+            <option key={s.id} value={s.id}>{s.label}</option>
           ))}
         </select>
       </div>
       <div>
-        <label className="block text-xs text-slate-500 mb-1">Ano letivo</label>
+        <label className="block text-xs text-slate-600 mb-1">Ano letivo</label>
         <select
           value={yearId}
           onChange={(e) => setYearId(e.target.value)}
           className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
         >
           {years.map((y) => (
-            <option key={y.id} value={y.id}>
-              {y.year} — {y.name}
-            </option>
+            <option key={y.id} value={y.id}>{y.year} — {y.name}</option>
           ))}
         </select>
       </div>
       <div>
-        <label className="block text-xs text-slate-500 mb-1">Série</label>
+        <label className="block text-xs text-slate-600 mb-1">Série</label>
         <select
           value={gradeId}
           onChange={(e) => setGradeId(e.target.value)}
           className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
         >
-          <option value="">—</option>
-          {gradesForSegment.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.label || g.code}
-            </option>
-          ))}
+          {gradesForWorkspace.length === 0 ? (
+            <option value="">Selecione séries acima primeiro</option>
+          ) : (
+            gradesForWorkspace.map((g) => (
+              <option key={g.id} value={g.id}>{g.label || g.code}</option>
+            ))
+          )}
         </select>
-        {gradesForSegment.length === 0 && (
-          <p className="text-xs text-amber-600 mt-1">
-            Selecione séries acima primeiro.
-          </p>
-        )}
       </div>
       <div>
-        <label className="block text-xs text-slate-500 mb-1">Turma</label>
+        <label className="block text-xs text-slate-600 mb-1">Turma</label>
         <input
           type="text"
           placeholder="A, B, 1..."
           value={classGroup}
           onChange={(e) => setClassGroup(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-lg text-sm w-20"
+          className="w-20 px-3 py-2 border border-slate-200 rounded-lg text-sm"
         />
       </div>
       <button
@@ -473,67 +475,8 @@ function NovaTurmaForm({
         disabled={saving || !gradeId}
         className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 disabled:opacity-60"
       >
-        Adicionar turma
+        {saving ? "..." : "Adicionar turma"}
       </button>
     </form>
-  );
-}
-
-function RemoverTurmaBtn({
-  classId,
-  label,
-  onSuccess,
-  onError,
-}: {
-  classId: string;
-  label: string;
-  onSuccess: () => void;
-  onError: (e: string) => void;
-}) {
-  const [confirm, setConfirm] = useState(false);
-
-  async function handleDelete() {
-    const res = await fetch(`/api/school/classes/${classId}`, {
-      method: "DELETE",
-    });
-    if (!res.ok) {
-      const data = await res.json();
-      onError(data.error || "Erro ao remover.");
-      return;
-    }
-    setConfirm(false);
-    onSuccess();
-  }
-
-  if (confirm) {
-    return (
-      <div className="flex gap-2 items-center">
-        <span className="text-xs text-amber-600">Remover?</span>
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
-        >
-          Sim
-        </button>
-        <button
-          type="button"
-          onClick={() => setConfirm(false)}
-          className="px-2 py-1 text-xs border border-slate-200 rounded hover:bg-slate-50"
-        >
-          Não
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => setConfirm(true)}
-      className="text-xs text-red-600 hover:underline"
-    >
-      Remover
-    </button>
   );
 }

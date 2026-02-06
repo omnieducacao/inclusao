@@ -52,6 +52,13 @@ export default async function HomePage() {
       desc: "Evolução e dados",
       color: "slate",
     },
+    {
+      href: "/config-escola",
+      icon: "🏫",
+      title: "Config Escola",
+      desc: "Ano letivo, séries e turmas",
+      color: "slate",
+    },
   ];
 
   const colorClasses: Record<string, string> = {

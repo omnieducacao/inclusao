@@ -27,6 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/hub", label: "Hub", permission: "can_hub" },
   { href: "/diario", label: "Diário", permission: "can_diario" },
   { href: "/monitoramento", label: "Monitoramento", permission: "can_avaliacao" },
+  { href: "/config-escola", label: "Config Escola", permission: "can_gestao" },
   { href: "/gestao", label: "Gestão", permission: "can_gestao" },
 ];
 
