@@ -3467,6 +3467,9 @@ function inferirComponentesImpactados(dados: PEIData): string[] {
   const barreiras = dados.barreiras_selecionadas || {};
   const serie = dados.serie || "";
   const nivel = detectarNivelEnsino(serie);
+  // Detectar se é anos finais do fundamental (EFII)
+  const serieLower = serie.toLowerCase();
+  const isEFII = nivel === "EF" && (serieLower.includes("6º") || serieLower.includes("7º") || serieLower.includes("8º") || serieLower.includes("9º"));
   const impactados = new Set<string>();
 
   // Leitura
@@ -3480,7 +3483,7 @@ function inferirComponentesImpactados(dados: PEIData): string[] {
     impactados.add("Matemática");
     if (nivel === "EM") {
       impactados.add("Física/Química/Biologia");
-    } else if (nivel === "EFII") {
+    } else if (isEFII) {
       impactados.add("Ciências");
     }
   }
