@@ -370,7 +370,7 @@ export function PEIClient({
         const hasEvidencias = Object.values(chk).some((v) => v === true);
         return hasEvidencias ? "complete" : "empty";
       case "rede":
-        const rede = d.rede_apoio_tags || [];
+        const rede = Array.isArray(d.rede_apoio_tags) ? d.rede_apoio_tags : [];
         return rede.length > 0 ? "complete" : "empty";
       case "mapeamento":
         const barreiras = d.barreiras_selecionadas || {};
