@@ -3112,7 +3112,7 @@ function LaudoPdfSection({
       setExtraido(resultado);
       // Preparar medicações para revisão
       if (resultado.medicamentos.length > 0) {
-        setMedsRevisao(resultado.medicamentos.map((m) => ({ nome: m.nome || "", posologia: m.posologia || "", escola: false })));
+        setMedsRevisao(resultado.medicamentos.map((m: { nome: string; posologia?: string }) => ({ nome: m.nome || "", posologia: m.posologia || "", escola: false })));
         setModoRevisao(true);
       }
     } catch (e) {
