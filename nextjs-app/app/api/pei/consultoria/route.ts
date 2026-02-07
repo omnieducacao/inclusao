@@ -37,9 +37,10 @@ function buildPrompt(dados: PEIDataPayload, modoPratico: boolean, feedback?: str
     .filter(([, v]) => v)
     .map(([k]) => `- ${k.replace("?", "")}`)
     .join("\n");
-  const medsInfo = (dados.lista_medicamentos || []).length
-    ? (dados.lista_medicamentos || [])
-        .map((m) => `- ${m.nome || ""} (${m.posologia || ""}).`)
+  const listaMeds = Array.isArray(dados.lista_medicamentos) ? dados.lista_medicamentos : [];
+  const medsInfo = listaMeds.length
+    ? listaMeds
+        .map((m: { nome?: string; posologia?: string }) => `- ${m.nome || ""} (${m.posologia || ""}).`)
         .join("\n")
     : "Nenhuma medicação informada.";
   const serie = dados.serie || "";

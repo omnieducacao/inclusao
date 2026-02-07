@@ -98,7 +98,7 @@ export function EstudantesClient({ students }: Props) {
         <div className="divide-y divide-slate-100">
           {filtered.map((s) => {
             const peiData = (s.pei_data || {}) as Record<string, unknown>;
-            const paeeCiclos = (s.paee_ciclos || []) as unknown[];
+            const paeeCiclos = Array.isArray(s.paee_ciclos) ? s.paee_ciclos : [];
             const temRelatorio = Boolean((peiData?.ia_sugestao as string)?.trim());
             const temJornada = Boolean((peiData?.ia_mapa_texto as string)?.trim());
             const nCiclos = paeeCiclos.length;

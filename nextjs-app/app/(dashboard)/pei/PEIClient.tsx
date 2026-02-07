@@ -883,9 +883,9 @@ export function PEIClient({
                           ))}
                         </select>
                       </div>
-                      {(peiData.composicao_familiar_tags || []).length > 0 && (
+                      {(Array.isArray(peiData.composicao_familiar_tags) ? peiData.composicao_familiar_tags : []).length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-2">
-                          {(peiData.composicao_familiar_tags || []).map((f) => (
+                          {(Array.isArray(peiData.composicao_familiar_tags) ? peiData.composicao_familiar_tags : []).map((f) => (
                             <span
                               key={f}
                               className="inline-flex items-center gap-1 px-3 py-1 bg-sky-50 text-sky-700 rounded-lg text-sm border-2 border-sky-200 font-medium"
@@ -1083,9 +1083,9 @@ export function PEIClient({
                         ))}
                       </select>
                     </div>
-                    {(peiData.rede_apoio || []).length > 0 && (
+                    {(Array.isArray(peiData.rede_apoio) ? peiData.rede_apoio : []).length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {(peiData.rede_apoio || []).map((p) => (
+                        {(Array.isArray(peiData.rede_apoio) ? peiData.rede_apoio : []).map((p) => (
                           <span
                             key={p}
                             className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 rounded-lg text-sm"
@@ -1198,7 +1198,7 @@ export function PEIClient({
                 <hr />
 
                 {/* Checklist de preenchimento */}
-                {(peiData.rede_apoio || []).length > 0 && (
+                {(Array.isArray(peiData.rede_apoio) ? peiData.rede_apoio : []).length > 0 && (
                   <div>
                     <h4 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-emerald-600" />
@@ -1271,9 +1271,9 @@ export function PEIClient({
                             ))}
                           </select>
                         </div>
-                        {(peiData.potencias || []).length > 0 && (
+                        {(Array.isArray(peiData.potencias) ? peiData.potencias : []).length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">
-                            {(peiData.potencias || []).map((p) => (
+                            {(Array.isArray(peiData.potencias) ? peiData.potencias : []).map((p) => (
                               <span
                                 key={p}
                                 className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-sm"
@@ -1373,7 +1373,7 @@ export function PEIClient({
                           </p>
                         </div>
                       )}
-                      {(peiData.potencias || []).length > 0 ? (
+                      {(Array.isArray(peiData.potencias) ? peiData.potencias : []).length > 0 ? (
                         <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-300 shadow-sm">
                           <p className="text-sm font-semibold text-emerald-900 mb-1">
                             <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
@@ -1720,7 +1720,7 @@ function DashboardTab({
   const matriculaTxt = peiData.matricula || "-";
   const vinculoTxt = currentStudentId ? "Vinculado ao Supabase ✅" : "Rascunho (não sincronizado)";
 
-  const nPot = (peiData.potencias || []).length;
+  const nPot = (Array.isArray(peiData.potencias) ? peiData.potencias : []).length;
   const colorPot = nPot > 0 ? "#38A169" : "#CBD5E0";
   const potPercent = Math.min(nPot * 10, 100);
 
@@ -1734,13 +1734,13 @@ function DashboardTab({
 
   const [txtComp, bgComp, txtCompColor] = calcularComplexidadePei(peiData);
 
-  const listaMeds = peiData.lista_medicamentos || [];
+  const listaMeds = Array.isArray(peiData.lista_medicamentos) ? peiData.lista_medicamentos : [];
   const nomesMeds = listaMeds.map((m) => m.nome?.trim()).filter(Boolean).join(", ");
   const alertaEscola = listaMeds.some((m) => m.escola);
 
   const metas = extrairMetasEstruturadas(peiData.ia_sugestao);
   const compsInferidos = inferirComponentesImpactados(peiData);
-  const rede = peiData.rede_apoio || [];
+  const rede = Array.isArray(peiData.rede_apoio) ? peiData.rede_apoio : [];
 
   function calcularProgresso(): number {
     function _isFilled(value: unknown): boolean {
@@ -2125,7 +2125,7 @@ function DashboardTab({
         <h4 className="text-base font-semibold text-slate-800 mb-4">🧬 DNA de Suporte</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.keys(LISTAS_BARREIRAS).map((area) => {
-            const qtd = (barreiras[area] || []).length;
+            const qtd = (Array.isArray(barreiras[area]) ? barreiras[area] : []).length;
             const val = Math.min(qtd * 20, 100);
             let color = "#3182CE";
             if (val > 40) color = "#DD6B20";
@@ -2326,8 +2326,8 @@ function ConsultoriaTab({
 
   // Calcular estatísticas para info box
   const nBarreiras = Object.values(peiData.barreiras_selecionadas || {}).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
-  const nHab = (peiData.habilidades_bncc_selecionadas || []).length;
-  const habValidadas = peiData.habilidades_bncc_validadas || [];
+  const nHab = (Array.isArray(peiData.habilidades_bncc_selecionadas) ? peiData.habilidades_bncc_selecionadas : []).length;
+  const habValidadas = Array.isArray(peiData.habilidades_bncc_validadas) ? peiData.habilidades_bncc_validadas : [];
 
   // Exemplo de barreira para transparência
   let exemploBarreira = "geral";
@@ -2747,7 +2747,7 @@ function BNCCTab({
   const componentesAtual = Object.keys(anoAtual).sort();
   const componentesAnt = Object.keys(anosAnteriores).sort();
   const rotulo = nivel === "EM" ? "área de conhecimento" : "componente";
-  const habilidadesAtuais = (peiData.habilidades_bncc_selecionadas || []) as HabilidadeBncc[];
+  const habilidadesAtuais = (Array.isArray(peiData.habilidades_bncc_selecionadas) ? peiData.habilidades_bncc_selecionadas : []) as HabilidadeBncc[];
   const [sugerindoAtual, setSugerindoAtual] = useState(false);
   const [sugerindoAnteriores, setSugerindoAnteriores] = useState(false);
   const [motivoIAAtual, setMotivoIAAtual] = useState<string>("");
