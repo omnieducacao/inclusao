@@ -10,6 +10,7 @@ export type Student = {
   pei_data?: Record<string, unknown>;
   paee_ciclos?: unknown[];
   planejamento_ativo?: string | null;
+  paee_data?: Record<string, unknown> | null;
   daily_logs?: unknown[];
   created_at?: string;
 };
@@ -40,7 +41,7 @@ export async function getStudent(
   const sb = getSupabase();
   const { data, error } = await sb
     .from("students")
-    .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, daily_logs, created_at")
+    .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, paee_data, daily_logs, created_at")
     .eq("workspace_id", workspaceId)
     .eq("id", studentId)
     .maybeSingle();
