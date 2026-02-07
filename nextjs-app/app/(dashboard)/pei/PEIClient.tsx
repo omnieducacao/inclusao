@@ -3,6 +3,23 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+
+// Helper para validar e parsear respostas JSON
+async function parseJsonResponse(res: Response, url?: string) {
+  if (!res.ok) {
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      const data = await res.json();
+      throw new Error(data.error || `HTTP ${res.status}${url ? ` em ${url}` : ""}`);
+    }
+    throw new Error(`HTTP ${res.status}: ${res.statusText}${url ? ` em ${url}` : ""}`);
+  }
+  const contentType = res.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    throw new Error(`Resposta não é JSON${url ? ` de ${url}` : ""}`);
+  }
+  return res.json();
+}
 import { StudentSelector } from "@/components/StudentSelector";
 import {
   SERIES,
@@ -105,6 +122,7 @@ export function PEIClient({
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(studentId || searchParams.get("student"));
   const [jsonPending, setJsonPending] = useState<PEIData | null>(null);
   const [jsonFileName, setJsonFileName] = useState<string>("");
+  const [erroGlobal, setErroGlobal] = useState<string | null>(null);
 
   const currentStudentId = selectedStudentId;
 
@@ -240,6 +258,7 @@ export function PEIClient({
   async function handleSave() {
     if (!currentStudentId) return;
     setSaving(true);
+    setErroGlobal(null);
     try {
       const res = await fetch(`/api/students/${currentStudentId}/pei`, {
         method: "PATCH",
@@ -248,10 +267,21 @@ export function PEIClient({
       });
       if (res.ok) {
         setSaved(true);
+        setErroGlobal(null);
         setTimeout(() => setSaved(false), 3000);
+      } else {
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await res.json();
+          setErroGlobal(data.error || `Erro ao salvar (HTTP ${res.status})`);
+        } else {
+          setErroGlobal(`Erro ao salvar (HTTP ${res.status})`);
+        }
       }
-    } catch {
-      console.error("Erro ao salvar");
+    } catch (err) {
+      const mensagem = err instanceof Error ? err.message : "Erro ao salvar";
+      setErroGlobal(mensagem);
+      console.error("Erro ao salvar:", err);
     } finally {
       setSaving(false);
     }
@@ -295,16 +325,23 @@ export function PEIClient({
   // Carregar dados do estudante quando selecionado
   useEffect(() => {
     if (selectedStudentId && selectedStudentId !== studentId) {
+      setErroGlobal(null);
       // Buscar dados do estudante selecionado
-      fetch(`/api/students/${selectedStudentId}`)
-        .then((res) => res.json())
+      const url = `/api/students/${selectedStudentId}`;
+      fetch(url)
+        .then((res) => parseJsonResponse(res, url))
         .then((data) => {
           if (data.pei_data) {
             setPeiData(data.pei_data as PEIData);
             setSaved(false);
           }
+          setErroGlobal(null);
         })
-        .catch(console.error);
+        .catch((err) => {
+          const mensagem = err instanceof Error ? err.message : "Erro ao carregar dados do estudante";
+          setErroGlobal(mensagem);
+          console.error("Erro ao carregar dados do estudante:", err);
+        });
     }
   }, [selectedStudentId, studentId]);
 
@@ -369,6 +406,24 @@ export function PEIClient({
         </div>
         <RenderProgresso />
       </div>
+
+      {/* Mensagem de Erro Global */}
+      {erroGlobal && (
+        <div className="mx-6 mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg flex items-start gap-3">
+          <AlertTriangle className="flex-shrink-0 w-5 h-5 text-red-600 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-red-800 font-semibold text-sm">Erro ao processar</p>
+            <p className="text-red-700 text-sm mt-1 break-words">{erroGlobal}</p>
+          </div>
+          <button
+            onClick={() => setErroGlobal(null)}
+            className="flex-shrink-0 text-red-600 hover:text-red-800 transition-colors p-1 rounded hover:bg-red-100"
+            aria-label="Fechar erro"
+          >
+            <XCircle className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Navegação de Abas com Indicadores Visuais */}
       <div className="flex border-b-2 border-slate-200 bg-white overflow-x-auto scrollbar-hide">
@@ -678,8 +733,7 @@ export function PEIClient({
             )}
 
             {activeTab === "estudante" && (
-              <div className="space-y-6 max-w-4xl">
-                <RenderProgresso />
+              <div className="space-y-6 w-full">
                 {/* Título da aba com ícone */}
                 <div className="flex items-center gap-2 mb-4">
                   <User className="w-5 h-5 text-sky-600" />
@@ -689,9 +743,9 @@ export function PEIClient({
                 {/* Identificação - ORDEM EXATA: Nome, Nascimento, Série/Ano, Turma, Matrícula/RA */}
                 <div>
                   <h4 className="text-base font-semibold text-slate-800 mb-3">Identificação</h4>
-                  <div className="grid grid-cols-12 gap-3">
-                    {/* Nome Completo - 3 colunas (25%) */}
-                    <div className="col-span-12 sm:col-span-6 lg:col-span-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {/* Nome Completo - ocupa mais espaço */}
+                    <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-2">
                       <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-2">
                         Nome Completo
                         {peiData.nome && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
@@ -704,8 +758,8 @@ export function PEIClient({
                         placeholder="Digite o nome completo do estudante"
                       />
                     </div>
-                    {/* Nascimento - 2 colunas (16.67%) */}
-                    <div className="col-span-12 sm:col-span-6 lg:col-span-2">
+                    {/* Nascimento */}
+                    <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
                       <label className="block text-sm font-semibold text-slate-700 mb-1">Nascimento</label>
                       <input
                         type="date"
@@ -714,8 +768,8 @@ export function PEIClient({
                         className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
                       />
                     </div>
-                    {/* Série/Ano - 2 colunas (16.67%) */}
-                    <div className="col-span-12 sm:col-span-6 lg:col-span-2">
+                    {/* Série/Ano */}
+                    <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
                       <label className="block text-sm font-semibold text-slate-700 mb-1">Série/Ano</label>
                       <select
                         value={peiData.serie || ""}
@@ -728,8 +782,8 @@ export function PEIClient({
                         ))}
                       </select>
                     </div>
-                    {/* Turma - 1 coluna (8.33%) */}
-                    <div className="col-span-12 sm:col-span-3 lg:col-span-1">
+                    {/* Turma */}
+                    <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
                       <label className="block text-sm font-semibold text-slate-700 mb-1">Turma</label>
                       <input
                         type="text"
@@ -739,8 +793,8 @@ export function PEIClient({
                         placeholder="Ex: A"
                       />
                     </div>
-                    {/* Matrícula / RA - 2 colunas (16.67%) */}
-                    <div className="col-span-12 sm:col-span-6 lg:col-span-2">
+                    {/* Matrícula / RA */}
+                    <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
                       <label className="block text-sm font-semibold text-slate-700 mb-1">Matrícula / RA</label>
                       <input
                         type="text"
@@ -781,13 +835,13 @@ export function PEIClient({
                 {/* Histórico & Contexto Familiar */}
                 <div>
                   <h4 className="text-base font-semibold text-slate-800 mb-3">Histórico & Contexto Familiar</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-1">Histórico Escolar</label>
                       <textarea
                         value={peiData.historico || ""}
                         onChange={(e) => updateField("historico", e.target.value)}
-                        rows={4}
+                        rows={6}
                         className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
                       />
                     </div>
@@ -796,7 +850,7 @@ export function PEIClient({
                       <textarea
                         value={peiData.familia || ""}
                         onChange={(e) => updateField("familia", e.target.value)}
-                        rows={4}
+                        rows={6}
                         className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
                       />
                     </div>
@@ -996,7 +1050,6 @@ export function PEIClient({
 
             {activeTab === "rede" && (
               <div className="space-y-6 max-w-4xl">
-                <RenderProgresso />
                 {/* Título da aba com ícone */}
                 <div className="flex items-center gap-2 mb-4">
                   <Users className="w-5 h-5 text-sky-600" />
@@ -1168,7 +1221,6 @@ export function PEIClient({
 
             {activeTab === "mapeamento" && (
               <div className="space-y-6">
-                <RenderProgresso />
                 {/* Título da aba com ícone */}
                 <div className="flex items-center gap-2 mb-4">
                   <Radar className="w-5 h-5 text-sky-600" />
@@ -1395,7 +1447,6 @@ export function PEIClient({
 
             {activeTab === "plano" && (
               <div className="space-y-6">
-                <RenderProgresso />
                 {/* Título da aba com ícone */}
                 <div className="flex items-center gap-2 mb-4">
                   <Puzzle className="w-5 h-5 text-sky-600" />
@@ -1512,7 +1563,6 @@ export function PEIClient({
 
             {activeTab === "monitoramento" && (
               <div className="space-y-6 max-w-4xl">
-                <RenderProgresso />
                 {/* Título da aba com ícone */}
                 <div className="flex items-center gap-2 mb-4">
                   <RotateCw className="w-5 h-5 text-sky-600" />
@@ -1591,7 +1641,6 @@ export function PEIClient({
 
             {activeTab === "bncc" && (
               <div className="space-y-6">
-                <RenderProgresso />
                 {/* Título da aba com ícone */}
                 <div className="flex items-center gap-2 mb-4">
                   <ClipboardList className="w-5 h-5 text-sky-600" />
@@ -1607,7 +1656,6 @@ export function PEIClient({
 
             {activeTab === "consultoria" && (
               <div className="space-y-6">
-                <RenderProgresso />
                 {/* Título da aba com ícone */}
                 <div className="flex items-center gap-2 mb-4">
                   <Bot className="w-5 h-5 text-sky-600" />
@@ -1694,33 +1742,6 @@ function DashboardTab({
   const compsInferidos = inferirComponentesImpactados(peiData);
   const rede = peiData.rede_apoio || [];
 
-  // Função RenderProgresso precisa estar disponível - usando a do componente pai
-  function RenderProgressoLocal() {
-    const p = Math.max(0, Math.min(100, calcularProgresso()));
-    const barColor = p >= 100 
-      ? "linear-gradient(90deg, #34D399 0%, #059669 100%)"
-      : "linear-gradient(90deg, #FF6B6B 0%, #FF8E53 100%)";
-    
-    return (
-      <div className="mb-4">
-        <div className="relative w-full h-0.5 bg-slate-200 rounded-full">
-          <div 
-            className="h-0.5 rounded-full transition-all duration-300"
-            style={{ width: `${p}%`, background: barColor }}
-          />
-          <div 
-            className="absolute top-0 left-0 transition-all duration-300"
-            style={{ transform: `translateX(calc(${p}% - 12.5px))`, top: "-14px" }}
-          >
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 via-purple-600 to-cyan-500 flex items-center justify-center shadow-sm">
-              <Sparkles className="w-3 h-3 text-white" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   function calcularProgresso(): number {
     function _isFilled(value: unknown): boolean {
       if (value === null || value === undefined) return false;
@@ -1761,7 +1782,6 @@ function DashboardTab({
 
   return (
     <div className="space-y-6">
-      <RenderProgressoLocal />
       <div className="flex items-center gap-2 mb-4">
         <FileDown className="w-5 h-5 text-sky-600" />
         <h3 className="text-lg font-semibold text-slate-800">Dashboard e Exportação</h3>
@@ -2290,8 +2310,7 @@ function ConsultoriaTab({
           feedback: feedback || undefined,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao gerar relatório.");
+      const data = await parseJsonResponse(res, "/api/pei/consultoria");
       updateField("ia_sugestao", data.texto || "");
       updateField("consultoria_engine", engine);
       updateField("status_validacao_pei", "revisao");
@@ -2606,8 +2625,9 @@ function BNCCTab({
     if (!serie) return;
     if (nivel === "EI") {
       setEiLoading(true);
-      fetch("/api/bncc/ei")
-        .then((r) => r.json())
+      const url = "/api/bncc/ei";
+      fetch(url)
+        .then((res) => parseJsonResponse(res, url))
         .then((d) => {
           setEiFaixas(d.faixas || []);
           setEiCampos(d.campos || []);
@@ -2618,7 +2638,7 @@ function BNCCTab({
       setBlocosLoading(true);
       const url = nivel === "EF" ? `/api/bncc/ef?serie=${encodeURIComponent(serie)}` : "/api/bncc/em";
       fetch(url)
-        .then((r) => r.json())
+        .then((res) => parseJsonResponse(res, url))
         .then((d) => {
           setBlocos({
             ano_atual: d.ano_atual || d || {},
@@ -2638,8 +2658,9 @@ function BNCCTab({
         setEiObjetivos([]);
         return;
       }
-      fetch(`/api/bncc/ei?idade=${encodeURIComponent(idade)}&campo=${encodeURIComponent(campo)}`)
-        .then((r) => r.json())
+      const urlEi = `/api/bncc/ei?idade=${encodeURIComponent(idade)}&campo=${encodeURIComponent(campo)}`;
+      fetch(urlEi)
+        .then((res) => parseJsonResponse(res, urlEi))
         .then((d) => setEiObjetivos(d.objetivos || []))
         .catch(() => setEiObjetivos([]));
     }
@@ -2791,11 +2812,7 @@ function BNCCTab({
         }),
       });
 
-      if (!res.ok) {
-        throw new Error("Erro ao sugerir habilidades");
-      }
-
-      const { codigos, motivo } = await res.json();
+      const { codigos, motivo } = await parseJsonResponse(res, "/api/bncc/sugerir-habilidades");
 
       if (tipo === "ano_atual") {
         setMotivoIAAtual(motivo || "");
@@ -3087,8 +3104,7 @@ function LaudoPdfSection({
       formData.append("file", file);
       formData.append("engine", engine);
       const res = await fetch("/api/pei/extrair-laudo", { method: "POST", body: formData });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao extrair dados.");
+      const data = await parseJsonResponse(res, "/api/pei/extrair-laudo");
       const resultado = {
         diagnostico: data.diagnostico || "",
         medicamentos: data.medicamentos || [],

@@ -646,7 +646,7 @@ function PlanoAulaDua({
 }) {
   const [materia, setMateria] = useState("Língua Portuguesa");
   const [assunto, setAssunto] = useState("");
-  const [serie, setSerie] = useState(student?.grade || "");
+  const [serie, setSerie] = useState("");
   const [duracao, setDuracao] = useState(50);
   const [metodologia, setMetodologia] = useState("Metodologias ativas");
   const [qtdAlunos, setQtdAlunos] = useState(25);
@@ -662,6 +662,13 @@ function PlanoAulaDua({
 
   const peiData = student?.pei_data || {};
   const hiperfoco = (peiData.hiperfoco as string) || (peiData.interesses as string) || "";
+  const serieAluno = student?.grade || "";
+
+  useEffect(() => {
+    if (serieAluno) {
+      setSerie(serieAluno);
+    }
+  }, [serieAluno]);
 
   useEffect(() => {
     if (!serie) return;
@@ -1025,7 +1032,7 @@ function AdaptarProva({
   const [mapaQuestoes, setMapaQuestoes] = useState<Record<number, number>>({});
   const [materia, setMateria] = useState("Língua Portuguesa");
   const [tema, setTema] = useState("");
-  const [serie, setSerie] = useState(student?.grade || "");
+  const [serie, setSerie] = useState("");
   const [componentes, setComponentes] = useState<Record<string, unknown[]>>({});
   const [modoProfundo, setModoProfundo] = useState(false);
   const [tipo, setTipo] = useState("Prova");
@@ -1036,6 +1043,13 @@ function AdaptarProva({
   const [erro, setErro] = useState<string | null>(null);
 
   const peiData = student?.pei_data || {};
+  const serieAluno = student?.grade || "";
+
+  useEffect(() => {
+    if (serieAluno) {
+      setSerie(serieAluno);
+    }
+  }, [serieAluno]);
 
   useEffect(() => {
     if (!serie?.trim()) return;
@@ -1279,7 +1293,7 @@ function RoteiroIndividual({
 }) {
   const [materia, setMateria] = useState("Língua Portuguesa");
   const [assunto, setAssunto] = useState("");
-  const [serie, setSerie] = useState(student?.grade || "");
+  const [serie, setSerie] = useState("");
   const [componentes, setComponentes] = useState<Record<string, { codigo: string; descricao: string }[]>>({});
   const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
   const [componenteSel, setComponenteSel] = useState("");
@@ -1289,6 +1303,14 @@ function RoteiroIndividual({
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+
+  const serieAluno = student?.grade || "";
+
+  useEffect(() => {
+    if (serieAluno) {
+      setSerie(serieAluno);
+    }
+  }, [serieAluno]);
 
   useEffect(() => {
     if (!serie) return;
@@ -1452,7 +1474,7 @@ function DinamicaInclusiva({
   const [assunto, setAssunto] = useState("");
   const [qtdAlunos, setQtdAlunos] = useState(25);
   const [caracteristicas, setCaracteristicas] = useState("");
-  const [serie, setSerie] = useState(student?.grade || "");
+  const [serie, setSerie] = useState("");
   const [componentes, setComponentes] = useState<Record<string, { codigo: string; descricao: string }[]>>({});
   const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
   const [componenteSel, setComponenteSel] = useState("");
@@ -1462,6 +1484,14 @@ function DinamicaInclusiva({
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+
+  const serieAluno = student?.grade || "";
+
+  useEffect(() => {
+    if (serieAluno) {
+      setSerie(serieAluno);
+    }
+  }, [serieAluno]);
 
   useEffect(() => {
     if (!serie) return;
@@ -1830,7 +1860,7 @@ function AdaptarAtividade({
   const [showCropper, setShowCropper] = useState(false);
   const [materia, setMateria] = useState("Língua Portuguesa");
   const [tema, setTema] = useState("");
-  const [serie, setSerie] = useState(student?.grade || "");
+  const [serie, setSerie] = useState("");
   const [componentes, setComponentes] = useState<Record<string, unknown[]>>({});
   const [modoProfundo, setModoProfundo] = useState(false);
   const [tipo, setTipo] = useState("Atividade");
@@ -1841,6 +1871,13 @@ function AdaptarAtividade({
   const [erro, setErro] = useState<string | null>(null);
 
   const peiData = student?.pei_data || {};
+  const serieAluno = student?.grade || "";
+
+  useEffect(() => {
+    if (serieAluno) {
+      setSerie(serieAluno);
+    }
+  }, [serieAluno]);
 
   useEffect(() => {
     if (!serie?.trim()) return;

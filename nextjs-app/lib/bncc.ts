@@ -41,16 +41,21 @@ export type BnccEIRow = {
 export function loadBnccEI(): BnccEIRow[] {
   const path = join(DATA_DIR, "bncc_ei.csv");
   try {
+    if (!existsSync(path)) {
+      console.error(`BNCC EI: Arquivo não encontrado em ${path}`);
+      return [];
+    }
     const content = readFileSync(path, "utf-8");
     const rows = parseCSV(content);
-    return rows
-      .filter((r) => getCell(r, "Campo de Experiência", "Campo de Experiencia") && getCell(r, "OBJETIVOS DE APRENDIZAGEM E DESENVOLVIMENTO", "Objetivo de Aprendizagem", "Objetivo"))
-      .map((r) => ({
-        idade: getCell(r, "Idade"),
-        campo_experiencia: getCell(r, "Campo de Experiência", "Campo de Experiencia"),
-        objetivo: getCell(r, "OBJETIVOS DE APRENDIZAGEM E DESENVOLVIMENTO", "Objetivo de Aprendizagem", "Objetivo"),
-      }));
-  } catch {
+    const filtered = rows.filter((r) => getCell(r, "Campo de Experiência", "Campo de Experiencia") && getCell(r, "OBJETIVOS DE APRENDIZAGEM E DESENVOLVIMENTO", "Objetivo de Aprendizagem", "Objetivo"));
+    console.log(`BNCC EI: Carregadas ${filtered.length} linhas de ${rows.length} total`);
+    return filtered.map((r) => ({
+      idade: getCell(r, "Idade"),
+      campo_experiencia: getCell(r, "Campo de Experiência", "Campo de Experiencia"),
+      objetivo: getCell(r, "OBJETIVOS DE APRENDIZAGEM E DESENVOLVIMENTO", "Objetivo de Aprendizagem", "Objetivo"),
+    }));
+  } catch (err) {
+    console.error("BNCC EI: Erro ao carregar arquivo:", err);
     return [];
   }
 }
@@ -105,13 +110,28 @@ export type BnccEFRow = {
 function extrairAnoSerieBncc(serie: string): string | null {
   if (!serie || typeof serie !== "string") return null;
   const s = serie.trim();
-  const mEm = s.match(/(\d)\s*ª?\s*série/i) || (s.toLowerCase().includes("em") || s.toLowerCase().includes("médio") ? s.match(/(\d)/) : null);
+  
+  // Ensino Médio: "1ª série EM", "1º EM", "1EM", etc.
+  const mEm = s.match(/(\d)\s*ª?\s*série/i) || 
+               (s.toLowerCase().includes("em") || s.toLowerCase().includes("médio") ? s.match(/(\d)/) : null);
   if (mEm) {
     const n = parseInt(mEm[1], 10);
     return `${n}EM`;
   }
-  const m = s.match(/(\d\s*º)/);
-  return m ? m[1].replace(/\s/g, "") : null;
+  
+  // Ensino Fundamental: "1º ano", "1º", "1 ano", etc.
+  const m = s.match(/(\d+)\s*º/);
+  if (m) {
+    return `${m[1]}º`;
+  }
+  
+  // Tentar extrair apenas o número se não encontrar o padrão
+  const mNum = s.match(/(\d+)/);
+  if (mNum) {
+    return `${mNum[1]}º`;
+  }
+  
+  return null;
 }
 
 function parseHab(hab: string): { codigo: string; descricao: string } {
@@ -129,18 +149,23 @@ export function loadBnccEF(): BnccEFRow[] {
   let path = join(DATA_DIR, "bncc_ef.csv");
   try {
     if (!existsSync(path)) path = join(DATA_DIR, "bncc.csv");
+    if (!existsSync(path)) {
+      console.error(`BNCC EF: Arquivo não encontrado em ${path}`);
+      return [];
+    }
     const content = readFileSync(path, "utf-8");
     const rows = parseCSV(content);
-    return rows
-      .filter((r) => getCell(r, "Ano") && getCell(r, "Disciplina") && getCell(r, "Habilidade"))
-      .map((r) => ({
-        ano: getCell(r, "Ano"),
-        disciplina: getCell(r, "Disciplina"),
-        unidade_tematica: getCell(r, "Unidade Temática", "Unidade Tematica"),
-        objeto_conhecimento: getCell(r, "Objeto do Conhecimento"),
-        habilidade: getCell(r, "Habilidade"),
-      }));
-  } catch {
+    const filtered = rows.filter((r) => getCell(r, "Ano") && getCell(r, "Disciplina") && getCell(r, "Habilidade"));
+    console.log(`BNCC EF: Carregadas ${filtered.length} linhas de ${rows.length} total`);
+    return filtered.map((r) => ({
+      ano: getCell(r, "Ano"),
+      disciplina: getCell(r, "Disciplina"),
+      unidade_tematica: getCell(r, "Unidade Temática", "Unidade Tematica"),
+      objeto_conhecimento: getCell(r, "Objeto do Conhecimento"),
+      habilidade: getCell(r, "Habilidade"),
+    }));
+  } catch (err) {
+    console.error("BNCC EF: Erro ao carregar arquivo:", err);
     return [];
   }
 }
@@ -153,7 +178,10 @@ export function carregarHabilidadesEFPorComponente(serie: string): {
   if (!anoSerie || anoSerie.includes("EM")) return { ano_atual: {}, anos_anteriores: {} };
   const anoNum = parseInt(anoSerie.match(/\d+/)?.[0] ?? "0", 10) || 0;
   const raw = loadBnccEF();
-  if (!raw.length) return { ano_atual: {}, anos_anteriores: {} };
+  if (!raw.length) {
+    console.warn("BNCC EF: Nenhum dado carregado. Verifique se data/bncc.csv ou data/bncc_ef.csv existe.");
+    return { ano_atual: {}, anos_anteriores: {} };
+  }
 
   const anterioresStr = Array.from({ length: anoNum - 1 }, (_, i) => `${i + 1}º`);
   const ano_atual: Record<string, { codigo: string; descricao: string; habilidade_completa: string }[]> = {};
@@ -163,15 +191,34 @@ export function carregarHabilidadesEFPorComponente(serie: string): {
     const anoCelula = (r.ano || "").trim();
     const disc = (r.disciplina || "").trim();
     const hab = (r.habilidade || "").trim();
-    if (!hab) continue;
+    if (!hab || !disc) continue;
+    
+    // O campo "Ano" pode conter múltiplos anos separados por vírgula (ex: "1º, 2º, 3º, 4º, 5º")
+    // Verificar se o ano atual está na lista
+    const anosNaCelula = anoCelula.split(",").map(a => a.trim());
+    const anoAtualEncontrado = anosNaCelula.some(a => 
+      a.includes(anoSerie) || 
+      a.includes(anoSerie.replace("º", "")) ||
+      anoSerie.includes(a.replace("º", ""))
+    );
+    
     const { codigo, descricao } = parseHab(hab);
     const item = { codigo, descricao, habilidade_completa: hab };
-    if (anoCelula.includes(anoSerie) || anoCelula.includes(anoSerie.replace("º", "º"))) {
+    
+    if (anoAtualEncontrado) {
       (ano_atual[disc] = ano_atual[disc] || []).push(item);
-    } else if (anterioresStr.some((ant) => anoCelula.includes(ant))) {
-      (anos_anteriores[disc] = anos_anteriores[disc] || []).push(item);
+    } else {
+      // Verificar se é de anos anteriores
+      const ehAnterior = anterioresStr.some((ant) => 
+        anosNaCelula.some(a => a.includes(ant) || ant.includes(a.replace("º", "")))
+      );
+      if (ehAnterior) {
+        (anos_anteriores[disc] = anos_anteriores[disc] || []).push(item);
+      }
     }
   }
+  
+  console.log(`BNCC EF: Carregadas ${Object.keys(ano_atual).length} disciplinas para ano atual, ${Object.keys(anos_anteriores).length} para anos anteriores`);
   return { ano_atual, anos_anteriores };
 }
 
@@ -191,12 +238,24 @@ export function carregarEstruturaEF(serie: string): EstruturaBnccEF {
   const anoSerie = extrairAnoSerieBncc(serie);
   if (!anoSerie || anoSerie.includes("EM")) return { disciplinas: [], porDisciplina: {} };
   const raw = loadBnccEF();
+  if (!raw.length) {
+    console.warn("BNCC EF Estrutura: Nenhum dado carregado.");
+    return { disciplinas: [], porDisciplina: {} };
+  }
   const porDisciplina: Record<string, Record<string, Record<string, { codigo: string; descricao: string; habilidade_completa: string }[]>>> = {};
   const disciplinas = new Set<string>();
 
   for (const r of raw) {
     const anoCelula = (r.ano || "").trim();
-    if (!anoCelula.includes(anoSerie) && !anoSerie.split("").some((c) => anoCelula.includes(c))) continue;
+    // O campo "Ano" pode conter múltiplos anos separados por vírgula
+    const anosNaCelula = anoCelula.split(",").map(a => a.trim());
+    const anoAtualEncontrado = anosNaCelula.some(a => 
+      a.includes(anoSerie) || 
+      a.includes(anoSerie.replace("º", "")) ||
+      anoSerie.includes(a.replace("º", ""))
+    );
+    if (!anoAtualEncontrado) continue;
+    
     const disc = (r.disciplina || "").trim();
     const unidade = (r.unidade_tematica || "").trim() || "(sem unidade)";
     const objeto = (r.objeto_conhecimento || "").trim() || "(sem objeto)";
@@ -242,18 +301,23 @@ function parseHabEM(hab: string): { codigo: string; descricao: string } {
 export function loadBnccEM(): BnccEMRow[] {
   const path = join(DATA_DIR, "bncc_em.csv");
   try {
+    if (!existsSync(path)) {
+      console.error(`BNCC EM: Arquivo não encontrado em ${path}`);
+      return [];
+    }
     const content = readFileSync(path, "utf-8");
     const rows = parseCSV(content);
-    return rows
-      .filter((r) => getCell(r, "Habilidade"))
-      .map((r) => ({
-        area: getCell(r, "Área de conhecimento", "Área", "Area"),
-        componente: getCell(r, "Componente"),
-        serie: getCell(r, "Série", "Serie"),
-        unidade: getCell(r, "Unidade Temática", "Unidade Tematica"),
-        habilidade: getCell(r, "Habilidade"),
-      }));
-  } catch {
+    const filtered = rows.filter((r) => getCell(r, "Habilidade"));
+    console.log(`BNCC EM: Carregadas ${filtered.length} linhas de ${rows.length} total`);
+    return filtered.map((r) => ({
+      area: getCell(r, "Área de conhecimento", "Área", "Area"),
+      componente: getCell(r, "Componente"),
+      serie: getCell(r, "Série", "Serie"),
+      unidade: getCell(r, "Unidade Temática", "Unidade Tematica"),
+      habilidade: getCell(r, "Habilidade"),
+    }));
+  } catch (err) {
+    console.error("BNCC EM: Erro ao carregar arquivo:", err);
     return [];
   }
 }
