@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getSession } from "@/lib/session";
-import { listStudents, getStudent } from "@/lib/students";
+import { listStudents, getStudent, type Student } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
 import { DiarioClient } from "./DiarioClient";
 import { BookOpen } from "lucide-react";
@@ -37,7 +37,7 @@ export default async function DiarioPage({ searchParams }: Props) {
         .maybeSingle();
       
       if (fullData && fullData.workspace_id === workspaceId) {
-        student = fullData as typeof student;
+        student = fullData as Student;
         console.log("✅ Diario: Estudante encontrado sem filtro de workspace", {
           studentId: student.id,
           workspaceId: student.workspace_id
