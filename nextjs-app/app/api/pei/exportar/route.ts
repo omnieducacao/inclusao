@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     const titulo = `PEI - ${(peiData.nome || "Estudante").toString()}`;
     const buffer = await textToDocxBuffer(texto, titulo);
     // Converter Buffer para Uint8Array para compatibilidade com NextResponse
-    const uint8Array = buffer instanceof Buffer ? new Uint8Array(buffer) : buffer;
+    const uint8Array = new Uint8Array(buffer);
     return new NextResponse(uint8Array, {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
