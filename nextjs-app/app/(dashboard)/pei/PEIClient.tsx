@@ -32,6 +32,10 @@ import {
   Download,
   FileText,
   Loader2,
+  Sparkles,
+  Pill,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 type HabilidadeBncc = {
@@ -334,15 +338,6 @@ export function PEIClient({
                   />
                 </div>
                 <hr />
-                <div>
-                  <h4 className="font-medium text-slate-800 mb-2">Medicações</h4>
-                  <MedicamentosForm peiData={peiData} onAdd={addMedicamento} onRemove={removeMedicamento} />
-                </div>
-              </div>
-            )}
-
-            {activeTab === "evidencias" && (
-              <div className="space-y-4">
                 <LaudoPdfSection
                   peiData={peiData}
                   onDiagnostico={(v) => updateField("diagnostico", v)}
@@ -352,6 +347,15 @@ export function PEIClient({
                   }}
                 />
                 <hr />
+                <div>
+                  <h4 className="font-medium text-slate-800 mb-2">Medicações</h4>
+                  <MedicamentosForm peiData={peiData} onAdd={addMedicamento} onRemove={removeMedicamento} />
+                </div>
+              </div>
+            )}
+
+            {activeTab === "evidencias" && (
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Hipótese de Escrita (Emília Ferreiro)</label>
                   <select
@@ -1159,10 +1163,12 @@ function LaudoPdfSection({
   onMedicamentos: (meds: { nome: string; posologia?: string; escola?: boolean }[]) => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
-  const [engine, setEngine] = useState<EngineId>("red");
+  const [engine, setEngine] = useState<EngineId>("orange"); // ChatGPT sempre para laudo médico
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [extraido, setExtraido] = useState<{ diagnostico: string; medicamentos: { nome: string; posologia?: string }[] } | null>(null);
+  const [medsRevisao, setMedsRevisao] = useState<Array<{ nome: string; posologia: string; escola: boolean }>>([]);
+  const [modoRevisao, setModoRevisao] = useState(false);
 
   async function extrair() {
     if (!file) {
@@ -1172,6 +1178,7 @@ function LaudoPdfSection({
     setLoading(true);
     setErro(null);
     setExtraido(null);
+    setModoRevisao(false);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -1179,10 +1186,16 @@ function LaudoPdfSection({
       const res = await fetch("/api/pei/extrair-laudo", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao extrair dados.");
-      setExtraido({
+      const resultado = {
         diagnostico: data.diagnostico || "",
         medicamentos: data.medicamentos || [],
-      });
+      };
+      setExtraido(resultado);
+      // Preparar medicações para revisão
+      if (resultado.medicamentos.length > 0) {
+        setMedsRevisao(resultado.medicamentos.map((m) => ({ nome: m.nome || "", posologia: m.posologia || "", escola: false })));
+        setModoRevisao(true);
+      }
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao processar laudo.");
     } finally {
@@ -1193,21 +1206,30 @@ function LaudoPdfSection({
   function aplicar() {
     if (!extraido) return;
     onDiagnostico(extraido.diagnostico);
-    const meds = extraido.medicamentos.map((m) => ({ ...m, escola: false }));
-    const existentes = peiData.lista_medicamentos || [];
-    const novos = meds.filter((m) => !existentes.some((e) => (e.nome || "").toLowerCase() === (m.nome || "").toLowerCase()));
-    onMedicamentos([...existentes, ...novos]);
+    if (modoRevisao && medsRevisao.length > 0) {
+      const existentes = peiData.lista_medicamentos || [];
+      const novos = medsRevisao.filter((m) => m.nome && !existentes.some((e) => (e.nome || "").toLowerCase() === m.nome.toLowerCase()));
+      onMedicamentos([...existentes, ...novos]);
+    } else {
+      const meds = extraido.medicamentos.map((m) => ({ ...m, escola: false }));
+      const existentes = peiData.lista_medicamentos || [];
+      const novos = meds.filter((m) => m.nome && !existentes.some((e) => (e.nome || "").toLowerCase() === (m.nome || "").toLowerCase()));
+      onMedicamentos([...existentes, ...novos]);
+    }
     setExtraido(null);
     setFile(null);
+    setModoRevisao(false);
+    setMedsRevisao([]);
   }
 
   return (
     <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3">
-      <h4 className="font-medium text-slate-800">Laudo médico/escolar (PDF)</h4>
-      <p className="text-sm text-slate-600">Anexe o laudo e use a IA para extrair diagnóstico e medicamentos.</p>
-      <EngineSelector value={engine} onChange={setEngine} />
+      <div>
+        <h4 className="font-medium text-slate-800 mb-1">Laudo médico/escolar (PDF) + Extração Inteligente</h4>
+        <p className="text-sm text-slate-600">Anexe o laudo e use a IA para extrair diagnóstico e medicamentos.</p>
+      </div>
       <div className="flex flex-wrap gap-3 items-end">
-        <div>
+        <div className="flex-1 min-w-[200px]">
           <label className="block text-xs text-slate-600 mb-1">Arquivo PDF</label>
           <input
             type="file"
@@ -1216,21 +1238,113 @@ function LaudoPdfSection({
               setFile(e.target.files?.[0] || null);
               setExtraido(null);
               setErro(null);
+              setModoRevisao(false);
+              setMedsRevisao([]);
             }}
-            className="block text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-sky-100 file:text-sky-800"
+            className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-sky-100 file:text-sky-800 file:cursor-pointer hover:file:bg-sky-200"
           />
         </div>
         <button
           type="button"
           onClick={extrair}
           disabled={loading || !file}
-          className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm disabled:opacity-50"
+          className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-700 transition-colors flex items-center gap-2"
         >
-          {loading ? "Analisando…" : "Extrair dados do laudo"}
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Analisando…
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4" />
+              Extrair dados do laudo
+            </>
+          )}
         </button>
       </div>
-      {erro && <div className="text-red-600 text-sm">{erro}</div>}
-      {extraido && (
+      {erro && <div className="text-red-600 text-sm bg-red-50 p-2 rounded">{erro}</div>}
+      
+      {/* Revisão de medicações (como no Streamlit) */}
+      {modoRevisao && medsRevisao.length > 0 && (
+        <div className="p-4 rounded-lg bg-white border-2 border-amber-200 space-y-3">
+          <div className="flex items-center gap-2">
+            <Pill className="w-5 h-5 text-amber-600" />
+            <h5 className="font-semibold text-slate-800">Medicações encontradas no laudo (confirme antes de adicionar)</h5>
+          </div>
+          <div className="space-y-2">
+            {medsRevisao.map((m, i) => (
+              <div key={i} className="grid grid-cols-12 gap-2 items-center p-2 bg-slate-50 rounded">
+                <div className="col-span-5">
+                  <input
+                    type="text"
+                    value={m.nome}
+                    onChange={(e) => {
+                      const novas = [...medsRevisao];
+                      novas[i].nome = e.target.value;
+                      setMedsRevisao(novas);
+                    }}
+                    className="w-full px-2 py-1 text-sm border border-slate-200 rounded"
+                    placeholder="Nome do medicamento"
+                  />
+                </div>
+                <div className="col-span-4">
+                  <input
+                    type="text"
+                    value={m.posologia}
+                    onChange={(e) => {
+                      const novas = [...medsRevisao];
+                      novas[i].posologia = e.target.value;
+                      setMedsRevisao(novas);
+                    }}
+                    className="w-full px-2 py-1 text-sm border border-slate-200 rounded"
+                    placeholder="Posologia"
+                  />
+                </div>
+                <div className="col-span-3 flex items-center gap-2">
+                  <label className="flex items-center gap-1 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={m.escola}
+                      onChange={(e) => {
+                        const novas = [...medsRevisao];
+                        novas[i].escola = e.target.checked;
+                        setMedsRevisao(novas);
+                      }}
+                      className="rounded"
+                    />
+                    Na escola?
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={aplicar}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              Adicionar ao PEI
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setModoRevisao(false);
+                setMedsRevisao([]);
+              }}
+              className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-300 flex items-center gap-2"
+            >
+              <XCircle className="w-4 h-4" />
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Resultado da extração (sem revisão de meds) */}
+      {extraido && !modoRevisao && (
         <div className="space-y-2 p-3 rounded-lg bg-white border border-slate-200">
           <div>
             <div className="text-xs font-semibold text-slate-600 uppercase mb-1">Diagnóstico</div>
@@ -1249,8 +1363,9 @@ function LaudoPdfSection({
           <button
             type="button"
             onClick={aplicar}
-            className="px-3 py-1.5 bg-sky-600 text-white rounded-lg text-sm"
+            className="px-3 py-1.5 bg-sky-600 text-white rounded-lg text-sm font-medium hover:bg-sky-700 flex items-center gap-2"
           >
+            <CheckCircle2 className="w-4 h-4" />
             Aplicar ao PEI
           </button>
         </div>
