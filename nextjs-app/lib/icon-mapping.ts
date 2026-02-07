@@ -56,7 +56,6 @@ import {
   Palette,
   Target,
   Dice1,
-  Slots,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -111,7 +110,7 @@ export const emojiToIcon: Record<string, LucideIcon> = {
   "🎨": Palette,
   "🎯": Target,
   "🎲": Dice1,
-  "🎰": Slots,
+  "🎰": Dice1,
   "🎮": Gamepad2,
   "🕹️": Gamepad2,
   "🎧": Headphones,
