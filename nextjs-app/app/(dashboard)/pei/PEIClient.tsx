@@ -407,15 +407,16 @@ export function PEIClient({
         const hasEvidencias = Object.values(chk).some((v) => v === true);
         return hasEvidencias ? "complete" : "empty";
       case "rede":
-        const rede = Array.isArray(d.rede_apoio_tags) ? d.rede_apoio_tags : [];
+        const rede = Array.isArray(d.rede_apoio) ? d.rede_apoio : [];
         return rede.length > 0 ? "complete" : "empty";
       case "mapeamento":
         const barreiras = d.barreiras_selecionadas || {};
         const hasBarreiras = Object.values(barreiras).some((arr) => Array.isArray(arr) && arr.length > 0);
         return hasBarreiras ? "complete" : "empty";
       case "plano":
-        const metas = Array.isArray(d.metas) ? d.metas : [];
-        return metas.length > 0 ? "complete" : "empty";
+        const temEstrategias = _isFilled(d.estrategias_acesso) || _isFilled(d.estrategias_ensino) || _isFilled(d.estrategias_avaliacao) ||
+                               _isFilled(d.outros_acesso) || _isFilled(d.outros_ensino);
+        return temEstrategias ? "complete" : "empty";
       case "monitoramento":
         return _isFilled(d.parecer_geral) ? "complete" : "empty";
       case "bncc":
