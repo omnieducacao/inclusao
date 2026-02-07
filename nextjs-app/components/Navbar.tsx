@@ -3,6 +3,22 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { SessionPayload } from "@/lib/session";
+import {
+  Home,
+  Users,
+  FileText,
+  Puzzle,
+  Rocket,
+  BookOpen,
+  BarChart3,
+  Settings,
+  UserCog,
+  ClipboardList,
+  Shield,
+  LogOut,
+  Sparkles,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 type PermissionKey =
   | "can_estudantes"
@@ -16,20 +32,21 @@ type PermissionKey =
 type NavItem = {
   href: string;
   label: string;
+  icon: LucideIcon;
   permission?: PermissionKey;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Home" },
-  { href: "/estudantes", label: "Estudantes", permission: "can_estudantes" },
-  { href: "/pei", label: "PEI", permission: "can_pei" },
-  { href: "/paee", label: "PAEE", permission: "can_paee" },
-  { href: "/hub", label: "Hub", permission: "can_hub" },
-  { href: "/diario", label: "Diário", permission: "can_diario" },
-  { href: "/monitoramento", label: "Monitoramento", permission: "can_avaliacao" },
-  { href: "/config-escola", label: "Config Escola", permission: "can_gestao" },
-  { href: "/gestao", label: "Gestão", permission: "can_gestao" },
-  { href: "/pgi", label: "PGI", permission: "can_gestao" },
+  { href: "/", label: "Home", icon: Home },
+  { href: "/estudantes", label: "Estudantes", icon: Users, permission: "can_estudantes" },
+  { href: "/pei", label: "PEI", icon: FileText, permission: "can_pei" },
+  { href: "/paee", label: "PAEE", icon: Puzzle, permission: "can_paee" },
+  { href: "/hub", label: "Hub", icon: Rocket, permission: "can_hub" },
+  { href: "/diario", label: "Diário", icon: BookOpen, permission: "can_diario" },
+  { href: "/monitoramento", label: "Monitoramento", icon: BarChart3, permission: "can_avaliacao" },
+  { href: "/config-escola", label: "Config Escola", icon: Settings, permission: "can_gestao" },
+  { href: "/gestao", label: "Gestão", icon: UserCog, permission: "can_gestao" },
+  { href: "/pgi", label: "PGI", icon: ClipboardList, permission: "can_gestao" },
 ];
 
 function canAccess(
@@ -54,43 +71,81 @@ export function Navbar({ session }: { session: SessionPayload }) {
   }
 
   const items = session.is_platform_admin
-    ? [{ href: "/admin", label: "Admin" }]
+    ? [{ href: "/admin", label: "Admin", icon: Shield }]
     : NAV_ITEMS.filter((item) => canAccess(item, session));
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-      <div className="max-w-6xl mx-auto px-4 flex items-center justify-between h-14">
-        <nav className="flex items-center gap-1">
-          <Link
-            href="/"
-            className="px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium"
-          >
-            Omnisfera
-          </Link>
-          {items.map((item) => (
+    <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo e Navegação Principal */}
+          <nav className="flex items-center gap-1 flex-1">
             <Link
-              key={item.href}
-              href={item.href}
-              className={`px-3 py-2 rounded-lg text-sm ${
-                pathname === item.href
-                  ? "bg-blue-50 text-blue-700 font-medium"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`}
+              href="/"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-800 hover:bg-slate-50 font-semibold transition-colors group"
             >
-              {item.label}
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-sky-600 flex items-center justify-center text-white shadow-sm group-hover:shadow-md transition-shadow">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <span className="hidden sm:inline">Omnisfera</span>
             </Link>
-          ))}
-        </nav>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-slate-600">
-            {session.workspace_name} · {session.usuario_nome}
-          </span>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-slate-500 hover:text-slate-700"
-          >
-            Sair
-          </button>
+            
+            <div className="hidden md:flex items-center gap-1 ml-2 border-l border-slate-200 pl-2">
+              {items.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      isActive
+                        ? "bg-blue-50 text-blue-700 shadow-sm"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
+                    title={item.label}
+                  >
+                    <Icon className={`w-4 h-4 ${isActive ? "text-blue-600" : "text-slate-500"}`} />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+
+          {/* Menu Mobile - Dropdown simples */}
+          <div className="md:hidden flex items-center gap-2 ml-2">
+            <select
+              value={pathname}
+              onChange={(e) => router.push(e.target.value)}
+              className="text-sm px-2 py-1 rounded border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {items.map((item) => (
+                <option key={item.href} value={item.href}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* User Info e Logout */}
+          <div className="flex items-center gap-3 ml-4 pl-4 border-l border-slate-200">
+            <div className="hidden lg:flex flex-col items-end text-right">
+              <span className="text-sm font-medium text-slate-800">{session.usuario_nome}</span>
+              <span className="text-xs text-slate-500">{session.workspace_name}</span>
+            </div>
+            <div className="lg:hidden text-sm text-slate-600 truncate max-w-[120px]">
+              {session.usuario_nome}
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              title="Sair"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Sair</span>
+            </button>
+          </div>
         </div>
       </div>
     </header>

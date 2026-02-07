@@ -28,6 +28,11 @@ import type { EngineId } from "@/lib/ai-engines";
 import { EngineSelector } from "@/components/EngineSelector";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { peiDataToFullText } from "@/lib/pei-export";
+import {
+  Download,
+  FileText,
+  Loader2,
+} from "lucide-react";
 
 type HabilidadeBncc = {
   disciplina: string;
@@ -635,9 +640,10 @@ export function PEIClient({
                     text={peiDataToFullText(peiData)}
                     filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
                     title={`PEI - ${peiData.nome || "Estudante"}`}
-                    className="px-3 py-1.5 text-sm bg-cyan-100 text-cyan-800 rounded-lg hover:bg-cyan-200"
+                    className="px-3 py-1.5 text-sm bg-cyan-100 text-cyan-800 rounded-lg hover:bg-cyan-200 flex items-center gap-2"
                   >
-                    📥 Baixar PDF
+                    <Download className="w-4 h-4 mr-2" />
+                    Baixar PDF
                   </PdfDownloadButton>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -703,9 +709,19 @@ function PeiExportDocxButton({ peiData }: { peiData: PEIData }) {
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className="px-3 py-1.5 text-sm bg-emerald-100 text-emerald-800 rounded-lg hover:bg-emerald-200 disabled:opacity-50"
+      className="px-3 py-1.5 text-sm bg-emerald-100 text-emerald-800 rounded-lg hover:bg-emerald-200 disabled:opacity-50 flex items-center gap-2"
     >
-      {loading ? "Gerando…" : "📄 Baixar DOCX"}
+      {loading ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Gerando…
+        </>
+      ) : (
+        <>
+          <FileText className="w-4 h-4" />
+          Baixar DOCX
+        </>
+      )}
     </button>
   );
 }
