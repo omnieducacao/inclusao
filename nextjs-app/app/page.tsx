@@ -79,39 +79,48 @@ export default async function RootPage() {
   };
 
   // Módulos administrativos
-  const adminModules = [
+  const adminModulesBase: Array<{
+    href: string;
+    iconName: string;
+    title: string;
+    desc: string;
+    color: string;
+  }> = [
     {
       href: "/gestao",
-      iconName: "UsersThree" as const,
+      iconName: "UsersThree",
       title: "Gestão de Usuários",
       desc: "Cadastrar usuários, atribuir permissões e vínculos com estudantes.",
       color: "test",
     },
     {
       href: "/pgi",
-      iconName: "ClipboardText" as const,
+      iconName: "ClipboardText",
       title: "PGI",
       desc: "Plano de Gestão Inclusiva. Estruture infraestrutura, formação e recursos da escola.",
       color: "presentation",
     },
     {
       href: "/config-escola",
-      iconName: "GraduationCap" as const,
+      iconName: "GraduationCap",
       title: "Configuração Escola",
       desc: "Ano letivo, séries e turmas. Configure antes de cadastrar professores.",
       color: "reports",
     },
   ];
 
-  if (session?.is_platform_admin) {
-    adminModules.push({
-      href: "/admin",
-      iconName: "Gear" as const,
-      title: "Admin Plataforma",
-      desc: "Gerenciamento completo da plataforma",
-      color: "reports",
-    });
-  }
+  const adminModules = session?.is_platform_admin
+    ? [
+        ...adminModulesBase,
+        {
+          href: "/admin",
+          iconName: "Gear",
+          title: "Admin Plataforma",
+          desc: "Gerenciamento completo da plataforma",
+          color: "reports",
+        },
+      ]
+    : adminModulesBase;
 
 
   return (

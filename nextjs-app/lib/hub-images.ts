@@ -18,7 +18,10 @@ export async function buscarImagemUnsplash(
 
   try {
     const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&client_id=${accessKey}&lang=pt`;
-    const resp = await fetch(url, { timeout: 5000 });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const resp = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!resp.ok) return null;
     
     const data = await resp.json();
@@ -98,7 +101,10 @@ export async function gerarImagemInteligente(
  */
 export async function baixarImagemUrl(url: string): Promise<string | null> {
   try {
-    const resp = await fetch(url, { timeout: 10000 });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const resp = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!resp.ok) return null;
     
     const blob = await resp.blob();
