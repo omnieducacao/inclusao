@@ -16,7 +16,10 @@ export type Student = {
 };
 
 export async function listStudents(workspaceId: string): Promise<Student[]> {
-  if (!workspaceId) return [];
+  if (!workspaceId) {
+    console.warn("listStudents: workspaceId ausente");
+    return [];
+  }
 
   const sb = getSupabase();
   const { data, error } = await sb
@@ -26,9 +29,14 @@ export async function listStudents(workspaceId: string): Promise<Student[]> {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("listStudents error:", error);
+    console.error("listStudents error:", error, { workspaceId });
     return [];
   }
+  
+  if (data) {
+    console.log(`listStudents: encontrados ${data.length} estudantes para workspace ${workspaceId}`);
+  }
+  
   return (data || []) as Student[];
 }
 
@@ -36,7 +44,10 @@ export async function getStudent(
   workspaceId: string,
   studentId: string
 ): Promise<Student | null> {
-  if (!workspaceId || !studentId) return null;
+  if (!workspaceId || !studentId) {
+    console.warn("getStudent: workspaceId ou studentId ausente", { workspaceId, studentId });
+    return null;
+  }
 
   const sb = getSupabase();
   const { data, error } = await sb
@@ -46,7 +57,29 @@ export async function getStudent(
     .eq("id", studentId)
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (error) {
+    console.error("getStudent error:", error, { workspaceId, studentId });
+    return null;
+  }
+  
+  if (!data) {
+    console.warn("getStudent: estudante não encontrado", { workspaceId, studentId });
+    // Tentar buscar sem filtro de workspace para debug
+    const { data: debugData } = await sb
+      .from("students")
+      .select("id, workspace_id, name")
+      .eq("id", studentId)
+      .maybeSingle();
+    if (debugData) {
+      console.warn("getStudent: estudante existe mas com workspace_id diferente", {
+        estudante_workspace: debugData.workspace_id,
+        sessao_workspace: workspaceId,
+        studentId
+      });
+    }
+    return null;
+  }
+  
   return data as Student;
 }
 

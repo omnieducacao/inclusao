@@ -20,6 +20,16 @@ export default async function PAEEPage({ searchParams }: Props) {
       ? await getStudent(workspaceId, studentId)
       : null;
 
+  // Debug: verificar se estudante foi encontrado
+  if (workspaceId && studentId && !student) {
+    console.warn("PAEE: Estudante não encontrado", {
+      workspaceId,
+      studentId,
+      studentsCount: students.length,
+      studentIds: students.map((s) => s.id),
+    });
+  }
+
   return (
     <div className="space-y-6">
       <PageHero

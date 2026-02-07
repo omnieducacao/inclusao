@@ -19,6 +19,16 @@ export default async function PEIPage({ searchParams }: Props) {
       ? await getStudent(workspaceId, studentId)
       : null;
 
+  // Debug: verificar se estudante foi encontrado
+  if (workspaceId && studentId && !student) {
+    console.warn("PEI: Estudante não encontrado", {
+      workspaceId,
+      studentId,
+      studentsCount: students.length,
+      studentIds: students.map((s) => s.id),
+    });
+  }
+
   const peiData = student?.pei_data
     ? (student.pei_data as Record<string, unknown>)
     : {};
