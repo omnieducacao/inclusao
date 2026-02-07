@@ -47,7 +47,7 @@ ${textoLista}`;
 
     // Usar engine padrão (yellow/Gemini ou fallback)
     const engine: EngineId = "yellow";
-    const resposta = await chatCompletionText(engine, [{ role: "user", content: prompt }], 0.7);
+    const resposta = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.7 });
 
     if (!resposta) {
       return NextResponse.json({ error: "Erro ao gerar sugestão" }, { status: 500 });
