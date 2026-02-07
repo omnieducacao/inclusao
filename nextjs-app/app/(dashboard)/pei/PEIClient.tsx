@@ -377,12 +377,12 @@ export function PEIClient({
         const hasBarreiras = Object.values(barreiras).some((arr) => Array.isArray(arr) && arr.length > 0);
         return hasBarreiras ? "complete" : "empty";
       case "plano":
-        const metas = d.metas || [];
+        const metas = Array.isArray(d.metas) ? d.metas : [];
         return metas.length > 0 ? "complete" : "empty";
       case "monitoramento":
         return _isFilled(d.parecer_geral) ? "complete" : "empty";
       case "bncc":
-        const habs = d.habilidades_bncc_selecionadas || [];
+        const habs = Array.isArray(d.habilidades_bncc_selecionadas) ? d.habilidades_bncc_selecionadas : [];
         return habs.length > 0 ? "complete" : "empty";
       case "consultoria":
         return _isFilled(d.status_validacao_pei) && d.status_validacao_pei !== "rascunho" ? "complete" : "empty";
