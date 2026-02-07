@@ -19,6 +19,25 @@ export default async function HubPage({ searchParams }: Props) {
       ? await getStudent(workspaceId, studentId)
       : null;
 
+  // Debug: verificar se estudante foi encontrado
+  if (workspaceId && studentId && !student) {
+    console.error("❌ Hub: Estudante não encontrado após getStudent", {
+      workspaceId,
+      studentId,
+      studentsCount: students.length,
+      studentIds: students.map((s) => s.id),
+      studentIdInList: students.some((s) => s.id === studentId),
+      sessionWorkspaceId: session?.workspace_id,
+      sessionExists: !!session
+    });
+  } else if (workspaceId && studentId && student) {
+    console.log("✅ Hub: Estudante encontrado", {
+      studentId: student.id,
+      studentName: student.name,
+      workspaceId: student.workspace_id
+    });
+  }
+
   return (
     <div className="space-y-6">
       <PageHero

@@ -22,11 +22,20 @@ export default async function PAEEPage({ searchParams }: Props) {
 
   // Debug: verificar se estudante foi encontrado
   if (workspaceId && studentId && !student) {
-    console.warn("PAEE: Estudante não encontrado", {
+    console.error("❌ PAEE: Estudante não encontrado após getStudent", {
       workspaceId,
       studentId,
       studentsCount: students.length,
       studentIds: students.map((s) => s.id),
+      studentIdInList: students.some((s) => s.id === studentId),
+      sessionWorkspaceId: session?.workspace_id,
+      sessionExists: !!session
+    });
+  } else if (workspaceId && studentId && student) {
+    console.log("✅ PAEE: Estudante encontrado", {
+      studentId: student.id,
+      studentName: student.name,
+      workspaceId: student.workspace_id
     });
   }
 

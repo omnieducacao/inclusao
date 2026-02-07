@@ -21,11 +21,20 @@ export default async function PEIPage({ searchParams }: Props) {
 
   // Debug: verificar se estudante foi encontrado
   if (workspaceId && studentId && !student) {
-    console.warn("PEI: Estudante não encontrado", {
+    console.error("❌ PEI: Estudante não encontrado após getStudent", {
       workspaceId,
       studentId,
       studentsCount: students.length,
       studentIds: students.map((s) => s.id),
+      studentIdInList: students.some((s) => s.id === studentId),
+      sessionWorkspaceId: session?.workspace_id,
+      sessionExists: !!session
+    });
+  } else if (workspaceId && studentId && student) {
+    console.log("✅ PEI: Estudante encontrado", {
+      studentId: student.id,
+      studentName: student.name,
+      workspaceId: student.workspace_id
     });
   }
 

@@ -17,11 +17,13 @@ export type Student = {
 
 export async function listStudents(workspaceId: string): Promise<Student[]> {
   if (!workspaceId) {
-    console.warn("listStudents: workspaceId ausente");
+    console.error("❌ listStudents: workspaceId ausente");
     return [];
   }
 
   const sb = getSupabase();
+  console.log("🔍 listStudents: buscando estudantes", { workspaceId });
+  
   const { data, error } = await sb
     .from("students")
     .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, created_at")
@@ -29,12 +31,21 @@ export async function listStudents(workspaceId: string): Promise<Student[]> {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("listStudents error:", error, { workspaceId });
+    console.error("❌ listStudents error:", error, { 
+      workspaceId,
+      errorMessage: error.message,
+      errorDetails: error.details
+    });
     return [];
   }
   
   if (data) {
-    console.log(`listStudents: encontrados ${data.length} estudantes para workspace ${workspaceId}`);
+    console.log(`✅ listStudents: encontrados ${data.length} estudantes para workspace ${workspaceId}`, {
+      studentIds: data.map(s => s.id),
+      studentNames: data.map(s => s.name)
+    });
+  } else {
+    console.warn("⚠️ listStudents: nenhum estudante encontrado", { workspaceId });
   }
   
   return (data || []) as Student[];
@@ -45,11 +56,20 @@ export async function getStudent(
   studentId: string
 ): Promise<Student | null> {
   if (!workspaceId || !studentId) {
-    console.warn("getStudent: workspaceId ou studentId ausente", { workspaceId, studentId });
+    console.error("❌ getStudent: workspaceId ou studentId ausente", { 
+      workspaceId: workspaceId || "NULL", 
+      studentId: studentId || "NULL",
+      workspaceIdType: typeof workspaceId,
+      studentIdType: typeof studentId
+    });
     return null;
   }
 
   const sb = getSupabase();
+  
+  // Log da query que será executada
+  console.log("🔍 getStudent: buscando estudante", { workspaceId, studentId });
+  
   const { data, error } = await sb
     .from("students")
     .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, paee_data, daily_logs, created_at")
@@ -58,27 +78,54 @@ export async function getStudent(
     .maybeSingle();
 
   if (error) {
-    console.error("getStudent error:", error, { workspaceId, studentId });
+    console.error("❌ getStudent error:", error, { 
+      workspaceId, 
+      studentId,
+      errorMessage: error.message,
+      errorDetails: error.details,
+      errorHint: error.hint
+    });
     return null;
   }
   
   if (!data) {
-    console.warn("getStudent: estudante não encontrado", { workspaceId, studentId });
+    console.error("⚠️ getStudent: estudante não encontrado com filtros workspace_id + id", { 
+      workspaceId, 
+      studentId 
+    });
+    
     // Tentar buscar sem filtro de workspace para debug
-    const { data: debugData } = await sb
+    const { data: debugData, error: debugError } = await sb
       .from("students")
       .select("id, workspace_id, name")
       .eq("id", studentId)
       .maybeSingle();
-    if (debugData) {
-      console.warn("getStudent: estudante existe mas com workspace_id diferente", {
+      
+    if (debugError) {
+      console.error("❌ getStudent: erro ao buscar estudante para debug", { 
+        error: debugError,
+        studentId 
+      });
+    } else if (debugData) {
+      console.error("⚠️ getStudent: estudante EXISTE mas com workspace_id DIFERENTE", {
         estudante_workspace: debugData.workspace_id,
         sessao_workspace: workspaceId,
-        studentId
+        studentId,
+        studentName: debugData.name,
+        mismatch: debugData.workspace_id !== workspaceId
       });
+    } else {
+      console.error("❌ getStudent: estudante NÃO EXISTE no banco de dados", { studentId });
     }
+    
     return null;
   }
+  
+  console.log("✅ getStudent: estudante encontrado", { 
+    studentId: data.id, 
+    name: data.name,
+    workspaceId: data.workspace_id 
+  });
   
   return data as Student;
 }
