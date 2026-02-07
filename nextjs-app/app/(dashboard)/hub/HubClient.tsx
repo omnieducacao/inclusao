@@ -1040,6 +1040,7 @@ function PlanoAulaDua({
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [validado, setValidado] = useState(false);
 
   const peiData = student?.pei_data || {};
   const hiperfoco = (peiData.hiperfoco as string) || (peiData.interesses as string) || "";
@@ -1086,6 +1087,7 @@ function PlanoAulaDua({
     setLoading(true);
     setErro(null);
     setResultado(null);
+    setValidado(false);
     try {
       const res = await fetch("/api/hub/plano-aula", {
         method: "POST",
