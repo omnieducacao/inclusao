@@ -229,22 +229,21 @@ export function PEIClient({
 
   function RenderProgresso() {
     const p = Math.max(0, Math.min(100, calcularProgresso()));
-    const barColor = p >= 100 
-      ? "linear-gradient(90deg, #34D399 0%, #059669 100%)"
-      : p >= 50
-      ? "linear-gradient(90deg, #60A5FA 0%, #3B82F6 100%)"
-      : "linear-gradient(90deg, #FBBF24 0%, #F59E0B 100%)";
+    // Cor única baseada no progresso (sem gradiente)
+    let barColor = '#FBBF24'; // Amarelo (0-49%)
+    if (p >= 50) barColor = '#60A5FA'; // Azul (50-99%)
+    if (p >= 100) barColor = '#34D399'; // Verde (100%)
     
     return (
       <div className="mb-4">
         <div className="relative w-full h-2.5 bg-slate-200 rounded-full overflow-hidden shadow-inner">
-          {/* Barra de progresso com animação */}
+          {/* Barra de progresso com animação - cor única */}
           <div 
             className="absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out shadow-sm"
             style={{ 
               width: `${p}%`, 
-              background: barColor,
-              boxShadow: p > 0 ? `0 0 10px ${p >= 100 ? '#34D399' : p >= 50 ? '#60A5FA' : '#FBBF24'}40` : 'none'
+              backgroundColor: barColor,
+              boxShadow: p > 0 ? `0 0 10px ${barColor}40` : 'none'
             }}
           >
             {/* Efeito de brilho animado */}
@@ -326,31 +325,45 @@ export function PEIClient({
   useEffect(() => {
     if (selectedStudentId && selectedStudentId !== studentId) {
       setErroGlobal(null);
+      
+      // Verificar se o estudante está na lista primeiro
+      const studentFromList = students.find((s) => s.id === selectedStudentId);
+      if (!studentFromList) {
+        setErroGlobal(null); // Não mostrar erro, apenas não fazer nada
+        return;
+      }
+
       // Buscar dados do estudante selecionado
       const url = `/api/students/${selectedStudentId}`;
       fetch(url)
-        .then((res) => {
+        .then(async (res) => {
           if (!res.ok) {
-            // Se não encontrou, verificar se o estudante está na lista
-            const studentFromList = students.find((s) => s.id === selectedStudentId);
-            if (studentFromList) {
-              // Estudante existe na lista mas não foi encontrado na API
-              // Limpar dados do PEI e não mostrar erro
-              setPeiData({} as PEIData);
-              setSaved(false);
-              setErroGlobal(null);
-              return;
-            }
-            // Estudante não encontrado e não está na lista
-            throw new Error("Estudante não encontrado");
+            // Estudante está na lista mas não foi encontrado na API
+            // Isso é normal - pode não ter pei_data ainda
+            setPeiData({} as PEIData);
+            setSaved(false);
+            setErroGlobal(null);
+            return null;
           }
-          return parseJsonResponse(res, url);
+          try {
+            return await parseJsonResponse(res, url);
+          } catch (e) {
+            // Erro ao parsear JSON
+            setPeiData({} as PEIData);
+            setSaved(false);
+            setErroGlobal(null);
+            return null;
+          }
         })
         .then((data) => {
-          if (data && data.pei_data) {
+          if (!data) {
+            // Já tratado acima
+            return;
+          }
+          if (data.pei_data) {
             setPeiData(data.pei_data as PEIData);
             setSaved(false);
-          } else if (data) {
+          } else {
             // Estudante encontrado mas sem pei_data
             setPeiData({} as PEIData);
             setSaved(false);
@@ -358,18 +371,13 @@ export function PEIClient({
           setErroGlobal(null);
         })
         .catch((err) => {
+          // Erro de rede ou outro erro
+          console.error("Erro ao carregar dados do estudante:", err);
           // Não mostrar erro se o estudante estiver na lista
-          const studentFromList = students.find((s) => s.id === selectedStudentId);
-          if (!studentFromList) {
-            const mensagem = err instanceof Error ? err.message : "Erro ao carregar dados do estudante";
-            setErroGlobal(mensagem);
-            console.error("Erro ao carregar dados do estudante:", err);
-          } else {
-            // Estudante existe na lista, apenas limpar dados
-            setPeiData({} as PEIData);
-            setSaved(false);
-            setErroGlobal(null);
-          }
+          // Apenas limpar dados
+          setPeiData({} as PEIData);
+          setSaved(false);
+          setErroGlobal(null);
         });
     }
   }, [selectedStudentId, studentId, students]);
@@ -615,30 +623,44 @@ export function PEIClient({
                             setSelectedStudentId(id);
                             setErroGlobal(null);
                             if (id) {
+                              // Verificar se o estudante está na lista primeiro
+                              const studentFromList = students.find((s) => s.id === id);
+                              if (!studentFromList) {
+                                setErroGlobal("Estudante não encontrado na lista");
+                                return;
+                              }
+
                               // Carregar dados do estudante da nuvem
                               fetch(`/api/students/${id}`)
-                                .then(res => {
+                                .then(async res => {
                                   if (!res.ok) {
-                                    // Se não encontrou, verificar se está na lista
-                                    const studentFromList = students.find((s) => s.id === id);
-                                    if (studentFromList) {
-                                      // Estudante existe na lista mas não foi encontrado na API
-                                      // Limpar dados do PEI e não mostrar erro
-                                      setPeiData({} as PEIData);
-                                      setSaved(false);
-                                      setErroGlobal(null);
-                                      return null;
-                                    }
-                                    throw new Error("Estudante não encontrado");
+                                    // Estudante está na lista mas não foi encontrado na API
+                                    // Isso é normal - pode não ter pei_data ainda
+                                    setPeiData({} as PEIData);
+                                    setSaved(false);
+                                    setErroGlobal(null);
+                                    return null;
                                   }
-                                  return res.json();
+                                  try {
+                                    return await res.json();
+                                  } catch (e) {
+                                    // Erro ao parsear JSON
+                                    setPeiData({} as PEIData);
+                                    setSaved(false);
+                                    setErroGlobal(null);
+                                    return null;
+                                  }
                                 })
                                 .then(data => {
-                                  if (data && data.pei_data && typeof data.pei_data === 'object') {
+                                  if (!data) {
+                                    // Já tratado acima
+                                    return;
+                                  }
+                                  if (data.pei_data && typeof data.pei_data === 'object') {
                                     setPeiData(data.pei_data as PEIData);
                                     setSaved(true);
                                     setTimeout(() => setSaved(false), 2000);
-                                  } else if (data) {
+                                  } else {
                                     // Estudante encontrado mas sem pei_data
                                     setPeiData({} as PEIData);
                                     setSaved(false);
@@ -646,17 +668,13 @@ export function PEIClient({
                                   setErroGlobal(null);
                                 })
                                 .catch(err => {
+                                  // Erro de rede ou outro erro
+                                  console.error("Erro ao carregar estudante:", err);
                                   // Não mostrar erro se o estudante estiver na lista
-                                  const studentFromList = students.find((s) => s.id === id);
-                                  if (!studentFromList) {
-                                    console.error("Erro ao carregar estudante:", err);
-                                    setErroGlobal("Erro ao carregar dados do estudante");
-                                  } else {
-                                    // Estudante existe na lista, apenas limpar dados
-                                    setPeiData({} as PEIData);
-                                    setSaved(false);
-                                    setErroGlobal(null);
-                                  }
+                                  // Apenas limpar dados
+                                  setPeiData({} as PEIData);
+                                  setSaved(false);
+                                  setErroGlobal(null);
                                 });
 
                               // Atualizar URL sem recarregar
@@ -667,6 +685,7 @@ export function PEIClient({
                               // Limpar dados quando nenhum estudante está selecionado
                               setPeiData({} as PEIData);
                               setSaved(false);
+                              setErroGlobal(null);
                             }
                           }}
                         />
@@ -3793,12 +3812,11 @@ function NivelSuporteRange({
     };
   }, [thumbColor, rangeId]);
   
-  // Calcular cor da barra baseada na posição
-  const porcentagem = (value / max) * 100;
-  let barColor = '#10b981'; // Verde (Autônomo)
-  if (porcentagem > 25) barColor = '#eab308'; // Amarelo (Monitorado)
-  if (porcentagem > 50) barColor = '#f97316'; // Laranja (Substancial)
-  if (porcentagem > 75) barColor = '#ef4444'; // Vermelho (Muito Substancial)
+  // Calcular cor da barra baseada na posição do marcador
+  let barColor = '#10b981'; // Verde (Autônomo - valor 0)
+  if (value === 1) barColor = '#eab308'; // Amarelo (Monitorado)
+  if (value === 2) barColor = '#f97316'; // Laranja (Substancial)
+  if (value === 3) barColor = '#ef4444'; // Vermelho (Muito Substancial)
 
   return (
     <div className="relative">
@@ -3806,11 +3824,10 @@ function NivelSuporteRange({
       <div 
         className="absolute w-full h-3 rounded-lg pointer-events-none bg-slate-200"
       />
-      {/* Barra colorida até a posição atual */}
+      {/* Barra inteira com a cor baseada na posição do marcador */}
       <div 
-        className="absolute h-3 rounded-lg pointer-events-none transition-all duration-200"
+        className="absolute w-full h-3 rounded-lg pointer-events-none transition-all duration-200"
         style={{
-          width: `${porcentagem}%`,
           background: barColor,
         }}
       />
