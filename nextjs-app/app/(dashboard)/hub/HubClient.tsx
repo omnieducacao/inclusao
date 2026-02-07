@@ -270,8 +270,9 @@ function CriarDoZero({
   }, [eiMode, eiIdade, eiCampo]);
 
   const discData = estruturaBncc?.porDisciplina?.[componenteSel];
-  const unidadeData = componenteSel && discData?.porUnidade?.[unidadeSel];
-  const habsDoObjeto = objetoSel && unidadeData && typeof unidadeData === "object" && "porObjeto" in unidadeData ? unidadeData.porObjeto?.[objetoSel] : undefined;
+  const unidadeDataRaw = componenteSel && discData?.porUnidade?.[unidadeSel];
+  const unidadeData = unidadeDataRaw && typeof unidadeDataRaw === "object" && "objetos" in unidadeDataRaw ? unidadeDataRaw : null;
+  const habsDoObjeto = objetoSel && unidadeData && "porObjeto" in unidadeData ? unidadeData.porObjeto?.[objetoSel] : undefined;
 
   const todasHabilidades = eiMode
     ? eiObjetivos
@@ -417,7 +418,7 @@ function CriarDoZero({
                 disabled={!unidadeSel}
               >
                 <option value="">Todos</option>
-                {(unidadeData?.objetos || []).map((o) => (
+                {(unidadeData && typeof unidadeData === "object" && "objetos" in unidadeData ? unidadeData.objetos : []).map((o) => (
                   <option key={o} value={o}>{o}</option>
                 ))}
               </select>
@@ -684,8 +685,9 @@ function PlanoAulaDua({
   }, [serie]);
 
   const discDataP = estruturaBncc?.porDisciplina?.[componenteSel];
-  const unidadeDataP = componenteSel && discDataP?.porUnidade?.[unidadeSel];
-  const habsDoObjetoP = objetoSel && unidadeDataP?.porObjeto?.[objetoSel];
+  const unidadeDataPRaw = componenteSel && discDataP?.porUnidade?.[unidadeSel];
+  const unidadeDataP = unidadeDataPRaw && typeof unidadeDataPRaw === "object" && "objetos" in unidadeDataPRaw ? unidadeDataPRaw : null;
+  const habsDoObjetoP = objetoSel && unidadeDataP && "porObjeto" in unidadeDataP ? unidadeDataP.porObjeto?.[objetoSel] : undefined;
   const todasHabilidadesPlano = habsDoObjetoP
     ? habsDoObjetoP.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
     : unidadeDataP
@@ -804,7 +806,7 @@ function PlanoAulaDua({
               <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
               <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
                 <option value="">Todos</option>
-                {(unidadeDataP?.objetos || []).map((o) => <option key={o} value={o}>{o}</option>)}
+                {(unidadeDataP && typeof unidadeDataP === "object" && "objetos" in unidadeDataP ? unidadeDataP.objetos : []).map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
           </div>
@@ -1329,8 +1331,9 @@ function RoteiroIndividual({
   }, [serie]);
 
   const discData = estruturaBncc?.porDisciplina?.[componenteSel];
-  const unidadeData = componenteSel && discData?.porUnidade?.[unidadeSel];
-  const habsDoObjeto = objetoSel && unidadeData && typeof unidadeData === "object" && "porObjeto" in unidadeData ? unidadeData.porObjeto?.[objetoSel] : undefined;
+  const unidadeDataRaw = componenteSel && discData?.porUnidade?.[unidadeSel];
+  const unidadeData = unidadeDataRaw && typeof unidadeDataRaw === "object" && "objetos" in unidadeDataRaw ? unidadeDataRaw : null;
+  const habsDoObjeto = objetoSel && unidadeData && "porObjeto" in unidadeData ? unidadeData.porObjeto?.[objetoSel] : undefined;
   const todasHabilidades = habsDoObjeto
     ? habsDoObjeto.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
     : unidadeData
@@ -1427,7 +1430,7 @@ function RoteiroIndividual({
               <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
               <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
                 <option value="">Todos</option>
-                {(unidadeData?.objetos || []).map((o) => <option key={o} value={o}>{o}</option>)}
+                {(unidadeData && typeof unidadeData === "object" && "objetos" in unidadeData ? unidadeData.objetos : []).map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
           </div>
@@ -1510,8 +1513,9 @@ function DinamicaInclusiva({
   }, [serie]);
 
   const discDataD = estruturaBncc?.porDisciplina?.[componenteSel];
-  const unidadeDataD = componenteSel && discDataD?.porUnidade?.[unidadeSel];
-  const habsDoObjetoD = objetoSel && unidadeDataD?.porObjeto?.[objetoSel];
+  const unidadeDataDRaw = componenteSel && discDataD?.porUnidade?.[unidadeSel];
+  const unidadeDataD = unidadeDataDRaw && typeof unidadeDataDRaw === "object" && "objetos" in unidadeDataDRaw ? unidadeDataDRaw : null;
+  const habsDoObjetoD = objetoSel && unidadeDataD && "porObjeto" in unidadeDataD ? unidadeDataD.porObjeto?.[objetoSel] : undefined;
   const todasHabilidades = habsDoObjetoD
     ? habsDoObjetoD.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
     : unidadeDataD
@@ -1618,7 +1622,7 @@ function DinamicaInclusiva({
               <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
               <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
                 <option value="">Todos</option>
-                {(unidadeDataD?.objetos || []).map((o) => <option key={o} value={o}>{o}</option>)}
+                {(unidadeDataD && typeof unidadeDataD === "object" && "objetos" in unidadeDataD ? unidadeDataD.objetos : []).map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
           </div>

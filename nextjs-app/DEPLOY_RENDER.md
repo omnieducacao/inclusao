@@ -13,37 +13,83 @@ SESSION_SECRET=uma_string_aleatoria_forte
 NODE_ENV=production
 ```
 
-### 2. Build Command
+### 2. Root Directory (Opcional)
+
+Se seu repositório tem a estrutura `inclusao/nextjs-app/`, você pode definir:
+
+```
+nextjs-app
+```
+
+Isso faz o Render executar os comandos a partir do diretório `nextjs-app/`.
+
+**Se não definir Root Directory**, certifique-se de que os comandos abaixo estão no contexto correto (raiz do repositório).
+
+### 3. Build Command
+
+**Se você definiu Root Directory como `nextjs-app`:**
 
 ```
 npm install && npm run build
 ```
 
-### 3. Start Command
+**Se NÃO definiu Root Directory (comandos na raiz):**
+
+```
+cd nextjs-app && npm install && npm run build
+```
+
+### 4. Start Command ⚠️ IMPORTANTE
+
+**Se você definiu Root Directory como `nextjs-app`:**
 
 ```
 npm start
 ```
 
-### 4. Port
+**Se NÃO definiu Root Directory (comandos na raiz):**
 
-O Render define automaticamente a porta via `PORT`, mas você pode precisar ajustar:
+```
+cd nextjs-app && npm start
+```
 
-No `package.json`, o script `start` já usa `next start` que detecta `PORT` automaticamente.
+**⚠️ NÃO use `yarn start`** - o projeto usa `npm`, não `yarn`.
 
-### 5. Arquivos CSV de BNCC
+**⚠️ NÃO use `pip install`** - isso é para Python. O projeto é Next.js/Node.js.
+
+O Next.js detecta automaticamente a variável de ambiente `PORT` que o Render fornece. Não é necessário especificar a porta manualmente.
+
+### 5. Port
+
+O Render define automaticamente a porta via variável de ambiente `PORT`. O Next.js detecta isso automaticamente - não precisa configurar nada.
+
+### 6. Arquivos CSV de BNCC
 
 **IMPORTANTE**: Os arquivos CSV precisam estar no repositório Git para funcionar no Render:
 
-- `data/bncc.csv`
-- `data/bncc_ei.csv`
-- `data/bncc_em.csv`
+- `nextjs-app/data/bncc.csv`
+- `nextjs-app/data/bncc_ei.csv`
+- `nextjs-app/data/bncc_em.csv`
 
 Certifique-se de que esses arquivos estão commitados no Git.
 
-### 6. Estrutura de Diretórios
+### 7. Estrutura de Diretórios
 
-O Render precisa ter acesso aos arquivos `data/`. Certifique-se de que o diretório `data/` está no repositório.
+O Render precisa ter acesso aos arquivos `data/`. Certifique-se de que o diretório `data/` está dentro de `nextjs-app/` e commitado no Git.
+
+## Resumo Rápido
+
+**Configuração Recomendada:**
+
+- **Root Directory:** `nextjs-app` (recomendado)
+- **Build Command:** `npm install && npm run build`
+- **Start Command:** `npm start`
+
+**Ou sem Root Directory:**
+
+- **Root Directory:** (deixe vazio)
+- **Build Command:** `cd nextjs-app && npm install && npm run build`
+- **Start Command:** `cd nextjs-app && npm start`
 
 ## Vantagens do Render para Testes
 
