@@ -10,6 +10,7 @@ type Student = { id: string; name: string };
 type StudentFull = Student & {
   grade?: string | null;
   daily_logs?: RegistroDiario[];
+  pei_data?: Record<string, unknown>;
 };
 
 type RegistroDiario = {
