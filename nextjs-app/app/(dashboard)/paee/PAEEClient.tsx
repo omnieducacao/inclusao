@@ -222,11 +222,32 @@ export function PAEEClient({ students, studentId, student }: Props) {
     );
   }
 
+  if (!student && studentId) {
+    return (
+      <div className="space-y-4">
+        <StudentSelector students={students} currentId={currentId} />
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <p className="text-amber-800 font-medium">Estudante não encontrado</p>
+          <p className="text-sm text-amber-700 mt-1">
+            O estudante selecionado não foi encontrado neste workspace. Verifique se o estudante existe e se você tem acesso a ele.
+          </p>
+          {students.length > 0 && (
+            <p className="text-xs text-amber-600 mt-2">
+              Estudantes disponíveis neste workspace: {students.length}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+  
   if (!student) {
     return (
       <div className="space-y-4">
         <StudentSelector students={students} currentId={currentId} />
-        <div className="text-slate-500">Estudante não encontrado.</div>
+        <div className="text-slate-500 text-center py-8">
+          Selecione um estudante para visualizar o PAEE.
+        </div>
       </div>
     );
   }
