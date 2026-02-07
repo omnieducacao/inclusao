@@ -68,54 +68,76 @@ export async function getStudent(
   const sb = getSupabase();
   
   // Log da query que será executada
-  console.log("🔍 getStudent: buscando estudante", { workspaceId, studentId });
+  console.log("🔍 getStudent: buscando estudante", { 
+    workspaceId, 
+    studentId,
+    workspaceIdLength: workspaceId?.length,
+    studentIdLength: studentId?.length,
+    workspaceIdTrimmed: workspaceId?.trim(),
+    studentIdTrimmed: studentId?.trim()
+  });
+  
+  // Normalizar IDs (remover espaços e garantir formato correto)
+  const normalizedWorkspaceId = workspaceId.trim();
+  const normalizedStudentId = studentId.trim();
   
   const { data, error } = await sb
     .from("students")
     .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, paee_data, daily_logs, created_at")
-    .eq("workspace_id", workspaceId)
-    .eq("id", studentId)
+    .eq("workspace_id", normalizedWorkspaceId)
+    .eq("id", normalizedStudentId)
     .maybeSingle();
 
   if (error) {
     console.error("❌ getStudent error:", error, { 
-      workspaceId, 
-      studentId,
+      workspaceId: normalizedWorkspaceId, 
+      studentId: normalizedStudentId,
       errorMessage: error.message,
       errorDetails: error.details,
-      errorHint: error.hint
+      errorHint: error.hint,
+      errorCode: error.code
     });
     return null;
   }
   
   if (!data) {
     console.error("⚠️ getStudent: estudante não encontrado com filtros workspace_id + id", { 
-      workspaceId, 
-      studentId 
+      workspaceId: normalizedWorkspaceId, 
+      studentId: normalizedStudentId,
+      originalWorkspaceId: workspaceId,
+      originalStudentId: studentId
     });
     
     // Tentar buscar sem filtro de workspace para debug
     const { data: debugData, error: debugError } = await sb
       .from("students")
       .select("id, workspace_id, name")
-      .eq("id", studentId)
+      .eq("id", normalizedStudentId)
       .maybeSingle();
       
     if (debugError) {
       console.error("❌ getStudent: erro ao buscar estudante para debug", { 
         error: debugError,
-        studentId 
+        studentId: normalizedStudentId 
       });
     } else if (debugData) {
       console.error("⚠️ getStudent: estudante EXISTE mas com workspace_id DIFERENTE", {
         estudante_workspace: debugData.workspace_id,
-        sessao_workspace: workspaceId,
-        studentId,
+        sessao_workspace: normalizedWorkspaceId,
+        studentId: normalizedStudentId,
         studentName: debugData.name,
-        mismatch: debugData.workspace_id !== workspaceId
+        mismatch: debugData.workspace_id !== normalizedWorkspaceId,
+        workspaceIdsEqual: debugData.workspace_id === normalizedWorkspaceId,
+        workspaceIdTypes: {
+          estudante: typeof debugData.workspace_id,
+          sessao: typeof normalizedWorkspaceId
+        }
       });
     } else {
-      console.error("❌ getStudent: estudante NÃO EXISTE no banco de dados", { studentId });
+      console.error("❌ getStudent: estudante NÃO EXISTE no banco de dados", { 
+        studentId: normalizedStudentId,
+        originalStudentId: studentId
+      });
     }
     
     return null;
