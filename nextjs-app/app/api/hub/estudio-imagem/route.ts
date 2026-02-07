@@ -54,6 +54,10 @@ CRITICAL: NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS. Just the v
       response_format: "b64_json",
     });
 
+    if (!resp.data || resp.data.length === 0) {
+      return NextResponse.json({ error: "Resposta sem imagem." }, { status: 500 });
+    }
+
     const b64 = resp.data[0];
     if (!b64 || !("b64_json" in b64)) {
       return NextResponse.json({ error: "Resposta sem imagem." }, { status: 500 });
