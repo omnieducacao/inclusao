@@ -261,113 +261,92 @@ export function PAEEClient({ students, studentId, student }: Props) {
   const cicloParaVerPlanejamento = cicloPreview?.tipo === "planejamento_aee" ? cicloPreview : cicloSelecionadoPlanejamento || cicloAtivoPlanejamento;
   const cicloParaVerExecucao = cicloPreview?.tipo === "execucao_smart" ? cicloPreview : cicloSelecionadoExecucao || cicloAtivoExecucao;
 
+  // Verificar status de cada aba para indicadores visuais
+  const temBarreiras = Boolean((paeeData.conteudo_diagnostico_barreiras as string)?.trim());
+  const temPlano = Boolean((paeeData.conteudo_plano_habilidades as string)?.trim());
+  const temTec = Boolean((paeeData.conteudo_tecnologia_assistiva as string)?.trim());
+  const temArticulacao = Boolean((paeeData.conteudo_documento_articulacao as string)?.trim());
+
+  const tabsConfig: Array<{ id: TabId; label: string; icon: typeof AlertTriangle; desc: string; badge?: boolean }> = [
+    { id: "mapear-barreiras", label: "Mapear Barreiras", icon: AlertTriangle, desc: "Diagnóstico de barreiras para aprendizagem", badge: temBarreiras },
+    { id: "plano-habilidades", label: "Plano de Habilidades", icon: Target, desc: "Plano de intervenção com metas SMART", badge: temPlano },
+    { id: "tec-assistiva", label: "Tec. Assistiva", icon: Puzzle, desc: "Recursos de tecnologia assistiva", badge: temTec },
+    { id: "articulacao", label: "Articulação", icon: Users, desc: "Documento de articulação AEE ↔ Sala Regular", badge: temArticulacao },
+    { id: "planejamento", label: "Planejamento AEE", icon: Search, desc: "Documento de referência (cronograma em fases)", badge: Boolean(cicloAtivoPlanejamento) },
+    { id: "execucao", label: "Execução e Metas SMART", icon: Target, desc: "Norteador operacional (cronograma por semanas)", badge: Boolean(cicloAtivoExecucao) },
+    { id: "jornada", label: "Jornada Gamificada", icon: Map, desc: "Missão gamificada para o estudante e família", badge: false },
+  ];
+
   return (
     <div className="space-y-6">
+      {/* Hero Section - PAEE */}
+      <div className="rounded-xl border-2 border-violet-200 overflow-hidden shadow-lg bg-gradient-to-br from-violet-50 via-purple-50/50 to-fuchsia-50/30">
+        <div className="flex items-center gap-6 h-32 px-6 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzkzMzNlYSIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
+          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-xl relative z-10">
+            <Puzzle className="w-8 h-8 text-white" />
+          </div>
+          <div className="flex-1 relative z-10">
+            <h1 className="text-2xl font-black text-slate-900 mb-1">Plano de Ação / PAEE</h1>
+            <p className="text-sm text-slate-700 font-medium">
+              Atendimento Educacional Especializado — Planeje e implemente estratégias de AEE para eliminação de barreiras
+            </p>
+          </div>
+        </div>
+      </div>
+
       <StudentSelector students={students} currentId={currentId} />
 
       {student && (
         <PEISummaryPanel peiData={peiData} studentName={student.name} />
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-slate-200 min-h-[140px]" style={{ backgroundColor: getColorClasses("violet").bg }}>
-        <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Nome</div>
-          <div className="font-bold text-slate-800">{student.name}</div>
+      {/* Card de informações do estudante */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-violet-200 bg-gradient-to-br from-violet-50/80 to-purple-50/50 shadow-sm">
+        <div className="space-y-1">
+          <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Nome</div>
+          <div className="font-bold text-slate-900 text-lg">{student.name}</div>
         </div>
-        <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Série</div>
+        <div className="space-y-1">
+          <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Série</div>
           <div className="font-bold text-slate-800">{student.grade || "—"}</div>
         </div>
-        <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Diagnóstico</div>
-          <div className="font-bold text-slate-800 truncate" title={diagnosis}>{diagnosis}</div>
+        <div className="space-y-1">
+          <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Diagnóstico</div>
+          <div className="font-semibold text-slate-800 truncate" title={diagnosis}>{diagnosis}</div>
         </div>
-        <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Hiperfoco</div>
-          <div className="font-bold text-slate-800 truncate" title={hiperfoco}>{hiperfoco}</div>
+        <div className="space-y-1">
+          <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Hiperfoco</div>
+          <div className="font-semibold text-slate-800 truncate" title={hiperfoco}>{hiperfoco}</div>
         </div>
       </div>
 
-      {/* Tabs Navigation - 7 abas */}
-      <div className="border-b border-slate-200 overflow-x-auto scrollbar-hide">
-        <div className="flex gap-2 min-w-max pb-0">
-          <button
-            type="button"
-            onClick={() => setActiveTab("mapear-barreiras")}
-            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
-              activeTab === "mapear-barreiras"
-                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
-                : "text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            Mapear Barreiras
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("plano-habilidades")}
-            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
-              activeTab === "plano-habilidades"
-                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
-                : "text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            Plano de Habilidades
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("tec-assistiva")}
-            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
-              activeTab === "tec-assistiva"
-                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
-                : "text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            Tec. Assistiva
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("articulacao")}
-            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
-              activeTab === "articulacao"
-                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
-                : "text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            Articulação
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("planejamento")}
-            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
-              activeTab === "planejamento"
-                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
-                : "text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            Planejamento AEE
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("execucao")}
-            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
-              activeTab === "execucao"
-                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
-                : "text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            Execução e Metas SMART
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("jornada")}
-            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
-              activeTab === "jornada"
-                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
-                : "text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            Jornada Gamificada
-          </button>
+      {/* Tabs Navigation - Melhorada com ícones e badges */}
+      <div className="border-b-2 border-violet-200 bg-white rounded-t-xl overflow-x-auto scrollbar-hide shadow-sm">
+        <div className="flex gap-1 min-w-max pb-0 px-2 pt-2">
+          {tabsConfig.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`group relative px-4 py-3 rounded-t-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 ${
+                  isActive
+                    ? "bg-gradient-to-b from-violet-100 to-violet-50 text-violet-900 border-t-2 border-x-2 border-violet-300 border-b-white -mb-px shadow-sm"
+                    : "text-slate-600 hover:text-violet-700 hover:bg-violet-50/50"
+                }`}
+                title={tab.desc}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? "text-violet-600" : "text-slate-400 group-hover:text-violet-500"}`} />
+                <span>{tab.label}</span>
+                {tab.badge && (
+                  <span className={`w-2 h-2 rounded-full ${isActive ? "bg-violet-600" : "bg-emerald-500"}`} title="Conteúdo gerado" />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -444,19 +423,30 @@ export function PAEEClient({ students, studentId, student }: Props) {
       )}
 
       {activeTab === "planejamento" && (
-        <div className="space-y-6">
-          <div className="p-4 rounded-lg bg-violet-50 border border-violet-200">
-            <h3 className="text-lg font-bold text-slate-800 mb-2">📋 Planejamento AEE</h3>
-            <p className="text-sm text-slate-700">
-              <strong>Documento de referência:</strong> Registro pedagógico do ciclo de atendimento com objetivos, período, recursos e cronograma geral em <strong>fases</strong> (visão macro). Use "Definir como ciclo ativo" para referência em outras abas.
-            </p>
-            <p className="text-xs text-slate-600 mt-2">
-              💡 Para metas SMART, acompanhamento por semanas e Jornada Gamificada, use a aba <strong>Execução e Metas SMART</strong>.
-            </p>
+        <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white shadow-sm">
+          {/* Header da aba */}
+          <div className="flex items-start gap-4 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+              <Search className="w-6 h-6 text-violet-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-2xl font-black text-slate-900 mb-2">Planejamento AEE</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                <strong className="text-violet-700">Documento de referência:</strong> Registro pedagógico do ciclo de atendimento 
+                com objetivos, período, recursos e cronograma geral em <strong>fases</strong> (visão macro). Este documento serve 
+                como referência para o planejamento geral do AEE. Use "Definir como ciclo ativo" para referência em outras abas.
+              </p>
+              <p className="text-xs text-violet-600 mt-3 font-medium bg-violet-50 px-3 py-2 rounded-lg border border-violet-200">
+                💡 Para metas SMART, acompanhamento por semanas e Jornada Gamificada, use a aba <strong>Execução e Metas SMART</strong>.
+              </p>
+            </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="font-bold text-slate-800">Histórico de ciclos de planejamento</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+                Histórico de ciclos de planejamento
+              </h3>
             {cicloAtivoPlanejamento && (
               <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50">
                 <div className="text-sm font-semibold text-emerald-800">Ciclo ativo</div>
@@ -502,8 +492,11 @@ export function PAEEClient({ students, studentId, student }: Props) {
               </div>
             )}
 
-            <div className="pt-4 border-t border-slate-200">
-              <h3 className="font-bold text-slate-800 mb-3">Gerar novo ciclo</h3>
+            <div className="pt-4 border-t-2 border-violet-200">
+              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+                Gerar novo ciclo
+              </h3>
               <FormPlanejamento
                 metasPei={metasPei}
                 hiperfoco={hiperfoco}
@@ -513,7 +506,10 @@ export function PAEEClient({ students, studentId, student }: Props) {
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-bold text-slate-800">Visualização</h3>
+            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+              Visualização
+            </h3>
             {cicloParaVerPlanejamento ? (
               <CicloCard ciclo={cicloParaVerPlanejamento} onSalvar={cicloPreview?.tipo === "planejamento_aee" ? () => saveCiclo(cicloParaVerPlanejamento) : undefined} saving={saving} onLimpar={() => setCicloPreview(null)} />
             ) : (
@@ -527,19 +523,30 @@ export function PAEEClient({ students, studentId, student }: Props) {
       )}
 
       {activeTab === "execucao" && (
-        <div className="space-y-6">
-          <div className="p-4 rounded-lg bg-violet-50 border border-violet-200">
-            <h3 className="text-lg font-bold text-slate-800 mb-2">🎯 Execução e Metas SMART</h3>
-            <p className="text-sm text-slate-700">
-              <strong>Norteador operacional:</strong> Plano de execução e acompanhamento com metas desdobradas em SMART, ações por <strong>semana</strong> e registro do que foi cumprido. Este ciclo alimenta a <strong>Jornada Gamificada</strong> do estudante.
-            </p>
-            <p className="text-xs text-slate-600 mt-2">
-              💡 Para documento de planejamento geral (objetivos, período, recursos, cronograma em fases), use a aba <strong>Planejamento AEE</strong>.
-            </p>
+        <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white shadow-sm">
+          {/* Header da aba */}
+          <div className="flex items-start gap-4 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+              <Target className="w-6 h-6 text-violet-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-2xl font-black text-slate-900 mb-2">Execução e Metas SMART</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                <strong className="text-violet-700">Norteador operacional:</strong> Plano de execução e acompanhamento com metas 
+                desdobradas em SMART, ações por <strong>semana</strong> e registro do que foi cumprido. Este ciclo alimenta a 
+                <strong> Jornada Gamificada</strong> do estudante e serve como guia prático para a execução do trabalho no AEE.
+              </p>
+              <p className="text-xs text-violet-600 mt-3 font-medium bg-violet-50 px-3 py-2 rounded-lg border border-violet-200">
+                💡 Para documento de planejamento geral (objetivos, período, recursos, cronograma em fases), use a aba <strong>Planejamento AEE</strong>.
+              </p>
+            </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="font-bold text-slate-800">Histórico de ciclos de execução</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+                Histórico de ciclos de execução
+              </h3>
             {ciclosExecucao.length > 0 && (
               <>
                 <select
@@ -574,13 +581,19 @@ export function PAEEClient({ students, studentId, student }: Props) {
                 )}
               </>
             )}
-            <div className="pt-4 border-t border-slate-200">
-              <h3 className="font-bold text-slate-800 mb-3">Gerar ciclo de execução</h3>
+            <div className="pt-4 border-t-2 border-violet-200">
+              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+                Gerar ciclo de execução
+              </h3>
               <FormExecucao metasPei={metasPei} onGerar={gerarPreviewExecucao} />
             </div>
           </div>
           <div className="space-y-4">
-            <h3 className="font-bold text-slate-800">Visualização</h3>
+            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+              Visualização
+            </h3>
             {cicloParaVerExecucao ? (
               <CicloCard ciclo={cicloParaVerExecucao} onSalvar={cicloPreview?.tipo === "execucao_smart" ? () => saveCiclo(cicloParaVerExecucao) : undefined} saving={saving} onLimpar={() => setCicloPreview(null)} />
             ) : (
@@ -821,27 +834,33 @@ function JornadaTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
-      <div className="space-y-2">
-        <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">Jornada Gamificada</div>
-        <div className="text-2xl font-black text-slate-900">Missão do(a) {student.name}</div>
-        <div className="text-sm text-slate-600">
-          Gere missões motivadoras a partir do planejamento. O roteiro será entregue ao estudante e à família — use linguagem de conquistas, nunca diagnósticos.
+    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+      {/* Header da aba */}
+      <div className="flex items-start gap-4 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+          <Map className="w-6 h-6 text-violet-600" />
         </div>
-      </div>
-
-      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800">
-          Cada aba do PAEE pode virar uma <strong>jornada gamificada</strong> para o estudante e a família.
-          Escolha a <strong>origem</strong> na lista abaixo. ⚠️ O material gerado será entregue ao estudante — diagnósticos e dados clínicos não são incluídos.
-        </p>
+        <div className="flex-1">
+          <h3 className="text-2xl font-black text-slate-900 mb-2">Jornada Gamificada</h3>
+          <p className="text-sm text-slate-600 leading-relaxed mb-3">
+            <strong className="text-violet-700">Missão do(a) {student.name}:</strong> Transforme o planejamento do AEE em uma 
+            jornada gamificada motivadora para o estudante e a família. A IA cria um roteiro com linguagem de conquistas, missões 
+            e recompensas, sem incluir diagnósticos ou informações clínicas.
+          </p>
+          <div className="p-3 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-lg">
+            <p className="text-sm text-violet-800">
+              Cada aba do PAEE pode virar uma <strong>jornada gamificada</strong>. Escolha a <strong>origem</strong> na lista abaixo. 
+              ⚠️ O material gerado será entregue ao estudante — diagnósticos e dados clínicos não são incluídos.
+            </p>
+          </div>
+        </div>
       </div>
 
       {status !== "rascunho" && (
         <button
           type="button"
           onClick={limpar}
-          className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50"
+          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
         </button>
@@ -1188,7 +1207,7 @@ function FormPlanejamento({
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Frequência</label>
-        <select value={frequencia} onChange={(e) => setFrequencia(e.target.value)} className="w-full px-3 py-2 border rounded-lg">
+        <select value={frequencia} onChange={(e) => setFrequencia(e.target.value)} className="omni-input w-full">
           {FREQUENCIAS.map((f) => (
             <option key={f} value={f}>{f.replace("_", " ")}</option>
           ))}
@@ -1197,7 +1216,7 @@ function FormPlanejamento({
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Data início</label>
-          <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="w-full px-3 py-2 border rounded-lg" />
+          <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="omni-input w-full" />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Data fim</label>
@@ -1206,7 +1225,7 @@ function FormPlanejamento({
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Foco principal</label>
-        <input type="text" value={foco} onChange={(e) => setFoco(e.target.value)} className="w-full px-3 py-2 border rounded-lg" />
+        <input type="text" value={foco} onChange={(e) => setFoco(e.target.value)} className="omni-input w-full" />
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
@@ -1272,7 +1291,7 @@ function FormExecucao({
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Data início</label>
-          <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="w-full px-3 py-2 border rounded-lg" />
+          <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="omni-input w-full" />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Data fim</label>
@@ -1281,7 +1300,7 @@ function FormExecucao({
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Foco</label>
-        <input type="text" value={foco} onChange={(e) => setFoco(e.target.value)} className="w-full px-3 py-2 border rounded-lg" />
+        <input type="text" value={foco} onChange={(e) => setFoco(e.target.value)} className="omni-input w-full" />
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
@@ -1479,22 +1498,28 @@ function MapearBarreirasTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
-      <div className="flex items-center gap-3 mb-4">
-        <AlertTriangle className="w-6 h-6 text-violet-600" />
-        <h3 className="text-xl font-bold text-slate-800">Mapear Barreiras</h3>
-      </div>
-      <div className="p-3 rounded-lg bg-violet-50 border border-violet-200 mb-4">
-        <p className="text-sm text-violet-800">
-          <strong>Diagnóstico de Acessibilidade:</strong> Identifique o que impede a participação plena do estudante (barreiras atitudinais, arquitetônicas, tecnológicas). Resultado para uso da equipe.
-        </p>
+    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+      {/* Header da aba */}
+      <div className="flex items-start gap-4 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+          <AlertTriangle className="w-6 h-6 text-violet-600" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-2xl font-black text-slate-900 mb-2">Mapear Barreiras</h3>
+          <p className="text-sm text-slate-600 leading-relaxed">
+            <strong className="text-violet-700">Diagnóstico de Barreiras:</strong> Mapeie barreiras na aprendizagem (uso interno da equipe). 
+            O resultado ajuda a planejar estratégias; não será exposto ao estudante. A IA classifica as barreiras segundo a LBI 
+            (Lei Brasileira de Inclusão) em: <strong>Comunicacionais</strong>, <strong>Metodológicas</strong>, 
+            <strong> Atitudinais</strong>, <strong>Tecnológicas</strong> e <strong>Arquitetônicas</strong>.
+          </p>
+        </div>
       </div>
 
       {status !== "rascunho" && (
         <button
           type="button"
           onClick={limpar}
-          className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50"
+          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
         </button>
@@ -1511,7 +1536,7 @@ function MapearBarreirasTab({
               onChange={(e) => setObservacoes(e.target.value)}
               placeholder="Exemplo: O estudante se recusa a escrever quando solicitado, demonstrando ansiedade e evitamento. Durante atividades de escrita, ele tenta sair da sala ou distrai os colegas. Quando consegue iniciar, abandona a tarefa após algumas linhas, dizendo que está cansado ou que não sabe fazer."
               rows={6}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              className="omni-input w-full text-sm focus:border-violet-500 focus:ring-violet-500/20"
             />
           </div>
           <EngineSelector value={engine} onChange={setEngine} />
@@ -1538,7 +1563,7 @@ function MapearBarreirasTab({
       ) : status === "revisao" ? (
         <div className="space-y-4">
           <FormattedTextDisplay texto={diagnostico} titulo="Diagnóstico de Barreiras Gerado" />
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-3 flex-wrap">
             <button
               type="button"
               onClick={() => {
@@ -1547,7 +1572,7 @@ function MapearBarreirasTab({
               }}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
-              ✅ Validar e Finalizar
+              Validar e Finalizar
             </button>
             <button
               type="button"
@@ -1556,14 +1581,14 @@ function MapearBarreirasTab({
               }}
               className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
             >
-              🔄 Solicitar Ajustes
+              Solicitar Ajustes
             </button>
             <button
               type="button"
               onClick={limpar}
-              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+              className="px-5 py-2.5 bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 rounded-xl shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-semibold"
             >
-              🗑️ Descartar e Regenerar
+              Descartar e Regenerar
             </button>
             <PdfDownloadButton
               text={diagnostico}
@@ -1592,14 +1617,23 @@ function MapearBarreirasTab({
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={() => gerar(feedback)}
               disabled={loading || !feedback.trim()}
-              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
+              className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {loading ? "Regerando..." : "🔄 Regerar com Ajustes"}
+              {loading ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  Regerando...
+                </>
+              ) : (
+                <>
+                  Regerar com Ajustes
+                </>
+              )}
             </button>
             <button
               type="button"
@@ -1607,9 +1641,9 @@ function MapearBarreirasTab({
                 setStatus("revisao");
                 setFeedback("");
               }}
-              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+              className="px-5 py-2.5 bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 rounded-xl shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-semibold"
             >
-              ↩️ Cancelar Ajustes
+              Cancelar Ajustes
             </button>
           </div>
           {erro && <p className="text-red-600 text-sm">{erro}</p>}
@@ -1739,22 +1773,27 @@ function PlanoHabilidadesTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
-      <div className="flex items-center gap-3 mb-4">
-        <Target className="w-6 h-6 text-violet-600" />
-        <h3 className="text-xl font-bold text-slate-800">Plano de Habilidades</h3>
-      </div>
-      <div className="p-3 rounded-lg bg-violet-50 border border-violet-200 mb-4">
-        <p className="text-sm text-violet-800">
-          <strong>Treino de Habilidades:</strong> Desenvolvimento de competências específicas no AEE.
-        </p>
+    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+      {/* Header da aba */}
+      <div className="flex items-start gap-4 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+          <Target className="w-6 h-6 text-violet-600" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-2xl font-black text-slate-900 mb-2">Plano de Habilidades</h3>
+          <p className="text-sm text-slate-600 leading-relaxed">
+            <strong className="text-violet-700">Plano de Intervenção AEE:</strong> A IA cria um plano detalhado de intervenção 
+            a partir do foco de atendimento selecionado. O plano inclui 3 metas SMART (curto, médio e longo prazo) com estratégias 
+            de ensino, recursos necessários, frequência de intervenção e critérios de sucesso. Este plano orienta o trabalho do AEE.
+          </p>
+        </div>
       </div>
 
       {status !== "rascunho" && (
         <button
           type="button"
           onClick={limpar}
-          className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50"
+          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
         </button>
@@ -1994,22 +2033,28 @@ function TecAssistivaTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
-      <div className="flex items-center gap-3 mb-4">
-        <Puzzle className="w-6 h-6 text-violet-600" />
-        <h3 className="text-xl font-bold text-slate-800">Tecnologia Assistiva</h3>
-      </div>
-      <div className="p-3 rounded-lg bg-violet-50 border border-violet-200 mb-4">
-        <p className="text-sm text-violet-800">
-          <strong>Tecnologia Assistiva:</strong> Recursos para promover autonomia e participação.
-        </p>
+    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+      {/* Header da aba */}
+      <div className="flex items-start gap-4 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+          <Puzzle className="w-6 h-6 text-violet-600" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-2xl font-black text-slate-900 mb-2">Tecnologia Assistiva</h3>
+          <p className="text-sm text-slate-600 leading-relaxed">
+            <strong className="text-violet-700">Recursos de Tecnologia Assistiva:</strong> A IA sugere recursos em 3 níveis 
+            (Baixa, Média e Alta Tecnologia) para promover autonomia e participação do estudante. Cada sugestão inclui descrição, 
+            finalidade, como usar na prática, benefícios e onde encontrar/comprar. Esses recursos eliminam barreiras e ampliam 
+            as possibilidades de participação do estudante.
+          </p>
+        </div>
       </div>
 
       {status !== "rascunho" && (
         <button
           type="button"
           onClick={limpar}
-          className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50"
+          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
         </button>
@@ -2249,22 +2294,28 @@ function ArticulacaoTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
-      <div className="flex items-center gap-3 mb-4">
-        <Users className="w-6 h-6 text-violet-600" />
-        <h3 className="text-xl font-bold text-slate-800">Articulação</h3>
-      </div>
-      <div className="p-3 rounded-lg bg-violet-50 border border-violet-200 mb-4">
-        <p className="text-sm text-violet-800">
-          <strong>Ponte com a Sala Regular:</strong> Documento colaborativo para articulação entre AEE e sala de aula.
-        </p>
+    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+      {/* Header da aba */}
+      <div className="flex items-start gap-4 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+          <Users className="w-6 h-6 text-violet-600" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-2xl font-black text-slate-900 mb-2">Articulação</h3>
+          <p className="text-sm text-slate-600 leading-relaxed">
+            <strong className="text-violet-700">Documento de Articulação AEE ↔ Sala Regular:</strong> A IA gera uma carta formal 
+            mas acolhedora que articula o trabalho desenvolvido no AEE com a sala regular. O documento inclui resumo das habilidades 
+            desenvolvidas, estratégias de generalização, orientações práticas, plano de ação conjunto e próximos passos. 
+            Este documento fortalece a colaboração entre AEE e sala de aula.
+          </p>
+        </div>
       </div>
 
       {status !== "rascunho" && (
         <button
           type="button"
           onClick={limpar}
-          className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50"
+          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
         </button>

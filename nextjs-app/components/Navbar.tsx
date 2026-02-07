@@ -20,7 +20,24 @@ import {
   Sparkles,
   BookMarked,
 } from "lucide-react";
+import {
+  House,
+  UsersFour,
+  FileText as FileTextPhosphor,
+  PuzzlePiece,
+  RocketLaunch,
+  BookOpen as BookOpenPhosphor,
+  ChartLineUp,
+  Gear,
+  UsersThree,
+  ClipboardText,
+  ShieldCheckered,
+  SignOut,
+  Sparkle,
+  BookBookmark,
+} from "phosphor-react";
 import type { LucideIcon } from "lucide-react";
+import type { Icon } from "phosphor-react";
 
 type PermissionKey =
   | "can_estudantes"
@@ -34,22 +51,22 @@ type PermissionKey =
 type NavItem = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: Icon;
   permission?: PermissionKey;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/estudantes", label: "Estudantes", icon: Users, permission: "can_estudantes" },
-  { href: "/pei", label: "PEI", icon: FileText, permission: "can_pei" },
-  { href: "/paee", label: "PAEE", icon: Puzzle, permission: "can_paee" },
-  { href: "/hub", label: "Hub", icon: Rocket, permission: "can_hub" },
-  { href: "/diario", label: "Diário", icon: BookOpen, permission: "can_diario" },
-  { href: "/monitoramento", label: "Monitoramento", icon: BarChart3, permission: "can_avaliacao" },
-  { href: "/infos", label: "Central", icon: BookMarked },
-  { href: "/config-escola", label: "Config", icon: Settings, permission: "can_gestao" },
-  { href: "/gestao", label: "Gestão", icon: UserCog, permission: "can_gestao" },
-  { href: "/pgi", label: "PGI", icon: ClipboardList, permission: "can_gestao" },
+  { href: "/", label: "Home", icon: House },
+  { href: "/estudantes", label: "Estudantes", icon: UsersFour, permission: "can_estudantes" },
+  { href: "/pei", label: "PEI", icon: FileTextPhosphor, permission: "can_pei" },
+  { href: "/paee", label: "PAEE", icon: PuzzlePiece, permission: "can_paee" },
+  { href: "/hub", label: "Hub", icon: RocketLaunch, permission: "can_hub" },
+  { href: "/diario", label: "Diário", icon: BookOpenPhosphor, permission: "can_diario" },
+  { href: "/monitoramento", label: "Monitoramento", icon: ChartLineUp, permission: "can_avaliacao" },
+  { href: "/infos", label: "Central", icon: BookBookmark },
+  { href: "/config-escola", label: "Config", icon: Gear, permission: "can_gestao" },
+  { href: "/gestao", label: "Gestão", icon: UsersThree, permission: "can_gestao" },
+  { href: "/pgi", label: "PGI", icon: ClipboardText, permission: "can_gestao" },
 ];
 
 function canAccess(
@@ -74,11 +91,11 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   }
 
   const items = session.is_platform_admin
-    ? [{ href: "/admin", label: "Admin", icon: Shield }]
+    ? [{ href: "/admin", label: "Admin", icon: ShieldCheckered }]
     : NAV_ITEMS.filter((item) => canAccess(item, session));
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm rounded-b-xl">
       <div className="max-w-[1920px] mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -127,7 +144,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
                       }`}
                       title={item.label}
                     >
-                      <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-500"}`} />
+                      <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-500"}`} weight={isActive ? "fill" : "regular"} />
                       <span>{item.label}</span>
                     </Link>
                   );
@@ -162,7 +179,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
               title="Sair"
             >
-              <LogOut className="w-4 h-4" />
+              <SignOut className="w-4 h-4" weight="regular" />
               <span className="hidden md:inline">Sair</span>
             </button>
           </div>
