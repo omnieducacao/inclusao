@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { listStudents, getStudent } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
 import { PEIClient } from "./PEIClient";
+import { FileText } from "lucide-react";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -25,9 +26,9 @@ export default async function PEIPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <PageHero
-        icon="📘"
-        title="PEI — Plano de Ensino Individualizado"
-        desc="Estratégias pedagógicas alinhadas à BNCC."
+        icon={FileText}
+        title="Estratégias & PEI"
+        desc="Plano Educacional Individual com objetivos, avaliações e acompanhamento."
         color="sky"
       />
 

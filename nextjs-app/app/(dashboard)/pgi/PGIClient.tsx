@@ -8,6 +8,7 @@ import {
   type DimensionamentoPGI,
 } from "@/lib/pgi";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
+import { Plus, User, Trash2, Save, MapPin, Calendar } from "lucide-react";
 
 type TabId = "inicial" | "gerador";
 
@@ -278,7 +279,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
   return (
     <div className="space-y-6">
       {/* Dimensionamento */}
-      <details className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+      <details className="rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4">
         <summary className="cursor-pointer font-medium text-slate-700">Dimensionamento preliminar (opcional)</summary>
         <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
@@ -350,14 +351,15 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
               onClick={() => addRapida(oq, pq, t)}
               className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50"
             >
-              ➕ {oq}
+              <Plus className="w-3 h-3 inline mr-1" />
+              {oq}
             </button>
           ))}
         </div>
       </div>
 
       {/* Formulário */}
-      <form onSubmit={handleAddAcao} className="rounded-xl border border-slate-200 bg-white p-4 space-y-4">
+      <form onSubmit={handleAddAcao} className="rounded-xl border-2 border-slate-200 bg-white p-6 space-y-4 shadow-sm min-h-[200px]">
         <h4 className="font-semibold text-slate-800">Adicionar ação ao plano</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -473,7 +475,12 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
           disabled={saving}
           className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 disabled:opacity-60"
         >
-          {saving ? "Salvando…" : "➕ Adicionar ação ao plano"}
+          {saving ? "Salvando…" : (
+            <>
+              <Plus className="w-4 h-4 inline mr-1" />
+              Adicionar ação ao plano
+            </>
+          )}
         </button>
       </form>
 
@@ -514,9 +521,18 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
                       <p className="text-sm text-slate-500 mt-1">{a.por_que}</p>
                     )}
                     <div className="flex flex-wrap gap-4 mt-2 text-xs text-slate-500">
-                      <span>👤 {a.quem || "—"}</span>
-                      <span>📍 {a.onde || "—"}</span>
-                      <span>📅 {prazoFmt}</span>
+                      <span className="flex items-center gap-1">
+                        <User className="w-4 h-4" />
+                        {a.quem || "—"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        {a.onde || "—"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {prazoFmt}
+                      </span>
                       <span>💰 {a.custo || "—"}</span>
                     </div>
                     {a.perfil?.length ? (
@@ -547,7 +563,8 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
                         onClick={() => setConfirmDel(i)}
                         className="text-red-600 hover:underline text-sm"
                       >
-                        🗑️ Remover
+                        <Trash2 className="w-4 h-4 inline mr-1" />
+                        Remover
                       </button>
                     )}
                   </div>

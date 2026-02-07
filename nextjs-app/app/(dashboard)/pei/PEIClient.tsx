@@ -36,6 +36,20 @@ import {
   Pill,
   CheckCircle2,
   XCircle,
+  User,
+  Search,
+  Users,
+  Radar,
+  Puzzle,
+  RotateCw,
+  ClipboardList,
+  Bot,
+  FileDown,
+  Info,
+  Settings,
+  BookOpen,
+  CheckCircle,
+  AlertTriangle,
 } from "lucide-react";
 
 type HabilidadeBncc = {
@@ -88,8 +102,11 @@ export function PEIClient({
   const [peiData, setPeiData] = useState<PEIData>(initialPeiData as PEIData);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(studentId || searchParams.get("student"));
+  const [jsonPending, setJsonPending] = useState<PEIData | null>(null);
+  const [jsonFileName, setJsonFileName] = useState<string>("");
 
-  const currentStudentId = studentId || searchParams.get("student");
+  const currentStudentId = selectedStudentId;
 
   function updateField<K extends keyof PEIData>(key: K, value: PEIData[K]) {
     setPeiData((prev) => ({ ...prev, [key]: value }));
@@ -125,6 +142,101 @@ export function PEIClient({
     setSaved(false);
   }
 
+  // ==============================================================================
+  // FUNÇÕES DE PROGRESSO (equivalente ao Streamlit)
+  // ==============================================================================
+  function _isFilled(value: unknown): boolean {
+    if (value === null || value === undefined) return false;
+    if (typeof value === "string") return value.trim().length > 0;
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === "object") {
+      const obj = value as Record<string, unknown>;
+      return Object.keys(obj).length > 0 && Object.values(obj).some((v) => _isFilled(v));
+    }
+    return true;
+  }
+
+  function _abaOk(key: string): boolean {
+    const d = peiData;
+    
+    if (key === "INICIO") {
+      return _isFilled(d.nome);
+    }
+    
+    if (key === "ESTUDANTE") {
+      return _isFilled(d.nome) && _isFilled(d.serie) && _isFilled(d.turma);
+    }
+    
+    if (key === "EVIDENCIAS") {
+      const chk = d.checklist_evidencias || {};
+      return Object.values(chk).some((v) => Boolean(v)) || _isFilled(d.orientacoes_especialistas);
+    }
+    
+    if (key === "REDE") {
+      return _isFilled(d.rede_apoio) || _isFilled(d.orientacoes_especialistas) || _isFilled(d.orientacoes_por_profissional);
+    }
+    
+    if (key === "MAPEAMENTO") {
+      const barreiras = d.barreiras_selecionadas || {};
+      const nBar = Object.values(barreiras).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+      return _isFilled(d.hiperfoco) || _isFilled(d.potencias) || nBar > 0;
+    }
+    
+    if (key === "PLANO") {
+      return _isFilled(d.estrategias_acesso) || _isFilled(d.estrategias_ensino) || _isFilled(d.estrategias_avaliacao) ||
+             _isFilled(d.outros_acesso) || _isFilled(d.outros_ensino);
+    }
+    
+    if (key === "MONITORAMENTO") {
+      return _isFilled(d.monitoramento_data) && _isFilled(d.status_meta);
+    }
+    
+    if (key === "IA") {
+      return _isFilled(d.ia_sugestao) && (d.status_validacao_pei === "revisao" || d.status_validacao_pei === "aprovado");
+    }
+    
+    if (key === "DASH") {
+      return _isFilled(d.ia_sugestao);
+    }
+    
+    return false;
+  }
+
+  function calcularProgresso(): number {
+    const checkpoints = ["ESTUDANTE", "EVIDENCIAS", "REDE", "MAPEAMENTO", "PLANO", "MONITORAMENTO", "IA", "DASH"];
+    const done = checkpoints.filter((k) => _abaOk(k)).length;
+    const total = checkpoints.length;
+    return total > 0 ? Math.round((done / total) * 100) : 0;
+  }
+
+  function RenderProgresso() {
+    const p = Math.max(0, Math.min(100, calcularProgresso()));
+    const barColor = p >= 100 
+      ? "linear-gradient(90deg, #34D399 0%, #059669 100%)"
+      : p >= 50
+      ? "linear-gradient(90deg, #60A5FA 0%, #3B82F6 100%)"
+      : "linear-gradient(90deg, #FBBF24 0%, #F59E0B 100%)";
+    
+    return (
+      <div className="mb-4">
+        <div className="relative w-full h-2.5 bg-slate-200 rounded-full overflow-hidden shadow-inner">
+          {/* Barra de progresso com animação */}
+          <div 
+            className="absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out shadow-sm"
+            style={{ 
+              width: `${p}%`, 
+              background: barColor,
+              boxShadow: p > 0 ? `0 0 10px ${p >= 100 ? '#34D399' : p >= 50 ? '#60A5FA' : '#FBBF24'}40` : 'none'
+            }}
+          >
+            {/* Efeito de brilho animado */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   async function handleSave() {
     if (!currentStudentId) return;
     setSaving(true);
@@ -145,9 +257,30 @@ export function PEIClient({
     }
   }
 
+  // Componente de feedback de salvamento
+  function SaveFeedback() {
+    if (saving) {
+      return (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-2xl animate-slide-up">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span className="font-medium">Salvando...</span>
+        </div>
+      );
+    }
+    if (saved) {
+      return (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-emerald-600 text-white rounded-xl shadow-2xl animate-slide-up">
+          <CheckCircle2 className="w-5 h-5" />
+          <span className="font-medium">Salvo com sucesso!</span>
+        </div>
+      );
+    }
+    return null;
+  }
+
   if (students.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
+      <div className="bg-white rounded-xl border-2 border-slate-200 p-8 text-center">
         <p className="text-slate-600">
           Nenhum estudante cadastrado. Crie um estudante em{" "}
           <Link href="/estudantes" className="text-sky-600 hover:underline">
@@ -159,205 +292,623 @@ export function PEIClient({
     );
   }
 
+  // Carregar dados do estudante quando selecionado
+  useEffect(() => {
+    if (selectedStudentId && selectedStudentId !== studentId) {
+      // Buscar dados do estudante selecionado
+      fetch(`/api/students/${selectedStudentId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.pei_data) {
+            setPeiData(data.pei_data as PEIData);
+            setSaved(false);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [selectedStudentId, studentId]);
+
+  // Aplicar JSON pendente
+  function aplicarJson() {
+    if (jsonPending) {
+      setPeiData(jsonPending);
+      setSelectedStudentId(null); // JSON local não cria vínculo com nuvem
+      setJsonPending(null);
+      setJsonFileName("");
+      setSaved(false);
+    }
+  }
+
+  // Função para verificar status de cada aba
+  function getTabStatus(tabId: TabId): "complete" | "in-progress" | "empty" {
+    const d = peiData;
+    
+    switch (tabId) {
+      case "inicio":
+        return _isFilled(d.nome) ? "complete" : "empty";
+      case "estudante":
+        return _isFilled(d.nome) && _isFilled(d.serie) && _isFilled(d.turma) ? "complete" : _isFilled(d.nome) ? "in-progress" : "empty";
+      case "evidencias":
+        const chk = d.checklist_evidencias || {};
+        const hasEvidencias = Object.values(chk).some((v) => v === true);
+        return hasEvidencias ? "complete" : "empty";
+      case "rede":
+        const rede = d.rede_apoio_tags || [];
+        return rede.length > 0 ? "complete" : "empty";
+      case "mapeamento":
+        const barreiras = d.barreiras_selecionadas || {};
+        const hasBarreiras = Object.values(barreiras).some((arr) => Array.isArray(arr) && arr.length > 0);
+        return hasBarreiras ? "complete" : "empty";
+      case "plano":
+        const metas = d.metas || [];
+        return metas.length > 0 ? "complete" : "empty";
+      case "monitoramento":
+        return _isFilled(d.parecer_geral) ? "complete" : "empty";
+      case "bncc":
+        const habs = d.habilidades_bncc_selecionadas || [];
+        return habs.length > 0 ? "complete" : "empty";
+      case "consultoria":
+        return _isFilled(d.status_validacao_pei) && d.status_validacao_pei !== "rascunho" ? "complete" : "empty";
+      case "dashboard":
+        return calcularProgresso() >= 50 ? "complete" : calcularProgresso() > 0 ? "in-progress" : "empty";
+      default:
+        return "empty";
+    }
+  }
+
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="p-4 border-b border-slate-100 flex flex-wrap items-center gap-4">
-        <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Estudante</label>
-          <StudentSelector students={students} currentId={currentStudentId} placeholder="Selecione o estudante" />
+    <div className="bg-white rounded-xl border-2 border-slate-200 shadow-lg overflow-hidden">
+      {/* Barra de Progresso Global */}
+      <div className="px-6 pt-4 pb-2 bg-gradient-to-r from-slate-50 to-blue-50/30 border-b border-slate-200">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+            <span className="text-xs font-semibold text-slate-600">Progresso do PEI</span>
+          </div>
+          <span className="text-sm font-bold text-slate-700">{calcularProgresso()}%</span>
+        </div>
+        <RenderProgresso />
+      </div>
+
+      {/* Navegação de Abas com Indicadores Visuais */}
+      <div className="flex border-b-2 border-slate-200 bg-white overflow-x-auto scrollbar-hide">
+        {TABS.map((t) => {
+          const status = getTabStatus(t.id);
+          const isActive = activeTab === t.id;
+          
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className={`group relative px-4 py-3 text-xs font-semibold whitespace-nowrap flex-shrink-0 flex items-center gap-2 transition-all duration-200 ${
+                isActive 
+                  ? "text-sky-600 border-b-2 border-sky-600 bg-gradient-to-b from-sky-50 to-white" 
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+              }`}
+            >
+              {/* Indicador de Status */}
+              <div className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                status === "complete" 
+                  ? "bg-emerald-500 shadow-sm shadow-emerald-500/50" 
+                  : status === "in-progress"
+                  ? "bg-amber-500 shadow-sm shadow-amber-500/50"
+                  : "bg-slate-300"
+              }`} />
+              
+              <span className={isActive ? "font-bold" : ""}>{t.label}</span>
+              
+              {/* Tooltip de status */}
+              {status === "complete" && (
+                <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Breadcrumb e Navegação Contextual */}
+      <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-200 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm">
+          <Link href="/" className="text-slate-500 hover:text-sky-600 transition-colors">Home</Link>
+          <span className="text-slate-300">/</span>
+          <span className="text-slate-700 font-medium">PEI</span>
+          <span className="text-slate-300">/</span>
+          <span className="text-sky-600 font-semibold">{TABS.find(t => t.id === activeTab)?.label}</span>
         </div>
         {currentStudentId && (
-          <>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 disabled:opacity-60 mt-6"
-            >
-              {saving ? "Salvando…" : saved ? "Salvo ✓" : "Salvar PEI"}
-            </button>
-            <Link href="/estudantes" className="text-sm text-slate-500 hover:text-slate-700 mt-6">
-              ← Estudantes
-            </Link>
-          </>
+          <div className="flex items-center gap-2 text-xs text-slate-600">
+            <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+            <span>Estudante selecionado</span>
+          </div>
         )}
       </div>
 
-      {!currentStudentId ? (
-        <div className="p-8 text-center text-slate-500">Selecione um estudante para editar o PEI.</div>
-      ) : (
-        <>
-          <div className="flex border-b border-slate-100 overflow-x-auto">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setActiveTab(t.id)}
-                className={`px-3 py-2.5 text-xs font-medium whitespace-nowrap ${
-                  activeTab === t.id ? "text-sky-600 border-b-2 border-sky-600 bg-sky-50/50" : "text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="p-6 max-h-[70vh] overflow-y-auto">
+      <div className="p-6 max-h-[70vh] overflow-y-auto scroll-smooth">
             {activeTab === "inicio" && (
-              <div className="space-y-4 max-w-2xl">
-                <div className="rounded-lg border border-slate-200 p-4 bg-slate-50/50">
-                  <h3 className="font-semibold text-slate-800">Fundamentos do PEI</h3>
-                  <p className="text-sm text-slate-600 mt-2">
-                    O PEI organiza o planejamento individualizado com foco em barreiras e apoios. Equidade: ajustar
-                    acesso, ensino e avaliação, sem baixar expectativas. Base: LBI (Lei 13.146/2015), LDB.
-                  </p>
+              <div className="space-y-6 max-w-4xl">
+                {/* Título da aba com ícone */}
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="w-5 h-5 text-sky-600" />
+                  <h3 className="text-lg font-semibold text-slate-800">Central de Fundamentos e Gestão</h3>
                 </div>
-                <div className="rounded-lg border border-slate-200 p-4">
-                  <h3 className="font-semibold text-slate-800">Como usar</h3>
-                  <ol className="list-decimal list-inside text-sm text-slate-600 mt-2 space-y-1">
-                    <li>Estudante: identificação + contexto</li>
-                    <li>Evidências: o que foi observado</li>
-                    <li>Mapeamento: barreiras + potências</li>
-                    <li>Plano de Ação: acesso/ensino/avaliação</li>
-                    <li>Consultoria IA: gerar documento técnico</li>
-                    <li>Dashboard: exportações</li>
-                  </ol>
+                
+                {/* Coluna Esquerda: Fundamentos */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="rounded-lg border-2 border-slate-200 p-6 bg-white min-h-[160px]">
+                      <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-sky-600" />
+                        Fundamentos do PEI
+                      </h4>
+                      <p className="text-sm text-slate-600">
+                        O PEI organiza o planejamento individualizado com foco em barreiras e apoios. Equidade: ajustar
+                        acesso, ensino e avaliação, sem baixar expectativas. Base: LBI (Lei 13.146/2015), LDB.
+                      </p>
+                    </div>
+                    <div className="rounded-lg border-2 border-slate-200 p-6 bg-white min-h-[160px]">
+                      <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                        <Info className="w-4 h-4 text-sky-600" />
+                        Como usar a Omnisfera
+                      </h4>
+                      <ol className="list-decimal list-inside text-sm text-slate-600 space-y-1">
+                        <li>Estudante: identificação + contexto + laudo (opcional)</li>
+                        <li>Evidências: o que foi observado e como aparece na rotina</li>
+                        <li>Mapeamento: barreiras + nível de apoio + potências</li>
+                        <li>Plano de Ação: acesso/ensino/avaliação</li>
+                        <li>Consultoria IA: gerar o documento técnico (validação do educador)</li>
+                        <li>Dashboard: KPIs + exportações + sincronização</li>
+                      </ol>
+                    </div>
+                    <details className="rounded-lg border-2 border-slate-200 p-4 bg-white">
+                      <summary className="cursor-pointer font-semibold text-slate-800 mb-2">
+                        📘 PEI/PDI e a Prática Inclusiva — Amplie o conhecimento
+                      </summary>
+                        <div className="mt-3 text-sm text-slate-600 space-y-3">
+                          <p>
+                            O <strong>Plano Educacional Individualizado (PEI)</strong>, também denominado <strong>Plano de Desenvolvimento Individual (PDI)</strong>, é um roteiro de intervenção pedagógica personalizado e flexível que norteia o processo de aprendizagem em sala comum para público-alvo da educação inclusiva. Tem o objetivo de <strong>remover obstáculos</strong> e <strong>promover a escolarização</strong>.
+                          </p>
+                          <p>
+                            O PEI/PDI leva em conta as particularidades do(a) aluno(a), incluindo-o no repertório da classe que frequenta e tendo como referência a <strong>mesma matriz curricular</strong> do ano a ser cursado.
+                          </p>
+                          <p>
+                            <strong>Caráter obrigatório:</strong> deve ser atualizado sistematicamente e compor a documentação escolar de alunos com deficiência, transtorno global do desenvolvimento e altas habilidades/superdotação. Respeita as orientações do laudo médico, quando houver. Se o aluno apresentar condições descritas e não possuir acompanhamento externo, cabe à escola orientar a família na busca de recursos para diagnóstico e obtenção de dados.
+                          </p>
+                          <p>
+                            <strong>Elaboração:</strong> pela equipe multidisciplinar da escola; discutido com a família e profissionais externos no início do ano letivo; replanejado ao final de cada unidade e/ou período de avaliação. Em transferência, o PEI deve compor a documentação do aluno egresso.
+                          </p>
+                          <div>
+                            <p className="font-semibold mb-1">Registros fundamentais:</p>
+                            <ul className="list-disc list-inside space-y-1 ml-2">
+                              <li>Identidade do aluno</li>
+                              <li>Necessidades específicas (características mais recorrentes)</li>
+                              <li>Dados sobre autonomia</li>
+                              <li>Dados atualizados sobre atendimentos externos</li>
+                              <li>Desenvolvimento escolar (leitura e raciocínio lógico-matemático)</li>
+                              <li>Necessidades de material pedagógico e tecnologias assistivas</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <p className="font-semibold mb-1">Avaliação da aprendizagem:</p>
+                            <p>
+                              Parte de objetivos mensuráveis e metas educacionais específicas. Deve considerar: implicações das funções e estrutura corporal, limitações no desempenho, condições socioemocionais. A avaliação <strong>não incide apenas sobre o resultado</strong>, mas sobre o processo — identificando conhecimentos construídos, dificuldades superadas e as que necessitam de mais tempo. A avaliação inclusiva <strong>não classifica</strong> em relação à turma; o que importa é o quanto e o como o aluno avança em relação ao seu conhecimento inicial. Nota/conceito segundo o avanço constatado.
+                            </p>
+                          </div>
+                          <p className="text-xs text-slate-500 italic">
+                            A família deve acompanhar a elaboração do PEI/PDI e consentir formalmente, participando da análise das avaliações sistemáticas.
+                          </p>
+                        </div>
+                    </details>
+                  </div>
+
+                  {/* Coluna Direita: Gestão de Estudantes */}
+                  <div className="space-y-4">
+                    <h4 className="text-base font-semibold text-slate-800 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-sky-600" />
+                      Gestão de Estudantes
+                    </h4>
+                    
+                    {/* Status do vínculo */}
+                    {currentStudentId ? (
+                      <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                        <p className="text-sm font-medium text-emerald-800">✅ Estudante vinculado ao Supabase (nuvem)</p>
+                        <p className="text-xs text-emerald-600 mt-1">student_id: {currentStudentId.slice(0, 8)}...</p>
+                      </div>
+                    ) : (
+                      <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                        <p className="text-sm font-medium text-amber-800">📝 Modo rascunho (sem vínculo na nuvem)</p>
+                      </div>
+                    )}
+
+                    {/* Seleção de Estudante */}
+                    <div className="p-6 rounded-lg border-2 border-slate-200 bg-white min-h-[140px]">
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Selecione o estudante</label>
+                      <StudentSelector 
+                        students={students} 
+                        currentId={currentStudentId} 
+                        placeholder="Selecione o estudante"
+                        onChange={(id) => {
+                          setSelectedStudentId(id);
+                          if (id) {
+                            // Atualizar URL sem recarregar
+                            const url = new URL(window.location.href);
+                            url.searchParams.set("student", id);
+                            window.history.pushState({}, "", url.toString());
+                          }
+                        }}
+                      />
+                      {currentStudentId && (
+                        <div className="mt-3 flex gap-2">
+                          <button
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="flex-1 px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 disabled:opacity-60"
+                          >
+                            {saving ? "Salvando…" : saved ? "Salvo ✓" : "Salvar PEI"}
+                          </button>
+                          <Link 
+                            href="/estudantes" 
+                            className="px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50"
+                          >
+                            ← Estudantes
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Backup Local: Upload JSON */}
+                    <div className="p-6 rounded-lg border-2 border-slate-200 bg-white min-h-[200px]">
+                      <h4 className="text-base font-semibold text-slate-800 mb-2">1) Carregar Backup Local (.JSON)</h4>
+                      <p className="text-xs text-slate-600 mb-3">
+                        ✅ Não comunica com Supabase. Envie o arquivo e clique em <strong>Carregar no formulário</strong>.
+                      </p>
+                      <input
+                        type="file"
+                        accept=".json,application/json"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              try {
+                                const json = JSON.parse(ev.target?.result as string);
+                                setJsonPending(json as PEIData);
+                                setJsonFileName(file.name);
+                              } catch (err) {
+                                alert(`Erro ao ler JSON: ${err}`);
+                              }
+                            };
+                            reader.readAsText(file);
+                          }
+                        }}
+                        className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg bg-white"
+                      />
+                      {jsonPending && (
+                        <div className="mt-3 space-y-2">
+                          <div className="p-2 rounded bg-white border border-slate-200">
+                            <p className="text-xs font-medium text-slate-700">Arquivo pronto ✅ ({jsonFileName})</p>
+                            <p className="text-xs text-slate-500 mt-1">Agora clique no botão abaixo para aplicar os dados no formulário.</p>
+                          </div>
+                          <details className="text-xs">
+                            <summary className="cursor-pointer text-slate-600 mb-1">👀 Prévia do backup</summary>
+                            <div className="p-2 bg-slate-50 rounded text-xs font-mono">
+                              {JSON.stringify({
+                                nome: jsonPending.nome,
+                                serie: jsonPending.serie,
+                                turma: jsonPending.turma,
+                                diagnostico: jsonPending.diagnostico,
+                                tem_ia_sugestao: !!jsonPending.ia_sugestao,
+                              }, null, 2)}
+                            </div>
+                          </details>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={aplicarJson}
+                              className="flex-1 px-3 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700"
+                            >
+                              📥 Carregar no formulário
+                            </button>
+                            <button
+                              onClick={() => {
+                                setJsonPending(null);
+                                setJsonFileName("");
+                              }}
+                              className="px-3 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50"
+                            >
+                              🧹 Limpar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Sincronização Cloud */}
+                    <div className="p-6 rounded-lg border-2 border-slate-200 bg-white min-h-[200px]">
+                      <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-sky-600" />
+                        Omnisfera Cloud
+                      </h4>
+                      <p className="text-xs text-slate-600 mb-3">
+                        Sincroniza o cadastro e <strong>salva todo o conteúdo do PEI</strong> na nuvem (coluna pei_data).
+                      </p>
+                      <button
+                        onClick={async () => {
+                          if (!currentStudentId) {
+                            alert("Selecione um estudante primeiro");
+                            return;
+                          }
+                          setSaving(true);
+                          try {
+                            // Criar/atualizar estudante e salvar PEI
+                            const res = await fetch(`/api/students/${currentStudentId}/pei`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify(peiData),
+                            });
+                            if (res.ok) {
+                              setSaved(true);
+                              setTimeout(() => setSaved(false), 3000);
+                              alert("PEI completo salvo na nuvem com sucesso! ☁️");
+                            }
+                          } catch (err) {
+                            alert(`Erro na sincronização: ${err}`);
+                          } finally {
+                            setSaving(false);
+                          }
+                        }}
+                        disabled={!currentStudentId || saving}
+                        className="w-full px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-60"
+                      >
+                        {saving ? "Sincronizando…" : "🔗 Sincronizar Tudo"}
+                      </button>
+                      {saved && (
+                        <div className="mt-3">
+                          <a
+                            href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
+                            download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.json`}
+                            className="block w-full px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 text-center"
+                          >
+                            📂 BAIXAR BACKUP (.JSON)
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
 
             {activeTab === "estudante" && (
-              <div className="space-y-4 max-w-3xl">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Nome completo</label>
-                    <input
-                      type="text"
-                      value={peiData.nome || ""}
-                      onChange={(e) => updateField("nome", e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Nascimento</label>
-                    <input
-                      type="date"
-                      value={typeof peiData.nasc === "string" ? peiData.nasc.split("T")[0] : ""}
-                      onChange={(e) => updateField("nasc", e.target.value || undefined)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                    />
-                  </div>
+              <div className="space-y-6 max-w-4xl">
+                <RenderProgresso />
+                {/* Título da aba com ícone */}
+                <div className="flex items-center gap-2 mb-4">
+                  <User className="w-5 h-5 text-sky-600" />
+                  <h3 className="text-lg font-semibold text-slate-800">Dossiê do Estudante</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Série/Ano</label>
-                    <select
-                      value={peiData.serie || ""}
-                      onChange={(e) => updateField("serie", e.target.value || null)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                    >
-                      <option value="">Selecione</option>
-                      {SERIES.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Turma</label>
-                    <input
-                      type="text"
-                      value={peiData.turma || ""}
-                      onChange={(e) => updateField("turma", e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                      placeholder="Ex: A"
-                    />
-                  </div>
-                </div>
+                
+                {/* Identificação - ORDEM EXATA: Nome, Nascimento, Série/Ano, Turma, Matrícula/RA */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Matrícula / RA</label>
-                  <input
-                    type="text"
-                    value={peiData.matricula || ""}
-                    onChange={(e) => updateField("matricula", e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  />
+                  <h4 className="text-base font-semibold text-slate-800 mb-3">Identificação</h4>
+                  <div className="grid grid-cols-12 gap-3">
+                    {/* Nome Completo - 3 colunas (25%) */}
+                    <div className="col-span-12 sm:col-span-6 lg:col-span-3">
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-2">
+                        Nome Completo
+                        {peiData.nome && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+                      </label>
+                      <input
+                        type="text"
+                        value={peiData.nome || ""}
+                        onChange={(e) => updateField("nome", e.target.value)}
+                        className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all duration-200 bg-white hover:border-slate-300"
+                        placeholder="Digite o nome completo do estudante"
+                      />
+                    </div>
+                    {/* Nascimento - 2 colunas (16.67%) */}
+                    <div className="col-span-12 sm:col-span-6 lg:col-span-2">
+                      <label className="block text-sm font-semibold text-slate-700 mb-1">Nascimento</label>
+                      <input
+                        type="date"
+                        value={typeof peiData.nasc === "string" ? peiData.nasc.split("T")[0] : ""}
+                        onChange={(e) => updateField("nasc", e.target.value || undefined)}
+                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                      />
+                    </div>
+                    {/* Série/Ano - 2 colunas (16.67%) */}
+                    <div className="col-span-12 sm:col-span-6 lg:col-span-2">
+                      <label className="block text-sm font-semibold text-slate-700 mb-1">Série/Ano</label>
+                      <select
+                        value={peiData.serie || ""}
+                        onChange={(e) => updateField("serie", e.target.value || null)}
+                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                      >
+                        <option value="">Selecione...</option>
+                        {SERIES.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* Turma - 1 coluna (8.33%) */}
+                    <div className="col-span-12 sm:col-span-3 lg:col-span-1">
+                      <label className="block text-sm font-semibold text-slate-700 mb-1">Turma</label>
+                      <input
+                        type="text"
+                        value={peiData.turma || ""}
+                        onChange={(e) => updateField("turma", e.target.value)}
+                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                        placeholder="Ex: A"
+                      />
+                    </div>
+                    {/* Matrícula / RA - 2 colunas (16.67%) */}
+                    <div className="col-span-12 sm:col-span-6 lg:col-span-2">
+                      <label className="block text-sm font-semibold text-slate-700 mb-1">Matrícula / RA</label>
+                      <input
+                        type="text"
+                        value={peiData.matricula || ""}
+                        onChange={(e) => updateField("matricula", e.target.value)}
+                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                        placeholder="Ex: 2026-001234"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Badge do segmento + descrição (após Série/Ano) */}
+                  {peiData.serie && (() => {
+                    const nivel = detectarNivelEnsino(peiData.serie);
+                    const segmentoInfo: Record<string, { nome: string; cor: string; desc: string }> = {
+                      EI: { nome: "Educação Infantil", cor: "#4299e1", desc: "Foco: Campos de Experiência (BNCC) e rotina estruturante." },
+                      EFI: { nome: "Ensino Fundamental Anos Iniciais (EFAI)", cor: "#48bb78", desc: "Foco: alfabetização, numeracia e consolidação de habilidades basais." },
+                      EFII: { nome: "Ensino Fundamental Anos Finais (EFAF)", cor: "#ed8936", desc: "Foco: autonomia, funções executivas, organização e aprofundamento conceitual." },
+                      EM: { nome: "Ensino Médio / EJA", cor: "#9f7aea", desc: "Foco: projeto de vida, áreas do conhecimento e estratégias de estudo." },
+                    };
+                    const info = segmentoInfo[nivel] || { nome: "Selecione a Série/Ano", cor: "#718096", desc: "Aguardando seleção..." };
+                    return (
+                      <div className="mt-3">
+                        <span
+                          className="inline-block px-3 py-1 rounded-lg text-xs font-semibold text-white"
+                          style={{ backgroundColor: info.cor }}
+                        >
+                          {info.nome}
+                        </span>
+                        <p className="text-xs text-slate-600 mt-2">{info.desc}</p>
+                      </div>
+                    );
+                  })()}
                 </div>
+
                 <hr />
+
+                {/* Histórico & Contexto Familiar */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Histórico Escolar</label>
-                  <textarea
-                    value={peiData.historico || ""}
-                    onChange={(e) => updateField("historico", e.target.value)}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  />
+                  <h4 className="text-base font-semibold text-slate-800 mb-3">Histórico & Contexto Familiar</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-1">Histórico Escolar</label>
+                      <textarea
+                        value={peiData.historico || ""}
+                        onChange={(e) => updateField("historico", e.target.value)}
+                        rows={4}
+                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-1">Dinâmica Familiar</label>
+                      <textarea
+                        value={peiData.familia || ""}
+                        onChange={(e) => updateField("familia", e.target.value)}
+                        rows={4}
+                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Composição Familiar */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">
+                      Quem convive com o estudante?
+                    </label>
+                    <p className="text-xs text-slate-500 mb-2">Incluímos Mãe 1 / Mãe 2 e Pai 1 / Pai 2 para famílias diversas.</p>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <select
+                          value={""}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const atual = peiData.composicao_familiar_tags || [];
+                              if (!atual.includes(e.target.value)) {
+                                updateField("composicao_familiar_tags", [...atual, e.target.value]);
+                              }
+                              e.target.value = "";
+                            }
+                          }}
+                          className="flex-1 px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                        >
+                          <option value="">Selecione para adicionar...</option>
+                          {LISTA_FAMILIA.filter((f) => !(peiData.composicao_familiar_tags || []).includes(f)).map((f) => (
+                            <option key={f} value={f}>{f}</option>
+                          ))}
+                        </select>
+                      </div>
+                      {(peiData.composicao_familiar_tags || []).length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {(peiData.composicao_familiar_tags || []).map((f) => (
+                            <span
+                              key={f}
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-sky-50 text-sky-700 rounded-lg text-sm border-2 border-sky-200 font-medium"
+                            >
+                              {f}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const atual = peiData.composicao_familiar_tags || [];
+                                  updateField("composicao_familiar_tags", atual.filter((item) => item !== f));
+                                }}
+                                className="text-sky-600 hover:text-sky-800 font-bold ml-1"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
+
+                <hr />
+
+                {/* Laudo PDF + Extração IA - Layout 2 colunas [2, 1] como Streamlit */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Dinâmica Familiar</label>
-                  <textarea
-                    value={peiData.familia || ""}
-                    onChange={(e) => updateField("familia", e.target.value)}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Quem convive com o estudante?</label>
-                  <select
-                    multiple
-                    value={peiData.composicao_familiar_tags || []}
-                    onChange={(e) => {
-                      const opts = Array.from(e.target.selectedOptions, (o) => o.value);
-                      updateField("composicao_familiar_tags", opts);
+                  <h4 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-sky-600" />
+                    Laudo (PDF) + Extração Inteligente
+                  </h4>
+                  <LaudoPdfSection
+                    peiData={peiData}
+                    onDiagnostico={(v) => updateField("diagnostico", v)}
+                    onMedicamentos={(meds) => {
+                      setPeiData((prev) => ({ ...prev, lista_medicamentos: meds }));
+                      setSaved(false);
                     }}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  >
-                    {LISTA_FAMILIA.map((f) => (
-                      <option key={f} value={f}>{f}</option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-slate-500 mt-1">Ctrl+clique para múltipla seleção</p>
-                </div>
-                <hr />
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Contexto / Diagnóstico (equipe)</label>
-                  <textarea
-                    value={peiData.diagnostico || ""}
-                    onChange={(e) => updateField("diagnostico", e.target.value)}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                    placeholder="Nunca em materiais do estudante."
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Interesses / Hiperfoco</label>
-                  <input
-                    type="text"
-                    value={peiData.hiperfoco || ""}
-                    onChange={(e) => updateField("hiperfoco", e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                    placeholder="Ex: dinossauros, jogos, música"
-                  />
-                </div>
+
                 <hr />
-                <LaudoPdfSection
-                  peiData={peiData}
-                  onDiagnostico={(v) => updateField("diagnostico", v)}
-                  onMedicamentos={(meds) => {
-                    setPeiData((prev) => ({ ...prev, lista_medicamentos: meds }));
-                    setSaved(false);
-                  }}
-                />
-                <hr />
+
+                {/* Contexto Clínico */}
                 <div>
-                  <h4 className="font-medium text-slate-800 mb-2">Medicações</h4>
-                  <MedicamentosForm peiData={peiData} onAdd={addMedicamento} onRemove={removeMedicamento} />
+                  <h4 className="text-base font-semibold text-slate-800 mb-3">Contexto Clínico</h4>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Diagnóstico</label>
+                    <input
+                      type="text"
+                      value={peiData.diagnostico || ""}
+                      onChange={(e) => updateField("diagnostico", e.target.value)}
+                      className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                      placeholder="Nunca em materiais do estudante."
+                    />
+                  </div>
+                  <div className="mt-4">
+                    <h5 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                      <Pill className="w-4 h-4 text-sky-600" />
+                      Medicações
+                    </h5>
+                    <MedicamentosForm peiData={peiData} onAdd={addMedicamento} onRemove={removeMedicamento} />
+                  </div>
                 </div>
               </div>
             )}
 
             {activeTab === "evidencias" && (
-              <div className="space-y-4">
+              <div className="space-y-6 max-w-4xl">
+                {/* Título da aba com ícone */}
+                <div className="flex items-center gap-2 mb-4">
+                  <Search className="w-5 h-5 text-sky-600" />
+                  <h3 className="text-lg font-semibold text-slate-800">Coleta de Evidências</h3>
+                </div>
+                
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Hipótese de Escrita (Emília Ferreiro)</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Hipótese de Escrita</label>
                   <select
                     value={peiData.nivel_alfabetizacao || ""}
                     onChange={(e) => updateField("nivel_alfabetizacao", e.target.value)}
@@ -367,319 +918,1273 @@ export function PEIClient({
                       <option key={a} value={a}>{a}</option>
                     ))}
                   </select>
+                  <p className="text-xs text-slate-500 mt-1">Nível de apropriação do sistema de escrita (Emília Ferreiro).</p>
                 </div>
+
                 <hr />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <h4 className="font-medium text-slate-800 mb-2">Pedagógico</h4>
-                    {EVIDENCIAS_PEDAGOGICO.map((q) => (
-                      <label key={q} className="flex items-center gap-2 py-1">
-                        <input
-                          type="checkbox"
-                          checked={!!(peiData.checklist_evidencias || {})[q]}
-                          onChange={() => toggleChecklist("checklist_evidencias", q)}
-                        />
-                        <span className="text-sm">{q}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-slate-800 mb-2">Cognitivo</h4>
-                    {EVIDENCIAS_COGNITIVO.map((q) => (
-                      <label key={q} className="flex items-center gap-2 py-1">
-                        <input
-                          type="checkbox"
-                          checked={!!(peiData.checklist_evidencias || {})[q]}
-                          onChange={() => toggleChecklist("checklist_evidencias", q)}
-                        />
-                        <span className="text-sm">{q}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-slate-800 mb-2">Comportamental</h4>
-                    {EVIDENCIAS_COMPORTAMENTAL.map((q) => (
-                      <label key={q} className="flex items-center gap-2 py-1">
-                        <input
-                          type="checkbox"
-                          checked={!!(peiData.checklist_evidencias || {})[q]}
-                          onChange={() => toggleChecklist("checklist_evidencias", q)}
-                        />
-                        <span className="text-sm">{q}</span>
-                      </label>
-                    ))}
+
+                <div>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Marque as evidências observadas na rotina do estudante (pedagógicas, cognitivas e comportamentais).
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <h4 className="font-medium text-slate-800 mb-3">Pedagógico</h4>
+                      <div className="space-y-2">
+                        {EVIDENCIAS_PEDAGOGICO.map((q) => (
+                          <label key={q} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={!!(peiData.checklist_evidencias || {})[q]}
+                              onChange={() => toggleChecklist(q, q)}
+                              className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                            />
+                            <span className="text-sm text-slate-700">{q}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-slate-800 mb-3">Cognitivo</h4>
+                      <div className="space-y-2">
+                        {EVIDENCIAS_COGNITIVO.map((q) => (
+                          <label key={q} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={!!(peiData.checklist_evidencias || {})[q]}
+                              onChange={() => toggleChecklist(q, q)}
+                              className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                            />
+                            <span className="text-sm text-slate-700">{q}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-slate-800 mb-3">Comportamental</h4>
+                      <div className="space-y-2">
+                        {EVIDENCIAS_COMPORTAMENTAL.map((q) => (
+                          <label key={q} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={!!(peiData.checklist_evidencias || {})[q]}
+                              onChange={() => toggleChecklist(q, q)}
+                              className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                            />
+                            <span className="text-sm text-slate-700">{q}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+                <hr />
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Observações de especialistas</label>
+                  <h4 className="text-base font-semibold text-slate-800 mb-2">Observações rápidas</h4>
                   <textarea
                     value={peiData.orientacoes_especialistas || ""}
                     onChange={(e) => updateField("orientacoes_especialistas", e.target.value)}
-                    rows={3}
+                    rows={5}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                    placeholder="Registre observações de professores e especialistas (se houver)"
                   />
                 </div>
               </div>
             )}
 
             {activeTab === "rede" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Profissionais envolvidos</label>
-                  <select
-                    multiple
-                    value={peiData.rede_apoio || []}
-                    onChange={(e) => {
-                      const opts = Array.from(e.target.selectedOptions, (o) => o.value);
-                      updateField("rede_apoio", opts);
-                    }}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  >
-                    {LISTA_PROFISSIONAIS.map((p) => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-slate-500 mt-1">Ctrl+clique para múltipla seleção</p>
+              <div className="space-y-6 max-w-4xl">
+                <RenderProgresso />
+                {/* Título da aba com ícone */}
+                <div className="flex items-center gap-2 mb-4">
+                  <Users className="w-5 h-5 text-sky-600" />
+                  <h3 className="text-lg font-semibold text-slate-800">Rede de Apoio</h3>
                 </div>
+                
+                <p className="text-sm text-slate-600">
+                  Selecione os profissionais envolvidos e registre as orientações específicas de cada um.
+                </p>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Orientações por profissional</label>
-                  {(peiData.rede_apoio || []).map((prof) => (
-                    <div key={prof} className="mb-4 p-4 rounded-lg border border-slate-200">
-                      <h5 className="font-medium text-slate-800 mb-2">{prof}</h5>
-                      <textarea
-                        value={(peiData.orientacoes_por_profissional || {})[prof] || ""}
-                        onChange={(e) =>
-                          updateField("orientacoes_por_profissional", {
-                            ...(peiData.orientacoes_por_profissional || {}),
-                            [prof]: e.target.value,
-                          })
-                        }
-                        rows={3}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                        placeholder="Orientações..."
-                      />
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Profissionais:</label>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <select
+                        value={""}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            const atual = peiData.rede_apoio || [];
+                            if (!atual.includes(e.target.value)) {
+                              updateField("rede_apoio", [...atual, e.target.value]);
+                            }
+                            e.target.value = "";
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 border border-slate-200 rounded-lg"
+                      >
+                        <option value="">Selecione para adicionar...</option>
+                        {LISTA_PROFISSIONAIS.filter((p) => !(peiData.rede_apoio || []).includes(p)).map((p) => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
                     </div>
-                  ))}
-                  {(!peiData.rede_apoio || peiData.rede_apoio.length === 0) && (
-                    <p className="text-slate-500 text-sm">Selecione profissionais acima.</p>
+                    {(peiData.rede_apoio || []).length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {(peiData.rede_apoio || []).map((p) => (
+                          <span
+                            key={p}
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 rounded-lg text-sm"
+                          >
+                            {p}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const atual = peiData.rede_apoio || [];
+                                updateField("rede_apoio", atual.filter((item) => item !== p));
+                                // Remove orientações desse profissional também
+                                const orientacoes = { ...(peiData.orientacoes_por_profissional || {}) };
+                                delete orientacoes[p];
+                                updateField("orientacoes_por_profissional", orientacoes);
+                              }}
+                              className="text-purple-600 hover:text-purple-800"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">Ao selecionar um profissional, um campo de observação individual aparece abaixo.</p>
+                </div>
+
+                <hr />
+
+                {/* Anotações gerais (expander) */}
+                <details className="p-4 rounded-lg border-2 border-slate-200 bg-white">
+                  <summary className="cursor-pointer font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-sky-600" />
+                    Anotações gerais (opcional)
+                  </summary>
+                  <div className="mt-3">
+                    <textarea
+                      value={peiData.orientacoes_especialistas || ""}
+                      onChange={(e) => updateField("orientacoes_especialistas", e.target.value)}
+                      rows={5}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                      placeholder="Use para observações gerais da equipe (ex.: acordos com a família, encaminhamentos, alinhamentos)."
+                    />
+                  </div>
+                </details>
+
+                <hr />
+
+                {/* Orientações por profissional */}
+                <div>
+                  <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <Info className="w-4 h-4 text-sky-600" />
+                    Orientações por profissional
+                  </h4>
+                  {(!peiData.rede_apoio || peiData.rede_apoio.length === 0) ? (
+                    <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                      <p className="text-blue-800 text-sm">Selecione ao menos um profissional para habilitar os campos de observação.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {(peiData.rede_apoio || []).map((prof) => (
+                        <div key={prof} className="p-4 rounded-lg border-2 border-slate-200 bg-white hover:border-sky-300 hover:shadow-sm transition-all">
+                          <h5 className="font-semibold text-slate-800 mb-3">{prof}</h5>
+                          <label className="block text-xs font-medium text-slate-600 mb-1">Observações / orientações</label>
+                          <textarea
+                            value={(peiData.orientacoes_por_profissional || {})[prof] || ""}
+                            onChange={(e) =>
+                              updateField("orientacoes_por_profissional", {
+                                ...(peiData.orientacoes_por_profissional || {}),
+                                [prof]: e.target.value,
+                              })
+                            }
+                            rows={5}
+                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-3"
+                            placeholder="Ex.: recomendações de intervenção, frequência, sinais de alerta, ajustes para sala de aula..."
+                          />
+                          <div className="grid grid-cols-2 gap-2 mt-3">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateField("orientacoes_por_profissional", {
+                                  ...(peiData.orientacoes_por_profissional || {}),
+                                  [prof]: "",
+                                });
+                              }}
+                              className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-700"
+                            >
+                              🧹 Limpar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const atual = peiData.rede_apoio || [];
+                                updateField("rede_apoio", atual.filter((item) => item !== prof));
+                                const orientacoes = { ...(peiData.orientacoes_por_profissional || {}) };
+                                delete orientacoes[prof];
+                                updateField("orientacoes_por_profissional", orientacoes);
+                              }}
+                              className="px-3 py-1.5 text-xs border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                            >
+                              🗑️ Remover profissional
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
+
+                <hr />
+
+                {/* Checklist de preenchimento */}
+                {(peiData.rede_apoio || []).length > 0 && (
+                  <div>
+                    <h4 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      Checklist de preenchimento
+                    </h4>
+                    <div className="space-y-1">
+                      {(peiData.rede_apoio || []).map((p) => {
+                        const txt = ((peiData.orientacoes_por_profissional || {})[p] || "").trim();
+                        return (
+                          <p key={p} className="text-sm text-slate-700">
+                            - <strong>{p}</strong>: {txt ? "✅ preenchido" : "⚠️ vazio"}
+                          </p>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === "mapeamento" && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Hiperfoco</label>
-                    <input
-                      type="text"
-                      value={peiData.hiperfoco || ""}
-                      onChange={(e) => updateField("hiperfoco", e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Potencialidades</label>
-                    <select
-                      multiple
-                      value={peiData.potencias || []}
-                      onChange={(e) => {
-                        const opts = Array.from(e.target.selectedOptions, (o) => o.value);
-                        updateField("potencias", opts);
-                      }}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                    >
-                      {LISTA_POTENCIAS.map((p) => (
-                        <option key={p} value={p}>{p}</option>
-                      ))}
-                    </select>
+              <div className="space-y-6">
+                <RenderProgresso />
+                {/* Título da aba com ícone */}
+                <div className="flex items-center gap-2 mb-4">
+                  <Radar className="w-5 h-5 text-sky-600" />
+                  <h3 className="text-lg font-semibold text-slate-800">Mapeamento</h3>
+                </div>
+                
+                <p className="text-sm text-slate-600">
+                  Mapeie forças, hiperfocos e barreiras. Para cada barreira selecionada, indique a intensidade de apoio necessária.
+                </p>
+
+                {/* Potencialidades e Hiperfoco */}
+                <div className="p-4 rounded-lg border-2 border-blue-200 bg-blue-50/30">
+                  <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-sky-600" />
+                    Potencialidades e Hiperfoco
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Hiperfoco (se houver)</label>
+                      <input
+                        type="text"
+                        value={peiData.hiperfoco || ""}
+                        onChange={(e) => updateField("hiperfoco", e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                        placeholder="Ex.: Dinossauros, Minecraft, Mapas, Carros, Desenho..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Potencialidades / Pontos fortes</label>
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <select
+                            value={""}
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                const atual = peiData.potencias || [];
+                                if (!atual.includes(e.target.value)) {
+                                  updateField("potencias", [...atual, e.target.value]);
+                                }
+                                e.target.value = "";
+                              }
+                            }}
+                            className="flex-1 px-3 py-2 border border-slate-200 rounded-lg"
+                          >
+                            <option value="">Selecione para adicionar...</option>
+                            {LISTA_POTENCIAS.filter((p) => !(peiData.potencias || []).includes(p)).map((p) => (
+                              <option key={p} value={p}>{p}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {(peiData.potencias || []).length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {(peiData.potencias || []).map((p) => (
+                              <span
+                                key={p}
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-sm"
+                              >
+                                {p}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const atual = peiData.potencias || [];
+                                    updateField("potencias", atual.filter((item) => item !== p));
+                                  }}
+                                  className="text-emerald-600 hover:text-emerald-800"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
+
                 <hr />
-                <h4 className="font-semibold text-slate-800">Barreiras e nível de apoio</h4>
-                {Object.entries(LISTAS_BARREIRAS).map(([dominio, opcoes]) => (
-                  <BarreirasDominio
-                    key={dominio}
-                    dominio={dominio}
-                    opcoes={opcoes}
-                    peiData={peiData}
-                    updateField={updateField}
-                  />
-                ))}
+
+                {/* Barreiras e nível de apoio */}
+                <div>
+                  <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-sky-600" />
+                    Barreiras e nível de apoio
+                  </h4>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Selecione as barreiras observadas e defina o nível de apoio para a rotina escolar (não é DUA).
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-4">
+                      <BarreirasDominio
+                        dominio="Funções Cognitivas"
+                        opcoes={LISTAS_BARREIRAS["Funções Cognitivas"] || []}
+                        peiData={peiData}
+                        updateField={updateField}
+                      />
+                      <BarreirasDominio
+                        dominio="Sensorial e Motor"
+                        opcoes={LISTAS_BARREIRAS["Sensorial e Motor"] || []}
+                        peiData={peiData}
+                        updateField={updateField}
+                      />
+                    </div>
+                    <div className="space-y-4">
+                      <BarreirasDominio
+                        dominio="Comunicação e Linguagem"
+                        opcoes={LISTAS_BARREIRAS["Comunicação e Linguagem"] || []}
+                        peiData={peiData}
+                        updateField={updateField}
+                      />
+                      <BarreirasDominio
+                        dominio="Acadêmico"
+                        opcoes={LISTAS_BARREIRAS["Acadêmico"] || []}
+                        peiData={peiData}
+                        updateField={updateField}
+                      />
+                    </div>
+                    <div className="space-y-4">
+                      <BarreirasDominio
+                        dominio="Socioemocional"
+                        opcoes={LISTAS_BARREIRAS["Socioemocional"] || []}
+                        peiData={peiData}
+                        updateField={updateField}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <hr />
+
+                {/* Resumo do Mapeamento */}
+                <div>
+                  <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-sky-600" />
+                    Resumo do Mapeamento
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      {peiData.hiperfoco ? (
+                        <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-300 shadow-sm">
+                          <p className="text-sm font-semibold text-emerald-900">
+                            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
+                            <strong>Hiperfoco:</strong> {peiData.hiperfoco}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                          <p className="text-sm text-slate-500">
+                            <strong>Hiperfoco:</strong> não informado
+                          </p>
+                        </div>
+                      )}
+                      {(peiData.potencias || []).length > 0 ? (
+                        <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-300 shadow-sm">
+                          <p className="text-sm font-semibold text-emerald-900 mb-1">
+                            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
+                            <strong>Potencialidades:</strong>
+                          </p>
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {(peiData.potencias || []).map((p, i) => (
+                              <span key={i} className="text-xs px-2 py-1 bg-emerald-200 text-emerald-900 rounded-full font-medium">
+                                {p}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                          <p className="text-sm text-slate-500">
+                            <strong>Potencialidades:</strong> não selecionadas
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      {(() => {
+                        const barreiras = peiData.barreiras_selecionadas || {};
+                        const totalBar = Object.values(barreiras).reduce((acc, arr) => acc + (arr?.length || 0), 0);
+                        if (totalBar === 0) {
+                          return (
+                            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                              <p className="text-sm text-slate-600">
+                                <strong>Barreiras:</strong> nenhuma selecionada
+                              </p>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-amber-300 shadow-sm">
+                            <p className="text-sm font-semibold text-amber-900 mb-3 flex items-center gap-2">
+                              <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+                              <strong>Barreiras selecionadas:</strong> {totalBar}
+                            </p>
+                            <div className="space-y-2">
+                              {Object.entries(barreiras).map(([dom, vals]) => {
+                                if (!vals || vals.length === 0) return null;
+                                return (
+                                  <div key={dom} className="p-2 rounded bg-white/60 border border-amber-200">
+                                    <p className="text-xs font-semibold text-amber-900 mb-1">{dom}:</p>
+                                    <div className="space-y-1">
+                                      {vals.map((b) => {
+                                        const chave = `${dom}_${b}`;
+                                        const nivel = (peiData.niveis_suporte || {})[chave] || "Monitorado";
+                                        return (
+                                          <p key={b} className="text-xs text-amber-800 ml-2 flex items-center gap-2">
+                                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                            {b} → <span className="font-semibold text-amber-900">{nivel}</span>
+                                          </p>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
             {activeTab === "plano" && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <h4 className="font-semibold text-slate-800 mb-2">1) Acesso (DUA)</h4>
-                  <select
-                    multiple
-                    value={peiData.estrategias_acesso || []}
-                    onChange={(e) => updateField("estrategias_acesso", Array.from(e.target.selectedOptions, (o) => o.value))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  >
-                    {ESTRATEGIAS_ACESSO.map((e) => (
-                      <option key={e} value={e}>{e}</option>
-                    ))}
-                  </select>
+              <div className="space-y-6">
+                <RenderProgresso />
+                {/* Título da aba com ícone */}
+                <div className="flex items-center gap-2 mb-4">
+                  <Puzzle className="w-5 h-5 text-sky-600" />
+                  <h3 className="text-lg font-semibold text-slate-800">Plano de Ação</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <h4 className="text-base font-semibold text-slate-800 mb-2">1) Acesso (DUA)</h4>
+                  <label className="block text-xs text-slate-600 mb-2">Recursos de acesso</label>
+                  <div className="space-y-2 mb-3">
+                    {ESTRATEGIAS_ACESSO.map((estr) => {
+                      const selecionadas = peiData.estrategias_acesso || [];
+                      const estaSelecionada = selecionadas.includes(estr);
+                      return (
+                        <label key={estr} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={estaSelecionada}
+                            onChange={(e) => {
+                              const novas = e.target.checked
+                                ? [...selecionadas, estr]
+                                : selecionadas.filter((item) => item !== estr);
+                              updateField("estrategias_acesso", novas);
+                            }}
+                            className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                          />
+                          <span className="text-sm text-slate-700">{estr}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                   <input
                     type="text"
                     value={peiData.outros_acesso || ""}
                     onChange={(e) => updateField("outros_acesso", e.target.value)}
-                    placeholder="Personalizado"
-                    className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg"
+                    placeholder="Ex: Prova em local separado, fonte 18, papel pautado ampliado…"
+                    className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg text-sm"
                   />
+                  <p className="text-xs text-slate-500 mt-1">Personalizado (Acesso)</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-800 mb-2">2) Ensino</h4>
-                  <select
-                    multiple
-                    value={peiData.estrategias_ensino || []}
-                    onChange={(e) => updateField("estrategias_ensino", Array.from(e.target.selectedOptions, (o) => o.value))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  >
-                    {ESTRATEGIAS_ENSINO.map((e) => (
-                      <option key={e} value={e}>{e}</option>
-                    ))}
-                  </select>
+                  <h4 className="text-base font-semibold text-slate-800 mb-2">2) Ensino (Metodologias)</h4>
+                  <label className="block text-xs text-slate-600 mb-2">Estratégias de ensino</label>
+                  <div className="space-y-2 mb-3">
+                    {ESTRATEGIAS_ENSINO.map((estr) => {
+                      const selecionadas = peiData.estrategias_ensino || [];
+                      const estaSelecionada = selecionadas.includes(estr);
+                      return (
+                        <label key={estr} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={estaSelecionada}
+                            onChange={(e) => {
+                              const novas = e.target.checked
+                                ? [...selecionadas, estr]
+                                : selecionadas.filter((item) => item !== estr);
+                              updateField("estrategias_ensino", novas);
+                            }}
+                            className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                          />
+                          <span className="text-sm text-slate-700">{estr}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                   <input
                     type="text"
                     value={peiData.outros_ensino || ""}
                     onChange={(e) => updateField("outros_ensino", e.target.value)}
-                    placeholder="Personalizado"
-                    className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg"
+                    placeholder="Ex: Sequência didática com apoio de imagens + exemplo resolvido…"
+                    className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg text-sm"
                   />
+                  <p className="text-xs text-slate-500 mt-1">Personalizado (Ensino)</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-800 mb-2">3) Avaliação</h4>
-                  <select
-                    multiple
-                    value={peiData.estrategias_avaliacao || []}
-                    onChange={(e) => updateField("estrategias_avaliacao", Array.from(e.target.selectedOptions, (o) => o.value))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  >
-                    {ESTRATEGIAS_AVALIACAO.map((e) => (
-                      <option key={e} value={e}>{e}</option>
-                    ))}
-                  </select>
+                  <h4 className="text-base font-semibold text-slate-800 mb-2">3) Avaliação (Formato)</h4>
+                  <label className="block text-xs text-slate-600 mb-2">Estratégias de avaliação</label>
+                  <div className="space-y-2">
+                    {ESTRATEGIAS_AVALIACAO.map((estr) => {
+                      const selecionadas = peiData.estrategias_avaliacao || [];
+                      const estaSelecionada = selecionadas.includes(estr);
+                      return (
+                        <label key={estr} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={estaSelecionada}
+                            onChange={(e) => {
+                              const novas = e.target.checked
+                                ? [...selecionadas, estr]
+                                : selecionadas.filter((item) => item !== estr);
+                              updateField("estrategias_avaliacao", novas);
+                            }}
+                            className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                          />
+                          <span className="text-sm text-slate-700">{estr}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">Dica: combine formato + acesso (tempo/ambiente) para reduzir barreiras.</p>
+                </div>
+                </div>
+                
+                <hr />
+                
+                <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                  <p className="text-sm text-blue-800">
+                    ✅ O plano de ação alimenta a Consultoria IA com contexto prático (o que você já pretende fazer).
+                  </p>
                 </div>
               </div>
             )}
 
             {activeTab === "monitoramento" && (
-              <div className="space-y-4 max-w-md">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Data da Próxima Revisão</label>
-                  <input
-                    type="date"
-                    value={typeof peiData.monitoramento_data === "string" ? peiData.monitoramento_data.split("T")[0] : ""}
-                    onChange={(e) => updateField("monitoramento_data", e.target.value || undefined)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  />
+              <div className="space-y-6 max-w-4xl">
+                <RenderProgresso />
+                {/* Título da aba com ícone */}
+                <div className="flex items-center gap-2 mb-4">
+                  <RotateCw className="w-5 h-5 text-sky-600" />
+                  <h3 className="text-lg font-semibold text-slate-800">Monitoramento</h3>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Status da Meta</label>
-                  <select
-                    value={peiData.status_meta || ""}
-                    onChange={(e) => updateField("status_meta", e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  >
-                    {STATUS_META.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
+                
+                <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+                  <p className="text-sm text-amber-800">
+                    ⚠️ Preencher esta aba principalmente na REVISÃO do PEI (ciclo de acompanhamento).
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Parecer Geral</label>
-                  <select
-                    value={peiData.parecer_geral || ""}
-                    onChange={(e) => updateField("parecer_geral", e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  >
-                    {PARECER_GERAL.map((p) => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Data da Próxima Revisão</label>
+                    <input
+                      type="date"
+                      value={typeof peiData.monitoramento_data === "string" ? peiData.monitoramento_data.split("T")[0] : ""}
+                      onChange={(e) => updateField("monitoramento_data", e.target.value || undefined)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Status da Meta</label>
+                    <select
+                      value={peiData.status_meta || ""}
+                      onChange={(e) => updateField("status_meta", e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                    >
+                      {STATUS_META.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Parecer Geral</label>
+                    <select
+                      value={peiData.parecer_geral || ""}
+                      onChange={(e) => updateField("parecer_geral", e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                    >
+                      {PARECER_GERAL.map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
+                
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Ações Futuras</label>
-                  <select
-                    multiple
-                    value={peiData.proximos_passos_select || []}
-                    onChange={(e) => updateField("proximos_passos_select", Array.from(e.target.selectedOptions, (o) => o.value))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  >
-                    {PROXIMOS_PASSOS.map((p) => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Ações Futuras</label>
+                  <div className="space-y-2">
+                    {PROXIMOS_PASSOS.map((p) => {
+                      const selecionadas = peiData.proximos_passos_select || [];
+                      const estaSelecionada = selecionadas.includes(p);
+                      return (
+                        <label key={p} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={estaSelecionada}
+                            onChange={(e) => {
+                              const novas = e.target.checked
+                                ? [...selecionadas, p]
+                                : selecionadas.filter((item) => item !== p);
+                              updateField("proximos_passos_select", novas);
+                            }}
+                            className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                          />
+                          <span className="text-sm text-slate-700">{p}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
 
             {activeTab === "bncc" && (
-              <BNCCTab
-                peiData={peiData}
-                updateField={updateField}
-                serie={peiData.serie || ""}
-              />
+              <div className="space-y-6">
+                <RenderProgresso />
+                {/* Título da aba com ícone */}
+                <div className="flex items-center gap-2 mb-4">
+                  <ClipboardList className="w-5 h-5 text-sky-600" />
+                  <h3 className="text-lg font-semibold text-slate-800">BNCC</h3>
+                </div>
+                <BNCCTab
+                  peiData={peiData}
+                  updateField={updateField}
+                  serie={peiData.serie || ""}
+                />
+              </div>
             )}
 
             {activeTab === "consultoria" && (
-              <ConsultoriaTab
-                peiData={peiData}
-                updateField={updateField}
-                serie={peiData.serie || ""}
-              />
+              <div className="space-y-6">
+                <RenderProgresso />
+                {/* Título da aba com ícone */}
+                <div className="flex items-center gap-2 mb-4">
+                  <Bot className="w-5 h-5 text-sky-600" />
+                  <h3 className="text-lg font-semibold text-slate-800">Consultoria Pedagógica</h3>
+                </div>
+                <ConsultoriaTab
+                  peiData={peiData}
+                  updateField={updateField}
+                  serie={peiData.serie || ""}
+                />
+              </div>
             )}
 
             {activeTab === "dashboard" && (
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-3 items-center">
-                  <span className="text-sm font-medium text-slate-700">Exportar PEI completo:</span>
-                  <PeiExportDocxButton peiData={peiData} />
-                  <PdfDownloadButton
-                    text={peiDataToFullText(peiData)}
-                    filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
-                    title={`PEI - ${peiData.nome || "Estudante"}`}
-                    className="px-3 py-1.5 text-sm bg-cyan-100 text-cyan-800 rounded-lg hover:bg-cyan-200 flex items-center gap-2"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Baixar PDF
-                  </PdfDownloadButton>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-lg border border-slate-200 bg-slate-50">
-                    <div className="text-2xl font-bold text-slate-800">{peiData.potencias?.length || 0}</div>
-                    <div className="text-xs text-slate-500">Potencialidades</div>
-                  </div>
-                  <div className="p-4 rounded-lg border border-slate-200 bg-slate-50">
-                    <div className="text-2xl font-bold text-slate-800">
-                      {Object.values(peiData.barreiras_selecionadas || {}).reduce((a, v) => a + (v?.length || 0), 0)}
-                    </div>
-                    <div className="text-xs text-slate-500">Barreiras</div>
-                  </div>
-                  <div className="p-4 rounded-lg border border-slate-200 bg-slate-50">
-                    <div className="text-lg font-bold text-slate-800 truncate">{peiData.hiperfoco || "—"}</div>
-                    <div className="text-xs text-slate-500">Hiperfoco</div>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Jornada Gamificada (ia_mapa_texto)</label>
-                  <textarea
-                    value={peiData.ia_mapa_texto || ""}
-                    onChange={(e) => updateField("ia_mapa_texto", e.target.value)}
-                    rows={8}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
-                  />
-                </div>
-              </div>
+              <DashboardTab peiData={peiData} currentStudentId={currentStudentId} updateField={updateField} />
             )}
           </div>
-        </>
-      )}
+
+          {/* Rodapé com Assinatura e Aviso sobre IA */}
+          <div className="mt-10 pt-6 border-t border-slate-200">
+            {/* Aviso sobre IA - Barra fina de um lado ao outro */}
+            <div className="w-full mb-4 px-6 py-2 bg-slate-50 border-t border-b border-slate-200 text-center">
+              <p className="text-slate-600 text-xs leading-relaxed">
+                A Omnisfera utiliza motores de IA para apoiar sua prática. Essas ferramentas podem apresentar falhas. É fundamental <strong className="text-slate-700">revisar sempre com muito cuidado</strong> todo conteúdo gerado, dada a sensibilidade dos dados tratados em educação inclusiva.
+              </p>
+            </div>
+            {/* Assinatura */}
+            <div className="text-center">
+              <p className="text-slate-400 text-xs font-medium">
+                Omnisfera — plataforma de inclusão ativa — criada e desenvolvida por <strong className="text-slate-500">Omni Soluções Educacionais</strong> — todos os direitos reservados.
+              </p>
+            </div>
+          </div>
+    </div>
+  );
+}
+
+// ==============================================================================
+// COMPONENTE DASHBOARD TAB (movido para antes de ser usado)
+// ==============================================================================
+function DashboardTab({
+  peiData,
+  currentStudentId,
+  updateField,
+}: {
+  peiData: PEIData;
+  currentStudentId: string | null;
+  updateField: <K extends keyof PEIData>(key: K, value: PEIData[K]) => void;
+}) {
+  if (!peiData.nome) {
+    return (
+      <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+        <p className="text-blue-800 text-sm">Preencha o estudante na aba <strong>Estudante</strong> para visualizar o dashboard.</p>
+      </div>
+    );
+  }
+
+  const initAvatar = peiData.nome?.[0]?.toUpperCase() || "?";
+  const idadeStr = calcularIdade(peiData.nasc);
+  const serieTxt = peiData.serie || "-";
+  const turmaTxt = peiData.turma || "-";
+  const matriculaTxt = peiData.matricula || "-";
+  const vinculoTxt = currentStudentId ? "Vinculado ao Supabase ✅" : "Rascunho (não sincronizado)";
+
+  const nPot = (peiData.potencias || []).length;
+  const colorPot = nPot > 0 ? "#38A169" : "#CBD5E0";
+  const potPercent = Math.min(nPot * 10, 100);
+
+  const barreiras = peiData.barreiras_selecionadas || {};
+  const nBar = Object.values(barreiras).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+  const colorBar = nBar > 5 ? "#E53E3E" : "#DD6B20";
+  const barPercent = Math.min(nBar * 5, 100);
+
+  const hf = peiData.hiperfoco || "-";
+  const hfEmoji = getHiperfocoEmoji(peiData.hiperfoco);
+
+  const [txtComp, bgComp, txtCompColor] = calcularComplexidadePei(peiData);
+
+  const listaMeds = peiData.lista_medicamentos || [];
+  const nomesMeds = listaMeds.map((m) => m.nome?.trim()).filter(Boolean).join(", ");
+  const alertaEscola = listaMeds.some((m) => m.escola);
+
+  const metas = extrairMetasEstruturadas(peiData.ia_sugestao);
+  const compsInferidos = inferirComponentesImpactados(peiData);
+  const rede = peiData.rede_apoio || [];
+
+  // Função RenderProgresso precisa estar disponível - usando a do componente pai
+  function RenderProgressoLocal() {
+    const p = Math.max(0, Math.min(100, calcularProgresso()));
+    const barColor = p >= 100 
+      ? "linear-gradient(90deg, #34D399 0%, #059669 100%)"
+      : "linear-gradient(90deg, #FF6B6B 0%, #FF8E53 100%)";
+    
+    return (
+      <div className="mb-4">
+        <div className="relative w-full h-0.5 bg-slate-200 rounded-full">
+          <div 
+            className="h-0.5 rounded-full transition-all duration-300"
+            style={{ width: `${p}%`, background: barColor }}
+          />
+          <div 
+            className="absolute top-0 left-0 transition-all duration-300"
+            style={{ transform: `translateX(calc(${p}% - 12.5px))`, top: "-14px" }}
+          >
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 via-purple-600 to-cyan-500 flex items-center justify-center shadow-sm">
+              <Sparkles className="w-3 h-3 text-white" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function calcularProgresso(): number {
+    function _isFilled(value: unknown): boolean {
+      if (value === null || value === undefined) return false;
+      if (typeof value === "string") return value.trim().length > 0;
+      if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === "object") {
+        const obj = value as Record<string, unknown>;
+        return Object.keys(obj).length > 0 && Object.values(obj).some((v) => _isFilled(v));
+      }
+      return true;
+    }
+
+    function _abaOk(key: string): boolean {
+      const d = peiData;
+      if (key === "ESTUDANTE") return _isFilled(d.nome) && _isFilled(d.serie) && _isFilled(d.turma);
+      if (key === "EVIDENCIAS") {
+        const chk = d.checklist_evidencias || {};
+        return Object.values(chk).some((v) => Boolean(v)) || _isFilled(d.orientacoes_especialistas);
+      }
+      if (key === "REDE") return _isFilled(d.rede_apoio) || _isFilled(d.orientacoes_especialistas) || _isFilled(d.orientacoes_por_profissional);
+      if (key === "MAPEAMENTO") {
+        const barreiras = d.barreiras_selecionadas || {};
+        const nBar = Object.values(barreiras).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+        return _isFilled(d.hiperfoco) || _isFilled(d.potencias) || nBar > 0;
+      }
+      if (key === "PLANO") return _isFilled(d.estrategias_acesso) || _isFilled(d.estrategias_ensino) || _isFilled(d.estrategias_avaliacao) || _isFilled(d.outros_acesso) || _isFilled(d.outros_ensino);
+      if (key === "MONITORAMENTO") return _isFilled(d.monitoramento_data) && _isFilled(d.status_meta);
+      if (key === "IA") return _isFilled(d.ia_sugestao) && (d.status_validacao_pei === "revisao" || d.status_validacao_pei === "aprovado");
+      if (key === "DASH") return _isFilled(d.ia_sugestao);
+      return false;
+    }
+
+    const checkpoints = ["ESTUDANTE", "EVIDENCIAS", "REDE", "MAPEAMENTO", "PLANO", "MONITORAMENTO", "IA", "DASH"];
+    const done = checkpoints.filter((k) => _abaOk(k)).length;
+    const total = checkpoints.length;
+    return total > 0 ? Math.round((done / total) * 100) : 0;
+  }
+
+  return (
+    <div className="space-y-6">
+      <RenderProgressoLocal />
+      <div className="flex items-center gap-2 mb-4">
+        <FileDown className="w-5 h-5 text-sky-600" />
+        <h3 className="text-lg font-semibold text-slate-800">Dashboard e Exportação</h3>
+      </div>
+
+      {/* CSS Customizado */}
+      <style jsx>{`
+        .dash-hero {
+          background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%);
+          border-radius: 16px;
+          padding: 25px;
+          color: white;
+          margin-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          box-shadow: 0 4px 12px rgba(15, 82, 186, 0.15);
+        }
+        .apple-avatar {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.15);
+          border: 2px solid rgba(255,255,255,0.4);
+          color: white;
+          font-weight: 800;
+          font-size: 1.6rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .metric-card {
+          background: white;
+          border-radius: 16px;
+          padding: 15px;
+          border: 1px solid #E2E8F0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 140px;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .css-donut {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 10px;
+        }
+        .css-donut::after {
+          content: "";
+          position: absolute;
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: white;
+        }
+        .d-val {
+          position: relative;
+          z-index: 10;
+          font-weight: 800;
+          font-size: 1.2rem;
+          color: #2D3748;
+        }
+        .d-lbl {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #718096;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          text-align: center;
+        }
+        .comp-icon-box {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 10px;
+        }
+        .soft-card {
+          border-radius: 12px;
+          padding: 20px;
+          min-height: 220px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+          border: 1px solid rgba(0,0,0,0.05);
+          border-left: 5px solid;
+          position: relative;
+          overflow: hidden;
+        }
+        .sc-orange { background-color: #FFF5F5; border-left-color: #DD6B20; }
+        .sc-blue { background-color: #EBF8FF; border-left-color: #3182CE; }
+        .sc-yellow { background-color: #FFFFF0; border-left-color: #D69E2E; }
+        .sc-cyan { background-color: #E6FFFA; border-left-color: #0BC5EA; }
+        .sc-green { background-color: #F0FFF4; border-left-color: #38A169; }
+        .sc-head {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-weight: 800;
+          font-size: 0.95rem;
+          margin-bottom: 15px;
+          color: #2D3748;
+        }
+        .sc-body {
+          font-size: 0.85rem;
+          color: #4A5568;
+          line-height: 1.5;
+          flex-grow: 1;
+        }
+        .bg-icon {
+          position: absolute;
+          bottom: -10px;
+          right: -10px;
+          font-size: 5rem;
+          opacity: 0.08;
+          pointer-events: none;
+        }
+        .meta-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 8px;
+          font-size: 0.85rem;
+          border-bottom: 1px solid rgba(0,0,0,0.05);
+          padding-bottom: 5px;
+        }
+        .dna-bar-container {
+          margin-bottom: 15px;
+        }
+        .dna-bar-flex {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.8rem;
+          margin-bottom: 3px;
+          font-weight: 600;
+          color: #4A5568;
+        }
+        .dna-bar-bg {
+          width: 100%;
+          height: 8px;
+          background-color: #E2E8F0;
+          border-radius: 4px;
+          overflow: hidden;
+        }
+        .dna-bar-fill {
+          height: 100%;
+          border-radius: 4px;
+          transition: width 1s ease;
+        }
+        .rede-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: white;
+          padding: 5px 12px;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #2D3748;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+          border: 1px solid #E2E8F0;
+          margin: 0 5px 5px 0;
+        }
+        .pulse-alert {
+          animation: pulse 2s infinite;
+          color: #E53E3E;
+          font-weight: bold;
+        }
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
+      `}</style>
+
+      {/* Hero */}
+      <div className="dash-hero">
+        <div className="flex items-center gap-5">
+          <div className="apple-avatar">{initAvatar}</div>
+          <div className="text-white">
+            <h1 className="text-2xl font-bold m-0 leading-tight">{peiData.nome}</h1>
+            <p className="mt-1.5 mb-0 opacity-90">
+              {serieTxt} • Turma {turmaTxt} • Matrícula/RA: {matriculaTxt}
+            </p>
+            <p className="mt-1.5 mb-0 opacity-80 text-sm">{vinculoTxt}</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-xs opacity-85">IDADE</div>
+          <div className="text-xl font-extrabold">{idadeStr}</div>
+        </div>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="metric-card">
+          <div className="css-donut" style={{ background: `conic-gradient(${colorPot} ${potPercent}%, #F3F4F6 0)` }}>
+            <div className="d-val">{nPot}</div>
+          </div>
+          <div className="d-lbl">Potencialidades</div>
+        </div>
+        <div className="metric-card">
+          <div className="css-donut" style={{ background: `conic-gradient(${colorBar} ${barPercent}%, #F3F4F6 0)` }}>
+            <div className="d-val">{nBar}</div>
+          </div>
+          <div className="d-lbl">Barreiras</div>
+        </div>
+        <div className="metric-card">
+          <div className="text-4xl mb-2">{hfEmoji}</div>
+          <div className="font-extrabold text-lg text-slate-800 my-2">{hf}</div>
+          <div className="d-lbl">Hiperfoco</div>
+        </div>
+        <div className="metric-card" style={{ backgroundColor: bgComp, borderColor: txtCompColor }}>
+          <div className="comp-icon-box">
+            <AlertTriangle className="w-8 h-8" style={{ color: txtCompColor }} />
+          </div>
+          <div className="font-extrabold text-lg my-1" style={{ color: txtCompColor }}>{txtComp}</div>
+          <div className="d-lbl" style={{ color: txtCompColor }}>Nível de Atenção (Execução)</div>
+        </div>
+      </div>
+
+      {/* Cards Principais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          {/* Medicação */}
+          {listaMeds.length > 0 ? (
+            <div className="soft-card sc-orange">
+              <div className="sc-head">
+                <Pill className="w-5 h-5" style={{ color: "#DD6B20" }} />
+                Atenção Farmacológica
+                {alertaEscola && <span className="pulse-alert">⚠️</span>}
+              </div>
+              <div className="sc-body">
+                <strong>Uso Contínuo:</strong> {nomesMeds || "Medicação cadastrada."}
+                {alertaEscola && (
+                  <div className="mt-1 text-red-700 font-bold text-xs">🚨 ATENÇÃO: ADMINISTRAÇÃO NA ESCOLA NECESSÁRIA</div>
+                )}
+              </div>
+              <div className="bg-icon">💊</div>
+            </div>
+          ) : (
+            <div className="soft-card sc-green">
+              <div className="sc-head">
+                <CheckCircle2 className="w-5 h-5" style={{ color: "#38A169" }} />
+                Medicação
+              </div>
+              <div className="sc-body">Nenhuma medicação informada.</div>
+              <div className="bg-icon">✅</div>
+            </div>
+          )}
+
+          {/* Cronograma de Metas */}
+          <div className="soft-card sc-yellow">
+            <div className="sc-head">
+              <FileText className="w-5 h-5" style={{ color: "#D69E2E" }} />
+              Cronograma de Metas
+            </div>
+            <div className="sc-body">
+              <div className="meta-row">
+                <span className="text-xl">🏁</span>
+                <strong>Curto:</strong> {metas.Curto}
+              </div>
+              <div className="meta-row">
+                <span className="text-xl">🧗</span>
+                <strong>Médio:</strong> {metas.Medio}
+              </div>
+              <div className="meta-row">
+                <span className="text-xl">🏔️</span>
+                <strong>Longo:</strong> {metas.Longo}
+              </div>
+            </div>
+            <div className="bg-icon">🏁</div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* Radar Curricular */}
+          {compsInferidos.length > 0 ? (
+            <div className="soft-card sc-orange" style={{ borderLeftColor: "#FC8181", backgroundColor: "#FFF5F5" }}>
+              <div className="sc-head">
+                <Radar className="w-5 h-5" style={{ color: "#C53030" }} />
+                Radar Curricular (Automático)
+              </div>
+              <div className="sc-body mb-2">
+                Componentes que exigem maior flexibilização (baseado nas barreiras):
+              </div>
+              <div>
+                {compsInferidos.map((c) => (
+                  <span key={c} className="rede-chip" style={{ borderColor: "#FC8181", color: "#C53030" }}>
+                    {c}
+                  </span>
+                ))}
+              </div>
+              <div className="bg-icon">🎯</div>
+            </div>
+          ) : (
+            <div className="soft-card sc-blue">
+              <div className="sc-head">
+                <Radar className="w-5 h-5" style={{ color: "#3182CE" }} />
+                Radar Curricular
+              </div>
+              <div className="sc-body">Nenhum componente específico marcado como crítico.</div>
+              <div className="bg-icon">🎯</div>
+            </div>
+          )}
+
+          {/* Rede de Apoio */}
+          <div className="soft-card sc-cyan">
+            <div className="sc-head">
+              <Users className="w-5 h-5" style={{ color: "#0BC5EA" }} />
+              Rede de Apoio
+            </div>
+            <div className="sc-body">
+              {rede.length > 0 ? (
+                rede.map((p) => (
+                  <span key={p} className="rede-chip">
+                    {getProIcon(p)} {p}
+                  </span>
+                ))
+              ) : (
+                <span className="opacity-60">Sem rede.</span>
+              )}
+            </div>
+            <div className="bg-icon">🤝</div>
+          </div>
+        </div>
+      </div>
+
+      {/* DNA de Suporte */}
+      <div>
+        <h4 className="text-base font-semibold text-slate-800 mb-4">🧬 DNA de Suporte</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Object.keys(LISTAS_BARREIRAS).map((area) => {
+            const qtd = (barreiras[area] || []).length;
+            const val = Math.min(qtd * 20, 100);
+            let color = "#3182CE";
+            if (val > 40) color = "#DD6B20";
+            if (val > 70) color = "#E53E3E";
+            return (
+              <div key={area} className="dna-bar-container">
+                <div className="dna-bar-flex">
+                  <span>{area}</span>
+                  <span>{qtd} barreiras</span>
+                </div>
+                <div className="dna-bar-bg">
+                  <div className="dna-bar-fill" style={{ width: `${val}%`, background: color }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Exportação */}
+      <hr className="my-6" />
+      <div>
+        <h4 className="text-base font-semibold text-slate-800 mb-4">📤 Exportação e Sincronização</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <p className="text-xs text-slate-600 mb-2">📄 Documentos</p>
+            <div className="flex flex-col gap-2">
+              <PeiExportDocxButton peiData={peiData} />
+              <PdfDownloadButton
+                text={peiDataToFullText(peiData)}
+                filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
+                title={`PEI - ${peiData.nome || "Estudante"}`}
+                className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Baixar PDF Oficial
+              </PdfDownloadButton>
+            </div>
+            {!peiData.ia_sugestao && (
+              <p className="text-xs text-slate-500 mt-2">
+                💡 Gere o Plano na aba <strong>Consultoria IA</strong> para incluir o planejamento pedagógico detalhado no documento.
+              </p>
+            )}
+          </div>
+          <div>
+            <p className="text-xs text-slate-600 mb-2">💾 Backup (JSON)</p>
+            <p className="text-xs text-slate-500 mb-2">Salva um arquivo no seu computador para garantir que nada se perca.</p>
+            <a
+              href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
+              download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.json`}
+              className="block w-full px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-center text-sm"
+            >
+              Salvar Arquivo .JSON
+            </a>
+          </div>
+          <div>
+            <p className="text-xs text-slate-600 mb-2">🌐 Nuvem (Supabase)</p>
+            <p className="text-xs text-slate-500 mb-2">Sincroniza tudo na nuvem.</p>
+            {currentStudentId ? (
+              <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                <p className="text-sm text-emerald-800">✅ Já sincronizado</p>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500">Use a aba <strong>Início</strong> para sincronizar.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Jornada Gamificada */}
+      <div>
+        <label className="block text-sm font-semibold text-slate-700 mb-2">Jornada Gamificada (ia_mapa_texto)</label>
+        <textarea
+          value={peiData.ia_mapa_texto || ""}
+          onChange={(e) => updateField("ia_mapa_texto", e.target.value)}
+          rows={8}
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
+        />
+      </div>
     </div>
   );
 }
@@ -742,8 +2247,32 @@ function ConsultoriaTab({
   const [engine, setEngine] = useState<EngineId>((peiData.consultoria_engine as EngineId) || "red");
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [feedbackAjuste, setFeedbackAjuste] = useState<string>(peiData.feedback_ajuste || "");
 
-  const gerar = async (modoPratico: boolean) => {
+  const statusValidacao = peiData.status_validacao_pei || "rascunho";
+  const temTexto = !!peiData.ia_sugestao;
+
+  // Detectar segmento para exibir info box
+  function detectarNivelEnsinoLocal(serieStr: string | null | undefined): string {
+    if (!serieStr) return "";
+    const s = serieStr.toLowerCase();
+    if (s.includes("infantil")) return "EI";
+    if (s.includes("1º ano") || s.includes("2º ano") || s.includes("3º ano") || s.includes("4º ano") || s.includes("5º ano")) return "EFI";
+    if (s.includes("6º ano") || s.includes("7º ano") || s.includes("8º ano") || s.includes("9º ano")) return "EFII";
+    if (s.includes("série") || s.includes("médio") || s.includes("eja")) return "EM";
+    return "";
+  }
+
+  const nivel = detectarNivelEnsinoLocal(serie);
+  const segmentoInfo: Record<string, { nome: string; cor: string; desc: string }> = {
+    EI: { nome: "Educação Infantil", cor: "#4299e1", desc: "Foco: Campos de Experiência (BNCC) e rotina estruturante." },
+    EFI: { nome: "Ensino Fundamental Anos Iniciais (EFAI)", cor: "#48bb78", desc: "Foco: alfabetização, numeracia e consolidação de habilidades basais." },
+    EFII: { nome: "Ensino Fundamental Anos Finais (EFAF)", cor: "#ed8936", desc: "Foco: autonomia, funções executivas, organização e aprofundamento conceitual." },
+    EM: { nome: "Ensino Médio / EJA", cor: "#9f7aea", desc: "Foco: projeto de vida, áreas do conhecimento e estratégias de estudo." },
+  };
+  const segInfo = segmentoInfo[nivel] || { nome: "Selecione a Série/Ano", cor: "#718096", desc: "Aguardando seleção..." };
+
+  const gerar = async (modoPratico: boolean, feedback?: string) => {
     if (!serie) {
       setErro("Selecione a Série/Ano na aba Estudante.");
       return;
@@ -758,12 +2287,17 @@ function ConsultoriaTab({
           peiData,
           engine,
           modo_pratico: modoPratico,
+          feedback: feedback || undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao gerar relatório.");
       updateField("ia_sugestao", data.texto || "");
       updateField("consultoria_engine", engine);
+      updateField("status_validacao_pei", "revisao");
+      if (feedback) {
+        updateField("feedback_ajuste", feedback);
+      }
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar.");
     } finally {
@@ -771,40 +2305,275 @@ function ConsultoriaTab({
     }
   };
 
+  // Calcular estatísticas para info box
+  const nBarreiras = Object.values(peiData.barreiras_selecionadas || {}).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+  const nHab = (peiData.habilidades_bncc_selecionadas || []).length;
+  const habValidadas = peiData.habilidades_bncc_validadas || [];
+
+  // Exemplo de barreira para transparência
+  let exemploBarreira = "geral";
+  for (const [area, lst] of Object.entries(peiData.barreiras_selecionadas || {})) {
+    if (Array.isArray(lst) && lst.length > 0) {
+      exemploBarreira = lst[0];
+      break;
+    }
+  }
+
+  const engineNames: Record<EngineId, string> = {
+    red: "Claude (Anthropic)",
+    blue: "GPT-4o (OpenAI)",
+    green: "GPT-4 Turbo (OpenAI)",
+    yellow: "Gemini Pro (Google)",
+    orange: "GPT-3.5 Turbo (OpenAI)",
+  };
+
   return (
     <div className="space-y-4">
-      <p className="text-slate-600 text-sm">
-        Documento técnico gerado pela IA. Escolha o motor e clique em Gerar.
-      </p>
-      <EngineSelector value={engine} onChange={(e) => setEngine(e)} />
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={() => gerar(false)}
-          disabled={loading}
-          className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50"
-        >
-          {loading ? "Gerando…" : "✨ Gerar Estratégia Técnica"}
-        </button>
-        <button
-          type="button"
-          onClick={() => gerar(true)}
-          disabled={loading}
-          className="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg disabled:opacity-50"
-        >
-          {loading ? "Gerando…" : "🧰 Gerar Guia Prático (Sala)"}
-        </button>
-      </div>
-      {erro && <p className="text-red-600 text-sm">{erro}</p>}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Sugestão IA (consultoria)</label>
-        <textarea
-          value={peiData.ia_sugestao || ""}
-          onChange={(e) => updateField("ia_sugestao", e.target.value)}
-          rows={14}
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
-        />
-      </div>
+      {!serie ? (
+        <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+          <p className="text-amber-800 text-sm">
+            ⚠️ Selecione a Série/Ano na aba <strong>Estudante</strong> para ativar o modo especialista.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Info box do segmento */}
+          <div className="p-4 rounded-lg border-l-4" style={{ backgroundColor: "#F7FAFC", borderLeftColor: segInfo.cor }}>
+            <p className="font-semibold mb-1" style={{ color: segInfo.cor }}>
+              ℹ️ Modo Especialista: {segInfo.nome}
+            </p>
+            <p className="text-sm text-slate-600">{segInfo.desc}</p>
+          </div>
+
+          {/* Se ainda não tem texto ou voltou para rascunho: botões de geração */}
+          {(!temTexto || statusValidacao === "rascunho") && (
+            <>
+              <details className="p-4 rounded-lg border-2 border-slate-200 bg-white" open>
+                <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
+                  🔧 Escolher motor de IA (Red, Blue, Green, Yellow ou Orange)
+                </summary>
+                <p className="text-xs text-slate-500 mb-3">Selecione qual IA gerará o relatório. Orange = fallback (GPT) se outros falharem.</p>
+                <div className="flex flex-wrap gap-3">
+                  {(["red", "blue", "green", "yellow", "orange"] as EngineId[]).map((e) => (
+                    <label key={e} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="engine"
+                        value={e}
+                        checked={engine === e}
+                        onChange={() => setEngine(e)}
+                        className="w-4 h-4 text-sky-600"
+                      />
+                      <span className="text-sm text-slate-700">{engineNames[e]}</span>
+                    </label>
+                  ))}
+                </div>
+              </details>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-1 flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => gerar(false)}
+                    disabled={loading}
+                    className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50 hover:bg-cyan-700 transition-colors"
+                  >
+                    {loading ? "Gerando…" : "✨ Gerar Estratégia Técnica"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => gerar(true)}
+                    disabled={loading}
+                    className="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg disabled:opacity-50 hover:bg-slate-300 transition-colors"
+                  >
+                    {loading ? "Gerando…" : "🧰 Gerar Guia Prático (Sala de Aula)"}
+                  </button>
+                </div>
+                <div className="md:col-span-2">
+                  <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                    <p className="text-sm text-blue-800 mb-2">
+                      Quanto mais completo o <strong>Mapeamento</strong> (barreiras + nível de suporte + hiperfoco) e o <strong>Plano de Ação</strong>, melhor a precisão.
+                    </p>
+                    <p className="text-sm text-blue-700">
+                      📌 Barreiras mapeadas agora: <strong>{nBarreiras}</strong>
+                    </p>
+                    {nHab > 0 && habValidadas.length === 0 && (
+                      <p className="text-sm text-amber-700 mt-2">
+                        ⚠️ Há habilidades selecionadas na aba <strong>Habilidades BNCC</strong> mas ainda não validadas. Clique em <strong>Validar seleção</strong> naquela aba para o relatório usar apenas as habilidades confirmadas pelo professor.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Se revisão/aprovado: mostrar texto e permitir aprovar/ajustar */}
+          {temTexto && (statusValidacao === "revisao" || statusValidacao === "aprovado") && (
+            <>
+              <details className="p-4 rounded-lg border-2 border-slate-200 bg-white">
+                <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
+                  🧠 Como a IA construiu este relatório (transparência)
+                </summary>
+                <div className="space-y-2 text-sm text-slate-600">
+                  <p>
+                    <strong>Gerado por {engineNames[engine]}</strong>
+                  </p>
+                  <p>
+                    <strong>1. Input do estudante:</strong> Série <strong>{serie}</strong>, diagnóstico <strong>{peiData.diagnostico || "em observação"}</strong>.
+                  </p>
+                  <p>
+                    <strong>2. Barreiras ativas:</strong> detectei <strong>{nBarreiras}</strong> barreiras e cruzei isso com BNCC + DUA.
+                  </p>
+                  <p>
+                    <strong>3. Ponto crítico exemplo:</strong> priorizei adaptações para reduzir impacto de <strong>{exemploBarreira}</strong>.
+                  </p>
+                </div>
+              </details>
+
+              <details className="p-4 rounded-lg border-2 border-slate-200 bg-white">
+                <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
+                  🛡️ Calibragem e segurança pedagógica
+                </summary>
+                <div className="space-y-1 text-sm text-slate-600">
+                  <p>- <strong>Farmacologia:</strong> não sugere dose/medicação; apenas sinaliza pontos de atenção.</p>
+                  <p>- <strong>Dados sensíveis:</strong> evite inserir PII desnecessária.</p>
+                  <p>- <strong>Normativa:</strong> sugestões buscam aderência à LBI/DUA e adaptações razoáveis.</p>
+                </div>
+              </details>
+
+              <div>
+                <h4 className="text-base font-semibold text-slate-800 mb-3">📝 Revisão do Plano</h4>
+                <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 mb-3">
+                  <div className="prose prose-sm max-w-none whitespace-pre-wrap text-slate-700">
+                    {(peiData.ia_sugestao || "").replace(/\[.*?\]/g, "")}
+                  </div>
+                </div>
+              </div>
+
+              <hr className="my-4" />
+
+              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+                <p className="text-sm text-amber-800">
+                  <strong>⚠️ Responsabilidade do Educador:</strong> a IA pode errar. Valide e ajuste antes de aplicar.
+                </p>
+              </div>
+
+              {statusValidacao === "revisao" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateField("status_validacao_pei", "aprovado");
+                    }}
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    ✅ Aprovar Plano
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateField("status_validacao_pei", "ajustando");
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    ❌ Solicitar Ajuste
+                  </button>
+                </div>
+              )}
+
+              {statusValidacao === "aprovado" && (
+                <>
+                  <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 mb-4">
+                    <p className="text-emerald-800 font-semibold">Plano Validado ✅</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Edição Final Manual (opcional)</label>
+                    <textarea
+                      value={peiData.ia_sugestao || ""}
+                      onChange={(e) => updateField("ia_sugestao", e.target.value)}
+                      rows={12}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateField("ia_sugestao", "");
+                        updateField("status_validacao_pei", "rascunho");
+                      }}
+                      className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                      🔁 Regerar do Zero
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateField("status_validacao_pei", "revisao");
+                      }}
+                      className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                      🧹 Voltar para Revisão
+                    </button>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          {/* Ajustando: caixa de feedback + regerar */}
+          {statusValidacao === "ajustando" && (
+            <>
+              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+                <p className="text-amber-800 font-semibold mb-2">Descreva o ajuste desejado:</p>
+                <textarea
+                  value={feedbackAjuste}
+                  onChange={(e) => setFeedbackAjuste(e.target.value)}
+                  placeholder="Ex: Foque mais na alfabetização…"
+                  rows={4}
+                  className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm"
+                />
+              </div>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => gerar(false, feedbackAjuste)}
+                  disabled={loading}
+                  className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50 hover:bg-cyan-700 transition-colors"
+                >
+                  {loading ? "Regerando…" : "Regerar com Ajustes"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateField("status_validacao_pei", "revisao");
+                    setFeedbackAjuste("");
+                  }}
+                  className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Se não tem texto ainda, mostrar textarea vazio */}
+          {!temTexto && statusValidacao === "rascunho" && (
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Sugestão IA (consultoria)</label>
+              <textarea
+                value={peiData.ia_sugestao || ""}
+                onChange={(e) => updateField("ia_sugestao", e.target.value)}
+                rows={14}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
+                placeholder="Gere o relatório usando os botões acima..."
+              />
+            </div>
+          )}
+        </>
+      )}
+      {erro && <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg border border-red-200">{erro}</p>}
     </div>
   );
 }
@@ -958,6 +2727,10 @@ function BNCCTab({
   const componentesAnt = Object.keys(anosAnteriores).sort();
   const rotulo = nivel === "EM" ? "área de conhecimento" : "componente";
   const habilidadesAtuais = (peiData.habilidades_bncc_selecionadas || []) as HabilidadeBncc[];
+  const [sugerindoAtual, setSugerindoAtual] = useState(false);
+  const [sugerindoAnteriores, setSugerindoAnteriores] = useState(false);
+  const [motivoIAAtual, setMotivoIAAtual] = useState<string>("");
+  const [motivoIAAnteriores, setMotivoIAAnteriores] = useState<string>("");
 
   function opcaoLabel(h: HabilidadeBncc) {
     const c = h.codigo || "";
@@ -974,11 +2747,93 @@ function BNCCTab({
   function desmarcarTodas() {
     updateField("habilidades_bncc_selecionadas", []);
     updateField("habilidades_bncc_validadas", null);
+    setMotivoIAAtual("");
+    setMotivoIAAnteriores("");
   }
 
   function validarSelecao() {
     if (habilidadesAtuais.length === 0) return;
     updateField("habilidades_bncc_validadas", [...habilidadesAtuais]);
+  }
+
+  async function sugerirHabilidadesIA(tipo: "ano_atual" | "anos_anteriores") {
+    if (tipo === "ano_atual") {
+      setSugerindoAtual(true);
+    } else {
+      setSugerindoAnteriores(true);
+    }
+
+    try {
+      const habilidadesParaIA =
+        tipo === "ano_atual"
+          ? Object.entries(anoAtual).flatMap(([disc, habs]) =>
+              (habs || []).map((h) => ({
+                disciplina: disc,
+                codigo: h.codigo,
+                habilidade_completa: h.habilidade_completa || h.descricao,
+              }))
+            )
+          : Object.entries(anosAnteriores).flatMap(([disc, habs]) =>
+              (habs || []).map((h) => ({
+                disciplina: disc,
+                codigo: h.codigo,
+                habilidade_completa: h.habilidade_completa || h.descricao,
+              }))
+            );
+
+      const res = await fetch("/api/bncc/sugerir-habilidades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          serie,
+          tipo,
+          habilidades: habilidadesParaIA,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Erro ao sugerir habilidades");
+      }
+
+      const { codigos, motivo } = await res.json();
+
+      if (tipo === "ano_atual") {
+        setMotivoIAAtual(motivo || "");
+      } else {
+        setMotivoIAAnteriores(motivo || "");
+      }
+
+      // Adicionar habilidades sugeridas
+      const novas: HabilidadeBncc[] = [];
+      const habilidadesFonte = tipo === "ano_atual" ? anoAtual : anosAnteriores;
+
+      for (const [disc, habs] of Object.entries(habilidadesFonte)) {
+        for (const h of habs || []) {
+          if (codigos.includes((h.codigo || "").toUpperCase())) {
+            novas.push({
+              disciplina: disc,
+              codigo: h.codigo,
+              descricao: h.descricao,
+              habilidade_completa: h.habilidade_completa || h.descricao,
+              origem: tipo === "ano_atual" ? "ano_atual" : "anos_anteriores",
+            });
+          }
+        }
+      }
+
+      // Manter habilidades de anos anteriores se estamos sugerindo ano atual
+      const outras = tipo === "ano_atual" ? habilidadesAtuais.filter((h) => h.origem === "anos_anteriores") : [];
+      updateField("habilidades_bncc_selecionadas", [...outras, ...novas]);
+    } catch (error) {
+      console.error("Erro ao sugerir habilidades:", error);
+      alert(`Erro ao sugerir habilidades: ${error}`);
+    } finally {
+      if (tipo === "ano_atual") {
+        setSugerindoAtual(false);
+      } else {
+        setSugerindoAnteriores(false);
+      }
+    }
   }
 
   if (blocosLoading) {
@@ -999,26 +2854,34 @@ function BNCCTab({
         Selecione as habilidades do ano/série do estudante. A Consultoria IA usará apenas estas para o relatório.
       </p>
 
-      <details className="border border-slate-200 rounded-lg" open={habilidadesAtuais.length > 0}>
-        <summary className="px-4 py-3 font-medium cursor-pointer bg-slate-50 rounded-t-lg">
-          Habilidades selecionadas ({habilidadesAtuais.length})
+      <details className="border-2 border-blue-200 rounded-lg bg-blue-50/30" open={habilidadesAtuais.length > 0}>
+        <summary className="px-4 py-3 font-medium cursor-pointer bg-blue-100 rounded-t-lg">
+          📋 Habilidades selecionadas ({habilidadesAtuais.length})
         </summary>
-        <div className="p-4 space-y-2">
+        <div className="p-4 space-y-3">
           {habilidadesAtuais.length === 0 ? (
             <p className="text-sm text-slate-500">
               Nenhuma habilidade selecionada. Marque nas listas abaixo ou use o botão de auxílio da IA.
             </p>
           ) : (
             <>
+              {(motivoIAAtual || motivoIAAnteriores) && (
+                <div className="p-3 rounded-lg bg-purple-50 border border-purple-200">
+                  <p className="text-xs font-medium text-purple-800 mb-1">Por que a IA escolheu estas habilidades:</p>
+                  {motivoIAAtual && <p className="text-xs text-purple-700 mb-1"><em>Ano atual:</em> {motivoIAAtual}</p>}
+                  {motivoIAAnteriores && <p className="text-xs text-purple-700"><em>Anos anteriores:</em> {motivoIAAnteriores}</p>}
+                </div>
+              )}
+              <p className="text-xs text-slate-600">Revise a lista. Use <strong>Remover</strong> para tirar uma habilidade ou <strong>Desmarcar todas</strong> para limpar.</p>
               {habilidadesAtuais.map((h, i) => (
-                <div key={`${h.disciplina}-${h.codigo}-${i}`} className="flex justify-between items-start gap-2 py-2 border-b border-slate-100">
+                <div key={`${h.disciplina}-${h.codigo}-${i}`} className="flex justify-between items-start gap-2 py-2 px-3 rounded-lg bg-white border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all">
                   <div className="text-sm">
-                    <strong>{h.disciplina}</strong> — <em>{h.codigo}</em> — {h.habilidade_completa || h.descricao}
+                    <strong className="text-slate-800">{h.disciplina}</strong> — <em className="text-sky-600">{h.codigo}</em> — <span className="text-slate-700">{h.habilidade_completa || h.descricao}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => removerHabilidade(i)}
-                    className="text-red-600 text-sm whitespace-nowrap"
+                    className="text-red-600 hover:text-red-700 text-sm whitespace-nowrap px-2 py-1 rounded hover:bg-red-50 transition-colors"
                   >
                     Remover
                   </button>
@@ -1027,7 +2890,7 @@ function BNCCTab({
               <button
                 type="button"
                 onClick={desmarcarTodas}
-                className="text-slate-600 text-sm"
+                className="text-slate-600 hover:text-slate-700 text-sm px-3 py-1.5 rounded border border-slate-300 hover:bg-slate-50 transition-colors"
               >
                 Desmarcar todas
               </button>
@@ -1037,14 +2900,34 @@ function BNCCTab({
       </details>
 
       {componentesAtual.length > 0 && (
-        <details className="border border-slate-200 rounded-lg" open>
-          <summary className="px-4 py-3 font-medium cursor-pointer bg-slate-50 rounded-t-lg">
+        <details className="border-2 border-emerald-200 rounded-lg bg-emerald-50/30" open>
+          <summary className="px-4 py-3 font-medium cursor-pointer bg-emerald-100 rounded-t-lg">
             Habilidades do ano/série atual
           </summary>
           <div className="p-4 space-y-4">
-            <p className="text-xs text-slate-500">
-              Marque as habilidades por {rotulo} (ano atual).
-            </p>
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <p className="text-xs text-slate-600">
+                Marque as habilidades por {rotulo} (ano atual).
+              </p>
+              <button
+                type="button"
+                onClick={() => sugerirHabilidadesIA("ano_atual")}
+                disabled={sugerindoAtual}
+                className="px-3 py-1.5 text-xs font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                {sugerindoAtual ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Sugerindo...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3 h-3" />
+                    🤖 Auxílio IA
+                  </>
+                )}
+              </button>
+            </div>
             {componentesAtual.map((disc) => (
               <div key={disc}>
                 <label className="block text-sm font-medium text-slate-700 mb-2">{disc}</label>
@@ -1081,14 +2964,34 @@ function BNCCTab({
       )}
 
       {componentesAnt.length > 0 && (
-        <details className="border border-slate-200 rounded-lg">
-          <summary className="px-4 py-3 font-medium cursor-pointer bg-slate-50 rounded-t-lg">
+        <details className="border-2 border-amber-200 rounded-lg bg-amber-50/30">
+          <summary className="px-4 py-3 font-medium cursor-pointer bg-amber-100 rounded-t-lg">
             Habilidades de anos anteriores
           </summary>
           <div className="p-4 space-y-4">
-            <p className="text-xs text-slate-500">
-              Habilidades de anos anteriores que merecem atenção.
-            </p>
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <p className="text-xs text-slate-600">
+                Habilidades de anos anteriores que merecem atenção.
+              </p>
+              <button
+                type="button"
+                onClick={() => sugerirHabilidadesIA("anos_anteriores")}
+                disabled={sugerindoAnteriores}
+                className="px-3 py-1.5 text-xs font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                {sugerindoAnteriores ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Sugerindo...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3 h-3" />
+                    🤖 Auxílio IA
+                  </>
+                )}
+              </button>
+            </div>
             {componentesAnt.map((disc) => (
               <div key={disc}>
                 <label className="block text-sm font-medium text-slate-700 mb-2">{disc}</label>
@@ -1223,19 +3126,17 @@ function LaudoPdfSection({
   }
 
   return (
-    <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3">
-      <div>
-        <h4 className="font-medium text-slate-800 mb-1">Laudo médico/escolar (PDF) + Extração Inteligente</h4>
-        <p className="text-sm text-slate-600">Anexe o laudo e use a IA para extrair diagnóstico e medicamentos.</p>
-      </div>
-      <div className="flex flex-wrap gap-3 items-end">
-        <div className="flex-1 min-w-[200px]">
-          <label className="block text-xs text-slate-600 mb-1">Arquivo PDF</label>
+    <div className="space-y-3">
+      {/* Layout 2 colunas [2, 1] como Streamlit */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+        {/* Coluna esquerda: Upload (2 colunas) */}
+        <div className="md:col-span-2">
           <input
             type="file"
             accept=".pdf,application/pdf"
             onChange={(e) => {
-              setFile(e.target.files?.[0] || null);
+              const selectedFile = e.target.files?.[0];
+              setFile(selectedFile || null);
               setExtraido(null);
               setErro(null);
               setModoRevisao(false);
@@ -1243,25 +3144,31 @@ function LaudoPdfSection({
             }}
             className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-sky-100 file:text-sky-800 file:cursor-pointer hover:file:bg-sky-200"
           />
-        </div>
-        <button
-          type="button"
-          onClick={extrair}
-          disabled={loading || !file}
-          className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-700 transition-colors flex items-center gap-2"
-        >
-          {loading ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              Analisando…
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4" />
-              Extrair dados do laudo
-            </>
+          {file && (
+            <p className="text-xs text-emerald-600 mt-1">Arquivo selecionado. Clique em "Extrair Dados do Laudo" para processar.</p>
           )}
-        </button>
+        </div>
+        {/* Coluna direita: Botão (1 coluna) */}
+        <div className="flex items-start">
+          <button
+            type="button"
+            onClick={extrair}
+            disabled={loading || !file}
+            className="w-full px-4 py-2 bg-sky-600 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-700 transition-colors flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Analisando…
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                ✨ Extrair Dados do Laudo
+              </>
+            )}
+          </button>
+        </div>
       </div>
       {erro && <div className="text-red-600 text-sm bg-red-50 p-2 rounded">{erro}</div>}
       
@@ -1345,15 +3252,19 @@ function LaudoPdfSection({
       
       {/* Resultado da extração (sem revisão de meds) */}
       {extraido && !modoRevisao && (
-        <div className="space-y-2 p-3 rounded-lg bg-white border border-slate-200">
+        <div className="space-y-3 p-4 rounded-lg bg-white border-2 border-emerald-200">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            <p className="text-sm font-semibold text-emerald-800">Dados extraídos ✅ (revise as medicações abaixo)</p>
+          </div>
           <div>
             <div className="text-xs font-semibold text-slate-600 uppercase mb-1">Diagnóstico</div>
-            <p className="text-sm text-slate-700">{extraido.diagnostico || "—"}</p>
+            <p className="text-sm text-slate-700 bg-slate-50 p-2 rounded">{extraido.diagnostico || "—"}</p>
           </div>
           {extraido.medicamentos.length > 0 && (
             <div>
               <div className="text-xs font-semibold text-slate-600 uppercase mb-1">Medicamentos</div>
-              <ul className="text-sm text-slate-700 list-disc list-inside">
+              <ul className="text-sm text-slate-700 list-disc list-inside bg-slate-50 p-2 rounded">
                 {extraido.medicamentos.map((m, i) => (
                   <li key={i}>{m.nome}{m.posologia ? ` (${m.posologia})` : ""}</li>
                 ))}
@@ -1363,7 +3274,7 @@ function LaudoPdfSection({
           <button
             type="button"
             onClick={aplicar}
-            className="px-3 py-1.5 bg-sky-600 text-white rounded-lg text-sm font-medium hover:bg-sky-700 flex items-center gap-2"
+            className="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center justify-center gap-2"
           >
             <CheckCircle2 className="w-4 h-4" />
             Aplicar ao PEI
@@ -1389,52 +3300,197 @@ function MedicamentosForm({
   const lista = peiData.lista_medicamentos || [];
 
   return (
-    <div>
-      <div className="flex gap-2 mb-2">
+    <div className="p-4 rounded-lg border border-slate-200 bg-white">
+      <div className="flex items-center gap-2 mb-3">
         <input
-          type="text"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          placeholder="Nome"
-          className="flex-1 px-3 py-2 border border-slate-200 rounded-lg"
+          type="checkbox"
+          checked={lista.length > 0}
+          readOnly
+          className="rounded"
         />
-        <input
-          type="text"
-          value={posologia}
-          onChange={(e) => setPosologia(e.target.value)}
-          placeholder="Posologia"
-          className="flex-1 px-3 py-2 border border-slate-200 rounded-lg"
-        />
-        <label className="flex items-center gap-1">
-          <input type="checkbox" checked={escola} onChange={(e) => setEscola(e.target.checked)} />
-          <span className="text-sm">Na escola?</span>
-        </label>
-        <button
-          type="button"
-          onClick={() => {
-            onAdd(nome, posologia, escola);
+        <label className="text-sm font-medium text-slate-700">💊 O estudante faz uso contínuo de medicação?</label>
+      </div>
+      
+      {/* Layout 3 colunas [3, 2, 2] como Streamlit */}
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-2 mb-3">
+        <div className="md:col-span-3">
+          <input
+            type="text"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Nome"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          />
+        </div>
+        <div className="md:col-span-2">
+          <input
+            type="text"
+            value={posologia}
+            onChange={(e) => setPosologia(e.target.value)}
+            placeholder="Posologia"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          />
+        </div>
+        <div className="md:col-span-2 flex items-center gap-2">
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={escola}
+              onChange={(e) => setEscola(e.target.checked)}
+              className="rounded"
+            />
+            Na escola?
+          </label>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => {
+          if (nome.trim()) {
+            onAdd(nome.trim(), posologia.trim(), escola);
             setNome("");
             setPosologia("");
-          }}
-          className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm"
-        >
-          Adicionar
-        </button>
-      </div>
-      <ul className="space-y-1">
-        {lista.map((m, i) => (
-          <li key={i} className="flex items-center justify-between py-2 border-b border-slate-100">
-            <span>
-              {m.nome} ({m.posologia || ""}){m.escola ? " [NA ESCOLA]" : ""}
-            </span>
-            <button type="button" onClick={() => onRemove(i)} className="text-red-600 text-sm">
-              Excluir
-            </button>
-          </li>
-        ))}
-      </ul>
+            setEscola(false);
+          }
+        }}
+        className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm font-medium hover:bg-sky-700"
+      >
+        Adicionar
+      </button>
+      {lista.length > 0 && (
+        <>
+          <hr className="my-3 border-slate-200" />
+          <div className="space-y-2">
+            {lista.map((m, i) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-sky-50 rounded-lg border border-sky-200">
+                <span className="text-sm text-slate-700">
+                  💊 <strong>{m.nome || ""}</strong> ({m.posologia || ""}){m.escola ? " [NA ESCOLA]" : ""}
+                </span>
+                <button 
+                  type="button" 
+                  onClick={() => onRemove(i)} 
+                  className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                >
+                  Excluir
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
+}
+
+// ==============================================================================
+// FUNÇÕES AUXILIARES DO DASHBOARD
+// ==============================================================================
+function calcularIdade(dataNasc: string | Date | undefined): string {
+  if (!dataNasc) return "";
+  const hoje = new Date();
+  const nasc = typeof dataNasc === "string" ? new Date(dataNasc) : dataNasc;
+  let idade = hoje.getFullYear() - nasc.getFullYear();
+  const mesDiff = hoje.getMonth() - nasc.getMonth();
+  if (mesDiff < 0 || (mesDiff === 0 && hoje.getDate() < nasc.getDate())) {
+    idade--;
+  }
+  return `${idade} anos`;
+}
+
+function getHiperfocoEmoji(texto: string | undefined): string {
+  if (!texto) return "🚀";
+  const t = texto.toLowerCase();
+  if (t.includes("jogo") || t.includes("game") || t.includes("minecraft") || t.includes("roblox")) return "🎮";
+  if (t.includes("dino")) return "🦖";
+  if (t.includes("fute") || t.includes("bola")) return "⚽";
+  if (t.includes("desenho") || t.includes("arte")) return "🎨";
+  if (t.includes("músic") || t.includes("music")) return "🎵";
+  if (t.includes("anim") || t.includes("gato") || t.includes("cachorro")) return "🐾";
+  if (t.includes("carro")) return "🏎️";
+  if (t.includes("espaço") || t.includes("espaco")) return "🪐";
+  return "🚀";
+}
+
+function calcularComplexidadePei(dados: PEIData): [string, string, string] {
+  const barreiras = dados.barreiras_selecionadas || {};
+  const nBar = Object.values(barreiras).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+  const niveis = dados.niveis_suporte || {};
+  const nSuporteAlto = Object.values(niveis).filter((v) => v === "Substancial" || v === "Muito Substancial").length;
+  let recursos = 0;
+  if (dados.rede_apoio && dados.rede_apoio.length > 0) recursos += 3;
+  if (dados.lista_medicamentos && dados.lista_medicamentos.length > 0) recursos += 2;
+  const saldo = nBar + nSuporteAlto - recursos;
+  if (saldo <= 2) return ["FLUIDA", "#F0FFF4", "#276749"];
+  if (saldo <= 7) return ["ATENÇÃO", "#FFFFF0", "#D69E2E"];
+  return ["CRÍTICA", "#FFF5F5", "#C53030"];
+}
+
+function extrairMetasEstruturadas(texto: string | undefined): { Curto: string; Medio: string; Longo: string } {
+  const metas = { Curto: "Definir...", Medio: "Definir...", Longo: "Definir..." };
+  if (!texto) return metas;
+  const regex = /METAS_SMART[\s\S]*?(\n\n|$)/i;
+  const match = texto.match(regex);
+  if (!match) return metas;
+  const bloco = match[0];
+  const linhas = bloco.split("\n");
+  for (const l of linhas) {
+    const lClean = l.replace(/^[\-\*]+/, "").trim();
+    if (!lClean) continue;
+    if (lClean.includes("Curto") || lClean.includes("2 meses")) {
+      metas.Curto = lClean.split(":")[-1]?.trim() || lClean;
+    } else if (lClean.includes("Médio") || lClean.includes("Semestre") || lClean.includes("Medio")) {
+      metas.Medio = lClean.split(":")[-1]?.trim() || lClean;
+    } else if (lClean.includes("Longo") || lClean.includes("Ano")) {
+      metas.Longo = lClean.split(":")[-1]?.trim() || lClean;
+    }
+  }
+  return metas;
+}
+
+function inferirComponentesImpactados(dados: PEIData): string[] {
+  const barreiras = dados.barreiras_selecionadas || {};
+  const serie = dados.serie || "";
+  const nivel = detectarNivelEnsino(serie);
+  const impactados = new Set<string>();
+
+  // Leitura
+  if (barreiras["Acadêmico"] && barreiras["Acadêmico"].some((b: string) => b.includes("Leitora"))) {
+    impactados.add("Língua Portuguesa");
+    impactados.add(nivel === "EM" ? "História/Sociologia/Filosofia" : "História/Geografia");
+  }
+
+  // Matemática
+  if (barreiras["Acadêmico"] && barreiras["Acadêmico"].some((b: string) => b.includes("Matemático"))) {
+    impactados.add("Matemática");
+    if (nivel === "EM") {
+      impactados.add("Física/Química/Biologia");
+    } else if (nivel === "EFII") {
+      impactados.add("Ciências");
+    }
+  }
+
+  // Cognitivas (transversal)
+  if (barreiras["Funções Cognitivas"] && barreiras["Funções Cognitivas"].length > 0) {
+    impactados.add("Todas as áreas");
+  }
+
+  return Array.from(impactados);
+}
+
+function getProIcon(nomeProfissional: string): string {
+  const p = nomeProfissional.toLowerCase();
+  if (p.includes("psic")) return "🧠";
+  if (p.includes("fono")) return "🗣️";
+  if (p.includes("terapeuta ocupacional") || p.includes("to")) return "🤲";
+  if (p.includes("neuro")) return "🧬";
+  if (p.includes("psiquiatra")) return "💊";
+  if (p.includes("psicopedagogo")) return "📚";
+  if (p.includes("professor") || p.includes("mediador")) return "👨‍🏫";
+  if (p.includes("acompanhante") || p.includes("at")) return "🤝";
+  if (p.includes("music")) return "🎵";
+  if (p.includes("equo")) return "🐴";
+  if (p.includes("oftalmo")) return "👁️";
+  return "👤";
 }
 
 function BarreirasDominio({
@@ -1453,48 +3509,131 @@ function BarreirasDominio({
   const niveis = peiData.niveis_suporte || {};
   const obs = peiData.observacoes_barreiras || {};
 
-  function toggleBarreira(b: string) {
-    const nova = selecionadas.includes(b) ? selecionadas.filter((x) => x !== b) : [...selecionadas, b];
-    updateField("barreiras_selecionadas", { ...barreiras, [dominio]: nova });
-  }
-
   return (
-    <div className="mb-4 p-4 rounded-lg border border-slate-200">
-      <h5 className="font-medium text-slate-800 mb-2">{dominio}</h5>
-      <div className="space-y-2">
-        {opcoes.map((b) => (
-          <div key={b} className="flex items-center gap-4">
-            <label className="flex items-center gap-2">
+    <div className={`p-4 rounded-lg border-2 ${selecionadas.length > 0 ? "border-emerald-300 bg-emerald-50/20" : "border-slate-200 bg-white"} transition-all`}>
+      <h5 className="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+        <strong>{dominio}</strong>
+        {selecionadas.length > 0 && (
+          <span className="text-xs font-normal text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+            {selecionadas.length} selecionada{selecionadas.length > 1 ? "s" : ""}
+          </span>
+        )}
+      </h5>
+      
+      {/* Checkboxes para selecionar barreiras */}
+      <div className="space-y-2 mb-4">
+        {opcoes.map((b) => {
+          const estaSelecionada = selecionadas.includes(b);
+          return (
+            <label
+              key={b}
+              className={`flex items-center gap-2 p-2.5 rounded-lg cursor-pointer transition-all ${
+                estaSelecionada
+                  ? "bg-emerald-50 border-2 border-emerald-300 shadow-sm"
+                  : "hover:bg-slate-50 border-2 border-transparent"
+              }`}
+            >
               <input
                 type="checkbox"
-                checked={selecionadas.includes(b)}
-                onChange={() => toggleBarreira(b)}
+                checked={estaSelecionada}
+                onChange={(e) => {
+                  const novas = e.target.checked
+                    ? [...selecionadas, b]
+                    : selecionadas.filter((item) => item !== b);
+                  const novasBarreiras = { ...barreiras, [dominio]: novas };
+                  updateField("barreiras_selecionadas", novasBarreiras);
+                  
+                  // Remove nível de suporte se desmarcar
+                  if (!e.target.checked) {
+                    const chave = `${dominio}_${b}`;
+                    const novosNiveis = { ...niveis };
+                    delete novosNiveis[chave];
+                    updateField("niveis_suporte", novosNiveis);
+                  }
+                }}
+                className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
               />
-              <span className="text-sm">{b}</span>
+              <span className={`text-sm ${estaSelecionada ? "text-emerald-900 font-medium" : "text-slate-700"}`}>
+                {b}
+              </span>
             </label>
-            {selecionadas.includes(b) && (
-              <select
-                value={niveis[`${dominio}_${b}`] || "Monitorado"}
-                onChange={(e) =>
-                  updateField("niveis_suporte", { ...niveis, [`${dominio}_${b}`]: e.target.value })
-                }
-                className="text-sm px-2 py-1 border rounded"
-              >
-                {NIVEIS_SUPORTE.map((n) => (
-                  <option key={n} value={n}>{n}</option>
-                ))}
-              </select>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
-      <textarea
-        value={obs[dominio] || ""}
-        onChange={(e) => updateField("observacoes_barreiras", { ...obs, [dominio]: e.target.value })}
-        placeholder="Observações (opcional)"
-        rows={2}
-        className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg text-sm"
-      />
+
+      {/* Níveis de apoio por barreira selecionada */}
+      {selecionadas.length > 0 && (
+        <>
+          <hr className="my-4 border-slate-300" />
+          <h6 className="text-sm font-semibold text-slate-700 mb-2">Nível de apoio por barreira</h6>
+          <p className="text-xs text-slate-500 mb-4">
+            Escala: Autônomo (faz sozinho) → Monitorado → Substancial → Muito Substancial (suporte intenso/contínuo).
+          </p>
+          <p className="text-xs text-slate-400 mb-3">
+            Autônomo: realiza sem mediação | Monitorado: precisa de checagens | Substancial: precisa de mediação frequente | Muito Substancial: precisa de suporte intenso/contínuo
+          </p>
+          <div className="space-y-4">
+            {selecionadas.map((b) => {
+              const chave = `${dominio}_${b}`;
+              const nivelAtual = niveis[chave] || "Monitorado";
+              const nivelIndex = NIVEIS_SUPORTE.indexOf(nivelAtual);
+              return (
+                <div key={b} className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="mb-2">
+                    <strong className="text-sm text-slate-800">{b}</strong>
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max={NIVEIS_SUPORTE.length - 1}
+                      value={nivelIndex}
+                      onChange={(e) => {
+                        const novoNivel = NIVEIS_SUPORTE[parseInt(e.target.value)];
+                        updateField("niveis_suporte", { ...niveis, [chave]: novoNivel });
+                      }}
+                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-600"
+                      style={{
+                        background: `linear-gradient(to right, #0ea5e9 0%, #0ea5e9 ${(nivelIndex / (NIVEIS_SUPORTE.length - 1)) * 100}%, #e2e8f0 ${(nivelIndex / (NIVEIS_SUPORTE.length - 1)) * 100}%, #e2e8f0 100%)`,
+                      }}
+                    />
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-medium text-sky-700 bg-sky-100 px-2 py-1 rounded">
+                        {nivelAtual}
+                      </span>
+                      <div className="flex gap-1 text-[10px] text-slate-500">
+                        {NIVEIS_SUPORTE.map((n, idx) => (
+                          <span key={n} className={idx === nivelIndex ? "font-bold text-sky-600" : ""}>
+                            {n.slice(0, 3)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      {nivelAtual === "Autônomo" && "Realiza sem mediação"}
+                      {nivelAtual === "Monitorado" && "Precisa de checagens"}
+                      {nivelAtual === "Substancial" && "Precisa de mediação frequente"}
+                      {nivelAtual === "Muito Substancial" && "Precisa de suporte intenso/contínuo"}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* Observações por domínio */}
+      <div className="mt-4">
+        <label className="block text-sm font-semibold text-slate-700 mb-1">Observações (opcional)</label>
+        <textarea
+          value={obs[dominio] || ""}
+          onChange={(e) => updateField("observacoes_barreiras", { ...obs, [dominio]: e.target.value })}
+          placeholder="Ex.: quando ocorre, gatilhos, o que ajuda, o que piora, estratégias que já funcionam..."
+          rows={3}
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+        />
+      </div>
     </div>
   );
 }

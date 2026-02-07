@@ -34,7 +34,7 @@ export function EstudantesClient({ students }: Props) {
   }, [students, search]);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+    <div className="bg-white rounded-xl border-2 border-slate-200 shadow-sm">
       <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
         <input
           type="search"

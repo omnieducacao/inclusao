@@ -96,7 +96,7 @@ export function HubClient({ students, studentId, student }: Props) {
               <strong>Modo Educação Infantil</strong> — Ferramentas específicas para EI.
             </div>
           )}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white">
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Nome</div>
             <div className="font-bold text-slate-800">{student.name}</div>
@@ -127,17 +127,17 @@ export function HubClient({ students, studentId, student }: Props) {
               key={t.id}
               type="button"
               onClick={() => setActiveTool(activeTool === t.id ? null : t.id)}
-              className={`text-left p-4 rounded-xl border-2 transition-all ${
+              className={`group text-left p-6 rounded-xl border-2 transition-all duration-300 bg-gradient-to-br min-h-[160px] flex flex-col ${
                 activeTool === t.id
-                  ? "border-cyan-500 bg-cyan-50 shadow-md"
-                  : "border-slate-200 hover:border-cyan-300 hover:bg-slate-50"
+                  ? "border-cyan-500 from-cyan-50 to-white shadow-md scale-[1.02]"
+                  : "border-slate-200 from-slate-50 to-white hover:border-slate-300 hover:shadow-lg hover:scale-[1.02]"
               }`}
             >
-              <div className="mb-2">
-                <Icon className="w-8 h-8 text-slate-700" />
-              </div>
-              <div className="font-bold text-slate-800">{t.title}</div>
-              <div className="text-sm text-slate-500 mt-0.5">{t.desc}</div>
+              <Icon className={`w-12 h-12 mb-3 transition-all duration-300 ${
+                activeTool === t.id ? "text-cyan-600" : "text-slate-600 group-hover:text-cyan-600 group-hover:scale-110"
+              }`} />
+              <div className="font-bold text-slate-800 text-base">{t.title}</div>
+              <div className="text-sm text-slate-600 mt-1">{t.desc}</div>
             </button>
           );
         })}
@@ -187,7 +187,7 @@ export function HubClient({ students, studentId, student }: Props) {
       )}
 
       {activeTool && !["criar-zero", "criar-experiencia", "papo-mestre", "plano-aula", "adaptar-prova", "adaptar-atividade", "estudio-visual", "roteiro", "dinamica", "rotina-avd", "inclusao-brincar"].includes(activeTool) && (
-        <div className="p-6 rounded-xl border border-slate-200 bg-slate-50">
+        <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white min-h-[180px]">
           <p className="text-slate-600">
             <strong>{TOOLS.find((t) => t.id === activeTool)?.title}</strong> — Em breve nesta versão.
           </p>
@@ -359,7 +359,7 @@ function CriarDoZero({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">{eiMode ? "Criar Experiência (EI)" : "Criar do Zero"}</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -485,7 +485,7 @@ function CriarDoZero({
       </button>
       {erro && <div className="text-red-600 text-sm">{erro}</div>}
       {resultado && (
-        <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+        <div className="p-4 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-slate-700">Resultado</span>
             <span className="flex gap-2">
@@ -559,7 +559,7 @@ function PapoDeMestre({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Papo de Mestre — Conexões para Engajamento</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -618,7 +618,7 @@ function PapoDeMestre({
       </button>
       {erro && <div className="text-red-600 text-sm">{erro}</div>}
       {resultado && (
-        <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+        <div className="p-4 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-slate-700">Conexões para engajamento</span>
             <span className="flex gap-2">
@@ -723,7 +723,7 @@ function PlanoAulaDua({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Plano de Aula DUA</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -774,7 +774,10 @@ function PlanoAulaDua({
       </div>
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
         <details className="border border-slate-200 rounded-lg">
-          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC: Unidade e Objeto (opcional)</summary>
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            BNCC: Unidade e Objeto (opcional)
+          </summary>
           <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs text-slate-600 mb-1">Componente</label>
@@ -884,7 +887,7 @@ function RotinaAvdTool({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800 flex items-center gap-2">
           <RefreshCw className="w-5 h-5" />
@@ -963,9 +966,12 @@ function InclusaoBrincarTool({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
-        <h3 className="font-bold text-slate-800">🪀 Inclusão no Brincar</h3>
+        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+          <ToyBrick className="w-5 h-5" />
+          Inclusão no Brincar
+        </h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
       </div>
       <p className="text-sm text-slate-600">Brincadeiras acessíveis para Educação Infantil.</p>
@@ -1113,7 +1119,7 @@ function AdaptarProva({
   const temDados = !!docxExtraido?.texto || !!file;
 
   return (
-    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Adaptar Prova (DUA)</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -1123,7 +1129,10 @@ function AdaptarProva({
       <p className="text-sm text-slate-600">Transforme provas padrão em avaliações acessíveis.</p>
       <EngineSelector value={engine} onChange={onEngineChange} />
       <details className="border border-slate-200 rounded-lg" open>
-        <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC e Assunto</summary>
+        <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
+          <BookOpen className="w-4 h-4" />
+          BNCC e Assunto
+        </summary>
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
@@ -1232,7 +1241,7 @@ function AdaptarProva({
             <div className="text-xs font-semibold text-slate-600 uppercase mb-1">Análise</div>
             <pre className="whitespace-pre-wrap text-sm text-slate-700">{resultado.analise}</pre>
           </div>
-          <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+          <div className="p-4 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200">
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs font-semibold text-slate-600 uppercase">Prova adaptada</span>
               <span className="flex gap-2">
@@ -1348,7 +1357,7 @@ function RoteiroIndividual({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Roteiro de Aula Individualizado</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
@@ -1523,7 +1532,7 @@ function DinamicaInclusiva({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Dinâmica Inclusiva</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
@@ -1900,7 +1909,7 @@ function AdaptarAtividade({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-4">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Adaptar Atividade (OCR + IA)</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -1909,7 +1918,10 @@ function AdaptarAtividade({
       </div>
       <p className="text-sm text-slate-600">Tire foto da atividade. A IA extrai o texto e adapta com DUA.</p>
       <details className="border border-slate-200 rounded-lg" open>
-        <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">📚 BNCC e Assunto</summary>
+        <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
+          <BookOpen className="w-4 h-4" />
+          BNCC e Assunto
+        </summary>
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
@@ -2021,7 +2033,7 @@ function AdaptarAtividade({
             <div className="text-xs font-semibold text-slate-600 uppercase mb-1">Análise</div>
             <pre className="whitespace-pre-wrap text-sm text-slate-700">{resultado.analise}</pre>
           </div>
-          <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+          <div className="p-4 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200">
             <div className="flex justify-between items-center mb-2">
               <span className="text-xs font-semibold text-slate-600 uppercase">Atividade adaptada</span>
               <span className="flex gap-2">

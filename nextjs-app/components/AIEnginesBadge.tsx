@@ -1,0 +1,83 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Sparkles, Zap } from "lucide-react";
+import type { EngineId } from "@/lib/ai-engines";
+import { ENGINE_NAMES } from "@/lib/ai-engines";
+
+const ENGINE_COLORS: Record<EngineId, { bg: string; text: string; border: string }> = {
+  red: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
+  blue: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
+  green: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+  yellow: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
+  orange: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
+};
+
+const ENGINE_SHORT_NAMES: Record<EngineId, string> = {
+  red: "Red",
+  blue: "Blue",
+  green: "Green",
+  yellow: "Yellow",
+  orange: "Orange",
+};
+
+export function AIEnginesBadge() {
+  const [availableEngines, setAvailableEngines] = useState<EngineId[]>([]);
+  const [isVisible, setIsVisible] = useState(true);
+  const [isMinimized, setIsMinimized] = useState(false);
+
+  useEffect(() => {
+    // Buscar motores disponíveis da API
+    fetch("/api/ai-engines/available")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.available && Array.isArray(data.available)) {
+          setAvailableEngines(data.available);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  if (availableEngines.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-2 items-end">
+      {/* Botão para minimizar/expandir */}
+      <button
+        onClick={() => setIsMinimized(!isMinimized)}
+        className="p-2 rounded-full bg-white border-2 border-slate-200 shadow-lg hover:shadow-xl transition-all hover:scale-110"
+        title={isMinimized ? "Mostrar motores" : "Ocultar motores"}
+      >
+        <Sparkles className={`w-4 h-4 text-sky-600 transition-transform duration-300 ${isMinimized ? "rotate-180" : "rotate-0"}`} />
+      </button>
+
+      {/* Badges dos motores */}
+      {!isMinimized && (
+        <div className="flex flex-col gap-2 items-end animate-slide-up">
+          <div className="px-3 py-2 bg-white border-2 border-slate-200 rounded-lg shadow-lg backdrop-blur-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-3.5 h-3.5 text-sky-600" />
+              <span className="text-xs font-bold text-slate-700">Motores IA</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 justify-end max-w-[200px]">
+              {availableEngines.map((engine) => {
+                const colors = ENGINE_COLORS[engine];
+                return (
+                  <span
+                    key={engine}
+                    className={`px-2 py-0.5 text-xs font-semibold rounded border ${colors.bg} ${colors.text} ${colors.border} whitespace-nowrap`}
+                    title={ENGINE_NAMES[engine]}
+                  >
+                    {ENGINE_SHORT_NAMES[engine]}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

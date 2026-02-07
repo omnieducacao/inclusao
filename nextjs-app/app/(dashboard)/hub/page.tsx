@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { listStudents, getStudent } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
 import { HubClient } from "./HubClient";
+import { Rocket } from "lucide-react";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -21,7 +22,7 @@ export default async function HubPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <PageHero
-        icon="🚀"
+        icon={Rocket}
         title="Hub de Recursos"
         desc="Adaptar provas, atividades, criar do zero e muito mais."
         color="cyan"

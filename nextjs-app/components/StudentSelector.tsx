@@ -9,10 +9,12 @@ export function StudentSelector({
   students,
   currentId,
   placeholder = "Selecione o estudante",
+  onChange,
 }: {
   students: Student[];
   currentId?: string | null;
   placeholder?: string;
+  onChange?: (id: string | null) => void;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -26,13 +28,20 @@ export function StudentSelector({
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const id = e.target.value;
     setSelected(id);
-    const params = new URLSearchParams(searchParams.toString());
-    if (id) {
-      params.set("student", id);
+    
+    if (onChange) {
+      // Se há onChange customizado, usa ele (não atualiza URL)
+      onChange(id || null);
     } else {
-      params.delete("student");
+      // Comportamento padrão: atualiza URL
+      const params = new URLSearchParams(searchParams.toString());
+      if (id) {
+        params.set("student", id);
+      } else {
+        params.delete("student");
+      }
+      router.push(`${pathname}?${params.toString()}`);
     }
-    router.push(`${pathname}?${params.toString()}`);
   }
 
   return (

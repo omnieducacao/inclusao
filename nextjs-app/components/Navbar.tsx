@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import type { SessionPayload } from "@/lib/session";
 import {
@@ -83,16 +84,33 @@ export function Navbar({ session }: { session: SessionPayload }) {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50 font-semibold transition-colors group flex-shrink-0"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50 font-bold transition-colors group flex-shrink-0"
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-sky-600 flex items-center justify-center text-white shadow-sm group-hover:shadow-md transition-shadow">
-              <Sparkles className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <div className="flex items-center justify-center group-hover:scale-105 transition-all omni-logo-spin">
+                  <Image 
+                    src="/omni_icone.png" 
+                    alt="Omnisfera" 
+                    width={40}
+                    height={40}
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white animate-pulse" title="Sistema online e funcionando"></div>
+              </div>
+              <img 
+                src="/omni_texto.png" 
+                alt="Omnisfera" 
+                className="h-8 object-contain"
+                style={{ width: 'auto', maxHeight: '32px' }}
+              />
             </div>
-            <span className="hidden sm:inline">Omnisfera</span>
           </Link>
           
-          {/* Navegação Principal - Desktop (xl) */}
-          <nav className="hidden xl:flex items-center gap-1 flex-1 justify-center px-4">
+          {/* Navegação Principal - Desktop e Tablet (lg+) */}
+          <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center px-4 overflow-x-auto scrollbar-hide">
             {items.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -100,7 +118,7 @@ export function Navbar({ session }: { session: SessionPayload }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                     isActive
                       ? "bg-blue-50 text-blue-700 shadow-sm"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -109,28 +127,6 @@ export function Navbar({ session }: { session: SessionPayload }) {
                 >
                   <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-500"}`} />
                   <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-          
-          {/* Navegação Tablet (lg) - apenas ícones com tooltip */}
-          <nav className="hidden lg:flex xl:hidden items-center gap-1 flex-1 justify-center px-4 overflow-x-auto scrollbar-hide">
-            {items.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center justify-center w-10 h-10 rounded-lg text-sm font-medium transition-all flex-shrink-0 ${
-                    isActive
-                      ? "bg-blue-50 text-blue-700 shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                  }`}
-                  title={item.label}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? "text-blue-600" : "text-slate-500"}`} />
                 </Link>
               );
             })}
@@ -153,7 +149,7 @@ export function Navbar({ session }: { session: SessionPayload }) {
 
           {/* User Info e Logout */}
           <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200 flex-shrink-0">
-            <div className="hidden xl:flex flex-col items-end text-right">
+            <div className="hidden lg:flex flex-col items-end text-right">
               <span className="text-sm font-medium text-slate-800">{session.usuario_nome}</span>
               <span className="text-xs text-slate-500">{session.workspace_name}</span>
             </div>
@@ -163,7 +159,7 @@ export function Navbar({ session }: { session: SessionPayload }) {
               title="Sair"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden lg:inline">Sair</span>
+              <span className="hidden md:inline">Sair</span>
             </button>
           </div>
         </div>

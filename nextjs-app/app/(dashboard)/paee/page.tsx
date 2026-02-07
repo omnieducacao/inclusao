@@ -4,6 +4,7 @@ import { listStudents, getStudent } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
 import { PAEEClient } from "./PAEEClient";
 import type { CicloPAEE } from "@/lib/paee";
+import { Puzzle } from "lucide-react";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -22,9 +23,9 @@ export default async function PAEEPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <PageHero
-        icon="🧩"
-        title="PAEE — Plano de Atendimento Educacional Especializado"
-        desc="Plano de ação do AEE em ciclos, com metas e acompanhamento."
+        icon={Puzzle}
+        title="Plano de Ação / PAEE"
+        desc="Plano de Atendimento Educacional Especializado e sala de recursos."
         color="violet"
       />
 

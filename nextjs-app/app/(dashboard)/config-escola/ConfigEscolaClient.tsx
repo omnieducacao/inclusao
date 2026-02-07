@@ -97,7 +97,7 @@ export function ConfigEscolaClient() {
       <section>
         <h3 className="text-lg font-semibold text-slate-800 mb-3">1. Ano Letivo</h3>
         <AddYearForm onSuccess={() => { loadYears(); setMessage({ type: "ok", text: "Ano letivo adicionado." }); }} onError={(e) => setMessage({ type: "err", text: e })} />
-        <div className="mt-4 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+        <div className="mt-4 p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white min-h-[180px]">
           <p className="text-sm font-medium text-slate-600 mb-2">Anos cadastrados</p>
           {loading ? (
             <p className="text-slate-500">Carregando…</p>
@@ -157,7 +157,7 @@ export function ConfigEscolaClient() {
               }}
               onError={(e) => setMessage({ type: "err", text: e })}
             />
-            <div className="mt-4 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+            <div className="mt-4 p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white min-h-[180px]">
               <p className="text-sm font-medium text-slate-600 mb-2">Turmas criadas ({activeYear.year})</p>
               {classes.length === 0 ? (
                 <p className="text-slate-500">
@@ -419,7 +419,7 @@ function AddClassForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-wrap gap-4 items-end p-4 rounded-xl border border-slate-200 bg-white">
+    <form onSubmit={handleSubmit} className="flex flex-wrap gap-4 items-end p-6 rounded-xl border-2 border-slate-200 bg-white shadow-sm min-h-[180px]">
       <div>
         <label className="block text-xs text-slate-600 mb-1">Segmento</label>
         <select

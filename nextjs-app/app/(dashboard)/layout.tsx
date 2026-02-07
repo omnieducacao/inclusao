@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { Navbar } from "@/components/Navbar";
+import { AIEnginesBadge } from "@/components/AIEnginesBadge";
 
 export default async function DashboardLayout({
   children,
@@ -13,9 +14,10 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#F7FAFC]">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-sky-50/20">
       <Navbar session={session} />
-      <main className="max-w-6xl mx-auto px-4 py-6">{children}</main>
+      <main className="max-w-[1600px] mx-auto px-6 py-6">{children}</main>
+      <AIEnginesBadge />
     </div>
   );
 }

@@ -158,7 +158,7 @@ export function DiarioClient({ students, studentId, student }: Props) {
     <div className="space-y-6">
       <StudentSelector students={students} currentId={currentId} />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-xl border border-slate-200 bg-rose-50/30">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-rose-50 to-white min-h-[140px]">
         <div>
           <div className="text-xs font-semibold text-slate-500 uppercase">Estudante</div>
           <div className="font-bold text-slate-800">{student.name}</div>
@@ -173,7 +173,7 @@ export function DiarioClient({ students, studentId, student }: Props) {
         </div>
       </div>
 
-      <details open={expandForm} className="border border-slate-200 rounded-xl overflow-hidden">
+      <details open={expandForm} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
         <summary
           className="px-4 py-3 bg-rose-50 cursor-pointer font-semibold text-slate-800"
           onClick={() => setExpandForm((x) => !x)}
@@ -188,7 +188,7 @@ export function DiarioClient({ students, studentId, student }: Props) {
       <div>
         <h3 className="font-bold text-slate-800 mb-3">Histórico de sessões</h3>
         {registrosOrdenados.length === 0 ? (
-          <div className="p-6 rounded-xl border border-slate-200 bg-slate-50 text-slate-500">
+          <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white text-slate-500 min-h-[180px]">
             Nenhum registro ainda. Preencha o formulário acima para criar o primeiro.
           </div>
         ) : (

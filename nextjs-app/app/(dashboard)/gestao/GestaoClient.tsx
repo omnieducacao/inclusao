@@ -106,13 +106,14 @@ export function GestaoClient() {
       )}
 
       {/* Novo usuário */}
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-xl border-2 border-slate-200 bg-white overflow-hidden shadow-sm">
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
           className="w-full px-4 py-3 text-left font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between"
         >
-          ➕ Novo usuário
+          <Plus className="w-4 h-4 inline mr-1" />
+          Novo usuário
           <span className="text-slate-400">{showForm ? "▲" : "▼"}</span>
         </button>
         {showForm && (
@@ -531,7 +532,7 @@ function MemberCard({
   }
 
   return (
-    <div className="p-4 rounded-xl border border-slate-200 bg-white">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
       <div className="flex justify-between items-start gap-4">
         <div>
           <h4 className="font-medium text-slate-800 flex items-center gap-2">

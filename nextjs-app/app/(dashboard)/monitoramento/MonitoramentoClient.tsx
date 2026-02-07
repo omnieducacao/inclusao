@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { StudentSelector } from "@/components/StudentSelector";
+import { CheckCircle2, Info, AlertTriangle, Save } from "lucide-react";
 
 type Student = { id: string; name: string };
 type CicloPAEE = {
@@ -147,7 +148,7 @@ export function MonitoramentoClient({ students, studentId, student }: Props) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Expectativa (PEI) */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-white">
+              <div className="p-6 rounded-xl border-2 border-slate-200 bg-white shadow-sm min-h-[180px]">
                 <h4 className="font-medium text-sky-800 mb-2">Expectativa (PEI)</h4>
                 <p className="text-xs text-slate-500 mb-2">Objetivos cadastrados no Plano de Ensino</p>
                 {objetivosList.length > 0 ? (
@@ -168,12 +169,15 @@ export function MonitoramentoClient({ students, studentId, student }: Props) {
               </div>
 
               {/* Planejamento (PAEE) */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-white">
+              <div className="p-6 rounded-xl border-2 border-slate-200 bg-white shadow-sm min-h-[180px]">
                 <h4 className="font-medium text-sky-800 mb-2">Planejamento (PAEE)</h4>
                 <p className="text-xs text-slate-500 mb-2">Ciclos de AEE planejados</p>
                 {paeeAtivo ? (
                   <div className="text-sm space-y-1">
-                    <p className="text-emerald-600 font-medium">✅ Ciclo PAEE Ativo</p>
+                    <p className="text-emerald-600 font-medium flex items-center gap-1">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Ciclo PAEE Ativo
+                    </p>
                     <p>
                       Período: {fmtData(paeeAtivo.config_ciclo?.data_inicio)} a{" "}
                       {fmtData(paeeAtivo.config_ciclo?.data_fim)}
@@ -182,15 +186,21 @@ export function MonitoramentoClient({ students, studentId, student }: Props) {
                   </div>
                 ) : paeeCiclos.length > 0 ? (
                   <p className="text-sm text-amber-700">
-                    ℹ️ {paeeCiclos.length} ciclo(s) cadastrado(s), nenhum ativo
+                    <span className="flex items-center gap-1">
+                      <Info className="w-4 h-4" />
+                      {paeeCiclos.length} ciclo(s) cadastrado(s), nenhum ativo
+                    </span>
                   </p>
                 ) : (
-                  <p className="text-sm text-amber-600">⚠️ Nenhum ciclo PAEE cadastrado</p>
+                  <p className="text-sm text-amber-600 flex items-center gap-1">
+                    <AlertTriangle className="w-4 h-4" />
+                    Nenhum ciclo PAEE cadastrado
+                  </p>
                 )}
               </div>
 
               {/* Realidade (Diário) */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-white">
+              <div className="p-6 rounded-xl border-2 border-slate-200 bg-white shadow-sm min-h-[180px]">
                 <h4 className="font-medium text-sky-800 mb-2">Realidade (Diário)</h4>
                 <p className="text-xs text-slate-500 mb-2">Últimos registros de atividades</p>
                 {registrosOrdenados.length > 0 ? (
@@ -220,7 +230,10 @@ export function MonitoramentoClient({ students, studentId, student }: Props) {
             </div>
 
             <p className="mt-4 text-sm text-slate-500">
-              ℹ️ Recursos gerados no Hub de Inclusão não são persistidos. Registre o uso no Diário de Bordo.
+              <span className="flex items-center gap-1">
+                <Info className="w-4 h-4" />
+                Recursos gerados no Hub de Inclusão não são persistidos. Registre o uso no Diário de Bordo.
+              </span>
             </p>
           </div>
 
@@ -247,7 +260,7 @@ export function MonitoramentoClient({ students, studentId, student }: Props) {
           </div>
 
           {/* Rubrica de Avaliação */}
-          <div className="p-4 rounded-xl border border-slate-200 bg-white">
+          <div className="p-6 rounded-xl border-2 border-slate-200 bg-white shadow-sm min-h-[200px]">
             <h3 className="text-lg font-semibold text-slate-800 mb-2">Rubrica de Desenvolvimento</h3>
             <form onSubmit={handleSalvarAvaliacao} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -296,7 +309,12 @@ export function MonitoramentoClient({ students, studentId, student }: Props) {
                 disabled={saving}
                 className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 disabled:opacity-60"
               >
-                {saving ? "Salvando…" : "💾 Salvar Monitoramento"}
+                {saving ? "Salvando…" : (
+                  <>
+                    <Save className="w-4 h-4 inline mr-1" />
+                    Salvar Monitoramento
+                  </>
+                )}
               </button>
             </form>
           </div>

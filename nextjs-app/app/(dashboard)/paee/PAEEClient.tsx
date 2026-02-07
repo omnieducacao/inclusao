@@ -14,6 +14,7 @@ import {
   badgeStatus,
   FREQUENCIAS,
 } from "@/lib/paee";
+import { Map } from "lucide-react";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -230,7 +231,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
     <div className="space-y-6">
       <StudentSelector students={students} currentId={currentId} />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white min-h-[140px]">
         <div>
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Nome</div>
           <div className="font-bold text-slate-800">{student.name}</div>
@@ -514,7 +515,7 @@ function JornadaTab({
   };
 
   return (
-    <div className="space-y-4 p-4 rounded-xl border border-slate-200 bg-white">
+    <div className="space-y-4 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
       <h3 className="font-bold text-slate-800">Jornada Gamificada</h3>
       <p className="text-sm text-slate-600">
         Transforme o planejamento ou o relatório do PEI em uma missão gamificada para o estudante e a família.
@@ -568,7 +569,12 @@ function JornadaTab({
                 disabled={mapaLoading}
                 className="px-3 py-1.5 bg-violet-100 text-violet-800 rounded-lg text-sm hover:bg-violet-200 disabled:opacity-50"
               >
-                {mapaLoading ? "Gerando…" : "🗺️ Gerar mapa mental"}
+                {mapaLoading ? "Gerando…" : (
+                  <>
+                    <Map className="w-4 h-4 inline mr-1" />
+                    Gerar mapa mental
+                  </>
+                )}
               </button>
               <PdfDownloadButton
                 text={texto}

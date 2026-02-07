@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { listStudents, getStudent } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
 import { DiarioClient } from "./DiarioClient";
+import { BookOpen } from "lucide-react";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -21,7 +22,7 @@ export default async function DiarioPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <PageHero
-        icon="📝"
+        icon={BookOpen}
         title="Diário de Bordo"
         desc="Registro de atendimentos e sessões AEE."
         color="rose"

@@ -32,7 +32,7 @@ type PEIDataPayload = {
   [key: string]: unknown;
 };
 
-function buildPrompt(dados: PEIDataPayload, modoPratico: boolean): { system: string; user: string } {
+function buildPrompt(dados: PEIDataPayload, modoPratico: boolean, feedback?: string): { system: string; user: string } {
   const evid = Object.entries(dados.checklist_evidencias || {})
     .filter(([, v]) => v)
     .map(([k]) => `- ${k.replace("?", "")}`)
@@ -65,6 +65,8 @@ Use Markdown simples. Seja objetivo e aplicável.
 **A. Mediação (Triângulo de Ouro):** Instruções passo a passo, Fragmentação de tarefas, Scaffolding
 **B. Acessibilidade:** Inferências/figuras de linguagem, Descrição de imagens, Adaptação visual, Adequação de desafio`;
 
+    const promptFeedback = feedback ? `\n\nAJUSTE SOLICITADO: ${feedback}` : "";
+
     const user = `ALUNO: ${dados.nome || ""} | SÉRIE: ${serie} | DIAGNÓSTICO: ${dados.diagnostico || "em observação"}
 ${hiperfocoTxt}
 MEDS: ${medsInfo}
@@ -75,7 +77,7 @@ ESTRATÉGIAS ENSINO: ${(dados.estrategias_ensino || []).join(", ")}
 ESTRATÉGIAS AVALIAÇÃO: ${(dados.estrategias_avaliacao || []).join(", ")}
 ORIENTAÇÕES ESPECIALISTAS: ${(dados.orientacoes_especialistas || "").slice(0, 500)}
 
-Crie um GUIA PRÁTICO para sala de aula com adaptações concretas baseadas nos dados acima.`;
+Crie um GUIA PRÁTICO para sala de aula com adaptações concretas baseadas nos dados acima.${promptFeedback}`;
 
     return { system, user };
   }
@@ -112,10 +114,12 @@ ${objTxt}
 
 ### 6. 🧩 CHECKLIST DE ADAPTAÇÃO: Mediação (instruções passo a passo, fragmentação, scaffolding), Acessibilidade (inferências, imagens, visual, desafio).`;
 
+    const promptFeedback = feedback ? `\n\nAJUSTE SOLICITADO: ${feedback}` : "";
+
     const user = `ALUNO: ${dados.nome || ""} | SÉRIE: ${serie} | HISTÓRICO: ${(dados.historico || "").slice(0, 500)}
 DIAGNÓSTICO: ${dados.diagnostico || "em observação"}
 MEDS: ${medsInfo}
-EVIDÊNCIAS: ${evid || "Nenhuma"}`;
+EVIDÊNCIAS: ${evid || "Nenhuma"}${promptFeedback}`;
 
     return { system, user };
   }
@@ -197,6 +201,7 @@ export async function POST(req: Request) {
   let dados: PEIDataPayload = {};
   let engine: EngineId = "red";
   let modoPratico = false;
+  let feedback: string | undefined;
 
   try {
     const body = await req.json();
@@ -205,6 +210,7 @@ export async function POST(req: Request) {
       engine = body.engine as EngineId;
     }
     modoPratico = !!body.modo_pratico;
+    feedback = body.feedback || undefined;
   } catch {
     return NextResponse.json({ error: "Corpo da requisição inválido." }, { status: 400 });
   }
@@ -221,7 +227,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { system, user } = buildPrompt(dados, modoPratico);
+  const { system, user } = buildPrompt(dados, modoPratico, feedback);
 
   try {
     const texto = await chatCompletionText(
