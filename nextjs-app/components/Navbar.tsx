@@ -17,6 +17,7 @@ import {
   Shield,
   LogOut,
   Sparkles,
+  BookMarked,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -44,7 +45,8 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/hub", label: "Hub", icon: Rocket, permission: "can_hub" },
   { href: "/diario", label: "Diário", icon: BookOpen, permission: "can_diario" },
   { href: "/monitoramento", label: "Monitoramento", icon: BarChart3, permission: "can_avaliacao" },
-  { href: "/config-escola", label: "Config Escola", icon: Settings, permission: "can_gestao" },
+  { href: "/infos", label: "Central", icon: BookMarked },
+  { href: "/config-escola", label: "Config", icon: Settings, permission: "can_gestao" },
   { href: "/gestao", label: "Gestão", icon: UserCog, permission: "can_gestao" },
   { href: "/pgi", label: "PGI", icon: ClipboardList, permission: "can_gestao" },
 ];
@@ -76,49 +78,70 @@ export function Navbar({ session }: { session: SessionPayload }) {
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-[1920px] mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo e Navegação Principal */}
-          <nav className="flex items-center gap-1 flex-1">
-            <Link
-              href="/"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-800 hover:bg-slate-50 font-semibold transition-colors group"
-            >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-sky-600 flex items-center justify-center text-white shadow-sm group-hover:shadow-md transition-shadow">
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <span className="hidden sm:inline">Omnisfera</span>
-            </Link>
-            
-            <div className="hidden md:flex items-center gap-1 ml-2 border-l border-slate-200 pl-2">
-              {items.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      isActive
-                        ? "bg-blue-50 text-blue-700 shadow-sm"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    }`}
-                    title={item.label}
-                  >
-                    <Icon className={`w-4 h-4 ${isActive ? "text-blue-600" : "text-slate-500"}`} />
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
+          {/* Logo */}
+          <Link
+            href="/"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50 font-semibold transition-colors group flex-shrink-0"
+          >
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-sky-600 flex items-center justify-center text-white shadow-sm group-hover:shadow-md transition-shadow">
+              <Sparkles className="w-4 h-4" />
             </div>
+            <span className="hidden sm:inline">Omnisfera</span>
+          </Link>
+          
+          {/* Navegação Principal - Desktop (xl) */}
+          <nav className="hidden xl:flex items-center gap-1 flex-1 justify-center px-4">
+            {items.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                    isActive
+                      ? "bg-blue-50 text-blue-700 shadow-sm"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  }`}
+                  title={item.label}
+                >
+                  <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-500"}`} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+          
+          {/* Navegação Tablet (lg) - apenas ícones com tooltip */}
+          <nav className="hidden lg:flex xl:hidden items-center gap-1 flex-1 justify-center px-4 overflow-x-auto scrollbar-hide">
+            {items.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center justify-center w-10 h-10 rounded-lg text-sm font-medium transition-all flex-shrink-0 ${
+                    isActive
+                      ? "bg-blue-50 text-blue-700 shadow-sm"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  }`}
+                  title={item.label}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? "text-blue-600" : "text-slate-500"}`} />
+                </Link>
+              );
+            })}
           </nav>
 
-          {/* Menu Mobile - Dropdown simples */}
-          <div className="md:hidden flex items-center gap-2 ml-2">
+          {/* Menu Mobile/Tablet pequeno - Dropdown */}
+          <div className="lg:hidden flex items-center gap-2 ml-2 flex-shrink-0">
             <select
               value={pathname}
               onChange={(e) => router.push(e.target.value)}
-              className="text-sm px-2 py-1 rounded border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="text-sm px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {items.map((item) => (
                 <option key={item.href} value={item.href}>
@@ -129,21 +152,18 @@ export function Navbar({ session }: { session: SessionPayload }) {
           </div>
 
           {/* User Info e Logout */}
-          <div className="flex items-center gap-3 ml-4 pl-4 border-l border-slate-200">
-            <div className="hidden lg:flex flex-col items-end text-right">
+          <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200 flex-shrink-0">
+            <div className="hidden xl:flex flex-col items-end text-right">
               <span className="text-sm font-medium text-slate-800">{session.usuario_nome}</span>
               <span className="text-xs text-slate-500">{session.workspace_name}</span>
             </div>
-            <div className="lg:hidden text-sm text-slate-600 truncate max-w-[120px]">
-              {session.usuario_nome}
-            </div>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
               title="Sair"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sair</span>
+              <span className="hidden lg:inline">Sair</span>
             </button>
           </div>
         </div>

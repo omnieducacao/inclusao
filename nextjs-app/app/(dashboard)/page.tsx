@@ -1,7 +1,5 @@
 import { getSession } from "@/lib/session";
 import Link from "next/link";
-import { Suspense } from "react";
-import { InfosClient } from "@/app/(dashboard)/infos/InfosClient";
 import {
   Users,
   Rocket,
@@ -164,13 +162,6 @@ export default async function HomePage() {
           <strong>Omnisfera</strong> — Plataforma de inclusão educacional.
           Legislação: Decretos 12.686/2025 e 12.773/2025. Alinhada à BNCC.
         </p>
-      </div>
-
-      {/* Central de Inteligência Inclusiva */}
-      <div className="mt-12">
-        <Suspense fallback={<div className="text-slate-500 p-4 flex items-center gap-2"><div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></div> Carregando Central de Inteligência...</div>}>
-          <InfosClient session={session} />
-        </Suspense>
       </div>
     </div>
   );
