@@ -236,14 +236,14 @@ export function PEIClient({
     
     return (
       <div className="mb-4">
-        <div className="relative w-full h-2.5 bg-slate-200 rounded-full overflow-hidden shadow-inner">
+        <div className="relative w-full h-2 bg-slate-200 rounded-full overflow-hidden shadow-inner">
           {/* Barra de progresso com animação - cor única */}
           <div 
             className="absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out shadow-sm"
             style={{ 
               width: `${p}%`, 
               backgroundColor: barColor,
-              boxShadow: p > 0 ? `0 0 10px ${barColor}40` : 'none'
+              boxShadow: p > 0 ? `0 0 8px ${barColor}40` : 'none'
             }}
           >
             {/* Efeito de brilho animado */}
@@ -692,11 +692,40 @@ export function PEIClient({
                         {currentStudentId && (
                           <div className="mt-2 flex gap-2">
                             <button
-                              onClick={handleSave}
-                              disabled={saving}
+                              onClick={async () => {
+                                if (!currentStudentId) {
+                                  alert("Selecione um estudante primeiro");
+                                  return;
+                                }
+                                setSaving(true);
+                                setErroGlobal(null);
+                                try {
+                                  const res = await fetch(`/api/students/${currentStudentId}`);
+                                  if (res.ok) {
+                                    const data = await res.json();
+                                    if (data.pei_data && typeof data.pei_data === 'object') {
+                                      setPeiData(data.pei_data as PEIData);
+                                      setSaved(true);
+                                      setTimeout(() => setSaved(false), 2000);
+                                    } else {
+                                      setPeiData({} as PEIData);
+                                      setSaved(false);
+                                    }
+                                    setErroGlobal(null);
+                                  } else {
+                                    setErroGlobal("Erro ao carregar dados do estudante");
+                                  }
+                                } catch (err) {
+                                  setErroGlobal("Erro ao carregar dados do estudante");
+                                  console.error("Erro ao carregar:", err);
+                                } finally {
+                                  setSaving(false);
+                                }
+                              }}
+                              disabled={saving || !currentStudentId}
                               className="flex-1 px-3 py-1.5 bg-sky-600 text-white text-xs font-medium rounded-lg hover:bg-sky-700 disabled:opacity-60"
                             >
-                              {saving ? "Salvando…" : saved ? "Salvo ✓" : "Salvar PEI"}
+                              {saving ? "Carregando…" : saved ? "Carregado ✓" : "Carregar da Nuvem"}
                             </button>
                             <Link 
                               href="/estudantes" 
@@ -880,6 +909,23 @@ export function PEIClient({
                           <option key={s} value={s}>{s}</option>
                         ))}
                       </select>
+                      {peiData.serie && (() => {
+                        const nivel = detectarNivelEnsino(peiData.serie);
+                        const segmentoInfo: Record<string, { nome: string; cor: string; emoji: string }> = {
+                          EI: { nome: "Educação Infantil", cor: "#4299e1", emoji: "👶" },
+                          EFI: { nome: "Ensino Fundamental Anos Iniciais", cor: "#48bb78", emoji: "📚" },
+                          EFII: { nome: "Ensino Fundamental Anos Finais", cor: "#ed8936", emoji: "🎓" },
+                          EM: { nome: "Ensino Médio / EJA", cor: "#9f7aea", emoji: "🎯" },
+                        };
+                        const seg = segmentoInfo[nivel];
+                        if (!seg) return null;
+                        return (
+                          <div className="mt-2 px-2 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2" style={{ backgroundColor: `${seg.cor}15`, color: seg.cor, border: `1px solid ${seg.cor}40` }}>
+                            <span>{seg.emoji}</span>
+                            <span>{seg.nome}</span>
+                          </div>
+                        );
+                      })()}
                     </div>
                     {/* Turma */}
                     <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
@@ -2085,6 +2131,61 @@ function DashboardTab({
         </div>
       </div>
 
+      {/* Exportação - Movido para antes dos cards */}
+      <div className="mb-6">
+        <h4 className="text-base font-semibold text-slate-800 mb-4">📤 Exportação e Sincronização</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div>
+            <p className="text-xs text-slate-600 mb-2">📄 Documentos</p>
+            <div className="flex flex-col gap-2">
+              <div>
+                <PeiExportDocxButton peiData={peiData} />
+              </div>
+              <div>
+                <PdfDownloadButton
+                  text={peiDataToFullText(peiData)}
+                  filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
+                  title={`PEI - ${peiData.nome || "Estudante"}`}
+                  className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Baixar PDF Oficial
+                </PdfDownloadButton>
+              </div>
+            </div>
+            {!peiData.ia_sugestao && (
+              <p className="text-xs text-slate-500 mt-2">
+                💡 Gere o Plano na aba <strong>Consultoria IA</strong> para incluir o planejamento pedagógico detalhado no documento.
+              </p>
+            )}
+          </div>
+          <div>
+            <p className="text-xs text-slate-600 mb-2">💾 Backup (JSON)</p>
+            <p className="text-xs text-slate-500 mb-2">Salva um arquivo no seu computador para garantir que nada se perca.</p>
+            <a
+              href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
+              download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.json`}
+              className="block w-full px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-center text-sm"
+            >
+              Salvar Arquivo .JSON
+            </a>
+          </div>
+          <div>
+            <p className="text-xs text-slate-600 mb-2">🌐 Nuvem (Supabase)</p>
+            <p className="text-xs text-slate-500 mb-2">Sincroniza tudo na nuvem.</p>
+            {currentStudentId ? (
+              <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                <p className="text-sm text-emerald-800">✅ Já sincronizado</p>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500">Use a aba <strong>Início</strong> para sincronizar.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <hr className="my-6" />
+
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="metric-card">
@@ -2245,59 +2346,6 @@ function DashboardTab({
         </div>
       </div>
 
-      {/* Exportação */}
-      <hr className="my-6" />
-      <div className="relative z-50">
-        <h4 className="text-base font-semibold text-slate-800 mb-4">📤 Exportação e Sincronização</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="relative z-50">
-            <p className="text-xs text-slate-600 mb-2">📄 Documentos</p>
-            <div className="flex flex-col gap-2">
-              <div className="relative z-50">
-                <PeiExportDocxButton peiData={peiData} />
-              </div>
-              <div className="relative z-50">
-                <PdfDownloadButton
-                  text={peiDataToFullText(peiData)}
-                  filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
-                  title={`PEI - ${peiData.nome || "Estudante"}`}
-                  className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 flex items-center justify-center gap-2 relative z-50"
-                >
-                  <Download className="w-4 h-4" />
-                  Baixar PDF Oficial
-                </PdfDownloadButton>
-              </div>
-            </div>
-            {!peiData.ia_sugestao && (
-              <p className="text-xs text-slate-500 mt-2">
-                💡 Gere o Plano na aba <strong>Consultoria IA</strong> para incluir o planejamento pedagógico detalhado no documento.
-              </p>
-            )}
-          </div>
-          <div className="relative z-50">
-            <p className="text-xs text-slate-600 mb-2">💾 Backup (JSON)</p>
-            <p className="text-xs text-slate-500 mb-2">Salva um arquivo no seu computador para garantir que nada se perca.</p>
-            <a
-              href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
-              download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.json`}
-              className="block w-full px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-center text-sm relative z-50"
-            >
-              Salvar Arquivo .JSON
-            </a>
-          </div>
-          <div className="relative z-50">
-            <p className="text-xs text-slate-600 mb-2">🌐 Nuvem (Supabase)</p>
-            <p className="text-xs text-slate-500 mb-2">Sincroniza tudo na nuvem.</p>
-            {currentStudentId ? (
-              <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 relative z-50">
-                <p className="text-sm text-emerald-800">✅ Já sincronizado</p>
-              </div>
-            ) : (
-              <p className="text-xs text-slate-500">Use a aba <strong>Início</strong> para sincronizar.</p>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Jornada Gamificada */}
       <div>
@@ -2363,10 +2411,14 @@ function PeiExportDocxButton({ peiData }: { peiData: PEIData }) {
 function formatarTextoConsultoria(texto: string): React.ReactNode {
   if (!texto) return texto;
   
-  // Remover markdown headers (##) e converter para texto simples
+  // Remover markdown e melhorar formatação
   const textoLimpo = texto
     .replace(/^##+\s*/gm, '') // Remove ## headers
-    .replace(/^\*\*/gm, '•') // Converte ** para bullet
+    .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove **texto** mantendo apenas o texto
+    .replace(/\*([^*]+)\*/g, '$1') // Remove *texto* mantendo apenas o texto
+    .replace(/^###+\s*/gm, '') // Remove ### headers
+    .replace(/^\*\s+/gm, '• ') // Converte * para bullet
+    .replace(/\n{3,}/g, '\n\n') // Remove múltiplas quebras de linha
     .trim();
   
   // Retornar como texto pré-formatado simples
@@ -3794,11 +3846,11 @@ function NivelSuporteRange({
       }
       #${rangeId}::-webkit-slider-runnable-track {
         background: transparent;
-        height: 12px;
+        height: 8px;
       }
       #${rangeId}::-moz-range-track {
         background: transparent;
-        height: 12px;
+        height: 8px;
       }
     `;
     const existingStyle = document.getElementById(`style-${rangeId}`);
@@ -3822,11 +3874,11 @@ function NivelSuporteRange({
     <div className="relative">
       {/* Barra de fundo cinza */}
       <div 
-        className="absolute w-full h-3 rounded-lg pointer-events-none bg-slate-200"
+        className="absolute w-full h-2 rounded-lg pointer-events-none bg-slate-200"
       />
       {/* Barra inteira com a cor baseada na posição do marcador */}
       <div 
-        className="absolute w-full h-3 rounded-lg pointer-events-none transition-all duration-200"
+        className="absolute w-full h-2 rounded-lg pointer-events-none transition-all duration-200"
         style={{
           background: barColor,
         }}
@@ -3838,7 +3890,7 @@ function NivelSuporteRange({
         max={max}
         value={value}
         onChange={(e) => onChange(parseInt(e.target.value))}
-        className="relative w-full h-3 rounded-lg appearance-none cursor-pointer bg-transparent"
+        className="relative w-full h-2 rounded-lg appearance-none cursor-pointer bg-transparent"
         style={{
           WebkitAppearance: 'none',
           appearance: 'none',
