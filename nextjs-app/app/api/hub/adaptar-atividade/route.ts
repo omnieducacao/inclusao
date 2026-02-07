@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   let tipo = "Atividade";
   let livroProfessor = false;
   let checklist: Record<string, boolean> = {};
-  let estudante: { hiperfoco?: string; perfil?: string } = {};
+  let estudante: { nome?: string; hiperfoco?: string; perfil?: string } = {};
   let modoProfundo = false;
   let engine: EngineId = "red";
   let unidadeTematica = "";

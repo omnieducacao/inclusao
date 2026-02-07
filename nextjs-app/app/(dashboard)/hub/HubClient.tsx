@@ -2861,7 +2861,7 @@ function AdaptarAtividade({
           engine,
           unidade_tematica: unidadeSel || undefined,
           objeto_conhecimento: objetoSel || undefined,
-          estudante: { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 600) },
+          estudante: student ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 600) } : { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 600) },
         })
       );
       const res = await fetch("/api/hub/adaptar-atividade", { method: "POST", body: formData });
