@@ -76,6 +76,7 @@ export async function updateStudentPaeeCiclos(
     status_planejamento?: string;
     data_inicio_ciclo?: string | null;
     data_fim_ciclo?: string | null;
+    paee_data?: Record<string, unknown> | null;
   }
 ): Promise<{ success: boolean; error?: string }> {
   const sb = getSupabase();
@@ -87,6 +88,7 @@ export async function updateStudentPaeeCiclos(
   if (extra?.status_planejamento !== undefined) payload.status_planejamento = extra.status_planejamento;
   if (extra?.data_inicio_ciclo !== undefined) payload.data_inicio_ciclo = extra.data_inicio_ciclo;
   if (extra?.data_fim_ciclo !== undefined) payload.data_fim_ciclo = extra.data_fim_ciclo;
+  if (extra?.paee_data !== undefined) payload.paee_data = extra.paee_data;
 
   const { error } = await sb
     .from("students")

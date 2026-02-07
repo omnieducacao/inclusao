@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
 import { EngineSelector } from "@/components/EngineSelector";
@@ -14,7 +14,8 @@ import {
   badgeStatus,
   FREQUENCIAS,
 } from "@/lib/paee";
-import { Map } from "lucide-react";
+import { LISTAS_BARREIRAS, NIVEIS_SUPORTE } from "@/lib/pei";
+import { Map, AlertTriangle, Target, Puzzle, Users } from "lucide-react";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -23,6 +24,7 @@ type StudentFull = Student & {
   pei_data?: Record<string, unknown>;
   paee_ciclos?: CicloPAEE[];
   planejamento_ativo?: string | null;
+  paee_data?: Record<string, unknown>;
 };
 
 type Props = {
@@ -31,7 +33,7 @@ type Props = {
   student: StudentFull | null;
 };
 
-type TabId = "planejamento" | "execucao" | "jornada";
+type TabId = "mapear-barreiras" | "plano-habilidades" | "tec-assistiva" | "articulacao" | "planejamento" | "execucao" | "jornada";
 
 export function PAEEClient({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
@@ -47,8 +49,18 @@ export function PAEEClient({ students, studentId, student }: Props) {
   const [jornadaTexto, setJornadaTexto] = useState("");
   const [jornadaLoading, setJornadaLoading] = useState(false);
   const [jornadaErro, setJornadaErro] = useState<string | null>(null);
+  const [paeeData, setPaeeData] = useState<Record<string, unknown>>({});
 
   const ciclos = (student?.paee_ciclos || []) as CicloPAEE[];
+
+  // Carregar dados do PAEE quando o estudante mudar
+  useEffect(() => {
+    if (student?.paee_data) {
+      setPaeeData(student.paee_data);
+    } else {
+      setPaeeData({});
+    }
+  }, [student?.id, student?.paee_data]);
   const cicloAtivoId = student?.planejamento_ativo ?? null;
   const cicloAtivo = ciclos.find((c) => c.ciclo_id === cicloAtivoId) ?? null;
 
@@ -250,41 +262,152 @@ export function PAEEClient({ students, studentId, student }: Props) {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-slate-200">
-        <button
-          type="button"
-          onClick={() => setActiveTab("planejamento")}
-          className={`px-4 py-2 rounded-t-lg text-sm font-medium ${
-            activeTab === "planejamento"
-              ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
-              : "text-slate-500 hover:bg-slate-100"
-          }`}
-        >
-          Planejamento AEE
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("execucao")}
-          className={`px-4 py-2 rounded-t-lg text-sm font-medium ${
-            activeTab === "execucao"
-              ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
-              : "text-slate-500 hover:bg-slate-100"
-          }`}
-        >
-          Execução e Metas SMART
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("jornada")}
-          className={`px-4 py-2 rounded-t-lg text-sm font-medium ${
-            activeTab === "jornada"
-              ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
-              : "text-slate-500 hover:bg-slate-100"
-          }`}
-        >
-          Jornada Gamificada
-        </button>
+      {/* Tabs Navigation - 7 abas */}
+      <div className="border-b border-slate-200 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 min-w-max pb-0">
+          <button
+            type="button"
+            onClick={() => setActiveTab("mapear-barreiras")}
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
+              activeTab === "mapear-barreiras"
+                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
+                : "text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            Mapear Barreiras
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("plano-habilidades")}
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
+              activeTab === "plano-habilidades"
+                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
+                : "text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            Plano de Habilidades
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("tec-assistiva")}
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
+              activeTab === "tec-assistiva"
+                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
+                : "text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            Tec. Assistiva
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("articulacao")}
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
+              activeTab === "articulacao"
+                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
+                : "text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            Articulação
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("planejamento")}
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
+              activeTab === "planejamento"
+                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
+                : "text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            Planejamento AEE
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("execucao")}
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
+              activeTab === "execucao"
+                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
+                : "text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            Execução e Metas SMART
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("jornada")}
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium whitespace-nowrap ${
+              activeTab === "jornada"
+                ? "bg-violet-100 text-violet-800 border border-slate-200 border-b-white -mb-px"
+                : "text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            Jornada Gamificada
+          </button>
+        </div>
       </div>
+
+      {activeTab === "mapear-barreiras" && (
+        <MapearBarreirasTab
+          paeeData={paeeData}
+          onUpdate={(data) => {
+            setPaeeData(data);
+            if (student?.id) {
+              fetch(`/api/students/${student.id}/paee`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ paee_data: data }),
+              }).catch(console.error);
+            }
+          }}
+        />
+      )}
+
+      {activeTab === "plano-habilidades" && (
+        <PlanoHabilidadesTab
+          paeeData={paeeData}
+          onUpdate={(data) => {
+            setPaeeData(data);
+            if (student?.id) {
+              fetch(`/api/students/${student.id}/paee`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ paee_data: data }),
+              }).catch(console.error);
+            }
+          }}
+        />
+      )}
+
+      {activeTab === "tec-assistiva" && (
+        <TecAssistivaTab
+          paeeData={paeeData}
+          onUpdate={(data) => {
+            setPaeeData(data);
+            if (student?.id) {
+              fetch(`/api/students/${student.id}/paee`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ paee_data: data }),
+              }).catch(console.error);
+            }
+          }}
+        />
+      )}
+
+      {activeTab === "articulacao" && (
+        <ArticulacaoTab
+          paeeData={paeeData}
+          onUpdate={(data) => {
+            setPaeeData(data);
+            if (student?.id) {
+              fetch(`/api/students/${student.id}/paee`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ paee_data: data }),
+              }).catch(console.error);
+            }
+          }}
+        />
+      )}
 
       {activeTab === "planejamento" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -844,6 +967,745 @@ function CicloCard({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+// Aba: Mapear Barreiras
+function MapearBarreirasTab({
+  paeeData,
+  onUpdate,
+}: {
+  paeeData: Record<string, unknown>;
+  onUpdate: (data: Record<string, unknown>) => void;
+}) {
+  const barreiras = (paeeData.barreiras_selecionadas || {}) as Record<string, string[]>;
+  const niveis = (paeeData.niveis_suporte || {}) as Record<string, string>;
+  const obs = (paeeData.observacoes_barreiras || {}) as Record<string, string>;
+
+  const updateField = (key: string, value: unknown) => {
+    onUpdate({ ...paeeData, [key]: value });
+  };
+
+  return (
+    <div className="space-y-6 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
+      <div className="flex items-center gap-3 mb-4">
+        <AlertTriangle className="w-6 h-6 text-violet-600" />
+        <h3 className="text-xl font-bold text-slate-800">Mapear Barreiras</h3>
+      </div>
+      <p className="text-sm text-slate-600 mb-6">
+        Identifique e mapeie as barreiras específicas encontradas no contexto do AEE. Para cada barreira selecionada, indique o nível de apoio necessário.
+      </p>
+
+      {Object.entries(LISTAS_BARREIRAS).map(([dominio, opcoes]) => {
+        const selecionadas = barreiras[dominio] || [];
+        return (
+          <div
+            key={dominio}
+            className={`p-4 rounded-lg border-2 ${
+              selecionadas.length > 0 ? "border-emerald-300 bg-emerald-50/20" : "border-slate-200 bg-white"
+            } transition-all`}
+          >
+            <h5 className="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+              <strong>{dominio}</strong>
+              {selecionadas.length > 0 && (
+                <span className="text-xs font-normal text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                  {selecionadas.length} selecionada{selecionadas.length > 1 ? "s" : ""}
+                </span>
+              )}
+            </h5>
+
+            <div className="space-y-2 mb-4">
+              {opcoes.map((b) => {
+                const estaSelecionada = selecionadas.includes(b);
+                return (
+                  <label
+                    key={b}
+                    className={`flex items-center gap-2 p-2.5 rounded-lg cursor-pointer transition-all ${
+                      estaSelecionada
+                        ? "bg-emerald-50 border-2 border-emerald-300 shadow-sm"
+                        : "hover:bg-slate-50 border-2 border-transparent"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={estaSelecionada}
+                      onChange={(e) => {
+                        const novas = e.target.checked
+                          ? [...selecionadas, b]
+                          : selecionadas.filter((item) => item !== b);
+                        const novasBarreiras = { ...barreiras, [dominio]: novas };
+                        updateField("barreiras_selecionadas", novasBarreiras);
+
+                        if (!e.target.checked) {
+                          const chave = `${dominio}_${b}`;
+                          const novosNiveis = { ...niveis };
+                          delete novosNiveis[chave];
+                          updateField("niveis_suporte", novosNiveis);
+                        }
+                      }}
+                      className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+                    />
+                    <span className={`text-sm ${estaSelecionada ? "text-emerald-900 font-medium" : "text-slate-700"}`}>
+                      {b}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+
+            {selecionadas.length > 0 && (
+              <>
+                <hr className="my-4 border-slate-300" />
+                <h6 className="text-sm font-semibold text-slate-700 mb-2">Nível de apoio por barreira</h6>
+                <p className="text-xs text-slate-500 mb-4">
+                  Escala: Autônomo (faz sozinho) → Monitorado → Substancial → Muito Substancial (suporte intenso/contínuo).
+                </p>
+                <div className="space-y-4">
+                  {selecionadas.map((b) => {
+                    const chave = `${dominio}_${b}`;
+                    const nivelAtual = niveis[chave] || "Monitorado";
+                    const nivelIndex = NIVEIS_SUPORTE.indexOf(nivelAtual);
+                    return (
+                      <div key={b} className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                        <div className="mb-2">
+                          <strong className="text-sm text-slate-800">{b}</strong>
+                        </div>
+                        <div className="space-y-2">
+                          <input
+                            type="range"
+                            min="0"
+                            max={NIVEIS_SUPORTE.length - 1}
+                            value={nivelIndex}
+                            onChange={(e) => {
+                              const novoNivel = NIVEIS_SUPORTE[parseInt(e.target.value)];
+                              updateField("niveis_suporte", { ...niveis, [chave]: novoNivel });
+                            }}
+                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
+                            style={{
+                              background: `linear-gradient(to right, #9333ea 0%, #9333ea ${(nivelIndex / (NIVEIS_SUPORTE.length - 1)) * 100}%, #e2e8f0 ${(nivelIndex / (NIVEIS_SUPORTE.length - 1)) * 100}%, #e2e8f0 100%)`,
+                            }}
+                          />
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-medium text-violet-700 bg-violet-100 px-2 py-1 rounded">
+                              {nivelAtual}
+                            </span>
+                            <div className="flex gap-1 text-[10px] text-slate-500">
+                              {NIVEIS_SUPORTE.map((n, idx) => (
+                                <span key={n} className={idx === nivelIndex ? "font-bold text-violet-600" : ""}>
+                                  {n.slice(0, 3)}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-slate-500 mt-1">
+                            {nivelAtual === "Autônomo" && "Realiza sem mediação"}
+                            {nivelAtual === "Monitorado" && "Precisa de checagens"}
+                            {nivelAtual === "Substancial" && "Precisa de mediação frequente"}
+                            {nivelAtual === "Muito Substancial" && "Precisa de suporte intenso/contínuo"}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            <div className="mt-4">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Observações (opcional)</label>
+              <textarea
+                value={obs[dominio] || ""}
+                onChange={(e) => updateField("observacoes_barreiras", { ...obs, [dominio]: e.target.value })}
+                placeholder="Ex.: quando ocorre, gatilhos, o que ajuda, o que piora, estratégias que já funcionam..."
+                rows={3}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Aba: Plano de Habilidades
+function PlanoHabilidadesTab({
+  paeeData,
+  onUpdate,
+}: {
+  paeeData: Record<string, unknown>;
+  onUpdate: (data: Record<string, unknown>) => void;
+}) {
+  const habilidades = (paeeData.habilidades_plano || []) as Array<{
+    id: string;
+    habilidade: string;
+    objetivo: string;
+    estrategias: string;
+    prazo: string;
+    status: string;
+  }>;
+  const [novaHabilidade, setNovaHabilidade] = useState("");
+  const [novoObjetivo, setNovoObjetivo] = useState("");
+  const [novaEstrategia, setNovaEstrategia] = useState("");
+  const [novoPrazo, setNovoPrazo] = useState("");
+
+  const updateField = (key: string, value: unknown) => {
+    onUpdate({ ...paeeData, [key]: value });
+  };
+
+  const adicionarHabilidade = () => {
+    if (!novaHabilidade.trim()) return;
+    const nova = {
+      id: crypto.randomUUID(),
+      habilidade: novaHabilidade,
+      objetivo: novoObjetivo,
+      estrategias: novaEstrategia,
+      prazo: novoPrazo,
+      status: "em_andamento",
+    };
+    updateField("habilidades_plano", [...habilidades, nova]);
+    setNovaHabilidade("");
+    setNovoObjetivo("");
+    setNovaEstrategia("");
+    setNovoPrazo("");
+  };
+
+  const removerHabilidade = (id: string) => {
+    updateField("habilidades_plano", habilidades.filter((h) => h.id !== id));
+  };
+
+  const atualizarHabilidade = (id: string, campo: string, valor: string) => {
+    updateField(
+      "habilidades_plano",
+      habilidades.map((h) => (h.id === id ? { ...h, [campo]: valor } : h))
+    );
+  };
+
+  return (
+    <div className="space-y-6 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
+      <div className="flex items-center gap-3 mb-4">
+        <Target className="w-6 h-6 text-violet-600" />
+        <h3 className="text-xl font-bold text-slate-800">Plano de Habilidades</h3>
+      </div>
+      <p className="text-sm text-slate-600 mb-6">
+        Elabore um plano detalhado para o desenvolvimento de habilidades específicas do estudante no contexto do AEE.
+      </p>
+
+      <div className="p-4 rounded-lg border-2 border-slate-200 bg-slate-50">
+        <h4 className="font-semibold text-slate-800 mb-3">Adicionar Nova Habilidade</h4>
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Habilidade</label>
+            <input
+              type="text"
+              value={novaHabilidade}
+              onChange={(e) => setNovaHabilidade(e.target.value)}
+              placeholder="Ex.: Leitura e compreensão de textos"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Objetivo</label>
+            <input
+              type="text"
+              value={novoObjetivo}
+              onChange={(e) => setNovoObjetivo(e.target.value)}
+              placeholder="Ex.: Melhorar a compreensão leitora"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Estratégias</label>
+            <textarea
+              value={novaEstrategia}
+              onChange={(e) => setNovaEstrategia(e.target.value)}
+              placeholder="Descreva as estratégias a serem utilizadas"
+              rows={2}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Prazo</label>
+              <input
+                type="date"
+                value={novoPrazo}
+                onChange={(e) => setNovoPrazo(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={adicionarHabilidade}
+                className="w-full px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"
+              >
+                Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h4 className="font-semibold text-slate-800">Habilidades Planejadas</h4>
+        {habilidades.length === 0 ? (
+          <p className="text-slate-500 text-sm">Nenhuma habilidade adicionada ainda.</p>
+        ) : (
+          habilidades.map((h) => (
+            <div key={h.id} className="p-4 rounded-lg border-2 border-slate-200 bg-white">
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex-1">
+                  <h5 className="font-semibold text-slate-800">{h.habilidade}</h5>
+                  <p className="text-sm text-slate-600 mt-1">{h.objetivo}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removerHabilidade(h.id)}
+                  className="text-red-600 hover:text-red-800 text-sm"
+                >
+                  Remover
+                </button>
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Estratégias</label>
+                  <textarea
+                    value={h.estrategias}
+                    onChange={(e) => atualizarHabilidade(h.id, "estrategias", e.target.value)}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Prazo</label>
+                    <input
+                      type="date"
+                      value={h.prazo}
+                      onChange={(e) => atualizarHabilidade(h.id, "prazo", e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
+                    <select
+                      value={h.status}
+                      onChange={(e) => atualizarHabilidade(h.id, "status", e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                    >
+                      <option value="em_andamento">Em Andamento</option>
+                      <option value="concluida">Concluída</option>
+                      <option value="pausada">Pausada</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Aba: Tecnologias Assistivas
+function TecAssistivaTab({
+  paeeData,
+  onUpdate,
+}: {
+  paeeData: Record<string, unknown>;
+  onUpdate: (data: Record<string, unknown>) => void;
+}) {
+  const tecnologias = (paeeData.tecnologias_assistivas || []) as Array<{
+    id: string;
+    tipo: string;
+    nome: string;
+    descricao: string;
+    fornecedor: string;
+    status: string;
+  }>;
+  const [novoTipo, setNovoTipo] = useState("");
+  const [novoNome, setNovoNome] = useState("");
+  const [novaDescricao, setNovaDescricao] = useState("");
+  const [novoFornecedor, setNovoFornecedor] = useState("");
+
+  const updateField = (key: string, value: unknown) => {
+    onUpdate({ ...paeeData, [key]: value });
+  };
+
+  const tiposTA = [
+    "Comunicação Alternativa",
+    "Acessibilidade Digital",
+    "Mobilidade",
+    "Visão",
+    "Audição",
+    "Cognição",
+    "Outros",
+  ];
+
+  const adicionarTA = () => {
+    if (!novoNome.trim()) return;
+    const nova = {
+      id: crypto.randomUUID(),
+      tipo: novoTipo || "Outros",
+      nome: novoNome,
+      descricao: novaDescricao,
+      fornecedor: novoFornecedor,
+      status: "solicitada",
+    };
+    updateField("tecnologias_assistivas", [...tecnologias, nova]);
+    setNovoTipo("");
+    setNovoNome("");
+    setNovaDescricao("");
+    setNovoFornecedor("");
+  };
+
+  const removerTA = (id: string) => {
+    updateField("tecnologias_assistivas", tecnologias.filter((t) => t.id !== id));
+  };
+
+  const atualizarTA = (id: string, campo: string, valor: string) => {
+    updateField(
+      "tecnologias_assistivas",
+      tecnologias.map((t) => (t.id === id ? { ...t, [campo]: valor } : t))
+    );
+  };
+
+  return (
+    <div className="space-y-6 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
+      <div className="flex items-center gap-3 mb-4">
+        <Puzzle className="w-6 h-6 text-violet-600" />
+        <h3 className="text-xl font-bold text-slate-800">Tecnologias Assistivas</h3>
+      </div>
+      <p className="text-sm text-slate-600 mb-6">
+        Registre e gerencie as tecnologias assistivas necessárias para o estudante no contexto do AEE.
+      </p>
+
+      <div className="p-4 rounded-lg border-2 border-slate-200 bg-slate-50">
+        <h4 className="font-semibold text-slate-800 mb-3">Adicionar Tecnologia Assistiva</h4>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
+              <select
+                value={novoTipo}
+                onChange={(e) => setNovoTipo(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              >
+                <option value="">Selecione</option>
+                {tiposTA.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Nome/Modelo</label>
+              <input
+                type="text"
+                value={novoNome}
+                onChange={(e) => setNovoNome(e.target.value)}
+                placeholder="Ex.: Software de leitura de tela"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
+            <textarea
+              value={novaDescricao}
+              onChange={(e) => setNovaDescricao(e.target.value)}
+              placeholder="Descreva a tecnologia e como será utilizada"
+              rows={2}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Fornecedor/Origem</label>
+              <input
+                type="text"
+                value={novoFornecedor}
+                onChange={(e) => setNovoFornecedor(e.target.value)}
+                placeholder="Ex.: Secretaria de Educação"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={adicionarTA}
+                className="w-full px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"
+              >
+                Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h4 className="font-semibold text-slate-800">Tecnologias Assistivas Registradas</h4>
+        {tecnologias.length === 0 ? (
+          <p className="text-slate-500 text-sm">Nenhuma tecnologia assistiva registrada ainda.</p>
+        ) : (
+          tecnologias.map((t) => (
+            <div key={t.id} className="p-4 rounded-lg border-2 border-slate-200 bg-white">
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold text-violet-600 bg-violet-100 px-2 py-0.5 rounded">
+                      {t.tipo}
+                    </span>
+                    <h5 className="font-semibold text-slate-800">{t.nome}</h5>
+                  </div>
+                  <p className="text-sm text-slate-600 mt-1">{t.descricao}</p>
+                  {t.fornecedor && (
+                    <p className="text-xs text-slate-500 mt-1">Fornecedor: {t.fornecedor}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removerTA(t.id)}
+                  className="text-red-600 hover:text-red-800 text-sm"
+                >
+                  Remover
+                </button>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
+                <select
+                  value={t.status}
+                  onChange={(e) => atualizarTA(t.id, "status", e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                >
+                  <option value="solicitada">Solicitada</option>
+                  <option value="em_avaliacao">Em Avaliação</option>
+                  <option value="aprovada">Aprovada</option>
+                  <option value="disponivel">Disponível</option>
+                  <option value="em_uso">Em Uso</option>
+                </select>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Aba: Articulação
+function ArticulacaoTab({
+  paeeData,
+  onUpdate,
+}: {
+  paeeData: Record<string, unknown>;
+  onUpdate: (data: Record<string, unknown>) => void;
+}) {
+  const articulacoes = (paeeData.articulacoes || []) as Array<{
+    id: string;
+    tipo: string;
+    profissional: string;
+    contato: string;
+    responsabilidades: string;
+    frequencia: string;
+    observacoes: string;
+  }>;
+  const [novoTipo, setNovoTipo] = useState("");
+  const [novoProfissional, setNovoProfissional] = useState("");
+  const [novoContato, setNovoContato] = useState("");
+  const [novasResponsabilidades, setNovasResponsabilidades] = useState("");
+  const [novaFrequencia, setNovaFrequencia] = useState("");
+  const [novasObservacoes, setNovasObservacoes] = useState("");
+
+  const updateField = (key: string, value: unknown) => {
+    onUpdate({ ...paeeData, [key]: value });
+  };
+
+  const tiposArticulacao = [
+    "Professor AEE",
+    "Professor Regente",
+    "Coordenador Pedagógico",
+    "Diretor",
+    "Psicólogo Escolar",
+    "Fonoaudiólogo",
+    "Terapeuta Ocupacional",
+    "Família",
+    "Outros Profissionais",
+  ];
+
+  const adicionarArticulacao = () => {
+    if (!novoProfissional.trim()) return;
+    const nova = {
+      id: crypto.randomUUID(),
+      tipo: novoTipo || "Outros Profissionais",
+      profissional: novoProfissional,
+      contato: novoContato,
+      responsabilidades: novasResponsabilidades,
+      frequencia: novaFrequencia,
+      observacoes: novasObservacoes,
+    };
+    updateField("articulacoes", [...articulacoes, nova]);
+    setNovoTipo("");
+    setNovoProfissional("");
+    setNovoContato("");
+    setNovasResponsabilidades("");
+    setNovaFrequencia("");
+    setNovasObservacoes("");
+  };
+
+  const removerArticulacao = (id: string) => {
+    updateField("articulacoes", articulacoes.filter((a) => a.id !== id));
+  };
+
+  const atualizarArticulacao = (id: string, campo: string, valor: string) => {
+    updateField(
+      "articulacoes",
+      articulacoes.map((a) => (a.id === id ? { ...a, [campo]: valor } : a))
+    );
+  };
+
+  return (
+    <div className="space-y-6 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
+      <div className="flex items-center gap-3 mb-4">
+        <Users className="w-6 h-6 text-violet-600" />
+        <h3 className="text-xl font-bold text-slate-800">Articulação</h3>
+      </div>
+      <p className="text-sm text-slate-600 mb-6">
+        Registre e gerencie a articulação entre diferentes profissionais e serviços envolvidos no atendimento do estudante no AEE.
+      </p>
+
+      <div className="p-4 rounded-lg border-2 border-slate-200 bg-slate-50">
+        <h4 className="font-semibold text-slate-800 mb-3">Adicionar Articulação</h4>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Profissional/Serviço</label>
+              <select
+                value={novoTipo}
+                onChange={(e) => setNovoTipo(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              >
+                <option value="">Selecione</option>
+                {tiposArticulacao.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Nome do Profissional</label>
+              <input
+                type="text"
+                value={novoProfissional}
+                onChange={(e) => setNovoProfissional(e.target.value)}
+                placeholder="Ex.: Maria Silva"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Contato</label>
+            <input
+              type="text"
+              value={novoContato}
+              onChange={(e) => setNovoContato(e.target.value)}
+              placeholder="Ex.: email@escola.com.br ou (11) 99999-9999"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Responsabilidades</label>
+            <textarea
+              value={novasResponsabilidades}
+              onChange={(e) => setNovasResponsabilidades(e.target.value)}
+              placeholder="Descreva as responsabilidades deste profissional/serviço"
+              rows={2}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Frequência de Articulação</label>
+              <input
+                type="text"
+                value={novaFrequencia}
+                onChange={(e) => setNovaFrequencia(e.target.value)}
+                placeholder="Ex.: Semanal, Quinzenal, Mensal"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={adicionarArticulacao}
+                className="w-full px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"
+              >
+                Adicionar
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Observações</label>
+            <textarea
+              value={novasObservacoes}
+              onChange={(e) => setNovasObservacoes(e.target.value)}
+              placeholder="Observações adicionais sobre a articulação"
+              rows={2}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h4 className="font-semibold text-slate-800">Articulações Registradas</h4>
+        {articulacoes.length === 0 ? (
+          <p className="text-slate-500 text-sm">Nenhuma articulação registrada ainda.</p>
+        ) : (
+          articulacoes.map((a) => (
+            <div key={a.id} className="p-4 rounded-lg border-2 border-slate-200 bg-white">
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold text-violet-600 bg-violet-100 px-2 py-0.5 rounded">
+                      {a.tipo}
+                    </span>
+                    <h5 className="font-semibold text-slate-800">{a.profissional}</h5>
+                  </div>
+                  {a.contato && <p className="text-sm text-slate-600 mt-1">Contato: {a.contato}</p>}
+                  {a.responsabilidades && (
+                    <p className="text-sm text-slate-600 mt-1">Responsabilidades: {a.responsabilidades}</p>
+                  )}
+                  {a.frequencia && (
+                    <p className="text-xs text-slate-500 mt-1">Frequência: {a.frequencia}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removerArticulacao(a.id)}
+                  className="text-red-600 hover:text-red-800 text-sm"
+                >
+                  Remover
+                </button>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Observações</label>
+                <textarea
+                  value={a.observacoes}
+                  onChange={(e) => atualizarArticulacao(a.id, "observacoes", e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

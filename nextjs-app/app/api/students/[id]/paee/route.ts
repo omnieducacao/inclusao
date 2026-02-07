@@ -28,6 +28,7 @@ export async function PATCH(
       status_planejamento: body.status_planejamento,
       data_inicio_ciclo: body.data_inicio_ciclo ?? null,
       data_fim_ciclo: body.data_fim_ciclo ?? null,
+      paee_data: body.paee_data ?? null,
     }
   );
 

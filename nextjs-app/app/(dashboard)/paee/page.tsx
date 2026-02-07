@@ -43,6 +43,7 @@ export default async function PAEEPage({ searchParams }: Props) {
                   pei_data: (student.pei_data || {}) as Record<string, unknown>,
                   paee_ciclos: (student.paee_ciclos || []) as CicloPAEE[],
                   planejamento_ativo: student.planejamento_ativo,
+                  paee_data: (student.paee_data || {}) as Record<string, unknown>,
                 }
               : null
           }

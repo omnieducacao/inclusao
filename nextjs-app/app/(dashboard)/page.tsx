@@ -94,7 +94,7 @@ export default async function HomePage() {
     icon: BookMarked,
     title: "Central de Inteligência",
     desc: "Fundamentos pedagógicos, legislação atualizada e ferramentas práticas para educação inclusiva.",
-    color: "blue",
+    color: "table",
   };
 
   // Módulos administrativos
@@ -110,21 +110,21 @@ export default async function HomePage() {
       icon: UserCog,
       title: "Gestão de Usuários",
       desc: "Cadastrar usuários, atribuir permissões e vínculos com estudantes.",
-      color: "slate",
+      color: "test",
     },
     {
       href: "/pgi",
       icon: ClipboardList,
       title: "PGI",
       desc: "Plano de Gestão Inclusiva. Estruture infraestrutura, formação e recursos da escola.",
-      color: "slate",
+      color: "presentation",
     },
     {
       href: "/config-escola",
       icon: School,
       title: "Configuração Escola",
       desc: "Ano letivo, séries e turmas. Configure antes de cadastrar professores.",
-      color: "slate",
+      color: "reports",
     },
   ];
 
@@ -134,26 +134,53 @@ export default async function HomePage() {
       icon: Settings,
       title: "Admin Plataforma",
       desc: "Gerenciamento completo da plataforma",
-      color: "slate",
+      color: "reports",
     });
   }
 
-  const colorClasses: Record<string, string> = {
-    sky: "from-sky-100 via-sky-50 to-white border-slate-200 hover:border-slate-300 hover:shadow-lg hover:scale-[1.02] transition-all",
-    cyan: "from-cyan-100 via-cyan-50 to-white border-slate-200 hover:border-slate-300 hover:shadow-lg hover:scale-[1.02] transition-all",
-    blue: "from-blue-100 via-blue-50 to-white border-slate-200 hover:border-slate-300 hover:shadow-lg hover:scale-[1.02] transition-all",
-    violet: "from-violet-100 via-violet-50 to-white border-slate-200 hover:border-slate-300 hover:shadow-lg hover:scale-[1.02] transition-all",
-    rose: "from-rose-100 via-rose-50 to-white border-slate-200 hover:border-slate-300 hover:shadow-lg hover:scale-[1.02] transition-all",
-    slate: "from-slate-100 via-slate-50 to-white border-slate-200 hover:border-slate-300 hover:shadow-lg hover:scale-[1.02] transition-all",
+  // Paleta de cores suave baseada na imagem fornecida
+  const colorPalette: Record<string, { bg: string; icon: string; text: string }> = {
+    // Resumo em Áudio - lavender-blue
+    audio: { bg: "#E8EAF6", icon: "#3F51B5", text: "#3F51B5" },
+    // Resumo em Vídeo - light green
+    video: { bg: "#E8F5E9", icon: "#4CAF50", text: "#4CAF50" },
+    // Mapa mental - light pinkish-purple
+    mindmap: { bg: "#F3E5F5", icon: "#8E24AA", text: "#8E24AA" },
+    // Relatórios - creamy beige
+    reports: { bg: "#FFFDE7", icon: "#FFB300", text: "#FFB300" },
+    // Cartões didáticos - light reddish-brown
+    flashcards: { bg: "#FBE9E7", icon: "#D84315", text: "#D84315" },
+    // Teste - light sky blue
+    test: { bg: "#E3F2FD", icon: "#2196F3", text: "#2196F3" },
+    // Infográfico - light purple
+    infographic: { bg: "#F0F4C3", icon: "#673AB7", text: "#673AB7" },
+    // Apresentação - pale lime green
+    presentation: { bg: "#F9FBE7", icon: "#8BC34A", text: "#8BC34A" },
+    // Tabela de dados - light blue
+    table: { bg: "#E1F5FE", icon: "#03A9F4", text: "#03A9F4" },
   };
 
-  const iconColorClasses: Record<string, string> = {
-    sky: "text-sky-600 bg-gradient-to-br from-sky-100 to-sky-200",
-    cyan: "text-cyan-600 bg-gradient-to-br from-cyan-100 to-cyan-200",
-    blue: "text-blue-600 bg-gradient-to-br from-blue-100 to-blue-200",
-    violet: "text-violet-600 bg-gradient-to-br from-violet-100 to-violet-200",
-    rose: "text-rose-600 bg-gradient-to-br from-rose-100 to-rose-200",
-    slate: "text-slate-600 bg-gradient-to-br from-slate-100 to-slate-200",
+  // Mapeamento de cores para módulos
+  const moduleColors: Record<string, string> = {
+    sky: "audio",         // Estudantes
+    blue: "mindmap",      // PEI
+    violet: "infographic", // PAEE
+    cyan: "video",        // Hub
+    rose: "flashcards",   // Diário
+    slate: "reports",     // Monitoramento
+    test: "test",         // Gestão
+    presentation: "presentation", // PGI
+    table: "table",       // Central de Inteligência
+  };
+
+  const getColorClasses = (colorKey: string) => {
+    const paletteKey = moduleColors[colorKey] || "test";
+    const colors = colorPalette[paletteKey];
+    return {
+      bg: colors.bg,
+      icon: colors.icon,
+      text: colors.text,
+    };
   };
 
   return (
@@ -186,11 +213,13 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {primaryModules.map((m) => {
             const Icon = m.icon;
+            const colors = getColorClasses(m.color);
             return (
               <Link
                 key={m.href}
                 href={m.href}
-                className={`group relative block p-6 rounded-xl border-2 bg-gradient-to-br ${colorClasses[m.color]} transition-all duration-300 shadow-sm hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1`}
+                className="group relative block p-6 rounded-xl border-2 border-slate-200 transition-all duration-300 shadow-sm hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1"
+                style={{ backgroundColor: colors.bg }}
               >
                 {m.badge && (
                   <span className="absolute top-3 right-3 px-2 py-0.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow-sm">
@@ -198,9 +227,12 @@ export default async function HomePage() {
                   </span>
                 )}
                 <div className="flex items-start gap-5">
-                  <Icon className={`w-14 h-14 flex-shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ${iconColorClasses[m.color].split(' ')[0]}`} />
+                  <Icon 
+                    className="w-14 h-14 flex-shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300" 
+                    style={{ color: colors.icon }}
+                  />
                   <div className="flex-1 min-w-0">
-                    <span className="font-bold text-slate-800 block text-lg group-hover:text-sky-700 transition-colors">{m.title}</span>
+                    <span className="font-bold block text-lg transition-colors" style={{ color: colors.text }}>{m.title}</span>
                     <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">{m.desc}</p>
                   </div>
                 </div>
@@ -219,16 +251,21 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {supportModules.map((m) => {
             const Icon = m.icon;
+            const colors = getColorClasses(m.color);
             return (
               <Link
                 key={m.href}
                 href={m.href}
-                className={`group block p-5 rounded-xl border-2 bg-gradient-to-br ${colorClasses[m.color]} transition-all duration-300 shadow-sm hover:shadow-lg hover:scale-[1.02]`}
+                className="group block p-5 rounded-xl border-2 border-slate-200 transition-all duration-300 shadow-sm hover:shadow-lg hover:scale-[1.02]"
+                style={{ backgroundColor: colors.bg }}
               >
                 <div className="flex items-start gap-5">
-                  <Icon className={`w-14 h-14 flex-shrink-0 group-hover:scale-110 transition-all duration-300 ${iconColorClasses[m.color].split(' ')[0]}`} />
+                  <Icon 
+                    className="w-14 h-14 flex-shrink-0 group-hover:scale-110 transition-all duration-300" 
+                    style={{ color: colors.icon }}
+                  />
                   <div className="flex-1">
-                    <span className="font-bold text-slate-800 block text-lg">{m.title}</span>
+                    <span className="font-bold block text-lg" style={{ color: colors.text }}>{m.title}</span>
                     <p className="text-sm text-slate-600 mt-1.5">{m.desc}</p>
                   </div>
                 </div>
@@ -248,16 +285,21 @@ export default async function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {adminModules.map((m) => {
               const Icon = m.icon;
+              const colors = getColorClasses(m.color);
               return (
                 <Link
                   key={m.href}
                   href={m.href}
-                  className={`group block p-5 rounded-xl border-2 bg-gradient-to-br ${colorClasses[m.color]} transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.01]`}
+                  className="group block p-5 rounded-xl border-2 border-slate-200 transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.01]"
+                  style={{ backgroundColor: colors.bg }}
                 >
                   <div className="flex items-start gap-5">
-                    <Icon className={`w-14 h-14 flex-shrink-0 group-hover:scale-110 transition-all duration-300 ${iconColorClasses[m.color].split(' ')[0]}`} />
+                    <Icon 
+                      className="w-14 h-14 flex-shrink-0 group-hover:scale-110 transition-all duration-300" 
+                      style={{ color: colors.icon }}
+                    />
                     <div className="flex-1">
-                      <span className="font-bold text-slate-800 block text-lg">{m.title}</span>
+                      <span className="font-bold block text-lg" style={{ color: colors.text }}>{m.title}</span>
                       <p className="text-sm text-slate-600 mt-1.5">{m.desc}</p>
                     </div>
                   </div>
@@ -276,24 +318,28 @@ export default async function HomePage() {
         </h2>
         <Link
           href={intelligenceModule.href}
-          className="group relative block p-8 rounded-2xl border-2 border-slate-200 bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.01] hover:border-slate-300 overflow-hidden"
+          className="group relative block p-8 rounded-2xl border-2 border-slate-200 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.01] hover:border-slate-300 overflow-hidden"
+          style={{ backgroundColor: colorPalette.table.bg }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${colorPalette.table.icon}15, transparent, ${colorPalette.table.icon}15)` }}></div>
           <div className="relative flex items-start gap-6">
-            <BookMarked className="w-16 h-16 flex-shrink-0 text-purple-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" />
+            <BookMarked 
+              className="w-16 h-16 flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" 
+              style={{ color: colorPalette.table.icon }}
+            />
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <span className="font-bold text-2xl text-slate-800 group-hover:text-purple-700 transition-colors">
+                <span className="font-bold text-2xl transition-colors" style={{ color: colorPalette.table.text }}>
                   {intelligenceModule.title}
                 </span>
-                <span className="px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-full shadow-sm">
+                <span className="px-3 py-1 text-xs font-bold text-white rounded-full shadow-sm" style={{ backgroundColor: colorPalette.table.icon }}>
                   Novo
                 </span>
               </div>
               <p className="text-base text-slate-700 leading-relaxed font-medium">
                 {intelligenceModule.desc}
               </p>
-              <div className="mt-4 flex items-center gap-2 text-sm text-purple-600 font-semibold group-hover:gap-3 transition-all">
+              <div className="mt-4 flex items-center gap-2 text-sm font-semibold group-hover:gap-3 transition-all" style={{ color: colorPalette.table.icon }}>
                 <span>Explorar recursos</span>
                 <span className="group-hover:translate-x-1 transition-transform">→</span>
               </div>
