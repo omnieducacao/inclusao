@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { ClipboardList, FileText, Map } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ClipboardList, FileText, Map, Trash2 } from "lucide-react";
 
 type Student = {
   id: string;
@@ -19,7 +20,10 @@ type Props = {
 };
 
 export function EstudantesClient({ students }: Props) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return students;
@@ -32,6 +36,29 @@ export function EstudantesClient({ students }: Props) {
         (s.diagnosis || "").toLowerCase().includes(q)
     );
   }, [students, search]);
+
+  async function handleDelete(studentId: string) {
+    if (!confirm("Tem certeza que deseja excluir este estudante? Esta ação não pode ser desfeita.")) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/students/${studentId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Erro ao excluir estudante.");
+        return;
+      }
+      router.refresh();
+    } catch (err) {
+      alert("Erro ao excluir estudante. Tente novamente.");
+      console.error(err);
+    } finally {
+      setDeleting(false);
+      setConfirmDeleteId(null);
+    }
+  }
 
   return (
     <div className="bg-white rounded-xl border-2 border-slate-200 shadow-sm">
@@ -140,7 +167,7 @@ export function EstudantesClient({ students }: Props) {
                       </p>
                     )}
                   </div>
-                  <div className="flex gap-2 shrink-0 flex-wrap">
+                  <div className="flex gap-2 shrink-0 flex-wrap items-center">
                     <Link
                       href={`/pei?student=${s.id}`}
                       className="px-3 py-1.5 text-sm font-medium text-sky-600 hover:bg-sky-50 rounded-lg"
@@ -165,6 +192,16 @@ export function EstudantesClient({ students }: Props) {
                     >
                       Monitoramento
                     </Link>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(s.id)}
+                      disabled={deleting}
+                      className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                      title="Excluir estudante"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Excluir
+                    </button>
                   </div>
                 </div>
               </div>

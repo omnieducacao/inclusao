@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -480,140 +480,156 @@ export function PEIClient({
 
       <div className="p-6 max-h-[70vh] overflow-y-auto scroll-smooth">
             {activeTab === "inicio" && (
-              <div className="space-y-6 max-w-4xl">
+              <div className="space-y-4 max-w-6xl">
                 {/* Título da aba com ícone */}
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 mb-2">
                   <FileText className="w-5 h-5 text-sky-600" />
                   <h3 className="text-lg font-semibold text-slate-800">Central de Fundamentos e Gestão</h3>
                 </div>
                 
-                {/* Coluna Esquerda: Fundamentos */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="rounded-lg border-2 border-slate-200 p-6 bg-white min-h-[160px]">
-                      <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                {/* Grid principal: 2 colunas */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* Coluna Esquerda: Fundamentos */}
+                  <div className="space-y-3">
+                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
+                      <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
                         <FileText className="w-4 h-4 text-sky-600" />
                         Fundamentos do PEI
                       </h4>
-                      <p className="text-sm text-slate-600">
-                        O PEI organiza o planejamento individualizado com foco em barreiras e apoios. Equidade: ajustar
-                        acesso, ensino e avaliação, sem baixar expectativas. Base: LBI (Lei 13.146/2015), LDB.
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        O PEI organiza o planejamento individualizado com foco em <strong>barreiras e apoios</strong>. 
+                        <strong>Equidade:</strong> ajustar acesso, ensino e avaliação, sem baixar expectativas. 
+                        Base: <strong>LBI (Lei 13.146/2015)</strong>, LDB.
                       </p>
                     </div>
-                    <div className="rounded-lg border-2 border-slate-200 p-6 bg-white min-h-[160px]">
-                      <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                    
+                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
+                      <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
                         <Info className="w-4 h-4 text-sky-600" />
                         Como usar a Omnisfera
                       </h4>
-                      <ol className="list-decimal list-inside text-sm text-slate-600 space-y-1">
-                        <li>Estudante: identificação + contexto + laudo (opcional)</li>
-                        <li>Evidências: o que foi observado e como aparece na rotina</li>
-                        <li>Mapeamento: barreiras + nível de apoio + potências</li>
-                        <li>Plano de Ação: acesso/ensino/avaliação</li>
-                        <li>Consultoria IA: gerar o documento técnico (validação do educador)</li>
-                        <li>Dashboard: KPIs + exportações + sincronização</li>
+                      <ol className="list-decimal list-inside text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                        <li><strong>Estudante:</strong> identificação + contexto + laudo (opcional)</li>
+                        <li><strong>Evidências:</strong> o que foi observado e como aparece na rotina</li>
+                        <li><strong>Mapeamento:</strong> barreiras + nível de apoio + potências</li>
+                        <li><strong>Plano de Ação:</strong> acesso/ensino/avaliação</li>
+                        <li><strong>Consultoria IA:</strong> gerar o documento técnico (validação do educador)</li>
+                        <li><strong>Dashboard:</strong> KPIs + exportações + sincronização</li>
                       </ol>
                     </div>
-                    <details className="rounded-lg border-2 border-slate-200 p-4 bg-white">
-                      <summary className="cursor-pointer font-semibold text-slate-800 mb-2">
+                    
+                    <details className="rounded-lg border-2 border-slate-200 p-3 bg-white">
+                      <summary className="cursor-pointer text-xs font-semibold text-slate-800 mb-2">
                         📘 PEI/PDI e a Prática Inclusiva — Amplie o conhecimento
                       </summary>
-                        <div className="mt-3 text-sm text-slate-600 space-y-3">
-                          <p>
-                            O <strong>Plano Educacional Individualizado (PEI)</strong>, também denominado <strong>Plano de Desenvolvimento Individual (PDI)</strong>, é um roteiro de intervenção pedagógica personalizado e flexível que norteia o processo de aprendizagem em sala comum para público-alvo da educação inclusiva. Tem o objetivo de <strong>remover obstáculos</strong> e <strong>promover a escolarização</strong>.
-                          </p>
-                          <p>
-                            O PEI/PDI leva em conta as particularidades do(a) aluno(a), incluindo-o no repertório da classe que frequenta e tendo como referência a <strong>mesma matriz curricular</strong> do ano a ser cursado.
-                          </p>
-                          <p>
-                            <strong>Caráter obrigatório:</strong> deve ser atualizado sistematicamente e compor a documentação escolar de alunos com deficiência, transtorno global do desenvolvimento e altas habilidades/superdotação. Respeita as orientações do laudo médico, quando houver. Se o aluno apresentar condições descritas e não possuir acompanhamento externo, cabe à escola orientar a família na busca de recursos para diagnóstico e obtenção de dados.
-                          </p>
-                          <p>
-                            <strong>Elaboração:</strong> pela equipe multidisciplinar da escola; discutido com a família e profissionais externos no início do ano letivo; replanejado ao final de cada unidade e/ou período de avaliação. Em transferência, o PEI deve compor a documentação do aluno egresso.
-                          </p>
-                          <div>
-                            <p className="font-semibold mb-1">Registros fundamentais:</p>
-                            <ul className="list-disc list-inside space-y-1 ml-2">
-                              <li>Identidade do aluno</li>
-                              <li>Necessidades específicas (características mais recorrentes)</li>
-                              <li>Dados sobre autonomia</li>
-                              <li>Dados atualizados sobre atendimentos externos</li>
-                              <li>Desenvolvimento escolar (leitura e raciocínio lógico-matemático)</li>
-                              <li>Necessidades de material pedagógico e tecnologias assistivas</li>
-                            </ul>
-                          </div>
-                          <div>
-                            <p className="font-semibold mb-1">Avaliação da aprendizagem:</p>
-                            <p>
-                              Parte de objetivos mensuráveis e metas educacionais específicas. Deve considerar: implicações das funções e estrutura corporal, limitações no desempenho, condições socioemocionais. A avaliação <strong>não incide apenas sobre o resultado</strong>, mas sobre o processo — identificando conhecimentos construídos, dificuldades superadas e as que necessitam de mais tempo. A avaliação inclusiva <strong>não classifica</strong> em relação à turma; o que importa é o quanto e o como o aluno avança em relação ao seu conhecimento inicial. Nota/conceito segundo o avanço constatado.
-                            </p>
-                          </div>
-                          <p className="text-xs text-slate-500 italic">
-                            A família deve acompanhar a elaboração do PEI/PDI e consentir formalmente, participando da análise das avaliações sistemáticas.
-                          </p>
+                      <div className="mt-2 text-xs text-slate-600 space-y-2 leading-relaxed">
+                        <p>
+                          O <strong>Plano Educacional Individualizado (PEI)</strong>, também denominado <strong>Plano de Desenvolvimento Individual (PDI)</strong>, é um roteiro de intervenção pedagógica personalizado e flexível que norteia o processo de aprendizagem em sala comum para público-alvo da educação inclusiva. Tem o objetivo de <strong>remover obstáculos</strong> e <strong>promover a escolarização</strong>.
+                        </p>
+                        <p>
+                          O PEI/PDI leva em conta as particularidades do(a) aluno(a), incluindo-o no repertório da classe que frequenta e tendo como referência a <strong>mesma matriz curricular</strong> do ano a ser cursado.
+                        </p>
+                        <p>
+                          <strong>Caráter obrigatório:</strong> deve ser atualizado sistematicamente e compor a documentação escolar de alunos com deficiência, transtorno global do desenvolvimento e altas habilidades/superdotação. Respeita as orientações do laudo médico, quando houver.
+                        </p>
+                        <p>
+                          <strong>Elaboração:</strong> pela equipe multidisciplinar da escola; discutido com a família e profissionais externos no início do ano letivo; replanejado ao final de cada unidade e/ou período de avaliação.
+                        </p>
+                        <div>
+                          <p className="font-semibold mb-1 text-xs">Registros fundamentais:</p>
+                          <ul className="list-disc list-inside space-y-0.5 ml-2 text-xs">
+                            <li>Identidade do aluno</li>
+                            <li>Necessidades específicas (características mais recorrentes)</li>
+                            <li>Dados sobre autonomia</li>
+                            <li>Dados atualizados sobre atendimentos externos</li>
+                            <li>Desenvolvimento escolar (leitura e raciocínio lógico-matemático)</li>
+                            <li>Necessidades de material pedagógico e tecnologias assistivas</li>
+                          </ul>
                         </div>
+                        <p className="text-xs text-slate-500 italic mt-2">
+                          A família deve acompanhar a elaboração do PEI/PDI e consentir formalmente, participando da análise das avaliações sistemáticas.
+                        </p>
+                      </div>
                     </details>
                   </div>
 
                   {/* Coluna Direita: Gestão de Estudantes */}
-                  <div className="space-y-4">
-                    <h4 className="text-base font-semibold text-slate-800 flex items-center gap-2">
-                      <Users className="w-4 h-4 text-sky-600" />
-                      Gestão de Estudantes
-                    </h4>
-                    
-                    {/* Status do vínculo */}
-                    {currentStudentId ? (
-                      <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-                        <p className="text-sm font-medium text-emerald-800">✅ Estudante vinculado ao Supabase (nuvem)</p>
-                        <p className="text-xs text-emerald-600 mt-1">student_id: {currentStudentId.slice(0, 8)}...</p>
-                      </div>
-                    ) : (
-                      <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-                        <p className="text-sm font-medium text-amber-800">📝 Modo rascunho (sem vínculo na nuvem)</p>
-                      </div>
-                    )}
-
-                    {/* Seleção de Estudante */}
-                    <div className="p-6 rounded-lg border-2 border-slate-200 bg-white min-h-[140px]">
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Selecione o estudante</label>
-                      <StudentSelector 
-                        students={students} 
-                        currentId={currentStudentId} 
-                        placeholder="Selecione o estudante"
-                        onChange={(id) => {
-                          setSelectedStudentId(id);
-                          if (id) {
-                            // Atualizar URL sem recarregar
-                            const url = new URL(window.location.href);
-                            url.searchParams.set("student", id);
-                            window.history.pushState({}, "", url.toString());
-                          }
-                        }}
-                      />
-                      {currentStudentId && (
-                        <div className="mt-3 flex gap-2">
-                          <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="flex-1 px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 disabled:opacity-60"
-                          >
-                            {saving ? "Salvando…" : saved ? "Salvo ✓" : "Salvar PEI"}
-                          </button>
-                          <Link 
-                            href="/estudantes" 
-                            className="px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50"
-                          >
-                            ← Estudantes
-                          </Link>
+                  <div className="space-y-3">
+                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
+                      <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                        <Users className="w-4 h-4 text-sky-600" />
+                        Gestão de Estudantes
+                      </h4>
+                      
+                      {/* Status do vínculo */}
+                      {currentStudentId ? (
+                        <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200 mb-3">
+                          <p className="text-xs font-medium text-emerald-800">✅ Estudante vinculado ao Supabase (nuvem)</p>
+                          <p className="text-[10px] text-emerald-600 mt-0.5">student_id: {currentStudentId.slice(0, 8)}...</p>
+                        </div>
+                      ) : (
+                        <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 mb-3">
+                          <p className="text-xs font-medium text-amber-800">📝 Modo rascunho (sem vínculo na nuvem)</p>
+                          <p className="text-[10px] text-amber-600 mt-0.5">Selecione um estudante ou carregue um backup JSON</p>
                         </div>
                       )}
+
+                      {/* Seleção de Estudante */}
+                      <div className="mb-3">
+                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">Selecione o estudante</label>
+                        <StudentSelector 
+                          students={students} 
+                          currentId={currentStudentId} 
+                          placeholder="Selecione o estudante"
+                          onChange={(id) => {
+                            setSelectedStudentId(id);
+                            if (id) {
+                              // Carregar dados do estudante da nuvem
+                              fetch(`/api/students/${id}`)
+                                .then(res => res.json())
+                                .then(data => {
+                                  if (data.pei_data && typeof data.pei_data === 'object') {
+                                    setPeiData(data.pei_data as PEIData);
+                                    setSaved(true);
+                                    setTimeout(() => setSaved(false), 2000);
+                                  }
+                                })
+                                .catch(err => console.error("Erro ao carregar estudante:", err));
+                              
+                              // Atualizar URL sem recarregar
+                              const url = new URL(window.location.href);
+                              url.searchParams.set("student", id);
+                              window.history.pushState({}, "", url.toString());
+                            }
+                          }}
+                        />
+                        {currentStudentId && (
+                          <div className="mt-2 flex gap-2">
+                            <button
+                              onClick={handleSave}
+                              disabled={saving}
+                              className="flex-1 px-3 py-1.5 bg-sky-600 text-white text-xs font-medium rounded-lg hover:bg-sky-700 disabled:opacity-60"
+                            >
+                              {saving ? "Salvando…" : saved ? "Salvo ✓" : "Salvar PEI"}
+                            </button>
+                            <Link 
+                              href="/estudantes" 
+                              className="px-3 py-1.5 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50"
+                            >
+                              ← Estudantes
+                            </Link>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Backup Local: Upload JSON */}
-                    <div className="p-6 rounded-lg border-2 border-slate-200 bg-white min-h-[200px]">
-                      <h4 className="text-base font-semibold text-slate-800 mb-2">1) Carregar Backup Local (.JSON)</h4>
-                      <p className="text-xs text-slate-600 mb-3">
+                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
+                      <h4 className="text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-2">
+                        <FileDown className="w-4 h-4 text-sky-600" />
+                        1) Carregar Backup Local (.JSON)
+                      </h4>
+                      <p className="text-[10px] text-slate-600 mb-2 leading-relaxed">
                         ✅ Não comunica com Supabase. Envie o arquivo e clique em <strong>Carregar no formulário</strong>.
                       </p>
                       <input
@@ -635,17 +651,17 @@ export function PEIClient({
                             reader.readAsText(file);
                           }
                         }}
-                        className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg bg-white"
+                        className="w-full text-xs px-2 py-1.5 border border-slate-300 rounded-lg bg-white mb-2"
                       />
                       {jsonPending && (
-                        <div className="mt-3 space-y-2">
+                        <div className="mt-2 space-y-1.5">
                           <div className="p-2 rounded bg-white border border-slate-200">
-                            <p className="text-xs font-medium text-slate-700">Arquivo pronto ✅ ({jsonFileName})</p>
-                            <p className="text-xs text-slate-500 mt-1">Agora clique no botão abaixo para aplicar os dados no formulário.</p>
+                            <p className="text-[10px] font-medium text-slate-700">Arquivo pronto ✅ ({jsonFileName})</p>
+                            <p className="text-[10px] text-slate-500 mt-0.5">Clique no botão abaixo para aplicar os dados.</p>
                           </div>
-                          <details className="text-xs">
-                            <summary className="cursor-pointer text-slate-600 mb-1">👀 Prévia do backup</summary>
-                            <div className="p-2 bg-slate-50 rounded text-xs font-mono">
+                          <details className="text-[10px]">
+                            <summary className="cursor-pointer text-slate-600 mb-0.5">👀 Prévia do backup</summary>
+                            <div className="p-1.5 bg-slate-50 rounded text-[10px] font-mono mt-1">
                               {JSON.stringify({
                                 nome: jsonPending.nome,
                                 serie: jsonPending.serie,
@@ -655,19 +671,19 @@ export function PEIClient({
                               }, null, 2)}
                             </div>
                           </details>
-                          <div className="flex gap-2">
+                          <div className="flex gap-1.5">
                             <button
                               onClick={aplicarJson}
-                              className="flex-1 px-3 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700"
+                              className="flex-1 px-2 py-1.5 bg-sky-600 text-white text-xs font-medium rounded-lg hover:bg-sky-700"
                             >
-                              📥 Carregar no formulário
+                              📥 Carregar
                             </button>
                             <button
                               onClick={() => {
                                 setJsonPending(null);
                                 setJsonFileName("");
                               }}
-                              className="px-3 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50"
+                              className="px-2 py-1.5 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50"
                             >
                               🧹 Limpar
                             </button>
@@ -677,12 +693,12 @@ export function PEIClient({
                     </div>
 
                     {/* Sincronização Cloud */}
-                    <div className="p-6 rounded-lg border-2 border-slate-200 bg-white min-h-[200px]">
-                      <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
+                      <h4 className="text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-sky-600" />
                         Omnisfera Cloud
                       </h4>
-                      <p className="text-xs text-slate-600 mb-3">
+                      <p className="text-[10px] text-slate-600 mb-2 leading-relaxed">
                         Sincroniza o cadastro e <strong>salva todo o conteúdo do PEI</strong> na nuvem (coluna pei_data).
                       </p>
                       <button
@@ -693,7 +709,6 @@ export function PEIClient({
                           }
                           setSaving(true);
                           try {
-                            // Criar/atualizar estudante e salvar PEI
                             const res = await fetch(`/api/students/${currentStudentId}/pei`, {
                               method: "PATCH",
                               headers: { "Content-Type": "application/json" },
@@ -711,20 +726,18 @@ export function PEIClient({
                           }
                         }}
                         disabled={!currentStudentId || saving}
-                        className="w-full px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-60"
+                        className="w-full px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 disabled:opacity-60 mb-2"
                       >
                         {saving ? "Sincronizando…" : "🔗 Sincronizar Tudo"}
                       </button>
                       {saved && (
-                        <div className="mt-3">
-                          <a
-                            href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
-                            download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.json`}
-                            className="block w-full px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 text-center"
-                          >
-                            📂 BAIXAR BACKUP (.JSON)
-                          </a>
-                        </div>
+                        <a
+                          href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
+                          download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.json`}
+                          className="block w-full px-3 py-1.5 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50 text-center"
+                        >
+                          📂 BAIXAR BACKUP (.JSON)
+                        </a>
                       )}
                     </div>
                   </div>
@@ -1455,7 +1468,7 @@ export function PEIClient({
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <h4 className="text-base font-semibold text-slate-800 mb-2">1) Acesso (DUA)</h4>
+                    <h4 className="text-base font-semibold text-slate-800 mb-2">1) Acesso</h4>
                   <label className="block text-xs text-slate-600 mb-2">Recursos de acesso</label>
                   <div className="space-y-2 mb-3">
                     {ESTRATEGIAS_ACESSO.map((estr) => {
@@ -1880,6 +1893,7 @@ function DashboardTab({
           border-left: 5px solid;
           position: relative;
           overflow: hidden;
+          z-index: 1;
         }
         .sc-orange { background-color: #FFF5F5; border-left-color: #DD6B20; }
         .sc-blue { background-color: #EBF8FF; border-left-color: #3182CE; }
@@ -2147,22 +2161,26 @@ function DashboardTab({
 
       {/* Exportação */}
       <hr className="my-6" />
-      <div>
+      <div className="relative z-10">
         <h4 className="text-base font-semibold text-slate-800 mb-4">📤 Exportação e Sincronização</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
+          <div className="relative z-10">
             <p className="text-xs text-slate-600 mb-2">📄 Documentos</p>
             <div className="flex flex-col gap-2">
-              <PeiExportDocxButton peiData={peiData} />
-              <PdfDownloadButton
-                text={peiDataToFullText(peiData)}
-                filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
-                title={`PEI - ${peiData.nome || "Estudante"}`}
-                className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 flex items-center justify-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                Baixar PDF Oficial
-              </PdfDownloadButton>
+              <div className="relative z-10">
+                <PeiExportDocxButton peiData={peiData} />
+              </div>
+              <div className="relative z-10">
+                <PdfDownloadButton
+                  text={peiDataToFullText(peiData)}
+                  filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
+                  title={`PEI - ${peiData.nome || "Estudante"}`}
+                  className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 flex items-center justify-center gap-2 relative z-10"
+                >
+                  <Download className="w-4 h-4" />
+                  Baixar PDF Oficial
+                </PdfDownloadButton>
+              </div>
             </div>
             {!peiData.ia_sugestao && (
               <p className="text-xs text-slate-500 mt-2">
@@ -2170,22 +2188,22 @@ function DashboardTab({
               </p>
             )}
           </div>
-          <div>
+          <div className="relative z-10">
             <p className="text-xs text-slate-600 mb-2">💾 Backup (JSON)</p>
             <p className="text-xs text-slate-500 mb-2">Salva um arquivo no seu computador para garantir que nada se perca.</p>
             <a
               href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
               download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.json`}
-              className="block w-full px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-center text-sm"
+              className="block w-full px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-center text-sm relative z-10"
             >
               Salvar Arquivo .JSON
             </a>
           </div>
-          <div>
+          <div className="relative z-10">
             <p className="text-xs text-slate-600 mb-2">🌐 Nuvem (Supabase)</p>
             <p className="text-xs text-slate-500 mb-2">Sincroniza tudo na nuvem.</p>
             {currentStudentId ? (
-              <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+              <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 relative z-10">
                 <p className="text-sm text-emerald-800">✅ Já sincronizado</p>
               </div>
             ) : (
@@ -2253,6 +2271,85 @@ function PeiExportDocxButton({ peiData }: { peiData: PEIData }) {
       )}
     </button>
   );
+}
+
+// Função para formatar texto da consultoria (remover ##, usar blocos e emojis)
+function formatarTextoConsultoria(texto: string): React.ReactNode {
+  if (!texto) return texto;
+  
+  // Dividir por linhas
+  const linhas = texto.split('\n');
+  const elementos: React.ReactNode[] = [];
+  let blocoAtual: string[] = [];
+  
+  function finalizarBloco() {
+    if (blocoAtual.length === 0) return;
+    const conteudo = blocoAtual.join('\n').trim();
+    if (!conteudo) {
+      blocoAtual = [];
+      return;
+    }
+    
+    // Detectar tipo de bloco por palavras-chave
+    const conteudoLower = conteudo.toLowerCase();
+    let emoji = "📌";
+    let corBorda = "border-slate-300";
+    
+    if (conteudoLower.includes("objetivo") || conteudoLower.includes("meta")) {
+      emoji = "🎯";
+      corBorda = "border-emerald-300";
+    } else if (conteudoLower.includes("estratégia") || conteudoLower.includes("ação")) {
+      emoji = "💡";
+      corBorda = "border-blue-300";
+    } else if (conteudoLower.includes("avaliação") || conteudoLower.includes("acompanhamento")) {
+      emoji = "📊";
+      corBorda = "border-purple-300";
+    } else if (conteudoLower.includes("barreira") || conteudoLower.includes("dificuldade")) {
+      emoji = "⚠️";
+      corBorda = "border-amber-300";
+    } else if (conteudoLower.includes("potencial") || conteudoLower.includes("força")) {
+      emoji = "✨";
+      corBorda = "border-emerald-300";
+    } else if (conteudoLower.includes("recomendação") || conteudoLower.includes("sugestão")) {
+      emoji = "💬";
+      corBorda = "border-cyan-300";
+    }
+    
+    elementos.push(
+      <div key={`bloco-${elementos.length}`} className={`p-3 rounded-lg border-2 ${corBorda} bg-white mb-3`}>
+        <div className="flex items-start gap-2">
+          <span className="text-lg">{emoji}</span>
+          <div className="flex-1 text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+            {conteudo.replace(/^##+\s*/gm, '').replace(/^\*\*/gm, '•').trim()}
+          </div>
+        </div>
+      </div>
+    );
+    blocoAtual = [];
+  }
+  
+  linhas.forEach((linha, idx) => {
+    const linhaTrim = linha.trim();
+    
+    // Se linha vazia, finalizar bloco atual
+    if (!linhaTrim) {
+      finalizarBloco();
+      return;
+    }
+    
+    // Se começa com ##, finalizar bloco anterior e começar novo
+    if (linhaTrim.startsWith('##')) {
+      finalizarBloco();
+      blocoAtual.push(linhaTrim);
+    } else {
+      blocoAtual.push(linha);
+    }
+  });
+  
+  // Finalizar último bloco
+  finalizarBloco();
+  
+  return elementos.length > 0 ? <>{elementos}</> : <div className="text-sm text-slate-700 whitespace-pre-wrap">{texto}</div>;
 }
 
 function ConsultoriaTab({
@@ -2324,10 +2421,19 @@ function ConsultoriaTab({
     }
   };
 
-  // Calcular estatísticas para info box
+  // Calcular estatísticas para info box e mini relatório
   const nBarreiras = Object.values(peiData.barreiras_selecionadas || {}).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
   const nHab = (Array.isArray(peiData.habilidades_bncc_selecionadas) ? peiData.habilidades_bncc_selecionadas : []).length;
   const habValidadas = Array.isArray(peiData.habilidades_bncc_validadas) ? peiData.habilidades_bncc_validadas : [];
+  const redeApoio = Array.isArray(peiData.rede_apoio) ? peiData.rede_apoio : [];
+  const potencias = Array.isArray(peiData.potencias) ? peiData.potencias : [];
+  const estrategiasAcesso = Array.isArray(peiData.estrategias_acesso) ? peiData.estrategias_acesso : [];
+  const estrategiasEnsino = Array.isArray(peiData.estrategias_ensino) ? peiData.estrategias_ensino : [];
+  const estrategiasAvaliacao = Array.isArray(peiData.estrategias_avaliacao) ? peiData.estrategias_avaliacao : [];
+  const medicamentos = Array.isArray(peiData.lista_medicamentos) ? peiData.lista_medicamentos : [];
+  const temHiperfoco = Boolean(peiData.hiperfoco?.trim());
+  const temDiagnostico = Boolean(peiData.diagnostico?.trim());
+  const temHistorico = Boolean(peiData.historico?.trim());
 
   // Exemplo de barreira para transparência
   let exemploBarreira = "geral";
@@ -2339,11 +2445,11 @@ function ConsultoriaTab({
   }
 
   const engineNames: Record<EngineId, string> = {
-    red: "Claude (Anthropic)",
-    blue: "GPT-4o (OpenAI)",
-    green: "GPT-4 Turbo (OpenAI)",
-    yellow: "Gemini Pro (Google)",
-    orange: "GPT-3.5 Turbo (OpenAI)",
+    red: "🔴 Red",
+    blue: "🔵 Blue",
+    green: "🟢 Green",
+    yellow: "🟡 Yellow",
+    orange: "🟠 Orange",
   };
 
   return (
@@ -2410,15 +2516,71 @@ function ConsultoriaTab({
                 </div>
                 <div className="md:col-span-2">
                   <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                    <p className="text-sm text-blue-800 mb-2">
-                      Quanto mais completo o <strong>Mapeamento</strong> (barreiras + nível de suporte + hiperfoco) e o <strong>Plano de Ação</strong>, melhor a precisão.
+                    <p className="text-sm text-blue-800 mb-3 font-semibold">
+                      📊 Mini Relatório: Dados Inseridos no PEI
                     </p>
-                    <p className="text-sm text-blue-700">
-                      📌 Barreiras mapeadas agora: <strong>{nBarreiras}</strong>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-blue-700 space-y-1">
+                      <div className="flex items-center gap-1">
+                        <span className={temDiagnostico ? "text-emerald-600" : "text-slate-400"}>
+                          {temDiagnostico ? "✅" : "⚪"}
+                        </span>
+                        <span>Diagnóstico: {temDiagnostico ? "Sim" : "Não"}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className={temHistorico ? "text-emerald-600" : "text-slate-400"}>
+                          {temHistorico ? "✅" : "⚪"}
+                        </span>
+                        <span>Histórico: {temHistorico ? "Sim" : "Não"}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className={temHiperfoco ? "text-emerald-600" : "text-slate-400"}>
+                          {temHiperfoco ? "✅" : "⚪"}
+                        </span>
+                        <span>Hiperfoco: {temHiperfoco ? "Sim" : "Não"}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className={potencias.length > 0 ? "text-emerald-600" : "text-slate-400"}>
+                          {potencias.length > 0 ? "✅" : "⚪"}
+                        </span>
+                        <span>Potências: {potencias.length}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className={nBarreiras > 0 ? "text-emerald-600" : "text-slate-400"}>
+                          {nBarreiras > 0 ? "✅" : "⚪"}
+                        </span>
+                        <span>Barreiras: {nBarreiras}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className={redeApoio.length > 0 ? "text-emerald-600" : "text-slate-400"}>
+                          {redeApoio.length > 0 ? "✅" : "⚪"}
+                        </span>
+                        <span>Rede de Apoio: {redeApoio.length}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className={habValidadas.length > 0 ? "text-emerald-600" : "text-slate-400"}>
+                          {habValidadas.length > 0 ? "✅" : "⚪"}
+                        </span>
+                        <span>Habilidades BNCC: {habValidadas.length || nHab}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className={estrategiasAcesso.length > 0 || estrategiasEnsino.length > 0 || estrategiasAvaliacao.length > 0 ? "text-emerald-600" : "text-slate-400"}>
+                          {(estrategiasAcesso.length > 0 || estrategiasEnsino.length > 0 || estrategiasAvaliacao.length > 0) ? "✅" : "⚪"}
+                        </span>
+                        <span>Estratégias: {estrategiasAcesso.length + estrategiasEnsino.length + estrategiasAvaliacao.length}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className={medicamentos.length > 0 ? "text-emerald-600" : "text-slate-400"}>
+                          {medicamentos.length > 0 ? "✅" : "⚪"}
+                        </span>
+                        <span>Medicamentos: {medicamentos.length}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-blue-600 mt-3 pt-2 border-t border-blue-200">
+                      💡 Quanto mais completo o <strong>Mapeamento</strong> e o <strong>Plano de Ação</strong>, melhor a precisão do relatório.
                     </p>
                     {nHab > 0 && habValidadas.length === 0 && (
-                      <p className="text-sm text-amber-700 mt-2">
-                        ⚠️ Há habilidades selecionadas na aba <strong>Habilidades BNCC</strong> mas ainda não validadas. Clique em <strong>Validar seleção</strong> naquela aba para o relatório usar apenas as habilidades confirmadas pelo professor.
+                      <p className="text-xs text-amber-700 mt-2 bg-amber-50 p-2 rounded border border-amber-200">
+                        ⚠️ Há habilidades selecionadas na aba <strong>BNCC</strong> mas ainda não validadas. Clique em <strong>Validar seleção</strong> naquela aba.
                       </p>
                     )}
                   </div>
@@ -2465,7 +2627,7 @@ function ConsultoriaTab({
                 <h4 className="text-base font-semibold text-slate-800 mb-3">📝 Revisão do Plano</h4>
                 <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 mb-3">
                   <div className="prose prose-sm max-w-none whitespace-pre-wrap text-slate-700">
-                    {(peiData.ia_sugestao || "").replace(/\[.*?\]/g, "")}
+                    {formatarTextoConsultoria((peiData.ia_sugestao || "").replace(/\[.*?\]/g, ""))}
                   </div>
                 </div>
               </div>
@@ -2945,37 +3107,63 @@ function BNCCTab({
                 )}
               </button>
             </div>
-            {componentesAtual.map((disc) => (
-              <div key={disc}>
-                <label className="block text-sm font-medium text-slate-700 mb-2">{disc}</label>
-                <select
-                  multiple
-                  value={habilidadesAtuais
-                    .filter((h) => h.disciplina === disc && h.origem === "ano_atual")
-                    .map((h) => opcaoLabel(h))}
-                  onChange={(e) => {
-                    const selecionados = Array.from(e.target.selectedOptions, (o) => o.value);
-                    const habs = anoAtual[disc] || [];
-                    const outras = habilidadesAtuais.filter((h) => !(h.disciplina === disc && h.origem === "ano_atual"));
-                    const novas = habs
-                      .filter((h) => selecionados.includes(opcaoLabel(h)))
-                      .map((h) => ({
-                        disciplina: disc,
-                        codigo: h.codigo,
-                        descricao: h.descricao,
-                        habilidade_completa: h.habilidade_completa,
-                        origem: "ano_atual" as const,
-                      }));
-                    updateField("habilidades_bncc_selecionadas", [...outras, ...novas]);
-                  }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[80px] text-sm"
-                >
-                  {(anoAtual[disc] || []).map((h, i) => (
-                    <option key={`${disc}-ano-${i}`} value={opcaoLabel(h)}>{opcaoLabel(h)}</option>
-                  ))}
-                </select>
-              </div>
-            ))}
+            {componentesAtual.map((disc) => {
+              const habsDisciplina = anoAtual[disc] || [];
+              const habsSelecionadas = habilidadesAtuais.filter((h) => h.disciplina === disc && h.origem === "ano_atual");
+              const codigosSelecionados = new Set(habsSelecionadas.map(h => h.codigo));
+              
+              return (
+                <details key={disc} className="border border-slate-200 rounded-lg bg-white">
+                  <summary className="px-3 py-2 font-medium cursor-pointer hover:bg-slate-50 rounded-t-lg flex items-center justify-between">
+                    <span className="text-sm text-slate-800">{disc}</span>
+                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      {habsSelecionadas.length} selecionada{habsSelecionadas.length !== 1 ? "s" : ""}
+                    </span>
+                  </summary>
+                  <div className="p-3 space-y-2 max-h-[300px] overflow-y-auto">
+                    {habsDisciplina.map((h, i) => {
+                      const estaSelecionada = codigosSelecionados.has(h.codigo);
+                      return (
+                        <label
+                          key={`${disc}-ano-${i}`}
+                          className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${
+                            estaSelecionada
+                              ? "bg-emerald-50 border-2 border-emerald-300"
+                              : "hover:bg-slate-50 border-2 border-transparent"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={estaSelecionada}
+                            onChange={(e) => {
+                              const outras = habilidadesAtuais.filter((hab) => !(hab.disciplina === disc && hab.origem === "ano_atual" && hab.codigo === h.codigo));
+                              if (e.target.checked) {
+                                const nova: HabilidadeBncc = {
+                                  disciplina: disc,
+                                  codigo: h.codigo,
+                                  descricao: h.descricao,
+                                  habilidade_completa: h.habilidade_completa || h.descricao,
+                                  origem: "ano_atual",
+                                };
+                                updateField("habilidades_bncc_selecionadas", [...outras, nova]);
+                              } else {
+                                updateField("habilidades_bncc_selecionadas", outras);
+                              }
+                              updateField("habilidades_bncc_validadas", null);
+                            }}
+                            className="mt-0.5 w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+                          />
+                          <div className="flex-1 text-xs">
+                            <span className="font-semibold text-sky-600">{h.codigo}</span>
+                            <span className="text-slate-700 ml-1">{h.habilidade_completa || h.descricao}</span>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </details>
+              );
+            })}
           </div>
         </details>
       )}
@@ -3009,37 +3197,63 @@ function BNCCTab({
                 )}
               </button>
             </div>
-            {componentesAnt.map((disc) => (
-              <div key={disc}>
-                <label className="block text-sm font-medium text-slate-700 mb-2">{disc}</label>
-                <select
-                  multiple
-                  value={habilidadesAtuais
-                    .filter((h) => h.disciplina === disc && h.origem === "anos_anteriores")
-                    .map((h) => opcaoLabel(h))}
-                  onChange={(e) => {
-                    const selecionados = Array.from(e.target.selectedOptions, (o) => o.value);
-                    const habs = anosAnteriores[disc] || [];
-                    const outras = habilidadesAtuais.filter((h) => !(h.disciplina === disc && h.origem === "anos_anteriores"));
-                    const novas = habs
-                      .filter((h) => selecionados.includes(opcaoLabel(h)))
-                      .map((h) => ({
-                        disciplina: disc,
-                        codigo: h.codigo,
-                        descricao: h.descricao,
-                        habilidade_completa: h.habilidade_completa,
-                        origem: "anos_anteriores" as const,
-                      }));
-                    updateField("habilidades_bncc_selecionadas", [...outras, ...novas]);
-                  }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[80px] text-sm"
-                >
-                  {(anosAnteriores[disc] || []).map((h, i) => (
-                    <option key={`${disc}-ant-${i}`} value={opcaoLabel(h)}>{opcaoLabel(h)}</option>
-                  ))}
-                </select>
-              </div>
-            ))}
+            {componentesAnt.map((disc) => {
+              const habsDisciplina = anosAnteriores[disc] || [];
+              const habsSelecionadas = habilidadesAtuais.filter((h) => h.disciplina === disc && h.origem === "anos_anteriores");
+              const codigosSelecionados = new Set(habsSelecionadas.map(h => h.codigo));
+              
+              return (
+                <details key={disc} className="border border-slate-200 rounded-lg bg-white">
+                  <summary className="px-3 py-2 font-medium cursor-pointer hover:bg-slate-50 rounded-t-lg flex items-center justify-between">
+                    <span className="text-sm text-slate-800">{disc}</span>
+                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      {habsSelecionadas.length} selecionada{habsSelecionadas.length !== 1 ? "s" : ""}
+                    </span>
+                  </summary>
+                  <div className="p-3 space-y-2 max-h-[300px] overflow-y-auto">
+                    {habsDisciplina.map((h, i) => {
+                      const estaSelecionada = codigosSelecionados.has(h.codigo);
+                      return (
+                        <label
+                          key={`${disc}-ant-${i}`}
+                          className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${
+                            estaSelecionada
+                              ? "bg-amber-50 border-2 border-amber-300"
+                              : "hover:bg-slate-50 border-2 border-transparent"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={estaSelecionada}
+                            onChange={(e) => {
+                              const outras = habilidadesAtuais.filter((hab) => !(hab.disciplina === disc && hab.origem === "anos_anteriores" && hab.codigo === h.codigo));
+                              if (e.target.checked) {
+                                const nova: HabilidadeBncc = {
+                                  disciplina: disc,
+                                  codigo: h.codigo,
+                                  descricao: h.descricao,
+                                  habilidade_completa: h.habilidade_completa || h.descricao,
+                                  origem: "anos_anteriores",
+                                };
+                                updateField("habilidades_bncc_selecionadas", [...outras, nova]);
+                              } else {
+                                updateField("habilidades_bncc_selecionadas", outras);
+                              }
+                              updateField("habilidades_bncc_validadas", null);
+                            }}
+                            className="mt-0.5 w-4 h-4 text-amber-600 border-slate-300 rounded focus:ring-amber-500"
+                          />
+                          <div className="flex-1 text-xs">
+                            <span className="font-semibold text-amber-600">{h.codigo}</span>
+                            <span className="text-slate-700 ml-1">{h.habilidade_completa || h.descricao}</span>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </details>
+              );
+            })}
           </div>
         </details>
       )}
@@ -3512,6 +3726,99 @@ function getProIcon(nomeProfissional: string): string {
   return "👤";
 }
 
+// Componente para range input com cores
+function NivelSuporteRange({
+  value,
+  max,
+  onChange,
+  id,
+}: {
+  value: number;
+  max: number;
+  onChange: (value: number) => void;
+  id: string;
+}) {
+  const thumbColor = value === 0 ? '#10b981' : value === 1 ? '#eab308' : value === 2 ? '#f97316' : '#ef4444';
+  const rangeId = `range-${id.replace(/[^a-zA-Z0-9]/g, '-')}`;
+  
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.id = `style-${rangeId}`;
+    style.textContent = `
+      #${rangeId}::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: ${thumbColor};
+        border: 3px solid white;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        transition: background 0.2s;
+      }
+      #${rangeId}::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: ${thumbColor};
+        border: 3px solid white;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        transition: background 0.2s;
+      }
+      #${rangeId}::-webkit-slider-runnable-track {
+        background: transparent;
+        height: 12px;
+      }
+      #${rangeId}::-moz-range-track {
+        background: transparent;
+        height: 12px;
+      }
+    `;
+    const existingStyle = document.getElementById(`style-${rangeId}`);
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    document.head.appendChild(style);
+    return () => {
+      const styleEl = document.getElementById(`style-${rangeId}`);
+      if (styleEl) styleEl.remove();
+    };
+  }, [thumbColor, rangeId]);
+  
+  return (
+    <div className="relative">
+      {/* Barra de fundo com gradiente de cores */}
+      <div 
+        className="absolute w-full h-3 rounded-lg pointer-events-none"
+        style={{
+          background: `linear-gradient(to right, 
+            #10b981 0%, #10b981 25%, 
+            #eab308 25%, #eab308 50%, 
+            #f97316 50%, #f97316 75%, 
+            #ef4444 75%, #ef4444 100%
+          )`,
+        }}
+      />
+      {/* Input range transparente sobre a barra colorida */}
+      <input
+        type="range"
+        min="0"
+        max={max}
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value))}
+        className="relative w-full h-3 rounded-lg appearance-none cursor-pointer bg-transparent"
+        style={{
+          WebkitAppearance: 'none',
+          appearance: 'none',
+        }}
+        id={rangeId}
+      />
+    </div>
+  );
+}
+
 function BarreirasDominio({
   dominio,
   opcoes,
@@ -3602,22 +3909,27 @@ function BarreirasDominio({
                     <strong className="text-sm text-slate-800">{b}</strong>
                   </div>
                   <div className="space-y-2">
-                    <input
-                      type="range"
-                      min="0"
-                      max={NIVEIS_SUPORTE.length - 1}
+                    <NivelSuporteRange
                       value={nivelIndex}
-                      onChange={(e) => {
-                        const novoNivel = NIVEIS_SUPORTE[parseInt(e.target.value)];
+                      max={NIVEIS_SUPORTE.length - 1}
+                      onChange={(newIndex) => {
+                        const novoNivel = NIVEIS_SUPORTE[newIndex];
                         updateField("niveis_suporte", { ...niveis, [chave]: novoNivel });
                       }}
-                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-600"
-                      style={{
-                        background: `linear-gradient(to right, #0ea5e9 0%, #0ea5e9 ${(nivelIndex / (NIVEIS_SUPORTE.length - 1)) * 100}%, #e2e8f0 ${(nivelIndex / (NIVEIS_SUPORTE.length - 1)) * 100}%, #e2e8f0 100%)`,
-                      }}
+                      id={chave}
                     />
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-medium text-sky-700 bg-sky-100 px-2 py-1 rounded">
+                      <span 
+                        className={`text-xs font-medium px-2 py-1 rounded ${
+                          nivelIndex === 0 
+                            ? "text-emerald-700 bg-emerald-100" // Verde
+                            : nivelIndex === 1
+                            ? "text-yellow-700 bg-yellow-100" // Amarelo
+                            : nivelIndex === 2
+                            ? "text-orange-700 bg-orange-100" // Laranja
+                            : "text-red-700 bg-red-100" // Vermelho
+                        }`}
+                      >
                         {nivelAtual}
                       </span>
                       <div className="flex gap-1 text-[10px] text-slate-500">

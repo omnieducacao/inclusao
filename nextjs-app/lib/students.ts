@@ -221,3 +221,27 @@ export async function updateStudentDailyLogs(
   if (error) return { success: false, error: error.message };
   return { success: true };
 }
+
+export async function deleteStudent(
+  workspaceId: string,
+  studentId: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!workspaceId || !studentId) {
+    return { success: false, error: "workspaceId e studentId são obrigatórios" };
+  }
+
+  const sb = getSupabase();
+  const { error } = await sb
+    .from("students")
+    .delete()
+    .eq("id", studentId)
+    .eq("workspace_id", workspaceId);
+
+  if (error) {
+    console.error("❌ deleteStudent error:", error, { workspaceId, studentId });
+    return { success: false, error: error.message };
+  }
+
+  console.log("✅ deleteStudent: estudante excluído", { studentId, workspaceId });
+  return { success: true };
+}
