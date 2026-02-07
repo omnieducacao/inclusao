@@ -1960,7 +1960,7 @@ function AdaptarProva({
       </details>
       <button
         type="button"
-        onClick={gerar}
+        onClick={() => gerar()}
         disabled={loading || !temDados}
         className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50"
       >
@@ -3185,7 +3185,7 @@ function AdaptarAtividade({
       </details>
       <button
         type="button"
-        onClick={gerar}
+        onClick={() => gerar()}
         disabled={loading || !imagemParaEnvio}
         className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50"
       >
