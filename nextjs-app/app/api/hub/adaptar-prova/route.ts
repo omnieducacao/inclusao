@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   let tema = "Geral";
   let tipo = "Prova";
   let checklist: Record<string, boolean> = {};
-  let estudante: { hiperfoco?: string; perfil?: string } = {};
+  let estudante: { nome?: string; hiperfoco?: string; perfil?: string } = {};
   let engine: EngineId = "red";
   let modoProfundo = false;
   let questoesComImagem: number[] = [];

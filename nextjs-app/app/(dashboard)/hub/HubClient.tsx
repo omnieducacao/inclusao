@@ -1738,7 +1738,7 @@ function AdaptarProva({
           modo_profundo: usarModoProfundo || modoProfundo,
           unidade_tematica: unidadeSel || undefined,
           objeto_conhecimento: objetoSel || undefined,
-          estudante: { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 800) },
+          estudante: student ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 800) } : { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 800) },
           texto: texto || undefined,
           questoes_com_imagem: questoesComImagem,
         })
