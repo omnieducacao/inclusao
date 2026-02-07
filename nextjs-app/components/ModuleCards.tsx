@@ -14,6 +14,7 @@ import {
   Gear,
   Sparkle,
   UsersThree,
+  Student,
 } from "phosphor-react";
 import type { Icon } from "phosphor-react";
 import { getColorClasses, colorPalette } from "@/lib/colors";
@@ -31,6 +32,7 @@ const iconMap: Record<string, Icon> = {
   Gear,
   Sparkle,
   UsersThree,
+  Student,
 };
 
 type ModuleCard = {

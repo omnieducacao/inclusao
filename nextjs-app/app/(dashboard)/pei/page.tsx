@@ -1,9 +1,7 @@
 import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { listStudents, getStudent, type Student } from "@/lib/students";
-import { PageHero } from "@/components/PageHero";
 import { PEIClient } from "./PEIClient";
-import { FileText } from "lucide-react";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -74,22 +72,13 @@ export default async function PEIPage({ searchParams }: Props) {
     : {};
 
   return (
-    <div className="space-y-6">
-      <PageHero
-        icon={FileText}
-        title="Estratégias & PEI"
-        desc="Plano Educacional Individual com objetivos, avaliações e acompanhamento."
-        color="blue"
+    <Suspense fallback={<div className="text-slate-500">Carregando…</div>}>
+      <PEIClient
+        students={students.map((s) => ({ id: s.id, name: s.name }))}
+        studentId={studentId}
+        studentName={student?.name || null}
+        initialPeiData={peiData}
       />
-
-      <Suspense fallback={<div className="text-slate-500">Carregando…</div>}>
-        <PEIClient
-          students={students.map((s) => ({ id: s.id, name: s.name }))}
-          studentId={studentId}
-          studentName={student?.name || null}
-          initialPeiData={peiData}
-        />
-      </Suspense>
-    </div>
+    </Suspense>
   );
 }

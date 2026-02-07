@@ -32,7 +32,7 @@ export default async function RootPage() {
     },
     {
       href: "/pei",
-      iconName: "FileText" as const,
+      iconName: "Student" as const,
       title: "Estratégias & PEI",
       desc: "Plano Educacional Individual com objetivos, avaliações e acompanhamento.",
       color: "blue",
