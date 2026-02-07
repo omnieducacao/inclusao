@@ -145,7 +145,10 @@ EVIDÊNCIAS: ${evid || "Nenhuma"}${promptFeedback}`;
     const ant = blocos.anos_anteriores || {};
     const flat = (r: Record<string, unknown[]>) =>
       Object.entries(r).flatMap(([d, lst]) =>
-        (lst || []).map((h: { codigo?: string; habilidade_completa?: string }) => `${d}: ${h.codigo || ""} — ${h.habilidade_completa || ""}`)
+        (Array.isArray(lst) ? lst : []).map((h: unknown) => {
+          const hab = h as { codigo?: string; habilidade_completa?: string };
+          return `${d}: ${hab.codigo || ""} — ${hab.habilidade_completa || ""}`;
+        })
       );
     habTxt = [...flat(ant), ...flat(anoAtual)].map((l) => `- ${l}`).join("\n");
   }
