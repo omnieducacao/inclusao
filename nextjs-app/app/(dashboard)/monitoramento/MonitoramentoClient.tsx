@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { StudentSelector } from "@/components/StudentSelector";
+import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { CheckCircle2, Info, AlertTriangle, Save } from "lucide-react";
 
 type Student = { id: string; name: string };
@@ -133,6 +134,10 @@ export function MonitoramentoClient({ students, studentId, student }: Props) {
 
       {currentId && !student && (
         <div className="text-slate-500">Estudante não encontrado.</div>
+      )}
+
+      {currentId && student && (
+        <PEISummaryPanel peiData={peiData} studentName={student.name} />
       )}
 
       {currentId && student && (

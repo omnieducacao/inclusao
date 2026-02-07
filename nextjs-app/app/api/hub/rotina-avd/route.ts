@@ -3,7 +3,13 @@ import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 
 export async function POST(req: Request) {
-  let body: { contexto?: string; sequencia?: string; engine?: string; estudante?: { nome?: string } };
+  let body: {
+    rotina_detalhada?: string;
+    topico_foco?: string;
+    feedback?: string;
+    engine?: string;
+    estudante?: { nome?: string; ia_sugestao?: string };
+  };
   try {
     body = await req.json();
   } catch {
@@ -15,13 +21,33 @@ export async function POST(req: Request) {
   const err = getEngineError(engine);
   if (err) return NextResponse.json({ error: err }, { status: 500 });
 
-  const prompt = `Especialista em Educação Infantil e AVD (Atividades de Vida Diária).
-Crie sequências visuais e orientações para ROTINA E AUTONOMIA.
-Contexto: ${body.contexto || "Rotina escolar"}. Sequência solicitada: ${body.sequencia || "Rotina de chegada"}.
-Estudante: ${body.estudante?.nome || "criança"}.
+  const rotinaDetalhada = body.rotina_detalhada || "";
+  const topicoFoco = body.topico_foco || "";
+  const feedback = body.feedback || "";
+  const estudanteNome = body.estudante?.nome || "criança";
+  const perfilEstudante = body.estudante?.ia_sugestao || "";
 
-Retorne: 1) Passo a passo numerado e ilustrativo; 2) Dicas de mediação; 3) Adaptações possíveis.
-Use linguagem simples. NÃO inclua diagnóstico ou CID.`;
+  let prompt = `Especialista em Educação Infantil e ROTINA & PREVISIBILIDADE.
+A rotina organiza o pensamento da criança. Analise esta rotina e sugira adaptações sensoriais e visuais.
+
+ROTINA DA TURMA:
+${rotinaDetalhada}
+
+${topicoFoco ? `PONTO DE ATENÇÃO ESPECÍFICO: ${topicoFoco}` : ""}
+
+${perfilEstudante ? `PERFIL DO ESTUDANTE: ${perfilEstudante}` : ""}
+ESTUDANTE: ${estudanteNome}
+
+${feedback ? `CORREÇÃO/REFINAMENTO: ${feedback}` : ""}
+
+Retorne:
+1) Análise da rotina identificando pontos de estresse potencial
+2) Estratégias de antecipação visual e sensorial
+3) Adaptações específicas para cada transição
+4) Sequências visuais sugeridas
+5) Dicas de mediação para o professor
+
+Use linguagem simples e prática. NÃO inclua diagnóstico ou CID.`;
 
   try {
     const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.7 });

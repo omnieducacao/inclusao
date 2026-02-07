@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { gerarPromptPlanoAula } from "@/lib/hub-prompts";
 
 export async function POST(req: Request) {
   let body: {
@@ -12,6 +13,8 @@ export async function POST(req: Request) {
     qtd_alunos?: number;
     recursos?: string[];
     habilidades_bncc?: string[];
+    unidade_tematica?: string;
+    objeto_conhecimento?: string;
     estudante?: { nome?: string; hiperfoco?: string; perfil?: string };
   };
 
@@ -24,85 +27,45 @@ export async function POST(req: Request) {
   const materia = (body.materia || "Geral").trim();
   const assunto = (body.assunto || "").trim();
   const duracao = body.duracao_minutos ?? 50;
-  const metodologia = (body.metodologia || "Metodologias ativas").trim();
-  const tecnica = (body.tecnica || "Não especificada").trim();
-  const qtdAlunos = body.qtd_alunos ?? 25;
-  const recursos = body.recursos?.length ? body.recursos : ["Quadro", "Material impresso", "Projetor"];
+  const metodologia = (body.metodologia || "Aula Expositiva Dialogada").trim();
+  const tecnica = (body.tecnica || "").trim();
+  const qtdAlunos = body.qtd_alunos ?? 30;
+  const recursos = body.recursos?.length ? body.recursos : [];
   const habilidadesBncc = body.habilidades_bncc || [];
+  const unidadeTematica = body.unidade_tematica || "";
+  const objetoConhecimento = body.objeto_conhecimento || "";
   const estudante = body.estudante || {};
   const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
     ? (body.engine as EngineId)
     : "red";
 
-  if (!assunto) {
-    return NextResponse.json({ error: "Informe o assunto/tema da aula." }, { status: 400 });
+  const temBnccPreenchida = habilidadesBncc.length > 0;
+  if (!assunto && !temBnccPreenchida) {
+    return NextResponse.json({ error: "Informe o assunto/tema da aula ou selecione habilidades BNCC." }, { status: 400 });
   }
 
-  let infoBncc = "";
-  if (habilidadesBncc.length > 0) {
-    infoBncc = `\nHABILIDADES BNCC:\n${habilidadesBncc.map((h) => `- ${h}`).join("\n")}`;
-  }
-
-  let infoAluno = "";
-  if (estudante.nome || estudante.hiperfoco) {
-    infoAluno = `
-INFORMAÇÕES DO ESTUDANTE (DUA):
-- Nome: ${estudante.nome || ""}
-- Hiperfoco: ${estudante.hiperfoco || ""}
-- Perfil: ${(estudante.perfil || "").slice(0, 300)}
-`;
-  }
-
-  const prompt = `ATUAR COMO: Coordenador Pedagógico Especialista em BNCC, DUA e Metodologias Ativas.
-
-Crie um PLANO DE AULA COMPLETO com as seguintes informações:
-
-INFORMAÇÕES BÁSICAS:
-- Componente Curricular: ${materia}
-- Tema/Assunto: ${assunto}
-- Metodologia: ${metodologia}
-- Técnica: ${tecnica}
-- Quantidade de Estudantes: ${qtdAlunos}
-- Duração da aula: ${duracao} minutos (${duracao === 50 ? "1 aula" : "2 aulas"})
-- Recursos Disponíveis: ${recursos.join(", ")}
-${infoBncc}
-${infoAluno}
-
-ESTRUTURA DO PLANO (Markdown):
-
-## 📋 PLANO DE AULA: ${assunto}
-
-### 🎯 OBJETIVOS DE APRENDIZAGEM
-- Objetivo geral
-- Objetivos específicos (3-4)
-- Habilidades da BNCC trabalhadas
-
-### 📚 CONTEÚDOS
-- Conteúdos conceituais
-- Conteúdos procedimentais
-- Conteúdos atitudinais
-
-### ⏰ TEMPO ESTIMADO
-- Duração total: ${duracao} minutos — distribua o tempo entre as etapas (acolhida, desenvolvimento, avaliação) de forma coerente.
-
-### 🛠 RECURSOS DIDÁTICOS
-- Lista de recursos necessários
-
-### 🚀 DESENVOLVIMENTO DA AULA
-#### 1. ACOLHIDA E MOTIVAÇÃO
-- Atividade de engajamento
-
-#### 2. APRESENTAÇÃO DO CONTEÚDO
-- Explicação do tema
-- Conexões com conhecimentos prévios
-
-#### 3. ATIVIDADE PRÁTICA
-- Descrição detalhada da atividade
-
-#### 4. AVALIAÇÃO E FECHAMENTO
-- Verificação dos objetivos
-
-Regra LGPD: NUNCA inclua diagnóstico ou CID no plano.`;
+  // Usar prompt do arquivo separado (idêntico ao Streamlit)
+  const prompt = gerarPromptPlanoAula({
+    materia,
+    assunto: assunto || "(definido pelas habilidades BNCC)",
+    metodologia,
+    tecnica: tecnica || (metodologia === "Metodologia Ativa" ? "Não especificada" : ""),
+    qtd_alunos: qtdAlunos,
+    recursos: recursos.length > 0 ? recursos : ["Quadro", "Material impresso", "Projetor"],
+    habilidades_bncc: habilidadesBncc,
+    verbos_bloom: undefined, // Não usado no plano de aula
+    ano: undefined, // Não passado no body atual
+    unidade_tematica: unidadeTematica || undefined,
+    objeto_conhecimento: objetoConhecimento || undefined,
+    aluno_info: estudante.nome || estudante.hiperfoco
+      ? {
+          nome: estudante.nome || "",
+          hiperfoco: estudante.hiperfoco || "",
+          ia_sugestao: estudante.perfil || "",
+        }
+      : undefined,
+    duracao_minutos: duracao,
+  });
 
   const engineErr = getEngineError(engine);
   if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });

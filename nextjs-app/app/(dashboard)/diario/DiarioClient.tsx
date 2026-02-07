@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
+import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { getColorClasses } from "@/lib/colors";
 
 type Student = { id: string; name: string };
@@ -76,6 +77,7 @@ export function DiarioClient({ students, studentId, student }: Props) {
   const [saving, setSaving] = useState(false);
   const [expandForm, setExpandForm] = useState(true);
 
+  const peiData = student?.pei_data || {};
   const registros = (student?.daily_logs || []) as RegistroDiario[];
   const registrosOrdenados = [...registros].sort(
     (a, b) => (b.data_sessao || "").localeCompare(a.data_sessao || "")
@@ -174,6 +176,10 @@ export function DiarioClient({ students, studentId, student }: Props) {
   return (
     <div className="space-y-6">
       <StudentSelector students={students} currentId={currentId} />
+
+      {student && (
+        <PEISummaryPanel peiData={peiData} studentName={student.name} />
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-xl border-2 border-slate-200 min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg }}>
         <div>

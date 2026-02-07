@@ -6,19 +6,28 @@ type CicloPayload = {
   config_ciclo?: {
     foco_principal?: string;
     descricao?: string;
-    metas_selecionadas?: Array<{ meta?: string; descricao?: string }>;
+    metas_selecionadas?: Array<{ tipo?: string; descricao?: string; meta?: string }>;
+    desdobramento_smart_texto?: string;
+    data_inicio?: string;
+    data_fim?: string;
   };
-  cronograma?: Array<{ semana?: number; metas?: string[] }>;
+  cronograma?: {
+    fases?: Array<{ nome?: string; objetivo_geral?: string }>;
+    semanas?: Array<{ numero?: number; tema?: string; objetivo?: string }>;
+  };
+  recursos_incorporados?: Record<string, unknown>;
 };
 
 export async function POST(req: Request) {
   let body: {
-    origem: "ciclo" | "texto";
+    origem: "ciclo" | "barreiras" | "plano-habilidades" | "tecnologia-assistiva";
     engine?: string;
     ciclo?: CicloPayload;
     texto_fonte?: string;
+    nome_fonte?: string;
     estudante?: { nome?: string; serie?: string; hiperfoco?: string };
     feedback?: string;
+    estilo?: string;
   };
 
   try {
@@ -27,60 +36,100 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
   }
 
-  const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
+  const engine: EngineId = ["red", "blue", "green"].includes(body.engine || "")
     ? (body.engine as EngineId)
-    : "yellow";
+    : "red";
 
   const engineErr = getEngineError(engine);
   if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
 
   const estudante = body.estudante || {};
   const nome = estudante.nome || "Estudante";
+  const nomeCurto = nome.split(" ")[0] || "Estudante";
   const hiperfoco = estudante.hiperfoco || "interesses gerais";
   const serie = estudante.serie || "";
 
   const promptFeedback = body.feedback?.trim()
     ? `\nAJUSTE SOLICITADO: ${body.feedback}\n`
     : "";
+  
+  const estiloPrompt = body.estilo?.trim()
+    ? `\nESTILO PREFERIDO: ${body.estilo}\n`
+    : "";
 
   let prompt = "";
 
   if (body.origem === "ciclo" && body.ciclo) {
     const cfg = body.ciclo.config_ciclo || {};
-    const foco = cfg.foco_principal || "aprendizagem";
+    const foco = cfg.foco_principal || "Ciclo AEE";
     const desc = cfg.descricao || "";
-    const metas = (cfg.metas_selecionadas || [])
-      .map((m) => m.meta || m.descricao)
-      .filter(Boolean);
-    const crono = body.ciclo.cronograma || [];
-    const semanasTxt = crono
-      .slice(0, 12)
-      .map((s) => `Semana ${s.semana}: ${(s.metas || []).join(", ")}`)
+    const metasList = cfg.metas_selecionadas || [];
+    const metasTexto = metasList
+      .slice(0, 8)
+      .map((m) => `- ${m.tipo || ""}: ${m.descricao || m.meta || ""}`)
       .join("\n");
+    
+    const smartTxt = cfg.desdobramento_smart_texto || "";
+    const metasCompleto = smartTxt
+      ? `${metasTexto}\n\nMETAS SMART (desdobradas):\n${smartTxt.slice(0, 1500)}`
+      : metasTexto;
 
-    prompt = `Crie uma MISSÃO GAMIFICADA para o estudante ${nome} (série: ${serie}). Hiperfoco: ${hiperfoco}.
-${promptFeedback}
-CONTEXTO DO CICLO:
-- Foco: ${foco}
-- Descrição: ${desc}
-${metas.length ? `- Metas: ${metas.join("; ")}` : ""}
-${semanasTxt ? `\nCRONOGRAMA:\n${semanasTxt}` : ""}
+    const crono = body.ciclo.cronograma || {};
+    const fases = crono.fases || [];
+    const semanas = crono.semanas || [];
+    let cronTexto = "";
+    if (fases.length > 0) {
+      cronTexto += "FASES:\n" + fases.slice(0, 5).map((f) => `- ${f.nome || ""}: ${f.objetivo_geral || ""}`).join("\n");
+    }
+    if (semanas.length > 0) {
+      cronTexto += "\n\nSEMANAS (resumo):\n" + semanas.slice(0, 6).map((w) => `- Sem ${w.numero}: ${w.tema || ""} — ${w.objetivo || ""}`).join("\n");
+    }
 
+    const recs = body.ciclo.recursos_incorporados || {};
+    const recTexto = Object.keys(recs).slice(0, 5).join(", ") || "—";
+
+    const contexto = `ESTUDANTE: ${nomeCurto}
+FOCO DO CICLO: ${foco}
+DESCRIÇÃO: ${desc}
+
+METAS DO PLANEJAMENTO:
+${metasCompleto}
+
+${cronTexto}
+
+RECURSOS: ${recTexto}`;
+
+    prompt = `Você é um Game Master. Crie uma versão GAMIFICADA do planejamento do ciclo AEE para o estudante e a família: linguagem motivadora, missões, recompensas.
+REGRA OBRIGATÓRIA: NUNCA inclua diagnóstico clínico, CID, condições médicas ou qualquer informação de saúde no texto.
+Este material será entregue ao estudante e à família — use apenas desafios, conquistas, metas e estratégias pedagógicas.
 Estrutura: título da missão/jornada, mapa das fases ou semanas como etapas, desafios e conquistas.
-REGRA: NUNCA inclua diagnóstico clínico, CID ou condições médicas. O material será entregue ao estudante e à família.
-Use linguagem motivadora e lúdica. O estudante deve se ver como protagonista.`;
-  } else if (body.origem === "texto" && body.texto_fonte) {
-    const texto = String(body.texto_fonte).slice(0, 4000);
-    prompt = `Transforme o conteúdo abaixo em uma MISSÃO GAMIFICADA para o estudante ${nome} (série: ${serie}). Hiperfoco: ${hiperfoco}.
-${promptFeedback}
-CONTEÚDO DE ORIGEM:
-${texto}
+Use títulos e listas em markdown de forma clara (##, -, *).
+${estiloPrompt}${promptFeedback}
 
-Estrutura: título da missão, etapas/desafios, conquistas. O estudante deve se ver como protagonista.
-REGRA: NUNCA inclua diagnóstico clínico ou CID. Use linguagem motivadora e lúdica.`;
+---
+${contexto}`;
+  } else if (body.texto_fonte) {
+    const texto = String(body.texto_fonte).slice(0, 8000);
+    const nomeFonte = body.nome_fonte || "conteúdo da escola";
+
+    const contexto = `ESTUDANTE: ${nomeCurto}
+ORIGEM DO CONTEÚDO: ${nomeFonte} (material da escola para o AEE)
+
+CONTEÚDO A SER TRANSFORMADO EM JORNADA GAMIFICADA PARA O ESTUDANTE:
+${texto}`;
+
+    prompt = `Você é um Game Master. Transforme o conteúdo abaixo em uma versão GAMIFICADA para o estudante e a família: linguagem motivadora, missões, recompensas.
+REGRA OBRIGATÓRIA: NUNCA inclua diagnóstico clínico, CID, condições médicas ou qualquer informação de saúde no texto.
+Este material será entregue ao estudante e à família — remova qualquer menção clínica e use apenas desafios, conquistas e estratégias pedagógicas.
+Estrutura: título da missão/jornada, etapas/desafios, conquistas. O estudante deve se ver como protagonista.
+Use títulos e listas em markdown de forma clara (##, -, *).
+${estiloPrompt}${promptFeedback}
+
+---
+${contexto}`;
   } else {
     return NextResponse.json(
-      { error: "Informe origem=ciclo com ciclo OU origem=texto com texto_fonte." },
+      { error: "Informe origem=ciclo com ciclo OU origem com texto_fonte e nome_fonte." },
       { status: 400 }
     );
   }

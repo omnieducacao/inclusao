@@ -3,11 +3,9 @@
 import type { EngineId } from "@/lib/ai-engines";
 
 const ENGINES: { id: EngineId; label: string }[] = [
-  { id: "red", label: "🔴 OmniRed (DeepSeek)" },
-  { id: "blue", label: "🔵 OmniBlue (Kimi)" },
-  { id: "green", label: "🟢 OmniGreen (Claude)" },
-  { id: "yellow", label: "🟡 OmniYellow (Gemini)" },
-  { id: "orange", label: "🟠 OmniOrange (OpenAI)" },
+  { id: "red", label: "🔴 Red" },
+  { id: "blue", label: "🔵 Blue" },
+  { id: "green", label: "🟢 Green" },
 ];
 
 type Props = {

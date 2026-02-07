@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
 import { EngineSelector } from "@/components/EngineSelector";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
+import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { getColorClasses } from "@/lib/colors";
 import type { CicloPAEE, MetaPei, ConfigCiclo } from "@/lib/paee";
 import type { EngineId } from "@/lib/ai-engines";
@@ -16,7 +17,9 @@ import {
   FREQUENCIAS,
 } from "@/lib/paee";
 import { LISTAS_BARREIRAS, NIVEIS_SUPORTE } from "@/lib/pei";
-import { Map, AlertTriangle, Target, Puzzle, Users } from "lucide-react";
+import { Map, AlertTriangle, Target, Puzzle, Users, Search } from "lucide-react";
+import { PEISummaryPanel } from "@/components/PEISummaryPanel";
+import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -46,10 +49,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
   const [cicloPreview, setCicloPreview] = useState<CicloPAEE | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [jornadaEngine, setJornadaEngine] = useState<EngineId>("yellow");
-  const [jornadaTexto, setJornadaTexto] = useState("");
-  const [jornadaLoading, setJornadaLoading] = useState(false);
-  const [jornadaErro, setJornadaErro] = useState<string | null>(null);
+  const [jornadaEngine, setJornadaEngine] = useState<EngineId>("red");
   const [paeeData, setPaeeData] = useState<Record<string, unknown>>({});
 
   const ciclos = (student?.paee_ciclos || []) as CicloPAEE[];
@@ -265,6 +265,10 @@ export function PAEEClient({ students, studentId, student }: Props) {
     <div className="space-y-6">
       <StudentSelector students={students} currentId={currentId} />
 
+      {student && (
+        <PEISummaryPanel peiData={peiData} studentName={student.name} />
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-slate-200 min-h-[140px]" style={{ backgroundColor: getColorClasses("violet").bg }}>
         <div>
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Nome</div>
@@ -369,6 +373,9 @@ export function PAEEClient({ students, studentId, student }: Props) {
 
       {activeTab === "mapear-barreiras" && (
         <MapearBarreirasTab
+          student={student}
+          peiData={peiData}
+          diagnosis={diagnosis}
           paeeData={paeeData}
           onUpdate={(data) => {
             setPaeeData(data);
@@ -385,6 +392,8 @@ export function PAEEClient({ students, studentId, student }: Props) {
 
       {activeTab === "plano-habilidades" && (
         <PlanoHabilidadesTab
+          student={student}
+          peiData={peiData}
           paeeData={paeeData}
           onUpdate={(data) => {
             setPaeeData(data);
@@ -401,6 +410,8 @@ export function PAEEClient({ students, studentId, student }: Props) {
 
       {activeTab === "tec-assistiva" && (
         <TecAssistivaTab
+          student={student}
+          peiData={peiData}
           paeeData={paeeData}
           onUpdate={(data) => {
             setPaeeData(data);
@@ -417,6 +428,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
 
       {activeTab === "articulacao" && (
         <ArticulacaoTab
+          student={student}
           paeeData={paeeData}
           onUpdate={(data) => {
             setPaeeData(data);
@@ -432,9 +444,19 @@ export function PAEEClient({ students, studentId, student }: Props) {
       )}
 
       {activeTab === "planejamento" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h3 className="font-bold text-slate-800">Histórico de ciclos</h3>
+        <div className="space-y-6">
+          <div className="p-4 rounded-lg bg-violet-50 border border-violet-200">
+            <h3 className="text-lg font-bold text-slate-800 mb-2">📋 Planejamento AEE</h3>
+            <p className="text-sm text-slate-700">
+              <strong>Documento de referência:</strong> Registro pedagógico do ciclo de atendimento com objetivos, período, recursos e cronograma geral em <strong>fases</strong> (visão macro). Use "Definir como ciclo ativo" para referência em outras abas.
+            </p>
+            <p className="text-xs text-slate-600 mt-2">
+              💡 Para metas SMART, acompanhamento por semanas e Jornada Gamificada, use a aba <strong>Execução e Metas SMART</strong>.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="font-bold text-slate-800">Histórico de ciclos de planejamento</h3>
             {cicloAtivoPlanejamento && (
               <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50">
                 <div className="text-sm font-semibold text-emerald-800">Ciclo ativo</div>
@@ -500,13 +522,24 @@ export function PAEEClient({ students, studentId, student }: Props) {
               </div>
             )}
           </div>
+          </div>
         </div>
       )}
 
       {activeTab === "execucao" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h3 className="font-bold text-slate-800">Ciclos de execução</h3>
+        <div className="space-y-6">
+          <div className="p-4 rounded-lg bg-violet-50 border border-violet-200">
+            <h3 className="text-lg font-bold text-slate-800 mb-2">🎯 Execução e Metas SMART</h3>
+            <p className="text-sm text-slate-700">
+              <strong>Norteador operacional:</strong> Plano de execução e acompanhamento com metas desdobradas em SMART, ações por <strong>semana</strong> e registro do que foi cumprido. Este ciclo alimenta a <strong>Jornada Gamificada</strong> do estudante.
+            </p>
+            <p className="text-xs text-slate-600 mt-2">
+              💡 Para documento de planejamento geral (objetivos, período, recursos, cronograma em fases), use a aba <strong>Planejamento AEE</strong>.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="font-bold text-slate-800">Histórico de ciclos de execução</h3>
             {ciclosExecucao.length > 0 && (
               <>
                 <select
@@ -556,6 +589,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
               </div>
             )}
           </div>
+          </div>
         </div>
       )}
 
@@ -567,14 +601,19 @@ export function PAEEClient({ students, studentId, student }: Props) {
           cicloSelecionadoPlanejamento={cicloSelecionadoPlanejamento}
           cicloSelecionadoExecucao={cicloSelecionadoExecucao}
           peiData={peiData}
+          paeeData={paeeData}
+          onUpdate={(data) => {
+            setPaeeData(data);
+            if (student?.id) {
+              fetch(`/api/students/${student.id}/paee`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ paee_data: data }),
+              }).catch(console.error);
+            }
+          }}
           engine={jornadaEngine}
           onEngineChange={setJornadaEngine}
-          texto={jornadaTexto}
-          onTextoChange={setJornadaTexto}
-          loading={jornadaLoading}
-          onLoadingChange={setJornadaLoading}
-          erro={jornadaErro}
-          onErroChange={setJornadaErro}
         />
       )}
     </div>
@@ -588,14 +627,10 @@ function JornadaTab({
   cicloSelecionadoPlanejamento,
   cicloSelecionadoExecucao,
   peiData,
+  paeeData,
+  onUpdate,
   engine,
   onEngineChange,
-  texto,
-  onTextoChange,
-  loading,
-  onLoadingChange,
-  erro,
-  onErroChange,
 }: {
   student: StudentFull;
   ciclos: CicloPAEE[];
@@ -603,32 +638,79 @@ function JornadaTab({
   cicloSelecionadoPlanejamento: CicloPAEE | null;
   cicloSelecionadoExecucao: CicloPAEE | null;
   peiData: Record<string, unknown>;
+  paeeData: Record<string, unknown>;
+  onUpdate: (data: Record<string, unknown>) => void;
   engine: EngineId;
   onEngineChange: (e: EngineId) => void;
-  texto: string;
-  onTextoChange: (t: string) => void;
-  loading: boolean;
-  onLoadingChange: (l: boolean) => void;
-  erro: string | null;
-  onErroChange: (e: string | null) => void;
 }) {
-  const [origem, setOrigem] = useState<"ciclo" | "texto">("ciclo");
+  const hiperfoco = (peiData.hiperfoco as string) || (peiData.interesses as string) || "Interesses gerais";
+  
+  // Opções de origem
+  const opcoesOrigem = [
+    { value: "ciclo", label: "Execução e Metas SMART (ciclo)" },
+    { value: "barreiras", label: "Mapear Barreiras" },
+    { value: "plano-habilidades", label: "Plano de Habilidades" },
+    { value: "tecnologia-assistiva", label: "Tecnologia Assistiva" },
+  ];
+
+  const [origemSelecionada, setOrigemSelecionada] = useState("ciclo");
+  const [estilo, setEstilo] = useState("");
+  const [texto, setTexto] = useState("");
+  const [status, setStatus] = useState<"rascunho" | "revisao" | "ajustando" | "aprovado">("rascunho");
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState("");
   const [mapaMental, setMapaMental] = useState<string | null>(null);
   const [mapaLoading, setMapaLoading] = useState(false);
   const [mapaErro, setMapaErro] = useState<string | null>(null);
-  const hiperfoco = (peiData.hiperfoco as string) || (peiData.interesses as string) || "Interesses gerais";
+  const [usarHiperfocoTema, setUsarHiperfocoTema] = useState(true);
+  const [temaMapa, setTemaMapa] = useState(hiperfoco);
 
-  const cicloPlanejamento = cicloSelecionadoPlanejamento || (cicloAtivo?.tipo === "planejamento_aee" ? cicloAtivo : ciclos.find((c) => c.tipo === "planejamento_aee"));
+  // Ciclo de execução para usar na jornada
   const cicloExecucao = cicloSelecionadoExecucao || (cicloAtivo?.tipo === "execucao_smart" ? cicloAtivo : ciclos.find((c) => c.tipo === "execucao_smart"));
-  const cicloParaJornada = cicloPlanejamento || cicloExecucao;
-  const textoFonte = (peiData.ia_sugestao as string) || "";
+  
+  // Conteúdos das outras abas
+  const conteudoBarreiras = (paeeData.conteudo_diagnostico_barreiras as string) || "";
+  const conteudoPlano = (paeeData.conteudo_plano_habilidades as string) || "";
+  const conteudoTec = (paeeData.conteudo_tecnologia_assistiva as string) || "";
 
-  const gerar = async () => {
-    onLoadingChange(true);
-    onErroChange(null);
+  // Chave única para esta jornada (por origem)
+  const chaveJornada = origemSelecionada === "ciclo" 
+    ? `ciclo_${cicloExecucao?.ciclo_id || "preview"}`
+    : origemSelecionada;
+
+  // Carregar estado salvo
+  useEffect(() => {
+    const jornadas = (paeeData.jornadas_gamificadas || {}) as Record<string, {
+      texto?: string;
+      status?: string;
+      feedback?: string;
+      origem?: string;
+      imagem_bytes?: string;
+    }>;
+    const estado = jornadas[chaveJornada];
+    if (estado) {
+      setTexto(estado.texto || "");
+      setStatus((estado.status as typeof status) || "rascunho");
+      setFeedback(estado.feedback || "");
+      if (estado.imagem_bytes) {
+        setMapaMental(estado.imagem_bytes);
+      }
+    }
+  }, [paeeData, chaveJornada]);
+
+  const updateField = (key: string, value: unknown) => {
+    const jornadas = (paeeData.jornadas_gamificadas || {}) as Record<string, unknown>;
+    jornadas[chaveJornada] = { ...(jornadas[chaveJornada] as Record<string, unknown> || {}), [key]: value };
+    onUpdate({ ...paeeData, jornadas_gamificadas: jornadas });
+  };
+
+  const gerar = async (feedbackAjuste?: string) => {
+    setLoading(true);
+    setErro(null);
     try {
       const body: Record<string, unknown> = {
-        origem,
+        origem: origemSelecionada,
         engine,
         estudante: {
           nome: student.name,
@@ -636,14 +718,42 @@ function JornadaTab({
           hiperfoco,
         },
       };
-      if (origem === "ciclo" && cicloParaJornada) {
-        body.ciclo = cicloParaJornada;
-      } else if (origem === "texto" && textoFonte.trim()) {
-        body.texto_fonte = textoFonte;
-      } else {
-        onErroChange(origem === "ciclo" ? "Selecione ou gere um ciclo primeiro." : "O PEI precisa ter relatório da Consultoria IA (ia_sugestao).");
-        return;
+
+      if (estilo.trim()) {
+        body.estilo = estilo;
       }
+
+      if (feedbackAjuste || feedback) {
+        body.feedback = feedbackAjuste || feedback;
+      }
+
+      if (origemSelecionada === "ciclo") {
+        if (!cicloExecucao) {
+          setErro("Selecione ou gere um ciclo na aba **Execução e Metas SMART** primeiro.");
+          return;
+        }
+        body.ciclo = cicloExecucao;
+      } else {
+        let textoFonte = "";
+        let nomeFonte = "";
+        if (origemSelecionada === "barreiras") {
+          textoFonte = conteudoBarreiras;
+          nomeFonte = "Mapear Barreiras";
+        } else if (origemSelecionada === "plano-habilidades") {
+          textoFonte = conteudoPlano;
+          nomeFonte = "Plano de Habilidades";
+        } else if (origemSelecionada === "tecnologia-assistiva") {
+          textoFonte = conteudoTec;
+          nomeFonte = "Tecnologia Assistiva";
+        }
+        if (!textoFonte.trim()) {
+          setErro(`Gere o conteúdo na aba **${nomeFonte}** primeiro.`);
+          return;
+        }
+        body.texto_fonte = textoFonte;
+        body.nome_fonte = nomeFonte;
+      }
+
       const res = await fetch("/api/paee/jornada-gamificada", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -651,95 +761,365 @@ function JornadaTab({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao gerar jornada.");
-      onTextoChange(data.texto || "");
+      setTexto(data.texto || "");
+      setStatus("revisao");
+      updateField("texto", data.texto);
+      updateField("status", "revisao");
+      updateField("origem", origemSelecionada);
     } catch (e) {
-      onErroChange(e instanceof Error ? e.message : "Erro ao gerar.");
+      setErro(e instanceof Error ? e.message : "Erro ao gerar.");
     } finally {
-      onLoadingChange(false);
+      setLoading(false);
     }
   };
 
+  const limpar = () => {
+    setTexto("");
+    setStatus("rascunho");
+    setFeedback("");
+    setMapaMental(null);
+    updateField("texto", "");
+    updateField("status", "rascunho");
+    updateField("feedback", "");
+    updateField("imagem_bytes", null);
+  };
+
+  const gerarMapaMental = async () => {
+    setMapaLoading(true);
+    setMapaErro(null);
+    try {
+      const res = await fetch("/api/paee/mapa-mental", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          texto: texto,
+          nome: student.name,
+          hiperfoco: usarHiperfocoTema ? temaMapa : "",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar mapa mental.");
+      setMapaMental(data.image || null);
+      updateField("imagem_bytes", data.image);
+    } catch (e) {
+      setMapaErro(e instanceof Error ? e.message : "Erro ao gerar mapa mental.");
+    } finally {
+      setMapaLoading(false);
+    }
+  };
+
+  const downloadCSV = () => {
+    const linhas = texto.split("\n").map((l) => l.trim() || "");
+    const csvContent = linhas.map((l) => `"${l.replace(/"/g, '""')}"`).join("\n");
+    const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Jornada_${student.name.replace(/\s+/g, "_")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="space-y-4 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
-      <h3 className="font-bold text-slate-800">Jornada Gamificada</h3>
-      <p className="text-sm text-slate-600">
-        Transforme o planejamento ou o relatório do PEI em uma missão gamificada para o estudante e a família.
-      </p>
-      <EngineSelector value={engine} onChange={onEngineChange} />
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Origem</label>
-        <select value={origem} onChange={(e) => setOrigem(e.target.value as "ciclo" | "texto")} className="w-full max-w-xs px-3 py-2 border border-slate-200 rounded-lg">
-          <option value="ciclo">Ciclo de planejamento/execução</option>
-          <option value="texto">Relatório PEI (ia_sugestao)</option>
-        </select>
+    <div className="space-y-6 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
+      <div className="space-y-2">
+        <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">Jornada Gamificada</div>
+        <div className="text-2xl font-black text-slate-900">Missão do(a) {student.name}</div>
+        <div className="text-sm text-slate-600">
+          Gere missões motivadoras a partir do planejamento. O roteiro será entregue ao estudante e à família — use linguagem de conquistas, nunca diagnósticos.
+        </div>
       </div>
-      <button
-        type="button"
-        onClick={gerar}
-        disabled={loading || (origem === "ciclo" && !cicloParaJornada) || (origem === "texto" && !textoFonte.trim())}
-        className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
-      >
-        {loading ? "Gerando…" : "✨ Gerar Jornada Gamificada"}
-      </button>
-      {erro && <p className="text-red-600 text-sm">{erro}</p>}
-      {texto && (
-        <div className="space-y-2">
-          <div className="flex justify-between items-center flex-wrap gap-2">
-            <span className="text-sm font-medium text-slate-700">Resultado</span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={async () => {
-                  setMapaLoading(true);
-                  setMapaErro(null);
-                  try {
-                    const res = await fetch("/api/paee/mapa-mental", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        texto,
-                        nome: student.name,
-                        hiperfoco,
-                      }),
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || "Erro");
-                    setMapaMental(data.image || null);
-                  } catch (e) {
-                    setMapaErro(e instanceof Error ? e.message : "Erro ao gerar mapa mental.");
-                  } finally {
-                    setMapaLoading(false);
-                  }
-                }}
-                disabled={mapaLoading}
-                className="px-3 py-1.5 bg-violet-100 text-violet-800 rounded-lg text-sm hover:bg-violet-200 disabled:opacity-50"
-              >
-                {mapaLoading ? "Gerando…" : (
-                  <>
-                    <Map className="w-4 h-4 inline mr-1" />
-                    Gerar mapa mental
-                  </>
-                )}
-              </button>
-              <PdfDownloadButton
-                text={texto}
-                filename={`Jornada_${student.name.replace(/\s+/g, "_")}.pdf`}
-                title={`Jornada - ${student.name}`}
-              />
-            </div>
+
+      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-sm text-blue-800">
+          Cada aba do PAEE pode virar uma <strong>jornada gamificada</strong> para o estudante e a família.
+          Escolha a <strong>origem</strong> na lista abaixo. ⚠️ O material gerado será entregue ao estudante — diagnósticos e dados clínicos não são incluídos.
+        </p>
+      </div>
+
+      {status !== "rascunho" && (
+        <button
+          type="button"
+          onClick={limpar}
+          className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50"
+        >
+          Limpar / Abandonar
+        </button>
+      )}
+
+      {status === "rascunho" ? (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Gerar jornada a partir de:</label>
+            <select
+              value={origemSelecionada}
+              onChange={(e) => setOrigemSelecionada(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+            >
+              {opcoesOrigem.map((op) => (
+                <option key={op.value} value={op.value}>
+                  {op.label}
+                </option>
+              ))}
+            </select>
           </div>
-          {mapaErro && <p className="text-red-600 text-sm">{mapaErro}</p>}
-          {mapaMental && (
-            <div className="rounded-lg border border-slate-200 overflow-hidden">
-              <img src={mapaMental} alt="Mapa mental da jornada" className="max-w-full max-h-[400px] object-contain" />
+
+          {origemSelecionada === "ciclo" && cicloExecucao && (
+            <div className="p-3 border border-slate-200 rounded-lg bg-slate-50">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <div className="font-semibold text-slate-700">Foco do ciclo</div>
+                  <div className="text-slate-600">{cicloExecucao.config_ciclo?.foco_principal || "—"}</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-slate-700">Período</div>
+                  <div className="text-slate-600">
+                    {cicloExecucao.config_ciclo?.data_inicio || "—"} → {cicloExecucao.config_ciclo?.data_fim || "—"}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
-          <textarea
-            value={texto}
-            onChange={(e) => onTextoChange(e.target.value)}
-            rows={14}
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
-          />
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Preferência de estilo (opcional)
+            </label>
+            <input
+              type="text"
+              value={estilo}
+              onChange={(e) => setEstilo(e.target.value)}
+              placeholder="Ex: super-heróis, exploração, futebol..."
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+            />
+          </div>
+
+          <EngineSelector value={engine} onChange={onEngineChange} />
+
+          <p className="text-sm text-slate-600">
+            <strong>Como funciona:</strong> O assistente transforma o conteúdo da aba escolhida em uma missão gamificada para o estudante e a família. O texto final não inclui diagnósticos — apenas desafios e conquistas.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => gerar()}
+            disabled={loading || (origemSelecionada === "ciclo" && !cicloExecucao)}
+            className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed w-full"
+          >
+            {loading ? "⏳ Criando missão..." : "✨ Criar Roteiro Gamificado"}
+          </button>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : status === "revisao" ? (
+        <div className="space-y-4">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm font-semibold text-green-800">✅ Missão gerada! Revise abaixo e aprove ou solicite ajustes.</p>
+          </div>
+
+          <div className="p-4 border border-slate-200 rounded-lg bg-white">
+            <h4 className="font-semibold text-slate-800 mb-2">Missão (prévia)</h4>
+            <FormattedTextDisplay texto={texto} titulo="" />
+          </div>
+
+          <div className="space-y-3">
+            <div className="text-sm font-semibold text-slate-700">Mapa mental do roteiro</div>
+            <p className="text-xs text-slate-600">
+              Gere um mapa mental visual a partir do roteiro gamificado. Estrutura: nó central → missões → etapas. O mapa não inclui informações clínicas.
+            </p>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={usarHiperfocoTema}
+                  onChange={(e) => {
+                    setUsarHiperfocoTema(e.target.checked);
+                    if (e.target.checked) setTemaMapa(hiperfoco);
+                  }}
+                  className="rounded"
+                />
+                <span>Usar hiperfoco do estudante como tema do mapa mental (nó central)</span>
+              </label>
+              {usarHiperfocoTema && (
+                <input
+                  type="text"
+                  value={temaMapa}
+                  onChange={(e) => setTemaMapa(e.target.value)}
+                  placeholder="Ex: dinossauros, espaço, música..."
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                />
+              )}
+            </div>
+            {mapaMental && (
+              <div className="space-y-2">
+                <img src={mapaMental} alt="Mapa mental da jornada" className="max-w-full rounded-lg border border-slate-200" />
+                <a
+                  href={mapaMental}
+                  download="missao_visual.png"
+                  className="inline-block px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm hover:bg-slate-200"
+                >
+                  📥 Baixar imagem
+                </a>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={gerarMapaMental}
+              disabled={mapaLoading || !texto.trim()}
+              className="px-4 py-2 bg-violet-100 text-violet-800 rounded-lg text-sm hover:bg-violet-200 disabled:opacity-50 flex items-center gap-2"
+            >
+              {mapaLoading ? "⏳ Gerando ilustração..." : (
+                <>
+                  <Map className="w-4 h-4" />
+                  Gerar mapa mental do roteiro
+                </>
+              )}
+            </button>
+            {mapaErro && <p className="text-red-600 text-sm">{mapaErro}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("aprovado");
+                updateField("status", "aprovado");
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              ✅ Aprovar Missão
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatus("ajustando")}
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+            >
+              🔄 Solicitar Ajustes
+            </button>
+          </div>
+        </div>
+      ) : status === "ajustando" ? (
+        <div className="space-y-4">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-sm font-semibold text-amber-800">⚠️ Descreva o que ajustar e regenere.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">O que ajustar?</label>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Ex: mais curto, linguagem infantil..."
+              rows={4}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => gerar(feedback)}
+              disabled={loading || !feedback.trim()}
+              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
+            >
+              {loading ? "⏳ Reescrevendo..." : "🔄 Regerar com Ajustes"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("revisao");
+                setFeedback("");
+              }}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              ↩️ Voltar
+            </button>
+          </div>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm font-semibold text-green-800">✅ Missão aprovada! Edite se quiser e exporte em PDF ou CSV.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Edição final (opcional)</label>
+            <textarea
+              value={texto}
+              onChange={(e) => {
+                setTexto(e.target.value);
+                updateField("texto", e.target.value);
+              }}
+              rows={12}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <div className="text-sm font-semibold text-slate-700">Mapa mental do roteiro</div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={usarHiperfocoTema}
+                  onChange={(e) => {
+                    setUsarHiperfocoTema(e.target.checked);
+                    if (e.target.checked) setTemaMapa(hiperfoco);
+                  }}
+                  className="rounded"
+                />
+                <span>Usar hiperfoco do estudante como tema do mapa mental (nó central)</span>
+              </label>
+              {usarHiperfocoTema && (
+                <input
+                  type="text"
+                  value={temaMapa}
+                  onChange={(e) => setTemaMapa(e.target.value)}
+                  placeholder="Ex: dinossauros, espaço, música..."
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                />
+              )}
+            </div>
+            {mapaMental && (
+              <div className="space-y-2">
+                <img src={mapaMental} alt="Mapa mental da jornada" className="max-w-full rounded-lg border border-slate-200" />
+                <a
+                  href={mapaMental}
+                  download="missao_visual.png"
+                  className="inline-block px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm hover:bg-slate-200"
+                >
+                  📥 Baixar imagem
+                </a>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={gerarMapaMental}
+              disabled={mapaLoading || !texto.trim()}
+              className="px-4 py-2 bg-violet-100 text-violet-800 rounded-lg text-sm hover:bg-violet-200 disabled:opacity-50 flex items-center gap-2"
+            >
+              {mapaLoading ? "⏳ Gerando ilustração..." : (
+                <>
+                  <Map className="w-4 h-4" />
+                  Gerar mapa mental do roteiro
+                </>
+              )}
+            </button>
+            {mapaErro && <p className="text-red-600 text-sm">{mapaErro}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <PdfDownloadButton
+              text={texto}
+              filename={`Missao_${student.name.replace(/\s+/g, "_")}.pdf`}
+              title={`Missão - ${student.name}`}
+            />
+            <button
+              type="button"
+              onClick={downloadCSV}
+              className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700"
+            >
+              📊 Baixar CSV (importar no Sheets)
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -955,21 +1335,42 @@ function CicloCard({
         </details>
         {cron && (cron.fases?.length > 0 || cron.semanas?.length > 0) && (
           <details>
-            <summary className="font-medium text-slate-700 cursor-pointer">Cronograma</summary>
+            <summary className="font-medium text-slate-700 cursor-pointer">
+              {ciclo.tipo === "planejamento_aee" ? "🗓️ Cronograma (Fases)" : "📅 Cronograma (Semanas)"}
+            </summary>
             <div className="mt-2 text-sm text-slate-600 space-y-2">
-              {cron.fases?.map((f, i) => (
-                <div key={i}>
-                  <strong>{f.nome}</strong>: {f.objetivo_geral}
-                </div>
-              ))}
-              {cron.semanas?.slice(0, 4).map((s) => (
-                <div key={s.numero}>
-                  Semana {s.numero} — {s.tema}
-                </div>
-              ))}
-              {(cron.semanas?.length || 0) > 4 && (
-                <div className="text-slate-500">+{(cron.semanas?.length || 0) - 4} semanas</div>
-              )}
+              {ciclo.tipo === "planejamento_aee" && cron.fases && cron.fases.length > 0 ? (
+                <>
+                  <p className="text-xs text-slate-500 mb-2">Visão macro em fases (documento de referência)</p>
+                  {cron.fases.map((f, i) => (
+                    <div key={i} className="p-2 rounded bg-slate-50 border border-slate-200">
+                      <strong className="text-slate-800">{f.nome}</strong>
+                      <p className="text-xs text-slate-600 mt-1">{f.objetivo_geral}</p>
+                      {f.descricao && <p className="text-xs text-slate-500 mt-1">{f.descricao}</p>}
+                    </div>
+                  ))}
+                </>
+              ) : cron.semanas && cron.semanas.length > 0 ? (
+                <>
+                  <p className="text-xs text-slate-500 mb-2">Planejamento por semanas (norteador operacional)</p>
+                  {cron.semanas.slice(0, 6).map((s) => (
+                    <div key={s.numero} className="p-2 rounded bg-slate-50 border border-slate-200">
+                      <strong className="text-slate-800">Semana {s.numero} — {s.tema}</strong>
+                      <p className="text-xs text-slate-600 mt-1">{s.objetivo}</p>
+                      {s.atividades && s.atividades.length > 0 && (
+                        <ul className="text-xs text-slate-500 mt-1 list-disc list-inside">
+                          {s.atividades.slice(0, 3).map((a, idx) => (
+                            <li key={idx}>{a}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                  {(cron.semanas?.length || 0) > 6 && (
+                    <div className="text-xs text-slate-500 italic">+{(cron.semanas?.length || 0) - 6} semanas</div>
+                  )}
+                </>
+              ) : null}
             </div>
           </details>
         )}
@@ -995,18 +1396,86 @@ function CicloCard({
 
 // Aba: Mapear Barreiras
 function MapearBarreirasTab({
+  student,
+  peiData,
+  diagnosis,
   paeeData,
   onUpdate,
 }: {
+  student: StudentFull | null;
+  peiData: Record<string, unknown>;
+  diagnosis: string;
   paeeData: Record<string, unknown>;
   onUpdate: (data: Record<string, unknown>) => void;
 }) {
-  const barreiras = (paeeData.barreiras_selecionadas || {}) as Record<string, string[]>;
-  const niveis = (paeeData.niveis_suporte || {}) as Record<string, string>;
-  const obs = (paeeData.observacoes_barreiras || {}) as Record<string, string>;
+  const [observacoes, setObservacoes] = useState("");
+  const [diagnostico, setDiagnostico] = useState("");
+  const [status, setStatus] = useState<"rascunho" | "revisao" | "aprovado" | "ajustando">("rascunho");
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [engine, setEngine] = useState<EngineId>("red");
+  const [feedback, setFeedback] = useState("");
+
+  const contextoPei = (peiData.ia_sugestao as string) || "";
+
+  // Carregar estado salvo
+  useEffect(() => {
+    const conteudoSalvo = paeeData.conteudo_diagnostico_barreiras as string;
+    const statusSalvo = paeeData.status_diagnostico_barreiras as string;
+    if (conteudoSalvo) {
+      setDiagnostico(conteudoSalvo);
+      setStatus((statusSalvo as typeof status) || "revisao");
+    }
+  }, [paeeData]);
 
   const updateField = (key: string, value: unknown) => {
     onUpdate({ ...paeeData, [key]: value });
+  };
+
+  const gerar = async (feedbackAjuste?: string) => {
+    if (!observacoes.trim()) {
+      setErro("Por favor, descreva suas observações antes de analisar.");
+      return;
+    }
+    setLoading(true);
+    setErro(null);
+    try {
+      const res = await fetch("/api/paee/diagnostico-barreiras", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          observacoes,
+          studentId: student?.id,
+          studentName: student?.name || "",
+          diagnosis,
+          contextoPei,
+          feedback: feedbackAjuste || feedback || undefined,
+          engine,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar diagnóstico");
+      setDiagnostico(data.diagnostico || "");
+      setStatus("revisao");
+      updateField("conteudo_diagnostico_barreiras", data.diagnostico);
+      updateField("status_diagnostico_barreiras", "revisao");
+      if (feedbackAjuste) {
+        updateField("input_original_diagnostico_barreiras", { obs: observacoes });
+      }
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro ao gerar diagnóstico");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const limpar = () => {
+    setDiagnostico("");
+    setStatus("rascunho");
+    setObservacoes("");
+    setFeedback("");
+    updateField("conteudo_diagnostico_barreiras", "");
+    updateField("status_diagnostico_barreiras", "rascunho");
   };
 
   return (
@@ -1015,193 +1484,258 @@ function MapearBarreirasTab({
         <AlertTriangle className="w-6 h-6 text-violet-600" />
         <h3 className="text-xl font-bold text-slate-800">Mapear Barreiras</h3>
       </div>
-      <p className="text-sm text-slate-600 mb-6">
-        Identifique e mapeie as barreiras específicas encontradas no contexto do AEE. Para cada barreira selecionada, indique o nível de apoio necessário.
-      </p>
+      <div className="p-3 rounded-lg bg-violet-50 border border-violet-200 mb-4">
+        <p className="text-sm text-violet-800">
+          <strong>Diagnóstico de Acessibilidade:</strong> Identifique o que impede a participação plena do estudante (barreiras atitudinais, arquitetônicas, tecnológicas). Resultado para uso da equipe.
+        </p>
+      </div>
 
-      {Object.entries(LISTAS_BARREIRAS).map(([dominio, opcoes]) => {
-        const selecionadas = barreiras[dominio] || [];
-        return (
-          <div
-            key={dominio}
-            className={`p-4 rounded-lg border-2 ${
-              selecionadas.length > 0 ? "border-emerald-300 bg-emerald-50/20" : "border-slate-200 bg-white"
-            } transition-all`}
+      {status !== "rascunho" && (
+        <button
+          type="button"
+          onClick={limpar}
+          className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50"
+        >
+          Limpar / Abandonar
+        </button>
+      )}
+
+      {status === "rascunho" ? (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Observações Iniciais do AEE
+            </label>
+            <textarea
+              value={observacoes}
+              onChange={(e) => setObservacoes(e.target.value)}
+              placeholder="Exemplo: O estudante se recusa a escrever quando solicitado, demonstrando ansiedade e evitamento. Durante atividades de escrita, ele tenta sair da sala ou distrai os colegas. Quando consegue iniciar, abandona a tarefa após algumas linhas, dizendo que está cansado ou que não sabe fazer."
+              rows={6}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+            />
+          </div>
+          <EngineSelector value={engine} onChange={setEngine} />
+          <button
+            type="button"
+            onClick={() => gerar()}
+            disabled={loading || !observacoes.trim()}
+            className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            <h5 className="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
-              <strong>{dominio}</strong>
-              {selecionadas.length > 0 && (
-                <span className="text-xs font-normal text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                  {selecionadas.length} selecionada{selecionadas.length > 1 ? "s" : ""}
-                </span>
-              )}
-            </h5>
-
-            <div className="space-y-2 mb-4">
-              {opcoes.map((b) => {
-                const estaSelecionada = selecionadas.includes(b);
-                return (
-                  <label
-                    key={b}
-                    className={`flex items-center gap-2 p-2.5 rounded-lg cursor-pointer transition-all ${
-                      estaSelecionada
-                        ? "bg-emerald-50 border-2 border-emerald-300 shadow-sm"
-                        : "hover:bg-slate-50 border-2 border-transparent"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={estaSelecionada}
-                      onChange={(e) => {
-                        const novas = e.target.checked
-                          ? [...selecionadas, b]
-                          : selecionadas.filter((item) => item !== b);
-                        const novasBarreiras = { ...barreiras, [dominio]: novas };
-                        updateField("barreiras_selecionadas", novasBarreiras);
-
-                        if (!e.target.checked) {
-                          const chave = `${dominio}_${b}`;
-                          const novosNiveis = { ...niveis };
-                          delete novosNiveis[chave];
-                          updateField("niveis_suporte", novosNiveis);
-                        }
-                      }}
-                      className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
-                    />
-                    <span className={`text-sm ${estaSelecionada ? "text-emerald-900 font-medium" : "text-slate-700"}`}>
-                      {b}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-
-            {selecionadas.length > 0 && (
+            {loading ? (
               <>
-                <hr className="my-4 border-slate-300" />
-                <h6 className="text-sm font-semibold text-slate-700 mb-2">Nível de apoio por barreira</h6>
-                <p className="text-xs text-slate-500 mb-4">
-                  Escala: Autônomo (faz sozinho) → Monitorado → Substancial → Muito Substancial (suporte intenso/contínuo).
-                </p>
-                <div className="space-y-4">
-                  {selecionadas.map((b) => {
-                    const chave = `${dominio}_${b}`;
-                    const nivelAtual = niveis[chave] || "Monitorado";
-                    const nivelIndex = NIVEIS_SUPORTE.indexOf(nivelAtual);
-                    return (
-                      <div key={b} className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                        <div className="mb-2">
-                          <strong className="text-sm text-slate-800">{b}</strong>
-                        </div>
-                        <div className="space-y-2">
-                          <input
-                            type="range"
-                            min="0"
-                            max={NIVEIS_SUPORTE.length - 1}
-                            value={nivelIndex}
-                            onChange={(e) => {
-                              const novoNivel = NIVEIS_SUPORTE[parseInt(e.target.value)];
-                              updateField("niveis_suporte", { ...niveis, [chave]: novoNivel });
-                            }}
-                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
-                            style={{
-                              background: `linear-gradient(to right, #9333ea 0%, #9333ea ${(nivelIndex / (NIVEIS_SUPORTE.length - 1)) * 100}%, #e2e8f0 ${(nivelIndex / (NIVEIS_SUPORTE.length - 1)) * 100}%, #e2e8f0 100%)`,
-                            }}
-                          />
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-medium text-violet-700 bg-violet-100 px-2 py-1 rounded">
-                              {nivelAtual}
-                            </span>
-                            <div className="flex gap-1 text-[10px] text-slate-500">
-                              {NIVEIS_SUPORTE.map((n, idx) => (
-                                <span key={n} className={idx === nivelIndex ? "font-bold text-violet-600" : ""}>
-                                  {n.slice(0, 3)}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                          <p className="text-[10px] text-slate-500 mt-1">
-                            {nivelAtual === "Autônomo" && "Realiza sem mediação"}
-                            {nivelAtual === "Monitorado" && "Precisa de checagens"}
-                            {nivelAtual === "Substancial" && "Precisa de mediação frequente"}
-                            {nivelAtual === "Muito Substancial" && "Precisa de suporte intenso/contínuo"}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <span className="animate-spin">⏳</span>
+                Analisando barreiras...
+              </>
+            ) : (
+              <>
+                <Search className="w-5 h-5" />
+                🔍 Analisar Barreiras
               </>
             )}
-
-            <div className="mt-4">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Observações (opcional)</label>
-              <textarea
-                value={obs[dominio] || ""}
-                onChange={(e) => updateField("observacoes_barreiras", { ...obs, [dominio]: e.target.value })}
-                placeholder="Ex.: quando ocorre, gatilhos, o que ajuda, o que piora, estratégias que já funcionam..."
-                rows={3}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-              />
-            </div>
+          </button>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : status === "revisao" ? (
+        <div className="space-y-4">
+          <FormattedTextDisplay texto={diagnostico} titulo="Diagnóstico de Barreiras Gerado" />
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("aprovado");
+                updateField("status_diagnostico_barreiras", "aprovado");
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              ✅ Validar e Finalizar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("ajustando");
+              }}
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+            >
+              🔄 Solicitar Ajustes
+            </button>
+            <button
+              type="button"
+              onClick={limpar}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              🗑️ Descartar e Regenerar
+            </button>
+            <PdfDownloadButton
+              text={diagnostico}
+              filename={`Diagnostico_Barreiras_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}
+              title={`Diagnóstico de Barreiras - ${student?.name || ""}`}
+            />
+            <DocxDownloadButton
+              text={diagnostico}
+              filename={`Diagnostico_Barreiras_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
+              title={`Diagnóstico de Barreiras - ${student?.name || ""}`}
+            />
           </div>
-        );
-      })}
+        </div>
+      ) : status === "ajustando" ? (
+        <div className="space-y-4">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-sm font-semibold text-amber-800 mb-2">✏️ Modo de Ajuste Ativo</p>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Descreva os ajustes necessários:
+            </label>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Ex.: Incluir mais detalhes sobre barreiras metodológicas, focar em estratégias práticas..."
+              rows={4}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => gerar(feedback)}
+              disabled={loading || !feedback.trim()}
+              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
+            >
+              {loading ? "Regerando..." : "🔄 Regerar com Ajustes"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("revisao");
+                setFeedback("");
+              }}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              ↩️ Cancelar Ajustes
+            </button>
+          </div>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm font-semibold text-green-800">✅ Recurso Validado e Pronto para Uso</p>
+          </div>
+          <FormattedTextDisplay texto={diagnostico} titulo="Diagnóstico de Barreiras Final" />
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("revisao");
+                updateField("status_diagnostico_barreiras", "revisao");
+              }}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              ✏️ Editar Novamente
+            </button>
+            <PdfDownloadButton
+              text={diagnostico}
+              filename={`Diagnostico_Barreiras_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}
+              title={`Diagnóstico de Barreiras - ${student?.name || ""}`}
+            />
+            <DocxDownloadButton
+              text={diagnostico}
+              filename={`Diagnostico_Barreiras_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
+              title={`Diagnóstico de Barreiras - ${student?.name || ""}`}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // Aba: Plano de Habilidades
 function PlanoHabilidadesTab({
+  student,
+  peiData,
   paeeData,
   onUpdate,
 }: {
+  student: StudentFull | null;
+  peiData: Record<string, unknown>;
   paeeData: Record<string, unknown>;
   onUpdate: (data: Record<string, unknown>) => void;
 }) {
-  const habilidades = (paeeData.habilidades_plano || []) as Array<{
-    id: string;
-    habilidade: string;
-    objetivo: string;
-    estrategias: string;
-    prazo: string;
-    status: string;
-  }>;
-  const [novaHabilidade, setNovaHabilidade] = useState("");
-  const [novoObjetivo, setNovoObjetivo] = useState("");
-  const [novaEstrategia, setNovaEstrategia] = useState("");
-  const [novoPrazo, setNovoPrazo] = useState("");
+  const [foco, setFoco] = useState("Funções Executivas");
+  const [plano, setPlano] = useState("");
+  const [status, setStatus] = useState<"rascunho" | "revisao" | "aprovado" | "ajustando">("rascunho");
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [engine, setEngine] = useState<EngineId>("red");
+  const [feedback, setFeedback] = useState("");
+
+  const contextoPei = (peiData.ia_sugestao as string) || "";
+
+  const focosDisponiveis = [
+    "Funções Executivas",
+    "Autonomia",
+    "Coordenação Motora",
+    "Comunicação",
+    "Habilidades Sociais",
+    "Leitura e Escrita",
+    "Matemática",
+    "Tecnologias Assistivas",
+    "Organização e Planejamento",
+  ];
+
+  // Carregar estado salvo
+  useEffect(() => {
+    const conteudoSalvo = paeeData.conteudo_plano_habilidades as string;
+    const statusSalvo = paeeData.status_plano_habilidades as string;
+    const inputSalvo = paeeData.input_original_plano_habilidades as { foco?: string };
+    if (conteudoSalvo) {
+      setPlano(conteudoSalvo);
+      setStatus((statusSalvo as typeof status) || "revisao");
+    }
+    if (inputSalvo?.foco) {
+      setFoco(inputSalvo.foco);
+    }
+  }, [paeeData]);
 
   const updateField = (key: string, value: unknown) => {
     onUpdate({ ...paeeData, [key]: value });
   };
 
-  const adicionarHabilidade = () => {
-    if (!novaHabilidade.trim()) return;
-    const nova = {
-      id: crypto.randomUUID(),
-      habilidade: novaHabilidade,
-      objetivo: novoObjetivo,
-      estrategias: novaEstrategia,
-      prazo: novoPrazo,
-      status: "em_andamento",
-    };
-    updateField("habilidades_plano", [...habilidades, nova]);
-    setNovaHabilidade("");
-    setNovoObjetivo("");
-    setNovaEstrategia("");
-    setNovoPrazo("");
+  const gerar = async (feedbackAjuste?: string) => {
+    setLoading(true);
+    setErro(null);
+    try {
+      const res = await fetch("/api/paee/plano-habilidades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          focoTreino: foco,
+          studentId: student?.id,
+          studentName: student?.name || "",
+          contextoPei,
+          feedback: feedbackAjuste || feedback || undefined,
+          engine,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar plano");
+      setPlano(data.plano || "");
+      setStatus("revisao");
+      updateField("conteudo_plano_habilidades", data.plano);
+      updateField("status_plano_habilidades", "revisao");
+      updateField("input_original_plano_habilidades", { foco });
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro ao gerar plano");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removerHabilidade = (id: string) => {
-    updateField("habilidades_plano", habilidades.filter((h) => h.id !== id));
-  };
-
-  const atualizarHabilidade = (id: string, campo: string, valor: string) => {
-    updateField(
-      "habilidades_plano",
-      habilidades.map((h) => (h.id === id ? { ...h, [campo]: valor } : h))
-    );
+  const limpar = () => {
+    setPlano("");
+    setStatus("rascunho");
+    setFeedback("");
+    updateField("conteudo_plano_habilidades", "");
+    updateField("status_plano_habilidades", "rascunho");
   };
 
   return (
@@ -1210,384 +1744,508 @@ function PlanoHabilidadesTab({
         <Target className="w-6 h-6 text-violet-600" />
         <h3 className="text-xl font-bold text-slate-800">Plano de Habilidades</h3>
       </div>
-      <p className="text-sm text-slate-600 mb-6">
-        Elabore um plano detalhado para o desenvolvimento de habilidades específicas do estudante no contexto do AEE.
-      </p>
+      <div className="p-3 rounded-lg bg-violet-50 border border-violet-200 mb-4">
+        <p className="text-sm text-violet-800">
+          <strong>Treino de Habilidades:</strong> Desenvolvimento de competências específicas no AEE.
+        </p>
+      </div>
 
-      <div className="p-4 rounded-lg border-2 border-slate-200 bg-slate-50">
-        <h4 className="font-semibold text-slate-800 mb-3">Adicionar Nova Habilidade</h4>
-        <div className="space-y-3">
+      {status !== "rascunho" && (
+        <button
+          type="button"
+          onClick={limpar}
+          className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50"
+        >
+          Limpar / Abandonar
+        </button>
+      )}
+
+      {status === "rascunho" ? (
+        <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Habilidade</label>
-            <input
-              type="text"
-              value={novaHabilidade}
-              onChange={(e) => setNovaHabilidade(e.target.value)}
-              placeholder="Ex.: Leitura e compreensão de textos"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-            />
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Foco do Atendimento</label>
+            <select
+              value={foco}
+              onChange={(e) => setFoco(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+            >
+              {focosDisponiveis.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Objetivo</label>
-            <input
-              type="text"
-              value={novoObjetivo}
-              onChange={(e) => setNovoObjetivo(e.target.value)}
-              placeholder="Ex.: Melhorar a compreensão leitora"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+          <EngineSelector value={engine} onChange={setEngine} />
+          <button
+            type="button"
+            onClick={() => gerar()}
+            disabled={loading}
+            className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <span className="animate-spin">⏳</span>
+                Elaborando plano de intervenção...
+              </>
+            ) : (
+              <>
+                <Target className="w-5 h-5" />
+                📋 Gerar Plano
+              </>
+            )}
+          </button>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : status === "revisao" ? (
+        <div className="space-y-4">
+          <FormattedTextDisplay texto={plano} titulo="Plano de Habilidades Gerado" />
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("aprovado");
+                updateField("status_plano_habilidades", "aprovado");
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              ✅ Validar e Finalizar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("ajustando");
+              }}
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+            >
+              🔄 Solicitar Ajustes
+            </button>
+            <button
+              type="button"
+              onClick={limpar}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              🗑️ Descartar e Regenerar
+            </button>
+            <PdfDownloadButton
+              text={plano}
+              filename={`Plano_Habilidades_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}
+              title={`Plano de Habilidades - ${student?.name || ""}`}
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Estratégias</label>
-            <textarea
-              value={novaEstrategia}
-              onChange={(e) => setNovaEstrategia(e.target.value)}
-              placeholder="Descreva as estratégias a serem utilizadas"
-              rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            <DocxDownloadButton
+              text={plano}
+              filename={`Plano_Habilidades_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
+              title={`Plano de Habilidades - ${student?.name || ""}`}
             />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Prazo</label>
-              <input
-                type="date"
-                value={novoPrazo}
-                onChange={(e) => setNovoPrazo(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-              />
-            </div>
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={adicionarHabilidade}
-                className="w-full px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"
-              >
-                Adicionar
-              </button>
-            </div>
           </div>
         </div>
-      </div>
-
-      <div className="space-y-4">
-        <h4 className="font-semibold text-slate-800">Habilidades Planejadas</h4>
-        {habilidades.length === 0 ? (
-          <p className="text-slate-500 text-sm">Nenhuma habilidade adicionada ainda.</p>
-        ) : (
-          habilidades.map((h) => (
-            <div key={h.id} className="p-4 rounded-lg border-2 border-slate-200 bg-white">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex-1">
-                  <h5 className="font-semibold text-slate-800">{h.habilidade}</h5>
-                  <p className="text-sm text-slate-600 mt-1">{h.objetivo}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removerHabilidade(h.id)}
-                  className="text-red-600 hover:text-red-800 text-sm"
-                >
-                  Remover
-                </button>
-              </div>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Estratégias</label>
-                  <textarea
-                    value={h.estrategias}
-                    onChange={(e) => atualizarHabilidade(h.id, "estrategias", e.target.value)}
-                    rows={2}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Prazo</label>
-                    <input
-                      type="date"
-                      value={h.prazo}
-                      onChange={(e) => atualizarHabilidade(h.id, "prazo", e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
-                    <select
-                      value={h.status}
-                      onChange={(e) => atualizarHabilidade(h.id, "status", e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                    >
-                      <option value="em_andamento">Em Andamento</option>
-                      <option value="concluida">Concluída</option>
-                      <option value="pausada">Pausada</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+      ) : status === "ajustando" ? (
+        <div className="space-y-4">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-sm font-semibold text-amber-800 mb-2">✏️ Modo de Ajuste Ativo</p>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Descreva os ajustes necessários:
+            </label>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Ex.: Incluir mais detalhes sobre estratégias de ensino, focar em recursos práticos..."
+              rows={4}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => gerar(feedback)}
+              disabled={loading || !feedback.trim()}
+              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
+            >
+              {loading ? "Aplicando ajustes..." : "🔄 Regerar com Ajustes"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("revisao");
+                setFeedback("");
+              }}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              ↩️ Cancelar Ajustes
+            </button>
+          </div>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm font-semibold text-green-800">✅ Plano Validado e Pronto para Uso</p>
+          </div>
+          <FormattedTextDisplay texto={plano} titulo="Plano de Habilidades Final" />
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("revisao");
+                updateField("status_plano_habilidades", "revisao");
+              }}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              ✏️ Editar Novamente
+            </button>
+            <PdfDownloadButton
+              text={plano}
+              filename={`Plano_Habilidades_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}
+              title={`Plano de Habilidades - ${student?.name || ""}`}
+            />
+            <DocxDownloadButton
+              text={plano}
+              filename={`Plano_Habilidades_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
+              title={`Plano de Habilidades - ${student?.name || ""}`}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // Aba: Tecnologias Assistivas
 function TecAssistivaTab({
+  student,
+  peiData,
   paeeData,
   onUpdate,
 }: {
+  student: StudentFull | null;
+  peiData: Record<string, unknown>;
   paeeData: Record<string, unknown>;
   onUpdate: (data: Record<string, unknown>) => void;
 }) {
-  const tecnologias = (paeeData.tecnologias_assistivas || []) as Array<{
-    id: string;
-    tipo: string;
-    nome: string;
-    descricao: string;
-    fornecedor: string;
-    status: string;
-  }>;
-  const [novoTipo, setNovoTipo] = useState("");
-  const [novoNome, setNovoNome] = useState("");
-  const [novaDescricao, setNovaDescricao] = useState("");
-  const [novoFornecedor, setNovoFornecedor] = useState("");
+  const [dificuldade, setDificuldade] = useState("");
+  const [sugestoes, setSugestoes] = useState("");
+  const [status, setStatus] = useState<"rascunho" | "revisao" | "aprovado" | "ajustando">("rascunho");
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [engine, setEngine] = useState<EngineId>("red");
+  const [feedback, setFeedback] = useState("");
+
+  const contextoPei = (peiData.ia_sugestao as string) || "";
+
+  // Carregar estado salvo
+  useEffect(() => {
+    const conteudoSalvo = paeeData.conteudo_tecnologia_assistiva as string;
+    const statusSalvo = paeeData.status_tecnologia_assistiva as string;
+    const inputSalvo = paeeData.input_original_tecnologia_assistiva as { dificuldade?: string };
+    if (conteudoSalvo) {
+      setSugestoes(conteudoSalvo);
+      setStatus((statusSalvo as typeof status) || "revisao");
+    }
+    if (inputSalvo?.dificuldade) {
+      setDificuldade(inputSalvo.dificuldade);
+    }
+  }, [paeeData]);
 
   const updateField = (key: string, value: unknown) => {
     onUpdate({ ...paeeData, [key]: value });
   };
 
-  const tiposTA = [
-    "Comunicação Alternativa",
-    "Acessibilidade Digital",
-    "Mobilidade",
-    "Visão",
-    "Audição",
-    "Cognição",
-    "Outros",
-  ];
-
-  const adicionarTA = () => {
-    if (!novoNome.trim()) return;
-    const nova = {
-      id: crypto.randomUUID(),
-      tipo: novoTipo || "Outros",
-      nome: novoNome,
-      descricao: novaDescricao,
-      fornecedor: novoFornecedor,
-      status: "solicitada",
-    };
-    updateField("tecnologias_assistivas", [...tecnologias, nova]);
-    setNovoTipo("");
-    setNovoNome("");
-    setNovaDescricao("");
-    setNovoFornecedor("");
+  const gerar = async (feedbackAjuste?: string) => {
+    if (!dificuldade.trim()) {
+      setErro("Por favor, descreva a dificuldade específica.");
+      return;
+    }
+    setLoading(true);
+    setErro(null);
+    try {
+      const res = await fetch("/api/paee/tecnologia-assistiva", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dificuldade,
+          studentId: student?.id,
+          studentName: student?.name || "",
+          contextoPei,
+          feedback: feedbackAjuste || feedback || undefined,
+          engine,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar sugestões");
+      setSugestoes(data.sugestoes || "");
+      setStatus("revisao");
+      updateField("conteudo_tecnologia_assistiva", data.sugestoes);
+      updateField("status_tecnologia_assistiva", "revisao");
+      updateField("input_original_tecnologia_assistiva", { dificuldade });
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro ao gerar sugestões");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removerTA = (id: string) => {
-    updateField("tecnologias_assistivas", tecnologias.filter((t) => t.id !== id));
-  };
-
-  const atualizarTA = (id: string, campo: string, valor: string) => {
-    updateField(
-      "tecnologias_assistivas",
-      tecnologias.map((t) => (t.id === id ? { ...t, [campo]: valor } : t))
-    );
+  const limpar = () => {
+    setSugestoes("");
+    setStatus("rascunho");
+    setDificuldade("");
+    setFeedback("");
+    updateField("conteudo_tecnologia_assistiva", "");
+    updateField("status_tecnologia_assistiva", "rascunho");
   };
 
   return (
     <div className="space-y-6 p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
       <div className="flex items-center gap-3 mb-4">
         <Puzzle className="w-6 h-6 text-violet-600" />
-        <h3 className="text-xl font-bold text-slate-800">Tecnologias Assistivas</h3>
+        <h3 className="text-xl font-bold text-slate-800">Tecnologia Assistiva</h3>
       </div>
-      <p className="text-sm text-slate-600 mb-6">
-        Registre e gerencie as tecnologias assistivas necessárias para o estudante no contexto do AEE.
-      </p>
+      <div className="p-3 rounded-lg bg-violet-50 border border-violet-200 mb-4">
+        <p className="text-sm text-violet-800">
+          <strong>Tecnologia Assistiva:</strong> Recursos para promover autonomia e participação.
+        </p>
+      </div>
 
-      <div className="p-4 rounded-lg border-2 border-slate-200 bg-slate-50">
-        <h4 className="font-semibold text-slate-800 mb-3">Adicionar Tecnologia Assistiva</h4>
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
-              <select
-                value={novoTipo}
-                onChange={(e) => setNovoTipo(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-              >
-                <option value="">Selecione</option>
-                {tiposTA.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nome/Modelo</label>
-              <input
-                type="text"
-                value={novoNome}
-                onChange={(e) => setNovoNome(e.target.value)}
-                placeholder="Ex.: Software de leitura de tela"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-              />
-            </div>
-          </div>
+      {status !== "rascunho" && (
+        <button
+          type="button"
+          onClick={limpar}
+          className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50"
+        >
+          Limpar / Abandonar
+        </button>
+      )}
+
+      {status === "rascunho" ? (
+        <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
-            <textarea
-              value={novaDescricao}
-              onChange={(e) => setNovaDescricao(e.target.value)}
-              placeholder="Descreva a tecnologia e como será utilizada"
-              rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Dificuldade Específica</label>
+            <input
+              type="text"
+              value={dificuldade}
+              onChange={(e) => setDificuldade(e.target.value)}
+              placeholder="Ex: Dificuldade na escrita, comunicação, mobilidade, organização..."
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Fornecedor/Origem</label>
-              <input
-                type="text"
-                value={novoFornecedor}
-                onChange={(e) => setNovoFornecedor(e.target.value)}
-                placeholder="Ex.: Secretaria de Educação"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-              />
-            </div>
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={adicionarTA}
-                className="w-full px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"
-              >
-                Adicionar
-              </button>
-            </div>
+          <EngineSelector value={engine} onChange={setEngine} />
+          <button
+            type="button"
+            onClick={() => gerar()}
+            disabled={loading || !dificuldade.trim()}
+            className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <span className="animate-spin">⏳</span>
+                Buscando tecnologias assistivas...
+              </>
+            ) : (
+              <>
+                <Puzzle className="w-5 h-5" />
+                🔧 Sugerir Recursos
+              </>
+            )}
+          </button>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : status === "revisao" ? (
+        <div className="space-y-4">
+          <FormattedTextDisplay texto={sugestoes} titulo="Sugestões de Tecnologia Assistiva Geradas" />
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("aprovado");
+                updateField("status_tecnologia_assistiva", "aprovado");
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              ✅ Validar e Finalizar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("ajustando");
+              }}
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+            >
+              🔄 Solicitar Ajustes
+            </button>
+            <button
+              type="button"
+              onClick={limpar}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              🗑️ Descartar e Regenerar
+            </button>
+            <PdfDownloadButton
+              text={sugestoes}
+              filename={`Tecnologia_Assistiva_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}
+              title={`Tecnologia Assistiva - ${student?.name || ""}`}
+            />
+            <DocxDownloadButton
+              text={sugestoes}
+              filename={`Tecnologia_Assistiva_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
+              title={`Tecnologia Assistiva - ${student?.name || ""}`}
+            />
           </div>
         </div>
-      </div>
-
-      <div className="space-y-4">
-        <h4 className="font-semibold text-slate-800">Tecnologias Assistivas Registradas</h4>
-        {tecnologias.length === 0 ? (
-          <p className="text-slate-500 text-sm">Nenhuma tecnologia assistiva registrada ainda.</p>
-        ) : (
-          tecnologias.map((t) => (
-            <div key={t.id} className="p-4 rounded-lg border-2 border-slate-200 bg-white">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold text-violet-600 bg-violet-100 px-2 py-0.5 rounded">
-                      {t.tipo}
-                    </span>
-                    <h5 className="font-semibold text-slate-800">{t.nome}</h5>
-                  </div>
-                  <p className="text-sm text-slate-600 mt-1">{t.descricao}</p>
-                  {t.fornecedor && (
-                    <p className="text-xs text-slate-500 mt-1">Fornecedor: {t.fornecedor}</p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removerTA(t.id)}
-                  className="text-red-600 hover:text-red-800 text-sm"
-                >
-                  Remover
-                </button>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
-                <select
-                  value={t.status}
-                  onChange={(e) => atualizarTA(t.id, "status", e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                >
-                  <option value="solicitada">Solicitada</option>
-                  <option value="em_avaliacao">Em Avaliação</option>
-                  <option value="aprovada">Aprovada</option>
-                  <option value="disponivel">Disponível</option>
-                  <option value="em_uso">Em Uso</option>
-                </select>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+      ) : status === "ajustando" ? (
+        <div className="space-y-4">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-sm font-semibold text-amber-800 mb-2">✏️ Modo de Ajuste Ativo</p>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Descreva os ajustes necessários:
+            </label>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Ex.: Incluir mais recursos de baixa tecnologia, focar em soluções práticas..."
+              rows={4}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => gerar(feedback)}
+              disabled={loading || !feedback.trim()}
+              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
+            >
+              {loading ? "Aplicando ajustes..." : "🔄 Regerar com Ajustes"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("revisao");
+                setFeedback("");
+              }}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              ↩️ Cancelar Ajustes
+            </button>
+          </div>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm font-semibold text-green-800">✅ Sugestões Validadas e Prontas para Uso</p>
+          </div>
+          <FormattedTextDisplay texto={sugestoes} titulo="Sugestões de Tecnologia Assistiva Final" />
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("revisao");
+                updateField("status_tecnologia_assistiva", "revisao");
+              }}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              ✏️ Editar Novamente
+            </button>
+            <PdfDownloadButton
+              text={sugestoes}
+              filename={`Tecnologia_Assistiva_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}
+              title={`Tecnologia Assistiva - ${student?.name || ""}`}
+            />
+            <DocxDownloadButton
+              text={sugestoes}
+              filename={`Tecnologia_Assistiva_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
+              title={`Tecnologia Assistiva - ${student?.name || ""}`}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // Aba: Articulação
 function ArticulacaoTab({
+  student,
   paeeData,
   onUpdate,
 }: {
+  student: StudentFull | null;
   paeeData: Record<string, unknown>;
   onUpdate: (data: Record<string, unknown>) => void;
 }) {
-  const articulacoes = (paeeData.articulacoes || []) as Array<{
-    id: string;
-    tipo: string;
-    profissional: string;
-    contato: string;
-    responsabilidades: string;
-    frequencia: string;
-    observacoes: string;
-  }>;
-  const [novoTipo, setNovoTipo] = useState("");
-  const [novoProfissional, setNovoProfissional] = useState("");
-  const [novoContato, setNovoContato] = useState("");
-  const [novasResponsabilidades, setNovasResponsabilidades] = useState("");
-  const [novaFrequencia, setNovaFrequencia] = useState("");
-  const [novasObservacoes, setNovasObservacoes] = useState("");
+  const [frequencia, setFrequencia] = useState("2x/sem");
+  const [turno, setTurno] = useState("Manhã");
+  const [acoes, setAcoes] = useState("");
+  const [documento, setDocumento] = useState("");
+  const [status, setStatus] = useState<"rascunho" | "revisao" | "aprovado" | "ajustando">("rascunho");
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [engine, setEngine] = useState<EngineId>("red");
+  const [feedback, setFeedback] = useState("");
+
+  // Carregar estado salvo
+  useEffect(() => {
+    const conteudoSalvo = paeeData.conteudo_documento_articulacao as string;
+    const statusSalvo = paeeData.status_documento_articulacao as string;
+    const inputSalvo = paeeData.input_original_documento_articulacao as {
+      freq?: string;
+      turno?: string;
+      acoes?: string;
+    };
+    if (conteudoSalvo) {
+      setDocumento(conteudoSalvo);
+      setStatus((statusSalvo as typeof status) || "revisao");
+    }
+    if (inputSalvo) {
+      setFrequencia(inputSalvo.freq || "2x/sem");
+      setTurno(inputSalvo.turno || "Manhã");
+      setAcoes(inputSalvo.acoes || "");
+    }
+  }, [paeeData]);
 
   const updateField = (key: string, value: unknown) => {
     onUpdate({ ...paeeData, [key]: value });
   };
 
-  const tiposArticulacao = [
-    "Professor AEE",
-    "Professor Regente",
-    "Coordenador Pedagógico",
-    "Diretor",
-    "Psicólogo Escolar",
-    "Fonoaudiólogo",
-    "Terapeuta Ocupacional",
-    "Família",
-    "Outros Profissionais",
-  ];
-
-  const adicionarArticulacao = () => {
-    if (!novoProfissional.trim()) return;
-    const nova = {
-      id: crypto.randomUUID(),
-      tipo: novoTipo || "Outros Profissionais",
-      profissional: novoProfissional,
-      contato: novoContato,
-      responsabilidades: novasResponsabilidades,
-      frequencia: novaFrequencia,
-      observacoes: novasObservacoes,
-    };
-    updateField("articulacoes", [...articulacoes, nova]);
-    setNovoTipo("");
-    setNovoProfissional("");
-    setNovoContato("");
-    setNovasResponsabilidades("");
-    setNovaFrequencia("");
-    setNovasObservacoes("");
+  const gerar = async (feedbackAjuste?: string) => {
+    if (!acoes.trim()) {
+      setErro("Por favor, descreva o trabalho desenvolvido no AEE.");
+      return;
+    }
+    setLoading(true);
+    setErro(null);
+    try {
+      const res = await fetch("/api/paee/documento-articulacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          frequencia: `${frequencia} (${turno})`,
+          acoes,
+          studentId: student?.id,
+          studentName: student?.name || "",
+          feedback: feedbackAjuste || feedback || undefined,
+          engine,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar documento");
+      setDocumento(data.documento || "");
+      setStatus("revisao");
+      updateField("conteudo_documento_articulacao", data.documento);
+      updateField("status_documento_articulacao", "revisao");
+      updateField("input_original_documento_articulacao", { freq: frequencia, turno, acoes });
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro ao gerar documento");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removerArticulacao = (id: string) => {
-    updateField("articulacoes", articulacoes.filter((a) => a.id !== id));
-  };
-
-  const atualizarArticulacao = (id: string, campo: string, valor: string) => {
-    updateField(
-      "articulacoes",
-      articulacoes.map((a) => (a.id === id ? { ...a, [campo]: valor } : a))
-    );
+  const limpar = () => {
+    setDocumento("");
+    setStatus("rascunho");
+    setAcoes("");
+    setFeedback("");
+    updateField("conteudo_documento_articulacao", "");
+    updateField("status_documento_articulacao", "rascunho");
   };
 
   return (
@@ -1596,138 +2254,291 @@ function ArticulacaoTab({
         <Users className="w-6 h-6 text-violet-600" />
         <h3 className="text-xl font-bold text-slate-800">Articulação</h3>
       </div>
-      <p className="text-sm text-slate-600 mb-6">
-        Registre e gerencie a articulação entre diferentes profissionais e serviços envolvidos no atendimento do estudante no AEE.
-      </p>
+      <div className="p-3 rounded-lg bg-violet-50 border border-violet-200 mb-4">
+        <p className="text-sm text-violet-800">
+          <strong>Ponte com a Sala Regular:</strong> Documento colaborativo para articulação entre AEE e sala de aula.
+        </p>
+      </div>
 
-      <div className="p-4 rounded-lg border-2 border-slate-200 bg-slate-50">
-        <h4 className="font-semibold text-slate-800 mb-3">Adicionar Articulação</h4>
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+      {status !== "rascunho" && (
+        <button
+          type="button"
+          onClick={limpar}
+          className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50"
+        >
+          Limpar / Abandonar
+        </button>
+      )}
+
+      {status === "rascunho" ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Profissional/Serviço</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Frequência no AEE</label>
               <select
-                value={novoTipo}
-                onChange={(e) => setNovoTipo(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                value={frequencia}
+                onChange={(e) => setFrequencia(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
               >
-                <option value="">Selecione</option>
-                {tiposArticulacao.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
+                <option value="1x/sem">1x/sem</option>
+                <option value="2x/sem">2x/sem</option>
+                <option value="3x/sem">3x/sem</option>
+                <option value="Diário">Diário</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nome do Profissional</label>
-              <input
-                type="text"
-                value={novoProfissional}
-                onChange={(e) => setNovoProfissional(e.target.value)}
-                placeholder="Ex.: Maria Silva"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Contato</label>
-            <input
-              type="text"
-              value={novoContato}
-              onChange={(e) => setNovoContato(e.target.value)}
-              placeholder="Ex.: email@escola.com.br ou (11) 99999-9999"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Responsabilidades</label>
-            <textarea
-              value={novasResponsabilidades}
-              onChange={(e) => setNovasResponsabilidades(e.target.value)}
-              placeholder="Descreva as responsabilidades deste profissional/serviço"
-              rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Frequência de Articulação</label>
-              <input
-                type="text"
-                value={novaFrequencia}
-                onChange={(e) => setNovaFrequencia(e.target.value)}
-                placeholder="Ex.: Semanal, Quinzenal, Mensal"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-              />
-            </div>
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={adicionarArticulacao}
-                className="w-full px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Turno</label>
+              <select
+                value={turno}
+                onChange={(e) => setTurno(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
               >
-                Adicionar
-              </button>
+                <option value="Manhã">Manhã</option>
+                <option value="Tarde">Tarde</option>
+                <option value="Integral">Integral</option>
+              </select>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Observações</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Trabalho Desenvolvido no AEE
+            </label>
             <textarea
-              value={novasObservacoes}
-              onChange={(e) => setNovasObservacoes(e.target.value)}
-              placeholder="Observações adicionais sobre a articulação"
-              rows={2}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              value={acoes}
+              onChange={(e) => setAcoes(e.target.value)}
+              placeholder="Descreva as principais ações, estratégias e recursos utilizados no AEE..."
+              rows={6}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+            />
+          </div>
+          <EngineSelector value={engine} onChange={setEngine} />
+          <button
+            type="button"
+            onClick={() => gerar()}
+            disabled={loading || !acoes.trim()}
+            className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <span className="animate-spin">⏳</span>
+                Gerando documento...
+              </>
+            ) : (
+              <>
+                <Users className="w-5 h-5" />
+                📄 Gerar Documento
+              </>
+            )}
+          </button>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : status === "revisao" ? (
+        <div className="space-y-4">
+          <FormattedTextDisplay texto={documento} titulo="Documento de Articulação Gerado" />
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("aprovado");
+                updateField("status_documento_articulacao", "aprovado");
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              ✅ Validar e Finalizar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("ajustando");
+              }}
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+            >
+              🔄 Solicitar Ajustes
+            </button>
+            <button
+              type="button"
+              onClick={limpar}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              🗑️ Descartar e Regenerar
+            </button>
+            <PdfDownloadButton
+              text={documento}
+              filename={`Documento_Articulacao_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}
+              title={`Documento de Articulação - ${student?.name || ""}`}
+            />
+            <DocxDownloadButton
+              text={documento}
+              filename={`Documento_Articulacao_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
+              title={`Documento de Articulação - ${student?.name || ""}`}
             />
           </div>
         </div>
-      </div>
+      ) : status === "ajustando" ? (
+        <div className="space-y-4">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-sm font-semibold text-amber-800 mb-2">✏️ Modo de Ajuste Ativo</p>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Descreva os ajustes necessários:
+            </label>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Ex.: Incluir mais detalhes sobre estratégias de generalização, focar em orientações práticas..."
+              rows={4}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => gerar(feedback)}
+              disabled={loading || !feedback.trim()}
+              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
+            >
+              {loading ? "Aplicando ajustes..." : "🔄 Regerar com Ajustes"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("revisao");
+                setFeedback("");
+              }}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              ↩️ Cancelar Ajustes
+            </button>
+          </div>
+          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm font-semibold text-green-800">✅ Documento Validado e Pronto para Uso</p>
+          </div>
+          <FormattedTextDisplay texto={documento} titulo="Documento de Articulação Final" />
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                setStatus("revisao");
+                updateField("status_documento_articulacao", "revisao");
+              }}
+              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
+            >
+              ✏️ Editar Novamente
+            </button>
+            <PdfDownloadButton
+              text={documento}
+              filename={`Documento_Articulacao_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}
+              title={`Documento de Articulação - ${student?.name || ""}`}
+            />
+            <DocxDownloadButton
+              text={documento}
+              filename={`Documento_Articulacao_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
+              title={`Documento de Articulação - ${student?.name || ""}`}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
-      <div className="space-y-4">
-        <h4 className="font-semibold text-slate-800">Articulações Registradas</h4>
-        {articulacoes.length === 0 ? (
-          <p className="text-slate-500 text-sm">Nenhuma articulação registrada ainda.</p>
-        ) : (
-          articulacoes.map((a) => (
-            <div key={a.id} className="p-4 rounded-lg border-2 border-slate-200 bg-white">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold text-violet-600 bg-violet-100 px-2 py-0.5 rounded">
-                      {a.tipo}
-                    </span>
-                    <h5 className="font-semibold text-slate-800">{a.profissional}</h5>
-                  </div>
-                  {a.contato && <p className="text-sm text-slate-600 mt-1">Contato: {a.contato}</p>}
-                  {a.responsabilidades && (
-                    <p className="text-sm text-slate-600 mt-1">Responsabilidades: {a.responsabilidades}</p>
-                  )}
-                  {a.frequencia && (
-                    <p className="text-xs text-slate-500 mt-1">Frequência: {a.frequencia}</p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removerArticulacao(a.id)}
-                  className="text-red-600 hover:text-red-800 text-sm"
-                >
-                  Remover
-                </button>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Observações</label>
-                <textarea
-                  value={a.observacoes}
-                  onChange={(e) => atualizarArticulacao(a.id, "observacoes", e.target.value)}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                />
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+// Componente para range input com cores (igual ao PEI)
+function NivelSuporteRange({
+  value,
+  max,
+  onChange,
+  id,
+}: {
+  value: number;
+  max: number;
+  onChange: (value: number) => void;
+  id: string;
+}) {
+  const thumbColor = value === 0 ? '#10b981' : value === 1 ? '#eab308' : value === 2 ? '#f97316' : '#ef4444';
+  const rangeId = `range-${id.replace(/[^a-zA-Z0-9]/g, '-')}`;
+  
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.id = `style-${rangeId}`;
+    style.textContent = `
+      #${rangeId}::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: ${thumbColor};
+        border: 3px solid white;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        transition: background 0.2s;
+      }
+      #${rangeId}::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: ${thumbColor};
+        border: 3px solid white;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        transition: background 0.2s;
+      }
+      #${rangeId}::-webkit-slider-runnable-track {
+        background: transparent;
+        height: 8px;
+      }
+      #${rangeId}::-moz-range-track {
+        background: transparent;
+        height: 8px;
+      }
+    `;
+    const existingStyle = document.getElementById(`style-${rangeId}`);
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    document.head.appendChild(style);
+    return () => {
+      const styleEl = document.getElementById(`style-${rangeId}`);
+      if (styleEl) styleEl.remove();
+    };
+  }, [thumbColor, rangeId]);
+  
+  // Calcular cor da barra baseada na posição do marcador
+  let barColor = '#10b981'; // Verde (Autônomo - valor 0)
+  if (value === 1) barColor = '#eab308'; // Amarelo (Monitorado)
+  if (value === 2) barColor = '#f97316'; // Laranja (Substancial)
+  if (value === 3) barColor = '#ef4444'; // Vermelho (Muito Substancial)
+
+  return (
+    <div className="relative">
+      {/* Barra de fundo cinza */}
+      <div 
+        className="absolute w-full h-2 rounded-lg pointer-events-none bg-slate-200"
+      />
+      {/* Barra inteira com a cor baseada na posição do marcador */}
+      <div 
+        className="absolute w-full h-2 rounded-lg pointer-events-none transition-all duration-200"
+        style={{
+          background: barColor,
+        }}
+      />
+      {/* Input range transparente sobre a barra colorida */}
+      <input
+        type="range"
+        min="0"
+        max={max}
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value))}
+        className="relative w-full h-2 rounded-lg appearance-none cursor-pointer bg-transparent"
+        style={{
+          WebkitAppearance: 'none',
+          appearance: 'none',
+        }}
+        id={rangeId}
+      />
     </div>
   );
 }

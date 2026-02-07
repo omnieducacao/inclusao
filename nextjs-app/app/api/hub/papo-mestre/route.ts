@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { gerarPromptPapoMestre } from "@/lib/hub-prompts";
 
 export async function POST(req: Request) {
   let body: {
@@ -31,14 +32,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Informe o assunto da aula." }, { status: 400 });
   }
 
-  const prompt = `Crie 3 sugestões de 'Papo de Mestre' (Quebra-gelo/Introdução) para conectar ${nomeEstudante} à aula.
-Componente Curricular: ${materia}. Assunto: ${assunto}.
-Hiperfoco do estudante: ${hiperfoco}.
-Tema de interesse da turma (DUA): ${temaTurma || "Não informado"}.
-
-O objetivo é usar o hiperfoco ou o interesse da turma como UMA PONTE (estratégia DUA de engajamento) para explicar o conceito de ${assunto}.
-Seja criativo e profundo.
-Regra LGPD: NUNCA inclua diagnóstico ou CID no texto.`;
+  // Usar prompt do arquivo separado (idêntico ao Streamlit)
+  const prompt = gerarPromptPapoMestre({
+    aluno: {
+      nome: nomeEstudante,
+      hiperfoco,
+    },
+    materia,
+    assunto,
+    tema_turma_extra: temaTurma,
+  });
 
   const engineErr = getEngineError(engine);
   if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });

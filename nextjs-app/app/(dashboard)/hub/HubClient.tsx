@@ -9,6 +9,8 @@ import { detectarNivelEnsino } from "@/lib/pei";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { getColorClasses } from "@/lib/colors";
+import { PEISummaryPanel } from "@/components/PEISummaryPanel";
+import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import {
   FileText,
   Image as ImageIcon,
@@ -90,6 +92,10 @@ export function HubClient({ students, studentId, student }: Props) {
       <StudentSelector students={students} currentId={currentId} placeholder="Selecione o estudante" />
 
       {currentId && student && (
+        <PEISummaryPanel peiData={peiData} studentName={student.name} />
+      )}
+
+      {currentId && student && (
         <div className="space-y-2">
           {isEI && (
             <div className="px-4 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
@@ -161,7 +167,7 @@ export function HubClient({ students, studentId, student }: Props) {
       )}
 
       {activeTool === "adaptar-atividade" && (
-        <AdaptarAtividade student={student} hiperfoco={hiperfoco} onClose={() => setActiveTool(null)} />
+        <AdaptarAtividade student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
       )}
 
       {activeTool === "estudio-visual" && (
@@ -198,6 +204,16 @@ export function HubClient({ students, studentId, student }: Props) {
   );
 }
 
+// Taxonomia de Bloom - Estrutura completa com domínios e verbos
+const TAXONOMIA_BLOOM: Record<string, string[]> = {
+  "1. Lembrar (Memorizar)": ["Citar", "Definir", "Identificar", "Listar", "Nomear", "Reconhecer", "Recordar", "Relacionar", "Repetir", "Sublinhar"],
+  "2. Entender (Compreender)": ["Classificar", "Descrever", "Discutir", "Explicar", "Expressar", "Identificar", "Localizar", "Narrar", "Reafirmar", "Reportar", "Resumir", "Traduzir"],
+  "3. Aplicar": ["Aplicar", "Demonstrar", "Dramatizar", "Empregar", "Esboçar", "Ilustrar", "Interpretar", "Operar", "Praticar", "Programar", "Usar"],
+  "4. Analisar": ["Analisar", "Calcular", "Categorizar", "Comparar", "Contrastar", "Criticar", "Diferenciar", "Discriminar", "Distinguir", "Examinar", "Experimentar", "Testar"],
+  "5. Avaliar": ["Argumentar", "Avaliar", "Defender", "Escolher", "Estimar", "Julgar", "Prever", "Selecionar", "Suportar", "Validar", "Valorizar"],
+  "6. Criar": ["Compor", "Construir", "Criar", "Desenhar", "Desenvolver", "Formular", "Investigar", "Planejar", "Produzir", "Propor"]
+};
+
 function CriarDoZero({
   student,
   engine,
@@ -224,13 +240,49 @@ function CriarDoZero({
   const [eiCampo, setEiCampo] = useState("");
   const [assunto, setAssunto] = useState("");
   const [habilidadesSel, setHabilidadesSel] = useState<string[]>([]);
-  const [usarImagens, setUsarImagens] = useState(false);
+  // Taxonomia de Bloom - estrutura completa
+  const [usarBloom, setUsarBloom] = useState(false);
+  const [dominioBloomSel, setDominioBloomSel] = useState<string>("");
+  const [verbosBloomSel, setVerbosBloomSel] = useState<Record<string, string[]>>({});
+  // Configuração de questões
+  const [qtdQuestoes, setQtdQuestoes] = useState(5);
+  const [tipoQuestao, setTipoQuestao] = useState<"Objetiva" | "Discursiva">("Objetiva");
+  const [usarImagens, setUsarImagens] = useState(true);
+  const [qtdImagens, setQtdImagens] = useState(0);
+  const [checklist, setChecklist] = useState<ChecklistAdaptacao>({});
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [mapaImagensResultado, setMapaImagensResultado] = useState<Record<number, string>>({});
   const [erro, setErro] = useState<string | null>(null);
+  const [validado, setValidado] = useState(false);
 
   const serieAluno = student?.grade || "";
+  const peiData = student?.pei_data || {};
+  
+  // Carregar BNCC do PEI quando disponível
+  useEffect(() => {
+    if (!peiData || !student) return;
+    
+    // Carregar habilidades BNCC validadas do PEI
+    const habValidadas = (peiData.habilidades_bncc_validadas || peiData.habilidades_bncc_selecionadas || []) as Array<{ codigo?: string; descricao?: string; habilidade_completa?: string }>;
+    if (habValidadas.length > 0) {
+      const habsFormatadas = habValidadas.map((h) => {
+        if (typeof h === "string") return h;
+        return h.habilidade_completa || `${h.codigo || ""} — ${h.descricao || ""}`;
+      }).filter(Boolean);
+      setHabilidadesSel(habsFormatadas);
+    }
+    
+    // Carregar EI do PEI
+    if (eiMode) {
+      const idadePei = peiData.bncc_ei_idade as string;
+      const campoPei = peiData.bncc_ei_campo as string;
+      const objetivosPei = (peiData.bncc_ei_objetivos || []) as string[];
+      if (idadePei) setEiIdade(idadePei);
+      if (campoPei) setEiCampo(campoPei);
+      if (objetivosPei.length > 0) setEiObjetivos(objetivosPei);
+    }
+  }, [peiData, student, eiMode]);
 
   useEffect(() => {
     if (eiMode) {
@@ -293,55 +345,105 @@ function CriarDoZero({
               (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
             );
 
+  const temBnccPreenchida = eiMode 
+    ? (eiIdade && eiCampo && eiObjetivos.length > 0)
+    : habilidadesSel.length > 0;
+  
+  // Combinar todos os verbos Bloom selecionados
+  const verbosBloomFinais = usarBloom 
+    ? Object.values(verbosBloomSel).flat()
+    : [];
+
+  // Atualizar qtdImagens quando qtdQuestoes mudar
+  useEffect(() => {
+    if (qtdImagens > qtdQuestoes) {
+      setQtdImagens(Math.max(0, qtdQuestoes));
+    } else if (usarImagens && qtdImagens === 0 && qtdQuestoes > 1) {
+      // Inicializar com metade das questões quando usarImagens é marcado
+      setQtdImagens(Math.floor(qtdQuestoes / 2));
+    }
+  }, [qtdQuestoes, qtdImagens, usarImagens]);
+
   const gerar = async () => {
-    if (!assunto.trim()) {
-      setErro("Informe o assunto.");
+    // Assunto só é obrigatório se não tiver BNCC preenchida
+    if (!assunto.trim() && !temBnccPreenchida) {
+      setErro("Informe o assunto ou selecione habilidades BNCC.");
       return;
     }
     setLoading(true);
     setErro(null);
     setResultado(null);
     setMapaImagensResultado({});
+    setValidado(false);
     try {
       const res = await fetch("/api/hub/criar-atividade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          assunto,
+          assunto: assunto.trim() || undefined,
           engine,
           ei_mode: eiMode,
           ei_idade: eiMode ? eiIdade : undefined,
           ei_campo: eiMode ? eiCampo : undefined,
           ei_objetivos: eiMode && habilidadesSel.length ? habilidadesSel : undefined,
           habilidades: !eiMode && habilidadesSel.length > 0 ? habilidadesSel : undefined,
+          verbos_bloom: usarBloom && verbosBloomFinais.length > 0 ? verbosBloomFinais : undefined,
+          qtd_questoes: qtdQuestoes,
+          tipo_questao: tipoQuestao,
+          qtd_imagens: usarImagens ? qtdImagens : 0,
+          checklist_adaptacao: Object.keys(checklist).length > 0 ? checklist : undefined,
           estudante: student ? { nome: student.name, serie: student.grade, hiperfoco: (student.pei_data as Record<string, unknown>)?.hiperfoco } : undefined,
-          usar_imagens: usarImagens,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao gerar");
       let textoFinal = data.texto || "Atividade gerada.";
+      
+      // Processar divisor se existir (separar análise e atividade)
+      if (textoFinal.includes("---DIVISOR---")) {
+        const parts = textoFinal.split("---DIVISOR---");
+        const analise = parts[0]?.replace("[ANÁLISE PEDAGÓGICA]", "").trim() || "";
+        const atividade = parts[1]?.replace("[ATIVIDADE]", "").trim() || textoFinal;
+        textoFinal = analise ? `## Análise Pedagógica\n\n${analise}\n\n---\n\n## Atividade\n\n${atividade}` : atividade;
+      }
+      
       let mapa: Record<number, string> = {};
-      if (usarImagens) {
+      if (usarImagens && qtdImagens > 0) {
         const genImgRegex = /\[\[GEN_IMG:\s*([^\]]+)\]\]/gi;
         const termos: string[] = [];
         let m: RegExpExecArray | null;
         while ((m = genImgRegex.exec(textoFinal)) !== null) {
           termos.push(m[1].trim());
         }
+        // Prioridade: BANCO (Unsplash) primeiro; IA só em último caso
         for (let i = 0; i < termos.length; i++) {
           try {
-            const imgRes = await fetch("/api/hub/estudio-imagem", {
+            // Tenta primeiro com prioridade BANCO (Unsplash)
+            let imgRes = await fetch("/api/hub/gerar-imagem", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ tipo: "ilustracao", prompt: termos[i] }),
+              body: JSON.stringify({ prompt: termos[i], prioridade: "BANCO" }),
             });
-            const imgData = await imgRes.json();
+            
+            let imgData = await imgRes.json();
+            
+            // Se não encontrou no banco, tenta IA
+            if (!imgRes.ok || !imgData.image) {
+              imgRes = await fetch("/api/hub/gerar-imagem", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: termos[i], prioridade: "IA" }),
+              });
+              imgData = await imgRes.json();
+            }
+            
             if (imgRes.ok && imgData.image) {
+              // Remove o prefixo data:image se existir
               const base64 = (imgData.image as string).replace(/^data:image\/\w+;base64,/, "");
               mapa[i + 1] = base64;
             }
-          } catch {
+          } catch (error) {
+            console.error(`Erro ao gerar imagem ${i + 1}:`, error);
             // ignora falha em uma imagem
           }
         }
@@ -375,7 +477,16 @@ function CriarDoZero({
             <BookOpen className="w-4 h-4" />
             BNCC: Unidade e Objeto
           </summary>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
+              <input
+                type="text"
+                value={serieAluno || ""}
+                readOnly
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+              />
+            </div>
             <div>
               <label className="block text-xs text-slate-600 mb-1">Componente</label>
               <select
@@ -450,17 +561,12 @@ function CriarDoZero({
         </div>
       )}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">{eiMode ? "Assunto / tema da experiência" : "Assunto / tema"}</label>
-        <input
-          type="text"
-          value={assunto}
-          onChange={(e) => setAssunto(e.target.value)}
-          placeholder="Ex: Frações, Sistema Solar..."
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">{eiMode ? "Objetivos de Aprendizagem (opcional)" : "Habilidades BNCC (opcional)"}</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          {eiMode ? "Objetivos de Aprendizagem" : "Habilidades BNCC"}
+          {temBnccPreenchida && (
+            <span className="text-xs text-emerald-600 ml-2">(carregadas do PEI)</span>
+          )}
+        </label>
         <select
           multiple
           value={habilidadesSel}
@@ -473,10 +579,187 @@ function CriarDoZero({
         </select>
         <p className="text-xs text-slate-500 mt-1">Segure Ctrl/Cmd para múltipla seleção.</p>
       </div>
-      <label className="flex items-center gap-2">
-        <input type="checkbox" checked={usarImagens} onChange={(e) => setUsarImagens(e.target.checked)} />
-        <span className="text-sm">Incluir imagens ilustrativas (IA gera descrições; imagens via DALL-E)</span>
-      </label>
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          {eiMode ? "Assunto / tema da experiência" : "Assunto / tema"}
+          {temBnccPreenchida && (
+            <span className="text-xs text-emerald-600 ml-2">(opcional - BNCC já preenchida)</span>
+          )}
+        </label>
+        <input
+          type="text"
+          value={assunto}
+          onChange={(e) => setAssunto(e.target.value)}
+          placeholder={temBnccPreenchida ? "Opcional quando BNCC está preenchida" : "Ex: Frações, Sistema Solar..."}
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+        />
+        {temBnccPreenchida && habilidadesSel.length > 0 && (
+          <p className="text-xs text-emerald-600 mt-1">
+            ✓ {habilidadesSel.length} habilidade(s) BNCC do PEI carregada(s)
+          </p>
+        )}
+      </div>
+      
+      {/* Configuração de Questões */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Quantidade de Questões</label>
+          <input
+            type="range"
+            min={1}
+            max={10}
+            value={qtdQuestoes}
+            onChange={(e) => setQtdQuestoes(Number(e.target.value))}
+            className="w-full"
+          />
+          <div className="text-center text-sm text-slate-600 mt-1">{qtdQuestoes} questão(ões)</div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Questão</label>
+          <select
+            value={tipoQuestao}
+            onChange={(e) => setTipoQuestao(e.target.value as "Objetiva" | "Discursiva")}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+          >
+            <option value="Objetiva">Objetiva</option>
+            <option value="Discursiva">Discursiva</option>
+          </select>
+        </div>
+        <div>
+          <label className="flex items-center gap-2 mb-1">
+            <input
+              type="checkbox"
+              checked={usarImagens}
+              onChange={(e) => {
+                setUsarImagens(e.target.checked);
+                if (!e.target.checked) {
+                  setQtdImagens(0);
+                } else if (qtdImagens === 0 && qtdQuestoes > 1) {
+                  // Inicializar com metade das questões (como no Streamlit)
+                  setQtdImagens(Math.floor(qtdQuestoes / 2));
+                }
+              }}
+            />
+            <span className="text-sm font-medium text-slate-700">Incluir Imagens?</span>
+          </label>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Qtd. Imagens</label>
+          <input
+            type="range"
+            min={0}
+            max={qtdQuestoes}
+            value={qtdImagens}
+            onChange={(e) => setQtdImagens(Number(e.target.value))}
+            disabled={!usarImagens}
+            className="w-full"
+          />
+          <div className="text-center text-sm text-slate-600 mt-1">{qtdImagens} imagem(ns)</div>
+        </div>
+      </div>
+      
+      {/* Taxonomia de Bloom e Checklist lado a lado */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Taxonomia de Bloom */}
+        <details className="border border-slate-200 rounded-lg">
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">
+            🧠 Taxonomia de Bloom (opcional)
+          </summary>
+          <div className="p-4 space-y-3">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={usarBloom}
+                onChange={(e) => {
+                  setUsarBloom(e.target.checked);
+                  if (!e.target.checked) {
+                    setDominioBloomSel("");
+                    setVerbosBloomSel({});
+                  } else if (!dominioBloomSel && Object.keys(TAXONOMIA_BLOOM).length > 0) {
+                    setDominioBloomSel(Object.keys(TAXONOMIA_BLOOM)[0]);
+                  }
+                }}
+              />
+              <span className="text-sm">Usar Taxonomia de Bloom (Revisada)</span>
+            </label>
+            {usarBloom && (
+              <>
+                <div>
+                  <label className="block text-xs text-slate-600 mb-1">Categoria Cognitiva:</label>
+                  <select
+                    value={dominioBloomSel}
+                    onChange={(e) => {
+                      setDominioBloomSel(e.target.value);
+                      if (!verbosBloomSel[e.target.value]) {
+                        setVerbosBloomSel((prev) => ({ ...prev, [e.target.value]: [] }));
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                  >
+                    <option value="">Selecione uma categoria</option>
+                    {Object.keys(TAXONOMIA_BLOOM).map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+                {dominioBloomSel && TAXONOMIA_BLOOM[dominioBloomSel] && (
+                  <div>
+                    <label className="block text-xs text-slate-600 mb-1">Verbos de '{dominioBloomSel}':</label>
+                    <select
+                      multiple
+                      value={verbosBloomSel[dominioBloomSel] || []}
+                      onChange={(e) => {
+                        const selecionados = Array.from(e.target.selectedOptions, (o) => o.value);
+                        setVerbosBloomSel((prev) => ({ ...prev, [dominioBloomSel]: selecionados }));
+                      }}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm min-h-[120px]"
+                    >
+                      {TAXONOMIA_BLOOM[dominioBloomSel].map((verbo) => (
+                        <option key={verbo} value={verbo}>{verbo}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-slate-500 mt-1">Segure Ctrl/Cmd para múltipla seleção.</p>
+                  </div>
+                )}
+                {verbosBloomFinais.length > 0 && (
+                  <div className="p-2 bg-emerald-50 border border-emerald-200 rounded text-sm">
+                    <strong>Verbos selecionados:</strong> {verbosBloomFinais.join(", ")}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </details>
+        
+        {/* Checklist de Adaptação */}
+        <details className="border border-slate-200 rounded-lg">
+        <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">
+          Checklist de Adaptação (PEI)
+        </summary>
+        <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+          {[
+            { k: "questoes_desafiadoras", l: "Questões mais desafiadoras" },
+            { k: "compreende_instrucoes_complexas", l: "Compreende instruções complexas" },
+            { k: "instrucoes_passo_a_passo", l: "Instruções passo a passo" },
+            { k: "dividir_em_etapas", l: "Dividir em etapas" },
+            { k: "paragrafos_curtos", l: "Parágrafos curtos" },
+            { k: "dicas_apoio", l: "Dicas de apoio" },
+            { k: "compreende_figuras_linguagem", l: "Compreende figuras de linguagem" },
+            { k: "descricao_imagens", l: "Descrição de imagens" },
+          ].map(({ k, l }) => (
+            <label key={k} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={!!checklist[k as keyof ChecklistAdaptacao]}
+                onChange={(e) => setChecklist((c) => ({ ...c, [k]: e.target.checked }))}
+              />
+              {l}
+            </label>
+          ))}
+        </div>
+      </details>
+      </div>
+      
       <button
         type="button"
         onClick={gerar}
@@ -487,20 +770,48 @@ function CriarDoZero({
       </button>
       {erro && <div className="text-red-600 text-sm">{erro}</div>}
       {resultado && (
-        <div className="p-4 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-slate-700">Resultado</span>
-            <span className="flex gap-2">
-              <DocxDownloadButton
-                texto={resultado}
-                titulo="Atividade Criada"
-                filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`}
-                mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
-              />
-              <PdfDownloadButton text={resultado} filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Atividade Criada" />
-            </span>
+        <div className="space-y-4">
+          {validado && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm font-medium">
+              ✅ ATIVIDADE VALIDADA E PRONTA PARA USO
+            </div>
+          )}
+          {!validado && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setValidado(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+              >
+                ✅ Validar Atividade
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setResultado(null);
+                  setValidado(false);
+                }}
+                className="px-4 py-2 bg-slate-400 text-white rounded-lg hover:bg-slate-500 text-sm"
+              >
+                🗑️ Descartar
+              </button>
+            </div>
+          )}
+          <div className="p-6 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+              <span className="text-base font-semibold text-slate-800">Atividade Criada</span>
+              <span className="flex gap-2">
+                <DocxDownloadButton
+                  texto={resultado}
+                  titulo="Atividade Criada"
+                  filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`}
+                  mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
+                />
+                <PdfDownloadButton text={resultado} filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Atividade Criada" />
+              </span>
+            </div>
+            <FormattedTextDisplay texto={resultado} />
           </div>
-          <pre className="whitespace-pre-wrap text-sm text-slate-600">{resultado}</pre>
         </div>
       )}
     </div>
@@ -508,6 +819,42 @@ function CriarDoZero({
 }
 
 const COMPONENTES = ["Língua Portuguesa", "Matemática", "Arte", "Ciências", "Educação Física", "Geografia", "História", "Língua Inglesa", "Ensino Religioso"];
+
+// Metodologias para Plano de Aula
+const METODOLOGIAS = [
+  "Aula Expositiva Dialogada",
+  "Metodologia Ativa",
+  "Aprendizagem Baseada em Problemas",
+  "Ensino Híbrido",
+  "Sala de Aula Invertida",
+  "Rotação por Estações",
+];
+
+// Técnicas Ativas (aparece quando "Metodologia Ativa" é selecionada)
+const TECNICAS_ATIVAS = [
+  "Gamificação",
+  "Sala de Aula Invertida",
+  "Aprendizagem Baseada em Projetos (PBL)",
+  "Rotação por Estações",
+  "Peer Instruction",
+  "Estudo de Caso",
+  "Aprendizagem Cooperativa",
+];
+
+// Recursos disponíveis
+const RECURSOS_DISPONIVEIS = [
+  "Quadro/Giz",
+  "Projetor/Datashow",
+  "Lousa Digital",
+  "Tablets/Celulares",
+  "Internet",
+  "Materiais Maker (Papel, Cola, etc)",
+  "Jogos de Tabuleiro",
+  "Laboratório",
+  "Material Dourado",
+  "Recursos de CAA",
+  "Vídeos Educativos",
+];
 
 function PapoDeMestre({
   student,
@@ -528,6 +875,7 @@ function PapoDeMestre({
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [validado, setValidado] = useState(false);
 
   const gerar = async () => {
     if (!assunto.trim()) {
@@ -537,6 +885,7 @@ function PapoDeMestre({
     setLoading(true);
     setErro(null);
     setResultado(null);
+    setValidado(false);
     try {
       const res = await fetch("/api/hub/papo-mestre", {
         method: "POST",
@@ -620,15 +969,43 @@ function PapoDeMestre({
       </button>
       {erro && <div className="text-red-600 text-sm">{erro}</div>}
       {resultado && (
-        <div className="p-4 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-slate-700">Conexões para engajamento</span>
-            <span className="flex gap-2">
-              <DocxDownloadButton texto={resultado} titulo="Papo de Mestre" filename={`Papo_Mestre_${new Date().toISOString().slice(0, 10)}.docx`} />
-              <PdfDownloadButton text={resultado} filename={`Papo_Mestre_${new Date().toISOString().slice(0, 10)}.pdf`} title="Papo de Mestre" />
-            </span>
+        <div className="space-y-4">
+          {validado && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm font-medium">
+              ✅ CONEXÕES VALIDADAS E PRONTAS PARA USO
+            </div>
+          )}
+          {!validado && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setValidado(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+              >
+                ✅ Validar Conexões
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setResultado(null);
+                  setValidado(false);
+                }}
+                className="px-4 py-2 bg-slate-400 text-white rounded-lg hover:bg-slate-500 text-sm"
+              >
+                🗑️ Descartar
+              </button>
+            </div>
+          )}
+          <div className="p-6 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+              <span className="text-base font-semibold text-slate-800">Conexões para Engajamento</span>
+              <span className="flex gap-2">
+                <DocxDownloadButton texto={resultado} titulo="Papo de Mestre" filename={`Papo_Mestre_${new Date().toISOString().slice(0, 10)}.docx`} />
+                <PdfDownloadButton text={resultado} filename={`Papo_Mestre_${new Date().toISOString().slice(0, 10)}.pdf`} title="Papo de Mestre" />
+              </span>
+            </div>
+            <FormattedTextDisplay texto={resultado} />
           </div>
-          <pre className="whitespace-pre-wrap text-sm text-slate-600">{resultado}</pre>
         </div>
       )}
     </div>
@@ -650,8 +1027,10 @@ function PlanoAulaDua({
   const [assunto, setAssunto] = useState("");
   const [serie, setSerie] = useState("");
   const [duracao, setDuracao] = useState(50);
-  const [metodologia, setMetodologia] = useState("Metodologias ativas");
-  const [qtdAlunos, setQtdAlunos] = useState(25);
+  const [metodologia, setMetodologia] = useState("Aula Expositiva Dialogada");
+  const [tecnicaAtiva, setTecnicaAtiva] = useState("");
+  const [recursos, setRecursos] = useState<string[]>([]);
+  const [qtdAlunos, setQtdAlunos] = useState(30);
   const [componentes, setComponentes] = useState<Record<string, { codigo: string; descricao: string }[]>>({});
   const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
   const [componenteSel, setComponenteSel] = useState("");
@@ -697,9 +1076,11 @@ function PlanoAulaDua({
         ? Object.values(discDataP.porUnidade || {}).flatMap((v) => Object.values(v.porObjeto || {}).flatMap((habList) => (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)))
         : Object.entries(componentes).flatMap(([disc, habs]) => (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`));
 
+  const temBnccPreenchida = habilidadesSel.length > 0;
+
   const gerar = async () => {
-    if (!assunto.trim()) {
-      setErro("Informe o assunto da aula.");
+    if (!assunto.trim() && !temBnccPreenchida) {
+      setErro("Informe o assunto ou selecione habilidades BNCC.");
       return;
     }
     setLoading(true);
@@ -711,12 +1092,15 @@ function PlanoAulaDua({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           materia,
-          assunto,
+          assunto: assunto.trim() || undefined,
           duracao_minutos: duracao,
           metodologia,
+          tecnica: metodologia === "Metodologia Ativa" && tecnicaAtiva ? tecnicaAtiva : undefined,
           qtd_alunos: qtdAlunos,
-          recursos: ["Quadro", "Material impresso", "Projetor", "Computador"],
+          recursos: recursos.length > 0 ? recursos : undefined,
           habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
+          unidade_tematica: unidadeSel || undefined,
+          objeto_conhecimento: objetoSel || undefined,
           estudante: student
             ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 300) }
             : undefined,
@@ -743,6 +1127,15 @@ function PlanoAulaDua({
       <EngineSelector value={engine} onChange={onEngineChange} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Série (ano BNCC)</label>
+          <input
+            type="text"
+            value={serieAluno || ""}
+            readOnly
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
+          />
+        </div>
+        <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Componente Curricular</label>
           <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
             {COMPONENTES.map((c) => (
@@ -750,36 +1143,93 @@ function PlanoAulaDua({
             ))}
           </select>
         </div>
+      </div>
+      
+      {/* Configuração Metodológica */}
+      <div className="border-t border-slate-200 pt-4">
+        <h4 className="text-sm font-semibold text-slate-700 mb-3">Configuração Metodológica</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Metodologia</label>
+            <select
+              value={metodologia}
+              onChange={(e) => {
+                setMetodologia(e.target.value);
+                if (e.target.value !== "Metodologia Ativa") {
+                  setTecnicaAtiva("");
+                }
+              }}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            >
+              {METODOLOGIAS.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            {metodologia === "Metodologia Ativa" ? (
+              <>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Técnica Ativa</label>
+                <select
+                  value={tecnicaAtiva}
+                  onChange={(e) => setTecnicaAtiva(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                >
+                  <option value="">Selecione uma técnica</option>
+                  {TECNICAS_ATIVAS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </>
+            ) : (
+              <div className="mt-6 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <p className="text-xs text-slate-600">
+                  <strong>Metodologia selecionada:</strong> {metodologia}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Assunto / Tema *</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Qtd Estudantes</label>
           <input
-            type="text"
-            value={assunto}
-            onChange={(e) => setAssunto(e.target.value)}
-            placeholder="Ex: Frações equivalentes..."
+            type="number"
+            min={1}
+            value={qtdAlunos}
+            onChange={(e) => setQtdAlunos(Number(e.target.value))}
             className="w-full px-3 py-2 border border-slate-200 rounded-lg"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Duração (min)</label>
-          <select value={duracao} onChange={(e) => setDuracao(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
-            <option value={50}>50 min (1 aula)</option>
-            <option value={100}>100 min (2 aulas)</option>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Duração da aula</label>
+          <select
+            value={duracao}
+            onChange={(e) => setDuracao(Number(e.target.value))}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+          >
+            <option value={50}>50 minutos (1 aula)</option>
+            <option value={100}>100 minutos (2 aulas)</option>
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Quantidade de alunos</label>
-          <input type="number" min={5} max={50} value={qtdAlunos} onChange={(e) => setQtdAlunos(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-        </div>
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-slate-700 mb-1">Metodologia</label>
-          <input
-            type="text"
-            value={metodologia}
-            onChange={(e) => setMetodologia(e.target.value)}
-            placeholder="Ex: Sala de aula invertida, Aprendizagem baseada em projetos..."
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-          />
+          <label className="block text-sm font-medium text-slate-700 mb-1">Recursos Disponíveis</label>
+          <select
+            multiple
+            value={recursos}
+            onChange={(e) => {
+              const selecionados = Array.from(e.target.selectedOptions, (o) => o.value);
+              setRecursos(selecionados);
+            }}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm min-h-[100px]"
+          >
+            {RECURSOS_DISPONIVEIS.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+          <p className="text-xs text-slate-500 mt-1">Segure Ctrl/Cmd para múltipla seleção.</p>
         </div>
       </div>
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
@@ -788,7 +1238,16 @@ function PlanoAulaDua({
             <BookOpen className="w-4 h-4" />
             BNCC: Unidade e Objeto (opcional)
           </summary>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
+              <input
+                type="text"
+                value={serieAluno || ""}
+                readOnly
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+              />
+            </div>
             <div>
               <label className="block text-xs text-slate-600 mb-1">Componente</label>
               <select value={componenteSel} onChange={(e) => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm">
@@ -819,6 +1278,28 @@ function PlanoAulaDua({
           </div>
         </details>
       )}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          Assunto / Tema
+          {temBnccPreenchida ? (
+            <span className="text-xs text-emerald-600 ml-2 font-normal">(opcional - BNCC já preenchida)</span>
+          ) : (
+            <span className="text-xs text-red-600 ml-2 font-normal">*</span>
+          )}
+        </label>
+        <input
+          type="text"
+          value={assunto}
+          onChange={(e) => setAssunto(e.target.value)}
+          placeholder={temBnccPreenchida ? "Opcional quando BNCC está preenchida" : "Ex: Frações equivalentes..."}
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+        />
+        {temBnccPreenchida && habilidadesSel.length > 0 && (
+          <p className="text-xs text-emerald-600 mt-1">
+            ✓ {habilidadesSel.length} habilidade(s) BNCC selecionada(s)
+          </p>
+        )}
+      </div>
       <button
         type="button"
         onClick={gerar}
@@ -829,15 +1310,43 @@ function PlanoAulaDua({
       </button>
       {erro && <div className="text-red-600 text-sm">{erro}</div>}
       {resultado && (
-        <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 overflow-x-auto">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-slate-700">Plano de Aula DUA</span>
-            <span className="flex gap-2">
-              <DocxDownloadButton texto={resultado} titulo="Plano de Aula DUA" filename={`Plano_Aula_${new Date().toISOString().slice(0, 10)}.docx`} />
-              <PdfDownloadButton text={resultado} filename={`Plano_Aula_${new Date().toISOString().slice(0, 10)}.pdf`} title="Plano de Aula DUA" />
-            </span>
+        <div className="space-y-4">
+          {validado && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm font-medium">
+              ✅ PLANO VALIDADO E PRONTO PARA USO
+            </div>
+          )}
+          {!validado && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setValidado(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+              >
+                ✅ Validar Plano
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setResultado(null);
+                  setValidado(false);
+                }}
+                className="px-4 py-2 bg-slate-400 text-white rounded-lg hover:bg-slate-500 text-sm"
+              >
+                🗑️ Descartar
+              </button>
+            </div>
+          )}
+          <div className="p-6 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+              <span className="text-base font-semibold text-slate-800">Plano de Aula DUA</span>
+              <span className="flex gap-2">
+                <DocxDownloadButton texto={resultado} titulo="Plano de Aula DUA" filename={`Plano_Aula_${new Date().toISOString().slice(0, 10)}.docx`} />
+                <PdfDownloadButton text={resultado} filename={`Plano_Aula_${new Date().toISOString().slice(0, 10)}.pdf`} title="Plano de Aula DUA" />
+              </span>
+            </div>
+            <FormattedTextDisplay texto={resultado} />
           </div>
-          <pre className="whitespace-pre-wrap text-sm text-slate-600">{resultado}</pre>
         </div>
       )}
     </div>
@@ -866,29 +1375,40 @@ function RotinaAvdTool({
   onEngineChange: (e: EngineId) => void;
   onClose: () => void;
 }) {
-  const [contexto, setContexto] = useState("Rotina escolar");
-  const [sequencia, setSequencia] = useState("Rotina de chegada, lanche, saída");
+  const [rotinaDetalhada, setRotinaDetalhada] = useState("");
+  const [topicoFoco, setTopicoFoco] = useState("");
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [validado, setValidado] = useState(false);
+  const [feedback, setFeedback] = useState("");
 
-  const gerar = async () => {
+  const gerar = async (refazer = false) => {
+    if (!rotinaDetalhada.trim()) {
+      setErro("Descreva a rotina da turma.");
+      return;
+    }
     setLoading(true);
     setErro(null);
+    setResultado(null);
+    setValidado(false);
     try {
+      const peiData = student?.pei_data || {};
       const res = await fetch("/api/hub/rotina-avd", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contexto,
-          sequencia,
+          rotina_detalhada: rotinaDetalhada,
+          topico_foco: topicoFoco || undefined,
+          feedback: refazer ? feedback : undefined,
           engine,
-          estudante: student ? { nome: student.name } : undefined,
+          estudante: student ? { nome: student.name, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 300) } : undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro");
       setResultado(data.texto || "");
+      if (refazer) setFeedback("");
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro.");
     } finally {
@@ -901,31 +1421,79 @@ function RotinaAvdTool({
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800 flex items-center gap-2">
           <RefreshCw className="w-5 h-5" />
-          Rotina & AVD
+          Rotina & Previsibilidade
         </h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
       </div>
-      <p className="text-sm text-slate-600">Sequências e orientações para autonomia e rotina.</p>
+      <p className="text-sm text-slate-600">A rotina organiza o pensamento da criança. Use esta ferramenta para identificar pontos de estresse e criar estratégias de antecipação.</p>
       <EngineSelector value={engine} onChange={onEngineChange} />
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Contexto</label>
-        <input type="text" value={contexto} onChange={(e) => setContexto(e.target.value)} className="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Rotina escolar" />
+        <label className="block text-sm font-medium text-slate-700 mb-1">Descreva a Rotina da Turma *</label>
+        <textarea
+          value={rotinaDetalhada}
+          onChange={(e) => setRotinaDetalhada(e.target.value)}
+          rows={6}
+          className="w-full px-3 py-2 border rounded-lg"
+          placeholder="Ex:&#10;8:00 - Chegada e Acolhida&#10;8:30 - Roda de Conversa&#10;9:00 - Lanche&#10;..."
+        />
       </div>
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Sequência solicitada</label>
-        <textarea value={sequencia} onChange={(e) => setSequencia(e.target.value)} rows={2} className="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Rotina de chegada, lanche..." />
+        <label className="block text-sm font-medium text-slate-700 mb-1">Ponto de Atenção (Opcional)</label>
+        <input
+          type="text"
+          value={topicoFoco}
+          onChange={(e) => setTopicoFoco(e.target.value)}
+          className="w-full px-3 py-2 border rounded-lg"
+          placeholder="Ex: Transição para o parque"
+        />
       </div>
-      <button type="button" onClick={gerar} disabled={loading} className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50">
-        {loading ? "Gerando…" : "Gerar orientações"}
+      <button type="button" onClick={() => gerar(false)} disabled={loading} className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50">
+        {loading ? "Analisando…" : "📝 ANALISAR E ADAPTAR ROTINA"}
       </button>
       {erro && <p className="text-red-600 text-sm">{erro}</p>}
       {resultado && (
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <DocxDownloadButton texto={resultado} titulo="Rotina e AVD" filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.docx`} />
-            <PdfDownloadButton text={resultado} filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.pdf`} title="Rotina e AVD" />
+        <div className="space-y-4">
+          {validado && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm font-medium">
+              ✅ ROTINA VALIDADA!
+            </div>
+          )}
+          {!validado && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setValidado(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+              >
+                ✅ Validar Rotina
+              </button>
+              <details className="flex-1 border border-slate-200 rounded p-2">
+                <summary className="text-sm cursor-pointer text-slate-600">🔄 Refazer adaptação</summary>
+                <div className="mt-2 flex flex-wrap gap-2 items-center">
+                  <input
+                    type="text"
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="O que ajustar na rotina?"
+                    className="flex-1 min-w-[120px] px-2 py-1 border rounded text-sm"
+                  />
+                  <button type="button" onClick={() => gerar(true)} disabled={loading} className="px-3 py-1 bg-slate-200 rounded text-sm hover:bg-slate-300">
+                    Refazer Rotina
+                  </button>
+                </div>
+              </details>
+            </div>
+          )}
+          <div className="p-6 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+              <span className="text-base font-semibold text-slate-800">Rotina & Previsibilidade</span>
+              <span className="flex gap-2">
+                <DocxDownloadButton texto={resultado} titulo="Rotina e AVD" filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.docx`} />
+                <PdfDownloadButton text={resultado} filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.pdf`} title="Rotina e AVD" />
+              </span>
+            </div>
+            <FormattedTextDisplay texto={resultado} />
           </div>
-          <pre className="whitespace-pre-wrap text-sm text-slate-600 p-4 rounded-lg bg-slate-50 border">{resultado}</pre>
         </div>
       )}
     </div>
@@ -945,29 +1513,37 @@ function InclusaoBrincarTool({
 }) {
   const peiData = student?.pei_data || {};
   const hiperfoco = (peiData.hiperfoco as string) || "";
-  const [tema, setTema] = useState("Brincadeiras em grupo");
-  const [faixa, setFaixa] = useState("3-5 anos");
+  const [tema, setTema] = useState("");
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [validado, setValidado] = useState(false);
+  const [feedback, setFeedback] = useState("");
 
-  const gerar = async () => {
+  const gerar = async (refazer = false) => {
+    if (!tema.trim()) {
+      setErro("Informe o tema/momento.");
+      return;
+    }
     setLoading(true);
     setErro(null);
+    setResultado(null);
+    setValidado(false);
     try {
       const res = await fetch("/api/hub/inclusao-brincar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tema,
-          faixa,
+          feedback: refazer ? feedback : undefined,
           engine,
-          estudante: student ? { nome: student.name, hiperfoco } : undefined,
+          estudante: student ? { nome: student.name, hiperfoco, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 300) } : undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro");
       setResultado(data.texto || "");
+      if (refazer) setFeedback("");
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro.");
     } finally {
@@ -980,37 +1556,69 @@ function InclusaoBrincarTool({
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800 flex items-center gap-2">
           <ToyBrick className="w-5 h-5" />
-          Inclusão no Brincar
+          Mediação Social
         </h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
       </div>
-      <p className="text-sm text-slate-600">Brincadeiras acessíveis para Educação Infantil.</p>
+      <p className="text-sm text-slate-600">Se a criança brinca isolada, o objetivo não é forçar a interação, mas criar pontes através do interesse dela. A IA criará uma brincadeira onde ela é protagonista.</p>
       <EngineSelector value={engine} onChange={onEngineChange} />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Tema / tipo de brincadeira</label>
-          <input type="text" value={tema} onChange={(e) => setTema(e.target.value)} className="w-full px-3 py-2 border rounded-lg" placeholder="Ex: Brincadeiras em grupo" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Faixa etária</label>
-          <select value={faixa} onChange={(e) => setFaixa(e.target.value)} className="w-full px-3 py-2 border rounded-lg">
-            <option value="0-2 anos">0-2 anos</option>
-            <option value="3-5 anos">3-5 anos</option>
-            <option value="4-5 anos">4-5 anos</option>
-          </select>
-        </div>
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Tema/Momento *</label>
+        <input
+          type="text"
+          value={tema}
+          onChange={(e) => setTema(e.target.value)}
+          className="w-full px-3 py-2 border rounded-lg"
+          placeholder="Ex: Brincadeira de massinha"
+        />
       </div>
-      <button type="button" onClick={gerar} disabled={loading} className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50">
-        {loading ? "Gerando…" : "Gerar brincadeiras"}
+      <button type="button" onClick={() => gerar(false)} disabled={loading} className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50">
+        {loading ? "Criando ponte social…" : "🤝 GERAR DINÂMICA"}
       </button>
       {erro && <p className="text-red-600 text-sm">{erro}</p>}
       {resultado && (
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <DocxDownloadButton texto={resultado} titulo="Inclusão no Brincar" filename={`Inclusao_Brincar_${new Date().toISOString().slice(0, 10)}.docx`} />
-            <PdfDownloadButton text={resultado} filename={`Inclusao_Brincar_${new Date().toISOString().slice(0, 10)}.pdf`} title="Inclusão no Brincar" />
+        <div className="space-y-4">
+          {validado && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm font-medium">
+              ✅ DINÂMICA VALIDADA!
+            </div>
+          )}
+          {!validado && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setValidado(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+              >
+                ✅ Validar Dinâmica
+              </button>
+              <details className="flex-1 border border-slate-200 rounded p-2">
+                <summary className="text-sm cursor-pointer text-slate-600">🔄 Refazer dinâmica</summary>
+                <div className="mt-2 flex flex-wrap gap-2 items-center">
+                  <input
+                    type="text"
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="O que ajustar?"
+                    className="flex-1 min-w-[120px] px-2 py-1 border rounded text-sm"
+                  />
+                  <button type="button" onClick={() => gerar(true)} disabled={loading} className="px-3 py-1 bg-slate-200 rounded text-sm hover:bg-slate-300">
+                    Refazer Dinâmica
+                  </button>
+                </div>
+              </details>
+            </div>
+          )}
+          <div className="p-6 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+              <span className="text-base font-semibold text-slate-800">Inclusão no Brincar</span>
+              <span className="flex gap-2">
+                <DocxDownloadButton texto={resultado} titulo="Inclusão no Brincar" filename={`Inclusao_Brincar_${new Date().toISOString().slice(0, 10)}.docx`} />
+                <PdfDownloadButton text={resultado} filename={`Inclusao_Brincar_${new Date().toISOString().slice(0, 10)}.pdf`} title="Inclusão no Brincar" />
+              </span>
+            </div>
+            <FormattedTextDisplay texto={resultado} />
           </div>
-          <pre className="whitespace-pre-wrap text-sm text-slate-600 p-4 rounded-lg bg-slate-50 border">{resultado}</pre>
         </div>
       )}
     </div>
@@ -1036,7 +1644,11 @@ function AdaptarProva({
   const [materia, setMateria] = useState("Língua Portuguesa");
   const [tema, setTema] = useState("");
   const [serie, setSerie] = useState("");
-  const [componentes, setComponentes] = useState<Record<string, unknown[]>>({});
+  const [componentes, setComponentes] = useState<Record<string, { codigo: string; descricao: string }[]>>({});
+  const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
+  const [componenteSel, setComponenteSel] = useState("");
+  const [unidadeSel, setUnidadeSel] = useState("");
+  const [objetoSel, setObjetoSel] = useState("");
   const [modoProfundo, setModoProfundo] = useState(false);
   const [tipo, setTipo] = useState("Prova");
   const [checklist, setChecklist] = useState<ChecklistAdaptacao>({});
@@ -1044,6 +1656,8 @@ function AdaptarProva({
   const [extracting, setExtracting] = useState(false);
   const [resultado, setResultado] = useState<{ analise: string; texto: string } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [validado, setValidado] = useState(false);
+  const [refazendo, setRefazendo] = useState(false);
 
   const peiData = student?.pei_data || {};
   const serieAluno = student?.grade || "";
@@ -1056,11 +1670,23 @@ function AdaptarProva({
 
   useEffect(() => {
     if (!serie?.trim()) return;
-    fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`)
-      .then((r) => r.json())
-      .then((d) => setComponentes(d.ano_atual || d || {}))
-      .catch(() => setComponentes({}));
+    Promise.all([
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`).then((r) => r.json()),
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}&estrutura=1`).then((r) => r.json()),
+    ])
+      .then(([d, e]) => {
+        setComponentes(d.ano_atual || d || {});
+        setEstruturaBncc(e.disciplinas ? e : null);
+      })
+      .catch(() => {
+        setComponentes({});
+        setEstruturaBncc(null);
+      });
   }, [serie]);
+
+  const discDataP = estruturaBncc?.porDisciplina?.[componenteSel];
+  const unidadeDataPRaw = componenteSel && discDataP?.porUnidade?.[unidadeSel];
+  const unidadeDataP = unidadeDataPRaw && typeof unidadeDataPRaw === "object" && "objetos" in unidadeDataPRaw ? unidadeDataPRaw : null;
 
   const handleFileChange = async (f: File | null) => {
     setFile(f);
@@ -1085,7 +1711,7 @@ function AdaptarProva({
     }
   };
 
-  const gerar = async () => {
+  const gerar = async (usarModoProfundo = false) => {
     const texto = docxExtraido?.texto;
     if (!texto && !file) {
       setErro("Selecione um arquivo DOCX.");
@@ -1094,6 +1720,7 @@ function AdaptarProva({
     setLoading(true);
     setErro(null);
     setResultado(null);
+    setValidado(false);
     try {
       const questoesComImagem = [...new Set(Object.values(mapaQuestoes).filter((q) => q > 0))];
       const formData = new FormData();
@@ -1101,12 +1728,14 @@ function AdaptarProva({
       formData.append(
         "meta",
         JSON.stringify({
-          materia,
-          tema: tema || materia,
+          materia: componenteSel || materia,
+          tema: tema || undefined,
           tipo,
           checklist,
           engine,
-          modo_profundo: modoProfundo,
+          modo_profundo: usarModoProfundo || modoProfundo,
+          unidade_tematica: unidadeSel || undefined,
+          objeto_conhecimento: objetoSel || undefined,
           estudante: { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 800) },
           texto: texto || undefined,
           questoes_com_imagem: questoesComImagem,
@@ -1120,6 +1749,7 @@ function AdaptarProva({
       setErro(e instanceof Error ? e.message : "Erro ao adaptar.");
     } finally {
       setLoading(false);
+      setRefazendo(false);
     }
   };
 
@@ -1145,30 +1775,113 @@ function AdaptarProva({
       </div>
       <p className="text-sm text-slate-600">Transforme provas padrão em avaliações acessíveis.</p>
       <EngineSelector value={engine} onChange={onEngineChange} />
-      <details className="border border-slate-200 rounded-lg" open>
-        <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
-          <BookOpen className="w-4 h-4" />
-          BNCC e Assunto
-        </summary>
-        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
-            <input type="text" value={serie} onChange={(e) => setSerie(e.target.value)} placeholder="Ex: 5º Ano (EFAI)" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+      {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
+        <details className="border border-slate-200 rounded-lg" open>
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            BNCC: Unidade e Objeto
+          </summary>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
+              <input
+                type="text"
+                value={serieAluno || ""}
+                readOnly
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Componente</label>
+              <select
+                value={componenteSel}
+                onChange={(e) => {
+                  setComponenteSel(e.target.value);
+                  setUnidadeSel("");
+                  setObjetoSel("");
+                }}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              >
+                <option value="">Todos</option>
+                {estruturaBncc.disciplinas.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
+              <select
+                value={unidadeSel}
+                onChange={(e) => {
+                  setUnidadeSel(e.target.value);
+                  setObjetoSel("");
+                }}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                disabled={!componenteSel}
+              >
+                <option value="">Todas</option>
+                {(discDataP?.unidades || []).map((u) => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
+              <select
+                value={objetoSel}
+                onChange={(e) => setObjetoSel(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                disabled={!unidadeSel}
+              >
+                <option value="">Todos</option>
+                {(unidadeDataP && typeof unidadeDataP === "object" && "objetos" in unidadeDataP ? unidadeDataP.objetos : []).map((o) => (
+                  <option key={o} value={o}>{o}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">Componente</label>
-            <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
-              {(Object.keys(componentes).length ? Object.keys(componentes) : COMPONENTES).map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+        </details>
+      )}
+      {(!estruturaBncc || !estruturaBncc.disciplinas.length) && (
+        <details className="border border-slate-200 rounded-lg" open>
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            BNCC
+          </summary>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
+              <input
+                type="text"
+                value={serieAluno || ""}
+                readOnly
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Componente</label>
+              <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                {(Object.keys(componentes).length ? Object.keys(componentes) : COMPONENTES).map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="md:col-span-2">
-            <label className="block text-xs text-slate-600 mb-1">Tema / Assunto</label>
-            <input type="text" value={tema} onChange={(e) => setTema(e.target.value)} placeholder="Ex: Frações equivalentes" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-          </div>
-        </div>
-      </details>
+        </details>
+      )}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          Tema / Assunto
+          <span className="text-xs text-slate-500 ml-2 font-normal">(opcional)</span>
+        </label>
+        <input
+          type="text"
+          value={tema}
+          onChange={(e) => setTema(e.target.value)}
+          placeholder="Ex: Frações equivalentes (opcional)"
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+        />
+      </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Arquivo DOCX *</label>
         <input
@@ -1253,14 +1966,53 @@ function AdaptarProva({
       </button>
       {erro && <div className="text-red-600 text-sm">{erro}</div>}
       {resultado && (
-        <div className="space-y-3">
-          <div className="p-3 rounded-lg bg-slate-100 border border-slate-200">
-            <div className="text-xs font-semibold text-slate-600 uppercase mb-1">Análise</div>
-            <pre className="whitespace-pre-wrap text-sm text-slate-700">{resultado.analise}</pre>
-          </div>
-          <div className="p-4 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-semibold text-slate-600 uppercase">Prova adaptada</span>
+        <div className="space-y-4">
+          {validado && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm font-medium">
+              ✅ ATIVIDADE VALIDADA E PRONTA PARA USO
+            </div>
+          )}
+          {!validado && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setValidado(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+              >
+                ✅ Validar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRefazendo(true);
+                  gerar(true);
+                }}
+                disabled={refazendo}
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm disabled:opacity-50"
+              >
+                {refazendo ? "Refazendo…" : "🔄 Refazer (+Profundo)"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setResultado(null);
+                  setValidado(false);
+                }}
+                className="px-4 py-2 bg-slate-400 text-white rounded-lg hover:bg-slate-500 text-sm"
+              >
+                🗑️ Descartar
+              </button>
+            </div>
+          )}
+          {resultado.analise && (
+            <div className="p-4 rounded-lg bg-slate-100 border border-slate-200">
+              <div className="text-xs font-semibold text-slate-600 uppercase mb-3">Análise Pedagógica</div>
+              <FormattedTextDisplay texto={resultado.analise} />
+            </div>
+          )}
+          <div className="p-6 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+              <span className="text-base font-semibold text-slate-800">Prova Adaptada (DUA)</span>
               <span className="flex gap-2">
                 <DocxDownloadButton
                   texto={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
@@ -1269,13 +2021,13 @@ function AdaptarProva({
                   mapaImagens={Object.keys(mapaImagensParaDocx).length > 0 ? mapaImagensParaDocx : undefined}
                 />
                 <PdfDownloadButton
-                text={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
-                filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.pdf`}
-                title="Prova Adaptada (DUA)"
-              />
+                  text={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
+                  filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.pdf`}
+                  title="Prova Adaptada (DUA)"
+                />
               </span>
             </div>
-            <pre className="whitespace-pre-wrap text-sm text-slate-600">{resultado.texto}</pre>
+            <FormattedTextDisplay texto={resultado.texto} />
           </div>
         </div>
       )}
@@ -1306,6 +2058,7 @@ function RoteiroIndividual({
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [validado, setValidado] = useState(false);
 
   const serieAluno = student?.grade || "";
 
@@ -1351,13 +2104,17 @@ function RoteiroIndividual({
             (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
           );
 
+  const temBnccPreenchida = habilidadesSel.length > 0;
+
   const gerar = async () => {
-    if (!assunto.trim()) {
-      setErro("Informe o assunto.");
+    if (!assunto.trim() && !temBnccPreenchida) {
+      setErro("Informe o assunto ou selecione habilidades BNCC.");
       return;
     }
     setLoading(true);
     setErro(null);
+    setResultado(null);
+    setValidado(false);
     try {
       const peiData = student?.pei_data || {};
       const res = await fetch("/api/hub/roteiro", {
@@ -1366,8 +2123,8 @@ function RoteiroIndividual({
         body: JSON.stringify({
           aluno: { nome: student?.name, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 500), hiperfoco: (peiData.hiperfoco as string) || "Geral" },
           materia,
-          assunto,
-          ano: serie || undefined,
+          assunto: assunto.trim() || undefined,
+          ano: serieAluno || serie || undefined,
           habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
           engine,
         }),
@@ -1392,18 +2149,19 @@ function RoteiroIndividual({
       <EngineSelector value={engine} onChange={onEngineChange} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Série (ano BNCC)</label>
+          <input
+            type="text"
+            value={serieAluno || ""}
+            readOnly
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
+          />
+        </div>
+        <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Componente</label>
           <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
             {Object.keys(componentes).length ? Object.keys(componentes).map((c) => <option key={c} value={c}>{c}</option>) : <option value={materia}>{materia}</option>}
           </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Assunto *</label>
-          <input type="text" value={assunto} onChange={(e) => setAssunto(e.target.value)} placeholder="Ex: Frações equivalentes" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Série (ano BNCC)</label>
-          <input type="text" value={serie} onChange={(e) => setSerie(e.target.value)} placeholder="Ex: 5º Ano (EFAI)" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
         </div>
       </div>
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
@@ -1412,7 +2170,16 @@ function RoteiroIndividual({
             <BookOpen className="w-4 h-4" />
             BNCC: Unidade e Objeto
           </summary>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
+              <input
+                type="text"
+                value={serieAluno || ""}
+                readOnly
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+              />
+            </div>
             <div>
               <label className="block text-xs text-slate-600 mb-1">Componente</label>
               <select value={componenteSel} onChange={(e) => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm">
@@ -1443,20 +2210,70 @@ function RoteiroIndividual({
           {todasHabilidades.slice(0, 80).map((h, i) => <option key={i} value={h}>{h}</option>)}
         </select>
       </div>
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          Assunto
+          {temBnccPreenchida ? (
+            <span className="text-xs text-emerald-600 ml-2 font-normal">(opcional - BNCC já preenchida)</span>
+          ) : (
+            <span className="text-xs text-red-600 ml-2 font-normal">*</span>
+          )}
+        </label>
+        <input
+          type="text"
+          value={assunto}
+          onChange={(e) => setAssunto(e.target.value)}
+          placeholder={temBnccPreenchida ? "Opcional quando BNCC está preenchida" : "Ex: Frações equivalentes"}
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+        />
+        {temBnccPreenchida && habilidadesSel.length > 0 && (
+          <p className="text-xs text-emerald-600 mt-1">
+            ✓ {habilidadesSel.length} habilidade(s) BNCC selecionada(s)
+          </p>
+        )}
+      </div>
       <button type="button" onClick={gerar} disabled={loading} className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50">
         {loading ? "Gerando…" : "Gerar Roteiro"}
       </button>
       {erro && <p className="text-red-600 text-sm">{erro}</p>}
       {resultado && (
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-slate-700">Roteiro gerado</span>
-            <span className="flex gap-2">
-              <DocxDownloadButton texto={resultado} titulo="Roteiro de Aula" filename={`Roteiro_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`} />
-              <PdfDownloadButton text={resultado} filename={`Roteiro_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Roteiro de Aula" />
-            </span>
+        <div className="space-y-4">
+          {validado && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm font-medium">
+              ✅ ROTEIRO VALIDADO E PRONTO PARA USO
+            </div>
+          )}
+          {!validado && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setValidado(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+              >
+                ✅ Validar Roteiro
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setResultado(null);
+                  setValidado(false);
+                }}
+                className="px-4 py-2 bg-slate-400 text-white rounded-lg hover:bg-slate-500 text-sm"
+              >
+                🗑️ Descartar
+              </button>
+            </div>
+          )}
+          <div className="p-6 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+              <span className="text-base font-semibold text-slate-800">Roteiro Individual</span>
+              <span className="flex gap-2">
+                <DocxDownloadButton texto={resultado} titulo="Roteiro de Aula" filename={`Roteiro_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`} />
+                <PdfDownloadButton text={resultado} filename={`Roteiro_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Roteiro de Aula" />
+              </span>
+            </div>
+            <FormattedTextDisplay texto={resultado} />
           </div>
-          <pre className="whitespace-pre-wrap text-sm text-slate-600 p-4 rounded-lg bg-slate-50 border">{resultado}</pre>
         </div>
       )}
     </div>
@@ -1488,6 +2305,7 @@ function DinamicaInclusiva({
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [validado, setValidado] = useState(false);
 
   const serieAluno = student?.grade || "";
 
@@ -1533,25 +2351,30 @@ function DinamicaInclusiva({
             (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
           );
 
+  const temBnccPreenchida = habilidadesSel.length > 0;
+
   const gerar = async () => {
-    if (!assunto.trim()) {
-      setErro("Informe o assunto.");
+    if (!assunto.trim() && !temBnccPreenchida) {
+      setErro("Informe o assunto ou selecione habilidades BNCC.");
       return;
     }
     setLoading(true);
     setErro(null);
+    setResultado(null);
+    setValidado(false);
     try {
       const peiData = student?.pei_data || {};
+      const materiaFinal = componenteSel || materia;
       const res = await fetch("/api/hub/dinamica", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           aluno: { nome: student?.name, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 400), hiperfoco: (peiData.hiperfoco as string) || "Geral" },
-          materia,
-          assunto,
+          materia: materiaFinal,
+          assunto: assunto.trim() || undefined,
           qtd_alunos: qtdAlunos,
           caracteristicas_turma: caracteristicas || undefined,
-          ano: serie || undefined,
+          ano: serieAluno || serie || undefined,
           habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
           engine,
         }),
@@ -1576,26 +2399,21 @@ function DinamicaInclusiva({
       <EngineSelector value={engine} onChange={onEngineChange} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Componente</label>
-          <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
-            {Object.keys(componentes).length ? Object.keys(componentes).map((c) => <option key={c} value={c}>{c}</option>) : <option value={materia}>{materia}</option>}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Assunto *</label>
-          <input type="text" value={assunto} onChange={(e) => setAssunto(e.target.value)} placeholder="Ex: Trabalho em equipe" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
+          <label className="block text-sm font-medium text-slate-700 mb-1">Série (ano BNCC)</label>
+          <input
+            type="text"
+            value={serieAluno || ""}
+            readOnly
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Nº de estudantes</label>
           <input type="number" min={5} max={50} value={qtdAlunos} onChange={(e) => setQtdAlunos(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
         </div>
-        <div>
+        <div className="md:col-span-2">
           <label className="block text-sm font-medium text-slate-700 mb-1">Características da turma (opcional)</label>
           <input type="text" value={caracteristicas} onChange={(e) => setCaracteristicas(e.target.value)} placeholder="Ex: Turma agitada, gostam de competição" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Série (ano BNCC)</label>
-          <input type="text" value={serie} onChange={(e) => setSerie(e.target.value)} placeholder="Ex: 5º Ano" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
         </div>
       </div>
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
@@ -1604,7 +2422,16 @@ function DinamicaInclusiva({
             <BookOpen className="w-4 h-4" />
             BNCC: Unidade e Objeto
           </summary>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
+              <input
+                type="text"
+                value={serieAluno || ""}
+                readOnly
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+              />
+            </div>
             <div>
               <label className="block text-xs text-slate-600 mb-1">Componente</label>
               <select value={componenteSel} onChange={(e) => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm">
@@ -1635,20 +2462,42 @@ function DinamicaInclusiva({
           {todasHabilidades.slice(0, 80).map((h, i) => <option key={i} value={h}>{h}</option>)}
         </select>
       </div>
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          Assunto
+          {temBnccPreenchida ? (
+            <span className="text-xs text-emerald-600 ml-2 font-normal">(opcional - BNCC já preenchida)</span>
+          ) : (
+            <span className="text-xs text-red-600 ml-2 font-normal">*</span>
+          )}
+        </label>
+        <input
+          type="text"
+          value={assunto}
+          onChange={(e) => setAssunto(e.target.value)}
+          placeholder={temBnccPreenchida ? "Opcional quando BNCC está preenchida" : "Ex: Trabalho em equipe"}
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+        />
+        {temBnccPreenchida && habilidadesSel.length > 0 && (
+          <p className="text-xs text-emerald-600 mt-1">
+            ✓ {habilidadesSel.length} habilidade(s) BNCC selecionada(s)
+          </p>
+        )}
+      </div>
       <button type="button" onClick={gerar} disabled={loading} className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50">
         {loading ? "Gerando…" : "Criar Dinâmica"}
       </button>
       {erro && <p className="text-red-600 text-sm">{erro}</p>}
       {resultado && (
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-slate-700">Dinâmica gerada</span>
+        <div className="p-6 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+          <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+            <span className="text-base font-semibold text-slate-800">Dinâmica Inclusiva</span>
             <span className="flex gap-2">
               <DocxDownloadButton texto={resultado} titulo="Dinâmica Inclusiva" filename={`Dinamica_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`} />
               <PdfDownloadButton text={resultado} filename={`Dinamica_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Dinâmica Inclusiva" />
             </span>
           </div>
-          <pre className="whitespace-pre-wrap text-sm text-slate-600 p-4 rounded-lg bg-slate-50 border">{resultado}</pre>
+          <FormattedTextDisplay texto={resultado} />
         </div>
       )}
     </div>
@@ -1694,15 +2543,17 @@ function IlustracaoSection({ hiperfoco }: { hiperfoco: string }) {
   const [imagem, setImagem] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [validado, setValidado] = useState(false);
 
   const gerar = async (refazer = false) => {
-    const prompt = (usarHiperfoco && tema ? `Tema: ${tema}. ` : "") + (descricao || "Ilustração educacional");
-    if (!prompt.trim()) {
+    const prompt = (usarHiperfoco && tema ? `Tema da ilustração: ${tema}. ` : "") + (descricao || "Ilustração educacional") + ". Context: Education.";
+    if (!prompt.trim() || (!descricao.trim() && !usarHiperfoco)) {
       setErro("Descreva a imagem ou use o hiperfoco.");
       return;
     }
     setLoading(true);
     setErro(null);
+    setValidado(false);
     try {
       const res = await fetch("/api/hub/estudio-imagem", {
         method: "POST",
@@ -1722,17 +2573,17 @@ function IlustracaoSection({ hiperfoco }: { hiperfoco: string }) {
 
   return (
     <div className="p-4 rounded-lg border border-slate-200 bg-slate-50/50 space-y-3">
-      <h4 className="font-medium text-slate-800">Ilustração</h4>
+      <h4 className="font-medium text-slate-800">🖼️ Ilustração</h4>
       <label className="flex items-center gap-2">
         <input type="checkbox" checked={usarHiperfoco} onChange={(e) => setUsarHiperfoco(e.target.checked)} />
-        <span className="text-sm">Usar hiperfoco do estudante</span>
+        <span className="text-sm">Usar hiperfoco do estudante como tema da ilustração</span>
       </label>
       {usarHiperfoco && (
         <input
           type="text"
           value={tema}
           onChange={(e) => setTema(e.target.value)}
-          placeholder="Tema da ilustração"
+          placeholder="Tema da ilustração (edite se quiser)"
           className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
         />
       )}
@@ -1749,26 +2600,38 @@ function IlustracaoSection({ hiperfoco }: { hiperfoco: string }) {
         disabled={loading}
         className="px-4 py-2 bg-cyan-600 text-white rounded-lg text-sm disabled:opacity-50"
       >
-        {loading ? "Gerando…" : "Gerar Ilustração"}
+        {loading ? "Desenhando…" : "🎨 Gerar Imagem"}
       </button>
       {imagem && (
-        <div>
+        <div className="space-y-2">
           <img src={imagem} alt="Ilustração" className="max-w-full rounded-lg border" />
-          <div className="mt-2 flex flex-wrap gap-2 items-center">
-            <input
-              type="text"
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              placeholder="Ajuste (ex: mais cores, menos detalhes)"
-              className="flex-1 min-w-[120px] px-2 py-1 border rounded text-sm"
-            />
-            <button type="button" onClick={() => gerar(true)} disabled={loading} className="px-3 py-1 bg-slate-200 rounded text-sm hover:bg-slate-300">
-              Refazer com ajuste
-            </button>
-            <button type="button" onClick={() => setImagem(null)} className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded text-sm hover:bg-emerald-200">
-              ✓ Validar
-            </button>
-          </div>
+          {validado && (
+            <div className="p-2 bg-emerald-50 border border-emerald-200 rounded text-emerald-800 text-sm font-medium">
+              ✅ Imagem validada!
+            </div>
+          )}
+          {!validado && (
+            <div className="space-y-2">
+              <details className="border border-slate-200 rounded p-2">
+                <summary className="text-sm cursor-pointer text-slate-600">🔄 Refazer Cena</summary>
+                <div className="mt-2 flex flex-wrap gap-2 items-center">
+                  <input
+                    type="text"
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="Ajuste (ex: mais cores, menos detalhes)"
+                    className="flex-1 min-w-[120px] px-2 py-1 border rounded text-sm"
+                  />
+                  <button type="button" onClick={() => gerar(true)} disabled={loading} className="px-3 py-1 bg-slate-200 rounded text-sm hover:bg-slate-300">
+                    Refazer
+                  </button>
+                </div>
+              </details>
+              <button type="button" onClick={() => setValidado(true)} className="w-full px-3 py-1 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700">
+                ✅ Validar
+              </button>
+            </div>
+          )}
         </div>
       )}
       {erro && <p className="text-red-600 text-sm">{erro}</p>}
@@ -1782,6 +2645,7 @@ function PictogramaCaaSection() {
   const [imagem, setImagem] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [validado, setValidado] = useState(false);
 
   const gerar = async (refazer = false) => {
     if (!conceito.trim()) {
@@ -1790,6 +2654,7 @@ function PictogramaCaaSection() {
     }
     setLoading(true);
     setErro(null);
+    setValidado(false);
     try {
       const res = await fetch("/api/hub/estudio-imagem", {
         method: "POST",
@@ -1809,7 +2674,7 @@ function PictogramaCaaSection() {
 
   return (
     <div className="p-4 rounded-lg border border-slate-200 bg-slate-50/50 space-y-3">
-      <h4 className="font-medium text-slate-800">Símbolo CAA</h4>
+      <h4 className="font-medium text-slate-800">🗣️ Símbolo CAA</h4>
       <input
         type="text"
         value={conceito}
@@ -1823,26 +2688,38 @@ function PictogramaCaaSection() {
         disabled={loading}
         className="px-4 py-2 bg-cyan-600 text-white rounded-lg text-sm disabled:opacity-50"
       >
-        {loading ? "Gerando…" : "Gerar Pictograma"}
+        {loading ? "Criando símbolo…" : "🧩 Gerar Pictograma"}
       </button>
       {imagem && (
-        <div>
+        <div className="space-y-2">
           <img src={imagem} alt="Pictograma CAA" className="max-w-[300px] rounded-lg border" />
-          <div className="mt-2 flex flex-wrap gap-2 items-center">
-            <input
-              type="text"
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              placeholder="Ajuste"
-              className="flex-1 min-w-[120px] px-2 py-1 border rounded text-sm"
-            />
-            <button type="button" onClick={() => gerar(true)} disabled={loading} className="px-3 py-1 bg-slate-200 rounded text-sm hover:bg-slate-300">
-              Refazer com ajuste
-            </button>
-            <button type="button" onClick={() => setImagem(null)} className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded text-sm hover:bg-emerald-200">
-              ✓ Validar
-            </button>
-          </div>
+          {validado && (
+            <div className="p-2 bg-emerald-50 border border-emerald-200 rounded text-emerald-800 text-sm font-medium">
+              ✅ Pictograma validado!
+            </div>
+          )}
+          {!validado && (
+            <div className="space-y-2">
+              <details className="border border-slate-200 rounded p-2">
+                <summary className="text-sm cursor-pointer text-slate-600">🔄 Refazer Picto</summary>
+                <div className="mt-2 flex flex-wrap gap-2 items-center">
+                  <input
+                    type="text"
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="Ajuste"
+                    className="flex-1 min-w-[120px] px-2 py-1 border rounded text-sm"
+                  />
+                  <button type="button" onClick={() => gerar(true)} disabled={loading} className="px-3 py-1 bg-slate-200 rounded text-sm hover:bg-slate-300">
+                    Refazer
+                  </button>
+                </div>
+              </details>
+              <button type="button" onClick={() => setValidado(true)} className="w-full px-3 py-1 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700">
+                ✅ Validar
+              </button>
+            </div>
+          )}
         </div>
       )}
       {erro && <p className="text-red-600 text-sm">{erro}</p>}
@@ -1853,20 +2730,33 @@ function PictogramaCaaSection() {
 function AdaptarAtividade({
   student,
   hiperfoco,
+  engine,
+  onEngineChange,
   onClose,
 }: {
   student: StudentFull | null;
   hiperfoco: string;
+  engine: EngineId;
+  onEngineChange: (e: EngineId) => void;
   onClose: () => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [croppedFile, setCroppedFile] = useState<File | null>(null);
   const [showCropper, setShowCropper] = useState(false);
+  const [temImagemSeparada, setTemImagemSeparada] = useState(false);
+  const [imagemSeparadaFile, setImagemSeparadaFile] = useState<File | null>(null);
+  const [imagemSeparadaPreviewUrl, setImagemSeparadaPreviewUrl] = useState<string | null>(null);
+  const [imagemSeparadaCropped, setImagemSeparadaCropped] = useState<File | null>(null);
+  const [showImagemSeparadaCropper, setShowImagemSeparadaCropper] = useState(false);
   const [materia, setMateria] = useState("Língua Portuguesa");
   const [tema, setTema] = useState("");
   const [serie, setSerie] = useState("");
-  const [componentes, setComponentes] = useState<Record<string, unknown[]>>({});
+  const [componentes, setComponentes] = useState<Record<string, { codigo: string; descricao: string }[]>>({});
+  const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
+  const [componenteSel, setComponenteSel] = useState("");
+  const [unidadeSel, setUnidadeSel] = useState("");
+  const [objetoSel, setObjetoSel] = useState("");
   const [modoProfundo, setModoProfundo] = useState(false);
   const [tipo, setTipo] = useState("Atividade");
   const [livroProfessor, setLivroProfessor] = useState(false);
@@ -1874,9 +2764,12 @@ function AdaptarAtividade({
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<{ analise: string; texto: string } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [validado, setValidado] = useState(false);
+  const [refazendo, setRefazendo] = useState(false);
 
   const peiData = student?.pei_data || {};
   const serieAluno = student?.grade || "";
+
 
   useEffect(() => {
     if (serieAluno) {
@@ -1886,11 +2779,23 @@ function AdaptarAtividade({
 
   useEffect(() => {
     if (!serie?.trim()) return;
-    fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`)
-      .then((r) => r.json())
-      .then((d) => setComponentes(d.ano_atual || d || {}))
-      .catch(() => setComponentes({}));
+    Promise.all([
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`).then((r) => r.json()),
+      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}&estrutura=1`).then((r) => r.json()),
+    ])
+      .then(([d, e]) => {
+        setComponentes(d.ano_atual || d || {});
+        setEstruturaBncc(e.disciplinas ? e : null);
+      })
+      .catch(() => {
+        setComponentes({});
+        setEstruturaBncc(null);
+      });
   }, [serie]);
+
+  const discData = estruturaBncc?.porDisciplina?.[componenteSel];
+  const unidadeDataRaw = componenteSel && discData?.porUnidade?.[unidadeSel];
+  const unidadeData = unidadeDataRaw && typeof unidadeDataRaw === "object" && "objetos" in unidadeDataRaw ? unidadeDataRaw : null;
 
   const handleFileSelect = (f: File | null) => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -1914,9 +2819,20 @@ function AdaptarAtividade({
     }
   };
 
-  const imagemParaEnvio = croppedFile || file;
+  const handleImagemSeparadaCropComplete = (blob: Blob, mime: string) => {
+    const f = new File([blob], "imagem_separada.jpg", { type: mime });
+    setImagemSeparadaCropped(f);
+    setShowImagemSeparadaCropper(false);
+    if (imagemSeparadaPreviewUrl) {
+      URL.revokeObjectURL(imagemSeparadaPreviewUrl);
+      setImagemSeparadaPreviewUrl(null);
+    }
+  };
 
-  const gerar = async () => {
+  const imagemParaEnvio = croppedFile || file;
+  const imagemSeparadaParaEnvio = imagemSeparadaCropped || imagemSeparadaFile;
+
+  const gerar = async (usarModoProfundo = false) => {
     if (!imagemParaEnvio) {
       setErro("Selecione uma imagem.");
       return;
@@ -1924,18 +2840,25 @@ function AdaptarAtividade({
     setLoading(true);
     setErro(null);
     setResultado(null);
+    setValidado(false);
     try {
       const formData = new FormData();
       formData.append("file", imagemParaEnvio);
+      if (temImagemSeparada && imagemSeparadaParaEnvio) {
+        formData.append("file_separado", imagemSeparadaParaEnvio);
+      }
       formData.append(
         "meta",
         JSON.stringify({
-          materia,
-          tema: tema || materia,
+          materia: componenteSel || materia,
+          tema: tema || undefined,
           tipo,
           livro_professor: livroProfessor,
           checklist,
-          modo_profundo: modoProfundo,
+          modo_profundo: usarModoProfundo || modoProfundo,
+          engine,
+          unidade_tematica: unidadeSel || undefined,
+          objeto_conhecimento: objetoSel || undefined,
           estudante: { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 600) },
         })
       );
@@ -1947,6 +2870,7 @@ function AdaptarAtividade({
       setErro(e instanceof Error ? e.message : "Erro ao adaptar.");
     } finally {
       setLoading(false);
+      setRefazendo(false);
     }
   };
 
@@ -1958,31 +2882,120 @@ function AdaptarAtividade({
           Fechar
         </button>
       </div>
+      <EngineSelector value={engine} onChange={onEngineChange} />
       <p className="text-sm text-slate-600">Tire foto da atividade. A IA extrai o texto e adapta com DUA.</p>
-      <details className="border border-slate-200 rounded-lg" open>
-        <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
-          <BookOpen className="w-4 h-4" />
-          BNCC e Assunto
-        </summary>
-        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
-            <input type="text" value={serie} onChange={(e) => setSerie(e.target.value)} placeholder="Ex: 5º Ano (EFAI)" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+      {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
+        <details className="border border-slate-200 rounded-lg" open>
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            BNCC: Unidade e Objeto
+          </summary>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
+              <input
+                type="text"
+                value={serieAluno || ""}
+                readOnly
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Componente</label>
+              <select
+                value={componenteSel}
+                onChange={(e) => {
+                  setComponenteSel(e.target.value);
+                  setUnidadeSel("");
+                  setObjetoSel("");
+                }}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              >
+                <option value="">Todos</option>
+                {estruturaBncc.disciplinas.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
+              <select
+                value={unidadeSel}
+                onChange={(e) => {
+                  setUnidadeSel(e.target.value);
+                  setObjetoSel("");
+                }}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                disabled={!componenteSel}
+              >
+                <option value="">Todas</option>
+                {(discData?.unidades || []).map((u) => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
+              <select
+                value={objetoSel}
+                onChange={(e) => setObjetoSel(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                disabled={!unidadeSel}
+              >
+                <option value="">Todos</option>
+                {(unidadeData && typeof unidadeData === "object" && "objetos" in unidadeData ? unidadeData.objetos : []).map((o) => (
+                  <option key={o} value={o}>{o}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">Componente</label>
-            <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
-              {(Object.keys(componentes).length ? Object.keys(componentes) : COMPONENTES).map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+        </details>
+      )}
+      {(!estruturaBncc || !estruturaBncc.disciplinas.length) && (
+        <details className="border border-slate-200 rounded-lg" open>
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            BNCC
+          </summary>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
+              <input
+                type="text"
+                value={serie}
+                onChange={(e) => setSerie(e.target.value)}
+                placeholder="Ex: 5º Ano (EFAI)"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Componente</label>
+              <select
+                value={materia}
+                onChange={(e) => setMateria(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              >
+                {(Object.keys(componentes).length ? Object.keys(componentes) : COMPONENTES).map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="md:col-span-2">
-            <label className="block text-xs text-slate-600 mb-1">Tema / Assunto</label>
-            <input type="text" value={tema} onChange={(e) => setTema(e.target.value)} placeholder="Ex: Frações equivalentes" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-          </div>
-        </div>
-      </details>
+        </details>
+      )}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          Tema / Assunto
+          <span className="text-xs text-slate-500 ml-2 font-normal">(opcional)</span>
+        </label>
+        <input
+          type="text"
+          value={tema}
+          onChange={(e) => setTema(e.target.value)}
+          placeholder="Ex: Frações equivalentes (opcional)"
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+        />
+      </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Imagem (PNG/JPG) *</label>
         <input
@@ -2018,6 +3031,114 @@ function AdaptarAtividade({
           </div>
         )}
       </div>
+      {croppedFile && !showCropper && (
+        <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+          <label className="flex items-center gap-2 mb-3">
+            <input
+              type="checkbox"
+              checked={temImagemSeparada}
+              onChange={(e) => {
+                setTemImagemSeparada(e.target.checked);
+                if (!e.target.checked) {
+                  setImagemSeparadaFile(null);
+                  setImagemSeparadaCropped(null);
+                  if (imagemSeparadaPreviewUrl) {
+                    URL.revokeObjectURL(imagemSeparadaPreviewUrl);
+                    setImagemSeparadaPreviewUrl(null);
+                  }
+                  setShowImagemSeparadaCropper(false);
+                }
+              }}
+            />
+            <span className="text-sm font-medium text-slate-700">
+              🖼️ Passo 2: Recortar Imagem (Opcional)
+            </span>
+          </label>
+          <p className="text-xs text-slate-600 mb-3">
+            Se a questão tem imagem e você quer recortá-la separadamente para melhor qualidade, marque acima.
+          </p>
+          {temImagemSeparada && (
+            <div>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/jpg"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] || null;
+                  if (imagemSeparadaPreviewUrl) URL.revokeObjectURL(imagemSeparadaPreviewUrl);
+                  setImagemSeparadaPreviewUrl(null);
+                  setImagemSeparadaCropped(null);
+                  setShowImagemSeparadaCropper(false);
+                  setImagemSeparadaFile(f);
+                  if (f) {
+                    setImagemSeparadaPreviewUrl(URL.createObjectURL(f));
+                    setShowImagemSeparadaCropper(true);
+                  }
+                }}
+                className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-100 file:text-cyan-800"
+              />
+              {showImagemSeparadaCropper && imagemSeparadaPreviewUrl && (
+                <div className="mt-4 p-4 rounded-lg border border-slate-200 bg-white">
+                  <ImageCropper
+                    src={imagemSeparadaPreviewUrl}
+                    caption="Recorte apenas a área da imagem na questão"
+                    onCropComplete={handleImagemSeparadaCropComplete}
+                  />
+                  <div className="mt-2 flex gap-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (imagemSeparadaFile) {
+                          setImagemSeparadaCropped(imagemSeparadaFile);
+                          setShowImagemSeparadaCropper(false);
+                          if (imagemSeparadaPreviewUrl) {
+                            URL.revokeObjectURL(imagemSeparadaPreviewUrl);
+                            setImagemSeparadaPreviewUrl(null);
+                          }
+                        }
+                      }}
+                      className="text-sm text-slate-600 hover:text-slate-800"
+                    >
+                      Usar imagem inteira
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImagemSeparadaFile(null);
+                        if (imagemSeparadaPreviewUrl) {
+                          URL.revokeObjectURL(imagemSeparadaPreviewUrl);
+                          setImagemSeparadaPreviewUrl(null);
+                        }
+                        setShowImagemSeparadaCropper(false);
+                      }}
+                      className="text-sm text-slate-500 hover:text-slate-700"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+              {imagemSeparadaCropped && !showImagemSeparadaCropper && (
+                <div className="mt-4 flex items-center gap-2">
+                  <span className="text-sm text-emerald-600">✓ Imagem separada recortada</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImagemSeparadaCropped(null);
+                      if (imagemSeparadaFile) {
+                        setImagemSeparadaPreviewUrl(URL.createObjectURL(imagemSeparadaFile));
+                        setShowImagemSeparadaCropper(true);
+                      }
+                    }}
+                    className="text-sm text-cyan-600 hover:text-cyan-800"
+                  >
+                    Refazer recorte
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
       <div className="flex flex-wrap gap-4 items-center">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
@@ -2070,14 +3191,53 @@ function AdaptarAtividade({
       </button>
       {erro && <div className="text-red-600 text-sm">{erro}</div>}
       {resultado && (
-        <div className="space-y-3">
-          <div className="p-3 rounded-lg bg-slate-100 border border-slate-200">
-            <div className="text-xs font-semibold text-slate-600 uppercase mb-1">Análise</div>
-            <pre className="whitespace-pre-wrap text-sm text-slate-700">{resultado.analise}</pre>
-          </div>
-          <div className="p-4 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-semibold text-slate-600 uppercase">Atividade adaptada</span>
+        <div className="space-y-4">
+          {validado && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm font-medium">
+              ✅ ATIVIDADE VALIDADA E PRONTA PARA USO
+            </div>
+          )}
+          {!validado && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setValidado(true)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+              >
+                ✅ Validar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRefazendo(true);
+                  gerar(true);
+                }}
+                disabled={refazendo}
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm disabled:opacity-50"
+              >
+                {refazendo ? "Refazendo…" : "🔄 Refazer (+Profundo)"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setResultado(null);
+                  setValidado(false);
+                }}
+                className="px-4 py-2 bg-slate-400 text-white rounded-lg hover:bg-slate-500 text-sm"
+              >
+                🗑️ Descartar
+              </button>
+            </div>
+          )}
+          {resultado.analise && (
+            <div className="p-4 rounded-lg bg-slate-100 border border-slate-200">
+              <div className="text-xs font-semibold text-slate-600 uppercase mb-3">Análise Pedagógica</div>
+              <FormattedTextDisplay texto={resultado.analise} />
+            </div>
+          )}
+          <div className="p-6 rounded-lg bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+              <span className="text-base font-semibold text-slate-800">Atividade Adaptada (DUA)</span>
               <span className="flex gap-2">
                 <DocxDownloadButton texto={`${resultado.analise}\n\n---\n\n${resultado.texto}`} titulo="Atividade Adaptada (DUA)" filename={`Atividade_Adaptada_${new Date().toISOString().slice(0, 10)}.docx`} />
                 <PdfDownloadButton
@@ -2087,7 +3247,7 @@ function AdaptarAtividade({
                 />
               </span>
             </div>
-            <pre className="whitespace-pre-wrap text-sm text-slate-600">{resultado.texto}</pre>
+            <FormattedTextDisplay texto={resultado.texto} />
           </div>
         </div>
       )}

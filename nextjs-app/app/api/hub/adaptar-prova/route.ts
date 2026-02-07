@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import mammoth from "mammoth";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { adaptarPromptProva } from "@/lib/hub-prompts";
 
 export async function POST(req: Request) {
   let texto = "";
@@ -12,6 +13,8 @@ export async function POST(req: Request) {
   let engine: EngineId = "red";
   let modoProfundo = false;
   let questoesComImagem: number[] = [];
+  let unidadeTematica = "";
+  let objetoConhecimento = "";
 
   try {
     const formData = await req.formData();
@@ -26,6 +29,8 @@ export async function POST(req: Request) {
         checklist = parsed.checklist || {};
         estudante = parsed.estudante || {};
         modoProfundo = !!parsed.modo_profundo;
+        unidadeTematica = parsed.unidade_tematica || "";
+        objetoConhecimento = parsed.objeto_conhecimento || "";
         if (Array.isArray(parsed.questoes_com_imagem)) {
           questoesComImagem = parsed.questoes_com_imagem.filter((n: unknown) => typeof n === "number");
         }
@@ -65,49 +70,25 @@ export async function POST(req: Request) {
     );
   }
 
-  const necessidades: string[] = [];
-  if (checklist.questoes_desafiadoras) necessidades.push("Aumentar o nível de desafio das questões");
-  else necessidades.push("Manter ou reduzir o nível de dificuldade");
-  if (!checklist.compreende_instrucoes_complexas) necessidades.push("Simplificar instruções complexas");
-  if (checklist.instrucoes_passo_a_passo) necessidades.push("Fornecer instruções passo a passo");
-  if (checklist.dividir_em_etapas) necessidades.push("Dividir questões em etapas menores");
-  if (checklist.paragrafos_curtos) necessidades.push("Usar parágrafos curtos");
-  if (checklist.dicas_apoio) necessidades.push("Incluir dicas de apoio");
-  if (!checklist.compreende_figuras_linguagem) necessidades.push("Reduzir figuras de linguagem e inferências");
-  if (checklist.descricao_imagens) necessidades.push("Incluir descrição detalhada de imagens");
-
-  const instrucoesChecklist =
-    necessidades.length > 0
-      ? `\nCHECKLIST DE ADAPTAÇÃO:\n${necessidades.map((n) => `- ${n}`).join("\n")}\n\nREGRA: Para cada questão, escolha APENAS 1-2 adaptações mais relevantes.`
-      : "";
-
-  const hiperfoco = estudante.hiperfoco || "Geral";
-  const perfil = (estudante.perfil || "").slice(0, 800);
-
-  const modoInstrucao = modoProfundo
-    ? "Seja didático e use Cadeia de Pensamento para fundamentar cada adaptação."
-    : "Seja objetivo.";
-  const instrucaoImagens =
-    questoesComImagem.length > 0
-      ? `\nREGRA DE IMAGENS: O professor indicou imagens nas questões: ${questoesComImagem.join(", ")}. Para cada questão com imagem, use a tag [[IMG_N]] (onde N é o número da questão) EXATAMENTE no local onde a figura deve aparecer (após o enunciado, antes das alternativas). Exemplo: Questão 1 tem imagem → use [[IMG_1]]. NUNCA remova ou mova imagens de posição.\n`
-      : "";
-  const prompt = `ESPECIALISTA EM DUA E INCLUSÃO. ${modoInstrucao}${instrucaoImagens}
-1. ANALISE O PERFIL: ${perfil}
-2. ADAPTE A ${tipo}: Use o hiperfoco (${hiperfoco}) em até 30% das questões.
-${instrucoesChecklist}
-
-REGRA ABSOLUTA: REMOVA GABARITO E RESPOSTAS.
-
-SAÍDA OBRIGATÓRIA (Use EXATAMENTE este divisor):
-[ANÁLISE PEDAGÓGICA]
-...análise breve...
----DIVISOR---
-[ATIVIDADE]
-...prova/atividade adaptada...
-
-CONTEXTO: ${materia} | ${tema}
-TEXTO ORIGINAL:
-${texto.slice(0, 12000)}`;
+  // Usar prompt do arquivo separado (idêntico ao Streamlit)
+  const prompt = adaptarPromptProva({
+    aluno: {
+      nome: estudante.nome || "",
+      ia_sugestao: estudante.perfil || "",
+      hiperfoco: estudante.hiperfoco || "Geral",
+    },
+    texto,
+    materia,
+    tema,
+    tipo_atv: tipo,
+    remover_resp: true, // Sempre remover respostas em adaptar-prova
+    questoes_mapeadas: questoesComImagem.length > 0 ? questoesComImagem : [],
+    modo_profundo: modoProfundo,
+    checklist_adaptacao: checklist,
+    questoes_com_imagem: questoesComImagem,
+    unidade_tematica: unidadeTematica,
+    objeto_conhecimento: objetoConhecimento,
+  });
 
   const engineErr = getEngineError(engine);
   if (engineErr) {

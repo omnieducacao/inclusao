@@ -3,7 +3,12 @@ import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 
 export async function POST(req: Request) {
-  let body: { tema?: string; faixa?: string; engine?: string; estudante?: { nome?: string; hiperfoco?: string } };
+  let body: {
+    tema?: string;
+    feedback?: string;
+    engine?: string;
+    estudante?: { nome?: string; hiperfoco?: string; ia_sugestao?: string };
+  };
   try {
     body = await req.json();
   } catch {
@@ -15,13 +20,33 @@ export async function POST(req: Request) {
   const err = getEngineError(engine);
   if (err) return NextResponse.json({ error: err }, { status: 500 });
 
-  const prompt = `Especialista em Educação Infantil e INCLUSÃO NO BRINCAR.
-Sugira brincadeiras ACESSÍVEIS para: ${body.tema || "brincadeiras em grupo"}.
-Faixa etária: ${body.faixa || "3-5 anos"}.
-Estudante: ${body.estudante?.nome || "criança"}. Hiperfoco: ${body.estudante?.hiperfoco || "não informado"}.
+  const tema = body.tema || "";
+  const feedback = body.feedback || "";
+  const estudanteNome = body.estudante?.nome || "criança";
+  const hiperfoco = body.estudante?.hiperfoco || "";
+  const perfilEstudante = body.estudante?.ia_sugestao || "";
 
-Retorne: 1) Nome da brincadeira; 2) Objetivos; 3) Materiais; 4) Passo a passo; 5) Adaptações para inclusão.
-Use linguagem simples. NÃO inclua diagnóstico ou CID.`;
+  let prompt = `Especialista em Educação Infantil e MEDIAÇÃO SOCIAL.
+Se a criança brinca isolada, o objetivo não é forçar a interação, mas criar pontes através do interesse dela.
+A IA criará uma brincadeira onde ela é protagonista.
+
+TEMA/MOMENTO: ${tema}
+
+ESTUDANTE: ${estudanteNome}
+${hiperfoco ? `HIPERFOCO/INTERESSE: ${hiperfoco}` : ""}
+${perfilEstudante ? `PERFIL: ${perfilEstudante}` : ""}
+
+${feedback ? `CORREÇÃO/REFINAMENTO: ${feedback}` : ""}
+
+Retorne:
+1) Nome da brincadeira (usando o hiperfoco/interesse como ponte)
+2) Objetivos pedagógicos e sociais
+3) Materiais necessários (simples e acessíveis)
+4) Passo a passo detalhado da brincadeira
+5) Adaptações específicas para inclusão
+6) Estratégias de mediação para o professor facilitar a interação
+
+Use linguagem simples e prática. NÃO inclua diagnóstico ou CID.`;
 
   try {
     const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.7 });

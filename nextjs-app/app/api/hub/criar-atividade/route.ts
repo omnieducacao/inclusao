@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { criarPromptProfissional } from "@/lib/hub-prompts";
 
 export async function POST(req: Request) {
   let body: {
@@ -11,7 +12,11 @@ export async function POST(req: Request) {
     ei_campo?: string;
     ei_objetivos?: string[];
     estudante?: { nome?: string; serie?: string; hiperfoco?: string };
-    usar_imagens?: boolean;
+    verbos_bloom?: string[];
+    qtd_questoes?: number;
+    tipo_questao?: "Objetiva" | "Discursiva";
+    qtd_imagens?: number;
+    checklist_adaptacao?: Record<string, boolean>;
   };
 
   try {
@@ -21,42 +26,56 @@ export async function POST(req: Request) {
   }
 
   const assunto = (body.assunto || "").trim();
-  if (!assunto) {
-    return NextResponse.json({ error: "Informe o assunto." }, { status: 400 });
+  const habilidades = body.habilidades || [];
+  const temBnccPreenchida = habilidades.length > 0 || (body.ei_mode && body.ei_objetivos && body.ei_objetivos.length > 0);
+  
+  // Assunto só é obrigatório se não tiver BNCC preenchida
+  if (!assunto && !temBnccPreenchida) {
+    return NextResponse.json({ error: "Informe o assunto ou selecione habilidades BNCC." }, { status: 400 });
   }
 
-  const habilidades = body.habilidades || [];
   const eiMode = !!body.ei_mode;
   const eiObjetivos = body.ei_objetivos || [];
   const estudante = body.estudante || {};
   const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
     ? (body.engine as EngineId)
     : "red";
+  const verbosBloom = body.verbos_bloom || [];
+  const qtdQuestoes = body.qtd_questoes ?? 5;
+  const tipoQuestao = body.tipo_questao || "Objetiva";
+  const qtdImagens = body.qtd_imagens ?? 0;
+  const checklist = body.checklist_adaptacao || {};
+  
   const ctxEstudante = estudante.nome
     ? `Estudante: ${estudante.nome}. Série: ${estudante.serie || "-"}. Interesses: ${estudante.hiperfoco || "gerais"}.`
     : "";
 
   const habParaPrompt = eiMode ? eiObjetivos : habilidades;
-  const prompt = `Você é um especialista em DUA (Desenho Universal para Aprendizagem) e inclusão.
-${eiMode ? "Modo EDUCAÇÃO INFANTIL: use linguagem lúdica, atividades sensoriais e brincadeiras. Campos de experiência e objetivos BNCC EI." : ""}
-
-${ctxEstudante ? `Contexto do estudante: ${ctxEstudante}\n` : ""}
-Crie uma atividade pedagógica sobre: **${assunto}**
-${eiMode && body.ei_idade ? `Faixa de idade: ${body.ei_idade}. Campo de experiência: ${body.ei_campo || "-"}.\n` : ""}
-${habParaPrompt.length > 0 ? `\n${eiMode ? "Objetivos de Aprendizagem" : "Habilidades BNCC"} a contemplar:\n${habParaPrompt.map((h) => `- ${h}`).join("\n")}` : ""}
-
-Regras:
-- Seja didático e acessível.
-- Se houver contexto do estudante, adapte a linguagem e os exemplos ao perfil.
-- NÃO inclua diagnóstico ou CID em nenhum material.
-- Retorne a atividade pronta para uso (enunciados, orientações, se aplicável).
-${body.usar_imagens ? `- INCLUA 1 a 3 marcadores de imagem no formato [[GEN_IMG: termo descritivo em português]] nos locais onde figuras seriam úteis (ex: [[GEN_IMG: frações em pizza]], [[GEN_IMG: sistema solar]]). Use termos claros para busca.` : ""}`;
+  
+  // Usar prompt do arquivo separado (idêntico ao Streamlit)
+  const prompt = criarPromptProfissional({
+    materia: assunto || "conteúdo baseado nas habilidades BNCC selecionadas",
+    objeto: assunto || "",
+    qtd: qtdQuestoes,
+    tipo_q: tipoQuestao,
+    qtd_imgs: qtdImagens,
+    verbos_bloom: verbosBloom,
+    habilidades_bncc: habParaPrompt,
+    modo_profundo: false,
+    checklist_adaptacao: checklist,
+    hiperfoco: estudante.hiperfoco || "Geral",
+  });
+  
+  // Adicionar contexto do estudante se disponível
+  const promptCompleto = ctxEstudante
+    ? `${prompt}\n\n${ctxEstudante}`
+    : prompt;
 
   const engineErr = getEngineError(engine);
   if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
 
   try {
-    const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.7 });
+    const texto = await chatCompletionText(engine, [{ role: "user", content: promptCompleto }], { temperature: 0.6 });
     return NextResponse.json({ texto });
   } catch (err) {
     console.error("Hub criar-atividade:", err);

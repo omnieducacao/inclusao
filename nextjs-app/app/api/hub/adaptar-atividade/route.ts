@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
-import { visionAdapt, getVisionError } from "@/lib/ai-engines";
+import { visionAdapt, getVisionError, getVisionApiKey, chatCompletionText, type EngineId } from "@/lib/ai-engines";
+import { adaptarPromptAtividade } from "@/lib/hub-prompts";
+import { garantirTagImagem } from "@/lib/hub-utils";
+import { comprimirArquivoImagem } from "@/lib/image-compression";
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
+const MAX_VISION_BYTES = 3 * 1024 * 1024; // 3MB (limite para APIs de visão)
 
 export async function POST(req: Request) {
   const err = getVisionError();
@@ -10,6 +14,7 @@ export async function POST(req: Request) {
   }
 
   let imagemBase64 = "";
+  let imagemSeparadaBase64: string | null = null;
   let mime = "image/jpeg";
   let materia = "Geral";
   let tema = "Geral";
@@ -18,10 +23,14 @@ export async function POST(req: Request) {
   let checklist: Record<string, boolean> = {};
   let estudante: { hiperfoco?: string; perfil?: string } = {};
   let modoProfundo = false;
+  let engine: EngineId = "red";
+  let unidadeTematica = "";
+  let objetoConhecimento = "";
 
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
+    const fileSeparado = formData.get("file_separado") as File | null;
     const meta = formData.get("meta") as string | null;
 
     if (!file || !file.size) {
@@ -39,23 +48,41 @@ export async function POST(req: Request) {
         tipo = parsed.tipo || tipo;
         livroProfessor = !!parsed.livro_professor;
         checklist = parsed.checklist || {};
+        unidadeTematica = parsed.unidade_tematica || "";
+        objetoConhecimento = parsed.objeto_conhecimento || "";
         estudante = parsed.estudante || {};
         modoProfundo = !!parsed.modo_profundo;
+        if (["red", "blue", "green", "yellow", "orange"].includes(parsed.engine || "")) {
+          engine = parsed.engine as EngineId;
+        }
       } catch {
         // ignore
       }
     }
 
-    const buf = await file.arrayBuffer();
-    const bytes = new Uint8Array(buf);
-    if (bytes.length > MAX_IMAGE_BYTES) {
+    // Comprimir imagem principal se necessário (importante para prints de tela grandes)
+    const compressedBuffer = await comprimirArquivoImagem(file, MAX_VISION_BYTES);
+    if (compressedBuffer.length > MAX_IMAGE_BYTES) {
       return NextResponse.json(
-        { error: "Imagem muito grande. Use até 4MB." },
+        { error: "Imagem muito grande mesmo após compressão. Use até 4MB." },
         { status: 400 }
       );
     }
-    imagemBase64 = Buffer.from(bytes).toString("base64");
+    imagemBase64 = compressedBuffer.toString("base64");
     mime = file.type || "image/jpeg";
+
+    // Processar imagem separada (Passo 2) se houver
+    if (fileSeparado && fileSeparado.size) {
+      // Comprimir imagem separada também
+      const compressedBufferSep = await comprimirArquivoImagem(fileSeparado, MAX_VISION_BYTES);
+      if (compressedBufferSep.length > MAX_IMAGE_BYTES) {
+        return NextResponse.json(
+          { error: "Imagem separada muito grande mesmo após compressão. Use até 4MB." },
+          { status: 400 }
+        );
+      }
+      imagemSeparadaBase64 = compressedBufferSep.toString("base64");
+    }
   } catch (err) {
     console.error("Adaptar Atividade parse:", err);
     return NextResponse.json(
@@ -64,48 +91,63 @@ export async function POST(req: Request) {
     );
   }
 
-  const necessidades: string[] = [];
-  if (checklist.questoes_desafiadoras) necessidades.push("Aumentar o nível de desafio");
-  else necessidades.push("Manter ou reduzir a dificuldade");
-  if (!checklist.compreende_instrucoes_complexas) necessidades.push("Simplificar instruções");
-  if (checklist.instrucoes_passo_a_passo) necessidades.push("Instruções passo a passo");
-  if (checklist.dividir_em_etapas) necessidades.push("Dividir em etapas menores");
-  if (checklist.paragrafos_curtos) necessidades.push("Parágrafos curtos");
-  if (checklist.dicas_apoio) necessidades.push("Dicas de apoio");
-  if (!checklist.compreende_figuras_linguagem) necessidades.push("Reduzir figuras de linguagem");
-  if (checklist.descricao_imagens) necessidades.push("Descrição detalhada de imagens");
+  const temImagemSeparada = !!imagemSeparadaBase64;
 
-  const instrucoesChecklist =
-    necessidades.length > 0
-      ? `\nCHECKLIST: ${necessidades.join("; ")}\nAplique as adaptações de forma pontual.`
-      : "";
-
-  const hiperfoco = estudante.hiperfoco || "Geral";
-  const perfil = (estudante.perfil || "").slice(0, 600);
-  const instrucaoLivro = livroProfessor
-    ? "ATENÇÃO: Imagem com respostas. Remova todo gabarito/respostas."
-    : "";
-  const modoInstrucao = modoProfundo
-    ? "Seja didático e use Cadeia de Pensamento para fundamentar cada adaptação."
-    : "Seja objetivo.";
-
-  const prompt = `ATUAR COMO: Especialista em Acessibilidade e OCR. ${modoInstrucao}
-1. Transcreva o texto da imagem. ${instrucaoLivro}
-2. Adapte para o estudante. Perfil (PEI): ${perfil}
-3. HIPERFOCO (${hiperfoco}): Use o hiperfoco do estudante quando possível.
-${instrucoesChecklist}
-
-SAÍDA OBRIGATÓRIA (Use EXATAMENTE este divisor):
-[ANÁLISE PEDAGÓGICA]
-...análise breve...
----DIVISOR---
-[ATIVIDADE]
-...atividade adaptada...
-
-CONTEXTO: ${materia} | ${tema} | ${tipo}`;
+  // Usar prompt do arquivo separado (idêntico ao Streamlit)
+  const prompt = adaptarPromptAtividade({
+    aluno: {
+      nome: estudante.nome || "",
+      ia_sugestao: estudante.perfil || "",
+      hiperfoco: estudante.hiperfoco || "Geral",
+    },
+    materia,
+    tema,
+    tipo_atv: tipo,
+    livro_professor: livroProfessor,
+    modo_profundo: modoProfundo,
+    checklist_adaptacao: checklist,
+    imagem_separada: temImagemSeparada,
+    unidade_tematica: unidadeTematica,
+    objeto_conhecimento: objetoConhecimento,
+  });
 
   try {
-    const fullText = await visionAdapt(prompt, imagemBase64, mime);
+    // Usar Gemini diretamente para suportar múltiplas imagens quando necessário
+    const v = getVisionApiKey();
+    if (!v) throw new Error(getVisionError() || "Chave de visão não configurada.");
+
+    let fullText: string;
+
+    if (v.engine === "yellow" && temImagemSeparada && imagemSeparadaBase64) {
+      // Gemini suporta múltiplas imagens no mesmo request
+      const { GoogleGenerativeAI } = await import("@google/generative-ai");
+      const genAI = new GoogleGenerativeAI(v.key);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      
+      const contents = [
+        { text: prompt },
+        {
+          inlineData: {
+            data: imagemBase64,
+            mimeType: mime || "image/jpeg",
+          },
+        },
+        { text: "IMAGEM RECORTADA SEPARADAMENTE PELO PROFESSOR (use tag [[IMG_2]] para inserir no local apropriado):" },
+        {
+          inlineData: {
+            data: imagemSeparadaBase64,
+            mimeType: mime || "image/jpeg",
+          },
+        },
+      ];
+      
+      const result = await model.generateContent(contents);
+      fullText = (result.response.text() || "").trim();
+    } else {
+      // Usar visionAdapt padrão (uma imagem)
+      fullText = await visionAdapt(prompt, imagemBase64, mime);
+    }
+    
     let analise = "Análise indisponível.";
     let atividade = fullText;
 
@@ -113,6 +155,11 @@ CONTEXTO: ${materia} | ${tema} | ${tipo}`;
       const parts = fullText.split("---DIVISOR---");
       analise = parts[0].replace("[ANÁLISE PEDAGÓGICA]", "").trim();
       atividade = parts[1].replace("[ATIVIDADE]", "").trim();
+    }
+
+    // Aplicar garantir_tag_imagem se houver imagem separada (Passo 2)
+    if (temImagemSeparada) {
+      atividade = garantirTagImagem(atividade, "IMG_2");
     }
 
     return NextResponse.json({ analise, texto: atividade });
