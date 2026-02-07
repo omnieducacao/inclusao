@@ -29,7 +29,7 @@ export default async function PEIPage({ searchParams }: Props) {
         icon={FileText}
         title="Estratégias & PEI"
         desc="Plano Educacional Individual com objetivos, avaliações e acompanhamento."
-        color="sky"
+        color="blue"
       />
 
       <Suspense fallback={<div className="text-slate-500">Carregando…</div>}>

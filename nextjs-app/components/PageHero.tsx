@@ -4,11 +4,12 @@ type PageHeroProps = {
   icon: LucideIcon;
   title: string;
   desc: string;
-  color?: "sky" | "cyan" | "violet" | "rose" | "slate" | "teal";
+  color?: "sky" | "blue" | "cyan" | "violet" | "rose" | "slate" | "teal";
 };
 
 const colors: Record<string, string> = {
   sky: "from-sky-100 via-sky-50 to-white border-slate-200",
+  blue: "from-blue-100 via-blue-50 to-white border-slate-200",
   cyan: "from-cyan-100 via-cyan-50 to-white border-slate-200",
   violet: "from-violet-100 via-violet-50 to-white border-slate-200",
   rose: "from-rose-100 via-rose-50 to-white border-slate-200",
@@ -17,7 +18,8 @@ const colors: Record<string, string> = {
 };
 
 const iconColors: Record<string, string> = {
-  sky: "text-sky-600",
+  sky: "text-sky-600", // Estudantes: azul índigo
+  blue: "text-blue-600", // PEI: azul mais claro/vivo
   cyan: "text-cyan-600",
   violet: "text-violet-600",
   rose: "text-rose-600",

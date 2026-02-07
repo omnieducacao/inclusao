@@ -63,7 +63,7 @@ function canAccess(
   return member[item.permission] === true;
 }
 
-export function Navbar({ session }: { session: SessionPayload }) {
+export function Navbar({ session, hideMenu = false }: { session: SessionPayload; hideMenu?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -110,42 +110,46 @@ export function Navbar({ session }: { session: SessionPayload }) {
           </Link>
           
           {/* Navegação Principal - Desktop e Tablet (lg+) */}
-          <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center px-4 overflow-x-auto scrollbar-hide">
-            {items.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
-                    isActive
-                      ? "bg-blue-50 text-blue-700 shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                  }`}
-                  title={item.label}
-                >
-                  <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-500"}`} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+          {!hideMenu && (
+            <>
+              <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center px-4 overflow-x-auto scrollbar-hide">
+                {items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                        isActive
+                          ? "bg-blue-50 text-blue-700 shadow-sm"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      }`}
+                      title={item.label}
+                    >
+                      <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-500"}`} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
 
-          {/* Menu Mobile/Tablet pequeno - Dropdown */}
-          <div className="lg:hidden flex items-center gap-2 ml-2 flex-shrink-0">
-            <select
-              value={pathname}
-              onChange={(e) => router.push(e.target.value)}
-              className="text-sm px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {items.map((item) => (
-                <option key={item.href} value={item.href}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </div>
+              {/* Menu Mobile/Tablet pequeno - Dropdown */}
+              <div className="lg:hidden flex items-center gap-2 ml-2 flex-shrink-0">
+                <select
+                  value={pathname}
+                  onChange={(e) => router.push(e.target.value)}
+                  className="text-sm px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {items.map((item) => (
+                    <option key={item.href} value={item.href}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
 
           {/* User Info e Logout */}
           <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200 flex-shrink-0">
