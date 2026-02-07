@@ -1596,9 +1596,9 @@ function MapearBarreirasTab({
               title={`Diagnóstico de Barreiras - ${student?.name || ""}`}
             />
             <DocxDownloadButton
-              text={diagnostico}
+              texto={diagnostico}
               filename={`Diagnostico_Barreiras_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
-              title={`Diagnóstico de Barreiras - ${student?.name || ""}`}
+              titulo={`Diagnóstico de Barreiras - ${student?.name || ""}`}
             />
           </div>
         </div>
@@ -1671,9 +1671,9 @@ function MapearBarreirasTab({
               title={`Diagnóstico de Barreiras - ${student?.name || ""}`}
             />
             <DocxDownloadButton
-              text={diagnostico}
+              texto={diagnostico}
               filename={`Diagnostico_Barreiras_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
-              title={`Diagnóstico de Barreiras - ${student?.name || ""}`}
+              titulo={`Diagnóstico de Barreiras - ${student?.name || ""}`}
             />
           </div>
         </div>
@@ -1872,9 +1872,9 @@ function PlanoHabilidadesTab({
               title={`Plano de Habilidades - ${student?.name || ""}`}
             />
             <DocxDownloadButton
-              text={plano}
+              texto={plano}
               filename={`Plano_Habilidades_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
-              title={`Plano de Habilidades - ${student?.name || ""}`}
+              titulo={`Plano de Habilidades - ${student?.name || ""}`}
             />
           </div>
         </div>
@@ -1938,9 +1938,9 @@ function PlanoHabilidadesTab({
               title={`Plano de Habilidades - ${student?.name || ""}`}
             />
             <DocxDownloadButton
-              text={plano}
+              texto={plano}
               filename={`Plano_Habilidades_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
-              title={`Plano de Habilidades - ${student?.name || ""}`}
+              titulo={`Plano de Habilidades - ${student?.name || ""}`}
             />
           </div>
         </div>
@@ -2129,9 +2129,9 @@ function TecAssistivaTab({
               title={`Tecnologia Assistiva - ${student?.name || ""}`}
             />
             <DocxDownloadButton
-              text={sugestoes}
+              texto={sugestoes}
               filename={`Tecnologia_Assistiva_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
-              title={`Tecnologia Assistiva - ${student?.name || ""}`}
+              titulo={`Tecnologia Assistiva - ${student?.name || ""}`}
             />
           </div>
         </div>
@@ -2195,9 +2195,9 @@ function TecAssistivaTab({
               title={`Tecnologia Assistiva - ${student?.name || ""}`}
             />
             <DocxDownloadButton
-              text={sugestoes}
+              texto={sugestoes}
               filename={`Tecnologia_Assistiva_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
-              title={`Tecnologia Assistiva - ${student?.name || ""}`}
+              titulo={`Tecnologia Assistiva - ${student?.name || ""}`}
             />
           </div>
         </div>
@@ -2419,9 +2419,9 @@ function ArticulacaoTab({
               title={`Documento de Articulação - ${student?.name || ""}`}
             />
             <DocxDownloadButton
-              text={documento}
+              texto={documento}
               filename={`Documento_Articulacao_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
-              title={`Documento de Articulação - ${student?.name || ""}`}
+              titulo={`Documento de Articulação - ${student?.name || ""}`}
             />
           </div>
         </div>
@@ -2485,9 +2485,9 @@ function ArticulacaoTab({
               title={`Documento de Articulação - ${student?.name || ""}`}
             />
             <DocxDownloadButton
-              text={documento}
+              texto={documento}
               filename={`Documento_Articulacao_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
-              title={`Documento de Articulação - ${student?.name || ""}`}
+              titulo={`Documento de Articulação - ${student?.name || ""}`}
             />
           </div>
         </div>
