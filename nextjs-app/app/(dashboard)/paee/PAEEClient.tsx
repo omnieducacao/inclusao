@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
 import { EngineSelector } from "@/components/EngineSelector";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
+import { getColorClasses } from "@/lib/colors";
 import type { CicloPAEE, MetaPei, ConfigCiclo } from "@/lib/paee";
 import type { EngineId } from "@/lib/ai-engines";
 import {
@@ -264,7 +265,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
     <div className="space-y-6">
       <StudentSelector students={students} currentId={currentId} />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white min-h-[140px]">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-slate-200 min-h-[140px]" style={{ backgroundColor: getColorClasses("violet").bg }}>
         <div>
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Nome</div>
           <div className="font-bold text-slate-800">{student.name}</div>

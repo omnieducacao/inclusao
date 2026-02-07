@@ -8,6 +8,7 @@ import { ImageCropper } from "@/components/ImageCropper";
 import { detectarNivelEnsino } from "@/lib/pei";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
+import { getColorClasses } from "@/lib/colors";
 import {
   FileText,
   Image as ImageIcon,
@@ -96,7 +97,7 @@ export function HubClient({ students, studentId, student }: Props) {
               <strong>Modo Educação Infantil</strong> — Ferramentas específicas para EI.
             </div>
           )}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-slate-200" style={{ backgroundColor: getColorClasses("cyan").bg }}>
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Nome</div>
             <div className="font-bold text-slate-800">{student.name}</div>

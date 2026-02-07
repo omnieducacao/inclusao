@@ -329,21 +329,50 @@ export function PEIClient({
       // Buscar dados do estudante selecionado
       const url = `/api/students/${selectedStudentId}`;
       fetch(url)
-        .then((res) => parseJsonResponse(res, url))
+        .then((res) => {
+          if (!res.ok) {
+            // Se não encontrou, verificar se o estudante está na lista
+            const studentFromList = students.find((s) => s.id === selectedStudentId);
+            if (studentFromList) {
+              // Estudante existe na lista mas não foi encontrado na API
+              // Limpar dados do PEI e não mostrar erro
+              setPeiData({} as PEIData);
+              setSaved(false);
+              setErroGlobal(null);
+              return;
+            }
+            // Estudante não encontrado e não está na lista
+            throw new Error("Estudante não encontrado");
+          }
+          return parseJsonResponse(res, url);
+        })
         .then((data) => {
-          if (data.pei_data) {
+          if (data && data.pei_data) {
             setPeiData(data.pei_data as PEIData);
+            setSaved(false);
+          } else if (data) {
+            // Estudante encontrado mas sem pei_data
+            setPeiData({} as PEIData);
             setSaved(false);
           }
           setErroGlobal(null);
         })
         .catch((err) => {
-          const mensagem = err instanceof Error ? err.message : "Erro ao carregar dados do estudante";
-          setErroGlobal(mensagem);
-          console.error("Erro ao carregar dados do estudante:", err);
+          // Não mostrar erro se o estudante estiver na lista
+          const studentFromList = students.find((s) => s.id === selectedStudentId);
+          if (!studentFromList) {
+            const mensagem = err instanceof Error ? err.message : "Erro ao carregar dados do estudante";
+            setErroGlobal(mensagem);
+            console.error("Erro ao carregar dados do estudante:", err);
+          } else {
+            // Estudante existe na lista, apenas limpar dados
+            setPeiData({} as PEIData);
+            setSaved(false);
+            setErroGlobal(null);
+          }
         });
     }
-  }, [selectedStudentId, studentId]);
+  }, [selectedStudentId, studentId, students]);
 
   // Aplicar JSON pendente
   function aplicarJson() {
@@ -435,7 +464,7 @@ export function PEIClient({
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
-              className={`group relative px-4 py-3 text-xs font-semibold whitespace-nowrap flex-shrink-0 flex items-center gap-2 transition-all duration-200 ${
+              className={`group relative px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold whitespace-nowrap flex-shrink-0 flex items-center gap-1 sm:gap-2 transition-all duration-200 ${
                 isActive 
                   ? "text-sky-600 border-b-2 border-sky-600 bg-gradient-to-b from-sky-50 to-white" 
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
@@ -462,8 +491,8 @@ export function PEIClient({
       </div>
 
       {/* Breadcrumb e Navegação Contextual */}
-      <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-200 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm">
+      <div className="px-4 sm:px-6 py-3 bg-slate-50/50 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-xs sm:text-sm flex-wrap">
           <Link href="/" className="text-slate-500 hover:text-sky-600 transition-colors">Home</Link>
           <span className="text-slate-300">/</span>
           <span className="text-slate-700 font-medium">PEI</span>
@@ -473,14 +502,15 @@ export function PEIClient({
         {currentStudentId && (
           <div className="flex items-center gap-2 text-xs text-slate-600">
             <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-            <span>Estudante selecionado</span>
+            <span className="hidden sm:inline">Estudante selecionado</span>
+            <span className="sm:hidden">Selecionado</span>
           </div>
         )}
       </div>
 
-      <div className="p-6 max-h-[70vh] overflow-y-auto scroll-smooth">
+      <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto scroll-smooth">
             {activeTab === "inicio" && (
-              <div className="space-y-4 max-w-6xl">
+              <div className="space-y-4 max-w-6xl mx-auto">
                 {/* Título da aba com ícone */}
                 <div className="flex items-center gap-2 mb-2">
                   <FileText className="w-5 h-5 text-sky-600" />
@@ -488,7 +518,7 @@ export function PEIClient({
                 </div>
                 
                 {/* Grid principal: 2 colunas */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                   {/* Coluna Esquerda: Fundamentos */}
                   <div className="space-y-3">
                     <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
@@ -583,23 +613,60 @@ export function PEIClient({
                           placeholder="Selecione o estudante"
                           onChange={(id) => {
                             setSelectedStudentId(id);
+                            setErroGlobal(null);
                             if (id) {
                               // Carregar dados do estudante da nuvem
                               fetch(`/api/students/${id}`)
-                                .then(res => res.json())
+                                .then(res => {
+                                  if (!res.ok) {
+                                    // Se não encontrou, verificar se está na lista
+                                    const studentFromList = students.find((s) => s.id === id);
+                                    if (studentFromList) {
+                                      // Estudante existe na lista mas não foi encontrado na API
+                                      // Limpar dados do PEI e não mostrar erro
+                                      setPeiData({} as PEIData);
+                                      setSaved(false);
+                                      setErroGlobal(null);
+                                      return null;
+                                    }
+                                    throw new Error("Estudante não encontrado");
+                                  }
+                                  return res.json();
+                                })
                                 .then(data => {
-                                  if (data.pei_data && typeof data.pei_data === 'object') {
+                                  if (data && data.pei_data && typeof data.pei_data === 'object') {
                                     setPeiData(data.pei_data as PEIData);
                                     setSaved(true);
                                     setTimeout(() => setSaved(false), 2000);
+                                  } else if (data) {
+                                    // Estudante encontrado mas sem pei_data
+                                    setPeiData({} as PEIData);
+                                    setSaved(false);
                                   }
+                                  setErroGlobal(null);
                                 })
-                                .catch(err => console.error("Erro ao carregar estudante:", err));
-                              
+                                .catch(err => {
+                                  // Não mostrar erro se o estudante estiver na lista
+                                  const studentFromList = students.find((s) => s.id === id);
+                                  if (!studentFromList) {
+                                    console.error("Erro ao carregar estudante:", err);
+                                    setErroGlobal("Erro ao carregar dados do estudante");
+                                  } else {
+                                    // Estudante existe na lista, apenas limpar dados
+                                    setPeiData({} as PEIData);
+                                    setSaved(false);
+                                    setErroGlobal(null);
+                                  }
+                                });
+
                               // Atualizar URL sem recarregar
                               const url = new URL(window.location.href);
                               url.searchParams.set("student", id);
                               window.history.pushState({}, "", url.toString());
+                            } else {
+                              // Limpar dados quando nenhum estudante está selecionado
+                              setPeiData({} as PEIData);
+                              setSaved(false);
                             }
                           }}
                         />
@@ -1893,7 +1960,7 @@ function DashboardTab({
           border-left: 5px solid;
           position: relative;
           overflow: hidden;
-          z-index: 1;
+          z-index: 0;
         }
         .sc-orange { background-color: #FFF5F5; border-left-color: #DD6B20; }
         .sc-blue { background-color: #EBF8FF; border-left-color: #3182CE; }
@@ -2161,21 +2228,21 @@ function DashboardTab({
 
       {/* Exportação */}
       <hr className="my-6" />
-      <div className="relative z-10">
+      <div className="relative z-50">
         <h4 className="text-base font-semibold text-slate-800 mb-4">📤 Exportação e Sincronização</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative z-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="relative z-50">
             <p className="text-xs text-slate-600 mb-2">📄 Documentos</p>
             <div className="flex flex-col gap-2">
-              <div className="relative z-10">
+              <div className="relative z-50">
                 <PeiExportDocxButton peiData={peiData} />
               </div>
-              <div className="relative z-10">
+              <div className="relative z-50">
                 <PdfDownloadButton
                   text={peiDataToFullText(peiData)}
                   filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
                   title={`PEI - ${peiData.nome || "Estudante"}`}
-                  className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 flex items-center justify-center gap-2 relative z-10"
+                  className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 flex items-center justify-center gap-2 relative z-50"
                 >
                   <Download className="w-4 h-4" />
                   Baixar PDF Oficial
@@ -2188,22 +2255,22 @@ function DashboardTab({
               </p>
             )}
           </div>
-          <div className="relative z-10">
+          <div className="relative z-50">
             <p className="text-xs text-slate-600 mb-2">💾 Backup (JSON)</p>
             <p className="text-xs text-slate-500 mb-2">Salva um arquivo no seu computador para garantir que nada se perca.</p>
             <a
               href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
               download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.json`}
-              className="block w-full px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-center text-sm relative z-10"
+              className="block w-full px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-center text-sm relative z-50"
             >
               Salvar Arquivo .JSON
             </a>
           </div>
-          <div className="relative z-10">
+          <div className="relative z-50">
             <p className="text-xs text-slate-600 mb-2">🌐 Nuvem (Supabase)</p>
             <p className="text-xs text-slate-500 mb-2">Sincroniza tudo na nuvem.</p>
             {currentStudentId ? (
-              <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 relative z-10">
+              <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 relative z-50">
                 <p className="text-sm text-emerald-800">✅ Já sincronizado</p>
               </div>
             ) : (
@@ -2273,83 +2340,22 @@ function PeiExportDocxButton({ peiData }: { peiData: PEIData }) {
   );
 }
 
-// Função para formatar texto da consultoria (remover ##, usar blocos e emojis)
+// Função para formatar texto da consultoria (simples, como no Streamlit)
 function formatarTextoConsultoria(texto: string): React.ReactNode {
   if (!texto) return texto;
   
-  // Dividir por linhas
-  const linhas = texto.split('\n');
-  const elementos: React.ReactNode[] = [];
-  let blocoAtual: string[] = [];
+  // Remover markdown headers (##) e converter para texto simples
+  const textoLimpo = texto
+    .replace(/^##+\s*/gm, '') // Remove ## headers
+    .replace(/^\*\*/gm, '•') // Converte ** para bullet
+    .trim();
   
-  function finalizarBloco() {
-    if (blocoAtual.length === 0) return;
-    const conteudo = blocoAtual.join('\n').trim();
-    if (!conteudo) {
-      blocoAtual = [];
-      return;
-    }
-    
-    // Detectar tipo de bloco por palavras-chave
-    const conteudoLower = conteudo.toLowerCase();
-    let emoji = "📌";
-    let corBorda = "border-slate-300";
-    
-    if (conteudoLower.includes("objetivo") || conteudoLower.includes("meta")) {
-      emoji = "🎯";
-      corBorda = "border-emerald-300";
-    } else if (conteudoLower.includes("estratégia") || conteudoLower.includes("ação")) {
-      emoji = "💡";
-      corBorda = "border-blue-300";
-    } else if (conteudoLower.includes("avaliação") || conteudoLower.includes("acompanhamento")) {
-      emoji = "📊";
-      corBorda = "border-purple-300";
-    } else if (conteudoLower.includes("barreira") || conteudoLower.includes("dificuldade")) {
-      emoji = "⚠️";
-      corBorda = "border-amber-300";
-    } else if (conteudoLower.includes("potencial") || conteudoLower.includes("força")) {
-      emoji = "✨";
-      corBorda = "border-emerald-300";
-    } else if (conteudoLower.includes("recomendação") || conteudoLower.includes("sugestão")) {
-      emoji = "💬";
-      corBorda = "border-cyan-300";
-    }
-    
-    elementos.push(
-      <div key={`bloco-${elementos.length}`} className={`p-3 rounded-lg border-2 ${corBorda} bg-white mb-3`}>
-        <div className="flex items-start gap-2">
-          <span className="text-lg">{emoji}</span>
-          <div className="flex-1 text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
-            {conteudo.replace(/^##+\s*/gm, '').replace(/^\*\*/gm, '•').trim()}
-          </div>
-        </div>
-      </div>
-    );
-    blocoAtual = [];
-  }
-  
-  linhas.forEach((linha, idx) => {
-    const linhaTrim = linha.trim();
-    
-    // Se linha vazia, finalizar bloco atual
-    if (!linhaTrim) {
-      finalizarBloco();
-      return;
-    }
-    
-    // Se começa com ##, finalizar bloco anterior e começar novo
-    if (linhaTrim.startsWith('##')) {
-      finalizarBloco();
-      blocoAtual.push(linhaTrim);
-    } else {
-      blocoAtual.push(linha);
-    }
-  });
-  
-  // Finalizar último bloco
-  finalizarBloco();
-  
-  return elementos.length > 0 ? <>{elementos}</> : <div className="text-sm text-slate-700 whitespace-pre-wrap">{texto}</div>;
+  // Retornar como texto pré-formatado simples
+  return (
+    <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+      {textoLimpo}
+    </div>
+  );
 }
 
 function ConsultoriaTab({
@@ -3787,18 +3793,25 @@ function NivelSuporteRange({
     };
   }, [thumbColor, rangeId]);
   
+  // Calcular cor da barra baseada na posição
+  const porcentagem = (value / max) * 100;
+  let barColor = '#10b981'; // Verde (Autônomo)
+  if (porcentagem > 25) barColor = '#eab308'; // Amarelo (Monitorado)
+  if (porcentagem > 50) barColor = '#f97316'; // Laranja (Substancial)
+  if (porcentagem > 75) barColor = '#ef4444'; // Vermelho (Muito Substancial)
+
   return (
     <div className="relative">
-      {/* Barra de fundo com gradiente de cores */}
+      {/* Barra de fundo cinza */}
       <div 
-        className="absolute w-full h-3 rounded-lg pointer-events-none"
+        className="absolute w-full h-3 rounded-lg pointer-events-none bg-slate-200"
+      />
+      {/* Barra colorida até a posição atual */}
+      <div 
+        className="absolute h-3 rounded-lg pointer-events-none transition-all duration-200"
         style={{
-          background: `linear-gradient(to right, 
-            #10b981 0%, #10b981 25%, 
-            #eab308 25%, #eab308 50%, 
-            #f97316 50%, #f97316 75%, 
-            #ef4444 75%, #ef4444 100%
-          )`,
+          width: `${porcentagem}%`,
+          background: barColor,
         }}
       />
       {/* Input range transparente sobre a barra colorida */}

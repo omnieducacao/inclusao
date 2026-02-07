@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
+import { getColorClasses } from "@/lib/colors";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -174,7 +175,7 @@ export function DiarioClient({ students, studentId, student }: Props) {
     <div className="space-y-6">
       <StudentSelector students={students} currentId={currentId} />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-rose-50 to-white min-h-[140px]">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-xl border-2 border-slate-200 min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg }}>
         <div>
           <div className="text-xs font-semibold text-slate-500 uppercase">Estudante</div>
           <div className="font-bold text-slate-800">{student.name}</div>
@@ -191,7 +192,8 @@ export function DiarioClient({ students, studentId, student }: Props) {
 
       <details open={expandForm} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
         <summary
-          className="px-4 py-3 bg-rose-50 cursor-pointer font-semibold text-slate-800"
+          className="px-4 py-3 cursor-pointer font-semibold text-slate-800"
+          style={{ backgroundColor: getColorClasses("rose").bg }}
           onClick={() => setExpandForm((x) => !x)}
         >
           Nova sessão de AEE
