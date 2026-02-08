@@ -1741,19 +1741,26 @@ function PlanoHabilidadesTab({
     "Organização e Planejamento",
   ];
 
-  // Carregar estado salvo
+  // Carregar estado salvo apenas uma vez quando paeeData mudar ou na primeira renderização
   useEffect(() => {
+    if (initialized) return; // Evitar re-execuções desnecessárias
+    
     const conteudoSalvo = paeeData.conteudo_plano_habilidades as string;
     const statusSalvo = paeeData.status_plano_habilidades as string;
     const inputSalvo = paeeData.input_original_plano_habilidades as { foco?: string };
+    
     if (conteudoSalvo) {
       setPlano(conteudoSalvo);
+    }
+    if (statusSalvo) {
       setStatus((statusSalvo as typeof status) || "revisao");
     }
     if (inputSalvo?.foco) {
       setFoco(inputSalvo.foco);
     }
-  }, [paeeData]);
+    
+    setInitialized(true);
+  }, [paeeData, initialized]);
 
   const updateField = (key: string, value: unknown) => {
     onUpdate({ ...paeeData, [key]: value });
