@@ -36,7 +36,7 @@ export function PEISummaryPanel({ peiData, studentName }: Props) {
   const temRelatorioIA = !!relatorioIA && relatorioIA.trim().length > 0;
 
   return (
-    <div className="mb-6 rounded-lg border-2 border-sky-200 bg-gradient-to-r from-sky-50 to-blue-50 shadow-sm">
+    <div className="mb-6 rounded-2xl border border-sky-200/50 bg-gradient-to-r from-sky-50 to-blue-50 shadow-sm">
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}

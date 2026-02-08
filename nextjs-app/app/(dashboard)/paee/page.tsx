@@ -71,14 +71,6 @@ export default async function PAEEPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <PageHero
-        iconName="Puzzle"
-        title="Plano de Ação / PAEE"
-        desc="Plano de Atendimento Educacional Especializado e sala de recursos."
-        color="violet"
-        useLottie={true}
-      />
-
       <Suspense fallback={<div className="text-slate-500">Carregando…</div>}>
         <PAEEClient
           students={students.map((s) => ({ id: s.id, name: s.name }))}

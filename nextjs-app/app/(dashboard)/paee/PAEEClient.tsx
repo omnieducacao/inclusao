@@ -18,7 +18,6 @@ import {
 } from "@/lib/paee";
 import { LISTAS_BARREIRAS, NIVEIS_SUPORTE } from "@/lib/pei";
 import { Map, AlertTriangle, Target, Puzzle, Users, Search } from "lucide-react";
-import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 
 type Student = { id: string; name: string };
@@ -280,7 +279,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
   return (
     <div className="space-y-6">
       {/* Hero Section - PAEE */}
-      <div className="rounded-xl border-2 border-violet-200 overflow-hidden shadow-lg bg-gradient-to-br from-violet-50 via-purple-50/50 to-fuchsia-50/30">
+      <div className="rounded-2xl border border-violet-200/60 overflow-hidden shadow-md bg-gradient-to-br from-violet-50 via-purple-50/50 to-fuchsia-50/30">
         <div className="flex items-center gap-6 h-32 px-6 relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzkzMzNlYSIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
           <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-xl relative z-10">
@@ -297,12 +296,9 @@ export function PAEEClient({ students, studentId, student }: Props) {
 
       <StudentSelector students={students} currentId={currentId} />
 
-      {student && (
-        <PEISummaryPanel peiData={peiData} studentName={student.name} />
-      )}
-
       {/* Card de informações do estudante */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-violet-200 bg-gradient-to-br from-violet-50/80 to-purple-50/50 shadow-sm">
+      {student && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-2xl border border-violet-200/50 bg-gradient-to-br from-violet-50/80 to-purple-50/50 shadow-sm">
         <div className="space-y-1">
           <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Nome</div>
           <div className="font-bold text-slate-900 text-lg">{student.name}</div>
@@ -320,9 +316,11 @@ export function PAEEClient({ students, studentId, student }: Props) {
           <div className="font-semibold text-slate-800 truncate" title={hiperfoco}>{hiperfoco}</div>
         </div>
       </div>
+      )}
 
       {/* Tabs Navigation - Melhorada com ícones e badges */}
-      <div className="border-b-2 border-violet-200 bg-white rounded-t-xl overflow-x-auto scrollbar-hide shadow-sm">
+      {student && (
+        <div className="border-b border-violet-200/50 bg-white rounded-t-xl overflow-x-auto scrollbar-hide shadow-sm">
         <div className="flex gap-1 min-w-max pb-0 px-2 pt-2">
           {tabsConfig.map((tab) => {
             const Icon = tab.icon;
@@ -349,8 +347,9 @@ export function PAEEClient({ students, studentId, student }: Props) {
           })}
         </div>
       </div>
+      )}
 
-      {activeTab === "mapear-barreiras" && (
+      {student && activeTab === "mapear-barreiras" && (
         <MapearBarreirasTab
           student={student}
           peiData={peiData}
@@ -369,7 +368,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
         />
       )}
 
-      {activeTab === "plano-habilidades" && (
+      {student && activeTab === "plano-habilidades" && (
         <PlanoHabilidadesTab
           student={student}
           peiData={peiData}
@@ -387,7 +386,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
         />
       )}
 
-      {activeTab === "tec-assistiva" && (
+      {student && activeTab === "tec-assistiva" && (
         <TecAssistivaTab
           student={student}
           peiData={peiData}
@@ -422,8 +421,8 @@ export function PAEEClient({ students, studentId, student }: Props) {
         />
       )}
 
-      {activeTab === "planejamento" && (
-        <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white shadow-sm">
+      {student && activeTab === "planejamento" && (
+        <div className="space-y-6 p-6 rounded-2xl border border-violet-200/50 bg-white shadow-sm">
           {/* Header da aba */}
           <div className="flex items-start gap-4 mb-6">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -466,7 +465,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
                   setCicloSelecionadoPlanejamento(c || null);
                   setCicloPreview(null);
                 }}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
               >
                 <option value="">Selecione um ciclo</option>
                 {ciclosPlanejamento.map((c) => {
@@ -492,7 +491,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
               </div>
             )}
 
-            <div className="pt-4 border-t-2 border-violet-200">
+            <div className="pt-4 border-t border-violet-200/50">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
                 Gerar novo ciclo
@@ -522,8 +521,8 @@ export function PAEEClient({ students, studentId, student }: Props) {
         </div>
       )}
 
-      {activeTab === "execucao" && (
-        <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white shadow-sm">
+      {student && activeTab === "execucao" && (
+        <div className="space-y-6 p-6 rounded-2xl border border-violet-200/50 bg-white shadow-sm">
           {/* Header da aba */}
           <div className="flex items-start gap-4 mb-6">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -556,7 +555,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
                     setCicloSelecionadoExecucao(c || null);
                     setCicloPreview(null);
                   }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                  className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
                 >
                   <option value="">Selecione um ciclo</option>
                   {ciclosExecucao.map((c) => {
@@ -581,7 +580,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
                 )}
               </>
             )}
-            <div className="pt-4 border-t-2 border-violet-200">
+            <div className="pt-4 border-t border-violet-200/50">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
                 Gerar ciclo de execução
@@ -606,7 +605,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
         </div>
       )}
 
-      {activeTab === "jornada" && (
+      {student && activeTab === "jornada" && (
         <JornadaTab
           student={student}
           ciclos={ciclos}
@@ -834,7 +833,7 @@ function JornadaTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+    <div className="space-y-6 p-6 rounded-2xl border border-violet-200/60 bg-white min-h-[200px] shadow-sm">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -860,7 +859,7 @@ function JornadaTab({
         <button
           type="button"
           onClick={limpar}
-          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border border-slate-300/60 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
         </button>
@@ -884,7 +883,7 @@ function JornadaTab({
           </div>
 
           {origemSelecionada === "ciclo" && cicloExecucao && (
-            <div className="p-3 border border-slate-200 rounded-lg bg-slate-50">
+            <div className="p-3 border border-slate-200/60 rounded-xl bg-slate-50">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <div className="font-semibold text-slate-700">Foco do ciclo</div>
@@ -935,7 +934,7 @@ function JornadaTab({
             <p className="text-sm font-semibold text-green-800">✅ Missão gerada! Revise abaixo e aprove ou solicite ajustes.</p>
           </div>
 
-          <div className="p-4 border border-slate-200 rounded-lg bg-white">
+          <div className="p-4 border border-slate-200/60 rounded-xl bg-white">
             <h4 className="font-semibold text-slate-800 mb-2">Missão (prévia)</h4>
             <FormattedTextDisplay texto={texto} titulo="" />
           </div>
@@ -1188,7 +1187,7 @@ function FormPlanejamento({
     <form onSubmit={handleSubmit} className="space-y-3">
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Metas do PEI</label>
-        <div className="space-y-2 max-h-32 overflow-y-auto border border-slate-200 rounded p-2">
+        <div className="space-y-2 max-h-32 overflow-y-auto border border-slate-200/60 rounded-xl p-2">
           {metasPei.map((m) => (
             <label key={m.id} className="flex items-start gap-2">
               <input
@@ -1275,7 +1274,7 @@ function FormExecucao({
     <form onSubmit={handleSubmit} className="space-y-3">
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Metas do PEI</label>
-        <div className="space-y-2 max-h-32 overflow-y-auto border border-slate-200 rounded p-2">
+        <div className="space-y-2 max-h-32 overflow-y-auto border border-slate-200/60 rounded-xl p-2">
           {metasPei.map((m) => (
             <label key={m.id} className="flex items-start gap-2">
               <input
@@ -1329,8 +1328,8 @@ function CicloCard({
   const cron = ciclo.cronograma;
 
   return (
-    <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
-      <div className="p-4 border-b border-slate-200 flex justify-between items-center" style={{ borderLeft: `4px solid ${cor}` }}>
+    <div className="border border-slate-200/50 rounded-2xl overflow-hidden bg-white shadow-sm">
+      <div className="p-5 border-b border-slate-200/50 flex justify-between items-center" style={{ borderLeft: `4px solid ${cor}` }}>
         <div>
           <div className="font-bold text-slate-800">{ic} {cfg.foco_principal || "Ciclo AEE"}</div>
           <div className="text-sm text-slate-500">
@@ -1404,7 +1403,7 @@ function CicloCard({
           >
             {saving ? "Salvando…" : "Salvar na nuvem"}
           </button>
-          <button type="button" onClick={onLimpar} className="px-4 py-2 border border-slate-200 rounded-lg">
+          <button type="button" onClick={onLimpar} className="px-4 py-2 border border-slate-200/60 rounded-xl">
             Limpar
           </button>
         </div>
@@ -1498,7 +1497,7 @@ function MapearBarreirasTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+    <div className="space-y-6 p-6 rounded-2xl border border-violet-200/60 bg-white min-h-[200px] shadow-sm">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -1519,7 +1518,7 @@ function MapearBarreirasTab({
         <button
           type="button"
           onClick={limpar}
-          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border border-slate-300/60 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
         </button>
@@ -1586,7 +1585,7 @@ function MapearBarreirasTab({
             <button
               type="button"
               onClick={limpar}
-              className="px-5 py-2.5 bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 rounded-xl shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-semibold"
+              className="px-5 py-2.5 bg-white/80 backdrop-blur-sm text-slate-700 border border-slate-300/60 rounded-xl shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-semibold"
             >
               Descartar e Regenerar
             </button>
@@ -1641,7 +1640,7 @@ function MapearBarreirasTab({
                 setStatus("revisao");
                 setFeedback("");
               }}
-              className="px-5 py-2.5 bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 rounded-xl shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-semibold"
+              className="px-5 py-2.5 bg-white/80 backdrop-blur-sm text-slate-700 border border-slate-300/60 rounded-xl shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-semibold"
             >
               Cancelar Ajustes
             </button>
@@ -1773,7 +1772,7 @@ function PlanoHabilidadesTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+    <div className="space-y-6 p-6 rounded-2xl border border-violet-200/60 bg-white min-h-[200px] shadow-sm">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -1793,7 +1792,7 @@ function PlanoHabilidadesTab({
         <button
           type="button"
           onClick={limpar}
-          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border border-slate-300/60 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
         </button>
@@ -2033,7 +2032,7 @@ function TecAssistivaTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+    <div className="space-y-6 p-6 rounded-2xl border border-violet-200/60 bg-white min-h-[200px] shadow-sm">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -2054,7 +2053,7 @@ function TecAssistivaTab({
         <button
           type="button"
           onClick={limpar}
-          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border border-slate-300/60 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
         </button>
@@ -2294,7 +2293,7 @@ function ArticulacaoTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+    <div className="space-y-6 p-6 rounded-2xl border border-violet-200/60 bg-white min-h-[200px] shadow-sm">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -2315,7 +2314,7 @@ function ArticulacaoTab({
         <button
           type="button"
           onClick={limpar}
-          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border border-slate-300/60 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
         </button>

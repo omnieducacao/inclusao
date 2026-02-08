@@ -91,19 +91,41 @@ export async function getStudent(
 
     if (error) {
       // Melhorar o tratamento de erro para garantir que sempre mostre informações úteis
+      let errorMessage = "Erro desconhecido";
+      let errorDetails = "Sem detalhes";
+      let errorHint = "Sem dica";
+      let errorCode = "Sem código";
+      
+      try {
+        // Tentar extrair informações do erro de forma segura
+        if (error && typeof error === 'object') {
+          errorMessage = (error as any)?.message || String(error) || "Sem mensagem";
+          errorDetails = (error as any)?.details || "Sem detalhes";
+          errorHint = (error as any)?.hint || "Sem dica";
+          errorCode = (error as any)?.code || "Sem código";
+        } else {
+          errorMessage = String(error);
+        }
+      } catch (e) {
+        errorMessage = "Erro ao processar informações do erro";
+      }
+      
       const errorInfo = {
         workspaceId: normalizedWorkspaceId, 
         studentId: normalizedStudentId,
-        errorMessage: error?.message || "Sem mensagem de erro",
-        errorDetails: error?.details || "Sem detalhes",
-        errorHint: error?.hint || "Sem dica",
-        errorCode: error?.code || "Sem código",
-        errorString: JSON.stringify(error, null, 2),
-        errorKeys: error ? Object.keys(error) : [],
+        errorMessage,
+        errorDetails,
+        errorHint,
+        errorCode,
         errorType: typeof error,
         errorConstructor: error?.constructor?.name || "Unknown"
       };
-      console.error("❌ getStudent error:", errorInfo);
+      
+      // Log apenas se houver informações úteis
+      if (errorMessage !== "Erro desconhecido" || errorCode !== "Sem código") {
+        console.error("❌ getStudent error:", errorInfo);
+      }
+      
       return null;
     }
     
@@ -159,14 +181,28 @@ export async function getStudent(
     return data as Student;
   } catch (err) {
     // Capturar qualquer erro inesperado que possa ocorrer
+    let errorMessage = "Erro desconhecido";
+    let errorStack: string | undefined = undefined;
+    
+    try {
+      if (err instanceof Error) {
+        errorMessage = err.message || "Erro sem mensagem";
+        errorStack = err.stack;
+      } else {
+        errorMessage = String(err);
+      }
+    } catch (e) {
+      errorMessage = "Erro ao processar exceção";
+    }
+    
     const errorInfo = {
       workspaceId: workspaceId || "NULL",
       studentId: studentId || "NULL",
       errorType: typeof err,
-      errorMessage: err instanceof Error ? err.message : String(err),
-      errorStack: err instanceof Error ? err.stack : undefined,
-      errorString: JSON.stringify(err, Object.getOwnPropertyNames(err), 2)
+      errorMessage,
+      errorStack: errorStack?.substring(0, 200) // Limitar tamanho do stack trace
     };
+    
     console.error("❌ getStudent: erro inesperado capturado:", errorInfo);
     return null;
   }

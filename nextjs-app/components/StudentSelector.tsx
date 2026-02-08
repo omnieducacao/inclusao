@@ -48,7 +48,7 @@ export function StudentSelector({
     <select
       value={selected}
       onChange={handleChange}
-      className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none bg-white min-w-[200px]"
+      className="px-4 py-2.5 border border-slate-200/60 rounded-xl text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-400 outline-none bg-white min-w-[200px] transition-all duration-200 hover:border-slate-300 shadow-sm hover:shadow-md"
     >
       <option value="">{placeholder}</option>
       {students.map((s) => (

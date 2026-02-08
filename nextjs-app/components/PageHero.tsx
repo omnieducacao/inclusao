@@ -63,7 +63,7 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
   if (!isMounted || !useLottie || !lottieAnimation) {
     return (
       <div
-        className="group rounded-xl border-2 border-slate-200 overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl"
+        className="group rounded-2xl border border-slate-200/40 overflow-hidden shadow-md transition-all duration-300 hover:shadow-lg"
         style={{ backgroundColor: colors.bg }}
       >
         <div className="flex items-center gap-5 h-32 px-6">
@@ -81,12 +81,12 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
   
   return (
     <div
-      className="group rounded-xl border-2 border-slate-200 overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl"
+      className="group bg-white rounded-2xl border border-slate-200/60 shadow-lg transition-all duration-300 hover:shadow-xl hover:border-slate-300/60 hover:-translate-y-0.5 overflow-hidden"
       style={{ backgroundColor: colors.bg }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex items-center gap-6 h-36 px-8">
+      <div className="flex items-center gap-6 h-40 px-10">
         {/* Ícone dentro do quadrado minimalista - estático, anima só no hover */}
         <div 
           className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 flex-shrink-0"

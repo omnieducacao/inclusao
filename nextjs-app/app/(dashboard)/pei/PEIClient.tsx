@@ -309,7 +309,7 @@ export function PEIClient({
 
   if (students.length === 0) {
     return (
-      <div className="bg-white rounded-xl border-2 border-slate-200 p-8 text-center">
+      <div className="bg-white rounded-2xl border border-slate-200/50 p-8 text-center shadow-sm">
         <p className="text-slate-600">
           Nenhum estudante cadastrado. Crie um estudante em{" "}
           <Link href="/estudantes" className="text-sky-600 hover:underline">
@@ -432,7 +432,7 @@ export function PEIClient({
   }
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 shadow-lg overflow-hidden">
+    <div className="bg-white rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden">
       {/* Barra de Progresso Global */}
       <div className="px-6 pt-4 pb-2 bg-gradient-to-r from-slate-50 to-blue-50/30 border-b border-slate-200">
         <div className="flex items-center justify-between mb-2">
@@ -447,7 +447,7 @@ export function PEIClient({
 
       {/* Mensagem de Erro Global */}
       {erroGlobal && (
-        <div className="mx-6 mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg flex items-start gap-3">
+        <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200/60 rounded-xl flex items-start gap-3">
           <AlertTriangle className="flex-shrink-0 w-5 h-5 text-red-600 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-red-800 font-semibold text-sm">Erro ao processar</p>
@@ -500,7 +500,7 @@ export function PEIClient({
       </div>
 
       {/* Breadcrumb e Navegação Contextual */}
-      <div className="px-4 sm:px-6 py-3 bg-slate-50/50 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+      <div className="px-4 sm:px-6 py-4 bg-slate-50/50 border-b border-slate-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs sm:text-sm flex-wrap">
           <Link href="/" className="text-slate-500 hover:text-sky-600 transition-colors">Home</Link>
           <span className="text-slate-300">/</span>
@@ -517,9 +517,9 @@ export function PEIClient({
         )}
       </div>
 
-      <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto scroll-smooth">
+      <div className="p-6 sm:p-8 max-h-[70vh] overflow-y-auto scroll-smooth">
             {activeTab === "inicio" && (
-              <div className="space-y-4 max-w-6xl mx-auto">
+              <div className="space-y-6 max-w-6xl mx-auto">
                 {/* Título da aba com ícone */}
                 <div className="flex items-center gap-2 mb-2">
                   <FileText className="w-5 h-5 text-sky-600" />
@@ -527,10 +527,10 @@ export function PEIClient({
                 </div>
                 
                 {/* Grid principal: 2 colunas */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   {/* Coluna Esquerda: Fundamentos */}
                   <div className="space-y-3">
-                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
+                    <div className="rounded-xl border border-slate-200/50 p-4 bg-white">
                       <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
                         <FileText className="w-4 h-4 text-sky-600" />
                         Fundamentos do PEI
@@ -542,7 +542,7 @@ export function PEIClient({
                       </p>
                     </div>
                     
-                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
+                    <div className="rounded-xl border border-slate-200/50 p-4 bg-white">
                       <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
                         <Info className="w-4 h-4 text-sky-600" />
                         Como usar a Omnisfera
@@ -557,7 +557,7 @@ export function PEIClient({
                       </ol>
                     </div>
                     
-                    <details className="rounded-lg border-2 border-slate-200 p-3 bg-white">
+                    <details className="rounded-xl border border-slate-200/50 p-3 bg-white">
                       <summary className="cursor-pointer text-xs font-semibold text-slate-800 mb-2">
                         📘 PEI/PDI e a Prática Inclusiva — Amplie o conhecimento
                       </summary>
@@ -594,7 +594,7 @@ export function PEIClient({
 
                   {/* Coluna Direita: Gestão de Estudantes */}
                   <div className="space-y-3">
-                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
+                    <div className="rounded-xl border border-slate-200/50 p-4 bg-white">
                       <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
                         <Users className="w-4 h-4 text-sky-600" />
                         Gestão de Estudantes
@@ -740,7 +740,7 @@ export function PEIClient({
                     </div>
 
                     {/* Backup Local: Upload JSON */}
-                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
+                    <div className="rounded-xl border border-slate-200/50 p-4 bg-white">
                       <h4 className="text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-2">
                         <FileDown className="w-4 h-4 text-sky-600" />
                         1) Carregar Backup Local (.JSON)
@@ -809,7 +809,7 @@ export function PEIClient({
                     </div>
 
                     {/* Sincronização Cloud */}
-                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
+                    <div className="rounded-xl border border-slate-200/50 p-4 bg-white">
                       <h4 className="text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-sky-600" />
                         Omnisfera Cloud
@@ -872,7 +872,7 @@ export function PEIClient({
                 {/* Identificação - ORDEM EXATA: Nome, Nascimento, Série/Ano, Turma, Matrícula/RA */}
                 <div>
                   <h4 className="text-base font-semibold text-slate-800 mb-3">Identificação</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-6 gap-5">
                     {/* Nome Completo - ocupa mais espaço */}
                     <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-2">
                       <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-2">
@@ -883,7 +883,7 @@ export function PEIClient({
                         type="text"
                         value={peiData.nome || ""}
                         onChange={(e) => updateField("nome", e.target.value)}
-                        className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all duration-200 bg-white hover:border-slate-300"
+                        className="w-full px-4 py-2.5 border border-slate-200/60 rounded-xl focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all duration-200 bg-white hover:border-slate-300"
                         placeholder="Digite o nome completo do estudante"
                       />
                     </div>
@@ -894,7 +894,7 @@ export function PEIClient({
                         type="date"
                         value={typeof peiData.nasc === "string" ? peiData.nasc.split("T")[0] : ""}
                         onChange={(e) => updateField("nasc", e.target.value || undefined)}
-                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                        className="w-full px-3 py-2 border border-slate-200/60 rounded-xl focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
                       />
                     </div>
                     {/* Série/Ano */}
@@ -903,7 +903,7 @@ export function PEIClient({
                       <select
                         value={peiData.serie || ""}
                         onChange={(e) => updateField("serie", e.target.value || null)}
-                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                        className="w-full px-3 py-2 border border-slate-200/60 rounded-xl focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
                       >
                         <option value="">Selecione...</option>
                         {SERIES.map((s) => (
@@ -935,7 +935,7 @@ export function PEIClient({
                         type="text"
                         value={peiData.turma || ""}
                         onChange={(e) => updateField("turma", e.target.value)}
-                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                        className="w-full px-3 py-2 border border-slate-200/60 rounded-xl focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
                         placeholder="Ex: A"
                       />
                     </div>
@@ -946,7 +946,7 @@ export function PEIClient({
                         type="text"
                         value={peiData.matricula || ""}
                         onChange={(e) => updateField("matricula", e.target.value)}
-                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                        className="w-full px-3 py-2 border border-slate-200/60 rounded-xl focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
                         placeholder="Ex: 2026-001234"
                       />
                     </div>
@@ -988,7 +988,7 @@ export function PEIClient({
                         value={peiData.historico || ""}
                         onChange={(e) => updateField("historico", e.target.value)}
                         rows={6}
-                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                        className="w-full px-3 py-2 border border-slate-200/60 rounded-xl focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
                       />
                     </div>
                     <div>
@@ -997,7 +997,7 @@ export function PEIClient({
                         value={peiData.familia || ""}
                         onChange={(e) => updateField("familia", e.target.value)}
                         rows={6}
-                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                        className="w-full px-3 py-2 border border-slate-200/60 rounded-xl focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
                       />
                     </div>
                   </div>
@@ -1021,7 +1021,7 @@ export function PEIClient({
                               e.target.value = "";
                             }
                           }}
-                          className="flex-1 px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                          className="flex-1 px-3 py-2 border border-slate-200/60 rounded-xl focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
                         >
                           <option value="">Selecione para adicionar...</option>
                           {LISTA_FAMILIA.filter((f) => !(peiData.composicao_familiar_tags || []).includes(f)).map((f) => (
@@ -1084,7 +1084,7 @@ export function PEIClient({
                       type="text"
                       value={peiData.diagnostico || ""}
                       onChange={(e) => updateField("diagnostico", e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                      className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
                       placeholder="Nunca em materiais do estudante."
                     />
                   </div>
@@ -1262,7 +1262,7 @@ export function PEIClient({
                 <hr />
 
                 {/* Anotações gerais (expander) */}
-                <details className="p-4 rounded-lg border-2 border-slate-200 bg-white">
+                <details className="p-4 rounded-xl border border-slate-200/50 bg-white">
                   <summary className="cursor-pointer font-semibold text-slate-700 mb-2 flex items-center gap-2">
                     <FileText className="w-4 h-4 text-sky-600" />
                     Anotações gerais (opcional)
@@ -1293,7 +1293,7 @@ export function PEIClient({
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {(peiData.rede_apoio || []).map((prof) => (
-                        <div key={prof} className="p-4 rounded-lg border-2 border-slate-200 bg-white hover:border-sky-300 hover:shadow-sm transition-all">
+                        <div key={prof} className="p-4 rounded-xl border border-slate-200/50 bg-white hover:border-sky-300 hover:shadow-sm transition-all">
                           <h5 className="font-semibold text-slate-800 mb-3">{prof}</h5>
                           <label className="block text-xs font-medium text-slate-600 mb-1">Observações / orientações</label>
                           <textarea
@@ -1821,9 +1821,9 @@ export function PEIClient({
           </div>
 
           {/* Rodapé com Assinatura e Aviso sobre IA */}
-          <div className="mt-10 pt-6 border-t border-slate-200">
+          <div className="mt-12 pt-8 border-t border-slate-200/50">
             {/* Aviso sobre IA - Barra fina de um lado ao outro */}
-            <div className="w-full mb-4 px-6 py-2 bg-slate-50 border-t border-b border-slate-200 text-center">
+            <div className="w-full mb-6 px-6 py-3 bg-slate-50/80 border-t border-b border-slate-200/50 text-center rounded-lg">
               <p className="text-slate-600 text-xs leading-relaxed">
                 A Omnisfera utiliza motores de IA para apoiar sua prática. Essas ferramentas podem apresentar falhas. É fundamental <strong className="text-slate-700">revisar sempre com muito cuidado</strong> todo conteúdo gerado, dada a sensibilidade dos dados tratados em educação inclusiva.
               </p>
@@ -2551,7 +2551,7 @@ function ConsultoriaTab({
           {/* Se ainda não tem texto ou voltou para rascunho: botões de geração */}
           {(!temTexto || statusValidacao === "rascunho") && (
             <>
-              <details className="p-4 rounded-lg border-2 border-slate-200 bg-white" open>
+              <details className="p-4 rounded-xl border border-slate-200/50 bg-white" open>
                 <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
                   🔧 Escolher motor de IA (Red, Blue, Green, Yellow ou Orange)
                 </summary>
@@ -2670,7 +2670,7 @@ function ConsultoriaTab({
           {/* Se revisão/aprovado: mostrar texto e permitir aprovar/ajustar */}
           {temTexto && (statusValidacao === "revisao" || statusValidacao === "aprovado") && (
             <>
-              <details className="p-4 rounded-lg border-2 border-slate-200 bg-white">
+              <details className="p-4 rounded-xl border border-slate-200/50 bg-white">
                 <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
                   🧠 Como a IA construiu este relatório (transparência)
                 </summary>
@@ -2690,7 +2690,7 @@ function ConsultoriaTab({
                 </div>
               </details>
 
-              <details className="p-4 rounded-lg border-2 border-slate-200 bg-white">
+              <details className="p-4 rounded-xl border border-slate-200/50 bg-white">
                 <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
                   🛡️ Calibragem e segurança pedagógica
                 </summary>
@@ -3157,7 +3157,7 @@ function BNCCTab({
       </details>
 
       {componentesAtual.length > 0 && (
-        <details className="border-2 border-emerald-200 rounded-lg bg-emerald-50/30" open>
+        <details className="border border-emerald-200/60 rounded-lg bg-emerald-50/30" open>
           <summary className="px-4 py-3 font-medium cursor-pointer bg-emerald-100 rounded-t-lg">
             Habilidades do ano/série atual
           </summary>
@@ -3560,7 +3560,7 @@ function LaudoPdfSection({
       
       {/* Resultado da extração (sem revisão de meds) */}
       {extraido && !modoRevisao && (
-        <div className="space-y-3 p-4 rounded-lg bg-white border-2 border-emerald-200">
+        <div className="space-y-3 p-4 rounded-lg bg-white border border-emerald-200/60">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-600" />
             <p className="text-sm font-semibold text-emerald-800">Dados extraídos ✅ (revise as medicações abaixo)</p>

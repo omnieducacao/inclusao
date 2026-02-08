@@ -71,6 +71,23 @@ async function loadNavIcons() {
   }
 }
 
+// Mapeamento de rotas para ícones Lottie (mesmos dos cards)
+function getNavLottieMap(): Record<string, string> {
+  return {
+    "/": "system-solid-41-home-hover-pinch", // Home
+    "/estudantes": "wired-outline-529-boy-girl-children-hover-pinch", // Estudantes
+    "/pei": "wired-outline-86-compass-hover-pinch", // PEI
+    "/paee": "wired-outline-106-map-hover-pinch", // PAEE
+    "/hub": "wired-outline-489-rocket-space-hover-flying", // Hub
+    "/diario": "wired-outline-3140-book-open-hover-pinch", // Diário
+    "/monitoramento": "wired-outline-152-bar-chart-arrow-hover-growth", // Monitoramento
+    "/infos": "wired-outline-2167-books-course-assign-hover-pinch", // Central
+    "/config-escola": "wired-outline-486-school-hover-pinch", // Config Escola
+    "/gestao": "wired-outline-314-three-avatars-icon-calm-hover-nodding", // Gestão
+    "/pgi": "wired-outline-738-notebook-2-hover-pinch", // PGI
+  };
+}
+
 function getNavItems(icons: ReturnType<typeof loadNavIcons> extends Promise<infer T> ? T : any): NavItem[] {
   if (!icons) return [];
   
@@ -211,7 +228,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   }
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm rounded-b-xl">
+    <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-50 shadow-sm rounded-b-2xl">
       <div className="max-w-[1920px] mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -246,43 +263,9 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
           {!hideMenu && (
             <>
               <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center px-4 overflow-x-auto scrollbar-hide">
-                {items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = pathname === item.href;
-                  const lottieMap = getNavLottieMap();
-                  const lottieAnimation = lottieMap[item.href];
-                  const [isHovered, setIsHovered] = useState(false);
-                  
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onMouseEnter={() => setIsHovered(true)}
-                      onMouseLeave={() => setIsHovered(false)}
-                      className={`group flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
-                        isActive
-                          ? "bg-blue-50 text-blue-700 shadow-sm"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                      }`}
-                      title={item.label}
-                    >
-                      {lottieAnimation ? (
-                        <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                          <LottieIcon
-                            animation={lottieAnimation}
-                            size={20}
-                            loop={isHovered || isActive}
-                            autoplay={isHovered || isActive}
-                            className={`transition-all duration-300 ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}
-                          />
-                        </div>
-                      ) : (
-                        <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-500"}`} weight={isActive ? "fill" : "regular"} />
-                      )}
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
+                {items.map((item) => (
+                  <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} />
+                ))}
               </nav>
 
               {/* Menu Mobile/Tablet pequeno - Dropdown */}

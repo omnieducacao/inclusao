@@ -138,7 +138,7 @@ export default async function RootPage() {
           </Suspense>
 
           {/* Módulos Principais - Fluxo Core */}
-          <Suspense fallback={<div className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
+          <Suspense fallback={<div className="h-32 bg-white rounded-xl border border-slate-200/50 animate-pulse" />}>
             <ModuleCardsLottie 
               modules={primaryModules} 
               title="Módulos Principais" 
@@ -150,7 +150,7 @@ export default async function RootPage() {
           </Suspense>
 
           {/* Módulos de Apoio */}
-          <Suspense fallback={<div className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
+          <Suspense fallback={<div className="h-32 bg-white rounded-xl border border-slate-200/50 animate-pulse" />}>
             <ModuleCardsLottie 
               modules={supportModules} 
               title="Recursos e Acompanhamento" 
@@ -163,7 +163,7 @@ export default async function RootPage() {
 
           {/* Módulos Administrativos */}
           {adminModules.length > 0 && (
-            <Suspense fallback={<div className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
+            <Suspense fallback={<div className="h-32 bg-white rounded-xl border border-slate-200/50 animate-pulse" />}>
               <ModuleCardsLottie 
                 modules={adminModules} 
                 title="Configuração e Gestão" 
@@ -176,7 +176,7 @@ export default async function RootPage() {
           )}
 
           {/* Central de Inteligência - Destaque Especial */}
-          <Suspense fallback={<div className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
+          <Suspense fallback={<div className="h-32 bg-white rounded-xl border border-slate-200/50 animate-pulse" />}>
             <IntelligenceModuleCard 
               href={intelligenceModule.href}
               title={intelligenceModule.title}
@@ -184,7 +184,7 @@ export default async function RootPage() {
             />
           </Suspense>
 
-          <div className="rounded-xl border-2 border-slate-200 bg-slate-50/50 p-4">
+          <div className="rounded-2xl border border-slate-200/50 bg-slate-50/50 p-4 shadow-sm">
             <p className="text-sm text-slate-600">
               <strong>Omnisfera</strong> — Plataforma de inclusão educacional.
               Legislação: Decretos 12.686/2025 e 12.773/2025. Alinhada à BNCC.

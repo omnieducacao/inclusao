@@ -47,7 +47,7 @@ export function AIEnginesBadge() {
       {/* Botão para minimizar/expandir */}
       <button
         onClick={() => setIsMinimized(!isMinimized)}
-        className="p-2 rounded-full bg-white border-2 border-slate-200 shadow-lg hover:shadow-xl transition-all hover:scale-110"
+        className="p-2 rounded-full bg-white border border-slate-200/60 shadow-lg hover:shadow-xl transition-all hover:scale-110"
         title={isMinimized ? "Mostrar motores" : "Ocultar motores"}
       >
         <div className="w-4 h-4 flex items-center justify-center">
@@ -63,7 +63,7 @@ export function AIEnginesBadge() {
       {/* Badges dos motores */}
       {!isMinimized && (
         <div className="flex flex-col gap-2 items-end animate-slide-up">
-          <div className="flex items-center gap-3 px-4 py-3 bg-white border-2 border-slate-200 rounded-lg shadow-lg backdrop-blur-sm">
+          <div className="flex items-center gap-3 px-4 py-3 bg-white border border-slate-200/50 rounded-xl shadow-lg backdrop-blur-sm">
             {/* Ícone grande à esquerda */}
             <div className="flex-shrink-0">
               <div className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl"

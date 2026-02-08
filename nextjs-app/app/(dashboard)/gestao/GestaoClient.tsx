@@ -106,7 +106,7 @@ export function GestaoClient() {
       )}
 
       {/* Novo usuário */}
-      <div className="rounded-xl border-2 border-slate-200 bg-white overflow-hidden shadow-sm">
+      <div className="rounded-2xl border border-slate-200/50 bg-white overflow-hidden shadow-sm">
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
@@ -532,7 +532,7 @@ function MemberCard({
   }
 
   return (
-    <div className="p-6 rounded-xl border-2 border-slate-200 bg-white min-h-[200px]">
+    <div className="p-6 rounded-2xl border border-slate-200/50 bg-white min-h-[200px]">
       <div className="flex justify-between items-start gap-4">
         <div>
           <h4 className="font-medium text-slate-800 flex items-center gap-2">

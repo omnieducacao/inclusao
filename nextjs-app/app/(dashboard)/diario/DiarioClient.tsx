@@ -182,7 +182,7 @@ export function DiarioClient({ students, studentId, student }: Props) {
         <PEISummaryPanel peiData={peiData} studentName={student.name} />
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-xl border-2 border-slate-200 min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg }}>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-2xl border border-slate-200/50 min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg }}>
         <div>
           <div className="text-xs font-semibold text-slate-500 uppercase">Estudante</div>
           <div className="font-bold text-slate-800">{student.name}</div>
@@ -197,7 +197,7 @@ export function DiarioClient({ students, studentId, student }: Props) {
         </div>
       </div>
 
-      <details open={expandForm} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+      <details open={expandForm} className="border border-slate-200/50 rounded-2xl overflow-hidden bg-white shadow-sm">
         <summary
           className="px-4 py-3 cursor-pointer font-semibold text-slate-800"
           style={{ backgroundColor: getColorClasses("rose").bg }}
@@ -213,7 +213,7 @@ export function DiarioClient({ students, studentId, student }: Props) {
       <div>
         <h3 className="font-bold text-slate-800 mb-3">Histórico de sessões</h3>
         {registrosOrdenados.length === 0 ? (
-          <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white text-slate-500 min-h-[180px]">
+          <div className="p-6 rounded-2xl border border-slate-200/50 bg-gradient-to-br from-slate-50 to-white text-slate-500 min-h-[180px]">
             Nenhum registro ainda. Preencha o formulário acima para criar o primeiro.
           </div>
         ) : (

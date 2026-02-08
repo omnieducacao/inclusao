@@ -61,7 +61,7 @@ export function EstudantesClient({ students }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 shadow-sm">
+    <div className="bg-white rounded-2xl border border-slate-200/50 shadow-sm">
       <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
         <input
           type="search"

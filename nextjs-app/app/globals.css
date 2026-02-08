@@ -1,62 +1,83 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-  
-  /* Paleta Omnisfera - Conceito de Inclusão e Educação */
-  /* Cores Principais - Azul (confiança, conhecimento) */
-  --omni-primary: #0EA5E9;        /* Sky-500 - Principal */
-  --omni-primary-dark: #0284C7;  /* Sky-600 - Hover/Active */
-  --omni-primary-light: #38BDF8; /* Sky-400 - Light states */
-  
-  /* Cores Secundárias - Gradiente vibrante */
-  --omni-secondary: #8B5CF6;     /* Purple-500 - Acentos */
-  --omni-accent: #06B6D4;        /* Cyan-500 - Destaques */
-  
-  /* Estados Semânticos */
-  --omni-success: #10B981;       /* Emerald-500 - Sucesso */
-  --omni-success-light: #34D399; /* Emerald-400 - Sucesso claro */
-  --omni-warning: #F59E0B;       /* Amber-500 - Atenção */
-  --omni-danger: #EF4444;        /* Red-500 - Erro/Crítico */
-  
-  /* Cores de Suporte */
-  --omni-purple: #A855F7;        /* Purple-500 */
-  --omni-pink: #EC4899;          /* Pink-500 */
-  --omni-cyan: #06B6D4;          /* Cyan-500 */
-  
-  /* Cores de Fundo e Superfície */
-  --omni-bg-primary: #FFFFFF;
-  --omni-bg-secondary: #F8FAFC;  /* Slate-50 */
-  --omni-bg-tertiary: #F1F5F9;   /* Slate-100 */
-  
-  /* Cores de Texto */
-  --omni-text-primary: #0F172A;  /* Slate-900 */
-  --omni-text-secondary: #475569; /* Slate-600 */
-  --omni-text-tertiary: #94A3B8; /* Slate-400 */
-  
-  /* Cores de Borda */
-  --omni-border-light: #E2E8F0;  /* Slate-200 */
-  --omni-border-medium: #CBD5E1; /* Slate-300 */
-  --omni-border-dark: #94A3B8;   /* Slate-400 */
-  
-  /* Gradientes Temáticos */
-  --omni-gradient-primary: linear-gradient(135deg, #0EA5E9 0%, #8B5CF6 100%);
-  --omni-gradient-success: linear-gradient(135deg, #10B981 0%, #059669 100%);
-  --omni-gradient-warning: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-  --omni-gradient-danger: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+/* Premium Design System - Omnisfera */
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+/* Premium shadows */
+.shadow-premium {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.02);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
+.shadow-premium-lg {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-premium-xl {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08), 0 16px 32px rgba(0, 0, 0, 0.06);
+}
+
+/* Premium transitions */
+.transition-premium {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-premium-slow {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth animations */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Premium scrollbar */
+.scrollbar-premium::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-premium::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.scrollbar-premium::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.scrollbar-premium::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Hide scrollbar but keep functionality */
@@ -69,74 +90,6 @@ body {
   display: none;
 }
 
-/* Animações suaves */
-@keyframes float {
-  0%, 100% { 
-    transform: translateY(0px); 
-  }
-  50% { 
-    transform: translateY(-10px); 
-  }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-/* Animação de rotação para logo do progresso */
-@keyframes omni-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.omni-logo-spin {
-  animation: omni-logo-spin 8s linear infinite;
-}
-
-/* Animação de shimmer para barra de progresso */
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s infinite;
-}
-
-/* Scroll suave */
-.scroll-smooth {
-  scroll-behavior: smooth;
-}
-
-/* Animação de slide-up para feedback */
-@keyframes slide-up {
-  from {
-    transform: translateY(100px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
-}
-
-/* Melhorias de foco para acessibilidade */
-*:focus-visible {
-  outline: 2px solid #0EA5E9;
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* Transições suaves em inputs */
-input, textarea, select {
-  transition: all 0.2s ease-in-out;
-}
-
-input:focus, textarea:focus, select:focus {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
-}
+/* Premium input styles - aplicado globalmente */
+/* Nota: Estilos aplicados diretamente nos componentes via classes Tailwind */
+/* Mantendo apenas estilos customizados que não podem ser feitos com Tailwind */
