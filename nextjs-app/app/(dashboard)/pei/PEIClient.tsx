@@ -714,18 +714,21 @@ export function PEIClient({
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">Selecione o estudante</label>
                     <StudentSelector
                       students={students}
-                      currentId={currentStudentId}
+                      currentId={studentPendingId || null}
                       placeholder="Selecione o estudante"
                       onChange={(id) => {
+                        console.log("StudentSelector onChange chamado com id:", id);
                         setErroGlobal(null);
                         if (id) {
                           // Verificar se o estudante está na lista primeiro
                           const studentFromList = students.find((s) => s.id === id);
                           if (!studentFromList) {
                             setErroGlobal("Estudante não encontrado na lista");
+                            console.error("Estudante não encontrado:", id);
                             return;
                           }
                           // Apenas armazenar como pendente - não carregar ainda
+                          console.log("Armazenando estudante como pendente:", studentFromList.name);
                           setStudentPendingId(id);
                           setStudentPendingName(studentFromList.name);
                           // Limpar URL
@@ -734,6 +737,7 @@ export function PEIClient({
                           window.history.pushState({}, "", url.toString());
                         } else {
                           // Limpar dados quando nenhum estudante está selecionado
+                          console.log("Limpando seleção de estudante");
                           setStudentPendingId(null);
                           setStudentPendingName("");
                           setErroGlobal(null);
