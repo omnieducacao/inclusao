@@ -120,9 +120,8 @@ export function ModuleCardsLottie({
           const Icon = iconMap[m.iconName];
           if (!Icon) return null;
           const colors = getColorClasses(m.color);
-          // Usar outline colorido para estático, lineal colorido para animado
-          const lottieAnimationStatic = lottieMapStatic[m.iconName]; // Outline para estático
-          const lottieAnimationAnimated = lottieMap[m.iconName]; // Lineal para animado
+          // Sempre usar o colorido (lineal) para movimento contínuo, como no WelcomeHero
+          const lottieAnimation = lottieMap[m.iconName]; // Lineal colorido - sempre animado
           // Se useLottieByDefault=true, sempre usar Lottie quando disponível
           // Caso contrário, usar a lógica de m.useLottie ou useLottieOnHover
           const shouldUseLottie = useLottieByDefault 
@@ -134,8 +133,7 @@ export function ModuleCardsLottie({
               key={m.href}
               href={m.href}
               icon={Icon}
-              lottieAnimationStatic={lottieAnimationStatic}
-              lottieAnimationAnimated={lottieAnimationAnimated}
+              lottieAnimation={lottieAnimation}
               colors={colors}
               title={m.title}
               desc={m.desc}
@@ -154,8 +152,7 @@ export function ModuleCardsLottie({
 function ModuleCardWithLottie({
   href,
   icon: Icon,
-  lottieAnimationStatic,
-  lottieAnimationAnimated,
+  lottieAnimation,
   colors,
   title,
   desc,
@@ -166,8 +163,7 @@ function ModuleCardWithLottie({
 }: {
   href: string;
   icon: Icon;
-  lottieAnimationStatic?: string; // Outline para estático
-  lottieAnimationAnimated?: string; // Lineal para animado
+  lottieAnimation?: string; // Colorido (lineal) - sempre em movimento
   colors: ReturnType<typeof getColorClasses>;
   title: string;
   desc: string;
@@ -176,7 +172,6 @@ function ModuleCardWithLottie({
   useLottieByDefault?: boolean;
   index?: number;
 }) {
-  const [isHovered, setIsHovered] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   
   // Animação de entrada escalonada
@@ -190,7 +185,6 @@ function ModuleCardWithLottie({
   // Sempre mostrar Lottie quando disponível (usando colorido/lineal)
   // Se useLottieByDefault=true, sempre mostrar Lottie quando mapeado
   // Se useLottieByDefault=false, só mostrar se useLottie=true
-  const lottieAnimation = lottieAnimationAnimated || lottieAnimationStatic;
   const shouldShowLottie = useLottieByDefault 
     ? !!lottieAnimation 
     : (useLottie && !!lottieAnimation);
@@ -204,8 +198,6 @@ function ModuleCardWithLottie({
           : 'opacity-0 translate-y-4'
       }`}
       style={{ backgroundColor: colors.bg }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {badge && (
         <span className="absolute top-3 right-3 px-2 py-0.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow-sm">
@@ -213,7 +205,7 @@ function ModuleCardWithLottie({
         </span>
       )}
       <div className="flex items-start gap-5">
-        {/* Ícone: Lottie colorido sempre quando disponível, animado apenas no hover */}
+        {/* Ícone: Lottie colorido sempre quando disponível, em movimento contínuo (como WelcomeHero) */}
         <div className={`w-14 h-14 flex-shrink-0 flex items-center justify-center transition-all duration-500 ${
           isVisible ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
         }`}>
@@ -221,8 +213,8 @@ function ModuleCardWithLottie({
             <LottieIcon
               animation={lottieAnimation}
               size={56}
-              loop={isHovered} // Animação apenas no hover
-              autoplay={false} // Não autoplay, mostrar primeiro frame
+              loop={true} // Sempre em loop, como no WelcomeHero
+              autoplay={true} // Sempre animando, como no WelcomeHero
               className="transition-all duration-300 group-hover:scale-110"
             />
           ) : (
