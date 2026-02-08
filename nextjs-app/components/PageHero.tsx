@@ -39,6 +39,24 @@ export function PageHero({ icon: Icon, iconName, title, desc, color = "sky", use
     setIsMounted(true);
   }, []);
   
+  // Se não montado ainda, mostrar ícone estático para evitar erro de SSR
+  if (!isMounted) {
+    return (
+      <div
+        className="group rounded-xl border-2 border-slate-200 overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl"
+        style={{ backgroundColor: colors.bg }}
+      >
+        <div className="flex items-center gap-5 h-32 px-6">
+          <Icon className="w-14 h-14 flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" style={{ color: colors.icon }} />
+          <div>
+            <h1 className="text-xl font-bold" style={{ color: colors.text }}>{title}</h1>
+            <p className="text-sm text-slate-600 mt-0.5">{desc}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div
       className="group rounded-xl border-2 border-slate-200 overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl"
@@ -46,7 +64,7 @@ export function PageHero({ icon: Icon, iconName, title, desc, color = "sky", use
     >
       <div className="flex items-center gap-5 h-32 px-6">
         {/* Ícone: Lottie sempre que disponível */}
-        {useLottie && lottieAnimation && isMounted ? (
+        {useLottie && lottieAnimation ? (
           <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center">
             <LottieIcon
               animation={lottieAnimation}

@@ -37,21 +37,7 @@ const iconMap: Record<string, Icon> = {
   Student,
 };
 
-// Mapeamento de ícones Phosphor para Lottie OUTLINE (minimalistas) - perfeitos para home!
-const lottieMapOutline: Record<string, string> = {
-  UsersFour: "wired-outline-44-avatar-user-in-circle-hover-looking-around", // Minimalista ✅
-  Student: "wired-outline-406-study-graduation-hover-pinch", // Minimalista ✅
-  PuzzlePiece: "wired-outline-458-goal-target-hover-hit", // Minimalista ✅
-  RocketLaunch: "wired-outline-3139-rocket-space-alt-hover-pinch", // Minimalista ✅
-  BookOpen: "wired-outline-738-notebook-2-hover-pinch", // Minimalista ✅
-  ChartLineUp: "wired-outline-153-bar-chart-hover-pinch", // Minimalista ✅
-  UsersThree: "wired-outline-44-avatar-user-in-circle-hover-looking-around", // Minimalista ✅
-  GraduationCap: "wired-outline-406-study-graduation-hover-pinch", // Minimalista ✅
-  ClipboardText: "wired-outline-754-pin-attachement-hover-pinch", // Minimalista ✅
-  Gear: "wired-outline-40-cogs-hover-mechanic", // Minimalista ✅
-};
-
-// Mapeamento de ícones Phosphor para Lottie COLORIDOS (wired-lineal) - versão colorida!
+// Mapeamento de ícones Phosphor para Lottie COLORIDOS (wired-lineal) - versão colorida animada!
 const lottieMapColored: Record<string, string> = {
   UsersFour: "wired-lineal-529-boy-girl-children-hover-pinch", // Estudantes - children 🎨
   Student: "wired-lineal-86-compass-hover-pinch", // PEI - bússola 🧭
@@ -66,7 +52,7 @@ const lottieMapColored: Record<string, string> = {
   BookBookmark: "wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - cérebro/chip 🧠💻
 };
 
-// Mapeamento de ícones Phosphor para Lottie OUTLINE COLORIDOS (minimalistas coloridas) - para usar nas páginas!
+// Mapeamento de ícones Phosphor para Lottie OUTLINE COLORIDOS (minimalistas coloridas) - para usar como estáticos na home
 const lottieMapOutlineColored: Record<string, string> = {
   UsersFour: "wired-outline-529-boy-girl-children-hover-pinch", // Estudantes - children 🎨
   Student: "wired-outline-86-compass-hover-pinch", // PEI - bússola 🧭
@@ -81,8 +67,9 @@ const lottieMapOutlineColored: Record<string, string> = {
   BookBookmark: "wired-outline-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - cérebro/chip 🧠💻
 };
 
-// Por padrão, usar os coloridos para teste
+// Por padrão, usar os coloridos (lineal) para animação, outline para estático
 const lottieMap = lottieMapColored;
+const lottieMapStatic = lottieMapOutlineColored; // Para usar como estático na home
 
 type ModuleCard = {
   href: string;
@@ -133,7 +120,9 @@ export function ModuleCardsLottie({
           const Icon = iconMap[m.iconName];
           if (!Icon) return null;
           const colors = getColorClasses(m.color);
-          const lottieAnimation = lottieMap[m.iconName];
+          // Usar outline colorido para estático, lineal colorido para animado
+          const lottieAnimationStatic = lottieMapStatic[m.iconName]; // Outline para estático
+          const lottieAnimationAnimated = lottieMap[m.iconName]; // Lineal para animado
           const shouldUseLottie = m.useLottie ?? useLottieOnHover;
           
           return (
@@ -141,12 +130,13 @@ export function ModuleCardsLottie({
               key={m.href}
               href={m.href}
               icon={Icon}
-              lottieAnimation={lottieAnimation}
+              lottieAnimationStatic={lottieAnimationStatic}
+              lottieAnimationAnimated={lottieAnimationAnimated}
               colors={colors}
               title={m.title}
               desc={m.desc}
               badge={m.badge}
-              useLottie={shouldUseLottie && !!lottieAnimation}
+              useLottie={shouldUseLottie && !!lottieAnimationAnimated}
               useLottieByDefault={useLottieByDefault}
               index={index}
             />
@@ -160,7 +150,8 @@ export function ModuleCardsLottie({
 function ModuleCardWithLottie({
   href,
   icon: Icon,
-  lottieAnimation,
+  lottieAnimationStatic,
+  lottieAnimationAnimated,
   colors,
   title,
   desc,
@@ -171,7 +162,8 @@ function ModuleCardWithLottie({
 }: {
   href: string;
   icon: Icon;
-  lottieAnimation?: string;
+  lottieAnimationStatic?: string; // Outline para estático
+  lottieAnimationAnimated?: string; // Lineal para animado
   colors: ReturnType<typeof getColorClasses>;
   title: string;
   desc: string;
@@ -191,8 +183,9 @@ function ModuleCardWithLottie({
     return () => clearTimeout(timer);
   }, [index]);
   
-  // Sempre mostrar Lottie quando disponível (ícones novos coloridos)
-  const shouldShowLottie = useLottie && !!lottieAnimation;
+  // Sempre mostrar Lottie quando disponível
+  // Estático: outline colorido, Animado no hover: lineal colorido
+  const shouldShowLottie = useLottie && (!!lottieAnimationStatic || !!lottieAnimationAnimated);
 
   return (
     <Link
@@ -212,17 +205,40 @@ function ModuleCardWithLottie({
         </span>
       )}
       <div className="flex items-start gap-5">
-        {/* Ícone: Lottie sempre que disponível */}
+        {/* Ícone: Outline colorido estático, Lineal colorido no hover */}
         <div className={`w-14 h-14 flex-shrink-0 flex items-center justify-center transition-all duration-500 ${
           isVisible ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
         }`}>
-          {useLottie && lottieAnimation ? (
-            <LottieIcon
-              animation={lottieAnimation}
-              size={56}
-              loop={true}
-              className="transition-all duration-300 group-hover:scale-110"
-            />
+          {shouldShowLottie ? (
+            <>
+              {/* Estático: outline colorido */}
+              {lottieAnimationStatic && !isHovered && (
+                <LottieIcon
+                  animation={lottieAnimationStatic}
+                  size={56}
+                  loop={true}
+                  className="transition-all duration-300"
+                />
+              )}
+              {/* Animado no hover: lineal colorido */}
+              {lottieAnimationAnimated && isHovered && (
+                <LottieIcon
+                  animation={lottieAnimationAnimated}
+                  size={56}
+                  loop={true}
+                  className="transition-all duration-300 group-hover:scale-110"
+                />
+              )}
+              {/* Fallback se não houver outline */}
+              {!lottieAnimationStatic && lottieAnimationAnimated && !isHovered && (
+                <LottieIcon
+                  animation={lottieAnimationAnimated}
+                  size={56}
+                  loop={true}
+                  className="transition-all duration-300"
+                />
+              )}
+            </>
           ) : (
             <Icon
               className="w-14 h-14 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
