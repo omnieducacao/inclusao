@@ -11,6 +11,7 @@ import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { getColorClasses } from "@/lib/colors";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { LottieIcon } from "@/components/LottieIcon";
 import {
   FileText,
   Image as ImageIcon,
@@ -75,6 +76,57 @@ const TOOLS_EI: { id: ToolIdEI; icon: LucideIcon; title: string; desc: string }[
   { id: "inclusao-brincar", icon: ToyBrick, title: "Inclusão no Brincar", desc: "Brincadeiras acessíveis" },
 ];
 
+// Mapeamento de ícones Lucide para Lottie outline minimalista (para cards internos)
+function getHubLottieMap(): string {
+  // Todos os ícones do Hub usam o mesmo ícone de notebook/documento minimalista
+  return "wired-outline-738-notebook-2-hover-pinch";
+}
+
+// Componente para card de ferramenta com ícone minimalista
+function ToolCard({ 
+  tool, 
+  isActive, 
+  onClick 
+}: { 
+  tool: { id: string; icon: LucideIcon; title: string; desc: string }; 
+  isActive: boolean; 
+  onClick: () => void;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+  const Icon = tool.icon;
+  const lottieAnimation = getHubLottieMap();
+  
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`group text-left p-6 rounded-xl border-2 transition-all duration-300 bg-gradient-to-br min-h-[160px] flex flex-col ${
+        isActive
+          ? "border-cyan-500 from-cyan-50 to-white shadow-md scale-[1.02]"
+          : "border-slate-200 from-slate-50 to-white hover:border-slate-300 hover:shadow-lg hover:scale-[1.02]"
+      }`}
+    >
+      {/* Ícone dentro do quadrado minimalista */}
+      <div 
+        className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 mb-3"
+        style={{ width: '72px', height: '72px', padding: '6px' }}
+      >
+        <LottieIcon
+          animation={lottieAnimation}
+          size={60}
+          loop={isHovered}
+          autoplay={isHovered}
+          className="transition-all duration-300"
+        />
+      </div>
+      <div className="font-bold text-slate-800 text-base">{tool.title}</div>
+      <div className="text-sm text-slate-600 mt-1">{tool.desc}</div>
+    </button>
+  );
+}
+
 export function HubClient({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
   const currentId = studentId || searchParams.get("student");
@@ -127,27 +179,14 @@ export function HubClient({ students, studentId, student }: Props) {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {TOOLS.map((t) => {
-          const Icon = t.icon;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setActiveTool(activeTool === t.id ? null : t.id)}
-              className={`group text-left p-6 rounded-xl border-2 transition-all duration-300 bg-gradient-to-br min-h-[160px] flex flex-col ${
-                activeTool === t.id
-                  ? "border-cyan-500 from-cyan-50 to-white shadow-md scale-[1.02]"
-                  : "border-slate-200 from-slate-50 to-white hover:border-slate-300 hover:shadow-lg hover:scale-[1.02]"
-              }`}
-            >
-              <Icon className={`w-12 h-12 mb-3 transition-all duration-300 ${
-                activeTool === t.id ? "text-cyan-600" : "text-slate-600 group-hover:text-cyan-600 group-hover:scale-110"
-              }`} />
-              <div className="font-bold text-slate-800 text-base">{t.title}</div>
-              <div className="text-sm text-slate-600 mt-1">{t.desc}</div>
-            </button>
-          );
-        })}
+        {TOOLS.map((t) => (
+          <ToolCard
+            key={t.id}
+            tool={t}
+            isActive={activeTool === t.id}
+            onClick={() => setActiveTool(activeTool === t.id ? null : t.id)}
+          />
+        ))}
       </div>
 
       {activeTool === "criar-zero" && (

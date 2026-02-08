@@ -4,25 +4,26 @@ import { useState, useEffect } from "react";
 import { getColorClasses } from "@/lib/colors";
 import { LottieIcon } from "./LottieIcon";
 
-// Mapeamento de ícones para Lottie OUTLINE COLORIDOS (minimalistas coloridas) - para usar nas páginas!
+// Mapeamento de ícones para Lottie OUTLINE COLORIDOS (minimalistas coloridas) - versões com cores nos tons de cada página!
+// Versões com "(1)" são as coloridas que você enviou mais para o final
 const lottieMapOutlineColored: Record<string, string> = {
-  UsersFour: "wired-outline-529-boy-girl-children-hover-pinch", // Estudantes - children 🎨
-  Student: "wired-outline-86-compass-hover-pinch", // PEI - bússola 🧭
-  PuzzlePiece: "wired-outline-106-map-hover-pinch", // PAEE - mapa 🗺️
+  UsersFour: "wired-outline-529-boy-girl-children-hover-pinch (1)", // Estudantes - children 🎨 (colorido)
+  Student: "wired-outline-86-compass-hover-pinch (1)", // PEI - bússola 🧭 (colorido)
+  PuzzlePiece: "wired-outline-106-map-hover-pinch (1)", // PAEE - mapa 🗺️ (colorido)
   RocketLaunch: "wired-outline-489-rocket-space-hover-flying", // Hub - foguete voando 🚀
-  BookOpen: "wired-outline-3140-book-open-hover-pinch", // Diário - livro aberto 📖
+  BookOpen: "wired-outline-3140-book-open-hover-pinch (1)", // Diário - livro aberto 📖 (colorido)
   ChartLineUp: "wired-outline-152-bar-chart-arrow-hover-growth", // Monitoramento - gráfico 📊
   UsersThree: "wired-outline-314-three-avatars-icon-calm-hover-nodding", // Gestão Usuários 👥
-  GraduationCap: "wired-outline-486-school-hover-pinch", // Config Escola - escola 🏫
-  ClipboardText: "wired-outline-2167-books-course-assign-hover-pinch", // PGI - livros 📚
+  GraduationCap: "wired-outline-486-school-hover-pinch (1)", // Config Escola - escola 🏫 (colorido)
+  ClipboardText: "wired-outline-738-notebook-2-hover-pinch", // PGI - notebook/documento 📓
   Gear: "wired-outline-40-cogs-hover-mechanic", // Admin - engrenagem ⚙️
-  BookBookmark: "wired-outline-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - cérebro/chip 🧠💻
-  Compass: "wired-outline-86-compass-hover-pinch", // Compass (PEI)
-  Puzzle: "wired-outline-106-map-hover-pinch", // Puzzle (PAEE)
+  BookBookmark: "wired-outline-2167-books-course-assign-hover-pinch", // Central Inteligência - livros (mesmo de PGI) 📚
+  Compass: "wired-outline-86-compass-hover-pinch (1)", // Compass (PEI) - colorido
+  Puzzle: "wired-outline-106-map-hover-pinch (1)", // Puzzle (PAEE) - colorido
   Rocket: "wired-outline-489-rocket-space-hover-flying", // Rocket (Hub)
   BarChart3: "wired-outline-152-bar-chart-arrow-hover-growth", // BarChart3 (Monitoramento)
-  School: "wired-outline-486-school-hover-pinch", // School (Config Escola)
-  ClipboardList: "wired-outline-2167-books-course-assign-hover-pinch", // ClipboardList (PGI)
+  School: "wired-outline-486-school-hover-pinch (1)", // School (Config Escola) - colorido
+  ClipboardList: "wired-outline-738-notebook-2-hover-pinch", // ClipboardList (PGI) - notebook/documento 📓
   Settings: "wired-outline-40-cogs-hover-mechanic", // Settings (Gestão)
 };
 

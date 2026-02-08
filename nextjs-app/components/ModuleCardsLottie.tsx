@@ -52,9 +52,9 @@ function getLottieMaps() {
     ChartLineUp: "wired-lineal-152-bar-chart-arrow-hover-growth", // Monitoramento - gráfico 📊
     UsersThree: "wired-lineal-314-three-avatars-icon-calm-hover-jumping", // Gestão Usuários 👥
     GraduationCap: "wired-lineal-486-school-hover-pinch", // Config Escola - escola 🏫
-    ClipboardText: "wired-lineal-2167-books-course-assign-hover-pinch", // PGI - livros 📚
+    ClipboardText: "wired-lineal-60-documents-hover-swipe", // PGI - documentos 📄
     Gear: "wired-lineal-40-cogs-hover-mechanic", // Admin - engrenagem ⚙️
-    BookBookmark: "wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - cérebro/chip 🧠💻
+    BookBookmark: "wired-lineal-2167-books-course-assign-hover-pinch", // Central Inteligência - livros (mesmo de PGI) 📚
   };
 
   // Mapeamento de ícones Phosphor para Lottie OUTLINE COLORIDOS (minimalistas coloridas) - para usar como estáticos na home
@@ -67,9 +67,9 @@ function getLottieMaps() {
     ChartLineUp: "wired-outline-152-bar-chart-arrow-hover-growth", // Monitoramento - gráfico 📊
     UsersThree: "wired-outline-314-three-avatars-icon-calm-hover-nodding", // Gestão Usuários 👥
     GraduationCap: "wired-outline-486-school-hover-pinch", // Config Escola - escola 🏫
-    ClipboardText: "wired-outline-2167-books-course-assign-hover-pinch", // PGI - livros 📚
+    ClipboardText: "wired-outline-738-notebook-2-hover-pinch", // PGI - notebook/documento 📓
     Gear: "wired-outline-40-cogs-hover-mechanic", // Admin - engrenagem ⚙️
-    BookBookmark: "wired-outline-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - cérebro/chip 🧠💻
+    BookBookmark: "wired-outline-2167-books-course-assign-hover-pinch", // Central Inteligência - livros (mesmo de PGI) 📚
   };
 
   return {
@@ -172,9 +172,10 @@ export function ModuleCardsLottie({
                 <div className="flex items-start gap-5">
                   <div className="flex-shrink-0">
                     <div 
-                      className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10"
+                      className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10"
+                      style={{ width: '72px', height: '72px', padding: '6px' }}
                     >
-                      <div className="w-10 h-10 bg-slate-300 rounded animate-pulse" />
+                      <div className="w-16 h-16 bg-slate-300 rounded animate-pulse" />
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -341,11 +342,12 @@ function ModuleCardWithLottie({
         }`}>
           {shouldShowLottie && lottieAnimation ? (
             <div 
-              className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+              className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+              style={{ width: '72px', height: '72px', padding: '6px' }}
             >
               <LottieIcon
                 animation={lottieAnimation}
-                size={44}
+                size={60}
                 loop={isHovered}
                 autoplay={isHovered}
                 className="transition-all duration-300"
@@ -353,11 +355,12 @@ function ModuleCardWithLottie({
             </div>
           ) : (
             <div 
-              className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+              className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+              style={{ width: '72px', height: '72px', padding: '6px' }}
             >
               <Icon
-                className="w-10 h-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
-                style={{ color: colors.icon }}
+                className="transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+                style={{ color: colors.icon, width: '60px', height: '60px' }}
                 weight="duotone"
               />
             </div>
@@ -395,20 +398,20 @@ type IntelligenceModuleProps = {
 
 export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModuleProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [BookBookmarkIcon, setBookBookmarkIcon] = useState<Icon | null>(null);
+  const [ClipboardTextIcon, setClipboardTextIcon] = useState<Icon | null>(null);
   const lottieMaps = getLottieMaps();
-  const lottieAnimation = lottieMaps.colored.BookBookmark;
+  const lottieAnimation = lottieMaps.colored.BookBookmark; // Agora aponta para livros (mesmo de PGI)
   
   useEffect(() => {
     setIsMounted(true);
     if (typeof window !== "undefined") {
       loadIcons().then((map) => {
-        setBookBookmarkIcon(map.BookBookmark || null);
+        setClipboardTextIcon(map.ClipboardText || null);
       });
     }
   }, []);
   
-  if (!isMounted || !BookBookmarkIcon) {
+  if (!isMounted || !ClipboardTextIcon) {
     return (
       <div>
         <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -423,7 +426,7 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
   return (
     <div>
       <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-        <BookBookmarkIcon className="w-5 h-5 text-purple-600" weight="duotone" />
+        <ClipboardTextIcon className="w-5 h-5 text-purple-600" weight="duotone" />
         Conhecimento e Referência
       </h2>
       <Link
@@ -433,23 +436,31 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
       >
         <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${colorPalette.table.icon}15, transparent, ${colorPalette.table.icon}15)` }}></div>
         <div className="relative flex items-start gap-6">
-          {/* Ícone Lottie colorido para Central de Inteligência */}
+          {/* Ícone Lottie colorido para Central de Inteligência - agora com livros */}
           {lottieAnimation ? (
-            <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center">
+            <div 
+              className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+              style={{ width: '72px', height: '72px', padding: '6px' }}
+            >
               <LottieIcon
                 animation={lottieAnimation}
-                size={64}
+                size={60}
                 loop={true}
-                className="transition-all duration-300 group-hover:scale-110"
+                className="transition-all duration-300"
               />
             </div>
           ) : (
-            BookBookmarkIcon && (
-              <BookBookmarkIcon
-                className="w-16 h-16 flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300"
-                style={{ color: colorPalette.table.icon }}
-                weight="duotone"
-              />
+            ClipboardTextIcon && (
+              <div 
+                className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+                style={{ width: '72px', height: '72px', padding: '6px' }}
+              >
+                <ClipboardTextIcon
+                  className="transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+                  style={{ color: colorPalette.table.icon, width: '60px', height: '60px' }}
+                  weight="duotone"
+                />
+              </div>
             )
           )}
           <div className="flex-1">
