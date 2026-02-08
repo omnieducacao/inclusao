@@ -712,21 +712,42 @@ export function PEIClient({
                               }
 
                               console.log("Buscando JSON do PEI do Supabase para estudante:", idToLoad);
+                              console.log("Estudante da lista:", studentFromList);
                               setIsLoadingRascunho(true);
                               try {
                                 // Buscar o JSON completo do Supabase (mesmo formato que quando baixamos)
-                                const res = await fetch(`/api/students/${idToLoad}`);
-                                console.log("Resposta da API:", res.status, res.ok);
+                                const apiUrl = `/api/students/${idToLoad}`;
+                                console.log("Chamando API:", apiUrl);
+                                const res = await fetch(apiUrl);
+                                console.log("Resposta da API:", res.status, res.ok, res.statusText);
                                 
                                 if (!res.ok) {
-                                  console.log("Estudante não encontrado na API");
-                                  setErroGlobal("Estudante não encontrado");
+                                  // Tentar ler a mensagem de erro
+                                  let errorMessage = "Estudante não encontrado";
+                                  try {
+                                    const errorData = await res.json();
+                                    errorMessage = errorData.error || `Erro HTTP ${res.status}`;
+                                    console.error("Erro da API:", errorData);
+                                  } catch (e) {
+                                    console.error("Erro ao ler resposta de erro:", e);
+                                  }
+                                  
+                                  console.error("❌ Estudante não encontrado na API:", {
+                                    id: idToLoad,
+                                    status: res.status,
+                                    statusText: res.statusText,
+                                    errorMessage
+                                  });
+                                  
+                                  setErroGlobal(`Erro: ${errorMessage} (Status: ${res.status})`);
+                                  alert(`Erro ao buscar estudante: ${errorMessage}\n\nID: ${idToLoad}\nStatus: ${res.status}`);
                                   setIsLoadingRascunho(false);
                                   return;
                                 }
 
                                 const data = await res.json();
-                                console.log("Dados recebidos da API:", data);
+                                console.log("✅ Dados recebidos da API:", data);
+                                console.log("Tem pei_data?", !!data.pei_data);
                                 
                                 // Pegar o pei_data (que é o JSON salvo no Supabase)
                                 const peiDataJson = data.pei_data;
@@ -734,8 +755,9 @@ export function PEIClient({
                                 if (peiDataJson && typeof peiDataJson === 'object' && !Array.isArray(peiDataJson)) {
                                   // Usar a MESMA lógica que funciona para JSON local
                                   // Colocar em jsonPending e usar aplicarJson()
-                                  console.log("✅ JSON encontrado no Supabase, usando mesma lógica do upload local");
-                                  console.log("Campos no JSON:", Object.keys(peiDataJson).length);
+                                  const campos = Object.keys(peiDataJson);
+                                  console.log("✅ JSON encontrado no Supabase com", campos.length, "campos");
+                                  console.log("Primeiros campos:", campos.slice(0, 10));
                                   
                                   // Criar cópia profunda do JSON (mesmo que FileReader faz)
                                   const jsonCopiado = JSON.parse(JSON.stringify(peiDataJson)) as PEIData;
@@ -753,18 +775,22 @@ export function PEIClient({
                                   aplicarJson();
                                   
                                   console.log("✅ JSON aplicado usando aplicarJson() - deve funcionar agora!");
+                                  alert(`PEI carregado com sucesso! ${campos.length} campos encontrados.`);
                                 } else {
                                   // Estudante encontrado mas sem pei_data
-                                  console.log("Estudante sem pei_data no Supabase");
-                                  setErroGlobal("Estudante encontrado mas sem dados de PEI salvos");
+                                  console.log("⚠️ Estudante encontrado mas sem pei_data no Supabase");
+                                  console.log("pei_data recebido:", peiDataJson);
+                                  setErroGlobal("Estudante encontrado mas sem dados de PEI salvos no Supabase");
+                                  alert("Estudante encontrado mas sem dados de PEI salvos.\n\nUse o botão 'Sincronizar Tudo' no Dashboard para salvar o PEI primeiro.");
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setIsLoadingRascunho(false);
                                 }
                               } catch (err) {
-                                console.error("Erro ao carregar estudante:", err);
-                                setErroGlobal("Erro ao carregar dados do estudante");
-                                alert(`Erro: ${err instanceof Error ? err.message : String(err)}`);
+                                console.error("❌ Erro ao carregar estudante:", err);
+                                const errorMsg = err instanceof Error ? err.message : String(err);
+                                setErroGlobal(`Erro ao carregar dados: ${errorMsg}`);
+                                alert(`Erro ao carregar dados do estudante:\n\n${errorMsg}\n\nID: ${idToLoad}`);
                                 setStudentPendingId(null);
                                 setStudentPendingName("");
                                 setIsLoadingRascunho(false);
