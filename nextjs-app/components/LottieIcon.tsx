@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Lottie from "lottie-react";
 
 type LottieIconProps = {
@@ -117,15 +117,16 @@ export function LottieIcon({
       className={`flex items-center justify-center ${className}`}
       style={{ width: size, height: size, ...style }}
     >
-      {/* @ts-expect-error - lottie-react type definitions may be incomplete */}
-      <Lottie
-        animationData={animationData}
-        loop={loop}
-        autoplay={autoplay}
-        speed={speed}
-        style={{ width: size, height: size }}
-        onComplete={onComplete}
-      />
+      {/* @ts-ignore - lottie-react type definitions may be incomplete */}
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      {React.createElement(Lottie as any, {
+        animationData,
+        loop,
+        autoplay,
+        speed,
+        style: { width: size, height: size },
+        onComplete,
+      })}
     </div>
   );
 }
