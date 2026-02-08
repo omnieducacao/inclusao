@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
-  const { PDFParse } = await import("pdf-parse");
-  const parser = new PDFParse({ data: buffer });
-  const result = await parser.getText();
+  const pdfParse = (await import("pdf-parse")).default;
+  const result = await pdfParse(buffer);
   return (result?.text || "").trim();
 }
 
@@ -64,12 +63,41 @@ export async function POST(req: Request) {
     }
 
     let jsonStr = raw;
+    // Remover markdown code blocks se existirem
     const codeBlock = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (codeBlock) jsonStr = codeBlock[1].trim();
-    const parsed = JSON.parse(jsonStr) as {
+    
+    // Tentar encontrar JSON no texto mesmo que tenha texto antes/depois
+    const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+    if (jsonMatch) jsonStr = jsonMatch[0];
+    
+    let parsed: {
       diagnostico?: string;
       medicamentos?: { nome?: string; posologia?: string }[];
     };
+    
+    try {
+      parsed = JSON.parse(jsonStr);
+    } catch (parseError) {
+      console.error("Erro ao fazer parse do JSON retornado pela IA:", parseError);
+      console.error("Texto recebido:", raw.substring(0, 500));
+      // Tentar extrair diagnóstico e medicamentos manualmente se o JSON falhar
+      const diagnosticoMatch = raw.match(/(?:diagnóstico|diagnostico)[\s:]*([^,\n}]+)/i);
+      const medicamentosMatch = raw.match(/(?:medicamentos|medicamento)[\s:]*\[?([^\]]+)\]?/i);
+      
+      parsed = {
+        diagnostico: diagnosticoMatch ? diagnosticoMatch[1].trim() : "",
+        medicamentos: medicamentosMatch 
+          ? medicamentosMatch[1].split(",").map(m => {
+              const parts = m.trim().split(/\s+-\s+/);
+              return {
+                nome: parts[0] || "",
+                posologia: parts[1] || "",
+              };
+            })
+          : [],
+      };
+    }
 
     return NextResponse.json({
       diagnostico: parsed.diagnostico || "",
