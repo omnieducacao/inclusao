@@ -120,29 +120,63 @@ export async function POST(req: Request) {
 
     if (v.engine === "yellow" && temImagemSeparada && imagemSeparadaBase64) {
       // Gemini suporta múltiplas imagens no mesmo request
-      const { GoogleGenerativeAI } = await import("@google/generative-ai");
-      const genAI = new GoogleGenerativeAI(v.key);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-      
-      const contents = [
-        { text: prompt },
-        {
-          inlineData: {
-            data: imagemBase64,
-            mimeType: mime || "image/jpeg",
+      try {
+        const { GoogleGenerativeAI } = await import("@google/generative-ai");
+        const genAI = new GoogleGenerativeAI(v.key);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        
+        const contents = [
+          { text: prompt },
+          {
+            inlineData: {
+              data: imagemBase64,
+              mimeType: mime || "image/jpeg",
+            },
           },
-        },
-        { text: "IMAGEM RECORTADA SEPARADAMENTE PELO PROFESSOR (use tag [[IMG_2]] para inserir no local apropriado):" },
-        {
-          inlineData: {
-            data: imagemSeparadaBase64,
-            mimeType: mime || "image/jpeg",
+          { text: "IMAGEM RECORTADA SEPARADAMENTE PELO PROFESSOR (use tag [[IMG_2]] para inserir no local apropriado):" },
+          {
+            inlineData: {
+              data: imagemSeparadaBase64,
+              mimeType: mime || "image/jpeg",
+            },
           },
-        },
-      ];
-      
-      const result = await model.generateContent(contents);
-      fullText = (result.response.text() || "").trim();
+        ];
+        
+        const result = await model.generateContent(contents);
+        fullText = (result.response.text() || "").trim();
+      } catch (geminiError) {
+        console.error("Erro ao usar Gemini com múltiplas imagens, tentando fallback OpenAI:", geminiError);
+        // Fallback: usar OpenAI gpt-4o que também suporta múltiplas imagens
+        const openaiKey = process.env.OPENAI_API_KEY;
+        if (openaiKey) {
+          try {
+            const OpenAI = (await import("openai")).default;
+            const client = new OpenAI({ apiKey: openaiKey });
+            const completion = await client.chat.completions.create({
+              model: "gpt-4o",
+              messages: [
+                {
+                  role: "user",
+                  content: [
+                    { type: "text", text: prompt },
+                    { type: "image_url", image_url: { url: `data:${mime};base64,${imagemBase64}` } },
+                    { type: "text", text: "IMAGEM RECORTADA SEPARADAMENTE PELO PROFESSOR (use tag [[IMG_2]] para inserir no local apropriado):" },
+                    { type: "image_url", image_url: { url: `data:${mime};base64,${imagemSeparadaBase64}` } },
+                  ],
+                },
+              ],
+              max_tokens: 4096,
+              temperature: 0.4,
+            });
+            fullText = (completion.choices[0]?.message?.content || "").trim();
+          } catch (openaiError) {
+            console.error("Erro ao usar OpenAI como fallback:", openaiError);
+            throw new Error(`Erro ao processar imagens: ${geminiError instanceof Error ? geminiError.message : String(geminiError)}`);
+          }
+        } else {
+          throw new Error(`Gemini falhou e OpenAI não está configurado: ${geminiError instanceof Error ? geminiError.message : String(geminiError)}`);
+        }
+      }
     } else {
       // Usar visionAdapt padrão (uma imagem)
       fullText = await visionAdapt(prompt, imagemBase64, mime);

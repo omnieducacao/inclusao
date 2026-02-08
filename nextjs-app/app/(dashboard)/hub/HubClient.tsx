@@ -861,7 +861,7 @@ function CriarDoZero({
                 <PdfDownloadButton text={resultado} filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Atividade Criada" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} />
+            <FormattedTextDisplay texto={resultado} mapaImagens={mapaImagensResultado} />
           </div>
         </div>
       )}
@@ -1055,7 +1055,7 @@ function PapoDeMestre({
                 <PdfDownloadButton text={resultado} filename={`Papo_Mestre_${new Date().toISOString().slice(0, 10)}.pdf`} title="Papo de Mestre" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} />
+            <FormattedTextDisplay texto={resultado} mapaImagens={mapaImagensResultado} />
           </div>
         </div>
       )}
@@ -1398,7 +1398,7 @@ function PlanoAulaDua({
                 <PdfDownloadButton text={resultado} filename={`Plano_Aula_${new Date().toISOString().slice(0, 10)}.pdf`} title="Plano de Aula DUA" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} />
+            <FormattedTextDisplay texto={resultado} mapaImagens={mapaImagensResultado} />
           </div>
         </div>
       )}
@@ -1545,7 +1545,7 @@ function RotinaAvdTool({
                 <PdfDownloadButton text={resultado} filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.pdf`} title="Rotina e AVD" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} />
+            <FormattedTextDisplay texto={resultado} mapaImagens={mapaImagensResultado} />
           </div>
         </div>
       )}
@@ -1670,7 +1670,7 @@ function InclusaoBrincarTool({
                 <PdfDownloadButton text={resultado} filename={`Inclusao_Brincar_${new Date().toISOString().slice(0, 10)}.pdf`} title="Inclusão no Brincar" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} />
+            <FormattedTextDisplay texto={resultado} mapaImagens={mapaImagensResultado} />
           </div>
         </div>
       )}
@@ -2325,7 +2325,7 @@ function RoteiroIndividual({
                 <PdfDownloadButton text={resultado} filename={`Roteiro_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Roteiro de Aula" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} />
+            <FormattedTextDisplay texto={resultado} mapaImagens={mapaImagensResultado} />
           </div>
         </div>
       )}
@@ -2819,6 +2819,7 @@ function AdaptarAtividade({
   const [erro, setErro] = useState<string | null>(null);
   const [validado, setValidado] = useState(false);
   const [refazendo, setRefazendo] = useState(false);
+  const [mapaImagensAdaptar, setMapaImagensAdaptar] = useState<Record<number, string>>({});
 
   const peiData = student?.pei_data || {};
   const serieAluno = student?.grade || "";
@@ -2917,7 +2918,49 @@ function AdaptarAtividade({
       );
       const res = await fetch("/api/hub/adaptar-atividade", { method: "POST", body: formData });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao adaptar");
+      if (!res.ok) {
+        console.error("Erro na API adaptar-atividade:", data);
+        throw new Error(data.error || "Erro ao adaptar");
+      }
+      
+      // Processar imagens se houver imagem separada
+      const novoMapa: Record<number, string> = {};
+      if (temImagemSeparada && imagemSeparadaParaEnvio) {
+        try {
+          const reader = new FileReader();
+          await new Promise<void>((resolve, reject) => {
+            reader.onload = () => {
+              const base64 = (reader.result as string).split(",")[1];
+              novoMapa[2] = base64; // IMG_2 para imagem separada
+              resolve();
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(imagemSeparadaParaEnvio);
+          });
+        } catch (err) {
+          console.error("Erro ao processar imagem separada:", err);
+        }
+      }
+      
+      // Se houver IMG_1 no texto (imagem principal), processar também
+      if (croppedFile && data.texto?.includes("[[IMG_1]]")) {
+        try {
+          const reader = new FileReader();
+          await new Promise<void>((resolve, reject) => {
+            reader.onload = () => {
+              const base64 = (reader.result as string).split(",")[1];
+              novoMapa[1] = base64;
+              resolve();
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(croppedFile);
+          });
+        } catch (err) {
+          console.error("Erro ao processar imagem principal:", err);
+        }
+      }
+      
+      setMapaImagensAdaptar(novoMapa);
       setResultado({ analise: data.analise || "", texto: data.texto || "" });
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao adaptar.");
@@ -3292,7 +3335,12 @@ function AdaptarAtividade({
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Atividade Adaptada (DUA)</span>
               <span className="flex gap-2">
-                <DocxDownloadButton texto={`${resultado.analise}\n\n---\n\n${resultado.texto}`} titulo="Atividade Adaptada (DUA)" filename={`Atividade_Adaptada_${new Date().toISOString().slice(0, 10)}.docx`} />
+                <DocxDownloadButton 
+                  texto={`${resultado.analise}\n\n---\n\n${resultado.texto}`} 
+                  titulo="Atividade Adaptada (DUA)" 
+                  filename={`Atividade_Adaptada_${new Date().toISOString().slice(0, 10)}.docx`}
+                  mapaImagens={Object.keys(mapaImagensAdaptar).length > 0 ? mapaImagensAdaptar : undefined}
+                />
                 <PdfDownloadButton
                   text={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
                   filename={`Atividade_${new Date().toISOString().slice(0, 10)}.pdf`}
@@ -3300,7 +3348,7 @@ function AdaptarAtividade({
                 />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado.texto} />
+            <FormattedTextDisplay texto={resultado.texto} mapaImagens={mapaImagensAdaptar} />
           </div>
         </div>
       )}
