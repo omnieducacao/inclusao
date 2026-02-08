@@ -861,7 +861,7 @@ function CriarDoZero({
                 <PdfDownloadButton text={resultado} filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Atividade Criada" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} mapaImagens={mapaImagensResultado} />
+            <FormattedTextDisplay texto={resultado} />
           </div>
         </div>
       )}
@@ -1055,7 +1055,7 @@ function PapoDeMestre({
                 <PdfDownloadButton text={resultado} filename={`Papo_Mestre_${new Date().toISOString().slice(0, 10)}.pdf`} title="Papo de Mestre" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} mapaImagens={mapaImagensResultado} />
+            <FormattedTextDisplay texto={resultado} />
           </div>
         </div>
       )}
@@ -1398,7 +1398,7 @@ function PlanoAulaDua({
                 <PdfDownloadButton text={resultado} filename={`Plano_Aula_${new Date().toISOString().slice(0, 10)}.pdf`} title="Plano de Aula DUA" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} mapaImagens={mapaImagensResultado} />
+            <FormattedTextDisplay texto={resultado} />
           </div>
         </div>
       )}
@@ -1545,7 +1545,7 @@ function RotinaAvdTool({
                 <PdfDownloadButton text={resultado} filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.pdf`} title="Rotina e AVD" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} mapaImagens={mapaImagensResultado} />
+            <FormattedTextDisplay texto={resultado} />
           </div>
         </div>
       )}
@@ -1670,7 +1670,7 @@ function InclusaoBrincarTool({
                 <PdfDownloadButton text={resultado} filename={`Inclusao_Brincar_${new Date().toISOString().slice(0, 10)}.pdf`} title="Inclusão no Brincar" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} mapaImagens={mapaImagensResultado} />
+            <FormattedTextDisplay texto={resultado} />
           </div>
         </div>
       )}
@@ -2325,7 +2325,7 @@ function RoteiroIndividual({
                 <PdfDownloadButton text={resultado} filename={`Roteiro_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Roteiro de Aula" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} mapaImagens={mapaImagensResultado} />
+            <FormattedTextDisplay texto={resultado} />
           </div>
         </div>
       )}
