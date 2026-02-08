@@ -66,8 +66,19 @@ export function LottieIcon({
 }: LottieIconProps) {
   const [animationData, setAnimationData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Garantir que só renderiza no cliente
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
+    // Verificar se estamos no cliente antes de fazer fetch
+    if (typeof window === "undefined") {
+      return;
+    }
+
     // Carregar o arquivo JSON do Lottie
     fetch(`/lottie/${animation}.json`)
       .then((res) => {
@@ -86,6 +97,16 @@ export function LottieIcon({
         setError(err.message);
       });
   }, [animation, onLoad]);
+
+  // Durante SSR ou antes de montar, retornar um placeholder vazio
+  if (!isMounted) {
+    return (
+      <div
+        className={`flex items-center justify-center ${className}`}
+        style={{ width: size, height: size, ...style }}
+      />
+    );
+  }
 
   if (error) {
     // Fallback: mostrar um ícone estático ou mensagem de erro
@@ -113,23 +134,38 @@ export function LottieIcon({
     );
   }
 
-  return (
-    <div
-      className={`flex items-center justify-center ${className}`}
-      style={{ width: size, height: size, ...style }}
-    >
-      {/* @ts-ignore - lottie-react type definitions may be incomplete */}
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {React.createElement(Lottie as any, {
-        animationData,
-        loop,
-        autoplay,
-        speed,
-        style: { width: size, height: size },
-        onComplete,
-      })}
-    </div>
-  );
+  try {
+    return (
+      <div
+        className={`flex items-center justify-center ${className}`}
+        style={{ width: size, height: size, ...style }}
+      >
+        {/* @ts-ignore - lottie-react type definitions may be incomplete */}
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {React.createElement(Lottie as any, {
+          animationData,
+          loop,
+          autoplay,
+          speed,
+          style: { width: size, height: size },
+          onComplete,
+        })}
+      </div>
+    );
+  } catch (err) {
+    // Catch qualquer erro durante renderização do Lottie
+    console.warn(`[LottieIcon] Error rendering animation "${animation}":`, err);
+    return (
+      <div
+        className={`flex items-center justify-center ${className}`}
+        style={{ width: size, height: size, ...style }}
+      >
+        <span className="text-xs text-slate-400" title={`Erro ao renderizar: ${animation}`}>
+          ⚠️
+        </span>
+      </div>
+    );
+  }
 }
 
 // Re-exportar tipos úteis

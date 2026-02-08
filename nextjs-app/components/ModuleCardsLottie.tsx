@@ -123,7 +123,11 @@ export function ModuleCardsLottie({
           // Usar outline colorido para estático, lineal colorido para animado
           const lottieAnimationStatic = lottieMapStatic[m.iconName]; // Outline para estático
           const lottieAnimationAnimated = lottieMap[m.iconName]; // Lineal para animado
-          const shouldUseLottie = m.useLottie ?? useLottieOnHover;
+          // Se useLottieByDefault=true, sempre usar Lottie quando disponível
+          // Caso contrário, usar a lógica de m.useLottie ou useLottieOnHover
+          const shouldUseLottie = useLottieByDefault 
+            ? true 
+            : (m.useLottie ?? useLottieOnHover);
           
           return (
             <ModuleCardWithLottie
@@ -136,7 +140,7 @@ export function ModuleCardsLottie({
               title={m.title}
               desc={m.desc}
               badge={m.badge}
-              useLottie={shouldUseLottie && !!lottieAnimationAnimated}
+              useLottie={shouldUseLottie}
               useLottieByDefault={useLottieByDefault}
               index={index}
             />
@@ -183,9 +187,13 @@ function ModuleCardWithLottie({
     return () => clearTimeout(timer);
   }, [index]);
   
-  // Sempre mostrar Lottie quando disponível
-  // Estático: outline colorido, Animado no hover: lineal colorido
-  const shouldShowLottie = useLottie && (!!lottieAnimationStatic || !!lottieAnimationAnimated);
+  // Sempre mostrar Lottie quando disponível (usando colorido/lineal)
+  // Se useLottieByDefault=true, sempre mostrar Lottie quando mapeado
+  // Se useLottieByDefault=false, só mostrar se useLottie=true
+  const lottieAnimation = lottieAnimationAnimated || lottieAnimationStatic;
+  const shouldShowLottie = useLottieByDefault 
+    ? !!lottieAnimation 
+    : (useLottie && !!lottieAnimation);
 
   return (
     <Link
@@ -205,40 +213,18 @@ function ModuleCardWithLottie({
         </span>
       )}
       <div className="flex items-start gap-5">
-        {/* Ícone: Outline colorido estático, Lineal colorido no hover */}
+        {/* Ícone: Lottie colorido sempre quando disponível, animado apenas no hover */}
         <div className={`w-14 h-14 flex-shrink-0 flex items-center justify-center transition-all duration-500 ${
           isVisible ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
         }`}>
-          {shouldShowLottie ? (
-            <>
-              {/* Estático: outline colorido */}
-              {lottieAnimationStatic && !isHovered && (
-                <LottieIcon
-                  animation={lottieAnimationStatic}
-                  size={56}
-                  loop={true}
-                  className="transition-all duration-300"
-                />
-              )}
-              {/* Animado no hover: lineal colorido */}
-              {lottieAnimationAnimated && isHovered && (
-                <LottieIcon
-                  animation={lottieAnimationAnimated}
-                  size={56}
-                  loop={true}
-                  className="transition-all duration-300 group-hover:scale-110"
-                />
-              )}
-              {/* Fallback se não houver outline */}
-              {!lottieAnimationStatic && lottieAnimationAnimated && !isHovered && (
-                <LottieIcon
-                  animation={lottieAnimationAnimated}
-                  size={56}
-                  loop={true}
-                  className="transition-all duration-300"
-                />
-              )}
-            </>
+          {shouldShowLottie && lottieAnimation ? (
+            <LottieIcon
+              animation={lottieAnimation}
+              size={56}
+              loop={isHovered} // Animação apenas no hover
+              autoplay={false} // Não autoplay, mostrar primeiro frame
+              className="transition-all duration-300 group-hover:scale-110"
+            />
           ) : (
             <Icon
               className="w-14 h-14 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"

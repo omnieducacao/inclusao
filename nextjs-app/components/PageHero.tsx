@@ -29,9 +29,11 @@ type PageHeroProps = {
   useLottie?: boolean; // Se deve usar Lottie ao invés do ícone estático
 };
 
-export function PageHero({ icon: Icon, iconName, title, desc, color = "sky", useLottie = true }: PageHeroProps) {
+export function PageHero({ icon: Icon, iconName, title, desc, color = "sky", useLottie = false }: PageHeroProps) {
   const colors = getColorClasses(color);
-  const lottieAnimation = iconName ? lottieMapOutlineColored[iconName] : null;
+  // Só usar Lottie se iconName estiver definido E useLottie for true
+  const shouldUseLottie = useLottie && !!iconName;
+  const lottieAnimation = shouldUseLottie && iconName ? lottieMapOutlineColored[iconName] : null;
   const [isMounted, setIsMounted] = useState(false);
   
   // Garantir que só renderiza Lottie no cliente
@@ -39,8 +41,8 @@ export function PageHero({ icon: Icon, iconName, title, desc, color = "sky", use
     setIsMounted(true);
   }, []);
   
-  // Se não montado ainda, mostrar ícone estático para evitar erro de SSR
-  if (!isMounted) {
+  // Se não montado ainda OU não deve usar Lottie, mostrar ícone estático para evitar erro de SSR
+  if (!isMounted || !shouldUseLottie || !lottieAnimation) {
     return (
       <div
         className="group rounded-xl border-2 border-slate-200 overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl"
@@ -63,19 +65,15 @@ export function PageHero({ icon: Icon, iconName, title, desc, color = "sky", use
       style={{ backgroundColor: colors.bg }}
     >
       <div className="flex items-center gap-5 h-32 px-6">
-        {/* Ícone: Lottie sempre que disponível */}
-        {useLottie && lottieAnimation ? (
-          <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center">
-            <LottieIcon
-              animation={lottieAnimation}
-              size={56}
-              loop={true}
-              className="transition-all duration-300 group-hover:scale-110"
-            />
-          </div>
-        ) : (
-          <Icon className="w-14 h-14 flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" style={{ color: colors.icon }} />
-        )}
+        {/* Ícone: Lottie apenas quando tudo estiver configurado corretamente */}
+        <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center">
+          <LottieIcon
+            animation={lottieAnimation}
+            size={56}
+            loop={true}
+            className="transition-all duration-300 group-hover:scale-110"
+          />
+        </div>
         <div>
           <h1 className="text-xl font-bold" style={{ color: colors.text }}>{title}</h1>
           <p className="text-sm text-slate-600 mt-0.5">{desc}</p>
