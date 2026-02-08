@@ -205,24 +205,34 @@ function ModuleCardWithLottie({
         </span>
       )}
       <div className="flex items-start gap-5">
-        {/* Ícone: Lottie colorido sempre quando disponível, em movimento contínuo (como WelcomeHero) */}
-        <div className={`w-14 h-14 flex-shrink-0 flex items-center justify-center transition-all duration-500 ${
+        {/* Ícone dentro de quadrado com fundo semitransparente, como no WelcomeHero */}
+        <div className={`flex-shrink-0 transition-all duration-500 ${
           isVisible ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
         }`}>
           {shouldShowLottie && lottieAnimation ? (
-            <LottieIcon
-              animation={lottieAnimation}
-              size={56}
-              loop={true} // Sempre em loop, como no WelcomeHero
-              autoplay={true} // Sempre animando, como no WelcomeHero
-              className="transition-all duration-300 group-hover:scale-110"
-            />
+            <div 
+              className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10"
+              style={{ animation: 'float 6s ease-in-out infinite' }}
+            >
+              <LottieIcon
+                animation={lottieAnimation}
+                size={32}
+                loop={true} // Sempre em loop, como no WelcomeHero
+                autoplay={true} // Sempre animando, como no WelcomeHero
+                className="transition-all duration-300"
+              />
+            </div>
           ) : (
-            <Icon
-              className="w-14 h-14 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
-              style={{ color: colors.icon }}
-              weight="duotone"
-            />
+            <div 
+              className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10"
+              style={{ animation: 'float 6s ease-in-out infinite' }}
+            >
+              <Icon
+                className="w-8 h-8 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+                style={{ color: colors.icon }}
+                weight="duotone"
+              />
+            </div>
           )}
         </div>
         <div className="flex-1 min-w-0">
