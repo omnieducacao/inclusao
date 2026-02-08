@@ -402,6 +402,30 @@ export function PEIClient({
     console.log("🔍 peiData mudou. Campos:", Object.keys(peiData).length, "Chaves:", Object.keys(peiData).slice(0, 5));
   }, [peiData]);
 
+  // Aplicar JSON pendente automaticamente quando jsonPending mudar
+  useEffect(() => {
+    if (jsonPending) {
+      console.log("📥 jsonPending detectado, aplicando JSON...");
+      console.log("Campos no jsonPending:", Object.keys(jsonPending).length);
+      // Usar setTimeout para garantir que o estado foi atualizado
+      setTimeout(() => {
+        setPeiData(jsonPending);
+        setSelectedStudentId(null); // JSON local não cria vínculo com nuvem
+        setJsonPending(null);
+        setJsonFileName("");
+        setSaved(false);
+        setErroGlobal(null);
+        
+        // Limpar parâmetro student da URL para modo rascunho
+        const url = new URL(window.location.href);
+        url.searchParams.delete("student");
+        window.history.pushState({}, "", url.toString());
+        
+        console.log("✅ JSON aplicado! peiData deve ter", Object.keys(jsonPending).length, "campos agora");
+      }, 0);
+    }
+  }, [jsonPending]);
+
   // Aplicar JSON pendente
   function aplicarJson() {
     if (jsonPending) {
@@ -772,6 +796,7 @@ export function PEIClient({
                                   const jsonCopiado = JSON.parse(JSON.stringify(peiDataJson)) as PEIData;
                                   
                                   // Colocar em jsonPending (mesmo que o upload de arquivo faz)
+                                  // O useEffect vai detectar e aplicar automaticamente
                                   setJsonPending(jsonCopiado);
                                   setJsonFileName(`PEI_${studentFromList.name}_do_Supabase.json`);
                                   
@@ -780,11 +805,8 @@ export function PEIClient({
                                   setStudentPendingName("");
                                   setIsLoadingRascunho(false);
                                   
-                                  // Aplicar o JSON usando a função que já funciona!
-                                  aplicarJson();
-                                  
-                                  console.log("✅ JSON aplicado usando aplicarJson() - deve funcionar agora!");
-                                  alert(`PEI carregado com sucesso! ${campos.length} campos encontrados.`);
+                                  console.log("✅ JSON colocado em jsonPending, useEffect vai aplicar automaticamente");
+                                  alert(`PEI carregado com sucesso! ${campos.length} campos encontrados. Verifique o formulário.`);
                                 } else {
                                   // Estudante encontrado mas sem pei_data
                                   console.log("⚠️ Estudante encontrado mas sem pei_data no Supabase");
