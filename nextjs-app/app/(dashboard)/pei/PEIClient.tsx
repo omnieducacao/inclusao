@@ -2252,54 +2252,65 @@ function DashboardTab({
       {/* Exportação - Movido para antes dos cards */}
       <div className="mb-6">
         <h4 className="text-base font-semibold text-slate-800 mb-4">📤 Exportação e Sincronização</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <p className="text-xs text-slate-600 mb-2">📄 Documentos</p>
-            <div className="flex flex-col gap-2">
-              <div>
-                <PeiExportDocxButton peiData={peiData} />
-              </div>
-              <div>
-                <PdfDownloadButton
-                  text={peiDataToFullText(peiData)}
-                  filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
-                  title={`PEI - ${peiData.nome || "Estudante"}`}
-                  className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 flex items-center justify-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  Baixar PDF Oficial
-                </PdfDownloadButton>
-              </div>
-            </div>
-            {!peiData.ia_sugestao && (
-              <p className="text-xs text-slate-500 mt-2">
-                💡 Gere o Plano na aba <strong>Consultoria IA</strong> para incluir o planejamento pedagógico detalhado no documento.
-              </p>
-            )}
+            <p className="text-xs text-slate-600 mb-2">📄 PDF</p>
+            <PdfDownloadButton
+              text={peiDataToFullText(peiData)}
+              filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
+              title={`PEI - ${peiData.nome || "Estudante"}`}
+              className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 flex items-center justify-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Baixar PDF
+            </PdfDownloadButton>
           </div>
           <div>
-            <p className="text-xs text-slate-600 mb-2">💾 Backup (JSON)</p>
-            <p className="text-xs text-slate-500 mb-2">Salva um arquivo no seu computador para garantir que nada se perca.</p>
+            <p className="text-xs text-slate-600 mb-2">📝 Word</p>
+            <PeiExportDocxButton peiData={peiData} />
+          </div>
+          <div>
+            <p className="text-xs text-slate-600 mb-2">💾 JSON</p>
             <a
               href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
               download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.json`}
               className="block w-full px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-center text-sm"
             >
-              Salvar Arquivo .JSON
+              Baixar JSON
             </a>
           </div>
           <div>
-            <p className="text-xs text-slate-600 mb-2">🌐 Nuvem (Supabase)</p>
-            <p className="text-xs text-slate-500 mb-2">Sincroniza tudo na nuvem.</p>
+            <p className="text-xs text-slate-600 mb-2">☁️ Sincronizar</p>
             {currentStudentId ? (
-              <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-                <p className="text-sm text-emerald-800">✅ Já sincronizado</p>
-              </div>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60 flex items-center justify-center gap-2 text-sm"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Sincronizando…
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    Sincronizar Tudo
+                  </>
+                )}
+              </button>
             ) : (
-              <p className="text-xs text-slate-500">Use a aba <strong>Início</strong> para sincronizar.</p>
+              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                <p className="text-xs text-amber-800">Selecione um estudante para sincronizar</p>
+              </div>
             )}
           </div>
         </div>
+        {!peiData.ia_sugestao && (
+          <p className="text-xs text-slate-500 mt-4">
+            💡 Gere o Plano na aba <strong>Consultoria IA</strong> para incluir o planejamento pedagógico detalhado no documento.
+          </p>
+        )}
       </div>
 
       <hr className="my-6" />

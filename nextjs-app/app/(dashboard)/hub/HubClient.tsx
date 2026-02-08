@@ -80,10 +80,10 @@ const TOOLS_EI: { id: ToolIdEI; icon: LucideIcon; title: string; desc: string }[
 const HUB_LOTTIE_MAP: Record<string, string> = {
   "adaptar-prova": "wired-outline-967-questionnaire-hover-pinch",       // questionário/prova
   "adaptar-atividade": "wired-outline-35-edit-hover-circle",            // editar/adaptar
-  "criar-zero": "wired-outline-3139-rocket-space-alt-hover-pinch",      // foguete/criar do zero
-  "estudio-visual": "wired-outline-1431-fibonacci-hover-pinch",              // fibonacci/composição
+  "criar-zero": "wired-outline-36-bulb-morph-turn-on",                  // lâmpada/criar do zero
+  "estudio-visual": "wired-outline-3077-polaroids-photos-hover-pinch",  // polaroids/estúdio visual
   "roteiro": "wired-outline-1020-rules-book-guideline-hover-flutter",   // guia/roteiro
-  "papo-mestre": "wired-outline-2512-artificial-intelligence-ai-alt-hover-pinch", // IA/insight
+  "papo-mestre": "wired-outline-981-consultation-hover-conversation-alt", // conversação/papo de mestre
   "dinamica": "wired-outline-957-team-work-hover-pinch",                // trabalho em equipe
   "plano-aula": "wired-outline-738-notebook-2-hover-pinch",            // notebook/plano
   "criar-experiencia": "wired-outline-458-goal-target-hover-hit",       // objetivo/alvo
