@@ -1933,7 +1933,13 @@ export function PEIClient({
         )}
 
         {activeTab === "dashboard" && (
-          <DashboardTab peiData={peiData} currentStudentId={currentStudentId} updateField={updateField} />
+          <DashboardTab 
+            peiData={peiData} 
+            currentStudentId={currentStudentId} 
+            updateField={updateField}
+            onSave={handleSave}
+            saving={saving}
+          />
         )}
       </div>
 
@@ -1963,10 +1969,14 @@ function DashboardTab({
   peiData,
   currentStudentId,
   updateField,
+  onSave,
+  saving,
 }: {
   peiData: PEIData;
   currentStudentId: string | null;
   updateField: <K extends keyof PEIData>(key: K, value: PEIData[K]) => void;
+  onSave: () => void;
+  saving: boolean;
 }) {
   if (!peiData.nome) {
     return (
@@ -2283,7 +2293,7 @@ function DashboardTab({
             <p className="text-xs text-slate-600 mb-2">☁️ Sincronizar</p>
             {currentStudentId ? (
               <button
-                onClick={handleSave}
+                onClick={onSave}
                 disabled={saving}
                 className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60 flex items-center justify-center gap-2 text-sm"
               >
