@@ -68,6 +68,7 @@ export async function POST(req: Request) {
       user_role: found.role,
       member: member as Record<string, unknown>,
       is_platform_admin: false,
+      terms_accepted: found.role === "master" ? true : (found.user.terms_accepted as boolean | undefined) || false,
     });
 
     return NextResponse.json({
