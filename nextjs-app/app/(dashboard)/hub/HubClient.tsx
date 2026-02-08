@@ -102,10 +102,10 @@ function ToolCard({
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group text-left p-6 rounded-2xl border transition-all duration-300 bg-gradient-to-br min-h-[160px] flex flex-col ${
+      className={`group text-left p-6 rounded-xl border-2 transition-all duration-300 bg-gradient-to-br min-h-[160px] flex flex-col ${
         isActive
-          ? "border-cyan-400/60 from-cyan-50 to-white shadow-md scale-[1.01]"
-          : "border-slate-200/50 from-slate-50 to-white hover:border-slate-200/80 hover:shadow-lg hover:scale-[1.01]"
+          ? "border-cyan-500 from-cyan-50 to-white shadow-md scale-[1.01]"
+          : "border-slate-200 from-slate-50 to-white hover:border-slate-300 hover:shadow-lg hover:scale-[1.01]"
       }`}
     >
       {/* Ícone dentro do quadrado minimalista */}
@@ -155,7 +155,7 @@ export function HubClient({ students, studentId, student }: Props) {
               <strong>Modo Educação Infantil</strong> — Ferramentas específicas para EI.
             </div>
           )}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-2xl border border-slate-200/50" style={{ backgroundColor: getColorClasses("cyan").bg }}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-slate-200" style={{ backgroundColor: getColorClasses("cyan").bg }}>
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Nome</div>
             <div className="font-bold text-slate-800">{student.name}</div>
@@ -233,7 +233,7 @@ export function HubClient({ students, studentId, student }: Props) {
       )}
 
       {activeTool && !["criar-zero", "criar-experiencia", "papo-mestre", "plano-aula", "adaptar-prova", "adaptar-atividade", "estudio-visual", "roteiro", "dinamica", "rotina-avd", "inclusao-brincar"].includes(activeTool) && (
-        <div className="p-6 rounded-2xl border border-slate-200/50 bg-gradient-to-br from-slate-50 to-white min-h-[180px]">
+        <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white min-h-[180px]">
           <p className="text-slate-600">
             <strong>{TOOLS.find((t) => t.id === activeTool)?.title}</strong> — Em breve nesta versão.
           </p>
@@ -502,7 +502,7 @@ function CriarDoZero({
   };
 
   return (
-    <div className="p-6 rounded-2xl border border-slate-200/50 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">{eiMode ? "Criar Experiência (EI)" : "Criar do Zero"}</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -511,7 +511,7 @@ function CriarDoZero({
       </div>
       <EngineSelector value={engine} onChange={onEngineChange} />
       {!eiMode && estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
-        <details className="border border-slate-200/60 rounded-xl" open>
+        <details className="border border-slate-200 rounded-lg" open>
           <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             BNCC: Unidade e Objeto
@@ -523,7 +523,7 @@ function CriarDoZero({
                 type="text"
                 value={serieAluno || ""}
                 readOnly
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
               />
             </div>
             <div>
@@ -535,7 +535,7 @@ function CriarDoZero({
                   setUnidadeSel("");
                   setObjetoSel("");
                 }}
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
               >
                 <option value="">Todos</option>
                 {estruturaBncc.disciplinas.map((d) => (
@@ -551,7 +551,7 @@ function CriarDoZero({
                   setUnidadeSel(e.target.value);
                   setObjetoSel("");
                 }}
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
                 disabled={!componenteSel}
               >
                 <option value="">Todas</option>
@@ -565,7 +565,7 @@ function CriarDoZero({
               <select
                 value={objetoSel}
                 onChange={(e) => setObjetoSel(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
                 disabled={!unidadeSel}
               >
                 <option value="">Todos</option>
@@ -581,7 +581,7 @@ function CriarDoZero({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Faixa de Idade</label>
-            <select value={eiIdade} onChange={(e) => setEiIdade(e.target.value)} className="w-full px-3 py-2 border border-slate-200/60 rounded-xl">
+            <select value={eiIdade} onChange={(e) => setEiIdade(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
               <option value="">Selecione</option>
               {eiFaixas.map((f) => (
                 <option key={f} value={f}>{f}</option>
@@ -590,7 +590,7 @@ function CriarDoZero({
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Campo de Experiência</label>
-            <select value={eiCampo} onChange={(e) => setEiCampo(e.target.value)} className="w-full px-3 py-2 border border-slate-200/60 rounded-xl">
+            <select value={eiCampo} onChange={(e) => setEiCampo(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
               <option value="">Selecione</option>
               {eiCampos.map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -610,7 +610,7 @@ function CriarDoZero({
           multiple
           value={habilidadesSel}
           onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))}
-          className="w-full px-3 py-2 border border-slate-200/60 rounded-xl min-h-[100px]"
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[100px]"
         >
           {todasHabilidades.slice(0, 120).map((h, i) => (
             <option key={i} value={h}>{h}</option>
@@ -630,7 +630,7 @@ function CriarDoZero({
           value={assunto}
           onChange={(e) => setAssunto(e.target.value)}
           placeholder={temBnccPreenchida ? "Opcional quando BNCC está preenchida" : "Ex: Frações, Sistema Solar..."}
-          className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg"
         />
         {temBnccPreenchida && habilidadesSel.length > 0 && (
           <p className="text-xs text-emerald-600 mt-1">
@@ -658,7 +658,7 @@ function CriarDoZero({
           <select
             value={tipoQuestao}
             onChange={(e) => setTipoQuestao(e.target.value as "Objetiva" | "Discursiva")}
-            className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
           >
             <option value="Objetiva">Objetiva</option>
             <option value="Discursiva">Discursiva</option>
@@ -700,7 +700,7 @@ function CriarDoZero({
       {/* Taxonomia de Bloom e Checklist lado a lado */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Taxonomia de Bloom */}
-        <details className="border border-slate-200/60 rounded-xl">
+        <details className="border border-slate-200 rounded-lg">
           <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">
             🧠 Taxonomia de Bloom (opcional)
           </summary>
@@ -733,7 +733,7 @@ function CriarDoZero({
                         setVerbosBloomSel((prev) => ({ ...prev, [e.target.value]: [] }));
                       }
                     }}
-                    className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
                   >
                     <option value="">Selecione uma categoria</option>
                     {Object.keys(TAXONOMIA_BLOOM).map((cat) => (
@@ -751,7 +751,7 @@ function CriarDoZero({
                         const selecionados = Array.from(e.target.selectedOptions, (o) => o.value);
                         setVerbosBloomSel((prev) => ({ ...prev, [dominioBloomSel]: selecionados }));
                       }}
-                      className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm min-h-[120px]"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm min-h-[120px]"
                     >
                       {TAXONOMIA_BLOOM[dominioBloomSel].map((verbo) => (
                         <option key={verbo} value={verbo}>{verbo}</option>
@@ -771,7 +771,7 @@ function CriarDoZero({
         </details>
         
         {/* Checklist de Adaptação */}
-        <details className="border border-slate-200/60 rounded-xl">
+        <details className="border border-slate-200 rounded-lg">
         <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">
           Checklist de Adaptação (PEI)
         </summary>
@@ -836,7 +836,7 @@ function CriarDoZero({
               </button>
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50 shadow-sm">
+          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Atividade Criada</span>
               <span className="flex gap-2">
@@ -949,7 +949,7 @@ function PapoDeMestre({
   };
 
   return (
-    <div className="p-6 rounded-2xl border border-slate-200/50 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Papo de Mestre — Conexões para Engajamento</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -962,7 +962,7 @@ function PapoDeMestre({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Componente Curricular</label>
-          <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200/60 rounded-xl">
+          <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
             {COMPONENTES.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
@@ -975,7 +975,7 @@ function PapoDeMestre({
             value={assunto}
             onChange={(e) => setAssunto(e.target.value)}
             placeholder="Ex: Frações, Sistema Solar..."
-            className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
           />
         </div>
         <div>
@@ -984,7 +984,7 @@ function PapoDeMestre({
             type="text"
             value={hiperfoco}
             readOnly
-            className="w-full px-3 py-2 border border-slate-200/60 rounded-xl bg-slate-50"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50"
           />
         </div>
         <div>
@@ -994,7 +994,7 @@ function PapoDeMestre({
             value={temaTurma}
             onChange={(e) => setTemaTurma(e.target.value)}
             placeholder="Ex: Minecraft, Copa do Mundo..."
-            className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
           />
         </div>
       </div>
@@ -1035,7 +1035,7 @@ function PapoDeMestre({
               </button>
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50 shadow-sm">
+          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Conexões para Engajamento</span>
               <span className="flex gap-2">
@@ -1158,7 +1158,7 @@ function PlanoAulaDua({
   };
 
   return (
-    <div className="p-6 rounded-2xl border border-slate-200/50 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Plano de Aula DUA</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -1173,12 +1173,12 @@ function PlanoAulaDua({
             type="text"
             value={serieAluno || ""}
             readOnly
-            className="w-full px-3 py-2 border border-slate-200/60 rounded-xl bg-slate-50 text-slate-600 cursor-not-allowed"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Componente Curricular</label>
-          <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200/60 rounded-xl">
+          <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
             {COMPONENTES.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
@@ -1200,7 +1200,7 @@ function PlanoAulaDua({
                   setTecnicaAtiva("");
                 }
               }}
-              className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
             >
               {METODOLOGIAS.map((m) => (
                 <option key={m} value={m}>{m}</option>
@@ -1214,7 +1214,7 @@ function PlanoAulaDua({
                 <select
                   value={tecnicaAtiva}
                   onChange={(e) => setTecnicaAtiva(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
                 >
                   <option value="">Selecione uma técnica</option>
                   {TECNICAS_ATIVAS.map((t) => (
@@ -1223,7 +1223,7 @@ function PlanoAulaDua({
                 </select>
               </>
             ) : (
-              <div className="mt-6 p-3 bg-slate-50 border border-slate-200/60 rounded-xl">
+              <div className="mt-6 p-3 bg-slate-50 border border-slate-200 rounded-lg">
                 <p className="text-xs text-slate-600">
                   <strong>Metodologia selecionada:</strong> {metodologia}
                 </p>
@@ -1241,7 +1241,7 @@ function PlanoAulaDua({
             min={1}
             value={qtdAlunos}
             onChange={(e) => setQtdAlunos(Number(e.target.value))}
-            className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
           />
         </div>
         <div>
@@ -1249,7 +1249,7 @@ function PlanoAulaDua({
           <select
             value={duracao}
             onChange={(e) => setDuracao(Number(e.target.value))}
-            className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
           >
             <option value={50}>50 minutos (1 aula)</option>
             <option value={100}>100 minutos (2 aulas)</option>
@@ -1264,7 +1264,7 @@ function PlanoAulaDua({
               const selecionados = Array.from(e.target.selectedOptions, (o) => o.value);
               setRecursos(selecionados);
             }}
-            className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm min-h-[100px]"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm min-h-[100px]"
           >
             {RECURSOS_DISPONIVEIS.map((r) => (
               <option key={r} value={r}>{r}</option>
@@ -1274,7 +1274,7 @@ function PlanoAulaDua({
         </div>
       </div>
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
-        <details className="border border-slate-200/60 rounded-xl">
+        <details className="border border-slate-200 rounded-lg">
           <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             BNCC: Unidade e Objeto (opcional)
@@ -1286,7 +1286,7 @@ function PlanoAulaDua({
                 type="text"
                 value={serieAluno || ""}
                 readOnly
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
               />
             </div>
             <div>
@@ -1333,7 +1333,7 @@ function PlanoAulaDua({
           value={assunto}
           onChange={(e) => setAssunto(e.target.value)}
           placeholder={temBnccPreenchida ? "Opcional quando BNCC está preenchida" : "Ex: Frações equivalentes..."}
-          className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg"
         />
         {temBnccPreenchida && habilidadesSel.length > 0 && (
           <p className="text-xs text-emerald-600 mt-1">
@@ -1378,7 +1378,7 @@ function PlanoAulaDua({
               </button>
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50 shadow-sm">
+          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Plano de Aula DUA</span>
               <span className="flex gap-2">
@@ -1458,7 +1458,7 @@ function RotinaAvdTool({
   };
 
   return (
-    <div className="p-6 rounded-2xl border border-slate-200/50 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800 flex items-center gap-2">
           <RefreshCw className="w-5 h-5" />
@@ -1525,7 +1525,7 @@ function RotinaAvdTool({
               </details>
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50 shadow-sm">
+          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Rotina & Previsibilidade</span>
               <span className="flex gap-2">
@@ -1593,7 +1593,7 @@ function InclusaoBrincarTool({
   };
 
   return (
-    <div className="p-6 rounded-2xl border border-slate-200/50 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800 flex items-center gap-2">
           <ToyBrick className="w-5 h-5" />
@@ -1650,7 +1650,7 @@ function InclusaoBrincarTool({
               </details>
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50 shadow-sm">
+          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Inclusão no Brincar</span>
               <span className="flex gap-2">
@@ -1807,7 +1807,7 @@ function AdaptarProva({
   const temDados = !!docxExtraido?.texto || !!file;
 
   return (
-    <div className="p-6 rounded-2xl border border-slate-200/50 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Adaptar Prova (DUA)</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -1817,7 +1817,7 @@ function AdaptarProva({
       <p className="text-sm text-slate-600">Transforme provas padrão em avaliações acessíveis.</p>
       <EngineSelector value={engine} onChange={onEngineChange} />
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
-        <details className="border border-slate-200/60 rounded-xl" open>
+        <details className="border border-slate-200 rounded-lg" open>
           <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             BNCC: Unidade e Objeto
@@ -1829,7 +1829,7 @@ function AdaptarProva({
                 type="text"
                 value={serieAluno || ""}
                 readOnly
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
               />
             </div>
             <div>
@@ -1841,7 +1841,7 @@ function AdaptarProva({
                   setUnidadeSel("");
                   setObjetoSel("");
                 }}
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
               >
                 <option value="">Todos</option>
                 {estruturaBncc.disciplinas.map((d) => (
@@ -1857,7 +1857,7 @@ function AdaptarProva({
                   setUnidadeSel(e.target.value);
                   setObjetoSel("");
                 }}
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
                 disabled={!componenteSel}
               >
                 <option value="">Todas</option>
@@ -1871,7 +1871,7 @@ function AdaptarProva({
               <select
                 value={objetoSel}
                 onChange={(e) => setObjetoSel(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
                 disabled={!unidadeSel}
               >
                 <option value="">Todos</option>
@@ -1884,7 +1884,7 @@ function AdaptarProva({
         </details>
       )}
       {(!estruturaBncc || !estruturaBncc.disciplinas.length) && (
-        <details className="border border-slate-200/60 rounded-xl" open>
+        <details className="border border-slate-200 rounded-lg" open>
           <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             BNCC
@@ -1896,12 +1896,12 @@ function AdaptarProva({
                 type="text"
                 value={serieAluno || ""}
                 readOnly
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
               />
             </div>
             <div>
               <label className="block text-xs text-slate-600 mb-1">Componente</label>
-              <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm">
+              <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
                 {(Object.keys(componentes).length ? Object.keys(componentes) : COMPONENTES).map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
@@ -1920,7 +1920,7 @@ function AdaptarProva({
           value={tema}
           onChange={(e) => setTema(e.target.value)}
           placeholder="Ex: Frações equivalentes (opcional)"
-          className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
         />
       </div>
       <div>
@@ -1937,7 +1937,7 @@ function AdaptarProva({
         ) : null}
       </div>
       {docxExtraido?.imagens?.length ? (
-        <details className="border border-slate-200/60 rounded-xl" open>
+        <details className="border border-slate-200 rounded-lg" open>
           <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">Mapeamento de imagens</summary>
           <div className="p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
             {docxExtraido.imagens.map((img, i) => (
@@ -1962,7 +1962,7 @@ function AdaptarProva({
       <div className="flex flex-wrap gap-4 items-center">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
-          <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="px-3 py-2 border border-slate-200/60 rounded-xl">
+          <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-lg">
             <option value="Prova">Prova</option>
             <option value="Tarefa">Tarefa</option>
             <option value="Avaliação">Avaliação</option>
@@ -1973,7 +1973,7 @@ function AdaptarProva({
           <span className="text-sm">Modo profundo (análise mais detalhada)</span>
         </label>
       </div>
-      <details className="border border-slate-200/60 rounded-xl">
+      <details className="border border-slate-200 rounded-lg">
         <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">Checklist de adaptação (PEI)</summary>
         <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
           {[
@@ -2051,7 +2051,7 @@ function AdaptarProva({
               <FormattedTextDisplay texto={resultado.analise} />
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50 shadow-sm">
+          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Prova Adaptada (DUA)</span>
               <span className="flex gap-2">
@@ -2181,7 +2181,7 @@ function RoteiroIndividual({
   };
 
   return (
-    <div className="p-6 rounded-2xl border border-slate-200/50 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Roteiro de Aula Individualizado</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
@@ -2195,18 +2195,18 @@ function RoteiroIndividual({
             type="text"
             value={serieAluno || ""}
             readOnly
-            className="w-full px-3 py-2 border border-slate-200/60 rounded-xl bg-slate-50 text-slate-600 cursor-not-allowed"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Componente</label>
-          <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200/60 rounded-xl">
+          <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
             {Object.keys(componentes).length ? Object.keys(componentes).map((c) => <option key={c} value={c}>{c}</option>) : <option value={materia}>{materia}</option>}
           </select>
         </div>
       </div>
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
-        <details className="border border-slate-200/60 rounded-xl">
+        <details className="border border-slate-200 rounded-lg">
           <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             BNCC: Unidade e Objeto
@@ -2218,7 +2218,7 @@ function RoteiroIndividual({
                 type="text"
                 value={serieAluno || ""}
                 readOnly
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
               />
             </div>
             <div>
@@ -2247,7 +2247,7 @@ function RoteiroIndividual({
       )}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Habilidades BNCC (opcional)</label>
-        <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border border-slate-200/60 rounded-xl min-h-[80px]">
+        <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[80px]">
           {todasHabilidades.slice(0, 80).map((h, i) => <option key={i} value={h}>{h}</option>)}
         </select>
       </div>
@@ -2265,7 +2265,7 @@ function RoteiroIndividual({
           value={assunto}
           onChange={(e) => setAssunto(e.target.value)}
           placeholder={temBnccPreenchida ? "Opcional quando BNCC está preenchida" : "Ex: Frações equivalentes"}
-          className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg"
         />
         {temBnccPreenchida && habilidadesSel.length > 0 && (
           <p className="text-xs text-emerald-600 mt-1">
@@ -2305,7 +2305,7 @@ function RoteiroIndividual({
               </button>
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50 shadow-sm">
+          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Roteiro Individual</span>
               <span className="flex gap-2">
@@ -2431,7 +2431,7 @@ function DinamicaInclusiva({
   };
 
   return (
-    <div className="p-6 rounded-2xl border border-slate-200/50 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Dinâmica Inclusiva</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
@@ -2445,20 +2445,20 @@ function DinamicaInclusiva({
             type="text"
             value={serieAluno || ""}
             readOnly
-            className="w-full px-3 py-2 border border-slate-200/60 rounded-xl bg-slate-50 text-slate-600 cursor-not-allowed"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Nº de estudantes</label>
-          <input type="number" min={5} max={50} value={qtdAlunos} onChange={(e) => setQtdAlunos(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200/60 rounded-xl" />
+          <input type="number" min={5} max={50} value={qtdAlunos} onChange={(e) => setQtdAlunos(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-slate-700 mb-1">Características da turma (opcional)</label>
-          <input type="text" value={caracteristicas} onChange={(e) => setCaracteristicas(e.target.value)} placeholder="Ex: Turma agitada, gostam de competição" className="w-full px-3 py-2 border border-slate-200/60 rounded-xl" />
+          <input type="text" value={caracteristicas} onChange={(e) => setCaracteristicas(e.target.value)} placeholder="Ex: Turma agitada, gostam de competição" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
         </div>
       </div>
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
-        <details className="border border-slate-200/60 rounded-xl">
+        <details className="border border-slate-200 rounded-lg">
           <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             BNCC: Unidade e Objeto
@@ -2470,7 +2470,7 @@ function DinamicaInclusiva({
                 type="text"
                 value={serieAluno || ""}
                 readOnly
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
               />
             </div>
             <div>
@@ -2499,7 +2499,7 @@ function DinamicaInclusiva({
       )}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Habilidades BNCC (opcional)</label>
-        <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border border-slate-200/60 rounded-xl min-h-[80px]">
+        <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[80px]">
           {todasHabilidades.slice(0, 80).map((h, i) => <option key={i} value={h}>{h}</option>)}
         </select>
       </div>
@@ -2517,7 +2517,7 @@ function DinamicaInclusiva({
           value={assunto}
           onChange={(e) => setAssunto(e.target.value)}
           placeholder={temBnccPreenchida ? "Opcional quando BNCC está preenchida" : "Ex: Trabalho em equipe"}
-          className="w-full px-3 py-2 border border-slate-200/60 rounded-xl"
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg"
         />
         {temBnccPreenchida && habilidadesSel.length > 0 && (
           <p className="text-xs text-emerald-600 mt-1">
@@ -2530,7 +2530,7 @@ function DinamicaInclusiva({
       </button>
       {erro && <p className="text-red-600 text-sm">{erro}</p>}
       {resultado && (
-        <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50 shadow-sm">
+        <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
           <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
             <span className="text-base font-semibold text-slate-800">Dinâmica Inclusiva</span>
             <span className="flex gap-2">
@@ -2625,7 +2625,7 @@ function IlustracaoSection({ hiperfoco }: { hiperfoco: string }) {
           value={tema}
           onChange={(e) => setTema(e.target.value)}
           placeholder="Tema da ilustração (edite se quiser)"
-          className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
         />
       )}
       <textarea
@@ -2633,7 +2633,7 @@ function IlustracaoSection({ hiperfoco }: { hiperfoco: string }) {
         onChange={(e) => setDescricao(e.target.value)}
         placeholder="Ex: Sistema Solar simplificado com planetas coloridos..."
         rows={3}
-        className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
       />
       <button
         type="button"
@@ -2721,7 +2721,7 @@ function PictogramaCaaSection() {
         value={conceito}
         onChange={(e) => setConceito(e.target.value)}
         placeholder="Ex: Silêncio, Banheiro, Água..."
-        className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
       />
       <button
         type="button"
@@ -2916,7 +2916,7 @@ function AdaptarAtividade({
   };
 
   return (
-    <div className="p-6 rounded-2xl border border-slate-200/50 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Adaptar Atividade (OCR + IA)</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -2926,7 +2926,7 @@ function AdaptarAtividade({
       <EngineSelector value={engine} onChange={onEngineChange} />
       <p className="text-sm text-slate-600">Tire foto da atividade. A IA extrai o texto e adapta com DUA.</p>
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
-        <details className="border border-slate-200/60 rounded-xl" open>
+        <details className="border border-slate-200 rounded-lg" open>
           <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             BNCC: Unidade e Objeto
@@ -2938,7 +2938,7 @@ function AdaptarAtividade({
                 type="text"
                 value={serieAluno || ""}
                 readOnly
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
               />
             </div>
             <div>
@@ -2950,7 +2950,7 @@ function AdaptarAtividade({
                   setUnidadeSel("");
                   setObjetoSel("");
                 }}
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
               >
                 <option value="">Todos</option>
                 {estruturaBncc.disciplinas.map((d) => (
@@ -2966,7 +2966,7 @@ function AdaptarAtividade({
                   setUnidadeSel(e.target.value);
                   setObjetoSel("");
                 }}
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
                 disabled={!componenteSel}
               >
                 <option value="">Todas</option>
@@ -2980,7 +2980,7 @@ function AdaptarAtividade({
               <select
                 value={objetoSel}
                 onChange={(e) => setObjetoSel(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
                 disabled={!unidadeSel}
               >
                 <option value="">Todos</option>
@@ -2993,7 +2993,7 @@ function AdaptarAtividade({
         </details>
       )}
       {(!estruturaBncc || !estruturaBncc.disciplinas.length) && (
-        <details className="border border-slate-200/60 rounded-xl" open>
+        <details className="border border-slate-200 rounded-lg" open>
           <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             BNCC
@@ -3006,7 +3006,7 @@ function AdaptarAtividade({
                 value={serie}
                 onChange={(e) => setSerie(e.target.value)}
                 placeholder="Ex: 5º Ano (EFAI)"
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
               />
             </div>
             <div>
@@ -3014,7 +3014,7 @@ function AdaptarAtividade({
               <select
                 value={materia}
                 onChange={(e) => setMateria(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
               >
                 {(Object.keys(componentes).length ? Object.keys(componentes) : COMPONENTES).map((c) => (
                   <option key={c} value={c}>{c}</option>
@@ -3034,7 +3034,7 @@ function AdaptarAtividade({
           value={tema}
           onChange={(e) => setTema(e.target.value)}
           placeholder="Ex: Frações equivalentes (opcional)"
-          className="w-full px-3 py-2 border border-slate-200/60 rounded-xl text-sm"
+          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
         />
       </div>
       <div>
@@ -3073,7 +3073,7 @@ function AdaptarAtividade({
         )}
       </div>
       {croppedFile && !showCropper && (
-        <div className="border border-slate-200/60 rounded-xl p-4 bg-slate-50">
+        <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
           <label className="flex items-center gap-2 mb-3">
             <input
               type="checkbox"
@@ -3183,7 +3183,7 @@ function AdaptarAtividade({
       <div className="flex flex-wrap gap-4 items-center">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
-          <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="px-3 py-2 border border-slate-200/60 rounded-xl">
+          <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-lg">
             <option value="Atividade">Atividade</option>
             <option value="Tarefa">Tarefa</option>
             <option value="Exercício">Exercício</option>
@@ -3198,7 +3198,7 @@ function AdaptarAtividade({
         <input type="checkbox" checked={livroProfessor} onChange={(e) => setLivroProfessor(e.target.checked)} />
         <span className="text-sm">É foto do Livro do Professor? (a IA removerá respostas)</span>
       </label>
-      <details className="border border-slate-200/60 rounded-xl">
+      <details className="border border-slate-200 rounded-lg">
         <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">Checklist de adaptação (PEI)</summary>
         <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
           {[
@@ -3276,7 +3276,7 @@ function AdaptarAtividade({
               <FormattedTextDisplay texto={resultado.analise} />
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/50 shadow-sm">
+          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Atividade Adaptada (DUA)</span>
               <span className="flex gap-2">

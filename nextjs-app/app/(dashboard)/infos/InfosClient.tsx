@@ -300,7 +300,7 @@ export default function InfosClient() {
               <p className="text-sm text-slate-600 mb-4">
                 Visualização do ecossistema escolar atualizado com os novos decretos.
               </p>
-              <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-cyan-50 rounded-xl p-6 border border-slate-200/50">
+              <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-cyan-50 rounded-xl p-6 border-2 border-slate-200">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   {[
                     { num: "1", title: "ACOLHIMENTO", desc: "(Matrícula Garantida)", color: "bg-blue-100 text-blue-700 border-blue-300" },
@@ -323,7 +323,7 @@ export default function InfosClient() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white rounded-xl border border-slate-200/50 p-5">
+              <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
                 <h4 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
                   <Users className="w-5 h-5 text-sky-600" />
                   Filosofia: "Outrar-se"
@@ -332,7 +332,7 @@ export default function InfosClient() {
                   A capacidade de sentir o mundo do outro mantendo o distanciamento profissional. É ter empatia sem confundir papéis, superando o capacitismo.
                 </p>
               </div>
-              <div className="bg-white rounded-xl border border-slate-200/50 p-5">
+              <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
                 <h4 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
                   <Scale className="w-5 h-5 text-sky-600" />
                   Justiça Curricular
@@ -346,7 +346,7 @@ export default function InfosClient() {
             <div>
               <h4 className="text-lg font-bold text-slate-800 mb-4">Amplie o Conhecimento — Fundamentos da Educação Inclusiva</h4>
               <div className="space-y-3">
-                <details className="bg-white rounded-lg border border-slate-200/50 p-4">
+                <details className="bg-white rounded-lg border-2 border-slate-200 p-4">
                   <summary className="cursor-pointer font-semibold text-slate-800 mb-2">
                     1. Educação Inclusiva – Definição
                   </summary>
@@ -365,7 +365,7 @@ export default function InfosClient() {
                   </div>
                 </details>
 
-                <details className="bg-white rounded-lg border border-slate-200/50 p-4">
+                <details className="bg-white rounded-lg border-2 border-slate-200 p-4">
                   <summary className="cursor-pointer font-semibold text-slate-800 mb-2">
                     2. Capacitismo
                   </summary>
@@ -379,7 +379,7 @@ export default function InfosClient() {
                   </div>
                 </details>
 
-                <details className="bg-white rounded-lg border border-slate-200/50 p-4">
+                <details className="bg-white rounded-lg border-2 border-slate-200 p-4">
                   <summary className="cursor-pointer font-semibold text-slate-800 mb-2">
                     3. Uma escola para todos: recursos, currículo e gestão
                   </summary>
@@ -426,7 +426,7 @@ export default function InfosClient() {
                   </div>
                 </details>
 
-                <details className="bg-white rounded-lg border border-red-200/60 p-5">
+                <details className="bg-white rounded-lg border-2 border-red-200 p-5">
                   <summary className="cursor-pointer font-bold text-slate-800 mb-3 flex items-center gap-2">
                     <XCircle className="w-5 h-5 text-red-600" />
                     Decreto 12.773/2025: Garantia de Acesso (Escolas Privadas)
@@ -445,7 +445,7 @@ export default function InfosClient() {
                 </details>
               </div>
 
-              <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl border border-teal-200/60 p-6">
+              <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl border-2 border-teal-200 p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center">
                     <Rocket className="w-6 h-6 text-teal-600" />
@@ -460,7 +460,7 @@ export default function InfosClient() {
                   value={legalQuestion}
                   onChange={(e) => setLegalQuestion(e.target.value)}
                   placeholder="Ex: A escola pode exigir laudo para matricular?"
-                  className="w-full px-3 py-2 border border-teal-200/60 rounded-lg text-sm mb-3 focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+                  className="w-full px-3 py-2 border-2 border-teal-200 rounded-lg text-sm mb-3 focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
                 />
                 {legalQuestion && (
                   <div className="bg-white rounded-lg p-4 border-l-4 border-teal-500">
@@ -492,13 +492,13 @@ export default function InfosClient() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Filtrar conceitos..."
-                className="w-full pl-10 pr-4 py-3 border border-slate-200/50 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                className="w-full pl-10 pr-4 py-3 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
               />
             </div>
 
             <div className="space-y-3">
               {filteredGlossario.map((item, idx) => (
-                <div key={idx} className="bg-white rounded-lg border border-slate-200/50 p-4 hover:border-sky-300 transition-colors">
+                <div key={idx} className="bg-white rounded-lg border-2 border-slate-200 p-4 hover:border-sky-300 transition-colors">
                   <div className="font-bold text-sky-700 text-base mb-2">{item.t}</div>
                   <div className="text-sm text-slate-600 leading-relaxed">{item.d}</div>
                 </div>
@@ -540,7 +540,7 @@ export default function InfosClient() {
                 </h4>
                 <div className="space-y-3">
                   {termosRuins.map((termo, idx) => (
-                    <div key={idx} className="bg-red-50 rounded-lg border border-red-200/60 p-4">
+                    <div key={idx} className="bg-red-50 rounded-lg border-2 border-red-200 p-4">
                       <div className="font-bold text-red-800 text-sm mb-1 line-through">{termo.termo}</div>
                       <div className="text-xs text-red-700">{termo.desc}</div>
                     </div>
@@ -566,7 +566,7 @@ export default function InfosClient() {
                 <h4 className="text-lg font-bold text-slate-800">{categoria.categoria}</h4>
                 <div className="space-y-3">
                   {categoria.livros.map((livro, livroIdx) => (
-                    <details key={livroIdx} className="bg-white rounded-lg border border-slate-200/50 p-4">
+                    <details key={livroIdx} className="bg-white rounded-lg border-2 border-slate-200 p-4">
                       <summary className="cursor-pointer font-semibold text-slate-800 mb-2 flex items-center gap-2">
                         <BookText className="w-4 h-4 text-sky-600" />
                         {livro.titulo}
@@ -633,7 +633,7 @@ export default function InfosClient() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-200/60 p-6">
+              <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border-2 border-purple-200 p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <Puzzle className="w-7 h-7 text-purple-600" />
                   <h4 className="text-lg font-bold text-slate-800">A Estratégia: O AEE e o Plano de Ação (PAEE)</h4>
@@ -657,7 +657,7 @@ export default function InfosClient() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl border border-cyan-200/60 p-6">
+              <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl border-2 border-cyan-200 p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <Rocket className="w-7 h-7 text-cyan-600" />
                   <h4 className="text-lg font-bold text-slate-800">A Ferramenta: Adaptação (Hub de Inclusão)</h4>
@@ -676,7 +676,7 @@ export default function InfosClient() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl border border-rose-200/60 p-5">
+                <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl border-2 border-rose-200 p-5">
                   <h4 className="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-rose-600" />
                     O Registro: Diário de Bordo
@@ -686,7 +686,7 @@ export default function InfosClient() {
                     Registre o que funcionou e o engajamento. Use o conceito de <strong>"outrar-se"</strong>.
                   </p>
                 </div>
-                <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl border border-slate-200/50 p-5">
+                <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl border-2 border-slate-200 p-5">
                   <h4 className="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
                     <BarChart3 className="w-5 h-5 text-slate-600" />
                     O Fechamento: Avaliação
@@ -698,7 +698,7 @@ export default function InfosClient() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-slate-200/50 p-6">
+              <div className="bg-white rounded-xl border-2 border-slate-200 p-6">
                 <h4 className="text-lg font-bold text-slate-800 mb-4">Resumo do Ecossistema</h4>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">

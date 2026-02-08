@@ -138,7 +138,7 @@ export function ModuleCardsLottie({
           {modules.map((m) => (
             <div
               key={m.href}
-              className="h-32 bg-white rounded-2xl border border-slate-200/50 animate-pulse"
+              className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse"
             />
           ))}
         </div>
@@ -161,7 +161,7 @@ export function ModuleCardsLottie({
               <Link
                 key={m.href}
                 href={m.href}
-                className="group relative block p-6 rounded-2xl border border-slate-200/50 transition-all duration-500 shadow-sm hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 opacity-100"
+                className="group relative block p-6 rounded-2xl border-2 border-slate-200 transition-all duration-500 shadow-sm hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 opacity-100"
                 style={{ backgroundColor: colors.bg }}
               >
                 {m.badge && (
@@ -287,7 +287,7 @@ function ModuleCardWithLottie({
     return (
       <Link
         href={href}
-        className="group relative block p-6 rounded-2xl border border-slate-200/50 transition-all duration-500 shadow-sm hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 opacity-100"
+        className="group relative block p-6 rounded-2xl border-2 border-slate-200 transition-all duration-500 shadow-sm hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 opacity-100"
         style={{ backgroundColor: colors.bg }}
       >
         {badge && (
@@ -321,7 +321,7 @@ function ModuleCardWithLottie({
   return (
     <Link
       href={href}
-        className={`group relative block p-6 rounded-2xl border border-slate-200/50 transition-all duration-500 shadow-sm hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 ${
+        className={`group relative block p-6 rounded-2xl border-2 border-slate-200 transition-all duration-500 shadow-sm hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 ${
         isVisible 
           ? 'opacity-100 translate-y-0' 
           : 'opacity-0 translate-y-4'
@@ -418,7 +418,7 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
           <div className="w-5 h-5 bg-purple-300 rounded animate-pulse" />
           Conhecimento e Referência
         </h2>
-        <div className="h-40 bg-white rounded-2xl border border-slate-200/50 animate-pulse" />
+        <div className="h-40 bg-white rounded-2xl border-2 border-slate-200 animate-pulse" />
       </div>
     );
   }
@@ -431,7 +431,7 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
       </h2>
       <Link
         href={href}
-        className="group relative block p-8 rounded-2xl border border-slate-200/50 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.01] hover:border-slate-300 overflow-hidden"
+        className="group relative block p-8 rounded-2xl border-2 border-slate-200 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.01] hover:border-slate-300 overflow-hidden"
         style={{ backgroundColor: colorPalette.table.bg }}
       >
         <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${colorPalette.table.icon}15, transparent, ${colorPalette.table.icon}15)` }}></div>

@@ -63,7 +63,7 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
   if (!isMounted || !useLottie || !lottieAnimation) {
     return (
       <div
-        className="group rounded-2xl border border-slate-200/40 overflow-hidden shadow-md transition-all duration-300 hover:shadow-lg"
+        className="group rounded-2xl border-2 border-slate-200 overflow-hidden shadow-md transition-all duration-300 hover:shadow-lg"
         style={{ backgroundColor: colors.bg }}
       >
         <div className="flex items-center gap-5 h-32 px-6">
@@ -81,7 +81,7 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
   
   return (
     <div
-      className="group bg-white rounded-2xl border border-slate-200/60 shadow-lg transition-all duration-300 hover:shadow-xl hover:border-slate-300/60 hover:-translate-y-0.5 overflow-hidden"
+      className="group bg-white rounded-2xl border-2 border-slate-200 shadow-lg transition-all duration-300 hover:shadow-xl hover:border-slate-300 hover:-translate-y-0.5 overflow-hidden"
       style={{ backgroundColor: colors.bg }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

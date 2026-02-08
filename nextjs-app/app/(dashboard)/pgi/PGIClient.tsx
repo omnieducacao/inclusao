@@ -62,7 +62,7 @@ export function PGIClient() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-slate-200/50 bg-amber-50/50 px-3 py-2 text-sm text-amber-800">
+      <div className="rounded-lg border border-slate-200 bg-amber-50/50 px-3 py-2 text-sm text-amber-800">
         <strong>Recurso destinado à gestão escolar</strong> — direção, coordenação pedagógica e equipe de planejamento.
       </div>
 
@@ -279,7 +279,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
   return (
     <div className="space-y-6">
       {/* Dimensionamento */}
-      <details className="rounded-2xl border border-slate-200/50 bg-gradient-to-br from-slate-50 to-white p-4">
+      <details className="rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4">
         <summary className="cursor-pointer font-medium text-slate-700">Dimensionamento preliminar (opcional)</summary>
         <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
@@ -359,7 +359,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
       </div>
 
       {/* Formulário */}
-      <form onSubmit={handleAddAcao} className="rounded-2xl border border-slate-200/50 bg-white p-6 space-y-4 shadow-sm min-h-[200px]">
+      <form onSubmit={handleAddAcao} className="rounded-xl border-2 border-slate-200 bg-white p-6 space-y-4 shadow-sm min-h-[200px]">
         <h4 className="font-semibold text-slate-800">Adicionar ação ao plano</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
