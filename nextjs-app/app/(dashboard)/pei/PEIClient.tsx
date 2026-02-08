@@ -715,11 +715,19 @@ export function PEIClient({
                               console.log("Estudante da lista:", studentFromList);
                               setIsLoadingRascunho(true);
                               try {
-                                // Buscar o JSON completo do Supabase (mesmo formato que quando baixamos)
-                                const apiUrl = `/api/students/${idToLoad}`;
-                                console.log("Chamando API:", apiUrl);
-                                const res = await fetch(apiUrl);
-                                console.log("Resposta da API:", res.status, res.ok, res.statusText);
+                                // Tentar primeiro a API principal
+                                let apiUrl = `/api/students/${idToLoad}`;
+                                console.log("Tentando API principal:", apiUrl);
+                                let res = await fetch(apiUrl);
+                                console.log("Resposta da API principal:", res.status, res.ok);
+                                
+                                // Se falhar, tentar a rota alternativa que busca apenas pei_data
+                                if (!res.ok) {
+                                  console.log("API principal falhou, tentando rota alternativa...");
+                                  apiUrl = `/api/students/${idToLoad}/pei-data`;
+                                  res = await fetch(apiUrl);
+                                  console.log("Resposta da API alternativa:", res.status, res.ok);
+                                }
                                 
                                 if (!res.ok) {
                                   // Tentar ler a mensagem de erro
@@ -732,7 +740,7 @@ export function PEIClient({
                                     console.error("Erro ao ler resposta de erro:", e);
                                   }
                                   
-                                  console.error("❌ Estudante não encontrado na API:", {
+                                  console.error("❌ Não foi possível buscar o PEI:", {
                                     id: idToLoad,
                                     status: res.status,
                                     statusText: res.statusText,
@@ -740,17 +748,18 @@ export function PEIClient({
                                   });
                                   
                                   setErroGlobal(`Erro: ${errorMessage} (Status: ${res.status})`);
-                                  alert(`Erro ao buscar estudante: ${errorMessage}\n\nID: ${idToLoad}\nStatus: ${res.status}`);
+                                  alert(`Erro ao buscar PEI: ${errorMessage}\n\nID: ${idToLoad}\nStatus: ${res.status}\n\nO estudante pode não ter PEI salvo ainda.`);
                                   setIsLoadingRascunho(false);
                                   return;
                                 }
 
                                 const data = await res.json();
                                 console.log("✅ Dados recebidos da API:", data);
-                                console.log("Tem pei_data?", !!data.pei_data);
                                 
-                                // Pegar o pei_data (que é o JSON salvo no Supabase)
+                                // A rota alternativa retorna { pei_data: ... }, a principal retorna { pei_data: ..., id: ..., name: ... }
+                                // Pegar o pei_data de qualquer uma das rotas
                                 const peiDataJson = data.pei_data;
+                                console.log("Tem pei_data?", !!peiDataJson);
                                 
                                 if (peiDataJson && typeof peiDataJson === 'object' && !Array.isArray(peiDataJson)) {
                                   // Usar a MESMA lógica que funciona para JSON local
