@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
-  const pdfParse = (await import("pdf-parse")).default;
-  const result = await pdfParse(buffer);
+  const pdfParse = await import("pdf-parse");
+  // pdf-parse pode ser exportado como default ou named export dependendo da versão
+  const parseFunction = (pdfParse as any).default || pdfParse;
+  const result = await parseFunction(buffer);
   return (result?.text || "").trim();
 }
 
