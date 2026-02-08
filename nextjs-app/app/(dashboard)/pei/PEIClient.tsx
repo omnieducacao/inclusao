@@ -323,9 +323,16 @@ export function PEIClient({
     );
   }
 
-  // Carregar dados do estudante quando selecionado
+  // Carregar dados do estudante quando selecionado (apenas se não for modo rascunho)
   useEffect(() => {
+    // Não executar se estamos em modo rascunho (selectedStudentId é null mas temos studentPendingId)
+    if (studentPendingId) {
+      console.log("useEffect ignorado - modo rascunho ativo");
+      return;
+    }
+    
     if (selectedStudentId && selectedStudentId !== studentId) {
+      console.log("useEffect executando para selectedStudentId:", selectedStudentId);
       setErroGlobal(null);
 
       // Verificar se o estudante está na lista primeiro
@@ -382,7 +389,7 @@ export function PEIClient({
           setErroGlobal(null);
         });
     }
-  }, [selectedStudentId, studentId, students]);
+  }, [selectedStudentId, studentId, students, studentPendingId]);
 
   // Aplicar JSON pendente
   function aplicarJson() {
@@ -805,28 +812,47 @@ export function PEIClient({
 
                                 const data = await res.json();
                                 console.log("Dados recebidos:", data);
+                                console.log("data.pei_data:", data.pei_data);
+                                console.log("Tipo de data.pei_data:", typeof data.pei_data);
                                 
                                 if (data.pei_data && typeof data.pei_data === 'object') {
                                   console.log("Carregando PEI como rascunho");
-                                  setPeiData(data.pei_data as PEIData);
+                                  console.log("pei_data antes de setar:", JSON.stringify(data.pei_data).substring(0, 200));
+                                  const novoPeiData = data.pei_data as PEIData;
+                                  console.log("Novo peiData:", novoPeiData);
+                                  setPeiData(novoPeiData);
+                                  console.log("setPeiData chamado com:", novoPeiData);
+                                  
+                                  // Aguardar um pouco para garantir que o estado foi atualizado
+                                  setTimeout(() => {
+                                    console.log("Estado atualizado, verificando peiData...");
+                                  }, 100);
+                                  
                                   setSelectedStudentId(null);
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setSaved(false);
+                                  setErroGlobal(null);
+                                  
+                                  const url = new URL(window.location.href);
+                                  url.searchParams.delete("student");
+                                  window.history.pushState({}, "", url.toString());
+                                  console.log("Carregamento concluído - dados devem estar visíveis agora");
+                                  alert("Dados carregados! Verifique o formulário.");
                                 } else {
                                   console.log("Estudante sem pei_data, carregando como rascunho vazio");
+                                  console.log("data.pei_data é:", data.pei_data);
                                   setPeiData({} as PEIData);
                                   setSelectedStudentId(null);
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setSaved(false);
+                                  alert("Estudante encontrado mas sem dados de PEI. Formulário limpo para preenchimento.");
                                 }
-                                setErroGlobal(null);
                                 
                                 const url = new URL(window.location.href);
                                 url.searchParams.delete("student");
                                 window.history.pushState({}, "", url.toString());
-                                console.log("Carregamento concluído");
                               } catch (err) {
                                 console.error("Erro ao carregar estudante:", err);
                                 setErroGlobal("Erro ao carregar dados do estudante");
