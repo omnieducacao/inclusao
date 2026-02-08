@@ -825,76 +825,36 @@ export function PEIClient({
 
                                 const data = await res.json();
                                 console.log("Dados recebidos:", data);
-                                console.log("data.pei_data:", data.pei_data);
-                                console.log("Tipo de data.pei_data:", typeof data.pei_data);
                                 
-                                // Verificar se temos pei_data válido
-                                const peiDataFromApi = data.pei_data;
-                                console.log("Verificando pei_data:", peiDataFromApi);
-                                console.log("Tipo:", typeof peiDataFromApi);
-                                console.log("É objeto?:", typeof peiDataFromApi === 'object');
-                                console.log("Não é null?:", peiDataFromApi !== null);
-                                console.log("Não é array?:", !Array.isArray(peiDataFromApi));
-                                console.log("Tem propriedades?:", peiDataFromApi && Object.keys(peiDataFromApi).length > 0);
-                                
-                                if (peiDataFromApi && typeof peiDataFromApi === 'object' && !Array.isArray(peiDataFromApi) && Object.keys(peiDataFromApi).length > 0) {
-                                  console.log("✅ Carregando PEI como rascunho");
-                                  console.log("pei_data completo:", JSON.stringify(peiDataFromApi).substring(0, 500));
-                                  const novoPeiData = peiDataFromApi as PEIData;
-                                  console.log("Novo peiData (primeiras chaves):", Object.keys(novoPeiData).slice(0, 10));
-                                  
-                                  // IMPORTANTE: Setar os dados PRIMEIRO, antes de limpar qualquer estado
-                                  console.log("Setando peiData com:", Object.keys(novoPeiData).length, "campos");
-                                  setPeiData(novoPeiData);
-                                  setSaved(false);
-                                  setErroGlobal(null);
-                                  
-                                  // Aguardar um pouco para garantir que o estado foi atualizado
-                                  await new Promise(resolve => setTimeout(resolve, 50));
-                                  
-                                  // Agora limpar os estados de seleção (depois que os dados já foram setados)
-                                  console.log("Limpando estados de seleção...");
-                                  setSelectedStudentId(null);
+                                if (data.pei_data && typeof data.pei_data === 'object') {
+                                  // Carregar dados mas como RASCUNHO (sem vínculo com nuvem)
+                                  console.log("Carregando PEI como rascunho");
+                                  setPeiData(data.pei_data as PEIData);
+                                  setSelectedStudentId(null); // Modo rascunho - sem vínculo
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
-                                  
-                                  // Aguardar mais um pouco antes de desativar a flag
-                                  await new Promise(resolve => setTimeout(resolve, 50));
-                                  setIsLoadingRascunho(false);
-                                  
-                                  const url = new URL(window.location.href);
-                                  url.searchParams.delete("student");
-                                  window.history.pushState({}, "", url.toString());
-                                  
-                                  console.log("✅ Carregamento concluído - dados devem estar visíveis agora");
-                                  console.log("Verificando estado após setPeiData...");
-                                  
-                                  // Verificar se os dados foram realmente setados
-                                  setTimeout(() => {
-                                    console.log("Estado após 500ms - verifique o formulário");
-                                    console.log("peiData atual tem", Object.keys(novoPeiData).length, "campos");
-                                  }, 500);
-                                  
-                                  alert(`Dados carregados! ${Object.keys(novoPeiData).length} campos encontrados. Verifique o formulário.`);
+                                  setSaved(false);
                                 } else {
+                                  // Estudante encontrado mas sem pei_data - carregar como rascunho vazio
                                   console.log("Estudante sem pei_data, carregando como rascunho vazio");
-                                  console.log("data.pei_data é:", data.pei_data);
                                   setPeiData({} as PEIData);
                                   setSelectedStudentId(null);
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setSaved(false);
-                                  setIsLoadingRascunho(false);
-                                  alert("Estudante encontrado mas sem dados de PEI. Formulário limpo para preenchimento.");
                                 }
+                                setErroGlobal(null);
+                                setIsLoadingRascunho(false);
                                 
+                                // Limpar URL para modo rascunho
                                 const url = new URL(window.location.href);
                                 url.searchParams.delete("student");
                                 window.history.pushState({}, "", url.toString());
+                                console.log("Carregamento concluído");
                               } catch (err) {
                                 console.error("Erro ao carregar estudante:", err);
                                 setErroGlobal("Erro ao carregar dados do estudante");
-                                alert(`Erro: ${err instanceof Error ? err.message : String(err)}`);
+                                alert(`Erro ao carregar dados do estudante: ${err instanceof Error ? err.message : String(err)}`);
                                 setPeiData({} as PEIData);
                                 setSelectedStudentId(null);
                                 setStudentPendingId(null);
