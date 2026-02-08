@@ -327,8 +327,13 @@ export function PEIClient({
   // Carregar dados do estudante quando selecionado (apenas se não for modo rascunho)
   useEffect(() => {
     // Não executar se estamos carregando como rascunho ou se temos studentPendingId
-    if (isLoadingRascunho || studentPendingId) {
-      console.log("useEffect ignorado - modo rascunho ativo ou carregando");
+    if (isLoadingRascunho) {
+      console.log("useEffect ignorado - isLoadingRascunho está ativo");
+      return;
+    }
+    
+    if (studentPendingId) {
+      console.log("useEffect ignorado - studentPendingId está definido");
       return;
     }
     
@@ -391,6 +396,11 @@ export function PEIClient({
         });
     }
   }, [selectedStudentId, studentId, students, studentPendingId, isLoadingRascunho]);
+
+  // Debug: Monitorar mudanças em peiData
+  useEffect(() => {
+    console.log("🔍 peiData mudou. Campos:", Object.keys(peiData).length, "Chaves:", Object.keys(peiData).slice(0, 5));
+  }, [peiData]);
 
   // Aplicar JSON pendente
   function aplicarJson() {
@@ -833,17 +843,23 @@ export function PEIClient({
                                   const novoPeiData = peiDataFromApi as PEIData;
                                   console.log("Novo peiData (primeiras chaves):", Object.keys(novoPeiData).slice(0, 10));
                                   
-                                  // Limpar estados primeiro para evitar conflitos
+                                  // IMPORTANTE: Setar os dados PRIMEIRO, antes de limpar qualquer estado
+                                  console.log("Setando peiData com:", Object.keys(novoPeiData).length, "campos");
+                                  setPeiData(novoPeiData);
+                                  setSaved(false);
+                                  setErroGlobal(null);
+                                  
+                                  // Aguardar um pouco para garantir que o estado foi atualizado
+                                  await new Promise(resolve => setTimeout(resolve, 50));
+                                  
+                                  // Agora limpar os estados de seleção (depois que os dados já foram setados)
+                                  console.log("Limpando estados de seleção...");
                                   setSelectedStudentId(null);
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   
-                                  // Aguardar um tick antes de setar os dados para evitar race conditions
-                                  await new Promise(resolve => setTimeout(resolve, 0));
-                                  
-                                  setPeiData(novoPeiData);
-                                  setSaved(false);
-                                  setErroGlobal(null);
+                                  // Aguardar mais um pouco antes de desativar a flag
+                                  await new Promise(resolve => setTimeout(resolve, 50));
                                   setIsLoadingRascunho(false);
                                   
                                   const url = new URL(window.location.href);
@@ -855,10 +871,11 @@ export function PEIClient({
                                   
                                   // Verificar se os dados foram realmente setados
                                   setTimeout(() => {
-                                    console.log("Estado após 200ms - verifique o formulário");
-                                  }, 200);
+                                    console.log("Estado após 500ms - verifique o formulário");
+                                    console.log("peiData atual tem", Object.keys(novoPeiData).length, "campos");
+                                  }, 500);
                                   
-                                  alert(`Dados carregados! ${Object.keys(novoPeiData).length} campos encontrados.`);
+                                  alert(`Dados carregados! ${Object.keys(novoPeiData).length} campos encontrados. Verifique o formulário.`);
                                 } else {
                                   console.log("Estudante sem pei_data, carregando como rascunho vazio");
                                   console.log("data.pei_data é:", data.pei_data);
