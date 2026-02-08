@@ -402,21 +402,30 @@ export function PEIClient({
   }
 
   // Carregar estudante pendente como rascunho
-  async function carregarEstudanteRascunho() {
-    if (!studentPendingId) return;
+  const carregarEstudanteRascunho = async () => {
+    console.log("carregarEstudanteRascunho chamado, studentPendingId:", studentPendingId);
+    if (!studentPendingId) {
+      console.warn("studentPendingId está vazio");
+      return;
+    }
     
     setErroGlobal(null);
     const studentFromList = students.find((s) => s.id === studentPendingId);
     if (!studentFromList) {
       setErroGlobal("Estudante não encontrado na lista");
+      console.error("Estudante não encontrado na lista:", studentPendingId);
       return;
     }
 
+    console.log("Buscando dados do estudante:", studentPendingId);
     try {
       const res = await fetch(`/api/students/${studentPendingId}`);
+      console.log("Resposta da API:", res.status, res.ok);
+      
       if (!res.ok) {
         // Estudante está na lista mas não foi encontrado na API
         // Isso é normal - pode não ter pei_data ainda
+        console.log("Estudante não encontrado na API, carregando como rascunho vazio");
         setPeiData({} as PEIData);
         setSelectedStudentId(null); // Modo rascunho
         setStudentPendingId(null);
@@ -432,8 +441,11 @@ export function PEIClient({
       }
 
       const data = await res.json();
+      console.log("Dados recebidos:", data);
+      
       if (data.pei_data && typeof data.pei_data === 'object') {
         // Carregar dados mas como RASCUNHO (sem vínculo com nuvem)
+        console.log("Carregando PEI como rascunho");
         setPeiData(data.pei_data as PEIData);
         setSelectedStudentId(null); // Modo rascunho - sem vínculo
         setStudentPendingId(null);
@@ -441,6 +453,7 @@ export function PEIClient({
         setSaved(false);
       } else {
         // Estudante encontrado mas sem pei_data - carregar como rascunho vazio
+        console.log("Estudante sem pei_data, carregando como rascunho vazio");
         setPeiData({} as PEIData);
         setSelectedStudentId(null);
         setStudentPendingId(null);
@@ -453,6 +466,7 @@ export function PEIClient({
       const url = new URL(window.location.href);
       url.searchParams.delete("student");
       window.history.pushState({}, "", url.toString());
+      console.log("Carregamento concluído");
     } catch (err) {
       // Erro de rede ou outro erro
       console.error("Erro ao carregar estudante:", err);
@@ -469,7 +483,7 @@ export function PEIClient({
       url.searchParams.delete("student");
       window.history.pushState({}, "", url.toString());
     }
-  }
+  };
 
   // Função para verificar status de cada aba
   function getTabStatus(tabId: TabId): "complete" | "in-progress" | "empty" {
