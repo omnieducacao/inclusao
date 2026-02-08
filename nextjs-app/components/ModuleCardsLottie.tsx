@@ -38,7 +38,7 @@ const iconMap: Record<string, Icon> = {
 };
 
 // Mapeamento de ícones Phosphor para Lottie OUTLINE (minimalistas) - perfeitos para home!
-const lottieMap: Record<string, string> = {
+const lottieMapOutline: Record<string, string> = {
   UsersFour: "wired-outline-44-avatar-user-in-circle-hover-looking-around", // Minimalista ✅
   Student: "wired-outline-406-study-graduation-hover-pinch", // Minimalista ✅
   PuzzlePiece: "wired-outline-458-goal-target-hover-hit", // Minimalista ✅
@@ -50,6 +50,24 @@ const lottieMap: Record<string, string> = {
   ClipboardText: "wired-outline-754-pin-attachement-hover-pinch", // Minimalista ✅
   Gear: "wired-outline-40-cogs-hover-mechanic", // Minimalista ✅
 };
+
+// Mapeamento de ícones Phosphor para Lottie COLORIDOS (wired-lineal) - versão colorida!
+const lottieMapColored: Record<string, string> = {
+  UsersFour: "wired-lineal-529-boy-girl-children-hover-pinch", // Estudantes - children 🎨
+  Student: "wired-lineal-458-goal-target-hover-hit", // PEI - alvo 🎯
+  PuzzlePiece: "wired-lineal-106-map-hover-pinch", // PAEE - mapa 🗺️
+  RocketLaunch: "wired-lineal-3139-rocket-space-alt-hover-pinch", // Hub - foguete 🚀
+  BookOpen: "wired-lineal-3140-book-open-hover-pinch", // Diário - livro aberto 📖
+  ChartLineUp: "wired-lineal-152-bar-chart-arrow-hover-growth", // Monitoramento - gráfico 📊
+  UsersThree: "wired-lineal-314-three-avatars-icon-calm-hover-jumping", // Gestão Usuários 👥
+  GraduationCap: "wired-lineal-486-school-hover-pinch", // Config Escola - escola 🏫
+  ClipboardText: "wired-lineal-2167-books-course-assign-hover-pinch", // PGI - livros 📚
+  Gear: "wired-lineal-40-cogs-hover-mechanic", // Admin - engrenagem ⚙️
+  BookBookmark: "wired-lineal-2167-books-course-assign-hover-pinch", // Central Inteligência - livros 📚
+};
+
+// Por padrão, usar os coloridos para teste
+const lottieMap = lottieMapColored;
 
 type ModuleCard = {
   href: string;
@@ -67,6 +85,7 @@ type ModuleCardsProps = {
   titleIconName: string;
   titleIconColor?: string;
   useLottieOnHover?: boolean; // Ativar Lottie no hover para todos
+  useLottieByDefault?: boolean; // Mostrar Lottie por padrão (não apenas no hover)
 };
 
 /**
@@ -83,6 +102,7 @@ export function ModuleCardsLottie({
   titleIconName, 
   titleIconColor = "text-slate-600",
   useLottieOnHover = false,
+  useLottieByDefault = false, // Novo: mostrar Lottie por padrão
 }: ModuleCardsProps) {
   const TitleIcon = iconMap[titleIconName];
   if (!TitleIcon) return null;
@@ -112,6 +132,7 @@ export function ModuleCardsLottie({
               desc={m.desc}
               badge={m.badge}
               useLottie={shouldUseLottie && !!lottieAnimation}
+              useLottieByDefault={useLottieByDefault}
             />
           );
         })}
@@ -129,6 +150,7 @@ function ModuleCardWithLottie({
   desc,
   badge,
   useLottie,
+  useLottieByDefault = false,
 }: {
   href: string;
   icon: Icon;
@@ -138,8 +160,14 @@ function ModuleCardWithLottie({
   desc: string;
   badge?: string;
   useLottie: boolean;
+  useLottieByDefault?: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  
+  // Se useLottieByDefault=true, mostrar Lottie sempre (não apenas no hover)
+  const shouldShowLottie = useLottieByDefault 
+    ? (useLottie && !!lottieAnimation) 
+    : (useLottie && isHovered && lottieAnimation);
 
   return (
     <Link
@@ -155,11 +183,11 @@ function ModuleCardWithLottie({
         </span>
       )}
       <div className="flex items-start gap-5">
-        {/* Ícone: Lottie no hover, estático por padrão */}
+        {/* Ícone: Lottie por padrão (se useLottieByDefault) ou apenas no hover */}
         <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center">
-          {useLottie && isHovered && lottieAnimation ? (
+          {shouldShowLottie ? (
             <LottieIcon
-              animation={lottieAnimation}
+              animation={lottieAnimation!}
               size={56}
               loop={true}
               className="transition-all duration-300 group-hover:scale-110"
@@ -203,6 +231,8 @@ type IntelligenceModuleProps = {
 };
 
 export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModuleProps) {
+  const lottieAnimation = lottieMapColored.BookBookmark;
+  
   return (
     <div>
       <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -216,11 +246,23 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
       >
         <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${colorPalette.table.icon}15, transparent, ${colorPalette.table.icon}15)` }}></div>
         <div className="relative flex items-start gap-6">
-          <BookBookmark
-            className="w-16 h-16 flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300"
-            style={{ color: colorPalette.table.icon }}
-            weight="duotone"
-          />
+          {/* Ícone Lottie colorido para Central de Inteligência */}
+          {lottieAnimation ? (
+            <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center">
+              <LottieIcon
+                animation={lottieAnimation}
+                size={64}
+                loop={true}
+                className="transition-all duration-300 group-hover:scale-110"
+              />
+            </div>
+          ) : (
+            <BookBookmark
+              className="w-16 h-16 flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300"
+              style={{ color: colorPalette.table.icon }}
+              weight="duotone"
+            />
+          )}
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <span className="font-bold text-2xl transition-colors" style={{ color: colorPalette.table.text }}>

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "HOSTNAME=127.0.0.1 NEXT_TELEMETRY_DISABLED=1 next dev -p 4000 --hostname 127.0.0.1",
+    "dev": "HOSTNAME=127.0.0.1 NEXT_TELEMETRY_DISABLED=1 next dev -p 3000 --hostname 127.0.0.1",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
