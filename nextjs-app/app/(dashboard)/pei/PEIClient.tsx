@@ -716,7 +716,6 @@ export function PEIClient({
                               console.log("=== BOTÃO CARREGAR CLICADO ===");
                               console.log("studentPendingId:", studentPendingId);
                               console.log("studentPendingName:", studentPendingName);
-                              alert(`Clicou! ID: ${studentPendingId}`);
                               
                               // Usar o valor atual diretamente
                               const idToLoad = studentPendingId;
@@ -806,7 +805,6 @@ export function PEIClient({
                                   setIsLoadingRascunho(false);
                                   
                                   console.log("✅ JSON colocado em jsonPending, useEffect vai aplicar automaticamente");
-                                  alert(`PEI carregado com sucesso! ${campos.length} campos encontrados. Verifique o formulário.`);
                                 } else {
                                   // Estudante encontrado mas sem pei_data
                                   console.log("⚠️ Estudante encontrado mas sem pei_data no Supabase");
