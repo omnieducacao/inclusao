@@ -173,14 +173,21 @@ function ModuleCardWithLottie({
   index?: number;
 }) {
   const [isVisible, setIsVisible] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   
-  // Animação de entrada escalonada
+  // Garantir que só renderiza no cliente
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  
+  // Animação de entrada escalonada (apenas no cliente)
+  useEffect(() => {
+    if (!isMounted) return;
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, index * 100); // Delay de 100ms entre cada card
     return () => clearTimeout(timer);
-  }, [index]);
+  }, [index, isMounted]);
   
   // Sempre mostrar Lottie quando disponível (usando colorido/lineal)
   // Se useLottieByDefault=true, sempre mostrar Lottie quando mapeado
@@ -188,6 +195,40 @@ function ModuleCardWithLottie({
   const shouldShowLottie = useLottieByDefault 
     ? !!lottieAnimation 
     : (useLottie && !!lottieAnimation);
+  
+  // Durante SSR, mostrar versão estática
+  if (!isMounted) {
+    return (
+      <Link
+        href={href}
+        className="group relative block p-6 rounded-xl border-2 border-slate-200 transition-all duration-500 shadow-sm hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 opacity-100"
+        style={{ backgroundColor: colors.bg }}
+      >
+        {badge && (
+          <span className="absolute top-3 right-3 px-2 py-0.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow-sm">
+            {badge}
+          </span>
+        )}
+        <div className="flex items-start gap-5">
+          <div className="flex-shrink-0">
+            <div className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10">
+              <Icon
+                className="w-8 h-8 transition-all duration-300"
+                style={{ color: colors.icon }}
+                weight="duotone"
+              />
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="font-bold block text-lg transition-colors" style={{ color: colors.text }}>
+              {title}
+            </span>
+            <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">{desc}</p>
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <Link
@@ -205,7 +246,7 @@ function ModuleCardWithLottie({
         </span>
       )}
       <div className="flex items-start gap-5">
-        {/* Ícone dentro de quadrado com fundo semitransparente, como no WelcomeHero */}
+        {/* Ícone dentro de quadrado com fundo semitransparente, EXATAMENTE como no WelcomeHero */}
         <div className={`flex-shrink-0 transition-all duration-500 ${
           isVisible ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
         }`}>
@@ -217,8 +258,8 @@ function ModuleCardWithLottie({
               <LottieIcon
                 animation={lottieAnimation}
                 size={32}
-                loop={true} // Sempre em loop, como no WelcomeHero
-                autoplay={true} // Sempre animando, como no WelcomeHero
+                loop={true}
+                autoplay={true}
                 className="transition-all duration-300"
               />
             </div>
@@ -228,7 +269,7 @@ function ModuleCardWithLottie({
               style={{ animation: 'float 6s ease-in-out infinite' }}
             >
               <Icon
-                className="w-8 h-8 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+                className="w-8 h-8 transition-all duration-300"
                 style={{ color: colors.icon }}
                 weight="duotone"
               />

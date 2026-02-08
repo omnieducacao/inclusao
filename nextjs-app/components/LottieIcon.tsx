@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Lottie from "lottie-react";
 
 type LottieIconProps = {
   /**
@@ -67,15 +66,28 @@ export function LottieIcon({
   const [animationData, setAnimationData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [LottieComponent, setLottieComponent] = useState<any>(null);
 
-  // Garantir que só renderiza no cliente
+  // Garantir que só renderiza no cliente e carregar Lottie dinamicamente
   useEffect(() => {
     setIsMounted(true);
+    
+    // Import dinâmico do Lottie apenas no cliente
+    if (typeof window !== "undefined") {
+      import("lottie-react")
+        .then((module) => {
+          setLottieComponent(() => module.default);
+        })
+        .catch((err) => {
+          console.warn(`[LottieIcon] Could not load lottie-react:`, err);
+          setError("Failed to load Lottie library");
+        });
+    }
   }, []);
 
   useEffect(() => {
     // Verificar se estamos no cliente antes de fazer fetch
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || !isMounted) {
       return;
     }
 
@@ -96,7 +108,7 @@ export function LottieIcon({
         console.warn(`[LottieIcon] Could not load animation "${animation}":`, err.message);
         setError(err.message);
       });
-  }, [animation, onLoad]);
+  }, [animation, onLoad, isMounted]);
 
   // Durante SSR ou antes de montar, retornar um placeholder vazio
   if (!isMounted) {
@@ -105,6 +117,18 @@ export function LottieIcon({
         className={`flex items-center justify-center ${className}`}
         style={{ width: size, height: size, ...style }}
       />
+    );
+  }
+
+  // Se Lottie ainda não foi carregado, mostrar loading
+  if (!LottieComponent) {
+    return (
+      <div
+        className={`flex items-center justify-center ${className}`}
+        style={{ width: size, height: size, ...style }}
+      >
+        <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+      </div>
     );
   }
 
@@ -142,7 +166,7 @@ export function LottieIcon({
       >
         {/* @ts-ignore - lottie-react type definitions may be incomplete */}
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {React.createElement(Lottie as any, {
+        {React.createElement(LottieComponent, {
           animationData,
           loop,
           autoplay,
