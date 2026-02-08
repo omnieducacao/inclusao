@@ -233,6 +233,7 @@ function ModuleCardWithLottie({
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   
   // Garantir que só renderiza no cliente
   useEffect(() => {
@@ -272,10 +273,9 @@ function ModuleCardWithLottie({
           <div className="flex-shrink-0">
             <div 
               className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10"
-              style={{ animation: 'float 6s ease-in-out infinite' }}
             >
               <Icon
-                className="w-8 h-8 transition-all duration-300"
+                className="w-10 h-10 transition-all duration-300"
                 style={{ color: colors.icon }}
                 weight="duotone"
               />
@@ -301,6 +301,8 @@ function ModuleCardWithLottie({
           : 'opacity-0 translate-y-4'
       }`}
       style={{ backgroundColor: colors.bg }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {badge && (
         <span className="absolute top-3 right-3 px-2 py-0.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow-sm">
@@ -314,24 +316,22 @@ function ModuleCardWithLottie({
         }`}>
           {shouldShowLottie && lottieAnimation ? (
             <div 
-              className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10"
-              style={{ animation: 'float 6s ease-in-out infinite' }}
+              className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
             >
               <LottieIcon
                 animation={lottieAnimation}
-                size={32}
-                loop={true}
-                autoplay={true}
+                size={44}
+                loop={isHovered}
+                autoplay={isHovered}
                 className="transition-all duration-300"
               />
             </div>
           ) : (
             <div 
-              className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10"
-              style={{ animation: 'float 6s ease-in-out infinite' }}
+              className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
             >
               <Icon
-                className="w-8 h-8 transition-all duration-300"
+                className="w-10 h-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
                 style={{ color: colors.icon }}
                 weight="duotone"
               />
