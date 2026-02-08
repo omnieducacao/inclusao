@@ -625,7 +625,6 @@ export function PEIClient({
                       currentId={currentStudentId}
                       placeholder="Selecione o estudante"
                       onChange={(id) => {
-                        setSelectedStudentId(id);
                         setErroGlobal(null);
                         if (id) {
                           // Verificar se o estudante está na lista primeiro
@@ -635,7 +634,7 @@ export function PEIClient({
                             return;
                           }
 
-                          // Carregar dados do estudante da nuvem
+                          // Carregar dados do estudante da nuvem como RASCUNHO (sem vínculo)
                           fetch(`/api/students/${id}`)
                             .then(async res => {
                               if (!res.ok) {
@@ -644,6 +643,8 @@ export function PEIClient({
                                 setPeiData({} as PEIData);
                                 setSaved(false);
                                 setErroGlobal(null);
+                                // Mesmo sem dados, carregar como rascunho
+                                setSelectedStudentId(null);
                                 return null;
                               }
                               try {
@@ -653,93 +654,74 @@ export function PEIClient({
                                 setPeiData({} as PEIData);
                                 setSaved(false);
                                 setErroGlobal(null);
+                                setSelectedStudentId(null);
                                 return null;
                               }
                             })
                             .then(data => {
                               if (!data) {
-                                // Já tratado acima
+                                // Já tratado acima - carregar como rascunho vazio
+                                setSelectedStudentId(null);
+                                // Limpar URL para modo rascunho
+                                const url = new URL(window.location.href);
+                                url.searchParams.delete("student");
+                                window.history.pushState({}, "", url.toString());
                                 return;
                               }
                               if (data.pei_data && typeof data.pei_data === 'object') {
+                                // Carregar dados mas como RASCUNHO (sem vínculo com nuvem)
                                 setPeiData(data.pei_data as PEIData);
-                                setSaved(true);
-                                setTimeout(() => setSaved(false), 2000);
+                                setSelectedStudentId(null); // Modo rascunho - sem vínculo
+                                setSaved(false);
                               } else {
-                                // Estudante encontrado mas sem pei_data
+                                // Estudante encontrado mas sem pei_data - carregar como rascunho vazio
                                 setPeiData({} as PEIData);
+                                setSelectedStudentId(null);
                                 setSaved(false);
                               }
                               setErroGlobal(null);
+                              // Limpar URL para modo rascunho
+                              const url = new URL(window.location.href);
+                              url.searchParams.delete("student");
+                              window.history.pushState({}, "", url.toString());
                             })
                             .catch(err => {
                               // Erro de rede ou outro erro
                               console.error("Erro ao carregar estudante:", err);
-                              // Não mostrar erro se o estudante estiver na lista
-                              // Apenas limpar dados
+                              setErroGlobal("Erro ao carregar dados do estudante");
+                              // Carregar como rascunho vazio mesmo com erro
                               setPeiData({} as PEIData);
+                              setSelectedStudentId(null);
                               setSaved(false);
-                              setErroGlobal(null);
+                              // Limpar URL para modo rascunho
+                              const url = new URL(window.location.href);
+                              url.searchParams.delete("student");
+                              window.history.pushState({}, "", url.toString());
                             });
-
-                          // Atualizar URL sem recarregar
-                          const url = new URL(window.location.href);
-                          url.searchParams.set("student", id);
-                          window.history.pushState({}, "", url.toString());
                         } else {
                           // Limpar dados quando nenhum estudante está selecionado
                           setPeiData({} as PEIData);
+                          setSelectedStudentId(null);
                           setSaved(false);
                           setErroGlobal(null);
+                          // Limpar URL
+                          const url = new URL(window.location.href);
+                          url.searchParams.delete("student");
+                          window.history.pushState({}, "", url.toString());
                         }
                       }}
                     />
-                    {currentStudentId && (
-                      <div className="mt-2 flex gap-2">
-                        <button
-                          onClick={async () => {
-                            if (!currentStudentId) {
-                              alert("Selecione um estudante primeiro");
-                              return;
-                            }
-                            setSaving(true);
-                            setErroGlobal(null);
-                            try {
-                              const res = await fetch(`/api/students/${currentStudentId}`);
-                              if (res.ok) {
-                                const data = await res.json();
-                                if (data.pei_data && typeof data.pei_data === 'object') {
-                                  setPeiData(data.pei_data as PEIData);
-                                  setSaved(true);
-                                  setTimeout(() => setSaved(false), 2000);
-                                } else {
-                                  setPeiData({} as PEIData);
-                                  setSaved(false);
-                                }
-                                setErroGlobal(null);
-                              } else {
-                                setErroGlobal("Erro ao carregar dados do estudante");
-                              }
-                            } catch (err) {
-                              setErroGlobal("Erro ao carregar dados do estudante");
-                              console.error("Erro ao carregar:", err);
-                            } finally {
-                              setSaving(false);
-                            }
-                          }}
-                          disabled={saving || !currentStudentId}
-                          className="flex-1 px-3 py-1.5 bg-sky-600 text-white text-xs font-medium rounded-lg hover:bg-sky-700 disabled:opacity-60"
-                        >
-                          {saving ? "Carregando…" : saved ? "Carregado ✓" : "Carregar da Nuvem"}
-                        </button>
-                        <Link
-                          href="/estudantes"
-                          className="px-3 py-1.5 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50"
-                        >
-                          ← Estudantes
-                        </Link>
-                      </div>
-                    )}
+                    <div className="mt-2">
+                      <Link
+                        href="/estudantes"
+                        className="inline-flex items-center px-3 py-1.5 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50"
+                      >
+                        ← Estudantes
+                      </Link>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
+                      💡 <strong>Dica:</strong> Ao selecionar um estudante, os dados são carregados automaticamente como <strong>rascunho</strong> (sem vínculo com a nuvem). Use o botão "Sincronizar Tudo" abaixo para salvar na nuvem quando estiver pronto.
+                    </p>
                   </div>
                 </div>
 
