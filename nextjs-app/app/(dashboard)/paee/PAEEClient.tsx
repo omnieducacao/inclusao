@@ -360,14 +360,23 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           student={student}
           peiData={peiData}
           paeeData={paeeData}
-          onUpdate={(data) => {
+          onUpdate={async (data) => {
             setPaeeData(data);
             if (student?.id) {
-              fetch(`/api/students/${student.id}/paee`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ paee_data: data }),
-              }).catch(console.error);
+              try {
+                const res = await fetch(`/api/students/${student.id}/paee`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ paee_data: data }),
+                });
+                if (!res.ok) {
+                  console.error("Erro ao salvar paee_data:", await res.text());
+                } else {
+                  console.log("✅ paee_data salvo com sucesso");
+                }
+              } catch (err) {
+                console.error("Erro ao salvar paee_data:", err);
+              }
             }
           }}
         />
@@ -681,10 +690,19 @@ function JornadaTab({
   // Ciclo de execução para usar na jornada
   const cicloExecucao = cicloSelecionadoExecucao || (cicloAtivo?.tipo === "execucao_smart" ? cicloAtivo : ciclos.find((c) => c.tipo === "execucao_smart"));
 
-  // Conteúdos das outras abas
+  // Conteúdos das outras abas - verificar se estão disponíveis
   const conteudoBarreiras = (paeeData.conteudo_diagnostico_barreiras as string) || "";
   const conteudoPlano = (paeeData.conteudo_plano_habilidades as string) || "";
   const conteudoTec = (paeeData.conteudo_tecnologia_assistiva as string) || "";
+  
+  // Log para debug
+  useEffect(() => {
+    console.log("📋 Jornada - Conteúdos disponíveis:", {
+      barreiras: conteudoBarreiras ? `${conteudoBarreiras.length} chars` : "vazio",
+      plano: conteudoPlano ? `${conteudoPlano.length} chars` : "vazio",
+      tec: conteudoTec ? `${conteudoTec.length} chars` : "vazio",
+    });
+  }, [conteudoBarreiras, conteudoPlano, conteudoTec]);
 
   // Chave única para esta jornada (por origem)
   const chaveJornada = origemSelecionada === "ciclo"
@@ -758,10 +776,18 @@ function JornadaTab({
           textoFonte = conteudoTec;
           nomeFonte = "Tecnologia Assistiva";
         }
-        if (!textoFonte.trim()) {
-          setErro(`Gere o conteúdo na aba **${nomeFonte}** primeiro.`);
+        if (!textoFonte || !textoFonte.trim()) {
+          console.error(`❌ Conteúdo não encontrado para ${nomeFonte}:`, {
+            origem: origemSelecionada,
+            conteudoPlano: conteudoPlano ? `${conteudoPlano.length} chars` : "vazio",
+            conteudoBarreiras: conteudoBarreiras ? `${conteudoBarreiras.length} chars` : "vazio",
+            conteudoTec: conteudoTec ? `${conteudoTec.length} chars` : "vazio",
+          });
+          setErro(`Gere o conteúdo na aba **${nomeFonte}** primeiro. O conteúdo precisa estar salvo e aprovado.`);
           return;
         }
+        
+        console.log(`✅ Usando conteúdo de ${nomeFonte}:`, `${textoFonte.length} caracteres`);
         body.texto_fonte = textoFonte;
         body.nome_fonte = nomeFonte;
       }
@@ -1737,6 +1763,7 @@ function PlanoHabilidadesTab({
     setLoading(true);
     setErro(null);
     try {
+      console.log("Gerando plano de habilidades...", { foco, engine });
       const res = await fetch("/api/paee/plano-habilidades", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1749,14 +1776,54 @@ function PlanoHabilidadesTab({
           engine,
         }),
       });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Erro HTTP ${res.status}`);
+      }
+      
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao gerar plano");
+      console.log("Plano gerado com sucesso, salvando...");
+      
+      // Atualizar estado local primeiro
       setPlano(data.plano || "");
       setStatus("revisao");
+      
+      // Salvar no paeeData e persistir no Supabase
+      const novoPaeeData = {
+        ...paeeData,
+        conteudo_plano_habilidades: data.plano,
+        status_plano_habilidades: "revisao",
+        input_original_plano_habilidades: { foco },
+      };
+      
       updateField("conteudo_plano_habilidades", data.plano);
       updateField("status_plano_habilidades", "revisao");
       updateField("input_original_plano_habilidades", { foco });
+      
+      // Salvar no Supabase e aguardar
+      if (student?.id) {
+        try {
+          const saveRes = await fetch(`/api/students/${student.id}/paee`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ paee_data: novoPaeeData }),
+          });
+          
+          if (!saveRes.ok) {
+            console.error("Erro ao salvar plano no Supabase:", await saveRes.text());
+          } else {
+            console.log("✅ Plano salvo no Supabase com sucesso");
+          }
+        } catch (saveErr) {
+          console.error("Erro ao salvar plano:", saveErr);
+          // Não bloquear o fluxo, apenas logar o erro
+        }
+      }
+      
+      console.log("✅ Plano de habilidades gerado e disponível para jornada gamificada");
     } catch (e) {
+      console.error("Erro ao gerar plano:", e);
       setErro(e instanceof Error ? e.message : "Erro ao gerar plano");
     } finally {
       setLoading(false);
