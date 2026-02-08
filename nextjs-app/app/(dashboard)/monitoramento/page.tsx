@@ -3,7 +3,6 @@ import { getSession } from "@/lib/session";
 import { listStudents, getStudent, type Student } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
 import { MonitoramentoClient } from "./MonitoramentoClient";
-import { BarChart3 } from "lucide-react";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -71,10 +70,11 @@ export default async function MonitoramentoPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <PageHero
-        icon={BarChart3}
+        iconName="BarChart3"
         title="Evolução & Dados"
         desc="Indicadores, gráficos e relatórios de progresso dos estudantes."
         color="sky"
+        useLottie={true}
       />
 
       <Suspense fallback={<div className="text-slate-500">Carregando…</div>}>

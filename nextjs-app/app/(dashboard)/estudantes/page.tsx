@@ -3,7 +3,6 @@ import { getSession } from "@/lib/session";
 import { listStudents } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
 import { EstudantesClient } from "./EstudantesClient";
-import { Users } from "lucide-react";
 
 export default async function EstudantesPage() {
   const session = await getSession();
@@ -13,10 +12,11 @@ export default async function EstudantesPage() {
   return (
     <div className="space-y-6">
       <PageHero
-        icon={Users}
+        iconName="UsersFour"
         title="Gestão de Estudantes"
         desc="Dados dos estudantes vinculados aos PEIs neste workspace."
         color="sky"
+        useLottie={true}
       />
       <Suspense fallback={<div className="text-slate-500">Carregando…</div>}>
         <EstudantesClient

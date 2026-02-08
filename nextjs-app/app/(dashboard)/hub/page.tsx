@@ -71,10 +71,11 @@ export default async function HubPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <PageHero
-        icon={Rocket}
+        iconName="Rocket"
         title="Hub de Recursos"
         desc="Adaptar provas, atividades, criar do zero e muito mais."
         color="cyan"
+        useLottie={true}
       />
 
       <Suspense fallback={<div className="text-slate-500">Carregando…</div>}>
