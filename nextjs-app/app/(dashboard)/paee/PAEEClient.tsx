@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
 import { EngineSelector } from "@/components/EngineSelector";
@@ -38,9 +38,9 @@ type Props = {
 
 type TabId = "mapear-barreiras" | "plano-habilidades" | "tec-assistiva" | "articulacao" | "planejamento" | "execucao" | "jornada";
 
-export function PAEEClient({ students, studentId, student }: Props) {
+function PAEEClientInner({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
-  const currentId = studentId || searchParams.get("student");
+  const currentId = studentId || searchParams?.get("student") || null;
 
   const [activeTab, setActiveTab] = useState<TabId>("planejamento");
   const [cicloSelecionadoPlanejamento, setCicloSelecionadoPlanejamento] = useState<CicloPAEE | null>(null);
@@ -629,6 +629,19 @@ export function PAEEClient({ students, studentId, student }: Props) {
         />
       )}
     </div>
+  );
+}
+
+export function PAEEClient({ students, studentId, student }: Props) {
+  return (
+    <Suspense fallback={
+      <div className="space-y-4">
+        <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
+        <div className="text-slate-500 text-center py-8">Carregando...</div>
+      </div>
+    }>
+      <PAEEClientInner students={students} studentId={studentId} student={student} />
+    </Suspense>
   );
 }
 

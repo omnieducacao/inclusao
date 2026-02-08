@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
 type Student = { id: string; name: string };
 
-export function StudentSelector({
+function StudentSelectorInner({
   students,
   currentId,
   placeholder = "Selecione o estudante",
@@ -22,7 +22,13 @@ export function StudentSelector({
   const [selected, setSelected] = useState(currentId || "");
 
   useEffect(() => {
-    setSelected(currentId || searchParams.get("student") || "");
+    try {
+      const urlStudentId = searchParams?.get("student") || "";
+      setSelected(currentId || urlStudentId || "");
+    } catch (error) {
+      // Fallback se searchParams não estiver disponível
+      setSelected(currentId || "");
+    }
   }, [currentId, searchParams]);
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
@@ -34,13 +40,21 @@ export function StudentSelector({
       onChange(id || null);
     } else {
       // Comportamento padrão: atualiza URL
-      const params = new URLSearchParams(searchParams.toString());
-      if (id) {
-        params.set("student", id);
-      } else {
-        params.delete("student");
+      try {
+        const params = new URLSearchParams(searchParams?.toString() || "");
+        if (id) {
+          params.set("student", id);
+        } else {
+          params.delete("student");
+        }
+        router.push(`${pathname}?${params.toString()}`);
+      } catch (error) {
+        // Fallback se houver erro ao atualizar URL
+        console.error("Erro ao atualizar URL:", error);
+        if (onChange) {
+          onChange(id || null);
+        }
       }
-      router.push(`${pathname}?${params.toString()}`);
     }
   }
 
@@ -57,5 +71,35 @@ export function StudentSelector({
         </option>
       ))}
     </select>
+  );
+}
+
+export function StudentSelector({
+  students,
+  currentId,
+  placeholder = "Selecione o estudante",
+  onChange,
+}: {
+  students: Student[];
+  currentId?: string | null;
+  placeholder?: string;
+  onChange?: (id: string | null) => void;
+}) {
+  return (
+    <Suspense fallback={
+      <select 
+        disabled
+        className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 min-w-[200px]"
+      >
+        <option>Carregando...</option>
+      </select>
+    }>
+      <StudentSelectorInner
+        students={students}
+        currentId={currentId}
+        placeholder={placeholder}
+        onChange={onChange}
+      />
+    </Suspense>
   );
 }

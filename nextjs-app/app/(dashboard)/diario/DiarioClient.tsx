@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
@@ -71,9 +71,9 @@ function fmtData(s: string | undefined): string {
   }
 }
 
-export function DiarioClient({ students, studentId, student }: Props) {
+function DiarioClientInner({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
-  const currentId = studentId || searchParams.get("student");
+  const currentId = studentId || searchParams?.get("student") || null;
 
   const [saving, setSaving] = useState(false);
   const [expandForm, setExpandForm] = useState(true);

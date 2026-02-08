@@ -129,7 +129,7 @@ function ToolCard({
 
 export function HubClient({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
-  const currentId = studentId || searchParams.get("student");
+  const currentId = studentId || searchParams?.get("student") || null;
   const [activeTool, setActiveTool] = useState<ToolId | null>(null);
   const [engine, setEngine] = useState<EngineId>("red");
 

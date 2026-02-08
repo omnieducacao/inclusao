@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { StudentSelector } from "@/components/StudentSelector";
@@ -58,9 +58,9 @@ function fmtData(s: string | undefined): string {
   }
 }
 
-export function MonitoramentoClient({ students, studentId, student }: Props) {
+function MonitoramentoClientInner({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
-  const currentId = studentId || searchParams.get("student");
+  const currentId = studentId || searchParams?.get("student") || null;
 
   const [rubrica, setRubrica] = useState<Record<string, string>>({
     autonomia: "Em Desenvolvimento",
@@ -326,5 +326,18 @@ export function MonitoramentoClient({ students, studentId, student }: Props) {
         </div>
       )}
     </div>
+  );
+}
+
+export function MonitoramentoClient({ students, studentId, student }: Props) {
+  return (
+    <Suspense fallback={
+      <div className="space-y-4">
+        <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
+        <div className="text-slate-500 text-center py-8">Carregando...</div>
+      </div>
+    }>
+      <MonitoramentoClientInner students={students} studentId={studentId} student={student} />
+    </Suspense>
   );
 }

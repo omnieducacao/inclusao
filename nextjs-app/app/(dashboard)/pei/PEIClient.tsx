@@ -119,7 +119,7 @@ export function PEIClient({
   const [peiData, setPeiData] = useState<PEIData>(initialPeiData as PEIData);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(studentId || searchParams.get("student"));
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(studentId || searchParams?.get("student") || null);
   const [jsonPending, setJsonPending] = useState<PEIData | null>(null);
   const [jsonFileName, setJsonFileName] = useState<string>("");
   const [erroGlobal, setErroGlobal] = useState<string | null>(null);
