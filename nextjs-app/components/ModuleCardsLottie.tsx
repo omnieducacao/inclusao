@@ -2,40 +2,43 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import {
-  UsersFour,
-  RocketLaunch,
-  FileText as FileTextPhosphor,
-  PuzzlePiece,
-  BookOpen as BookOpenPhosphor,
-  ChartLineUp,
-  GraduationCap,
-  ClipboardText,
-  BookBookmark,
-  Gear,
-  Sparkle,
-  UsersThree,
-  Student,
-} from "phosphor-react";
 import type { Icon } from "phosphor-react";
 import { getColorClasses, colorPalette } from "@/lib/colors";
 import { LottieIcon } from "./LottieIcon";
 
-const iconMap: Record<string, Icon> = {
-  UsersFour,
-  RocketLaunch,
-  FileText: FileTextPhosphor,
-  PuzzlePiece,
-  BookOpen: BookOpenPhosphor,
-  ChartLineUp,
-  GraduationCap,
-  ClipboardText,
-  BookBookmark,
-  Gear,
-  Sparkle,
-  UsersThree,
-  Student,
-};
+// Import dinâmico dos ícones Phosphor para evitar problemas de SSR
+let iconMap: Record<string, Icon> | null = null;
+
+async function loadIcons() {
+  if (iconMap) return iconMap;
+  
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const phosphor = await import("phosphor-react");
+    iconMap = {
+      UsersFour: phosphor.UsersFour,
+      RocketLaunch: phosphor.RocketLaunch,
+      FileText: phosphor.FileText,
+      PuzzlePiece: phosphor.PuzzlePiece,
+      BookOpen: phosphor.BookOpen,
+      ChartLineUp: phosphor.ChartLineUp,
+      GraduationCap: phosphor.GraduationCap,
+      ClipboardText: phosphor.ClipboardText,
+      BookBookmark: phosphor.BookBookmark,
+      Gear: phosphor.Gear,
+      Sparkle: phosphor.Sparkle,
+      UsersThree: phosphor.UsersThree,
+      Student: phosphor.Student,
+    };
+    return iconMap;
+  } catch (err) {
+    console.warn("[ModuleCardsLottie] Failed to load phosphor-react:", err);
+    return {};
+  }
+}
 
 // Mapeamento de ícones Phosphor para Lottie COLORIDOS (wired-lineal) - versão colorida animada!
 const lottieMapColored: Record<string, string> = {
@@ -107,26 +110,47 @@ export function ModuleCardsLottie({
   useLottieByDefault = false, // Novo: mostrar Lottie por padrão
 }: ModuleCardsProps) {
   const [isMounted, setIsMounted] = useState(false);
+  const [iconsLoaded, setIconsLoaded] = useState(false);
+  const [loadedIconMap, setLoadedIconMap] = useState<Record<string, Icon>>({});
   
   useEffect(() => {
     setIsMounted(true);
+    loadIcons().then((map) => {
+      setLoadedIconMap(map);
+      setIconsLoaded(true);
+    });
   }, []);
   
-  const TitleIcon = iconMap[titleIconName];
-  if (!TitleIcon) return null;
-  
-  // Durante SSR, retornar versão simplificada sem animações
-  if (!isMounted) {
+  const TitleIcon = loadedIconMap[titleIconName];
+  if (!isMounted || !iconsLoaded || !TitleIcon) {
     return (
       <div>
         <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <TitleIcon className={`w-5 h-5 ${titleIconColor}`} weight="duotone" />
+          <div className="w-5 h-5 bg-slate-300 rounded animate-pulse" />
+          {title}
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          {modules.map((m) => (
+            <div
+              key={m.href}
+              className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse"
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+  
+  // Durante SSR, retornar versão simplificada sem animações
+  if (!isMounted || !iconsLoaded) {
+    return (
+      <div>
+        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <div className="w-5 h-5 bg-slate-300 rounded animate-pulse" />
           {title}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {modules.map((m) => {
-            const Icon = iconMap[m.iconName];
-            if (!Icon) return null;
             const colors = getColorClasses(m.color);
             return (
               <Link
@@ -144,13 +168,8 @@ export function ModuleCardsLottie({
                   <div className="flex-shrink-0">
                     <div 
                       className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10"
-                      style={{ animation: 'float 6s ease-in-out infinite' }}
                     >
-                      <Icon
-                        className="w-8 h-8 transition-all duration-300"
-                        style={{ color: colors.icon }}
-                        weight="duotone"
-                      />
+                      <div className="w-10 h-10 bg-slate-300 rounded animate-pulse" />
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -176,7 +195,7 @@ export function ModuleCardsLottie({
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {modules.map((m, index) => {
-          const Icon = iconMap[m.iconName];
+          const Icon = loadedIconMap[m.iconName];
           if (!Icon) return null;
           const colors = getColorClasses(m.color);
           // Sempre usar o colorido (lineal) para movimento contínuo, como no WelcomeHero
@@ -369,12 +388,35 @@ type IntelligenceModuleProps = {
 };
 
 export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModuleProps) {
+  const [isMounted, setIsMounted] = useState(false);
+  const [BookBookmarkIcon, setBookBookmarkIcon] = useState<Icon | null>(null);
   const lottieAnimation = lottieMapColored.BookBookmark;
+  
+  useEffect(() => {
+    setIsMounted(true);
+    if (typeof window !== "undefined") {
+      loadIcons().then((map) => {
+        setBookBookmarkIcon(map.BookBookmark || null);
+      });
+    }
+  }, []);
+  
+  if (!isMounted || !BookBookmarkIcon) {
+    return (
+      <div>
+        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <div className="w-5 h-5 bg-purple-300 rounded animate-pulse" />
+          Conhecimento e Referência
+        </h2>
+        <div className="h-40 bg-white rounded-2xl border-2 border-slate-200 animate-pulse" />
+      </div>
+    );
+  }
   
   return (
     <div>
       <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-        <BookBookmark className="w-5 h-5 text-purple-600" weight="duotone" />
+        <BookBookmarkIcon className="w-5 h-5 text-purple-600" weight="duotone" />
         Conhecimento e Referência
       </h2>
       <Link
@@ -395,11 +437,13 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
               />
             </div>
           ) : (
-            <BookBookmark
-              className="w-16 h-16 flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300"
-              style={{ color: colorPalette.table.icon }}
-              weight="duotone"
-            />
+            BookBookmarkIcon && (
+              <BookBookmarkIcon
+                className="w-16 h-16 flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300"
+                style={{ color: colorPalette.table.icon }}
+                weight="duotone"
+              />
+            )
           )}
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
