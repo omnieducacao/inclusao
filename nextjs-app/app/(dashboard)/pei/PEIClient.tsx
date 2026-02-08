@@ -125,6 +125,7 @@ export function PEIClient({
   const [studentPendingId, setStudentPendingId] = useState<string | null>(null);
   const [studentPendingName, setStudentPendingName] = useState<string>("");
   const [erroGlobal, setErroGlobal] = useState<string | null>(null);
+  const [isLoadingRascunho, setIsLoadingRascunho] = useState(false);
 
   const currentStudentId = selectedStudentId;
 
@@ -325,9 +326,9 @@ export function PEIClient({
 
   // Carregar dados do estudante quando selecionado (apenas se não for modo rascunho)
   useEffect(() => {
-    // Não executar se estamos em modo rascunho (selectedStudentId é null mas temos studentPendingId)
-    if (studentPendingId) {
-      console.log("useEffect ignorado - modo rascunho ativo");
+    // Não executar se estamos carregando como rascunho ou se temos studentPendingId
+    if (isLoadingRascunho || studentPendingId) {
+      console.log("useEffect ignorado - modo rascunho ativo ou carregando");
       return;
     }
     
@@ -389,7 +390,7 @@ export function PEIClient({
           setErroGlobal(null);
         });
     }
-  }, [selectedStudentId, studentId, students, studentPendingId]);
+  }, [selectedStudentId, studentId, students, studentPendingId, isLoadingRascunho]);
 
   // Aplicar JSON pendente
   function aplicarJson() {
@@ -791,6 +792,7 @@ export function PEIClient({
                               }
 
                               console.log("Buscando dados do estudante:", idToLoad);
+                              setIsLoadingRascunho(true);
                               try {
                                 const res = await fetch(`/api/students/${idToLoad}`);
                                 console.log("Resposta da API:", res.status, res.ok);
@@ -803,6 +805,7 @@ export function PEIClient({
                                   setStudentPendingName("");
                                   setSaved(false);
                                   setErroGlobal(null);
+                                  setIsLoadingRascunho(false);
                                   
                                   const url = new URL(window.location.href);
                                   url.searchParams.delete("student");
@@ -815,30 +818,47 @@ export function PEIClient({
                                 console.log("data.pei_data:", data.pei_data);
                                 console.log("Tipo de data.pei_data:", typeof data.pei_data);
                                 
-                                if (data.pei_data && typeof data.pei_data === 'object') {
-                                  console.log("Carregando PEI como rascunho");
-                                  console.log("pei_data antes de setar:", JSON.stringify(data.pei_data).substring(0, 200));
-                                  const novoPeiData = data.pei_data as PEIData;
-                                  console.log("Novo peiData:", novoPeiData);
-                                  setPeiData(novoPeiData);
-                                  console.log("setPeiData chamado com:", novoPeiData);
+                                // Verificar se temos pei_data válido
+                                const peiDataFromApi = data.pei_data;
+                                console.log("Verificando pei_data:", peiDataFromApi);
+                                console.log("Tipo:", typeof peiDataFromApi);
+                                console.log("É objeto?:", typeof peiDataFromApi === 'object');
+                                console.log("Não é null?:", peiDataFromApi !== null);
+                                console.log("Não é array?:", !Array.isArray(peiDataFromApi));
+                                console.log("Tem propriedades?:", peiDataFromApi && Object.keys(peiDataFromApi).length > 0);
+                                
+                                if (peiDataFromApi && typeof peiDataFromApi === 'object' && !Array.isArray(peiDataFromApi) && Object.keys(peiDataFromApi).length > 0) {
+                                  console.log("✅ Carregando PEI como rascunho");
+                                  console.log("pei_data completo:", JSON.stringify(peiDataFromApi).substring(0, 500));
+                                  const novoPeiData = peiDataFromApi as PEIData;
+                                  console.log("Novo peiData (primeiras chaves):", Object.keys(novoPeiData).slice(0, 10));
                                   
-                                  // Aguardar um pouco para garantir que o estado foi atualizado
-                                  setTimeout(() => {
-                                    console.log("Estado atualizado, verificando peiData...");
-                                  }, 100);
-                                  
+                                  // Limpar estados primeiro para evitar conflitos
                                   setSelectedStudentId(null);
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
+                                  
+                                  // Aguardar um tick antes de setar os dados para evitar race conditions
+                                  await new Promise(resolve => setTimeout(resolve, 0));
+                                  
+                                  setPeiData(novoPeiData);
                                   setSaved(false);
                                   setErroGlobal(null);
+                                  setIsLoadingRascunho(false);
                                   
                                   const url = new URL(window.location.href);
                                   url.searchParams.delete("student");
                                   window.history.pushState({}, "", url.toString());
-                                  console.log("Carregamento concluído - dados devem estar visíveis agora");
-                                  alert("Dados carregados! Verifique o formulário.");
+                                  
+                                  console.log("✅ Carregamento concluído - dados devem estar visíveis agora");
+                                  console.log("Verificando estado após setPeiData...");
+                                  
+                                  // Verificar se os dados foram realmente setados
+                                  setTimeout(() => {
+                                    console.log("Estado após 200ms - verifique o formulário");
+                                  }, 200);
+                                  
+                                  alert(`Dados carregados! ${Object.keys(novoPeiData).length} campos encontrados.`);
                                 } else {
                                   console.log("Estudante sem pei_data, carregando como rascunho vazio");
                                   console.log("data.pei_data é:", data.pei_data);
@@ -847,6 +867,7 @@ export function PEIClient({
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setSaved(false);
+                                  setIsLoadingRascunho(false);
                                   alert("Estudante encontrado mas sem dados de PEI. Formulário limpo para preenchimento.");
                                 }
                                 
@@ -862,6 +883,7 @@ export function PEIClient({
                                 setStudentPendingId(null);
                                 setStudentPendingName("");
                                 setSaved(false);
+                                setIsLoadingRascunho(false);
                                 
                                 const url = new URL(window.location.href);
                                 url.searchParams.delete("student");
