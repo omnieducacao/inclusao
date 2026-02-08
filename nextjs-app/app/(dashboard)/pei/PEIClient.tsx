@@ -753,6 +753,7 @@ export function PEIClient({
                         <div className="p-2 rounded bg-white border border-slate-200">
                           <p className="text-[10px] font-medium text-slate-700">Estudante selecionado ✅ ({studentPendingName})</p>
                           <p className="text-[10px] text-slate-500 mt-0.5">Clique no botão abaixo para carregar como rascunho.</p>
+                          <p className="text-[9px] text-slate-400 mt-1">ID: {studentPendingId}</p>
                         </div>
                         <div className="flex gap-1.5">
                           <button
@@ -760,12 +761,17 @@ export function PEIClient({
                             onClick={async (e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              console.log("Botão Carregar clicado! studentPendingId:", studentPendingId);
+                              console.log("=== BOTÃO CARREGAR CLICADO ===");
+                              console.log("studentPendingId:", studentPendingId);
+                              console.log("studentPendingName:", studentPendingName);
+                              alert(`Clicou! ID: ${studentPendingId}`);
                               
                               // Usar o valor atual diretamente
                               const idToLoad = studentPendingId;
+                              console.log("idToLoad:", idToLoad);
                               if (!idToLoad) {
                                 alert("Nenhum estudante selecionado");
+                                console.error("idToLoad está vazio!");
                                 return;
                               }
                               
