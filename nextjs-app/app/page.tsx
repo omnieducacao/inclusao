@@ -8,14 +8,14 @@ import { WelcomeHero } from "@/components/WelcomeHero";
 
 export default async function RootPage() {
   const session = await getSession();
-  
+
   // O middleware já redireciona para /login se não houver sessão
   // Mas garantimos que a sessão existe aqui também
   if (!session) {
     redirect("/login");
     return null; // TypeScript safety
   }
-  
+
   const saudacao =
     new Date().getHours() >= 5 && new Date().getHours() < 12
       ? "Bom dia"
@@ -87,49 +87,49 @@ export default async function RootPage() {
     desc: string;
     color: string;
   }> = [
-    {
-      href: "/gestao",
-      iconName: "UsersThree",
-      title: "Gestão de Usuários",
-      desc: "Cadastrar usuários, atribuir permissões e vínculos com estudantes.",
-      color: "test",
-    },
-    {
-      href: "/pgi",
-      iconName: "ClipboardText",
-      title: "PGI",
-      desc: "Plano de Gestão Inclusiva. Estruture infraestrutura, formação e recursos da escola.",
-      color: "presentation",
-    },
-    {
-      href: "/config-escola",
-      iconName: "GraduationCap",
-      title: "Configuração Escola",
-      desc: "Ano letivo, séries e turmas. Configure antes de cadastrar professores.",
-      color: "reports",
-    },
-  ];
+      {
+        href: "/gestao",
+        iconName: "UsersThree",
+        title: "Gestão de Usuários",
+        desc: "Cadastrar usuários, atribuir permissões e vínculos com estudantes.",
+        color: "test",
+      },
+      {
+        href: "/pgi",
+        iconName: "ClipboardText",
+        title: "PGI",
+        desc: "Plano de Gestão Inclusiva. Estruture infraestrutura, formação e recursos da escola.",
+        color: "presentation",
+      },
+      {
+        href: "/config-escola",
+        iconName: "GraduationCap",
+        title: "Configuração Escola",
+        desc: "Ano letivo, séries e turmas. Configure antes de cadastrar professores.",
+        color: "reports",
+      },
+    ];
 
   const adminModules = session?.is_platform_admin
     ? [
-        ...adminModulesBase,
-        {
-          href: "/admin",
-          iconName: "Gear",
-          title: "Admin Plataforma",
-          desc: "Gerenciamento completo da plataforma",
-          color: "reports",
-        },
-      ]
+      ...adminModulesBase,
+      {
+        href: "/admin",
+        iconName: "Gear",
+        title: "Admin Plataforma",
+        desc: "Gerenciamento completo da plataforma",
+        color: "reports",
+      },
+    ]
     : adminModulesBase;
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-sky-50/20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/15 to-sky-50/10">
       <Navbar session={session} hideMenu={true} />
-      <main className="max-w-[1600px] mx-auto px-6 py-6">
-        <div className="space-y-6">
-          <Suspense fallback={<div className="h-36 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
+      <main className="max-w-[1600px] mx-auto px-8 py-8">
+        <div className="space-y-8">
+          <Suspense fallback={<div className="h-[140px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
             <WelcomeHero
               saudacao={saudacao}
               userFirst={userFirst}
@@ -138,10 +138,10 @@ export default async function RootPage() {
           </Suspense>
 
           {/* Módulos Principais - Fluxo Core */}
-          <Suspense fallback={<div className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
-            <ModuleCardsLottie 
-              modules={primaryModules} 
-              title="Módulos Principais" 
+          <Suspense fallback={<div className="h-[120px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
+            <ModuleCardsLottie
+              modules={primaryModules}
+              title="Módulos Principais"
               titleIconName="Sparkle"
               titleIconColor="text-sky-600"
               useLottieOnHover={true}
@@ -150,10 +150,10 @@ export default async function RootPage() {
           </Suspense>
 
           {/* Módulos de Apoio */}
-          <Suspense fallback={<div className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
-            <ModuleCardsLottie 
-              modules={supportModules} 
-              title="Recursos e Acompanhamento" 
+          <Suspense fallback={<div className="h-[120px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
+            <ModuleCardsLottie
+              modules={supportModules}
+              title="Recursos e Acompanhamento"
               titleIconName="RocketLaunch"
               titleIconColor="text-cyan-600"
               useLottieOnHover={true}
@@ -163,10 +163,10 @@ export default async function RootPage() {
 
           {/* Módulos Administrativos */}
           {adminModules.length > 0 && (
-            <Suspense fallback={<div className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
-              <ModuleCardsLottie 
-                modules={adminModules} 
-                title="Configuração e Gestão" 
+            <Suspense fallback={<div className="h-[120px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
+              <ModuleCardsLottie
+                modules={adminModules}
+                title="Configuração e Gestão"
                 titleIconName="Gear"
                 titleIconColor="text-slate-600"
                 useLottieOnHover={true}
@@ -176,20 +176,37 @@ export default async function RootPage() {
           )}
 
           {/* Central de Inteligência - Destaque Especial */}
-          <Suspense fallback={<div className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
-            <IntelligenceModuleCard 
+          <Suspense fallback={<div className="h-[120px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
+            <IntelligenceModuleCard
               href={intelligenceModule.href}
               title={intelligenceModule.title}
               desc={intelligenceModule.desc}
             />
           </Suspense>
 
-          <div className="rounded-xl border-2 border-slate-200 bg-slate-50/50 p-4">
-            <p className="text-sm text-slate-600">
-              <strong>Omnisfera</strong> — Plataforma de inclusão educacional.
-              Legislação: Decretos 12.686/2025 e 12.773/2025. Alinhada à BNCC.
-            </p>
-          </div>
+          <footer className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.03)', border: '1px solid rgba(226,232,240,0.5)' }}>
+            <div className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-indigo-50/20 px-6 py-5">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center opacity-40">
+                    <span className="text-white text-[9px] font-bold">O</span>
+                  </div>
+                  <p className="body-caption">
+                    <strong className="text-slate-600 font-semibold">Omnisfera</strong>
+                    <span className="mx-1.5 text-slate-300">·</span>
+                    Plataforma de inclusão educacional
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="body-caption">Decretos 12.686/2025 e 12.773/2025</span>
+                  <span className="text-slate-300">·</span>
+                  <span className="body-caption">Alinhada à BNCC</span>
+                  <span className="text-slate-300">·</span>
+                  <span className="body-caption text-slate-400">v2.0</span>
+                </div>
+              </div>
+            </div>
+          </footer>
         </div>
       </main>
       <AIEnginesBadge />

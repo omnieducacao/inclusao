@@ -11,7 +11,7 @@ let iconMap: Record<string, Icon> | null = null;
 
 async function loadIcons() {
   if (iconMap) return iconMap;
-  
+
   if (typeof window === "undefined") {
     return {};
   }
@@ -106,10 +106,10 @@ type ModuleCardsProps = {
  * - No hover: se useLottieOnHover=true, mostra animação Lottie sutil
  * - Mais sutil que animação constante
  */
-export function ModuleCardsLottie({ 
-  modules, 
-  title, 
-  titleIconName, 
+export function ModuleCardsLottie({
+  modules,
+  title,
+  titleIconName,
   titleIconColor = "text-slate-600",
   useLottieOnHover = false,
   useLottieByDefault = false, // Novo: mostrar Lottie por padrão
@@ -117,7 +117,7 @@ export function ModuleCardsLottie({
   const [isMounted, setIsMounted] = useState(false);
   const [iconsLoaded, setIconsLoaded] = useState(false);
   const [loadedIconMap, setLoadedIconMap] = useState<Record<string, Icon>>({});
-  
+
   useEffect(() => {
     setIsMounted(true);
     loadIcons().then((map) => {
@@ -125,94 +125,47 @@ export function ModuleCardsLottie({
       setIconsLoaded(true);
     });
   }, []);
-  
+
   const TitleIcon = loadedIconMap[titleIconName];
   if (!isMounted || !iconsLoaded || !TitleIcon) {
     return (
       <div>
-        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <div className="w-5 h-5 bg-slate-300 rounded animate-pulse" />
+        <h2 className="text-lg font-bold text-slate-800 mb-5 flex items-center gap-3">
+          <div className="w-1 h-5 rounded-full bg-slate-300 animate-pulse" />
+          <div className="w-5 h-5 bg-slate-200 rounded-lg animate-pulse" />
           {title}
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
           {modules.map((m) => (
             <div
               key={m.href}
-              className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse"
+              className="h-[130px] bg-white rounded-2xl animate-pulse"
+              style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}
             />
           ))}
         </div>
       </div>
     );
   }
-  
-  // Durante SSR, retornar versão simplificada sem animações
-  if (!isMounted || !iconsLoaded) {
-    return (
-      <div>
-        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <div className="w-5 h-5 bg-slate-300 rounded animate-pulse" />
-          {title}
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {modules.map((m) => {
-            const colors = getColorClasses(m.color);
-            return (
-              <Link
-                key={m.href}
-                href={m.href}
-                className="group relative block p-6 rounded-2xl border-2 border-slate-200 transition-all duration-500 shadow-sm hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 opacity-100"
-                style={{ backgroundColor: colors.bg }}
-              >
-                {m.badge && (
-                  <span className="absolute top-3 right-3 px-2 py-0.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow-sm">
-                    {m.badge}
-                  </span>
-                )}
-                <div className="flex items-start gap-5">
-                  <div className="flex-shrink-0">
-                    <div 
-                      className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10"
-                      style={{ width: '72px', height: '72px', padding: '6px' }}
-                    >
-                      <div className="w-16 h-16 bg-slate-300 rounded animate-pulse" />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="font-bold block text-lg transition-colors" style={{ color: colors.text }}>
-                      {m.title}
-                    </span>
-                    <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">{m.desc}</p>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-  
+
+  // Remove unreachable SSR fallback (already handled above)
+
   return (
     <div>
-      <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+      <h2 className="heading-section text-slate-800 mb-5 flex items-center gap-3">
+        <div className="w-1 h-5 rounded-full" style={{ backgroundColor: titleIconColor === 'text-slate-600' ? '#94a3b8' : undefined, background: titleIconColor !== 'text-slate-600' ? 'linear-gradient(to bottom, #3b82f6, #6366f1)' : undefined }} />
         <TitleIcon className={`w-5 h-5 ${titleIconColor}`} weight="duotone" />
         {title}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10 stagger-children">
         {modules.map((m, index) => {
           const Icon = loadedIconMap[m.iconName];
           if (!Icon) return null;
           const colors = getColorClasses(m.color);
-          // Sempre usar o colorido (lineal) para movimento contínuo, como no WelcomeHero
           const lottieMaps = getLottieMaps();
-          const lottieAnimation = lottieMaps.default[m.iconName]; // Lineal colorido - sempre animado
-          // Se useLottieByDefault=true, sempre usar Lottie quando disponível
-          // Caso contrário, usar a lógica de m.useLottie ou useLottieOnHover
-          const shouldUseLottie = useLottieByDefault 
-            ? true 
-            : (m.useLottie ?? useLottieOnHover);
-          
+          const lottieAnimation = lottieMaps.default[m.iconName];
+          const shouldUseLottie = (m.useLottie ?? useLottieOnHover) || useLottieByDefault;
+
           return (
             <ModuleCardWithLottie
               key={m.href}
@@ -260,12 +213,12 @@ function ModuleCardWithLottie({
   const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  
+
   // Garantir que só renderiza no cliente
   useEffect(() => {
     setIsMounted(true);
   }, []);
-  
+
   // Animação de entrada escalonada (apenas no cliente)
   useEffect(() => {
     if (!isMounted) return;
@@ -274,21 +227,21 @@ function ModuleCardWithLottie({
     }, index * 100); // Delay de 100ms entre cada card
     return () => clearTimeout(timer);
   }, [index, isMounted]);
-  
+
   // Sempre mostrar Lottie quando disponível (usando colorido/lineal)
   // Se useLottieByDefault=true, sempre mostrar Lottie quando mapeado
   // Se useLottieByDefault=false, só mostrar se useLottie=true
-  const shouldShowLottie = useLottieByDefault 
-    ? !!lottieAnimation 
+  const shouldShowLottie = useLottieByDefault
+    ? !!lottieAnimation
     : (useLottie && !!lottieAnimation);
-  
+
   // Durante SSR, mostrar versão estática
   if (!isMounted) {
     return (
       <Link
         href={href}
-        className="group relative block p-6 rounded-2xl border-2 border-slate-200 transition-all duration-500 shadow-sm hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 opacity-100"
-        style={{ backgroundColor: colors.bg }}
+        className="group relative block p-6 rounded-2xl transition-all duration-500 shadow-sm hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 opacity-100"
+        style={{ backgroundColor: colors.bg, border: '1px solid rgba(226,232,240,0.6)' }}
       >
         {badge && (
           <span className="absolute top-3 right-3 px-2 py-0.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow-sm">
@@ -297,7 +250,7 @@ function ModuleCardWithLottie({
         )}
         <div className="flex items-start gap-5">
           <div className="flex-shrink-0">
-            <div 
+            <div
               className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10"
             >
               <Icon
@@ -321,56 +274,67 @@ function ModuleCardWithLottie({
   return (
     <Link
       href={href}
-        className={`group relative block p-6 rounded-2xl border-2 border-slate-200 transition-all duration-500 shadow-sm hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 ${
-        isVisible 
-          ? 'opacity-100 translate-y-0' 
-          : 'opacity-0 translate-y-4'
-      }`}
-      style={{ backgroundColor: colors.bg }}
+      className={`group relative block rounded-2xl overflow-hidden transition-all duration-500 ${isVisible
+        ? 'opacity-100 translate-y-0'
+        : 'opacity-0 translate-y-4'
+        }`}
+      style={{
+        backgroundColor: colors.bg,
+        boxShadow: isHovered
+          ? '0 8px 24px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)'
+          : '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.8)',
+        border: isHovered
+          ? `1px solid ${colors.icon}40`
+          : '1px solid rgba(226,232,240,0.6)',
+        transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {badge && (
-        <span className="absolute top-3 right-3 px-2 py-0.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow-sm">
-          {badge}
-        </span>
-      )}
-      <div className="flex items-start gap-5">
-        {/* Ícone dentro de quadrado com fundo semitransparente, EXATAMENTE como no WelcomeHero */}
-        <div className={`flex-shrink-0 transition-all duration-500 ${
-          isVisible ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
-        }`}>
-          {shouldShowLottie && lottieAnimation ? (
-            <div 
-              className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
-              style={{ width: '72px', height: '72px', padding: '6px' }}
-            >
-              <LottieIcon
-                animation={lottieAnimation}
-                size={60}
-                loop={isHovered}
-                autoplay={isHovered}
-                className="transition-all duration-300"
-              />
-            </div>
-          ) : (
-            <div 
-              className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
-              style={{ width: '72px', height: '72px', padding: '6px' }}
-            >
-              <Icon
-                className="transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
-                style={{ color: colors.icon, width: '60px', height: '60px' }}
-                weight="duotone"
-              />
-            </div>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <span className="font-bold block text-lg transition-colors" style={{ color: colors.text }}>
-            {title}
+      {/* Top accent bar */}
+      <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${colors.icon}, ${colors.text})` }} />
+
+      <div className="p-6">
+        {badge && (
+          <span className="absolute top-4 right-4 px-2.5 py-0.5 text-[11px] font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow-sm">
+            {badge}
           </span>
-          <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">{desc}</p>
+        )}
+        <div className="flex items-start gap-5">
+          <div className={`flex-shrink-0 transition-all duration-500 ${isVisible ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
+            }`}>
+            {shouldShowLottie && lottieAnimation ? (
+              <div
+                className="rounded-xl bg-white/30 flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-2"
+                style={{ width: '64px', height: '64px', padding: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
+              >
+                <LottieIcon
+                  animation={lottieAnimation}
+                  size={56}
+                  loop={isHovered}
+                  autoplay={isHovered}
+                  className="transition-all duration-300"
+                />
+              </div>
+            ) : (
+              <div
+                className="rounded-xl bg-white/30 flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-2"
+                style={{ width: '64px', height: '64px', padding: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
+              >
+                <Icon
+                  className="transition-all duration-300"
+                  style={{ color: colors.icon, width: '56px', height: '56px' }}
+                  weight="duotone"
+                />
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0 pt-1">
+            <span className="font-bold block text-[17px] transition-colors leading-tight" style={{ color: colors.text }}>
+              {title}
+            </span>
+            <p className="text-[13px] text-slate-500 mt-1.5 leading-relaxed">{desc}</p>
+          </div>
         </div>
       </div>
     </Link>
@@ -398,10 +362,11 @@ type IntelligenceModuleProps = {
 
 export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModuleProps) {
   const [isMounted, setIsMounted] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [ClipboardTextIcon, setClipboardTextIcon] = useState<Icon | null>(null);
   const lottieMaps = getLottieMaps();
   const lottieAnimation = lottieMaps.colored.BookBookmark; // Agora aponta para livros (mesmo de PGI)
-  
+
   useEffect(() => {
     setIsMounted(true);
     if (typeof window !== "undefined") {
@@ -410,74 +375,90 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
       });
     }
   }, []);
-  
+
   if (!isMounted || !ClipboardTextIcon) {
     return (
       <div>
-        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <div className="w-5 h-5 bg-purple-300 rounded animate-pulse" />
+        <h2 className="text-lg font-extrabold text-slate-800 mb-5 flex items-center gap-3">
+          <div className="w-1 h-5 rounded-full bg-purple-400 animate-pulse" />
+          <div className="w-5 h-5 bg-purple-200 rounded-lg animate-pulse" />
           Conhecimento e Referência
         </h2>
-        <div className="h-40 bg-white rounded-2xl border-2 border-slate-200 animate-pulse" />
+        <div className="h-40 bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />
       </div>
     );
   }
-  
+
   return (
     <div>
-      <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+      <h2 className="heading-section text-slate-800 mb-5 flex items-center gap-3">
+        <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #8b5cf6, #a855f7)' }} />
         <ClipboardTextIcon className="w-5 h-5 text-purple-600" weight="duotone" />
         Conhecimento e Referência
       </h2>
       <Link
         href={href}
-        className="group relative block p-8 rounded-2xl border-2 border-slate-200 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.01] hover:border-slate-300 overflow-hidden"
-        style={{ backgroundColor: colorPalette.table.bg }}
+        className="group relative block rounded-2xl overflow-hidden transition-all duration-300"
+        style={{
+          backgroundColor: colorPalette.table.bg,
+          boxShadow: isHovered
+            ? '0 8px 32px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.06)'
+            : '0 4px 12px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)',
+          border: '1px solid rgba(226,232,240,0.6)',
+          transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${colorPalette.table.icon}15, transparent, ${colorPalette.table.icon}15)` }}></div>
-        <div className="relative flex items-start gap-6">
-          {/* Ícone Lottie colorido para Central de Inteligência - agora com livros */}
-          {lottieAnimation ? (
-            <div 
-              className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
-              style={{ width: '72px', height: '72px', padding: '6px' }}
-            >
-              <LottieIcon
-                animation={lottieAnimation}
-                size={60}
-                loop={true}
-                className="transition-all duration-300"
-              />
-            </div>
-          ) : (
-            ClipboardTextIcon && (
-              <div 
-                className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
-                style={{ width: '72px', height: '72px', padding: '6px' }}
+        {/* Top accent bar */}
+        <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${colorPalette.table.icon}, #a855f7)` }} />
+
+        <div className="p-8">
+          <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${colorPalette.table.icon}15, transparent, ${colorPalette.table.icon}15)` }} />
+          <div className="relative flex items-start gap-6">
+            {lottieAnimation ? (
+              <div
+                className="rounded-xl bg-white/30 flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-2"
+                style={{ width: '64px', height: '64px', padding: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
               >
-                <ClipboardTextIcon
-                  className="transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
-                  style={{ color: colorPalette.table.icon, width: '60px', height: '60px' }}
-                  weight="duotone"
+                <LottieIcon
+                  animation={lottieAnimation}
+                  size={56}
+                  loop={isHovered}
+                  autoplay={isHovered}
+                  className="transition-all duration-300"
                 />
               </div>
-            )
-          )}
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="font-bold text-2xl transition-colors" style={{ color: colorPalette.table.text }}>
-                {title}
-              </span>
-              <span className="px-3 py-1 text-xs font-bold text-white rounded-full shadow-sm" style={{ backgroundColor: colorPalette.table.icon }}>
-                Novo
-              </span>
-            </div>
-            <p className="text-base text-slate-700 leading-relaxed font-medium">
-              {desc}
-            </p>
-            <div className="mt-4 flex items-center gap-2 text-sm font-semibold group-hover:gap-3 transition-all" style={{ color: colorPalette.table.icon }}>
-              <span>Explorar recursos</span>
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
+            ) : (
+              ClipboardTextIcon && (
+                <div
+                  className="rounded-xl bg-white/30 flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-2"
+                  style={{ width: '64px', height: '64px', padding: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
+                >
+                  <ClipboardTextIcon
+                    className="transition-all duration-300"
+                    style={{ color: colorPalette.table.icon, width: '56px', height: '56px' }}
+                    weight="duotone"
+                  />
+                </div>
+              )
+            )}
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="font-extrabold text-2xl transition-colors" style={{ color: colorPalette.table.text }}>
+                  {title}
+                </span>
+                <span className="px-2.5 py-0.5 text-[11px] font-bold text-white rounded-full shadow-sm" style={{ backgroundColor: colorPalette.table.icon }}>
+                  Novo
+                </span>
+              </div>
+              <p className="text-[15px] text-slate-600 leading-relaxed">
+                {desc}
+              </p>
+              <div className="mt-4 flex items-center gap-2 text-sm font-bold group-hover:gap-3 transition-all" style={{ color: colorPalette.table.icon }}>
+                <span>Explorar recursos</span>
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
+              </div>
             </div>
           </div>
         </div>

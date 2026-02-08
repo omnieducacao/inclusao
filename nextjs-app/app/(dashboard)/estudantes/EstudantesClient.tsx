@@ -61,7 +61,7 @@ export function EstudantesClient({ students }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 shadow-sm">
+    <div className="bg-white rounded-2xl" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
         <input
           type="search"

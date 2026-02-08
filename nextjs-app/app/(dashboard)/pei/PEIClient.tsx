@@ -176,47 +176,47 @@ export function PEIClient({
 
   function _abaOk(key: string): boolean {
     const d = peiData;
-    
+
     if (key === "INICIO") {
       return _isFilled(d.nome);
     }
-    
+
     if (key === "ESTUDANTE") {
       return _isFilled(d.nome) && _isFilled(d.serie) && _isFilled(d.turma);
     }
-    
+
     if (key === "EVIDENCIAS") {
       const chk = d.checklist_evidencias || {};
       return Object.values(chk).some((v) => Boolean(v)) || _isFilled(d.orientacoes_especialistas);
     }
-    
+
     if (key === "REDE") {
       return _isFilled(d.rede_apoio) || _isFilled(d.orientacoes_especialistas) || _isFilled(d.orientacoes_por_profissional);
     }
-    
+
     if (key === "MAPEAMENTO") {
       const barreiras = d.barreiras_selecionadas || {};
       const nBar = Object.values(barreiras).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
       return _isFilled(d.hiperfoco) || _isFilled(d.potencias) || nBar > 0;
     }
-    
+
     if (key === "PLANO") {
       return _isFilled(d.estrategias_acesso) || _isFilled(d.estrategias_ensino) || _isFilled(d.estrategias_avaliacao) ||
-             _isFilled(d.outros_acesso) || _isFilled(d.outros_ensino);
+        _isFilled(d.outros_acesso) || _isFilled(d.outros_ensino);
     }
-    
+
     if (key === "MONITORAMENTO") {
       return _isFilled(d.monitoramento_data) && _isFilled(d.status_meta);
     }
-    
+
     if (key === "IA") {
       return _isFilled(d.ia_sugestao) && (d.status_validacao_pei === "revisao" || d.status_validacao_pei === "aprovado");
     }
-    
+
     if (key === "DASH") {
       return _isFilled(d.ia_sugestao);
     }
-    
+
     return false;
   }
 
@@ -233,15 +233,15 @@ export function PEIClient({
     let barColor = '#FBBF24'; // Amarelo (0-49%)
     if (p >= 50) barColor = '#60A5FA'; // Azul (50-99%)
     if (p >= 100) barColor = '#34D399'; // Verde (100%)
-    
+
     return (
       <div className="mb-4">
         <div className="relative w-full h-2 bg-slate-200 rounded-full overflow-hidden shadow-inner">
           {/* Barra de progresso com animação - cor única */}
-          <div 
+          <div
             className="absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out shadow-sm"
-            style={{ 
-              width: `${p}%`, 
+            style={{
+              width: `${p}%`,
               backgroundColor: barColor,
               boxShadow: p > 0 ? `0 0 8px ${barColor}40` : 'none'
             }}
@@ -309,7 +309,7 @@ export function PEIClient({
 
   if (students.length === 0) {
     return (
-      <div className="bg-white rounded-xl border-2 border-slate-200 p-8 text-center">
+      <div className="bg-white rounded-2xl p-8 text-center" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
         <p className="text-slate-600">
           Nenhum estudante cadastrado. Crie um estudante em{" "}
           <Link href="/estudantes" className="text-sky-600 hover:underline">
@@ -325,7 +325,7 @@ export function PEIClient({
   useEffect(() => {
     if (selectedStudentId && selectedStudentId !== studentId) {
       setErroGlobal(null);
-      
+
       // Verificar se o estudante está na lista primeiro
       const studentFromList = students.find((s) => s.id === selectedStudentId);
       if (!studentFromList) {
@@ -396,7 +396,7 @@ export function PEIClient({
   // Função para verificar status de cada aba
   function getTabStatus(tabId: TabId): "complete" | "in-progress" | "empty" {
     const d = peiData;
-    
+
     switch (tabId) {
       case "inicio":
         return _isFilled(d.nome) ? "complete" : "empty";
@@ -415,7 +415,7 @@ export function PEIClient({
         return hasBarreiras ? "complete" : "empty";
       case "plano":
         const temEstrategias = _isFilled(d.estrategias_acesso) || _isFilled(d.estrategias_ensino) || _isFilled(d.estrategias_avaliacao) ||
-                               _isFilled(d.outros_acesso) || _isFilled(d.outros_ensino);
+          _isFilled(d.outros_acesso) || _isFilled(d.outros_ensino);
         return temEstrategias ? "complete" : "empty";
       case "monitoramento":
         return _isFilled(d.parecer_geral) ? "complete" : "empty";
@@ -432,7 +432,7 @@ export function PEIClient({
   }
 
   return (
-    <div className="bg-white rounded-xl border-2 border-slate-200 shadow-lg overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden" style={{ border: '1px solid rgba(226,232,240,0.6)' }}>
       {/* Barra de Progresso Global */}
       <div className="px-6 pt-4 pb-2 bg-gradient-to-r from-slate-50 to-blue-50/30 border-b border-slate-200">
         <div className="flex items-center justify-between mb-2">
@@ -464,32 +464,30 @@ export function PEIClient({
       )}
 
       {/* Navegação de Abas com Indicadores Visuais */}
-      <div className="flex border-b-2 border-slate-200 bg-white overflow-x-auto scrollbar-hide">
+      <div className="flex gap-1.5 p-1.5 bg-slate-100/80 rounded-2xl overflow-x-auto scrollbar-hide" style={{ border: '1px solid rgba(226,232,240,0.6)' }}>
         {TABS.map((t) => {
           const status = getTabStatus(t.id);
           const isActive = activeTab === t.id;
-          
+
           return (
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
-              className={`group relative px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold whitespace-nowrap flex-shrink-0 flex items-center gap-1 sm:gap-2 transition-all duration-200 ${
-                isActive 
-                  ? "text-sky-600 border-b-2 border-sky-600 bg-gradient-to-b from-sky-50 to-white" 
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
-              }`}
+              className={`group relative px-3 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-[13px] font-semibold whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 sm:gap-2 rounded-xl transition-all duration-200 ${isActive
+                ? "bg-white text-slate-800 shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+                }`}
             >
               {/* Indicador de Status */}
-              <div className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                status === "complete" 
-                  ? "bg-emerald-500 shadow-sm shadow-emerald-500/50" 
-                  : status === "in-progress"
+              <div className={`w-2 h-2 rounded-full transition-all duration-200 flex-shrink-0 ${status === "complete"
+                ? "bg-emerald-500 shadow-sm shadow-emerald-500/50"
+                : status === "in-progress"
                   ? "bg-amber-500 shadow-sm shadow-amber-500/50"
                   : "bg-slate-300"
-              }`} />
-              
+                }`} />
+
               <span className={isActive ? "font-bold" : ""}>{t.label}</span>
-              
+
               {/* Tooltip de status */}
               {status === "complete" && (
                 <CheckCircle2 className="w-3 h-3 text-emerald-500" />
@@ -518,705 +516,893 @@ export function PEIClient({
       </div>
 
       <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto scroll-smooth">
-            {activeTab === "inicio" && (
-              <div className="space-y-4 max-w-6xl mx-auto">
-                {/* Título da aba com ícone */}
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText className="w-5 h-5 text-sky-600" />
-                  <h3 className="text-lg font-semibold text-slate-800">Central de Fundamentos e Gestão</h3>
+        {activeTab === "inicio" && (
+          <div className="space-y-4 max-w-6xl mx-auto">
+            {/* Título da aba com ícone */}
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-5 h-5 text-sky-600" />
+              <h3 className="text-lg font-semibold text-slate-800">Central de Fundamentos e Gestão</h3>
+            </div>
+
+            {/* Grid principal: 2 colunas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+              {/* Coluna Esquerda: Fundamentos */}
+              <div className="space-y-3">
+                <div className="rounded-lg border border-slate-200/60 p-4 bg-white">
+                  <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-sky-600" />
+                    Fundamentos do PEI
+                  </h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    O PEI organiza o planejamento individualizado com foco em <strong>barreiras e apoios</strong>.
+                    <strong>Equidade:</strong> ajustar acesso, ensino e avaliação, sem baixar expectativas.
+                    Base: <strong>LBI (Lei 13.146/2015)</strong>, LDB.
+                  </p>
                 </div>
-                
-                {/* Grid principal: 2 colunas */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-                  {/* Coluna Esquerda: Fundamentos */}
-                  <div className="space-y-3">
-                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
-                      <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-sky-600" />
-                        Fundamentos do PEI
-                      </h4>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        O PEI organiza o planejamento individualizado com foco em <strong>barreiras e apoios</strong>. 
-                        <strong>Equidade:</strong> ajustar acesso, ensino e avaliação, sem baixar expectativas. 
-                        Base: <strong>LBI (Lei 13.146/2015)</strong>, LDB.
-                      </p>
+
+                <div className="rounded-lg border border-slate-200/60 p-4 bg-white">
+                  <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                    <Info className="w-4 h-4 text-sky-600" />
+                    Como usar a Omnisfera
+                  </h4>
+                  <ol className="list-decimal list-inside text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                    <li><strong>Estudante:</strong> identificação + contexto + laudo (opcional)</li>
+                    <li><strong>Evidências:</strong> o que foi observado e como aparece na rotina</li>
+                    <li><strong>Mapeamento:</strong> barreiras + nível de apoio + potências</li>
+                    <li><strong>Plano de Ação:</strong> acesso/ensino/avaliação</li>
+                    <li><strong>Consultoria IA:</strong> gerar o documento técnico (validação do educador)</li>
+                    <li><strong>Dashboard:</strong> KPIs + exportações + sincronização</li>
+                  </ol>
+                </div>
+
+                <details className="rounded-lg border border-slate-200/60 p-3 bg-white">
+                  <summary className="cursor-pointer text-xs font-semibold text-slate-800 mb-2">
+                    📘 PEI/PDI e a Prática Inclusiva — Amplie o conhecimento
+                  </summary>
+                  <div className="mt-2 text-xs text-slate-600 space-y-2 leading-relaxed">
+                    <p>
+                      O <strong>Plano Educacional Individualizado (PEI)</strong>, também denominado <strong>Plano de Desenvolvimento Individual (PDI)</strong>, é um roteiro de intervenção pedagógica personalizado e flexível que norteia o processo de aprendizagem em sala comum para público-alvo da educação inclusiva. Tem o objetivo de <strong>remover obstáculos</strong> e <strong>promover a escolarização</strong>.
+                    </p>
+                    <p>
+                      O PEI/PDI leva em conta as particularidades do(a) aluno(a), incluindo-o no repertório da classe que frequenta e tendo como referência a <strong>mesma matriz curricular</strong> do ano a ser cursado.
+                    </p>
+                    <p>
+                      <strong>Caráter obrigatório:</strong> deve ser atualizado sistematicamente e compor a documentação escolar de alunos com deficiência, transtorno global do desenvolvimento e altas habilidades/superdotação. Respeita as orientações do laudo médico, quando houver.
+                    </p>
+                    <p>
+                      <strong>Elaboração:</strong> pela equipe multidisciplinar da escola; discutido com a família e profissionais externos no início do ano letivo; replanejado ao final de cada unidade e/ou período de avaliação.
+                    </p>
+                    <div>
+                      <p className="font-semibold mb-1 text-xs">Registros fundamentais:</p>
+                      <ul className="list-disc list-inside space-y-0.5 ml-2 text-xs">
+                        <li>Identidade do aluno</li>
+                        <li>Necessidades específicas (características mais recorrentes)</li>
+                        <li>Dados sobre autonomia</li>
+                        <li>Dados atualizados sobre atendimentos externos</li>
+                        <li>Desenvolvimento escolar (leitura e raciocínio lógico-matemático)</li>
+                        <li>Necessidades de material pedagógico e tecnologias assistivas</li>
+                      </ul>
                     </div>
-                    
-                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
-                      <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
-                        <Info className="w-4 h-4 text-sky-600" />
-                        Como usar a Omnisfera
-                      </h4>
-                      <ol className="list-decimal list-inside text-xs text-slate-600 space-y-1.5 leading-relaxed">
-                        <li><strong>Estudante:</strong> identificação + contexto + laudo (opcional)</li>
-                        <li><strong>Evidências:</strong> o que foi observado e como aparece na rotina</li>
-                        <li><strong>Mapeamento:</strong> barreiras + nível de apoio + potências</li>
-                        <li><strong>Plano de Ação:</strong> acesso/ensino/avaliação</li>
-                        <li><strong>Consultoria IA:</strong> gerar o documento técnico (validação do educador)</li>
-                        <li><strong>Dashboard:</strong> KPIs + exportações + sincronização</li>
-                      </ol>
-                    </div>
-                    
-                    <details className="rounded-lg border-2 border-slate-200 p-3 bg-white">
-                      <summary className="cursor-pointer text-xs font-semibold text-slate-800 mb-2">
-                        📘 PEI/PDI e a Prática Inclusiva — Amplie o conhecimento
-                      </summary>
-                      <div className="mt-2 text-xs text-slate-600 space-y-2 leading-relaxed">
-                        <p>
-                          O <strong>Plano Educacional Individualizado (PEI)</strong>, também denominado <strong>Plano de Desenvolvimento Individual (PDI)</strong>, é um roteiro de intervenção pedagógica personalizado e flexível que norteia o processo de aprendizagem em sala comum para público-alvo da educação inclusiva. Tem o objetivo de <strong>remover obstáculos</strong> e <strong>promover a escolarização</strong>.
-                        </p>
-                        <p>
-                          O PEI/PDI leva em conta as particularidades do(a) aluno(a), incluindo-o no repertório da classe que frequenta e tendo como referência a <strong>mesma matriz curricular</strong> do ano a ser cursado.
-                        </p>
-                        <p>
-                          <strong>Caráter obrigatório:</strong> deve ser atualizado sistematicamente e compor a documentação escolar de alunos com deficiência, transtorno global do desenvolvimento e altas habilidades/superdotação. Respeita as orientações do laudo médico, quando houver.
-                        </p>
-                        <p>
-                          <strong>Elaboração:</strong> pela equipe multidisciplinar da escola; discutido com a família e profissionais externos no início do ano letivo; replanejado ao final de cada unidade e/ou período de avaliação.
-                        </p>
-                        <div>
-                          <p className="font-semibold mb-1 text-xs">Registros fundamentais:</p>
-                          <ul className="list-disc list-inside space-y-0.5 ml-2 text-xs">
-                            <li>Identidade do aluno</li>
-                            <li>Necessidades específicas (características mais recorrentes)</li>
-                            <li>Dados sobre autonomia</li>
-                            <li>Dados atualizados sobre atendimentos externos</li>
-                            <li>Desenvolvimento escolar (leitura e raciocínio lógico-matemático)</li>
-                            <li>Necessidades de material pedagógico e tecnologias assistivas</li>
-                          </ul>
-                        </div>
-                        <p className="text-xs text-slate-500 italic mt-2">
-                          A família deve acompanhar a elaboração do PEI/PDI e consentir formalmente, participando da análise das avaliações sistemáticas.
-                        </p>
-                      </div>
-                    </details>
+                    <p className="text-xs text-slate-500 italic mt-2">
+                      A família deve acompanhar a elaboração do PEI/PDI e consentir formalmente, participando da análise das avaliações sistemáticas.
+                    </p>
                   </div>
+                </details>
+              </div>
 
-                  {/* Coluna Direita: Gestão de Estudantes */}
-                  <div className="space-y-3">
-                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
-                      <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
-                        <Users className="w-4 h-4 text-sky-600" />
-                        Gestão de Estudantes
-                      </h4>
-                      
-                      {/* Status do vínculo */}
-                      {currentStudentId ? (
-                        <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200 mb-3">
-                          <p className="text-xs font-medium text-emerald-800">✅ Estudante vinculado ao Supabase (nuvem)</p>
-                          <p className="text-[10px] text-emerald-600 mt-0.5">student_id: {currentStudentId.slice(0, 8)}...</p>
-                        </div>
-                      ) : (
-                        <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 mb-3">
-                          <p className="text-xs font-medium text-amber-800">📝 Modo rascunho (sem vínculo na nuvem)</p>
-                          <p className="text-[10px] text-amber-600 mt-0.5">Selecione um estudante ou carregue um backup JSON</p>
-                        </div>
-                      )}
+              {/* Coluna Direita: Gestão de Estudantes */}
+              <div className="space-y-3">
+                <div className="rounded-lg border border-slate-200/60 p-4 bg-white">
+                  <h4 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-sky-600" />
+                    Gestão de Estudantes
+                  </h4>
 
-                      {/* Seleção de Estudante */}
-                      <div className="mb-3">
-                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">Selecione o estudante</label>
-                        <StudentSelector 
-                          students={students} 
-                          currentId={currentStudentId} 
-                          placeholder="Selecione o estudante"
-                          onChange={(id) => {
-                            setSelectedStudentId(id);
-                            setErroGlobal(null);
-                            if (id) {
-                              // Verificar se o estudante está na lista primeiro
-                              const studentFromList = students.find((s) => s.id === id);
-                              if (!studentFromList) {
-                                setErroGlobal("Estudante não encontrado na lista");
+                  {/* Status do vínculo */}
+                  {currentStudentId ? (
+                    <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200 mb-3">
+                      <p className="text-xs font-medium text-emerald-800">✅ Estudante vinculado ao Supabase (nuvem)</p>
+                      <p className="text-[10px] text-emerald-600 mt-0.5">student_id: {currentStudentId.slice(0, 8)}...</p>
+                    </div>
+                  ) : (
+                    <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 mb-3">
+                      <p className="text-xs font-medium text-amber-800">📝 Modo rascunho (sem vínculo na nuvem)</p>
+                      <p className="text-[10px] text-amber-600 mt-0.5">Selecione um estudante ou carregue um backup JSON</p>
+                    </div>
+                  )}
+
+                  {/* Seleção de Estudante */}
+                  <div className="mb-3">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Selecione o estudante</label>
+                    <StudentSelector
+                      students={students}
+                      currentId={currentStudentId}
+                      placeholder="Selecione o estudante"
+                      onChange={(id) => {
+                        setSelectedStudentId(id);
+                        setErroGlobal(null);
+                        if (id) {
+                          // Verificar se o estudante está na lista primeiro
+                          const studentFromList = students.find((s) => s.id === id);
+                          if (!studentFromList) {
+                            setErroGlobal("Estudante não encontrado na lista");
+                            return;
+                          }
+
+                          // Carregar dados do estudante da nuvem
+                          fetch(`/api/students/${id}`)
+                            .then(async res => {
+                              if (!res.ok) {
+                                // Estudante está na lista mas não foi encontrado na API
+                                // Isso é normal - pode não ter pei_data ainda
+                                setPeiData({} as PEIData);
+                                setSaved(false);
+                                setErroGlobal(null);
+                                return null;
+                              }
+                              try {
+                                return await res.json();
+                              } catch (e) {
+                                // Erro ao parsear JSON
+                                setPeiData({} as PEIData);
+                                setSaved(false);
+                                setErroGlobal(null);
+                                return null;
+                              }
+                            })
+                            .then(data => {
+                              if (!data) {
+                                // Já tratado acima
                                 return;
                               }
-
-                              // Carregar dados do estudante da nuvem
-                              fetch(`/api/students/${id}`)
-                                .then(async res => {
-                                  if (!res.ok) {
-                                    // Estudante está na lista mas não foi encontrado na API
-                                    // Isso é normal - pode não ter pei_data ainda
-                                    setPeiData({} as PEIData);
-                                    setSaved(false);
-                                    setErroGlobal(null);
-                                    return null;
-                                  }
-                                  try {
-                                    return await res.json();
-                                  } catch (e) {
-                                    // Erro ao parsear JSON
-                                    setPeiData({} as PEIData);
-                                    setSaved(false);
-                                    setErroGlobal(null);
-                                    return null;
-                                  }
-                                })
-                                .then(data => {
-                                  if (!data) {
-                                    // Já tratado acima
-                                    return;
-                                  }
-                                  if (data.pei_data && typeof data.pei_data === 'object') {
-                                    setPeiData(data.pei_data as PEIData);
-                                    setSaved(true);
-                                    setTimeout(() => setSaved(false), 2000);
-                                  } else {
-                                    // Estudante encontrado mas sem pei_data
-                                    setPeiData({} as PEIData);
-                                    setSaved(false);
-                                  }
-                                  setErroGlobal(null);
-                                })
-                                .catch(err => {
-                                  // Erro de rede ou outro erro
-                                  console.error("Erro ao carregar estudante:", err);
-                                  // Não mostrar erro se o estudante estiver na lista
-                                  // Apenas limpar dados
-                                  setPeiData({} as PEIData);
-                                  setSaved(false);
-                                  setErroGlobal(null);
-                                });
-
-                              // Atualizar URL sem recarregar
-                              const url = new URL(window.location.href);
-                              url.searchParams.set("student", id);
-                              window.history.pushState({}, "", url.toString());
-                            } else {
-                              // Limpar dados quando nenhum estudante está selecionado
+                              if (data.pei_data && typeof data.pei_data === 'object') {
+                                setPeiData(data.pei_data as PEIData);
+                                setSaved(true);
+                                setTimeout(() => setSaved(false), 2000);
+                              } else {
+                                // Estudante encontrado mas sem pei_data
+                                setPeiData({} as PEIData);
+                                setSaved(false);
+                              }
+                              setErroGlobal(null);
+                            })
+                            .catch(err => {
+                              // Erro de rede ou outro erro
+                              console.error("Erro ao carregar estudante:", err);
+                              // Não mostrar erro se o estudante estiver na lista
+                              // Apenas limpar dados
                               setPeiData({} as PEIData);
                               setSaved(false);
                               setErroGlobal(null);
+                            });
+
+                          // Atualizar URL sem recarregar
+                          const url = new URL(window.location.href);
+                          url.searchParams.set("student", id);
+                          window.history.pushState({}, "", url.toString());
+                        } else {
+                          // Limpar dados quando nenhum estudante está selecionado
+                          setPeiData({} as PEIData);
+                          setSaved(false);
+                          setErroGlobal(null);
+                        }
+                      }}
+                    />
+                    {currentStudentId && (
+                      <div className="mt-2 flex gap-2">
+                        <button
+                          onClick={async () => {
+                            if (!currentStudentId) {
+                              alert("Selecione um estudante primeiro");
+                              return;
+                            }
+                            setSaving(true);
+                            setErroGlobal(null);
+                            try {
+                              const res = await fetch(`/api/students/${currentStudentId}`);
+                              if (res.ok) {
+                                const data = await res.json();
+                                if (data.pei_data && typeof data.pei_data === 'object') {
+                                  setPeiData(data.pei_data as PEIData);
+                                  setSaved(true);
+                                  setTimeout(() => setSaved(false), 2000);
+                                } else {
+                                  setPeiData({} as PEIData);
+                                  setSaved(false);
+                                }
+                                setErroGlobal(null);
+                              } else {
+                                setErroGlobal("Erro ao carregar dados do estudante");
+                              }
+                            } catch (err) {
+                              setErroGlobal("Erro ao carregar dados do estudante");
+                              console.error("Erro ao carregar:", err);
+                            } finally {
+                              setSaving(false);
                             }
                           }}
-                        />
-                        {currentStudentId && (
-                          <div className="mt-2 flex gap-2">
-                            <button
-                              onClick={async () => {
-                                if (!currentStudentId) {
-                                  alert("Selecione um estudante primeiro");
-                                  return;
-                                }
-                                setSaving(true);
-                                setErroGlobal(null);
-                                try {
-                                  const res = await fetch(`/api/students/${currentStudentId}`);
-                                  if (res.ok) {
-                                    const data = await res.json();
-                                    if (data.pei_data && typeof data.pei_data === 'object') {
-                                      setPeiData(data.pei_data as PEIData);
-                                      setSaved(true);
-                                      setTimeout(() => setSaved(false), 2000);
-                                    } else {
-                                      setPeiData({} as PEIData);
-                                      setSaved(false);
-                                    }
-                                    setErroGlobal(null);
-                                  } else {
-                                    setErroGlobal("Erro ao carregar dados do estudante");
-                                  }
-                                } catch (err) {
-                                  setErroGlobal("Erro ao carregar dados do estudante");
-                                  console.error("Erro ao carregar:", err);
-                                } finally {
-                                  setSaving(false);
-                                }
-                              }}
-                              disabled={saving || !currentStudentId}
-                              className="flex-1 px-3 py-1.5 bg-sky-600 text-white text-xs font-medium rounded-lg hover:bg-sky-700 disabled:opacity-60"
-                            >
-                              {saving ? "Carregando…" : saved ? "Carregado ✓" : "Carregar da Nuvem"}
-                            </button>
-                            <Link 
-                              href="/estudantes" 
-                              className="px-3 py-1.5 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50"
-                            >
-                              ← Estudantes
-                            </Link>
-                          </div>
-                        )}
+                          disabled={saving || !currentStudentId}
+                          className="flex-1 px-3 py-1.5 bg-sky-600 text-white text-xs font-medium rounded-lg hover:bg-sky-700 disabled:opacity-60"
+                        >
+                          {saving ? "Carregando…" : saved ? "Carregado ✓" : "Carregar da Nuvem"}
+                        </button>
+                        <Link
+                          href="/estudantes"
+                          className="px-3 py-1.5 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50"
+                        >
+                          ← Estudantes
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Backup Local: Upload JSON */}
+                <div className="rounded-lg border border-slate-200/60 p-4 bg-white">
+                  <h4 className="text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-2">
+                    <FileDown className="w-4 h-4 text-sky-600" />
+                    1) Carregar Backup Local (.JSON)
+                  </h4>
+                  <p className="text-[10px] text-slate-600 mb-2 leading-relaxed">
+                    ✅ Não comunica com Supabase. Envie o arquivo e clique em <strong>Carregar no formulário</strong>.
+                  </p>
+                  <input
+                    type="file"
+                    accept=".json,application/json"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          try {
+                            const json = JSON.parse(ev.target?.result as string);
+                            setJsonPending(json as PEIData);
+                            setJsonFileName(file.name);
+                          } catch (err) {
+                            alert(`Erro ao ler JSON: ${err}`);
+                          }
+                        };
+                        reader.readAsText(file);
+                      }
+                    }}
+                    className="w-full text-xs px-2 py-1.5 border border-slate-300 rounded-lg bg-white mb-2"
+                  />
+                  {jsonPending && (
+                    <div className="mt-2 space-y-1.5">
+                      <div className="p-2 rounded bg-white border border-slate-200">
+                        <p className="text-[10px] font-medium text-slate-700">Arquivo pronto ✅ ({jsonFileName})</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Clique no botão abaixo para aplicar os dados.</p>
+                      </div>
+                      <details className="text-[10px]">
+                        <summary className="cursor-pointer text-slate-600 mb-0.5">👀 Prévia do backup</summary>
+                        <div className="p-1.5 bg-slate-50 rounded text-[10px] font-mono mt-1">
+                          {JSON.stringify({
+                            nome: jsonPending.nome,
+                            serie: jsonPending.serie,
+                            turma: jsonPending.turma,
+                            diagnostico: jsonPending.diagnostico,
+                            tem_ia_sugestao: !!jsonPending.ia_sugestao,
+                          }, null, 2)}
+                        </div>
+                      </details>
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={aplicarJson}
+                          className="flex-1 px-2 py-1.5 bg-sky-600 text-white text-xs font-medium rounded-lg hover:bg-sky-700"
+                        >
+                          📥 Carregar
+                        </button>
+                        <button
+                          onClick={() => {
+                            setJsonPending(null);
+                            setJsonFileName("");
+                          }}
+                          className="px-2 py-1.5 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50"
+                        >
+                          🧹 Limpar
+                        </button>
                       </div>
                     </div>
+                  )}
+                </div>
 
-                    {/* Backup Local: Upload JSON */}
-                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
-                      <h4 className="text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-2">
-                        <FileDown className="w-4 h-4 text-sky-600" />
-                        1) Carregar Backup Local (.JSON)
-                      </h4>
-                      <p className="text-[10px] text-slate-600 mb-2 leading-relaxed">
-                        ✅ Não comunica com Supabase. Envie o arquivo e clique em <strong>Carregar no formulário</strong>.
-                      </p>
-                      <input
-                        type="file"
-                        accept=".json,application/json"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (ev) => {
-                              try {
-                                const json = JSON.parse(ev.target?.result as string);
-                                setJsonPending(json as PEIData);
-                                setJsonFileName(file.name);
-                              } catch (err) {
-                                alert(`Erro ao ler JSON: ${err}`);
-                              }
-                            };
-                            reader.readAsText(file);
-                          }
-                        }}
-                        className="w-full text-xs px-2 py-1.5 border border-slate-300 rounded-lg bg-white mb-2"
-                      />
-                      {jsonPending && (
-                        <div className="mt-2 space-y-1.5">
-                          <div className="p-2 rounded bg-white border border-slate-200">
-                            <p className="text-[10px] font-medium text-slate-700">Arquivo pronto ✅ ({jsonFileName})</p>
-                            <p className="text-[10px] text-slate-500 mt-0.5">Clique no botão abaixo para aplicar os dados.</p>
-                          </div>
-                          <details className="text-[10px]">
-                            <summary className="cursor-pointer text-slate-600 mb-0.5">👀 Prévia do backup</summary>
-                            <div className="p-1.5 bg-slate-50 rounded text-[10px] font-mono mt-1">
-                              {JSON.stringify({
-                                nome: jsonPending.nome,
-                                serie: jsonPending.serie,
-                                turma: jsonPending.turma,
-                                diagnostico: jsonPending.diagnostico,
-                                tem_ia_sugestao: !!jsonPending.ia_sugestao,
-                              }, null, 2)}
-                            </div>
-                          </details>
-                          <div className="flex gap-1.5">
-                            <button
-                              onClick={aplicarJson}
-                              className="flex-1 px-2 py-1.5 bg-sky-600 text-white text-xs font-medium rounded-lg hover:bg-sky-700"
-                            >
-                              📥 Carregar
-                            </button>
-                            <button
-                              onClick={() => {
-                                setJsonPending(null);
-                                setJsonFileName("");
-                              }}
-                              className="px-2 py-1.5 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50"
-                            >
-                              🧹 Limpar
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Sincronização Cloud */}
-                    <div className="rounded-lg border-2 border-slate-200 p-4 bg-white">
-                      <h4 className="text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-sky-600" />
-                        Omnisfera Cloud
-                      </h4>
-                      <p className="text-[10px] text-slate-600 mb-2 leading-relaxed">
-                        Sincroniza o cadastro e <strong>salva todo o conteúdo do PEI</strong> na nuvem (coluna pei_data).
-                      </p>
-                      <button
-                        onClick={async () => {
-                          if (!currentStudentId) {
-                            alert("Selecione um estudante primeiro");
-                            return;
-                          }
-                          setSaving(true);
-                          try {
-                            const res = await fetch(`/api/students/${currentStudentId}/pei`, {
-                              method: "PATCH",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify(peiData),
-                            });
-                            if (res.ok) {
-                              setSaved(true);
-                              setTimeout(() => setSaved(false), 3000);
-                              alert("PEI completo salvo na nuvem com sucesso! ☁️");
-                            }
-                          } catch (err) {
-                            alert(`Erro na sincronização: ${err}`);
-                          } finally {
-                            setSaving(false);
-                          }
-                        }}
-                        disabled={!currentStudentId || saving}
-                        className="w-full px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 disabled:opacity-60 mb-2"
-                      >
-                        {saving ? "Sincronizando…" : "🔗 Sincronizar Tudo"}
-                      </button>
-                      {saved && (
-                        <a
-                          href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
-                          download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.json`}
-                          className="block w-full px-3 py-1.5 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50 text-center"
-                        >
-                          📂 BAIXAR BACKUP (.JSON)
-                        </a>
-                      )}
-                    </div>
-                  </div>
+                {/* Sincronização Cloud */}
+                <div className="rounded-lg border border-slate-200/60 p-4 bg-white">
+                  <h4 className="text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-sky-600" />
+                    Omnisfera Cloud
+                  </h4>
+                  <p className="text-[10px] text-slate-600 mb-2 leading-relaxed">
+                    Sincroniza o cadastro e <strong>salva todo o conteúdo do PEI</strong> na nuvem (coluna pei_data).
+                  </p>
+                  <button
+                    onClick={async () => {
+                      if (!currentStudentId) {
+                        alert("Selecione um estudante primeiro");
+                        return;
+                      }
+                      setSaving(true);
+                      try {
+                        const res = await fetch(`/api/students/${currentStudentId}/pei`, {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(peiData),
+                        });
+                        if (res.ok) {
+                          setSaved(true);
+                          setTimeout(() => setSaved(false), 3000);
+                          alert("PEI completo salvo na nuvem com sucesso! ☁️");
+                        }
+                      } catch (err) {
+                        alert(`Erro na sincronização: ${err}`);
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                    disabled={!currentStudentId || saving}
+                    className="w-full px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 disabled:opacity-60 mb-2"
+                  >
+                    {saving ? "Sincronizando…" : "🔗 Sincronizar Tudo"}
+                  </button>
+                  {saved && (
+                    <a
+                      href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
+                      download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.json`}
+                      className="block w-full px-3 py-1.5 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50 text-center"
+                    >
+                      📂 BAIXAR BACKUP (.JSON)
+                    </a>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
+          </div>
+        )}
 
-            {activeTab === "estudante" && (
-              <div className="space-y-6 w-full">
-                {/* Título da aba com ícone */}
-                <div className="flex items-center gap-2 mb-4">
-                  <User className="w-5 h-5 text-sky-600" />
-                  <h3 className="text-lg font-semibold text-slate-800">Dossiê do Estudante</h3>
+        {activeTab === "estudante" && (
+          <div className="space-y-6 w-full">
+            {/* Título da aba com ícone */}
+            <div className="flex items-center gap-2 mb-4">
+              <User className="w-5 h-5 text-sky-600" />
+              <h3 className="text-lg font-semibold text-slate-800">Dossiê do Estudante</h3>
+            </div>
+
+            {/* Identificação - ORDEM EXATA: Nome, Nascimento, Série/Ano, Turma, Matrícula/RA */}
+            <div>
+              <h4 className="text-base font-semibold text-slate-800 mb-3">Identificação</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {/* Nome Completo - ocupa mais espaço */}
+                <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-2">
+                    Nome Completo
+                    {peiData.nome && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+                  </label>
+                  <input
+                    type="text"
+                    value={peiData.nome || ""}
+                    onChange={(e) => updateField("nome", e.target.value)}
+                    className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all duration-200 bg-white hover:border-slate-300"
+                    placeholder="Digite o nome completo do estudante"
+                  />
                 </div>
-                
-                {/* Identificação - ORDEM EXATA: Nome, Nascimento, Série/Ano, Turma, Matrícula/RA */}
-                <div>
-                  <h4 className="text-base font-semibold text-slate-800 mb-3">Identificação</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    {/* Nome Completo - ocupa mais espaço */}
-                    <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-2">
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-2">
-                        Nome Completo
-                        {peiData.nome && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
-                      </label>
-                      <input
-                        type="text"
-                        value={peiData.nome || ""}
-                        onChange={(e) => updateField("nome", e.target.value)}
-                        className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-all duration-200 bg-white hover:border-slate-300"
-                        placeholder="Digite o nome completo do estudante"
-                      />
-                    </div>
-                    {/* Nascimento */}
-                    <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Nascimento</label>
-                      <input
-                        type="date"
-                        value={typeof peiData.nasc === "string" ? peiData.nasc.split("T")[0] : ""}
-                        onChange={(e) => updateField("nasc", e.target.value || undefined)}
-                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
-                      />
-                    </div>
-                    {/* Série/Ano */}
-                    <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Série/Ano</label>
-                      <select
-                        value={peiData.serie || ""}
-                        onChange={(e) => updateField("serie", e.target.value || null)}
-                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
-                      >
-                        <option value="">Selecione...</option>
-                        {SERIES.map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                      {peiData.serie && (() => {
-                        const nivel = detectarNivelEnsino(peiData.serie);
-                        const segmentoInfo: Record<string, { nome: string; cor: string; emoji: string }> = {
-                          EI: { nome: "Educação Infantil", cor: "#4299e1", emoji: "👶" },
-                          EFI: { nome: "Ensino Fundamental Anos Iniciais", cor: "#48bb78", emoji: "📚" },
-                          EFII: { nome: "Ensino Fundamental Anos Finais", cor: "#ed8936", emoji: "🎓" },
-                          EM: { nome: "Ensino Médio / EJA", cor: "#9f7aea", emoji: "🎯" },
-                        };
-                        const seg = segmentoInfo[nivel];
-                        if (!seg) return null;
-                        return (
-                          <div className="mt-2 px-2 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2" style={{ backgroundColor: `${seg.cor}15`, color: seg.cor, border: `1px solid ${seg.cor}40` }}>
-                            <span>{seg.emoji}</span>
-                            <span>{seg.nome}</span>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                    {/* Turma */}
-                    <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Turma</label>
-                      <input
-                        type="text"
-                        value={peiData.turma || ""}
-                        onChange={(e) => updateField("turma", e.target.value)}
-                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
-                        placeholder="Ex: A"
-                      />
-                    </div>
-                    {/* Matrícula / RA */}
-                    <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Matrícula / RA</label>
-                      <input
-                        type="text"
-                        value={peiData.matricula || ""}
-                        onChange={(e) => updateField("matricula", e.target.value)}
-                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
-                        placeholder="Ex: 2026-001234"
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Badge do segmento + descrição (após Série/Ano) */}
+                {/* Nascimento */}
+                <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Nascimento</label>
+                  <input
+                    type="date"
+                    value={typeof peiData.nasc === "string" ? peiData.nasc.split("T")[0] : ""}
+                    onChange={(e) => updateField("nasc", e.target.value || undefined)}
+                    className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                  />
+                </div>
+                {/* Série/Ano */}
+                <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Série/Ano</label>
+                  <select
+                    value={peiData.serie || ""}
+                    onChange={(e) => updateField("serie", e.target.value || null)}
+                    className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                  >
+                    <option value="">Selecione...</option>
+                    {SERIES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                   {peiData.serie && (() => {
                     const nivel = detectarNivelEnsino(peiData.serie);
-                    const segmentoInfo: Record<string, { nome: string; cor: string; desc: string }> = {
-                      EI: { nome: "Educação Infantil", cor: "#4299e1", desc: "Foco: Campos de Experiência (BNCC) e rotina estruturante." },
-                      EFI: { nome: "Ensino Fundamental Anos Iniciais (EFAI)", cor: "#48bb78", desc: "Foco: alfabetização, numeracia e consolidação de habilidades basais." },
-                      EFII: { nome: "Ensino Fundamental Anos Finais (EFAF)", cor: "#ed8936", desc: "Foco: autonomia, funções executivas, organização e aprofundamento conceitual." },
-                      EM: { nome: "Ensino Médio / EJA", cor: "#9f7aea", desc: "Foco: projeto de vida, áreas do conhecimento e estratégias de estudo." },
+                    const segmentoInfo: Record<string, { nome: string; cor: string; emoji: string }> = {
+                      EI: { nome: "Educação Infantil", cor: "#4299e1", emoji: "👶" },
+                      EFI: { nome: "Ensino Fundamental Anos Iniciais", cor: "#48bb78", emoji: "📚" },
+                      EFII: { nome: "Ensino Fundamental Anos Finais", cor: "#ed8936", emoji: "🎓" },
+                      EM: { nome: "Ensino Médio / EJA", cor: "#9f7aea", emoji: "🎯" },
                     };
-                    const info = segmentoInfo[nivel] || { nome: "Selecione a Série/Ano", cor: "#718096", desc: "Aguardando seleção..." };
+                    const seg = segmentoInfo[nivel];
+                    if (!seg) return null;
                     return (
-                      <div className="mt-3">
-                        <span
-                          className="inline-block px-3 py-1 rounded-lg text-xs font-semibold text-white"
-                          style={{ backgroundColor: info.cor }}
-                        >
-                          {info.nome}
-                        </span>
-                        <p className="text-xs text-slate-600 mt-2">{info.desc}</p>
+                      <div className="mt-2 px-2 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2" style={{ backgroundColor: `${seg.cor}15`, color: seg.cor, border: `1px solid ${seg.cor}40` }}>
+                        <span>{seg.emoji}</span>
+                        <span>{seg.nome}</span>
                       </div>
                     );
                   })()}
                 </div>
-
-                <hr />
-
-                {/* Histórico & Contexto Familiar */}
-                <div>
-                  <h4 className="text-base font-semibold text-slate-800 mb-3">Histórico & Contexto Familiar</h4>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Histórico Escolar</label>
-                      <textarea
-                        value={peiData.historico || ""}
-                        onChange={(e) => updateField("historico", e.target.value)}
-                        rows={6}
-                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Dinâmica Familiar</label>
-                      <textarea
-                        value={peiData.familia || ""}
-                        onChange={(e) => updateField("familia", e.target.value)}
-                        rows={6}
-                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Composição Familiar */}
-                  <div className="mt-4">
-                    <label className="block text-sm font-semibold text-slate-700 mb-1">
-                      Quem convive com o estudante?
-                    </label>
-                    <p className="text-xs text-slate-500 mb-2">Incluímos Mãe 1 / Mãe 2 e Pai 1 / Pai 2 para famílias diversas.</p>
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <select
-                          value={""}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              const atual = peiData.composicao_familiar_tags || [];
-                              if (!atual.includes(e.target.value)) {
-                                updateField("composicao_familiar_tags", [...atual, e.target.value]);
-                              }
-                              e.target.value = "";
-                            }
-                          }}
-                          className="flex-1 px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
-                        >
-                          <option value="">Selecione para adicionar...</option>
-                          {LISTA_FAMILIA.filter((f) => !(peiData.composicao_familiar_tags || []).includes(f)).map((f) => (
-                            <option key={f} value={f}>{f}</option>
-                          ))}
-                        </select>
-                      </div>
-                      {(Array.isArray(peiData.composicao_familiar_tags) ? peiData.composicao_familiar_tags : []).length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {(Array.isArray(peiData.composicao_familiar_tags) ? peiData.composicao_familiar_tags : []).map((f) => (
-                            <span
-                              key={f}
-                              className="inline-flex items-center gap-1 px-3 py-1 bg-sky-50 text-sky-700 rounded-lg text-sm border-2 border-sky-200 font-medium"
-                            >
-                              {f}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const atual = peiData.composicao_familiar_tags || [];
-                                  updateField("composicao_familiar_tags", atual.filter((item) => item !== f));
-                                }}
-                                className="text-sky-600 hover:text-sky-800 font-bold ml-1"
-                              >
-                                ×
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <hr />
-
-                {/* Laudo PDF + Extração IA - Layout 2 colunas [2, 1] como Streamlit */}
-                <div>
-                  <h4 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-sky-600" />
-                    Laudo (PDF) + Extração Inteligente
-                  </h4>
-                  <LaudoPdfSection
-                    peiData={peiData}
-                    onDiagnostico={(v) => updateField("diagnostico", v)}
-                    onMedicamentos={(meds) => {
-                      setPeiData((prev) => ({ ...prev, lista_medicamentos: meds }));
-                      setSaved(false);
-                    }}
+                {/* Turma */}
+                <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Turma</label>
+                  <input
+                    type="text"
+                    value={peiData.turma || ""}
+                    onChange={(e) => updateField("turma", e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                    placeholder="Ex: A"
                   />
                 </div>
+                {/* Matrícula / RA */}
+                <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Matrícula / RA</label>
+                  <input
+                    type="text"
+                    value={peiData.matricula || ""}
+                    onChange={(e) => updateField("matricula", e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                    placeholder="Ex: 2026-001234"
+                  />
+                </div>
+              </div>
 
-                <hr />
-
-                {/* Contexto Clínico */}
-                <div>
-                  <h4 className="text-base font-semibold text-slate-800 mb-3">Contexto Clínico</h4>
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1">Diagnóstico</label>
-                    <input
-                      type="text"
-                      value={peiData.diagnostico || ""}
-                      onChange={(e) => updateField("diagnostico", e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
-                      placeholder="Nunca em materiais do estudante."
-                    />
+              {/* Badge do segmento + descrição (após Série/Ano) */}
+              {peiData.serie && (() => {
+                const nivel = detectarNivelEnsino(peiData.serie);
+                const segmentoInfo: Record<string, { nome: string; cor: string; desc: string }> = {
+                  EI: { nome: "Educação Infantil", cor: "#4299e1", desc: "Foco: Campos de Experiência (BNCC) e rotina estruturante." },
+                  EFI: { nome: "Ensino Fundamental Anos Iniciais (EFAI)", cor: "#48bb78", desc: "Foco: alfabetização, numeracia e consolidação de habilidades basais." },
+                  EFII: { nome: "Ensino Fundamental Anos Finais (EFAF)", cor: "#ed8936", desc: "Foco: autonomia, funções executivas, organização e aprofundamento conceitual." },
+                  EM: { nome: "Ensino Médio / EJA", cor: "#9f7aea", desc: "Foco: projeto de vida, áreas do conhecimento e estratégias de estudo." },
+                };
+                const info = segmentoInfo[nivel] || { nome: "Selecione a Série/Ano", cor: "#718096", desc: "Aguardando seleção..." };
+                return (
+                  <div className="mt-3">
+                    <span
+                      className="inline-block px-3 py-1 rounded-lg text-xs font-semibold text-white"
+                      style={{ backgroundColor: info.cor }}
+                    >
+                      {info.nome}
+                    </span>
+                    <p className="text-xs text-slate-600 mt-2">{info.desc}</p>
                   </div>
-                  <div className="mt-4">
-                    <h5 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
-                      <Pill className="w-4 h-4 text-sky-600" />
-                      Medicações
-                    </h5>
-                    <MedicamentosForm peiData={peiData} onAdd={addMedicamento} onRemove={removeMedicamento} />
+                );
+              })()}
+            </div>
+
+            <hr />
+
+            {/* Histórico & Contexto Familiar */}
+            <div>
+              <h4 className="text-base font-semibold text-slate-800 mb-3">Histórico & Contexto Familiar</h4>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Histórico Escolar</label>
+                  <textarea
+                    value={peiData.historico || ""}
+                    onChange={(e) => updateField("historico", e.target.value)}
+                    rows={6}
+                    className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Dinâmica Familiar</label>
+                  <textarea
+                    value={peiData.familia || ""}
+                    onChange={(e) => updateField("familia", e.target.value)}
+                    rows={6}
+                    className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Composição Familiar */}
+              <div className="mt-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Quem convive com o estudante?
+                </label>
+                <p className="text-xs text-slate-500 mb-2">Incluímos Mãe 1 / Mãe 2 e Pai 1 / Pai 2 para famílias diversas.</p>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <select
+                      value={""}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          const atual = peiData.composicao_familiar_tags || [];
+                          if (!atual.includes(e.target.value)) {
+                            updateField("composicao_familiar_tags", [...atual, e.target.value]);
+                          }
+                          e.target.value = "";
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                    >
+                      <option value="">Selecione para adicionar...</option>
+                      {LISTA_FAMILIA.filter((f) => !(peiData.composicao_familiar_tags || []).includes(f)).map((f) => (
+                        <option key={f} value={f}>{f}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {(Array.isArray(peiData.composicao_familiar_tags) ? peiData.composicao_familiar_tags : []).length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {(Array.isArray(peiData.composicao_familiar_tags) ? peiData.composicao_familiar_tags : []).map((f) => (
+                        <span
+                          key={f}
+                          className="inline-flex items-center gap-1 px-3 py-1 bg-sky-50 text-sky-700 rounded-lg text-sm border-2 border-sky-200 font-medium"
+                        >
+                          {f}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const atual = peiData.composicao_familiar_tags || [];
+                              updateField("composicao_familiar_tags", atual.filter((item) => item !== f));
+                            }}
+                            className="text-sky-600 hover:text-sky-800 font-bold ml-1"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <hr />
+
+            {/* Laudo PDF + Extração IA - Layout 2 colunas [2, 1] como Streamlit */}
+            <div>
+              <h4 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-sky-600" />
+                Laudo (PDF) + Extração Inteligente
+              </h4>
+              <LaudoPdfSection
+                peiData={peiData}
+                onDiagnostico={(v) => updateField("diagnostico", v)}
+                onMedicamentos={(meds) => {
+                  setPeiData((prev) => ({ ...prev, lista_medicamentos: meds }));
+                  setSaved(false);
+                }}
+              />
+            </div>
+
+            <hr />
+
+            {/* Contexto Clínico */}
+            <div>
+              <h4 className="text-base font-semibold text-slate-800 mb-3">Contexto Clínico</h4>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Diagnóstico</label>
+                <input
+                  type="text"
+                  value={peiData.diagnostico || ""}
+                  onChange={(e) => updateField("diagnostico", e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                  placeholder="Nunca em materiais do estudante."
+                />
+              </div>
+              <div className="mt-4">
+                <h5 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                  <Pill className="w-4 h-4 text-sky-600" />
+                  Medicações
+                </h5>
+                <MedicamentosForm peiData={peiData} onAdd={addMedicamento} onRemove={removeMedicamento} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "evidencias" && (
+          <div className="space-y-6 max-w-4xl">
+            {/* Título da aba com ícone */}
+            <div className="flex items-center gap-2 mb-4">
+              <Search className="w-5 h-5 text-sky-600" />
+              <h3 className="text-lg font-semibold text-slate-800">Coleta de Evidências</h3>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Hipótese de Escrita</label>
+              <select
+                value={peiData.nivel_alfabetizacao || ""}
+                onChange={(e) => updateField("nivel_alfabetizacao", e.target.value)}
+                className="w-full max-w-md px-3 py-2 border border-slate-200 rounded-lg"
+              >
+                {LISTA_ALFABETIZACAO.map((a) => (
+                  <option key={a} value={a}>{a}</option>
+                ))}
+              </select>
+              <p className="text-xs text-slate-500 mt-1">Nível de apropriação do sistema de escrita (Emília Ferreiro).</p>
+            </div>
+
+            <hr />
+
+            <div>
+              <p className="text-sm text-slate-600 mb-4">
+                Marque as evidências observadas na rotina do estudante (pedagógicas, cognitivas e comportamentais).
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <h4 className="font-medium text-slate-800 mb-3">Pedagógico</h4>
+                  <div className="space-y-2">
+                    {EVIDENCIAS_PEDAGOGICO.map((q) => (
+                      <label key={q} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!(peiData.checklist_evidencias || {})[q]}
+                          onChange={() => toggleChecklist(q, q)}
+                          className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                        />
+                        <span className="text-sm text-slate-700">{q}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium text-slate-800 mb-3">Cognitivo</h4>
+                  <div className="space-y-2">
+                    {EVIDENCIAS_COGNITIVO.map((q) => (
+                      <label key={q} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!(peiData.checklist_evidencias || {})[q]}
+                          onChange={() => toggleChecklist(q, q)}
+                          className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                        />
+                        <span className="text-sm text-slate-700">{q}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium text-slate-800 mb-3">Comportamental</h4>
+                  <div className="space-y-2">
+                    {EVIDENCIAS_COMPORTAMENTAL.map((q) => (
+                      <label key={q} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!(peiData.checklist_evidencias || {})[q]}
+                          onChange={() => toggleChecklist(q, q)}
+                          className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                        />
+                        <span className="text-sm text-slate-700">{q}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {activeTab === "evidencias" && (
-              <div className="space-y-6 max-w-4xl">
-                {/* Título da aba com ícone */}
-                <div className="flex items-center gap-2 mb-4">
-                  <Search className="w-5 h-5 text-sky-600" />
-                  <h3 className="text-lg font-semibold text-slate-800">Coleta de Evidências</h3>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Hipótese de Escrita</label>
+            <hr />
+
+            <div>
+              <h4 className="text-base font-semibold text-slate-800 mb-2">Observações rápidas</h4>
+              <textarea
+                value={peiData.orientacoes_especialistas || ""}
+                onChange={(e) => updateField("orientacoes_especialistas", e.target.value)}
+                rows={5}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                placeholder="Registre observações de professores e especialistas (se houver)"
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === "rede" && (
+          <div className="space-y-6 max-w-4xl">
+            {/* Título da aba com ícone */}
+            <div className="flex items-center gap-2 mb-4">
+              <Users className="w-5 h-5 text-sky-600" />
+              <h3 className="text-lg font-semibold text-slate-800">Rede de Apoio</h3>
+            </div>
+
+            <p className="text-sm text-slate-600">
+              Selecione os profissionais envolvidos e registre as orientações específicas de cada um.
+            </p>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Profissionais:</label>
+              <div className="space-y-2">
+                <div className="flex gap-2">
                   <select
-                    value={peiData.nivel_alfabetizacao || ""}
-                    onChange={(e) => updateField("nivel_alfabetizacao", e.target.value)}
-                    className="w-full max-w-md px-3 py-2 border border-slate-200 rounded-lg"
+                    value={""}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const atual = peiData.rede_apoio || [];
+                        if (!atual.includes(e.target.value)) {
+                          updateField("rede_apoio", [...atual, e.target.value]);
+                        }
+                        e.target.value = "";
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 border border-slate-200 rounded-lg"
                   >
-                    {LISTA_ALFABETIZACAO.map((a) => (
-                      <option key={a} value={a}>{a}</option>
+                    <option value="">Selecione para adicionar...</option>
+                    {LISTA_PROFISSIONAIS.filter((p) => !(peiData.rede_apoio || []).includes(p)).map((p) => (
+                      <option key={p} value={p}>{p}</option>
                     ))}
                   </select>
-                  <p className="text-xs text-slate-500 mt-1">Nível de apropriação do sistema de escrita (Emília Ferreiro).</p>
                 </div>
-
-                <hr />
-
-                <div>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Marque as evidências observadas na rotina do estudante (pedagógicas, cognitivas e comportamentais).
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <h4 className="font-medium text-slate-800 mb-3">Pedagógico</h4>
-                      <div className="space-y-2">
-                        {EVIDENCIAS_PEDAGOGICO.map((q) => (
-                          <label key={q} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={!!(peiData.checklist_evidencias || {})[q]}
-                              onChange={() => toggleChecklist(q, q)}
-                              className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
-                            />
-                            <span className="text-sm text-slate-700">{q}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-slate-800 mb-3">Cognitivo</h4>
-                      <div className="space-y-2">
-                        {EVIDENCIAS_COGNITIVO.map((q) => (
-                          <label key={q} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={!!(peiData.checklist_evidencias || {})[q]}
-                              onChange={() => toggleChecklist(q, q)}
-                              className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
-                            />
-                            <span className="text-sm text-slate-700">{q}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-slate-800 mb-3">Comportamental</h4>
-                      <div className="space-y-2">
-                        {EVIDENCIAS_COMPORTAMENTAL.map((q) => (
-                          <label key={q} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={!!(peiData.checklist_evidencias || {})[q]}
-                              onChange={() => toggleChecklist(q, q)}
-                              className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
-                            />
-                            <span className="text-sm text-slate-700">{q}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
+                {(Array.isArray(peiData.rede_apoio) ? peiData.rede_apoio : []).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {(Array.isArray(peiData.rede_apoio) ? peiData.rede_apoio : []).map((p) => (
+                      <span
+                        key={p}
+                        className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 rounded-lg text-sm"
+                      >
+                        {p}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const atual = peiData.rede_apoio || [];
+                            updateField("rede_apoio", atual.filter((item) => item !== p));
+                            // Remove orientações desse profissional também
+                            const orientacoes = { ...(peiData.orientacoes_por_profissional || {}) };
+                            delete orientacoes[p];
+                            updateField("orientacoes_por_profissional", orientacoes);
+                          }}
+                          className="text-purple-600 hover:text-purple-800"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
                   </div>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">Ao selecionar um profissional, um campo de observação individual aparece abaixo.</p>
+            </div>
+
+            <hr />
+
+            {/* Anotações gerais (expander) */}
+            <details className="p-4 rounded-lg border border-slate-200/60 bg-white">
+              <summary className="cursor-pointer font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-sky-600" />
+                Anotações gerais (opcional)
+              </summary>
+              <div className="mt-3">
+                <textarea
+                  value={peiData.orientacoes_especialistas || ""}
+                  onChange={(e) => updateField("orientacoes_especialistas", e.target.value)}
+                  rows={5}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                  placeholder="Use para observações gerais da equipe (ex.: acordos com a família, encaminhamentos, alinhamentos)."
+                />
+              </div>
+            </details>
+
+            <hr />
+
+            {/* Orientações por profissional */}
+            <div>
+              <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <Info className="w-4 h-4 text-sky-600" />
+                Orientações por profissional
+              </h4>
+              {(!peiData.rede_apoio || peiData.rede_apoio.length === 0) ? (
+                <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                  <p className="text-blue-800 text-sm">Selecione ao menos um profissional para habilitar os campos de observação.</p>
                 </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(peiData.rede_apoio || []).map((prof) => (
+                    <div key={prof} className="p-4 rounded-lg border border-slate-200/60 bg-white hover:border-sky-300 hover:shadow-sm transition-all">
+                      <h5 className="font-semibold text-slate-800 mb-3">{prof}</h5>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">Observações / orientações</label>
+                      <textarea
+                        value={(peiData.orientacoes_por_profissional || {})[prof] || ""}
+                        onChange={(e) =>
+                          updateField("orientacoes_por_profissional", {
+                            ...(peiData.orientacoes_por_profissional || {}),
+                            [prof]: e.target.value,
+                          })
+                        }
+                        rows={5}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-3"
+                        placeholder="Ex.: recomendações de intervenção, frequência, sinais de alerta, ajustes para sala de aula..."
+                      />
+                      <div className="grid grid-cols-2 gap-2 mt-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateField("orientacoes_por_profissional", {
+                              ...(peiData.orientacoes_por_profissional || {}),
+                              [prof]: "",
+                            });
+                          }}
+                          className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-700"
+                        >
+                          🧹 Limpar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const atual = peiData.rede_apoio || [];
+                            updateField("rede_apoio", atual.filter((item) => item !== prof));
+                            const orientacoes = { ...(peiData.orientacoes_por_profissional || {}) };
+                            delete orientacoes[prof];
+                            updateField("orientacoes_por_profissional", orientacoes);
+                          }}
+                          className="px-3 py-1.5 text-xs border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                        >
+                          🗑️ Remover profissional
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-                <hr />
+            <hr />
 
-                <div>
-                  <h4 className="text-base font-semibold text-slate-800 mb-2">Observações rápidas</h4>
-                  <textarea
-                    value={peiData.orientacoes_especialistas || ""}
-                    onChange={(e) => updateField("orientacoes_especialistas", e.target.value)}
-                    rows={5}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                    placeholder="Registre observações de professores e especialistas (se houver)"
-                  />
+            {/* Checklist de preenchimento */}
+            {(Array.isArray(peiData.rede_apoio) ? peiData.rede_apoio : []).length > 0 && (
+              <div>
+                <h4 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-600" />
+                  Checklist de preenchimento
+                </h4>
+                <div className="space-y-1">
+                  {(peiData.rede_apoio || []).map((p) => {
+                    const txt = ((peiData.orientacoes_por_profissional || {})[p] || "").trim();
+                    return (
+                      <p key={p} className="text-sm text-slate-700">
+                        - <strong>{p}</strong>: {txt ? "✅ preenchido" : "⚠️ vazio"}
+                      </p>
+                    );
+                  })}
                 </div>
               </div>
             )}
+          </div>
+        )}
 
-            {activeTab === "rede" && (
-              <div className="space-y-6 max-w-4xl">
-                {/* Título da aba com ícone */}
-                <div className="flex items-center gap-2 mb-4">
-                  <Users className="w-5 h-5 text-sky-600" />
-                  <h3 className="text-lg font-semibold text-slate-800">Rede de Apoio</h3>
-                </div>
-                
-                <p className="text-sm text-slate-600">
-                  Selecione os profissionais envolvidos e registre as orientações específicas de cada um.
-                </p>
+        {activeTab === "mapeamento" && (
+          <div className="space-y-6">
+            {/* Título da aba com ícone */}
+            <div className="flex items-center gap-2 mb-4">
+              <Radar className="w-5 h-5 text-sky-600" />
+              <h3 className="text-lg font-semibold text-slate-800">Mapeamento</h3>
+            </div>
 
+            <p className="text-sm text-slate-600">
+              Mapeie forças, hiperfocos e barreiras. Para cada barreira selecionada, indique a intensidade de apoio necessária.
+            </p>
+
+            {/* Potencialidades e Hiperfoco */}
+            <div className="p-4 rounded-lg border-2 border-blue-200 bg-blue-50/30">
+              <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-sky-600" />
+                Potencialidades e Hiperfoco
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Profissionais:</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Hiperfoco (se houver)</label>
+                  <input
+                    type="text"
+                    value={peiData.hiperfoco || ""}
+                    onChange={(e) => updateField("hiperfoco", e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                    placeholder="Ex.: Dinossauros, Minecraft, Mapas, Carros, Desenho..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Potencialidades / Pontos fortes</label>
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <select
                         value={""}
                         onChange={(e) => {
                           if (e.target.value) {
-                            const atual = peiData.rede_apoio || [];
+                            const atual = peiData.potencias || [];
                             if (!atual.includes(e.target.value)) {
-                              updateField("rede_apoio", [...atual, e.target.value]);
+                              updateField("potencias", [...atual, e.target.value]);
                             }
                             e.target.value = "";
                           }
@@ -1224,30 +1410,26 @@ export function PEIClient({
                         className="flex-1 px-3 py-2 border border-slate-200 rounded-lg"
                       >
                         <option value="">Selecione para adicionar...</option>
-                        {LISTA_PROFISSIONAIS.filter((p) => !(peiData.rede_apoio || []).includes(p)).map((p) => (
+                        {LISTA_POTENCIAS.filter((p) => !(peiData.potencias || []).includes(p)).map((p) => (
                           <option key={p} value={p}>{p}</option>
                         ))}
                       </select>
                     </div>
-                    {(Array.isArray(peiData.rede_apoio) ? peiData.rede_apoio : []).length > 0 && (
+                    {(Array.isArray(peiData.potencias) ? peiData.potencias : []).length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {(Array.isArray(peiData.rede_apoio) ? peiData.rede_apoio : []).map((p) => (
+                        {(Array.isArray(peiData.potencias) ? peiData.potencias : []).map((p) => (
                           <span
                             key={p}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 rounded-lg text-sm"
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-sm"
                           >
                             {p}
                             <button
                               type="button"
                               onClick={() => {
-                                const atual = peiData.rede_apoio || [];
-                                updateField("rede_apoio", atual.filter((item) => item !== p));
-                                // Remove orientações desse profissional também
-                                const orientacoes = { ...(peiData.orientacoes_por_profissional || {}) };
-                                delete orientacoes[p];
-                                updateField("orientacoes_por_profissional", orientacoes);
+                                const atual = peiData.potencias || [];
+                                updateField("potencias", atual.filter((item) => item !== p));
                               }}
-                              className="text-purple-600 hover:text-purple-800"
+                              className="text-emerald-600 hover:text-emerald-800"
                             >
                               ×
                             </button>
@@ -1256,585 +1438,401 @@ export function PEIClient({
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">Ao selecionar um profissional, um campo de observação individual aparece abaixo.</p>
                 </div>
+              </div>
+            </div>
 
-                <hr />
+            <hr />
 
-                {/* Anotações gerais (expander) */}
-                <details className="p-4 rounded-lg border-2 border-slate-200 bg-white">
-                  <summary className="cursor-pointer font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-sky-600" />
-                    Anotações gerais (opcional)
-                  </summary>
-                  <div className="mt-3">
-                    <textarea
-                      value={peiData.orientacoes_especialistas || ""}
-                      onChange={(e) => updateField("orientacoes_especialistas", e.target.value)}
-                      rows={5}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                      placeholder="Use para observações gerais da equipe (ex.: acordos com a família, encaminhamentos, alinhamentos)."
-                    />
-                  </div>
-                </details>
+            {/* Barreiras e nível de apoio */}
+            <div>
+              <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                <Settings className="w-4 h-4 text-sky-600" />
+                Barreiras e nível de apoio
+              </h4>
+              <p className="text-sm text-slate-600 mb-4">
+                Selecione as barreiras observadas e defina o nível de apoio para a rotina escolar (não é DUA).
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-4">
+                  <BarreirasDominio
+                    dominio="Funções Cognitivas"
+                    opcoes={LISTAS_BARREIRAS["Funções Cognitivas"] || []}
+                    peiData={peiData}
+                    updateField={updateField}
+                  />
+                  <BarreirasDominio
+                    dominio="Sensorial e Motor"
+                    opcoes={LISTAS_BARREIRAS["Sensorial e Motor"] || []}
+                    peiData={peiData}
+                    updateField={updateField}
+                  />
+                </div>
+                <div className="space-y-4">
+                  <BarreirasDominio
+                    dominio="Comunicação e Linguagem"
+                    opcoes={LISTAS_BARREIRAS["Comunicação e Linguagem"] || []}
+                    peiData={peiData}
+                    updateField={updateField}
+                  />
+                  <BarreirasDominio
+                    dominio="Acadêmico"
+                    opcoes={LISTAS_BARREIRAS["Acadêmico"] || []}
+                    peiData={peiData}
+                    updateField={updateField}
+                  />
+                </div>
+                <div className="space-y-4">
+                  <BarreirasDominio
+                    dominio="Socioemocional"
+                    opcoes={LISTAS_BARREIRAS["Socioemocional"] || []}
+                    peiData={peiData}
+                    updateField={updateField}
+                  />
+                </div>
+              </div>
+            </div>
 
-                <hr />
+            <hr />
 
-                {/* Orientações por profissional */}
-                <div>
-                  <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <Info className="w-4 h-4 text-sky-600" />
-                    Orientações por profissional
-                  </h4>
-                  {(!peiData.rede_apoio || peiData.rede_apoio.length === 0) ? (
-                    <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                      <p className="text-blue-800 text-sm">Selecione ao menos um profissional para habilitar os campos de observação.</p>
+            {/* Resumo do Mapeamento */}
+            <div>
+              <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-sky-600" />
+                Resumo do Mapeamento
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  {peiData.hiperfoco ? (
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-300 shadow-sm">
+                      <p className="text-sm font-semibold text-emerald-900">
+                        <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
+                        <strong>Hiperfoco:</strong> {peiData.hiperfoco}
+                      </p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {(peiData.rede_apoio || []).map((prof) => (
-                        <div key={prof} className="p-4 rounded-lg border-2 border-slate-200 bg-white hover:border-sky-300 hover:shadow-sm transition-all">
-                          <h5 className="font-semibold text-slate-800 mb-3">{prof}</h5>
-                          <label className="block text-xs font-medium text-slate-600 mb-1">Observações / orientações</label>
-                          <textarea
-                            value={(peiData.orientacoes_por_profissional || {})[prof] || ""}
-                            onChange={(e) =>
-                              updateField("orientacoes_por_profissional", {
-                                ...(peiData.orientacoes_por_profissional || {}),
-                                [prof]: e.target.value,
-                              })
-                            }
-                            rows={5}
-                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-3"
-                            placeholder="Ex.: recomendações de intervenção, frequência, sinais de alerta, ajustes para sala de aula..."
-                          />
-                          <div className="grid grid-cols-2 gap-2 mt-3">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                updateField("orientacoes_por_profissional", {
-                                  ...(peiData.orientacoes_por_profissional || {}),
-                                  [prof]: "",
-                                });
-                              }}
-                              className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-700"
-                            >
-                              🧹 Limpar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const atual = peiData.rede_apoio || [];
-                                updateField("rede_apoio", atual.filter((item) => item !== prof));
-                                const orientacoes = { ...(peiData.orientacoes_por_profissional || {}) };
-                                delete orientacoes[prof];
-                                updateField("orientacoes_por_profissional", orientacoes);
-                              }}
-                              className="px-3 py-1.5 text-xs border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
-                            >
-                              🗑️ Remover profissional
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                      <p className="text-sm text-slate-500">
+                        <strong>Hiperfoco:</strong> não informado
+                      </p>
+                    </div>
+                  )}
+                  {(Array.isArray(peiData.potencias) ? peiData.potencias : []).length > 0 ? (
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-300 shadow-sm">
+                      <p className="text-sm font-semibold text-emerald-900 mb-1">
+                        <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
+                        <strong>Potencialidades:</strong>
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {(peiData.potencias || []).map((p, i) => (
+                          <span key={i} className="text-xs px-2 py-1 bg-emerald-200 text-emerald-900 rounded-full font-medium">
+                            {p}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                      <p className="text-sm text-slate-500">
+                        <strong>Potencialidades:</strong> não selecionadas
+                      </p>
                     </div>
                   )}
                 </div>
-
-                <hr />
-
-                {/* Checklist de preenchimento */}
-                {(Array.isArray(peiData.rede_apoio) ? peiData.rede_apoio : []).length > 0 && (
-                  <div>
-                    <h4 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-600" />
-                      Checklist de preenchimento
-                    </h4>
-                    <div className="space-y-1">
-                      {(peiData.rede_apoio || []).map((p) => {
-                        const txt = ((peiData.orientacoes_por_profissional || {})[p] || "").trim();
-                        return (
-                          <p key={p} className="text-sm text-slate-700">
-                            - <strong>{p}</strong>: {txt ? "✅ preenchido" : "⚠️ vazio"}
+                <div>
+                  {(() => {
+                    const barreiras = peiData.barreiras_selecionadas || {};
+                    const totalBar = Object.values(barreiras).reduce((acc, arr) => acc + (arr?.length || 0), 0);
+                    if (totalBar === 0) {
+                      return (
+                        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                          <p className="text-sm text-slate-600">
+                            <strong>Barreiras:</strong> nenhuma selecionada
                           </p>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === "mapeamento" && (
-              <div className="space-y-6">
-                {/* Título da aba com ícone */}
-                <div className="flex items-center gap-2 mb-4">
-                  <Radar className="w-5 h-5 text-sky-600" />
-                  <h3 className="text-lg font-semibold text-slate-800">Mapeamento</h3>
-                </div>
-                
-                <p className="text-sm text-slate-600">
-                  Mapeie forças, hiperfocos e barreiras. Para cada barreira selecionada, indique a intensidade de apoio necessária.
-                </p>
-
-                {/* Potencialidades e Hiperfoco */}
-                <div className="p-4 rounded-lg border-2 border-blue-200 bg-blue-50/30">
-                  <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-sky-600" />
-                    Potencialidades e Hiperfoco
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Hiperfoco (se houver)</label>
-                      <input
-                        type="text"
-                        value={peiData.hiperfoco || ""}
-                        onChange={(e) => updateField("hiperfoco", e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                        placeholder="Ex.: Dinossauros, Minecraft, Mapas, Carros, Desenho..."
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Potencialidades / Pontos fortes</label>
-                      <div className="space-y-2">
-                        <div className="flex gap-2">
-                          <select
-                            value={""}
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                const atual = peiData.potencias || [];
-                                if (!atual.includes(e.target.value)) {
-                                  updateField("potencias", [...atual, e.target.value]);
-                                }
-                                e.target.value = "";
-                              }
-                            }}
-                            className="flex-1 px-3 py-2 border border-slate-200 rounded-lg"
-                          >
-                            <option value="">Selecione para adicionar...</option>
-                            {LISTA_POTENCIAS.filter((p) => !(peiData.potencias || []).includes(p)).map((p) => (
-                              <option key={p} value={p}>{p}</option>
-                            ))}
-                          </select>
                         </div>
-                        {(Array.isArray(peiData.potencias) ? peiData.potencias : []).length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {(Array.isArray(peiData.potencias) ? peiData.potencias : []).map((p) => (
-                              <span
-                                key={p}
-                                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-sm"
-                              >
-                                {p}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const atual = peiData.potencias || [];
-                                    updateField("potencias", atual.filter((item) => item !== p));
-                                  }}
-                                  className="text-emerald-600 hover:text-emerald-800"
-                                >
-                                  ×
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                      );
+                    }
+                    return (
+                      <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-amber-300 shadow-sm">
+                        <p className="text-sm font-semibold text-amber-900 mb-3 flex items-center gap-2">
+                          <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+                          <strong>Barreiras selecionadas:</strong> {totalBar}
+                        </p>
+                        <div className="space-y-2">
+                          {Object.entries(barreiras).map(([dom, vals]) => {
+                            if (!vals || vals.length === 0) return null;
+                            return (
+                              <div key={dom} className="p-2 rounded bg-white/60 border border-amber-200">
+                                <p className="text-xs font-semibold text-amber-900 mb-1">{dom}:</p>
+                                <div className="space-y-1">
+                                  {vals.map((b) => {
+                                    const chave = `${dom}_${b}`;
+                                    const nivel = (peiData.niveis_suporte || {})[chave] || "Monitorado";
+                                    return (
+                                      <p key={b} className="text-xs text-amber-800 ml-2 flex items-center gap-2">
+                                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                        {b} → <span className="font-semibold text-amber-900">{nivel}</span>
+                                      </p>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-
-                <hr />
-
-                {/* Barreiras e nível de apoio */}
-                <div>
-                  <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-sky-600" />
-                    Barreiras e nível de apoio
-                  </h4>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Selecione as barreiras observadas e defina o nível de apoio para a rotina escolar (não é DUA).
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-4">
-                      <BarreirasDominio
-                        dominio="Funções Cognitivas"
-                        opcoes={LISTAS_BARREIRAS["Funções Cognitivas"] || []}
-                        peiData={peiData}
-                        updateField={updateField}
-                      />
-                      <BarreirasDominio
-                        dominio="Sensorial e Motor"
-                        opcoes={LISTAS_BARREIRAS["Sensorial e Motor"] || []}
-                        peiData={peiData}
-                        updateField={updateField}
-                      />
-                    </div>
-                    <div className="space-y-4">
-                      <BarreirasDominio
-                        dominio="Comunicação e Linguagem"
-                        opcoes={LISTAS_BARREIRAS["Comunicação e Linguagem"] || []}
-                        peiData={peiData}
-                        updateField={updateField}
-                      />
-                      <BarreirasDominio
-                        dominio="Acadêmico"
-                        opcoes={LISTAS_BARREIRAS["Acadêmico"] || []}
-                        peiData={peiData}
-                        updateField={updateField}
-                      />
-                    </div>
-                    <div className="space-y-4">
-                      <BarreirasDominio
-                        dominio="Socioemocional"
-                        opcoes={LISTAS_BARREIRAS["Socioemocional"] || []}
-                        peiData={peiData}
-                        updateField={updateField}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <hr />
-
-                {/* Resumo do Mapeamento */}
-                <div>
-                  <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-sky-600" />
-                    Resumo do Mapeamento
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      {peiData.hiperfoco ? (
-                        <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-300 shadow-sm">
-                          <p className="text-sm font-semibold text-emerald-900">
-                            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
-                            <strong>Hiperfoco:</strong> {peiData.hiperfoco}
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                          <p className="text-sm text-slate-500">
-                            <strong>Hiperfoco:</strong> não informado
-                          </p>
-                        </div>
-                      )}
-                      {(Array.isArray(peiData.potencias) ? peiData.potencias : []).length > 0 ? (
-                        <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-300 shadow-sm">
-                          <p className="text-sm font-semibold text-emerald-900 mb-1">
-                            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
-                            <strong>Potencialidades:</strong>
-                          </p>
-                          <div className="flex flex-wrap gap-1.5 mt-2">
-                            {(peiData.potencias || []).map((p, i) => (
-                              <span key={i} className="text-xs px-2 py-1 bg-emerald-200 text-emerald-900 rounded-full font-medium">
-                                {p}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                          <p className="text-sm text-slate-500">
-                            <strong>Potencialidades:</strong> não selecionadas
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      {(() => {
-                        const barreiras = peiData.barreiras_selecionadas || {};
-                        const totalBar = Object.values(barreiras).reduce((acc, arr) => acc + (arr?.length || 0), 0);
-                        if (totalBar === 0) {
-                          return (
-                            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                              <p className="text-sm text-slate-600">
-                                <strong>Barreiras:</strong> nenhuma selecionada
-                              </p>
-                            </div>
-                          );
-                        }
-                        return (
-                          <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-amber-300 shadow-sm">
-                            <p className="text-sm font-semibold text-amber-900 mb-3 flex items-center gap-2">
-                              <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
-                              <strong>Barreiras selecionadas:</strong> {totalBar}
-                            </p>
-                            <div className="space-y-2">
-                              {Object.entries(barreiras).map(([dom, vals]) => {
-                                if (!vals || vals.length === 0) return null;
-                                return (
-                                  <div key={dom} className="p-2 rounded bg-white/60 border border-amber-200">
-                                    <p className="text-xs font-semibold text-amber-900 mb-1">{dom}:</p>
-                                    <div className="space-y-1">
-                                      {vals.map((b) => {
-                                        const chave = `${dom}_${b}`;
-                                        const nivel = (peiData.niveis_suporte || {})[chave] || "Monitorado";
-                                        return (
-                                          <p key={b} className="text-xs text-amber-800 ml-2 flex items-center gap-2">
-                                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                                            {b} → <span className="font-semibold text-amber-900">{nivel}</span>
-                                          </p>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
+                    );
+                  })()}
                 </div>
               </div>
-            )}
-
-            {activeTab === "plano" && (
-              <div className="space-y-6">
-                {/* Título da aba com ícone */}
-                <div className="flex items-center gap-2 mb-4">
-                  <Puzzle className="w-5 h-5 text-sky-600" />
-                  <h3 className="text-lg font-semibold text-slate-800">Plano de Ação</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <h4 className="text-base font-semibold text-slate-800 mb-2">1) Acesso</h4>
-                  <label className="block text-xs text-slate-600 mb-2">Recursos de acesso</label>
-                  <div className="space-y-2 mb-3">
-                    {ESTRATEGIAS_ACESSO.map((estr) => {
-                      const selecionadas = peiData.estrategias_acesso || [];
-                      const estaSelecionada = selecionadas.includes(estr);
-                      return (
-                        <label key={estr} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={estaSelecionada}
-                            onChange={(e) => {
-                              const novas = e.target.checked
-                                ? [...selecionadas, estr]
-                                : selecionadas.filter((item) => item !== estr);
-                              updateField("estrategias_acesso", novas);
-                            }}
-                            className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
-                          />
-                          <span className="text-sm text-slate-700">{estr}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                  <input
-                    type="text"
-                    value={peiData.outros_acesso || ""}
-                    onChange={(e) => updateField("outros_acesso", e.target.value)}
-                    placeholder="Ex: Prova em local separado, fonte 18, papel pautado ampliado…"
-                    className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Personalizado (Acesso)</p>
-                </div>
-                <div>
-                  <h4 className="text-base font-semibold text-slate-800 mb-2">2) Ensino (Metodologias)</h4>
-                  <label className="block text-xs text-slate-600 mb-2">Estratégias de ensino</label>
-                  <div className="space-y-2 mb-3">
-                    {ESTRATEGIAS_ENSINO.map((estr) => {
-                      const selecionadas = peiData.estrategias_ensino || [];
-                      const estaSelecionada = selecionadas.includes(estr);
-                      return (
-                        <label key={estr} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={estaSelecionada}
-                            onChange={(e) => {
-                              const novas = e.target.checked
-                                ? [...selecionadas, estr]
-                                : selecionadas.filter((item) => item !== estr);
-                              updateField("estrategias_ensino", novas);
-                            }}
-                            className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
-                          />
-                          <span className="text-sm text-slate-700">{estr}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                  <input
-                    type="text"
-                    value={peiData.outros_ensino || ""}
-                    onChange={(e) => updateField("outros_ensino", e.target.value)}
-                    placeholder="Ex: Sequência didática com apoio de imagens + exemplo resolvido…"
-                    className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Personalizado (Ensino)</p>
-                </div>
-                <div>
-                  <h4 className="text-base font-semibold text-slate-800 mb-2">3) Avaliação (Formato)</h4>
-                  <label className="block text-xs text-slate-600 mb-2">Estratégias de avaliação</label>
-                  <div className="space-y-2">
-                    {ESTRATEGIAS_AVALIACAO.map((estr) => {
-                      const selecionadas = peiData.estrategias_avaliacao || [];
-                      const estaSelecionada = selecionadas.includes(estr);
-                      return (
-                        <label key={estr} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={estaSelecionada}
-                            onChange={(e) => {
-                              const novas = e.target.checked
-                                ? [...selecionadas, estr]
-                                : selecionadas.filter((item) => item !== estr);
-                              updateField("estrategias_avaliacao", novas);
-                            }}
-                            className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
-                          />
-                          <span className="text-sm text-slate-700">{estr}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                  <p className="text-xs text-slate-500 mt-2">Dica: combine formato + acesso (tempo/ambiente) para reduzir barreiras.</p>
-                </div>
-                </div>
-                
-                <hr />
-                
-                <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                  <p className="text-sm text-blue-800">
-                    ✅ O plano de ação alimenta a Consultoria IA com contexto prático (o que você já pretende fazer).
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "monitoramento" && (
-              <div className="space-y-6 max-w-4xl">
-                {/* Título da aba com ícone */}
-                <div className="flex items-center gap-2 mb-4">
-                  <RotateCw className="w-5 h-5 text-sky-600" />
-                  <h3 className="text-lg font-semibold text-slate-800">Monitoramento</h3>
-                </div>
-                
-                <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
-                  <p className="text-sm text-amber-800">
-                    ⚠️ Preencher esta aba principalmente na REVISÃO do PEI (ciclo de acompanhamento).
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Data da Próxima Revisão</label>
-                    <input
-                      type="date"
-                      value={typeof peiData.monitoramento_data === "string" ? peiData.monitoramento_data.split("T")[0] : ""}
-                      onChange={(e) => updateField("monitoramento_data", e.target.value || undefined)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Status da Meta</label>
-                    <select
-                      value={peiData.status_meta || ""}
-                      onChange={(e) => updateField("status_meta", e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                    >
-                      {STATUS_META.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Parecer Geral</label>
-                    <select
-                      value={peiData.parecer_geral || ""}
-                      onChange={(e) => updateField("parecer_geral", e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                    >
-                      {PARECER_GERAL.map((p) => (
-                        <option key={p} value={p}>{p}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Ações Futuras</label>
-                  <div className="space-y-2">
-                    {PROXIMOS_PASSOS.map((p) => {
-                      const selecionadas = peiData.proximos_passos_select || [];
-                      const estaSelecionada = selecionadas.includes(p);
-                      return (
-                        <label key={p} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={estaSelecionada}
-                            onChange={(e) => {
-                              const novas = e.target.checked
-                                ? [...selecionadas, p]
-                                : selecionadas.filter((item) => item !== p);
-                              updateField("proximos_passos_select", novas);
-                            }}
-                            className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
-                          />
-                          <span className="text-sm text-slate-700">{p}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "bncc" && (
-              <div className="space-y-6">
-                {/* Título da aba com ícone */}
-                <div className="flex items-center gap-2 mb-4">
-                  <ClipboardList className="w-5 h-5 text-sky-600" />
-                  <h3 className="text-lg font-semibold text-slate-800">BNCC</h3>
-                </div>
-                <BNCCTab
-                  peiData={peiData}
-                  updateField={updateField}
-                  serie={peiData.serie || ""}
-                />
-              </div>
-            )}
-
-            {activeTab === "consultoria" && (
-              <div className="space-y-6">
-                {/* Título da aba com ícone */}
-                <div className="flex items-center gap-2 mb-4">
-                  <Bot className="w-5 h-5 text-sky-600" />
-                  <h3 className="text-lg font-semibold text-slate-800">Consultoria Pedagógica</h3>
-                </div>
-                <ConsultoriaTab
-                  peiData={peiData}
-                  updateField={updateField}
-                  serie={peiData.serie || ""}
-                />
-              </div>
-            )}
-
-            {activeTab === "dashboard" && (
-              <DashboardTab peiData={peiData} currentStudentId={currentStudentId} updateField={updateField} />
-            )}
-          </div>
-
-          {/* Rodapé com Assinatura e Aviso sobre IA */}
-          <div className="mt-10 pt-6 border-t border-slate-200">
-            {/* Aviso sobre IA - Barra fina de um lado ao outro */}
-            <div className="w-full mb-4 px-6 py-2 bg-slate-50 border-t border-b border-slate-200 text-center">
-              <p className="text-slate-600 text-xs leading-relaxed">
-                A Omnisfera utiliza motores de IA para apoiar sua prática. Essas ferramentas podem apresentar falhas. É fundamental <strong className="text-slate-700">revisar sempre com muito cuidado</strong> todo conteúdo gerado, dada a sensibilidade dos dados tratados em educação inclusiva.
-              </p>
             </div>
-            {/* Assinatura */}
-            <div className="text-center">
-              <p className="text-slate-400 text-xs font-medium">
-                Omnisfera — plataforma de inclusão ativa — criada e desenvolvida por <strong className="text-slate-500">Omni Soluções Educacionais</strong> — todos os direitos reservados.
+          </div>
+        )}
+
+        {activeTab === "plano" && (
+          <div className="space-y-6">
+            {/* Título da aba com ícone */}
+            <div className="flex items-center gap-2 mb-4">
+              <Puzzle className="w-5 h-5 text-sky-600" />
+              <h3 className="text-lg font-semibold text-slate-800">Plano de Ação</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <h4 className="text-base font-semibold text-slate-800 mb-2">1) Acesso</h4>
+                <label className="block text-xs text-slate-600 mb-2">Recursos de acesso</label>
+                <div className="space-y-2 mb-3">
+                  {ESTRATEGIAS_ACESSO.map((estr) => {
+                    const selecionadas = peiData.estrategias_acesso || [];
+                    const estaSelecionada = selecionadas.includes(estr);
+                    return (
+                      <label key={estr} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={estaSelecionada}
+                          onChange={(e) => {
+                            const novas = e.target.checked
+                              ? [...selecionadas, estr]
+                              : selecionadas.filter((item) => item !== estr);
+                            updateField("estrategias_acesso", novas);
+                          }}
+                          className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                        />
+                        <span className="text-sm text-slate-700">{estr}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <input
+                  type="text"
+                  value={peiData.outros_acesso || ""}
+                  onChange={(e) => updateField("outros_acesso", e.target.value)}
+                  placeholder="Ex: Prova em local separado, fonte 18, papel pautado ampliado…"
+                  className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                />
+                <p className="text-xs text-slate-500 mt-1">Personalizado (Acesso)</p>
+              </div>
+              <div>
+                <h4 className="text-base font-semibold text-slate-800 mb-2">2) Ensino (Metodologias)</h4>
+                <label className="block text-xs text-slate-600 mb-2">Estratégias de ensino</label>
+                <div className="space-y-2 mb-3">
+                  {ESTRATEGIAS_ENSINO.map((estr) => {
+                    const selecionadas = peiData.estrategias_ensino || [];
+                    const estaSelecionada = selecionadas.includes(estr);
+                    return (
+                      <label key={estr} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={estaSelecionada}
+                          onChange={(e) => {
+                            const novas = e.target.checked
+                              ? [...selecionadas, estr]
+                              : selecionadas.filter((item) => item !== estr);
+                            updateField("estrategias_ensino", novas);
+                          }}
+                          className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                        />
+                        <span className="text-sm text-slate-700">{estr}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <input
+                  type="text"
+                  value={peiData.outros_ensino || ""}
+                  onChange={(e) => updateField("outros_ensino", e.target.value)}
+                  placeholder="Ex: Sequência didática com apoio de imagens + exemplo resolvido…"
+                  className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                />
+                <p className="text-xs text-slate-500 mt-1">Personalizado (Ensino)</p>
+              </div>
+              <div>
+                <h4 className="text-base font-semibold text-slate-800 mb-2">3) Avaliação (Formato)</h4>
+                <label className="block text-xs text-slate-600 mb-2">Estratégias de avaliação</label>
+                <div className="space-y-2">
+                  {ESTRATEGIAS_AVALIACAO.map((estr) => {
+                    const selecionadas = peiData.estrategias_avaliacao || [];
+                    const estaSelecionada = selecionadas.includes(estr);
+                    return (
+                      <label key={estr} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={estaSelecionada}
+                          onChange={(e) => {
+                            const novas = e.target.checked
+                              ? [...selecionadas, estr]
+                              : selecionadas.filter((item) => item !== estr);
+                            updateField("estrategias_avaliacao", novas);
+                          }}
+                          className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                        />
+                        <span className="text-sm text-slate-700">{estr}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-slate-500 mt-2">Dica: combine formato + acesso (tempo/ambiente) para reduzir barreiras.</p>
+              </div>
+            </div>
+
+            <hr />
+
+            <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+              <p className="text-sm text-blue-800">
+                ✅ O plano de ação alimenta a Consultoria IA com contexto prático (o que você já pretende fazer).
               </p>
             </div>
           </div>
+        )}
+
+        {activeTab === "monitoramento" && (
+          <div className="space-y-6 max-w-4xl">
+            {/* Título da aba com ícone */}
+            <div className="flex items-center gap-2 mb-4">
+              <RotateCw className="w-5 h-5 text-sky-600" />
+              <h3 className="text-lg font-semibold text-slate-800">Monitoramento</h3>
+            </div>
+
+            <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+              <p className="text-sm text-amber-800">
+                ⚠️ Preencher esta aba principalmente na REVISÃO do PEI (ciclo de acompanhamento).
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Data da Próxima Revisão</label>
+                <input
+                  type="date"
+                  value={typeof peiData.monitoramento_data === "string" ? peiData.monitoramento_data.split("T")[0] : ""}
+                  onChange={(e) => updateField("monitoramento_data", e.target.value || undefined)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Status da Meta</label>
+                <select
+                  value={peiData.status_meta || ""}
+                  onChange={(e) => updateField("status_meta", e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                >
+                  {STATUS_META.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Parecer Geral</label>
+                <select
+                  value={peiData.parecer_geral || ""}
+                  onChange={(e) => updateField("parecer_geral", e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                >
+                  {PARECER_GERAL.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Ações Futuras</label>
+              <div className="space-y-2">
+                {PROXIMOS_PASSOS.map((p) => {
+                  const selecionadas = peiData.proximos_passos_select || [];
+                  const estaSelecionada = selecionadas.includes(p);
+                  return (
+                    <label key={p} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={estaSelecionada}
+                        onChange={(e) => {
+                          const novas = e.target.checked
+                            ? [...selecionadas, p]
+                            : selecionadas.filter((item) => item !== p);
+                          updateField("proximos_passos_select", novas);
+                        }}
+                        className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
+                      />
+                      <span className="text-sm text-slate-700">{p}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "bncc" && (
+          <div className="space-y-6">
+            {/* Título da aba com ícone */}
+            <div className="flex items-center gap-2 mb-4">
+              <ClipboardList className="w-5 h-5 text-sky-600" />
+              <h3 className="text-lg font-semibold text-slate-800">BNCC</h3>
+            </div>
+            <BNCCTab
+              peiData={peiData}
+              updateField={updateField}
+              serie={peiData.serie || ""}
+            />
+          </div>
+        )}
+
+        {activeTab === "consultoria" && (
+          <div className="space-y-6">
+            {/* Título da aba com ícone */}
+            <div className="flex items-center gap-2 mb-4">
+              <Bot className="w-5 h-5 text-sky-600" />
+              <h3 className="text-lg font-semibold text-slate-800">Consultoria Pedagógica</h3>
+            </div>
+            <ConsultoriaTab
+              peiData={peiData}
+              updateField={updateField}
+              serie={peiData.serie || ""}
+            />
+          </div>
+        )}
+
+        {activeTab === "dashboard" && (
+          <DashboardTab peiData={peiData} currentStudentId={currentStudentId} updateField={updateField} />
+        )}
+      </div>
+
+      {/* Rodapé com Assinatura e Aviso sobre IA */}
+      <div className="mt-10 pt-6 border-t border-slate-200">
+        {/* Aviso sobre IA - Barra fina de um lado ao outro */}
+        <div className="w-full mb-4 px-6 py-2 bg-slate-50 border-t border-b border-slate-200 text-center">
+          <p className="text-slate-600 text-xs leading-relaxed">
+            A Omnisfera utiliza motores de IA para apoiar sua prática. Essas ferramentas podem apresentar falhas. É fundamental <strong className="text-slate-700">revisar sempre com muito cuidado</strong> todo conteúdo gerado, dada a sensibilidade dos dados tratados em educação inclusiva.
+          </p>
+        </div>
+        {/* Assinatura */}
+        <div className="text-center">
+          <p className="text-slate-400 text-xs font-medium">
+            Omnisfera — plataforma de inclusão ativa — criada e desenvolvida por <strong className="text-slate-500">Omni Soluções Educacionais</strong> — todos os direitos reservados.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -2411,7 +2409,7 @@ function PeiExportDocxButton({ peiData }: { peiData: PEIData }) {
 // Função para formatar texto da consultoria (simples, como no Streamlit)
 function formatarTextoConsultoria(texto: string): React.ReactNode {
   if (!texto) return texto;
-  
+
   // Remover markdown e melhorar formatação
   const textoLimpo = texto
     .replace(/^##+\s*/gm, '') // Remove ## headers
@@ -2421,7 +2419,7 @@ function formatarTextoConsultoria(texto: string): React.ReactNode {
     .replace(/^\*\s+/gm, '• ') // Converte * para bullet
     .replace(/\n{3,}/g, '\n\n') // Remove múltiplas quebras de linha
     .trim();
-  
+
   // Retornar como texto pré-formatado simples
   return (
     <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
@@ -2551,7 +2549,7 @@ function ConsultoriaTab({
           {/* Se ainda não tem texto ou voltou para rascunho: botões de geração */}
           {(!temTexto || statusValidacao === "rascunho") && (
             <>
-              <details className="p-4 rounded-lg border-2 border-slate-200 bg-white" open>
+              <details className="p-4 rounded-lg border border-slate-200/60 bg-white" open>
                 <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
                   🔧 Escolher motor de IA (Red, Blue, Green, Yellow ou Orange)
                 </summary>
@@ -2670,7 +2668,7 @@ function ConsultoriaTab({
           {/* Se revisão/aprovado: mostrar texto e permitir aprovar/ajustar */}
           {temTexto && (statusValidacao === "revisao" || statusValidacao === "aprovado") && (
             <>
-              <details className="p-4 rounded-lg border-2 border-slate-200 bg-white">
+              <details className="p-4 rounded-lg border border-slate-200/60 bg-white">
                 <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
                   🧠 Como a IA construiu este relatório (transparência)
                 </summary>
@@ -2690,7 +2688,7 @@ function ConsultoriaTab({
                 </div>
               </details>
 
-              <details className="p-4 rounded-lg border-2 border-slate-200 bg-white">
+              <details className="p-4 rounded-lg border border-slate-200/60 bg-white">
                 <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
                   🛡️ Calibragem e segurança pedagógica
                 </summary>
@@ -3028,19 +3026,19 @@ function BNCCTab({
       const habilidadesParaIA =
         tipo === "ano_atual"
           ? Object.entries(anoAtual).flatMap(([disc, habs]) =>
-              (habs || []).map((h) => ({
-                disciplina: disc,
-                codigo: h.codigo,
-                habilidade_completa: h.habilidade_completa || h.descricao,
-              }))
-            )
+            (habs || []).map((h) => ({
+              disciplina: disc,
+              codigo: h.codigo,
+              habilidade_completa: h.habilidade_completa || h.descricao,
+            }))
+          )
           : Object.entries(anosAnteriores).flatMap(([disc, habs]) =>
-              (habs || []).map((h) => ({
-                disciplina: disc,
-                codigo: h.codigo,
-                habilidade_completa: h.habilidade_completa || h.descricao,
-              }))
-            );
+            (habs || []).map((h) => ({
+              disciplina: disc,
+              codigo: h.codigo,
+              habilidade_completa: h.habilidade_completa || h.descricao,
+            }))
+          );
 
       const res = await fetch("/api/bncc/sugerir-habilidades", {
         method: "POST",
@@ -3189,7 +3187,7 @@ function BNCCTab({
               const habsDisciplina = anoAtual[disc] || [];
               const habsSelecionadas = habilidadesAtuais.filter((h) => h.disciplina === disc && h.origem === "ano_atual");
               const codigosSelecionados = new Set(habsSelecionadas.map(h => h.codigo));
-              
+
               return (
                 <details key={disc} className="border border-slate-200 rounded-lg bg-white">
                   <summary className="px-3 py-2 font-medium cursor-pointer hover:bg-slate-50 rounded-t-lg flex items-center justify-between">
@@ -3204,11 +3202,10 @@ function BNCCTab({
                       return (
                         <label
                           key={`${disc}-ano-${i}`}
-                          className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${
-                            estaSelecionada
-                              ? "bg-emerald-50 border-2 border-emerald-300"
-                              : "hover:bg-slate-50 border-2 border-transparent"
-                          }`}
+                          className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${estaSelecionada
+                            ? "bg-emerald-50 border-2 border-emerald-300"
+                            : "hover:bg-slate-50 border-2 border-transparent"
+                            }`}
                         >
                           <input
                             type="checkbox"
@@ -3279,7 +3276,7 @@ function BNCCTab({
               const habsDisciplina = anosAnteriores[disc] || [];
               const habsSelecionadas = habilidadesAtuais.filter((h) => h.disciplina === disc && h.origem === "anos_anteriores");
               const codigosSelecionados = new Set(habsSelecionadas.map(h => h.codigo));
-              
+
               return (
                 <details key={disc} className="border border-slate-200 rounded-lg bg-white">
                   <summary className="px-3 py-2 font-medium cursor-pointer hover:bg-slate-50 rounded-t-lg flex items-center justify-between">
@@ -3294,11 +3291,10 @@ function BNCCTab({
                       return (
                         <label
                           key={`${disc}-ant-${i}`}
-                          className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${
-                            estaSelecionada
-                              ? "bg-amber-50 border-2 border-amber-300"
-                              : "hover:bg-slate-50 border-2 border-transparent"
-                          }`}
+                          className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${estaSelecionada
+                            ? "bg-amber-50 border-2 border-amber-300"
+                            : "hover:bg-slate-50 border-2 border-transparent"
+                            }`}
                         >
                           <input
                             type="checkbox"
@@ -3479,7 +3475,7 @@ function LaudoPdfSection({
         </div>
       </div>
       {erro && <div className="text-red-600 text-sm bg-red-50 p-2 rounded">{erro}</div>}
-      
+
       {/* Revisão de medicações (como no Streamlit) */}
       {modoRevisao && medsRevisao.length > 0 && (
         <div className="p-4 rounded-lg bg-white border-2 border-amber-200 space-y-3">
@@ -3557,7 +3553,7 @@ function LaudoPdfSection({
           </div>
         </div>
       )}
-      
+
       {/* Resultado da extração (sem revisão de meds) */}
       {extraido && !modoRevisao && (
         <div className="space-y-3 p-4 rounded-lg bg-white border-2 border-emerald-200">
@@ -3618,7 +3614,7 @@ function MedicamentosForm({
         />
         <label className="text-sm font-medium text-slate-700">💊 O estudante faz uso contínuo de medicação?</label>
       </div>
-      
+
       {/* Layout 3 colunas [3, 2, 2] como Streamlit */}
       <div className="grid grid-cols-1 md:grid-cols-7 gap-2 mb-3">
         <div className="md:col-span-3">
@@ -3674,9 +3670,9 @@ function MedicamentosForm({
                 <span className="text-sm text-slate-700">
                   💊 <strong>{m.nome || ""}</strong> ({m.posologia || ""}){m.escola ? " [NA ESCOLA]" : ""}
                 </span>
-                <button 
-                  type="button" 
-                  onClick={() => onRemove(i)} 
+                <button
+                  type="button"
+                  onClick={() => onRemove(i)}
                   className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
                 >
                   Excluir
@@ -3818,7 +3814,7 @@ function NivelSuporteRange({
 }) {
   const thumbColor = value === 0 ? '#10b981' : value === 1 ? '#eab308' : value === 2 ? '#f97316' : '#ef4444';
   const rangeId = `range-${id.replace(/[^a-zA-Z0-9]/g, '-')}`;
-  
+
   useEffect(() => {
     const style = document.createElement('style');
     style.id = `style-${rangeId}`;
@@ -3864,7 +3860,7 @@ function NivelSuporteRange({
       if (styleEl) styleEl.remove();
     };
   }, [thumbColor, rangeId]);
-  
+
   // Calcular cor da barra baseada na posição do marcador
   let barColor = '#10b981'; // Verde (Autônomo - valor 0)
   if (value === 1) barColor = '#eab308'; // Amarelo (Monitorado)
@@ -3874,11 +3870,11 @@ function NivelSuporteRange({
   return (
     <div className="relative">
       {/* Barra de fundo cinza */}
-      <div 
+      <div
         className="absolute w-full h-2 rounded-lg pointer-events-none bg-slate-200"
       />
       {/* Barra inteira com a cor baseada na posição do marcador */}
-      <div 
+      <div
         className="absolute w-full h-2 rounded-lg pointer-events-none transition-all duration-200"
         style={{
           background: barColor,
@@ -3928,7 +3924,7 @@ function BarreirasDominio({
           </span>
         )}
       </h5>
-      
+
       {/* Checkboxes para selecionar barreiras */}
       <div className="space-y-2 mb-4">
         {opcoes.map((b) => {
@@ -3936,11 +3932,10 @@ function BarreirasDominio({
           return (
             <label
               key={b}
-              className={`flex items-center gap-2 p-2.5 rounded-lg cursor-pointer transition-all ${
-                estaSelecionada
-                  ? "bg-emerald-50 border-2 border-emerald-300 shadow-sm"
-                  : "hover:bg-slate-50 border-2 border-transparent"
-              }`}
+              className={`flex items-center gap-2 p-2.5 rounded-lg cursor-pointer transition-all ${estaSelecionada
+                ? "bg-emerald-50 border-2 border-emerald-300 shadow-sm"
+                : "hover:bg-slate-50 border-2 border-transparent"
+                }`}
             >
               <input
                 type="checkbox"
@@ -3951,7 +3946,7 @@ function BarreirasDominio({
                     : selecionadas.filter((item) => item !== b);
                   const novasBarreiras = { ...barreiras, [dominio]: novas };
                   updateField("barreiras_selecionadas", novasBarreiras);
-                  
+
                   // Remove nível de suporte se desmarcar
                   if (!e.target.checked) {
                     const chave = `${dominio}_${b}`;
@@ -4002,16 +3997,15 @@ function BarreirasDominio({
                       id={chave}
                     />
                     <div className="flex justify-between items-center">
-                      <span 
-                        className={`text-xs font-medium px-2 py-1 rounded ${
-                          nivelIndex === 0 
-                            ? "text-emerald-700 bg-emerald-100" // Verde
-                            : nivelIndex === 1
+                      <span
+                        className={`text-xs font-medium px-2 py-1 rounded ${nivelIndex === 0
+                          ? "text-emerald-700 bg-emerald-100" // Verde
+                          : nivelIndex === 1
                             ? "text-yellow-700 bg-yellow-100" // Amarelo
                             : nivelIndex === 2
-                            ? "text-orange-700 bg-orange-100" // Laranja
-                            : "text-red-700 bg-red-100" // Vermelho
-                        }`}
+                              ? "text-orange-700 bg-orange-100" // Laranja
+                              : "text-red-700 bg-red-100" // Vermelho
+                          }`}
                       >
                         {nivelAtual}
                       </span>

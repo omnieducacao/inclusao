@@ -2,6 +2,33 @@
 
 import React, { useEffect, useState } from "react";
 
+// ─── Performance: Singleton cache ───
+// Module-level cache shared across ALL LottieIcon instances
+const jsonCache = new Map<string, any>();
+const fetchPromises = new Map<string, Promise<any>>();
+let lottieModule: any = null;
+let lottieLoadPromise: Promise<any> | null = null;
+
+function loadLottieLibrary(): Promise<any> {
+  if (lottieModule) return Promise.resolve(lottieModule);
+  if (lottieLoadPromise) return lottieLoadPromise;
+  lottieLoadPromise = import("lottie-react")
+    .then((mod) => { lottieModule = mod.default; return lottieModule; })
+    .catch((err) => { console.warn(`[LottieIcon] Could not load lottie-react:`, err); return null; });
+  return lottieLoadPromise;
+}
+
+function fetchAnimationJSON(animation: string): Promise<any> {
+  if (jsonCache.has(animation)) return Promise.resolve(jsonCache.get(animation));
+  if (fetchPromises.has(animation)) return fetchPromises.get(animation)!;
+  const promise = fetch(`/lottie/${animation}.json`)
+    .then((res) => { if (!res.ok) throw new Error(`Failed: ${animation}`); return res.json(); })
+    .then((data) => { jsonCache.set(animation, data); fetchPromises.delete(animation); return data; })
+    .catch((err) => { fetchPromises.delete(animation); throw err; });
+  fetchPromises.set(animation, promise);
+  return promise;
+}
+
 type LottieIconProps = {
   /**
    * Nome do arquivo JSON do Lottie (sem extensão)
@@ -68,43 +95,29 @@ export function LottieIcon({
   const [isMounted, setIsMounted] = useState(false);
   const [LottieComponent, setLottieComponent] = useState<any>(null);
 
-  // Garantir que só renderiza no cliente e carregar Lottie dinamicamente
+  // Garantir que só renderiza no cliente e carregar Lottie dinamicamente (singleton)
   useEffect(() => {
     setIsMounted(true);
-    
-    // Import dinâmico do Lottie apenas no cliente
+
     if (typeof window !== "undefined") {
-      import("lottie-react")
-        .then((module) => {
-          setLottieComponent(() => module.default);
-        })
-        .catch((err) => {
-          console.warn(`[LottieIcon] Could not load lottie-react:`, err);
-          setError("Failed to load Lottie library");
+      loadLottieLibrary()
+        .then((component) => {
+          if (component) setLottieComponent(() => component);
+          else setError("Failed to load Lottie library");
         });
     }
   }, []);
 
   useEffect(() => {
-    // Verificar se estamos no cliente antes de fazer fetch
-    if (typeof window === "undefined" || !isMounted) {
-      return;
-    }
+    if (typeof window === "undefined" || !isMounted) return;
 
-    // Carregar o arquivo JSON do Lottie
-    fetch(`/lottie/${animation}.json`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to load animation: ${animation}`);
-        }
-        return res.json();
-      })
+    // Usar cache compartilhado para JSON
+    fetchAnimationJSON(animation)
       .then((data) => {
         setAnimationData(data);
         onLoad?.();
       })
       .catch((err) => {
-        // Silenciosamente falhar - não quebrar a aplicação
         console.warn(`[LottieIcon] Could not load animation "${animation}":`, err.message);
         setError(err.message);
       });

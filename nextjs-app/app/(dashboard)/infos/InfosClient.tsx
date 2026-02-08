@@ -268,20 +268,19 @@ export default function InfosClient() {
   return (
     <div className="space-y-6">
       {/* Tabs Navigation */}
-      <div className="flex border-b border-slate-200 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-1.5 p-1.5 bg-slate-100/80 rounded-2xl overflow-x-auto scrollbar-hide" style={{ border: '1px solid rgba(226,232,240,0.6)' }}>
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-3 text-sm font-medium whitespace-nowrap flex items-center gap-2 flex-shrink-0 ${
-                activeTab === tab.id
-                  ? "text-sky-600 border-b-2 border-sky-600 bg-sky-50/50"
-                  : "text-slate-600 hover:bg-slate-50"
-              }`}
+              className={`px-4 py-2.5 text-[13px] font-semibold whitespace-nowrap flex items-center gap-2 flex-shrink-0 rounded-xl transition-all duration-200 ${activeTab === tab.id
+                ? "bg-white text-slate-800 shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+                }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-blue-600' : ''}`} />
               {tab.label}
             </button>
           );
@@ -293,15 +292,16 @@ export default function InfosClient() {
         {activeTab === "panorama" && (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-                <BarChart3 className="w-6 h-6 text-sky-600" />
+              <h3 className="heading-section text-slate-800 mb-2 flex items-center gap-3">
+                <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #4285F4, #3574D4)' }} />
+                <BarChart3 className="w-5 h-5 text-blue-600" />
                 O Fluxo da Inclusão (Omnisfera 2025)
               </h3>
               <p className="text-sm text-slate-600 mb-4">
                 Visualização do ecossistema escolar atualizado com os novos decretos.
               </p>
-              <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-cyan-50 rounded-xl p-6 border-2 border-slate-200">
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-cyan-50 rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 stagger-children">
                   {[
                     { num: "1", title: "ACOLHIMENTO", desc: "(Matrícula Garantida)", color: "bg-blue-100 text-blue-700 border-blue-300" },
                     { num: "2", title: "ESTUDO DE CASO", desc: "(Avaliação Pedagógica)", color: "bg-blue-600 text-white border-blue-800" },
@@ -309,7 +309,7 @@ export default function InfosClient() {
                     { num: "4", title: "PLANEJAMENTO", desc: "(PEI + PAEE)", color: "bg-purple-100 text-purple-700 border-purple-300" },
                     { num: "5", title: "PRÁTICA", desc: "(Sala + AEE)", color: "bg-amber-100 text-amber-700 border-amber-300" },
                   ].map((step, idx) => (
-                    <div key={idx} className={`${step.color} rounded-lg p-4 border-2 text-center`}>
+                    <div key={idx} className={`${step.color} rounded-xl p-4 border text-center transition-all duration-200 hover:scale-[1.03]`}>
                       <div className="text-2xl font-bold mb-1">{step.num}</div>
                       <div className="text-xs font-bold mb-1">{step.title}</div>
                       <div className="text-xs opacity-90">{step.desc}</div>
@@ -323,8 +323,8 @@ export default function InfosClient() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
-                <h4 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+              <div className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
+                <h4 className="heading-subsection text-slate-800 mb-2 flex items-center gap-2">
                   <Users className="w-5 h-5 text-sky-600" />
                   Filosofia: "Outrar-se"
                 </h4>
@@ -332,8 +332,8 @@ export default function InfosClient() {
                   A capacidade de sentir o mundo do outro mantendo o distanciamento profissional. É ter empatia sem confundir papéis, superando o capacitismo.
                 </p>
               </div>
-              <div className="bg-white rounded-xl border-2 border-slate-200 p-5">
-                <h4 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+              <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+                <h4 className="heading-subsection text-slate-800 mb-2 flex items-center gap-2">
                   <Scale className="w-5 h-5 text-sky-600" />
                   Justiça Curricular
                 </h4>
@@ -344,10 +344,10 @@ export default function InfosClient() {
             </div>
 
             <div>
-              <h4 className="text-lg font-bold text-slate-800 mb-4">Amplie o Conhecimento — Fundamentos da Educação Inclusiva</h4>
+              <h4 className="heading-subsection text-slate-800 mb-4">Amplie o Conhecimento — Fundamentos da Educação Inclusiva</h4>
               <div className="space-y-3">
-                <details className="bg-white rounded-lg border-2 border-slate-200 p-4">
-                  <summary className="cursor-pointer font-semibold text-slate-800 mb-2">
+                <details className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
+                  <summary className="cursor-pointer heading-subsection text-slate-800 mb-2">
                     1. Educação Inclusiva – Definição
                   </summary>
                   <div className="mt-3 text-sm text-slate-600 space-y-2">
@@ -365,8 +365,8 @@ export default function InfosClient() {
                   </div>
                 </details>
 
-                <details className="bg-white rounded-lg border-2 border-slate-200 p-4">
-                  <summary className="cursor-pointer font-semibold text-slate-800 mb-2">
+                <details className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
+                  <summary className="cursor-pointer heading-subsection text-slate-800 mb-2">
                     2. Capacitismo
                   </summary>
                   <div className="mt-3 text-sm text-slate-600 space-y-2">
@@ -379,8 +379,8 @@ export default function InfosClient() {
                   </div>
                 </details>
 
-                <details className="bg-white rounded-lg border-2 border-slate-200 p-4">
-                  <summary className="cursor-pointer font-semibold text-slate-800 mb-2">
+                <details className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
+                  <summary className="cursor-pointer heading-subsection text-slate-800 mb-2">
                     3. Uma escola para todos: recursos, currículo e gestão
                   </summary>
                   <div className="mt-3 text-sm text-slate-600 space-y-2">
@@ -408,7 +408,7 @@ export default function InfosClient() {
                   Legislação em Foco (2025)
                 </h3>
 
-                <details className="bg-white rounded-lg border-2 border-sky-200 p-5" open>
+                <details className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.5)' }} open>
                   <summary className="cursor-pointer font-bold text-slate-800 mb-3 flex items-center gap-2">
                     <Scale className="w-5 h-5 text-sky-600" />
                     Decreto 12.686/2025: O Financiamento (Duplo Fundo)
@@ -426,7 +426,7 @@ export default function InfosClient() {
                   </div>
                 </details>
 
-                <details className="bg-white rounded-lg border-2 border-red-200 p-5">
+                <details className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.5)' }}>
                   <summary className="cursor-pointer font-bold text-slate-800 mb-3 flex items-center gap-2">
                     <XCircle className="w-5 h-5 text-red-600" />
                     Decreto 12.773/2025: Garantia de Acesso (Escolas Privadas)
@@ -445,7 +445,7 @@ export default function InfosClient() {
                 </details>
               </div>
 
-              <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl border-2 border-teal-200 p-6">
+              <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl border border-teal-200/60 p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center">
                     <Rocket className="w-6 h-6 text-teal-600" />
@@ -478,8 +478,9 @@ export default function InfosClient() {
         {activeTab === "glossario" && (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-sky-600" />
+              <h3 className="heading-section text-slate-800 mb-2 flex items-center gap-3">
+                <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #4285F4, #3574D4)' }} />
+                <BookOpen className="w-5 h-5 text-blue-600" />
                 Glossário Técnico Conceitual
               </h3>
               <p className="text-sm text-slate-600 mb-4">Definições oficiais para embasar relatórios e PEIs.</p>
@@ -498,7 +499,7 @@ export default function InfosClient() {
 
             <div className="space-y-3">
               {filteredGlossario.map((item, idx) => (
-                <div key={idx} className="bg-white rounded-lg border-2 border-slate-200 p-4 hover:border-sky-300 transition-colors">
+                <div key={idx} className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md hover:border-blue-200" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
                   <div className="font-bold text-sky-700 text-base mb-2">{item.t}</div>
                   <div className="text-sm text-slate-600 leading-relaxed">{item.d}</div>
                 </div>
@@ -510,8 +511,9 @@ export default function InfosClient() {
         {activeTab === "linguagem" && (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-                <MessageSquare className="w-6 h-6 text-sky-600" />
+              <h3 className="heading-section text-slate-800 mb-2 flex items-center gap-3">
+                <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #4285F4, #3574D4)' }} />
+                <MessageSquare className="w-5 h-5 text-blue-600" />
                 Guia de Linguagem Inclusiva
               </h3>
               <p className="text-sm text-slate-600 mb-4">Termos para adotar e termos para abolir, baseados no respeito e na técnica.</p>
@@ -525,7 +527,7 @@ export default function InfosClient() {
                 </h4>
                 <div className="space-y-3">
                   {termosBons.map((termo, idx) => (
-                    <div key={idx} className="bg-emerald-50 rounded-lg border-2 border-emerald-200 p-4">
+                    <div key={idx} className="bg-emerald-50 rounded-lg border border-emerald-200/60 p-4">
                       <div className="font-bold text-emerald-800 text-sm mb-1">{termo.termo}</div>
                       <div className="text-xs text-emerald-700">{termo.desc}</div>
                     </div>
@@ -540,7 +542,7 @@ export default function InfosClient() {
                 </h4>
                 <div className="space-y-3">
                   {termosRuins.map((termo, idx) => (
-                    <div key={idx} className="bg-red-50 rounded-lg border-2 border-red-200 p-4">
+                    <div key={idx} className="bg-red-50 rounded-lg border border-red-200/60 p-4">
                       <div className="font-bold text-red-800 text-sm mb-1 line-through">{termo.termo}</div>
                       <div className="text-xs text-red-700">{termo.desc}</div>
                     </div>
@@ -554,8 +556,9 @@ export default function InfosClient() {
         {activeTab === "biblio" && (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-                <BookText className="w-6 h-6 text-sky-600" />
+              <h3 className="heading-section text-slate-800 mb-2 flex items-center gap-3">
+                <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #4285F4, #3574D4)' }} />
+                <BookText className="w-5 h-5 text-blue-600" />
                 Acervo Bibliográfico Completo
               </h3>
               <p className="text-sm text-slate-600 mb-4">Clique nos itens para expandir o resumo e acessar o link (quando disponível).</p>
@@ -563,10 +566,10 @@ export default function InfosClient() {
 
             {biblioteca.map((categoria, catIdx) => (
               <div key={catIdx} className="space-y-4">
-                <h4 className="text-lg font-bold text-slate-800">{categoria.categoria}</h4>
+                <h4 className="heading-subsection text-slate-800">{categoria.categoria}</h4>
                 <div className="space-y-3">
                   {categoria.livros.map((livro, livroIdx) => (
-                    <details key={livroIdx} className="bg-white rounded-lg border-2 border-slate-200 p-4">
+                    <details key={livroIdx} className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
                       <summary className="cursor-pointer font-semibold text-slate-800 mb-2 flex items-center gap-2">
                         <BookText className="w-4 h-4 text-sky-600" />
                         {livro.titulo}
@@ -601,15 +604,16 @@ export default function InfosClient() {
         {activeTab === "manual" && (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-                <BookOpenCheck className="w-6 h-6 text-sky-600" />
+              <h3 className="heading-section text-slate-800 mb-2 flex items-center gap-3">
+                <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #4285F4, #3574D4)' }} />
+                <BookOpenCheck className="w-5 h-5 text-blue-600" />
                 Manual da Jornada Omnisfera: O Ciclo da Inclusão
               </h3>
               <p className="text-sm text-slate-600 mb-4">Fluxo de trabalho ideal conectando planejamento, AEE e prática.</p>
             </div>
 
             <div className="space-y-6">
-              <div className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-xl border-2 border-sky-200 p-6">
+              <div className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-xl border border-sky-200/60 p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <FileText className="w-7 h-7 text-sky-600" />
                   <h4 className="text-lg font-bold text-slate-800">O Alicerce: Planejamento (PEI)</h4>
@@ -633,7 +637,7 @@ export default function InfosClient() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border-2 border-purple-200 p-6">
+              <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-200/60 p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <Puzzle className="w-7 h-7 text-purple-600" />
                   <h4 className="text-lg font-bold text-slate-800">A Estratégia: O AEE e o Plano de Ação (PAEE)</h4>
@@ -657,7 +661,7 @@ export default function InfosClient() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl border-2 border-cyan-200 p-6">
+              <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl border border-cyan-200/60 p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <Rocket className="w-7 h-7 text-cyan-600" />
                   <h4 className="text-lg font-bold text-slate-800">A Ferramenta: Adaptação (Hub de Inclusão)</h4>
@@ -676,7 +680,7 @@ export default function InfosClient() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl border-2 border-rose-200 p-5">
+                <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl border border-rose-200/60 p-5">
                   <h4 className="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-rose-600" />
                     O Registro: Diário de Bordo
@@ -686,7 +690,7 @@ export default function InfosClient() {
                     Registre o que funcionou e o engajamento. Use o conceito de <strong>"outrar-se"</strong>.
                   </p>
                 </div>
-                <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl border-2 border-slate-200 p-5">
+                <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl border border-slate-200/60 p-5">
                   <h4 className="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
                     <BarChart3 className="w-5 h-5 text-slate-600" />
                     O Fechamento: Avaliação
@@ -698,7 +702,7 @@ export default function InfosClient() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border-2 border-slate-200 p-6">
+              <div className="bg-white rounded-xl border border-slate-200/60 p-6">
                 <h4 className="text-lg font-bold text-slate-800 mb-4">Resumo do Ecossistema</h4>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">

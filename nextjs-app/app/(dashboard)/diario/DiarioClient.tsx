@@ -162,7 +162,7 @@ export function DiarioClient({ students, studentId, student }: Props) {
       </div>
     );
   }
-  
+
   if (!student) {
     return (
       <div className="space-y-4">
@@ -182,7 +182,7 @@ export function DiarioClient({ students, studentId, student }: Props) {
         <PEISummaryPanel peiData={peiData} studentName={student.name} />
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-xl border-2 border-slate-200 min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg }}>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-2xl min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg, boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
         <div>
           <div className="text-xs font-semibold text-slate-500 uppercase">Estudante</div>
           <div className="font-bold text-slate-800">{student.name}</div>
@@ -213,7 +213,7 @@ export function DiarioClient({ students, studentId, student }: Props) {
       <div>
         <h3 className="font-bold text-slate-800 mb-3">Histórico de sessões</h3>
         {registrosOrdenados.length === 0 ? (
-          <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white text-slate-500 min-h-[180px]">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white text-slate-500 min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
             Nenhum registro ainda. Preencha o formulário acima para criar o primeiro.
           </div>
         ) : (

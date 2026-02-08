@@ -36,6 +36,7 @@ const lucideToLottieMap: Record<string, string> = {
   School: "GraduationCap",
   ClipboardList: "ClipboardText",
   Settings: "Gear",
+  BookMarked: "BookBookmark",
 };
 
 type PageHeroProps = {
@@ -53,59 +54,67 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
   const lottieAnimation = useLottie && lottieIconName ? lottieMapOutlineColored[lottieIconName] : null;
   const [isMounted, setIsMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  
+
   // Garantir que só renderiza Lottie no cliente
   useEffect(() => {
     setIsMounted(true);
   }, []);
-  
+
   // Se não montado ainda OU não deve usar Lottie, mostrar placeholder
   if (!isMounted || !useLottie || !lottieAnimation) {
     return (
       <div
-        className="group rounded-2xl border-2 border-slate-200 overflow-hidden shadow-md transition-all duration-300 hover:shadow-lg"
-        style={{ backgroundColor: colors.bg }}
+        className="rounded-2xl overflow-hidden animate-fade-in-up"
+        style={{ backgroundColor: colors.bg, boxShadow: '0 4px 16px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.02)' }}
       >
-        <div className="flex items-center gap-5 h-32 px-6">
+        <div className="h-1 w-full opacity-60" style={{ background: `linear-gradient(to right, ${colors.text}, ${colors.icon || colors.text})` }} />
+        <div className="flex items-center gap-5 h-[120px] px-8 md:px-10">
           <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center">
-            <div className="w-14 h-14 bg-slate-200 rounded animate-pulse" />
+            <div className="w-14 h-14 bg-slate-200 rounded-xl animate-pulse" />
           </div>
           <div>
-            <h1 className="text-xl font-bold" style={{ color: colors.text }}>{title}</h1>
-            <p className="text-sm text-slate-600 mt-0.5">{desc}</p>
+            <h1 className="text-xl font-extrabold" style={{ color: colors.text }}>{title}</h1>
+            <p className="text-[13px] text-slate-500 mt-0.5">{desc}</p>
           </div>
         </div>
       </div>
     );
   }
-  
+
   return (
     <div
-      className="group bg-white rounded-2xl border-2 border-slate-200 shadow-lg transition-all duration-300 hover:shadow-xl hover:border-slate-300 hover:-translate-y-0.5 overflow-hidden"
-      style={{ backgroundColor: colors.bg }}
+      className="group rounded-2xl overflow-hidden transition-all duration-300 animate-fade-in-up"
+      style={{
+        backgroundColor: colors.bg,
+        boxShadow: isHovered
+          ? '0 8px 24px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)'
+          : '0 4px 16px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.02)',
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex items-center gap-6 h-40 px-10">
+      {/* Top accent bar */}
+      <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${colors.text}, ${colors.icon || colors.text})` }} />
+
+      <div className="flex items-center gap-6 h-[120px] px-8 md:px-10">
         {/* Ícone dentro do quadrado minimalista - estático, anima só no hover */}
-        <div 
-          className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 flex-shrink-0"
-          style={{ width: '72px', height: '72px', padding: '6px' }}
+        <div
+          className="rounded-xl bg-white/40 flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-105 flex-shrink-0"
+          style={{ width: '64px', height: '64px', padding: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
         >
           <LottieIcon
             animation={lottieAnimation}
-            size={60}
+            size={56}
             loop={isHovered}
             autoplay={isHovered}
             className="transition-all duration-300"
           />
         </div>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold mb-1" style={{ color: colors.text }}>{title}</h1>
-          <p className="text-sm text-slate-600 leading-relaxed">{desc}</p>
+          <h1 className="text-2xl font-extrabold mb-0.5 tracking-tight" style={{ color: colors.text }}>{title}</h1>
+          <p className="text-[13px] text-slate-500 leading-relaxed">{desc}</p>
         </div>
       </div>
     </div>
   );
 }
-

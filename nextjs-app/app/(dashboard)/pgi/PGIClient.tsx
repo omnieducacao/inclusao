@@ -71,22 +71,20 @@ export function PGIClient() {
         <button
           type="button"
           onClick={() => setTab("inicial")}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg ${
-            tab === "inicial"
+          className={`px-4 py-2 text-sm font-medium rounded-t-lg ${tab === "inicial"
               ? "bg-teal-50 text-teal-800 border border-slate-200 border-b-0 -mb-px"
               : "text-slate-600 hover:bg-slate-50"
-          }`}
+            }`}
         >
           Inicial — Acolhimento
         </button>
         <button
           type="button"
           onClick={() => setTab("gerador")}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg ${
-            tab === "gerador"
+          className={`px-4 py-2 text-sm font-medium rounded-t-lg ${tab === "gerador"
               ? "bg-teal-50 text-teal-800 border border-slate-200 border-b-0 -mb-px"
               : "text-slate-600 hover:bg-slate-50"
-          }`}
+            }`}
         >
           Gerador — O Plano da Escola
         </button>
@@ -94,9 +92,8 @@ export function PGIClient() {
 
       {message && (
         <div
-          className={`p-3 rounded-lg text-sm ${
-            message.type === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
-          }`}
+          className={`p-3 rounded-lg text-sm ${message.type === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
+            }`}
         >
           {message.text}
         </div>
@@ -279,7 +276,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
   return (
     <div className="space-y-6">
       {/* Dimensionamento */}
-      <details className="rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4">
+      <details className="rounded-2xl bg-gradient-to-br from-slate-50 to-white p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
         <summary className="cursor-pointer font-medium text-slate-700">Dimensionamento preliminar (opcional)</summary>
         <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
@@ -359,7 +356,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
       </div>
 
       {/* Formulário */}
-      <form onSubmit={handleAddAcao} className="rounded-xl border-2 border-slate-200 bg-white p-6 space-y-4 shadow-sm min-h-[200px]">
+      <form onSubmit={handleAddAcao} className="rounded-2xl bg-white p-6 space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
         <h4 className="font-semibold text-slate-800">Adicionar ação ao plano</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
