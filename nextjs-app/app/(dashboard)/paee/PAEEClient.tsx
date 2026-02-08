@@ -1741,26 +1741,29 @@ function PlanoHabilidadesTab({
     "Organização e Planejamento",
   ];
 
-  // Carregar estado salvo apenas uma vez quando paeeData mudar ou na primeira renderização
+  // Carregar estado salvo - otimizado para evitar re-renderizações desnecessárias
   useEffect(() => {
-    if (initialized) return; // Evitar re-execuções desnecessárias
-    
     const conteudoSalvo = paeeData.conteudo_plano_habilidades as string;
     const statusSalvo = paeeData.status_plano_habilidades as string;
     const inputSalvo = paeeData.input_original_plano_habilidades as { foco?: string };
     
-    if (conteudoSalvo) {
+    // Só atualizar se os valores realmente mudaram
+    if (conteudoSalvo && conteudoSalvo !== plano) {
       setPlano(conteudoSalvo);
-    }
-    if (statusSalvo) {
-      setStatus((statusSalvo as typeof status) || "revisao");
-    }
-    if (inputSalvo?.foco) {
-      setFoco(inputSalvo.foco);
+    } else if (!conteudoSalvo && plano) {
+      // Se o conteúdo foi removido, limpar também
+      setPlano("");
     }
     
-    setInitialized(true);
-  }, [paeeData, initialized]);
+    if (statusSalvo && statusSalvo !== status) {
+      setStatus((statusSalvo as typeof status) || "revisao");
+    }
+    
+    if (inputSalvo?.foco && inputSalvo.foco !== foco) {
+      setFoco(inputSalvo.foco);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paeeData.conteudo_plano_habilidades, paeeData.status_plano_habilidades, paeeData.input_original_plano_habilidades]);
 
   const updateField = (key: string, value: unknown) => {
     onUpdate({ ...paeeData, [key]: value });
