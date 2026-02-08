@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -402,7 +402,7 @@ export function PEIClient({
   }
 
   // Carregar estudante pendente como rascunho
-  const carregarEstudanteRascunho = async () => {
+  const carregarEstudanteRascunho = useCallback(async () => {
     console.log("carregarEstudanteRascunho chamado, studentPendingId:", studentPendingId);
     if (!studentPendingId) {
       console.warn("studentPendingId está vazio");
@@ -483,7 +483,7 @@ export function PEIClient({
       url.searchParams.delete("student");
       window.history.pushState({}, "", url.toString());
     }
-  };
+  }, [studentPendingId, students]);
 
   // Função para verificar status de cada aba
   function getTabStatus(tabId: TabId): "complete" | "in-progress" | "empty" {
@@ -746,12 +746,19 @@ export function PEIClient({
                         </div>
                         <div className="flex gap-1.5">
                           <button
-                            onClick={carregarEstudanteRascunho}
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log("Botão Carregar clicado!");
+                              carregarEstudanteRascunho();
+                            }}
                             className="flex-1 px-2 py-1.5 bg-sky-600 text-white text-xs font-medium rounded-lg hover:bg-sky-700"
                           >
                             📥 Carregar
                           </button>
                           <button
+                            type="button"
                             onClick={() => {
                               setStudentPendingId(null);
                               setStudentPendingName("");
