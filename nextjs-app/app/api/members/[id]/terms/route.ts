@@ -21,12 +21,19 @@ export async function GET(
   const sb = getSupabase();
   const { data, error } = await sb
     .from("workspace_members")
-    .select("terms_accepted")
+    .select("terms_accepted, terms_accepted_at")
     .eq("id", id)
     .eq("workspace_id", session.workspace_id)
     .maybeSingle();
 
   if (error) {
+    // Se o campo não existir, retornar false (precisa aceitar)
+    if (error.code === "42703" || error.message?.includes("terms_accepted")) {
+      console.warn("Campo terms_accepted não existe na tabela. Retornando false.");
+      return NextResponse.json({
+        terms_accepted: false,
+      });
+    }
     console.error("Erro ao buscar termos aceitos:", error);
     return NextResponse.json(
       { error: "Erro ao buscar informações." },
@@ -42,7 +49,7 @@ export async function GET(
   }
 
   return NextResponse.json({
-    terms_accepted: data.terms_accepted || false,
+    terms_accepted: (data.terms_accepted as boolean) || false,
   });
 }
 
@@ -74,16 +81,30 @@ export async function POST(
     }
 
     const sb = getSupabase();
+    
+    // Tentar atualizar com os campos (pode não existir ainda)
+    const updateData: Record<string, unknown> = {};
+    if (accepted) {
+      updateData.terms_accepted = true;
+      updateData.terms_accepted_at = new Date().toISOString();
+    } else {
+      updateData.terms_accepted = false;
+      updateData.terms_accepted_at = null;
+    }
+
     const { error } = await sb
       .from("workspace_members")
-      .update({
-        terms_accepted: accepted,
-        terms_accepted_at: accepted ? new Date().toISOString() : null,
-      })
+      .update(updateData)
       .eq("id", id)
       .eq("workspace_id", session.workspace_id);
 
     if (error) {
+      // Se o campo não existir, apenas logar e retornar sucesso (campo será criado depois)
+      if (error.code === "42703" || error.message?.includes("terms_accepted")) {
+        console.warn("Campo terms_accepted não existe na tabela. Adicione o campo no Supabase.");
+        // Retornar sucesso mesmo assim - o campo pode ser adicionado depois
+        return NextResponse.json({ ok: true, warning: "Campo terms_accepted não existe. Adicione no Supabase." });
+      }
       console.error("Erro ao atualizar termos aceitos:", error);
       return NextResponse.json(
         { error: "Erro ao salvar aceite dos termos." },

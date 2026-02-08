@@ -30,14 +30,23 @@ export function TermsOfUseModal({ session }: Props) {
               setAccepted(true);
               return;
             }
+          } else if (res.status === 404) {
+            // Campo não existe ainda ou membro não encontrado - mostrar termos
+            setShowModal(true);
+            return;
           }
         } catch (err) {
           console.error("Erro ao verificar termos:", err);
+          // Em caso de erro, mostrar termos para garantir
+          setShowModal(true);
+          return;
         }
       }
 
-      // Se chegou aqui, precisa aceitar os termos
-      setShowModal(true);
+      // Se chegou aqui e é member sem aceite, precisa aceitar os termos
+      if (session.user_role === "member") {
+        setShowModal(true);
+      }
     }
 
     checkTermsAccepted();
