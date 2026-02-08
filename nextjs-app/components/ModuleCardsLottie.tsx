@@ -54,16 +54,31 @@ const lottieMapOutline: Record<string, string> = {
 // Mapeamento de ícones Phosphor para Lottie COLORIDOS (wired-lineal) - versão colorida!
 const lottieMapColored: Record<string, string> = {
   UsersFour: "wired-lineal-529-boy-girl-children-hover-pinch", // Estudantes - children 🎨
-  Student: "wired-lineal-458-goal-target-hover-hit", // PEI - alvo 🎯
+  Student: "wired-lineal-86-compass-hover-pinch", // PEI - bússola 🧭
   PuzzlePiece: "wired-lineal-106-map-hover-pinch", // PAEE - mapa 🗺️
-  RocketLaunch: "wired-lineal-3139-rocket-space-alt-hover-pinch", // Hub - foguete 🚀
+  RocketLaunch: "wired-lineal-489-rocket-space-hover-flying", // Hub - foguete voando 🚀
   BookOpen: "wired-lineal-3140-book-open-hover-pinch", // Diário - livro aberto 📖
   ChartLineUp: "wired-lineal-152-bar-chart-arrow-hover-growth", // Monitoramento - gráfico 📊
   UsersThree: "wired-lineal-314-three-avatars-icon-calm-hover-jumping", // Gestão Usuários 👥
   GraduationCap: "wired-lineal-486-school-hover-pinch", // Config Escola - escola 🏫
   ClipboardText: "wired-lineal-2167-books-course-assign-hover-pinch", // PGI - livros 📚
   Gear: "wired-lineal-40-cogs-hover-mechanic", // Admin - engrenagem ⚙️
-  BookBookmark: "wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - IA/cérebro 🧠
+  BookBookmark: "wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - cérebro/chip 🧠💻
+};
+
+// Mapeamento de ícones Phosphor para Lottie OUTLINE COLORIDOS (minimalistas coloridas) - para usar nas páginas!
+const lottieMapOutlineColored: Record<string, string> = {
+  UsersFour: "wired-outline-529-boy-girl-children-hover-pinch", // Estudantes - children 🎨
+  Student: "wired-outline-86-compass-hover-pinch", // PEI - bússola 🧭
+  PuzzlePiece: "wired-outline-106-map-hover-pinch", // PAEE - mapa 🗺️
+  RocketLaunch: "wired-outline-489-rocket-space-hover-flying", // Hub - foguete voando 🚀
+  BookOpen: "wired-outline-3140-book-open-hover-pinch", // Diário - livro aberto 📖
+  ChartLineUp: "wired-outline-152-bar-chart-arrow-hover-growth", // Monitoramento - gráfico 📊
+  UsersThree: "wired-outline-314-three-avatars-icon-calm-hover-nodding", // Gestão Usuários 👥
+  GraduationCap: "wired-outline-486-school-hover-pinch", // Config Escola - escola 🏫
+  ClipboardText: "wired-outline-2167-books-course-assign-hover-pinch", // PGI - livros 📚
+  Gear: "wired-outline-40-cogs-hover-mechanic", // Admin - engrenagem ⚙️
+  BookBookmark: "wired-outline-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - cérebro/chip 🧠💻
 };
 
 // Por padrão, usar os coloridos para teste
