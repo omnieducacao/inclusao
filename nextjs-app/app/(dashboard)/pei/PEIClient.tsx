@@ -258,32 +258,62 @@ export function PEIClient({
   }
 
   async function handleSave() {
-    if (!currentStudentId) return;
+    // Criar um novo estudante com os dados do PEI
+    if (!peiData.nome || !peiData.nome.toString().trim()) {
+      alert("O nome do estudante é obrigatório. Preencha o campo 'Nome' na aba Estudante.");
+      return;
+    }
+
     setSaving(true);
     setErroGlobal(null);
     try {
-      const res = await fetch(`/api/students/${currentStudentId}/pei`, {
-        method: "PATCH",
+      const res = await fetch("/api/students", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(peiData),
+        body: JSON.stringify({
+          name: peiData.nome.toString().trim(),
+          grade: peiData.serie || null,
+          class_group: peiData.turma || null,
+          diagnosis: peiData.diagnostico || null,
+          pei_data: peiData,
+        }),
       });
+
       if (res.ok) {
-        setSaved(true);
-        setErroGlobal(null);
-        setTimeout(() => setSaved(false), 3000);
+        const data = await res.json();
+        const novoEstudanteId = data.student?.id;
+        
+        if (novoEstudanteId) {
+          // Atualizar o ID do estudante selecionado
+          setSelectedStudentId(novoEstudanteId);
+          // Atualizar a URL
+          const url = new URL(window.location.href);
+          url.searchParams.set("student", novoEstudanteId);
+          window.history.pushState({}, "", url.toString());
+          
+          setSaved(true);
+          setErroGlobal(null);
+          setTimeout(() => setSaved(false), 3000);
+          alert(`✅ Novo estudante "${peiData.nome}" criado e PEI salvo na nuvem com sucesso! ☁️`);
+        } else {
+          throw new Error("ID do estudante não retornado");
+        }
       } else {
         const contentType = res.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
           const data = await res.json();
-          setErroGlobal(data.error || `Erro ao salvar (HTTP ${res.status})`);
+          setErroGlobal(data.error || `Erro ao criar estudante (HTTP ${res.status})`);
+          alert(`Erro ao criar estudante: ${data.error || `HTTP ${res.status}`}`);
         } else {
-          setErroGlobal(`Erro ao salvar (HTTP ${res.status})`);
+          setErroGlobal(`Erro ao criar estudante (HTTP ${res.status})`);
+          alert(`Erro ao criar estudante: HTTP ${res.status}`);
         }
       }
     } catch (err) {
-      const mensagem = err instanceof Error ? err.message : "Erro ao salvar";
+      const mensagem = err instanceof Error ? err.message : "Erro ao criar estudante";
       setErroGlobal(mensagem);
-      console.error("Erro ao salvar:", err);
+      console.error("Erro ao criar estudante:", err);
+      alert(`Erro ao criar estudante: ${mensagem}`);
     } finally {
       setSaving(false);
     }
@@ -851,7 +881,7 @@ export function PEIClient({
                       </Link>
                     </div>
                     <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
-                      💡 <strong>Dica:</strong> Selecione um estudante e clique em <strong>Carregar</strong> para trabalhar como <strong>rascunho</strong> (sem vínculo com a nuvem). Use o botão "Sincronizar Tudo" abaixo para salvar na nuvem quando estiver pronto.
+                      💡 <strong>Dica:</strong> Selecione um estudante e clique em <strong>Carregar</strong> para trabalhar como <strong>rascunho</strong> (sem vínculo com a nuvem). Use o botão "Criar Novo Estudante" abaixo para salvar como um novo estudante na nuvem quando estiver pronto.
                     </p>
                   </div>
                 </div>
@@ -932,36 +962,14 @@ export function PEIClient({
                     Omnisfera Cloud
                   </h4>
                   <p className="text-[10px] text-slate-600 mb-2 leading-relaxed">
-                    Sincroniza o cadastro e <strong>salva todo o conteúdo do PEI</strong> na nuvem (coluna pei_data).
+                    <strong>Cria um novo estudante</strong> no Supabase com todos os dados do PEI preenchidos. O estudante será salvo na nuvem junto com o PEI completo.
                   </p>
                   <button
-                    onClick={async () => {
-                      if (!currentStudentId) {
-                        alert("Selecione um estudante primeiro");
-                        return;
-                      }
-                      setSaving(true);
-                      try {
-                        const res = await fetch(`/api/students/${currentStudentId}/pei`, {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(peiData),
-                        });
-                        if (res.ok) {
-                          setSaved(true);
-                          setTimeout(() => setSaved(false), 3000);
-                          alert("PEI completo salvo na nuvem com sucesso! ☁️");
-                        }
-                      } catch (err) {
-                        alert(`Erro na sincronização: ${err}`);
-                      } finally {
-                        setSaving(false);
-                      }
-                    }}
-                    disabled={!currentStudentId || saving}
+                    onClick={handleSave}
+                    disabled={saving || !peiData.nome}
                     className="w-full px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 disabled:opacity-60 mb-2"
                   >
-                    {saving ? "Sincronizando…" : "🔗 Sincronizar Tudo"}
+                    {saving ? "Criando estudante…" : "🔗 Criar Novo Estudante"}
                   </button>
                   {saved && (
                     <a
@@ -2290,8 +2298,8 @@ function DashboardTab({
             </a>
           </div>
           <div>
-            <p className="text-xs text-slate-600 mb-2">☁️ Sincronizar</p>
-            {currentStudentId ? (
+            <p className="text-xs text-slate-600 mb-2">☁️ Criar Novo Estudante</p>
+            {peiData.nome ? (
               <button
                 onClick={onSave}
                 disabled={saving}
@@ -2300,18 +2308,18 @@ function DashboardTab({
                 {saving ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Sincronizando…
+                    Criando estudante…
                   </>
                 ) : (
                   <>
                     <Download className="w-4 h-4" />
-                    Sincronizar Tudo
+                    Criar Novo Estudante
                   </>
                 )}
               </button>
             ) : (
               <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-                <p className="text-xs text-amber-800">Selecione um estudante para sincronizar</p>
+                <p className="text-xs text-amber-800">Preencha o nome do estudante na aba Estudante para criar</p>
               </div>
             )}
           </div>
