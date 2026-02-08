@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import type { LucideIcon } from "lucide-react";
 import { getColorClasses } from "@/lib/colors";
 import { LottieIcon } from "./LottieIcon";
@@ -31,15 +32,24 @@ type PageHeroProps = {
 export function PageHero({ icon: Icon, iconName, title, desc, color = "sky", useLottie = true }: PageHeroProps) {
   const colors = getColorClasses(color);
   const lottieAnimation = iconName ? lottieMapOutlineColored[iconName] : null;
+  const [isMounted, setIsMounted] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // Garantir que só renderiza Lottie no cliente
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   return (
     <div
-      className="rounded-xl border-2 border-slate-200 overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl"
+      className="group rounded-xl border-2 border-slate-200 overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl"
       style={{ backgroundColor: colors.bg }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex items-center gap-5 h-32 px-6">
-        {/* Ícone: Lottie outline colorido se disponível, senão ícone estático */}
-        {useLottie && lottieAnimation ? (
+        {/* Ícone: Lottie apenas no hover, estático por padrão */}
+        {useLottie && lottieAnimation && isMounted && isHovered ? (
           <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center">
             <LottieIcon
               animation={lottieAnimation}
@@ -49,8 +59,28 @@ export function PageHero({ icon: Icon, iconName, title, desc, color = "sky", use
             />
           </div>
         ) : (
-          <Icon className="w-14 h-14 flex-shrink-0" style={{ color: colors.icon }} />
+          <Icon className="w-14 h-14 flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" style={{ color: colors.icon }} />
         )}
+        <div>
+          <h1 className="text-xl font-bold" style={{ color: colors.text }}>{title}</h1>
+          <p className="text-sm text-slate-600 mt-0.5">{desc}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Versão Server Component segura (sem Lottie) para uso em páginas que não precisam de animação
+export function PageHeroStatic({ icon: Icon, title, desc, color = "sky" }: Omit<PageHeroProps, "iconName" | "useLottie">) {
+  const colors = getColorClasses(color);
+  
+  return (
+    <div
+      className="rounded-xl border-2 border-slate-200 overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl"
+      style={{ backgroundColor: colors.bg }}
+    >
+      <div className="flex items-center gap-5 h-32 px-6">
+        <Icon className="w-14 h-14 flex-shrink-0" style={{ color: colors.icon }} />
         <div>
           <h1 className="text-xl font-bold" style={{ color: colors.text }}>{title}</h1>
           <p className="text-sm text-slate-600 mt-0.5">{desc}</p>

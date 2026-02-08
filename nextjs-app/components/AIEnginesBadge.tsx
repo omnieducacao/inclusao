@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles, Zap } from "lucide-react";
 import type { EngineId } from "@/lib/ai-engines";
 import { ENGINE_NAMES } from "@/lib/ai-engines";
+import { LottieIcon } from "./LottieIcon";
 
 const ENGINE_COLORS: Record<EngineId, { bg: string; text: string; border: string }> = {
   red: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
@@ -50,7 +50,14 @@ export function AIEnginesBadge() {
         className="p-2 rounded-full bg-white border-2 border-slate-200 shadow-lg hover:shadow-xl transition-all hover:scale-110"
         title={isMinimized ? "Mostrar motores" : "Ocultar motores"}
       >
-        <Sparkles className={`w-4 h-4 text-sky-600 transition-transform duration-300 ${isMinimized ? "rotate-180" : "rotate-0"}`} />
+        <div className="w-4 h-4 flex items-center justify-center">
+          <LottieIcon
+            animation="wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch"
+            size={16}
+            loop={true}
+            className="transition-transform duration-300"
+          />
+        </div>
       </button>
 
       {/* Badges dos motores */}
@@ -58,7 +65,13 @@ export function AIEnginesBadge() {
         <div className="flex flex-col gap-2 items-end animate-slide-up">
           <div className="px-3 py-2 bg-white border-2 border-slate-200 rounded-lg shadow-lg backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-3.5 h-3.5 text-sky-600" />
+              <div className="w-3.5 h-3.5 flex items-center justify-center">
+                <LottieIcon
+                  animation="wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch"
+                  size={14}
+                  loop={true}
+                />
+              </div>
               <span className="text-xs font-bold text-slate-700">Motores IA</span>
             </div>
             <div className="flex flex-wrap gap-1.5 justify-end max-w-[200px]">

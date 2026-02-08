@@ -81,7 +81,8 @@ export function LottieIcon({
         onLoad?.();
       })
       .catch((err) => {
-        console.error(`Error loading Lottie animation "${animation}":`, err);
+        // Silenciosamente falhar - não quebrar a aplicação
+        console.warn(`[LottieIcon] Could not load animation "${animation}":`, err.message);
         setError(err.message);
       });
   }, [animation, onLoad]);
