@@ -40,39 +40,44 @@ async function loadIcons() {
   }
 }
 
-// Mapeamento de ícones Phosphor para Lottie COLORIDOS (wired-lineal) - versão colorida animada!
-const lottieMapColored: Record<string, string> = {
-  UsersFour: "wired-lineal-529-boy-girl-children-hover-pinch", // Estudantes - children 🎨
-  Student: "wired-lineal-86-compass-hover-pinch", // PEI - bússola 🧭
-  PuzzlePiece: "wired-lineal-106-map-hover-pinch", // PAEE - mapa 🗺️
-  RocketLaunch: "wired-lineal-489-rocket-space-hover-flying", // Hub - foguete voando 🚀
-  BookOpen: "wired-lineal-3140-book-open-hover-pinch", // Diário - livro aberto 📖
-  ChartLineUp: "wired-lineal-152-bar-chart-arrow-hover-growth", // Monitoramento - gráfico 📊
-  UsersThree: "wired-lineal-314-three-avatars-icon-calm-hover-jumping", // Gestão Usuários 👥
-  GraduationCap: "wired-lineal-486-school-hover-pinch", // Config Escola - escola 🏫
-  ClipboardText: "wired-lineal-2167-books-course-assign-hover-pinch", // PGI - livros 📚
-  Gear: "wired-lineal-40-cogs-hover-mechanic", // Admin - engrenagem ⚙️
-  BookBookmark: "wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - cérebro/chip 🧠💻
-};
+// Função para obter os mapeamentos Lottie de forma segura (evita problemas de SSR)
+function getLottieMaps() {
+  // Mapeamento de ícones Phosphor para Lottie COLORIDOS (wired-lineal) - versão colorida animada!
+  const lottieMapColored: Record<string, string> = {
+    UsersFour: "wired-lineal-529-boy-girl-children-hover-pinch", // Estudantes - children 🎨
+    Student: "wired-lineal-86-compass-hover-pinch", // PEI - bússola 🧭
+    PuzzlePiece: "wired-lineal-106-map-hover-pinch", // PAEE - mapa 🗺️
+    RocketLaunch: "wired-lineal-489-rocket-space-hover-flying", // Hub - foguete voando 🚀
+    BookOpen: "wired-lineal-3140-book-open-hover-pinch", // Diário - livro aberto 📖
+    ChartLineUp: "wired-lineal-152-bar-chart-arrow-hover-growth", // Monitoramento - gráfico 📊
+    UsersThree: "wired-lineal-314-three-avatars-icon-calm-hover-jumping", // Gestão Usuários 👥
+    GraduationCap: "wired-lineal-486-school-hover-pinch", // Config Escola - escola 🏫
+    ClipboardText: "wired-lineal-2167-books-course-assign-hover-pinch", // PGI - livros 📚
+    Gear: "wired-lineal-40-cogs-hover-mechanic", // Admin - engrenagem ⚙️
+    BookBookmark: "wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - cérebro/chip 🧠💻
+  };
 
-// Mapeamento de ícones Phosphor para Lottie OUTLINE COLORIDOS (minimalistas coloridas) - para usar como estáticos na home
-const lottieMapOutlineColored: Record<string, string> = {
-  UsersFour: "wired-outline-529-boy-girl-children-hover-pinch", // Estudantes - children 🎨
-  Student: "wired-outline-86-compass-hover-pinch", // PEI - bússola 🧭
-  PuzzlePiece: "wired-outline-106-map-hover-pinch", // PAEE - mapa 🗺️
-  RocketLaunch: "wired-outline-489-rocket-space-hover-flying", // Hub - foguete voando 🚀
-  BookOpen: "wired-outline-3140-book-open-hover-pinch", // Diário - livro aberto 📖
-  ChartLineUp: "wired-outline-152-bar-chart-arrow-hover-growth", // Monitoramento - gráfico 📊
-  UsersThree: "wired-outline-314-three-avatars-icon-calm-hover-nodding", // Gestão Usuários 👥
-  GraduationCap: "wired-outline-486-school-hover-pinch", // Config Escola - escola 🏫
-  ClipboardText: "wired-outline-2167-books-course-assign-hover-pinch", // PGI - livros 📚
-  Gear: "wired-outline-40-cogs-hover-mechanic", // Admin - engrenagem ⚙️
-  BookBookmark: "wired-outline-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - cérebro/chip 🧠💻
-};
+  // Mapeamento de ícones Phosphor para Lottie OUTLINE COLORIDOS (minimalistas coloridas) - para usar como estáticos na home
+  const lottieMapOutlineColored: Record<string, string> = {
+    UsersFour: "wired-outline-529-boy-girl-children-hover-pinch", // Estudantes - children 🎨
+    Student: "wired-outline-86-compass-hover-pinch", // PEI - bússola 🧭
+    PuzzlePiece: "wired-outline-106-map-hover-pinch", // PAEE - mapa 🗺️
+    RocketLaunch: "wired-outline-489-rocket-space-hover-flying", // Hub - foguete voando 🚀
+    BookOpen: "wired-outline-3140-book-open-hover-pinch", // Diário - livro aberto 📖
+    ChartLineUp: "wired-outline-152-bar-chart-arrow-hover-growth", // Monitoramento - gráfico 📊
+    UsersThree: "wired-outline-314-three-avatars-icon-calm-hover-nodding", // Gestão Usuários 👥
+    GraduationCap: "wired-outline-486-school-hover-pinch", // Config Escola - escola 🏫
+    ClipboardText: "wired-outline-2167-books-course-assign-hover-pinch", // PGI - livros 📚
+    Gear: "wired-outline-40-cogs-hover-mechanic", // Admin - engrenagem ⚙️
+    BookBookmark: "wired-outline-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - cérebro/chip 🧠💻
+  };
 
-// Por padrão, usar os coloridos (lineal) para animação, outline para estático
-const lottieMap = lottieMapColored;
-const lottieMapStatic = lottieMapOutlineColored; // Para usar como estático na home
+  return {
+    colored: lottieMapColored,
+    outline: lottieMapOutlineColored,
+    default: lottieMapColored, // Por padrão, usar os coloridos
+  };
+}
 
 type ModuleCard = {
   href: string;
@@ -199,7 +204,8 @@ export function ModuleCardsLottie({
           if (!Icon) return null;
           const colors = getColorClasses(m.color);
           // Sempre usar o colorido (lineal) para movimento contínuo, como no WelcomeHero
-          const lottieAnimation = lottieMap[m.iconName]; // Lineal colorido - sempre animado
+          const lottieMaps = getLottieMaps();
+          const lottieAnimation = lottieMaps.default[m.iconName]; // Lineal colorido - sempre animado
           // Se useLottieByDefault=true, sempre usar Lottie quando disponível
           // Caso contrário, usar a lógica de m.useLottie ou useLottieOnHover
           const shouldUseLottie = useLottieByDefault 
@@ -390,7 +396,8 @@ type IntelligenceModuleProps = {
 export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModuleProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [BookBookmarkIcon, setBookBookmarkIcon] = useState<Icon | null>(null);
-  const lottieAnimation = lottieMapColored.BookBookmark;
+  const lottieMaps = getLottieMaps();
+  const lottieAnimation = lottieMaps.colored.BookBookmark;
   
   useEffect(() => {
     setIsMounted(true);

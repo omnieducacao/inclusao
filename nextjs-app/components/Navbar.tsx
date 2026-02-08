@@ -20,24 +20,9 @@ import {
   Sparkles,
   BookMarked,
 } from "lucide-react";
-import {
-  House,
-  UsersFour,
-  FileText as FileTextPhosphor,
-  PuzzlePiece,
-  RocketLaunch,
-  BookOpen as BookOpenPhosphor,
-  ChartLineUp,
-  Gear,
-  UsersThree,
-  ClipboardText,
-  ShieldCheckered,
-  SignOut,
-  Sparkle,
-  BookBookmark,
-} from "phosphor-react";
 import type { LucideIcon } from "lucide-react";
 import type { Icon } from "phosphor-react";
+import { useState, useEffect } from "react";
 
 type PermissionKey =
   | "can_estudantes"
@@ -55,19 +40,53 @@ type NavItem = {
   permission?: PermissionKey;
 };
 
-const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Home", icon: House },
-  { href: "/estudantes", label: "Estudantes", icon: UsersFour, permission: "can_estudantes" },
-  { href: "/pei", label: "PEI", icon: FileTextPhosphor, permission: "can_pei" },
-  { href: "/paee", label: "PAEE", icon: PuzzlePiece, permission: "can_paee" },
-  { href: "/hub", label: "Hub", icon: RocketLaunch, permission: "can_hub" },
-  { href: "/diario", label: "Diário", icon: BookOpenPhosphor, permission: "can_diario" },
-  { href: "/monitoramento", label: "Monitoramento", icon: ChartLineUp, permission: "can_avaliacao" },
-  { href: "/infos", label: "Central", icon: BookBookmark },
-  { href: "/config-escola", label: "Config", icon: Gear, permission: "can_gestao" },
-  { href: "/gestao", label: "Gestão", icon: UsersThree, permission: "can_gestao" },
-  { href: "/pgi", label: "PGI", icon: ClipboardText, permission: "can_gestao" },
-];
+// Função para carregar ícones Phosphor dinamicamente
+async function loadNavIcons() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  
+  try {
+    const phosphor = await import("phosphor-react");
+    return {
+      House: phosphor.House,
+      UsersFour: phosphor.UsersFour,
+      FileText: phosphor.FileText,
+      PuzzlePiece: phosphor.PuzzlePiece,
+      RocketLaunch: phosphor.RocketLaunch,
+      BookOpen: phosphor.BookOpen,
+      ChartLineUp: phosphor.ChartLineUp,
+      Gear: phosphor.Gear,
+      UsersThree: phosphor.UsersThree,
+      ClipboardText: phosphor.ClipboardText,
+      ShieldCheckered: phosphor.ShieldCheckered,
+      SignOut: phosphor.SignOut,
+      Sparkle: phosphor.Sparkle,
+      BookBookmark: phosphor.BookBookmark,
+    };
+  } catch (err) {
+    console.warn("[Navbar] Failed to load phosphor-react:", err);
+    return null;
+  }
+}
+
+function getNavItems(icons: ReturnType<typeof loadNavIcons> extends Promise<infer T> ? T : any): NavItem[] {
+  if (!icons) return [];
+  
+  return [
+    { href: "/", label: "Home", icon: icons.House },
+    { href: "/estudantes", label: "Estudantes", icon: icons.UsersFour, permission: "can_estudantes" },
+    { href: "/pei", label: "PEI", icon: icons.FileText, permission: "can_pei" },
+    { href: "/paee", label: "PAEE", icon: icons.PuzzlePiece, permission: "can_paee" },
+    { href: "/hub", label: "Hub", icon: icons.RocketLaunch, permission: "can_hub" },
+    { href: "/diario", label: "Diário", icon: icons.BookOpen, permission: "can_diario" },
+    { href: "/monitoramento", label: "Monitoramento", icon: icons.ChartLineUp, permission: "can_avaliacao" },
+    { href: "/infos", label: "Central", icon: icons.BookBookmark },
+    { href: "/config-escola", label: "Config", icon: icons.Gear, permission: "can_gestao" },
+    { href: "/gestao", label: "Gestão", icon: icons.UsersThree, permission: "can_gestao" },
+    { href: "/pgi", label: "PGI", icon: icons.ClipboardText, permission: "can_gestao" },
+  ];
+}
 
 function canAccess(
   item: NavItem,
@@ -83,6 +102,13 @@ function canAccess(
 export function Navbar({ session, hideMenu = false }: { session: SessionPayload; hideMenu?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [navIcons, setNavIcons] = useState<Awaited<ReturnType<typeof loadNavIcons>>>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    loadNavIcons().then(setNavIcons);
+  }, []);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -90,9 +116,61 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
     router.refresh();
   }
 
-  const items = session.is_platform_admin
-    ? [{ href: "/admin", label: "Admin", icon: ShieldCheckered }]
-    : NAV_ITEMS.filter((item) => canAccess(item, session));
+  const navItems = navIcons ? getNavItems(navIcons) : [];
+  const items = !isMounted || !navIcons
+    ? []
+    : session.is_platform_admin
+    ? [{ href: "/admin", label: "Admin", icon: navIcons.ShieldCheckered }]
+    : navItems.filter((item) => canAccess(item, session));
+
+  // Durante SSR ou enquanto carrega ícones, mostrar versão simplificada
+  if (!isMounted || !navIcons || items.length === 0) {
+    return (
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm rounded-b-xl">
+        <div className="max-w-[1920px] mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <Link
+              href="/"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50 font-bold transition-colors group flex-shrink-0"
+            >
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <div className="flex items-center justify-center group-hover:scale-105 transition-all omni-logo-spin">
+                    <Image 
+                      src="/omni_icone.png" 
+                      alt="Omnisfera" 
+                      width={40}
+                      height={40}
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white animate-pulse" title="Sistema online e funcionando"></div>
+                </div>
+                <img 
+                  src="/omni_texto.png" 
+                  alt="Omnisfera" 
+                  className="h-8 object-contain"
+                  style={{ width: 'auto', maxHeight: '32px' }}
+                />
+              </div>
+            </Link>
+            {!hideMenu && (
+              <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center px-4">
+                <div className="w-32 h-8 bg-slate-200 rounded animate-pulse" />
+              </nav>
+            )}
+            <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200 flex-shrink-0">
+              <div className="hidden lg:flex flex-col items-end text-right">
+                <span className="text-sm font-medium text-slate-800">{session.usuario_nome}</span>
+                <span className="text-xs text-slate-500">{session.workspace_name}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm rounded-b-xl">
@@ -179,7 +257,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
               title="Sair"
             >
-              <SignOut className="w-4 h-4" weight="regular" />
+              {navIcons?.SignOut && <navIcons.SignOut className="w-4 h-4" weight="regular" />}
               <span className="hidden md:inline">Sair</span>
             </button>
           </div>
