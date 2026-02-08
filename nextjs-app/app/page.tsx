@@ -129,7 +129,7 @@ export default async function RootPage() {
       <Navbar session={session} hideMenu={true} />
       <main className="max-w-[1600px] mx-auto px-6 py-6">
         <div className="space-y-6">
-          <Suspense fallback={<div className="h-36 bg-white rounded-xl border border-slate-200 animate-pulse" />}>
+          <Suspense fallback={<div className="h-36 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
             <WelcomeHero
               saudacao={saudacao}
               userFirst={userFirst}

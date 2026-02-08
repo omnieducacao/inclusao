@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
 /* Premium Design System - Omnisfera */
 
@@ -89,4 +87,3 @@ html {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-
