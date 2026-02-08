@@ -83,10 +83,10 @@ function getNavItems(icons: ReturnType<typeof loadNavIcons> extends Promise<infe
     { href: "/hub", label: "Hub", icon: icons.RocketLaunch, permission: "can_hub", group: "modules" },
     { href: "/diario", label: "Diário", icon: icons.BookOpen, permission: "can_diario", group: "modules" },
     { href: "/monitoramento", label: "Monitoramento", icon: icons.ChartLineUp, permission: "can_avaliacao", group: "modules" },
+    { href: "/pgi", label: "PGI", icon: icons.ClipboardText, permission: "can_gestao", group: "admin" },
     { href: "/infos", label: "Central", icon: icons.BookBookmark, group: "modules" },
     { href: "/config-escola", label: "Config", icon: icons.Gear, permission: "can_gestao", group: "admin" },
     { href: "/gestao", label: "Gestão", icon: icons.UsersThree, permission: "can_gestao", group: "admin" },
-    { href: "/pgi", label: "PGI", icon: icons.ClipboardText, permission: "can_gestao", group: "admin" },
   ];
 }
 
