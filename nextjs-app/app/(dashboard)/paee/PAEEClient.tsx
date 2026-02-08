@@ -19,6 +19,7 @@ import {
 import { LISTAS_BARREIRAS, NIVEIS_SUPORTE } from "@/lib/pei";
 import { Map, AlertTriangle, Target, Puzzle, Users, Search } from "lucide-react";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -279,6 +280,11 @@ function PAEEClientInner({ students, studentId, student }: Props) {
   return (
     <div className="space-y-6">
       <StudentSelector students={students} currentId={currentId} />
+
+      {/* Painel PEI Retrátil */}
+      {student && (
+        <PEISummaryPanel peiData={peiData} studentName={student.name} />
+      )}
 
       {/* Card de informações do estudante */}
       {student && (
