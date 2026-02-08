@@ -711,91 +711,63 @@ export function PEIClient({
                                 return;
                               }
 
-                              console.log("Buscando PEI completo do estudante:", idToLoad);
+                              console.log("Buscando JSON do PEI do Supabase para estudante:", idToLoad);
                               setIsLoadingRascunho(true);
                               try {
-                                // Buscar o PEI completo diretamente do Supabase
+                                // Buscar o JSON completo do Supabase (mesmo formato que quando baixamos)
                                 const res = await fetch(`/api/students/${idToLoad}`);
                                 console.log("Resposta da API:", res.status, res.ok);
                                 
                                 if (!res.ok) {
-                                  console.log("Estudante não encontrado na API, carregando como rascunho vazio");
-                                  setPeiData({} as PEIData);
-                                  setSelectedStudentId(null);
-                                  setStudentPendingId(null);
-                                  setStudentPendingName("");
-                                  setSaved(false);
-                                  setErroGlobal(null);
+                                  console.log("Estudante não encontrado na API");
+                                  setErroGlobal("Estudante não encontrado");
                                   setIsLoadingRascunho(false);
-                                  
-                                  const url = new URL(window.location.href);
-                                  url.searchParams.delete("student");
-                                  window.history.pushState({}, "", url.toString());
                                   return;
                                 }
 
                                 const data = await res.json();
                                 console.log("Dados recebidos da API:", data);
-                                console.log("pei_data existe?", !!data.pei_data);
-                                console.log("Tipo de pei_data:", typeof data.pei_data);
                                 
-                                // Verificar se temos pei_data completo
-                                const peiDataCompleto = data.pei_data;
+                                // Pegar o pei_data (que é o JSON salvo no Supabase)
+                                const peiDataJson = data.pei_data;
                                 
-                                if (peiDataCompleto && typeof peiDataCompleto === 'object' && !Array.isArray(peiDataCompleto)) {
-                                  // Verificar quantos campos temos
-                                  const campos = Object.keys(peiDataCompleto);
-                                  console.log(`✅ PEI completo encontrado com ${campos.length} campos`);
-                                  console.log("Campos encontrados:", campos.slice(0, 20));
+                                if (peiDataJson && typeof peiDataJson === 'object' && !Array.isArray(peiDataJson)) {
+                                  // Usar a MESMA lógica que funciona para JSON local
+                                  // Colocar em jsonPending e usar aplicarJson()
+                                  console.log("✅ JSON encontrado no Supabase, usando mesma lógica do upload local");
+                                  console.log("Campos no JSON:", Object.keys(peiDataJson).length);
                                   
-                                  // Carregar dados mas como RASCUNHO (sem vínculo com nuvem)
-                                  console.log("Carregando PEI completo como rascunho...");
+                                  // Criar cópia profunda do JSON (mesmo que FileReader faz)
+                                  const jsonCopiado = JSON.parse(JSON.stringify(peiDataJson)) as PEIData;
                                   
-                                  // Criar uma cópia profunda para garantir que não há referências
-                                  const peiDataParaCarregar = JSON.parse(JSON.stringify(peiDataCompleto)) as PEIData;
+                                  // Colocar em jsonPending (mesmo que o upload de arquivo faz)
+                                  setJsonPending(jsonCopiado);
+                                  setJsonFileName(`PEI_${studentFromList.name}_do_Supabase.json`);
                                   
-                                  console.log("Setando peiData com", Object.keys(peiDataParaCarregar).length, "campos");
-                                  setPeiData(peiDataParaCarregar);
-                                  setSelectedStudentId(null); // Modo rascunho - sem vínculo
+                                  // Limpar estados de seleção
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
-                                  setSaved(false);
-                                  setErroGlobal(null);
+                                  setIsLoadingRascunho(false);
                                   
-                                  console.log("✅ PEI carregado com sucesso!");
-                                  alert(`PEI carregado! ${campos.length} campos encontrados.`);
+                                  // Aplicar o JSON usando a função que já funciona!
+                                  aplicarJson();
+                                  
+                                  console.log("✅ JSON aplicado usando aplicarJson() - deve funcionar agora!");
                                 } else {
-                                  // Estudante encontrado mas sem pei_data - carregar como rascunho vazio
-                                  console.log("⚠️ Estudante sem pei_data completo, carregando como rascunho vazio");
-                                  console.log("pei_data recebido:", peiDataCompleto);
-                                  setPeiData({} as PEIData);
-                                  setSelectedStudentId(null);
+                                  // Estudante encontrado mas sem pei_data
+                                  console.log("Estudante sem pei_data no Supabase");
+                                  setErroGlobal("Estudante encontrado mas sem dados de PEI salvos");
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
-                                  setSaved(false);
-                                  alert("Estudante encontrado mas sem dados de PEI salvos. Formulário limpo para preenchimento.");
+                                  setIsLoadingRascunho(false);
                                 }
-                                setIsLoadingRascunho(false);
-                                
-                                // Limpar URL para modo rascunho
-                                const url = new URL(window.location.href);
-                                url.searchParams.delete("student");
-                                window.history.pushState({}, "", url.toString());
-                                console.log("Carregamento concluído");
                               } catch (err) {
                                 console.error("Erro ao carregar estudante:", err);
                                 setErroGlobal("Erro ao carregar dados do estudante");
-                                alert(`Erro ao carregar dados do estudante: ${err instanceof Error ? err.message : String(err)}`);
-                                setPeiData({} as PEIData);
-                                setSelectedStudentId(null);
+                                alert(`Erro: ${err instanceof Error ? err.message : String(err)}`);
                                 setStudentPendingId(null);
                                 setStudentPendingName("");
-                                setSaved(false);
                                 setIsLoadingRascunho(false);
-                                
-                                const url = new URL(window.location.href);
-                                url.searchParams.delete("student");
-                                window.history.pushState({}, "", url.toString());
                               }
                             }}
                             className="flex-1 px-2 py-1.5 bg-sky-600 text-white text-xs font-medium rounded-lg hover:bg-sky-700"
