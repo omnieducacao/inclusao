@@ -711,9 +711,10 @@ export function PEIClient({
                                 return;
                               }
 
-                              console.log("Buscando dados do estudante:", idToLoad);
+                              console.log("Buscando PEI completo do estudante:", idToLoad);
                               setIsLoadingRascunho(true);
                               try {
+                                // Buscar o PEI completo diretamente do Supabase
                                 const res = await fetch(`/api/students/${idToLoad}`);
                                 console.log("Resposta da API:", res.status, res.ok);
                                 
@@ -734,26 +735,46 @@ export function PEIClient({
                                 }
 
                                 const data = await res.json();
-                                console.log("Dados recebidos:", data);
+                                console.log("Dados recebidos da API:", data);
+                                console.log("pei_data existe?", !!data.pei_data);
+                                console.log("Tipo de pei_data:", typeof data.pei_data);
                                 
-                                if (data.pei_data && typeof data.pei_data === 'object') {
+                                // Verificar se temos pei_data completo
+                                const peiDataCompleto = data.pei_data;
+                                
+                                if (peiDataCompleto && typeof peiDataCompleto === 'object' && !Array.isArray(peiDataCompleto)) {
+                                  // Verificar quantos campos temos
+                                  const campos = Object.keys(peiDataCompleto);
+                                  console.log(`✅ PEI completo encontrado com ${campos.length} campos`);
+                                  console.log("Campos encontrados:", campos.slice(0, 20));
+                                  
                                   // Carregar dados mas como RASCUNHO (sem vínculo com nuvem)
-                                  console.log("Carregando PEI como rascunho");
-                                  setPeiData(data.pei_data as PEIData);
+                                  console.log("Carregando PEI completo como rascunho...");
+                                  
+                                  // Criar uma cópia profunda para garantir que não há referências
+                                  const peiDataParaCarregar = JSON.parse(JSON.stringify(peiDataCompleto)) as PEIData;
+                                  
+                                  console.log("Setando peiData com", Object.keys(peiDataParaCarregar).length, "campos");
+                                  setPeiData(peiDataParaCarregar);
                                   setSelectedStudentId(null); // Modo rascunho - sem vínculo
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setSaved(false);
+                                  setErroGlobal(null);
+                                  
+                                  console.log("✅ PEI carregado com sucesso!");
+                                  alert(`PEI carregado! ${campos.length} campos encontrados.`);
                                 } else {
                                   // Estudante encontrado mas sem pei_data - carregar como rascunho vazio
-                                  console.log("Estudante sem pei_data, carregando como rascunho vazio");
+                                  console.log("⚠️ Estudante sem pei_data completo, carregando como rascunho vazio");
+                                  console.log("pei_data recebido:", peiDataCompleto);
                                   setPeiData({} as PEIData);
                                   setSelectedStudentId(null);
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setSaved(false);
+                                  alert("Estudante encontrado mas sem dados de PEI salvos. Formulário limpo para preenchimento.");
                                 }
-                                setErroGlobal(null);
                                 setIsLoadingRascunho(false);
                                 
                                 // Limpar URL para modo rascunho
