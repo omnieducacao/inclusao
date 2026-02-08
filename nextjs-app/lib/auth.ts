@@ -60,7 +60,7 @@ export async function findUserByEmail(email: string): Promise<FindUserResult | n
   const { data: member } = await sb
     .from("workspace_members")
     .select(
-      "id, workspace_id, nome, email, telefone, can_estudantes, can_pei, can_paee, can_hub, can_diario, can_avaliacao, can_gestao, link_type"
+      "id, workspace_id, nome, email, telefone, can_estudantes, can_pei, can_paee, can_hub, can_diario, can_avaliacao, can_gestao, link_type, terms_accepted"
     )
     .eq("email", emailVal)
     .eq("active", true)

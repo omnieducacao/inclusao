@@ -13,6 +13,7 @@ export type SessionPayload = {
   user_role: "master" | "member" | "platform_admin";
   member?: Record<string, unknown>;
   is_platform_admin?: boolean;
+  terms_accepted?: boolean;
   exp: number;
 };
 

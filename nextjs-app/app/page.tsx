@@ -5,6 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { AIEnginesBadge } from "@/components/AIEnginesBadge";
 import { ModuleCardsLottie, IntelligenceModuleCard } from "@/components/ModuleCardsLottie";
 import { WelcomeHero } from "@/components/WelcomeHero";
+import { TermsOfUseModal } from "@/components/TermsOfUseModal";
 
 export default async function RootPage() {
   const session = await getSession();
@@ -22,14 +23,25 @@ export default async function RootPage() {
       : "Boa tarde";
   const userFirst = (session?.usuario_nome || "Visitante").split(" ")[0];
 
-  // Módulos principais - fluxo core do usuário
-  const primaryModules = [
+  // Função para verificar permissão de acesso
+  function canAccessModule(permission?: string): boolean {
+    if (!permission) return true; // Sem permissão específica = acesso livre
+    if (session.is_platform_admin) return true; // Admin tem acesso a tudo
+    if (session.user_role === "master") return true; // Master tem acesso a tudo
+    const member = session.member as Record<string, boolean> | undefined;
+    if (!member) return false; // Sem member = sem acesso
+    return member[permission] === true;
+  }
+
+  // Módulos principais - fluxo core do usuário (com permissões)
+  const primaryModulesRaw = [
     {
       href: "/estudantes",
       iconName: "UsersFour" as const,
       title: "Estudantes",
       desc: "Gestão completa de estudantes, histórico e acompanhamento individualizado.",
       color: "sky",
+      permission: "can_estudantes",
     },
     {
       href: "/pei",
@@ -37,6 +49,7 @@ export default async function RootPage() {
       title: "Estratégias & PEI",
       desc: "Plano Educacional Individual com objetivos, avaliações e acompanhamento.",
       color: "blue",
+      permission: "can_pei",
     },
     {
       href: "/paee",
@@ -44,17 +57,22 @@ export default async function RootPage() {
       title: "Plano de Ação / PAEE",
       desc: "Plano de Atendimento Educacional Especializado e sala de recursos.",
       color: "violet",
+      permission: "can_paee",
     },
   ];
 
-  // Módulos de apoio e recursos
-  const supportModules = [
+  // Filtrar módulos baseado em permissões
+  const primaryModules = primaryModulesRaw.filter((m) => canAccessModule(m.permission));
+
+  // Módulos de apoio e recursos (com permissões)
+  const supportModulesRaw = [
     {
       href: "/hub",
       iconName: "RocketLaunch" as const,
       title: "Hub de Recursos",
       desc: "Biblioteca de materiais, modelos e inteligência artificial para apoio.",
       color: "cyan",
+      permission: "can_hub",
     },
     {
       href: "/diario",
@@ -62,6 +80,7 @@ export default async function RootPage() {
       title: "Diário de Bordo",
       desc: "Registro diário de observações, evidências e intervenções.",
       color: "rose",
+      permission: "can_diario",
     },
     {
       href: "/monitoramento",
@@ -69,8 +88,12 @@ export default async function RootPage() {
       title: "Evolução & Dados",
       desc: "Indicadores, gráficos e relatórios de progresso dos estudantes.",
       color: "slate",
+      permission: "can_avaliacao",
     },
   ];
+
+  // Filtrar módulos baseado em permissões
+  const supportModules = supportModulesRaw.filter((m) => canAccessModule(m.permission));
 
   // Central de Inteligência - destaque especial
   const intelligenceModule = {
@@ -138,31 +161,35 @@ export default async function RootPage() {
           </Suspense>
 
           {/* Módulos Principais - Fluxo Core */}
-          <Suspense fallback={<div className="h-[120px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
-            <ModuleCardsLottie
-              modules={primaryModules}
-              title="Módulos Principais"
-              titleIconName="Sparkle"
-              titleIconColor="text-sky-600"
-              useLottieOnHover={true}
-              useLottieByDefault={true}
-            />
-          </Suspense>
+          {primaryModules.length > 0 && (
+            <Suspense fallback={<div className="h-[120px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
+              <ModuleCardsLottie
+                modules={primaryModules.map(({ permission, ...rest }) => rest)}
+                title="Módulos Principais"
+                titleIconName="Sparkle"
+                titleIconColor="text-sky-600"
+                useLottieOnHover={true}
+                useLottieByDefault={true}
+              />
+            </Suspense>
+          )}
 
           {/* Módulos de Apoio */}
-          <Suspense fallback={<div className="h-[120px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
-            <ModuleCardsLottie
-              modules={supportModules}
-              title="Recursos e Acompanhamento"
-              titleIconName="RocketLaunch"
-              titleIconColor="text-cyan-600"
-              useLottieOnHover={true}
-              useLottieByDefault={true}
-            />
-          </Suspense>
+          {supportModules.length > 0 && (
+            <Suspense fallback={<div className="h-[120px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
+              <ModuleCardsLottie
+                modules={supportModules.map(({ permission, ...rest }) => rest)}
+                title="Recursos e Acompanhamento"
+                titleIconName="RocketLaunch"
+                titleIconColor="text-cyan-600"
+                useLottieOnHover={true}
+                useLottieByDefault={true}
+              />
+            </Suspense>
+          )}
 
           {/* Módulos Administrativos */}
-          {adminModules.length > 0 && (
+          {adminModules.length > 0 && canAccessModule("can_gestao") && (
             <Suspense fallback={<div className="h-[120px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
               <ModuleCardsLottie
                 modules={adminModules}
@@ -175,7 +202,7 @@ export default async function RootPage() {
             </Suspense>
           )}
 
-          {/* Central de Inteligência - Destaque Especial */}
+          {/* Central de Inteligência - Destaque Especial (sempre visível) */}
           <Suspense fallback={<div className="h-[120px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
             <IntelligenceModuleCard
               href={intelligenceModule.href}
@@ -210,6 +237,7 @@ export default async function RootPage() {
         </div>
       </main>
       <AIEnginesBadge />
+      <TermsOfUseModal session={session} />
     </div>
   );
 }
