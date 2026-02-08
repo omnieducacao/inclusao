@@ -23,6 +23,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { Icon } from "phosphor-react";
 import { useState, useEffect } from "react";
+import { LottieIcon } from "./LottieIcon";
 
 type PermissionKey =
   | "can_estudantes"
@@ -97,6 +98,43 @@ function canAccess(
   const member = session.member as Record<string, boolean> | undefined;
   if (!member) return true;
   return member[item.permission] === true;
+}
+
+// Componente para item de navegação com ícone Lottie
+function NavItemWithLottie({ item, isActive }: { item: NavItem; isActive: boolean }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const Icon = item.icon;
+  const lottieMap = getNavLottieMap();
+  const lottieAnimation = lottieMap[item.href];
+  
+  return (
+    <Link
+      href={item.href}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`group flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+        isActive
+          ? "bg-blue-50 text-blue-700 shadow-sm"
+          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+      }`}
+      title={item.label}
+    >
+      {lottieAnimation ? (
+        <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+          <LottieIcon
+            animation={lottieAnimation}
+            size={20}
+            loop={isHovered || isActive}
+            autoplay={isHovered || isActive}
+            className={`transition-all duration-300 ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}
+          />
+        </div>
+      ) : (
+        <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-500"}`} weight={isActive ? "fill" : "regular"} />
+      )}
+      <span>{item.label}</span>
+    </Link>
+  );
 }
 
 export function Navbar({ session, hideMenu = false }: { session: SessionPayload; hideMenu?: boolean }) {
@@ -211,18 +249,36 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
                 {items.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
+                  const lottieMap = getNavLottieMap();
+                  const lottieAnimation = lottieMap[item.href];
+                  const [isHovered, setIsHovered] = useState(false);
+                  
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                      onMouseEnter={() => setIsHovered(true)}
+                      onMouseLeave={() => setIsHovered(false)}
+                      className={`group flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                         isActive
                           ? "bg-blue-50 text-blue-700 shadow-sm"
                           : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       }`}
                       title={item.label}
                     >
-                      <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-500"}`} weight={isActive ? "fill" : "regular"} />
+                      {lottieAnimation ? (
+                        <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+                          <LottieIcon
+                            animation={lottieAnimation}
+                            size={20}
+                            loop={isHovered || isActive}
+                            autoplay={isHovered || isActive}
+                            className={`transition-all duration-300 ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}
+                          />
+                        </div>
+                      ) : (
+                        <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-blue-600" : "text-slate-500"}`} weight={isActive ? "fill" : "regular"} />
+                      )}
                       <span>{item.label}</span>
                     </Link>
                   );

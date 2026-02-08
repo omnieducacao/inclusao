@@ -52,6 +52,7 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
   const lottieIconName = lucideToLottieMap[iconName] || iconName;
   const lottieAnimation = useLottie && lottieIconName ? lottieMapOutlineColored[lottieIconName] : null;
   const [isMounted, setIsMounted] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   
   // Garantir que só renderiza Lottie no cliente
   useEffect(() => {
@@ -82,20 +83,26 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
     <div
       className="group rounded-xl border-2 border-slate-200 overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl"
       style={{ backgroundColor: colors.bg }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex items-center gap-5 h-32 px-6">
-        {/* Ícone: Lottie apenas quando tudo estiver configurado corretamente */}
-        <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center">
+      <div className="flex items-center gap-6 h-36 px-8">
+        {/* Ícone dentro do quadrado minimalista - estático, anima só no hover */}
+        <div 
+          className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 flex-shrink-0"
+          style={{ width: '72px', height: '72px', padding: '6px' }}
+        >
           <LottieIcon
             animation={lottieAnimation}
-            size={56}
-            loop={true}
-            className="transition-all duration-300 group-hover:scale-110"
+            size={60}
+            loop={isHovered}
+            autoplay={isHovered}
+            className="transition-all duration-300"
           />
         </div>
-        <div>
-          <h1 className="text-xl font-bold" style={{ color: colors.text }}>{title}</h1>
-          <p className="text-sm text-slate-600 mt-0.5">{desc}</p>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold mb-1" style={{ color: colors.text }}>{title}</h1>
+          <p className="text-sm text-slate-600 leading-relaxed">{desc}</p>
         </div>
       </div>
     </div>

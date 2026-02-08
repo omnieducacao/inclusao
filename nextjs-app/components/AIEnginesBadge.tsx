@@ -63,18 +63,22 @@ export function AIEnginesBadge() {
       {/* Badges dos motores */}
       {!isMinimized && (
         <div className="flex flex-col gap-2 items-end animate-slide-up">
-          <div className="px-3 py-2 bg-white border-2 border-slate-200 rounded-lg shadow-lg backdrop-blur-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-3.5 h-3.5 flex items-center justify-center">
+          <div className="flex items-center gap-3 px-4 py-3 bg-white border-2 border-slate-200 rounded-lg shadow-lg backdrop-blur-sm">
+            {/* Ícone grande à esquerda */}
+            <div className="flex-shrink-0">
+              <div className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl"
+                style={{ width: '64px', height: '64px', padding: '6px' }}
+              >
                 <LottieIcon
                   animation="wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch"
-                  size={14}
+                  size={52}
                   loop={true}
+                  className="transition-transform duration-300"
                 />
               </div>
-              <span className="text-xs font-bold text-slate-700">Motores IA</span>
             </div>
-            <div className="flex flex-wrap gap-1.5 justify-end max-w-[200px]">
+            {/* Badges dos codenomes à direita */}
+            <div className="flex flex-col gap-1.5">
               {availableEngines.map((engine) => {
                 const colors = ENGINE_COLORS[engine];
                 return (
