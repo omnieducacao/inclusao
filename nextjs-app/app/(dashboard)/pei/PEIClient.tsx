@@ -390,6 +390,12 @@ export function PEIClient({
       setJsonPending(null);
       setJsonFileName("");
       setSaved(false);
+      setErroGlobal(null);
+      
+      // Limpar parâmetro student da URL para modo rascunho
+      const url = new URL(window.location.href);
+      url.searchParams.delete("student");
+      window.history.pushState({}, "", url.toString());
     }
   }
 
