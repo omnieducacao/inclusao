@@ -63,7 +63,7 @@ const lottieMapColored: Record<string, string> = {
   GraduationCap: "wired-lineal-486-school-hover-pinch", // Config Escola - escola 🏫
   ClipboardText: "wired-lineal-2167-books-course-assign-hover-pinch", // PGI - livros 📚
   Gear: "wired-lineal-40-cogs-hover-mechanic", // Admin - engrenagem ⚙️
-  BookBookmark: "wired-lineal-2167-books-course-assign-hover-pinch", // Central Inteligência - livros 📚
+  BookBookmark: "wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch", // Central Inteligência - IA/cérebro 🧠
 };
 
 // Por padrão, usar os coloridos para teste
