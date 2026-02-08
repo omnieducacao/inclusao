@@ -17,18 +17,21 @@ export default async function RootPage() {
     return null; // TypeScript safety
   }
 
+  // TypeScript agora sabe que session não é null após o check acima
+  const sessionNonNull = session;
+
   const saudacao =
     new Date().getHours() >= 5 && new Date().getHours() < 12
       ? "Bom dia"
       : "Boa tarde";
-  const userFirst = (session.usuario_nome || "Visitante").split(" ")[0];
+  const userFirst = (sessionNonNull.usuario_nome || "Visitante").split(" ")[0];
 
   // Função para verificar permissão de acesso
   function canAccessModule(permission?: string): boolean {
     if (!permission) return true; // Sem permissão específica = acesso livre
-    if (session.is_platform_admin) return true; // Admin tem acesso a tudo
-    if (session.user_role === "master") return true; // Master tem acesso a tudo
-    const member = session.member as Record<string, boolean> | undefined;
+    if (sessionNonNull.is_platform_admin) return true; // Admin tem acesso a tudo
+    if (sessionNonNull.user_role === "master") return true; // Master tem acesso a tudo
+    const member = sessionNonNull.member as Record<string, boolean> | undefined;
     if (!member) return false; // Sem member = sem acesso
     return member[permission] === true;
   }
@@ -133,7 +136,7 @@ export default async function RootPage() {
       },
     ];
 
-  const adminModules = session.is_platform_admin
+  const adminModules = sessionNonNull.is_platform_admin
     ? [
       ...adminModulesBase,
       {
@@ -149,14 +152,14 @@ export default async function RootPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/15 to-sky-50/10">
-      <Navbar session={session} hideMenu={true} />
+      <Navbar session={sessionNonNull} hideMenu={true} />
       <main className="max-w-[1600px] mx-auto px-8 py-8">
         <div className="space-y-8">
           <Suspense fallback={<div className="h-[140px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
             <WelcomeHero
               saudacao={saudacao}
               userFirst={userFirst}
-              session={session}
+              session={sessionNonNull}
             />
           </Suspense>
 
@@ -237,7 +240,7 @@ export default async function RootPage() {
         </div>
       </main>
       <AIEnginesBadge />
-      <TermsOfUseModal session={session} />
+      <TermsOfUseModal session={sessionNonNull} />
     </div>
   );
 }
