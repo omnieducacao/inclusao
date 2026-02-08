@@ -21,7 +21,7 @@ export default async function RootPage() {
     new Date().getHours() >= 5 && new Date().getHours() < 12
       ? "Bom dia"
       : "Boa tarde";
-  const userFirst = (session?.usuario_nome || "Visitante").split(" ")[0];
+  const userFirst = (session.usuario_nome || "Visitante").split(" ")[0];
 
   // Função para verificar permissão de acesso
   function canAccessModule(permission?: string): boolean {
@@ -133,7 +133,7 @@ export default async function RootPage() {
       },
     ];
 
-  const adminModules = session?.is_platform_admin
+  const adminModules = session.is_platform_admin
     ? [
       ...adminModulesBase,
       {

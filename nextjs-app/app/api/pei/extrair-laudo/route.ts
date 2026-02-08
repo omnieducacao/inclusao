@@ -1,12 +1,86 @@
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 
-async function extractTextFromPdf(buffer: Buffer): Promise<string> {
-  const pdfParse = await import("pdf-parse");
-  // pdf-parse pode ser exportado como default ou named export dependendo da versão
-  const parseFunction = (pdfParse as any).default || pdfParse;
-  const result = await parseFunction(buffer);
-  return (result?.text || "").trim();
+/**
+ * Extrai texto de PDF usando múltiplas estratégias (similar ao Streamlit que usa pypdf página por página)
+ * 1. Tenta pdf-parse primeiro (mais rápido)
+ * 2. Se falhar, usa pdfjs-dist diretamente página por página (mais robusto)
+ */
+async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise<string> {
+  // Estratégia 1: Tentar pdf-parse primeiro (mais rápido)
+  try {
+    const pdfParse = await import("pdf-parse");
+    // pdf-parse pode ser exportado como default ou named export dependendo da versão
+    const parseFunction = (pdfParse as any).default || pdfParse;
+    const result = await parseFunction(buffer);
+    const texto = (result?.text || "").trim();
+    
+    if (texto && texto.length > 50) {
+      console.log(`✅ PDF extraído com pdf-parse: ${texto.length} caracteres`);
+      return texto;
+    }
+  } catch (err) {
+    console.warn("⚠️ pdf-parse falhou, tentando pdfjs-dist:", err instanceof Error ? err.message : String(err));
+  }
+
+  // Estratégia 2: Usar pdfjs-dist diretamente (mais robusto, similar ao Streamlit)
+  try {
+    // Importar pdfjs-dist - tentar diferentes caminhos dependendo da versão
+    let pdfjs: any;
+    try {
+      pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    } catch {
+      // Fallback para import padrão
+      pdfjs = await import("pdfjs-dist");
+    }
+    
+    // Configurar worker se necessário (para Node.js)
+    // No Node.js, podemos usar disableWorker: true ou configurar o worker manualmente
+    const loadingTask = pdfjs.getDocument({ 
+      data: buffer,
+      useWorkerFetch: false,
+      isEvalSupported: false,
+      useSystemFonts: true,
+    });
+    const pdf = await loadingTask.promise;
+    
+    const textoCompleto: string[] = [];
+    const numPages = Math.min(pdf.numPages, maxPages);
+    
+    console.log(`📄 Processando PDF com pdfjs-dist: ${numPages} páginas (máx ${maxPages})`);
+    
+    for (let i = 1; i <= numPages; i++) {
+      try {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(" ")
+          .trim();
+        
+        if (pageText) {
+          textoCompleto.push(pageText);
+          console.log(`  ✅ Página ${i}: ${pageText.length} caracteres`);
+        }
+      } catch (pageErr) {
+        // Se uma página falhar, continua com as próximas (como no Streamlit)
+        console.warn(`  ⚠️ Erro na página ${i}, continuando:`, pageErr instanceof Error ? pageErr.message : String(pageErr));
+        continue;
+      }
+    }
+    
+    const textoFinal = textoCompleto.join("\n\n").trim();
+    
+    if (textoFinal && textoFinal.length > 50) {
+      console.log(`✅ PDF extraído com pdfjs-dist: ${textoFinal.length} caracteres de ${textoCompleto.length} páginas`);
+      return textoFinal;
+    }
+    
+    throw new Error("PDF extraído mas texto muito curto ou vazio");
+  } catch (err) {
+    console.error("❌ Erro ao extrair texto com pdfjs-dist:", err instanceof Error ? err.message : String(err));
+    throw new Error(`Não foi possível extrair texto do PDF: ${err instanceof Error ? err.message : String(err)}`);
+  }
 }
 
 export async function POST(req: Request) {

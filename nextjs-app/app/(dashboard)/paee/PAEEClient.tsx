@@ -1726,6 +1726,7 @@ function PlanoHabilidadesTab({
   const [erro, setErro] = useState<string | null>(null);
   const [engine, setEngine] = useState<EngineId>("red");
   const [feedback, setFeedback] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false); // Flag para evitar sincronização durante geração
 
   const contextoPei = (peiData.ia_sugestao as string) || "";
 
@@ -1741,29 +1742,37 @@ function PlanoHabilidadesTab({
     "Organização e Planejamento",
   ];
 
-  // Carregar estado salvo - otimizado para evitar re-renderizações desnecessárias
+  // Carregar estado salvo - sincronizar com paeeData (apenas quando paeeData mudar externamente)
   useEffect(() => {
-    const conteudoSalvo = paeeData.conteudo_plano_habilidades as string;
-    const statusSalvo = paeeData.status_plano_habilidades as string;
-    const inputSalvo = paeeData.input_original_plano_habilidades as { foco?: string };
+    // Não sincronizar durante geração (evitar race condition)
+    if (isGenerating) {
+      console.log("⏸️ Sincronização pausada durante geração");
+      return;
+    }
     
-    // Só atualizar se os valores realmente mudaram
+    const conteudoSalvo = (paeeData.conteudo_plano_habilidades as string) || "";
+    const statusSalvo = (paeeData.status_plano_habilidades as string) || "rascunho";
+    const inputSalvo = (paeeData.input_original_plano_habilidades as { foco?: string }) || {};
+    
+    // Só atualizar se o conteúdo salvo for diferente E não estiver vazio
     if (conteudoSalvo && conteudoSalvo !== plano) {
+      console.log("🔄 Sincronizando plano do paeeData:", { 
+        conteudoSalvoLength: conteudoSalvo.length, 
+        planoLength: plano.length 
+      });
       setPlano(conteudoSalvo);
-    } else if (!conteudoSalvo && plano) {
-      // Se o conteúdo foi removido, limpar também
-      setPlano("");
     }
     
     if (statusSalvo && statusSalvo !== status) {
-      setStatus((statusSalvo as typeof status) || "revisao");
+      console.log("🔄 Sincronizando status do paeeData:", { statusSalvo, status });
+      setStatus((statusSalvo as typeof status) || "rascunho");
     }
     
     if (inputSalvo?.foco && inputSalvo.foco !== foco) {
       setFoco(inputSalvo.foco);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paeeData.conteudo_plano_habilidades, paeeData.status_plano_habilidades, paeeData.input_original_plano_habilidades]);
+  }, [paeeData.conteudo_plano_habilidades, paeeData.status_plano_habilidades, paeeData.input_original_plano_habilidades, isGenerating]);
 
   const updateField = (key: string, value: unknown) => {
     onUpdate({ ...paeeData, [key]: value });
@@ -1772,6 +1781,7 @@ function PlanoHabilidadesTab({
   const gerar = async (feedbackAjuste?: string) => {
     setLoading(true);
     setErro(null);
+    setIsGenerating(true); // Bloquear sincronização durante geração
     try {
       console.log("Gerando plano de habilidades...", { foco, engine });
       const res = await fetch("/api/paee/plano-habilidades", {
@@ -1793,23 +1803,38 @@ function PlanoHabilidadesTab({
       }
       
       const data = await res.json();
-      console.log("Plano gerado com sucesso, salvando...");
+      console.log("Plano gerado com sucesso, salvando...", { 
+        planoLength: data.plano?.length,
+        planoPreview: data.plano?.substring(0, 100) 
+      });
       
-      // Atualizar estado local primeiro
-      setPlano(data.plano || "");
-      setStatus("revisao");
+      const planoTexto = (data.plano || "").trim();
       
-      // Salvar no paeeData e persistir no Supabase
+      if (!planoTexto) {
+        throw new Error("A IA retornou um plano vazio. Tente novamente.");
+      }
+      
+      // Atualizar paeeData de forma atômica PRIMEIRO (antes de atualizar estado local)
       const novoPaeeData = {
         ...paeeData,
-        conteudo_plano_habilidades: data.plano,
+        conteudo_plano_habilidades: planoTexto,
         status_plano_habilidades: "revisao",
         input_original_plano_habilidades: { foco },
       };
       
-      updateField("conteudo_plano_habilidades", data.plano);
-      updateField("status_plano_habilidades", "revisao");
-      updateField("input_original_plano_habilidades", { foco });
+      // Atualizar via onUpdate PRIMEIRO (isso atualiza o estado pai)
+      onUpdate(novoPaeeData);
+      
+      // Depois atualizar estado local (para garantir sincronização)
+      setPlano(planoTexto);
+      setStatus("revisao");
+      
+      console.log("✅ Estado atualizado:", { 
+        planoLength: planoTexto.length, 
+        status: "revisao",
+        paeeDataUpdated: !!novoPaeeData.conteudo_plano_habilidades,
+        planoPreview: planoTexto.substring(0, 100)
+      });
       
       // Salvar no Supabase e aguardar
       if (student?.id) {
@@ -1837,6 +1862,7 @@ function PlanoHabilidadesTab({
       setErro(e instanceof Error ? e.message : "Erro ao gerar plano");
     } finally {
       setLoading(false);
+      setIsGenerating(false); // Liberar sincronização após geração
     }
   };
 
@@ -1914,7 +1940,40 @@ function PlanoHabilidadesTab({
         </div>
       ) : status === "revisao" ? (
         <div className="space-y-4">
-          <FormattedTextDisplay texto={plano} titulo="Plano de Habilidades Gerado" />
+          {!plano || plano.trim() === "" ? (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-800">
+              ⚠️ O plano foi gerado mas o conteúdo não está disponível. 
+              <br />
+              <span className="text-xs">Status: {status} | Plano length: {plano?.length || 0} | Loading: {loading ? "sim" : "não"}</span>
+              <br />
+              <button 
+                onClick={() => {
+                  const conteudoSalvo = (paeeData.conteudo_plano_habilidades as string) || "";
+                  console.log("🔍 Debug - Tentando recarregar:", { 
+                    conteudoSalvoLength: conteudoSalvo.length,
+                    planoLength: plano.length,
+                    paeeDataKeys: Object.keys(paeeData)
+                  });
+                  if (conteudoSalvo) {
+                    setPlano(conteudoSalvo);
+                    setStatus("revisao");
+                  }
+                }}
+                className="mt-2 px-3 py-1 bg-amber-600 text-white rounded text-xs"
+              >
+                🔄 Tentar Recarregar do paeeData
+              </button>
+            </p>
+            </div>
+          ) : (
+            <>
+              <FormattedTextDisplay texto={plano} titulo="Plano de Habilidades Gerado" />
+              <div className="text-xs text-slate-500">
+                ✅ Plano carregado: {plano.length} caracteres
+              </div>
+            </>
+          )}
           <div className="flex gap-2 flex-wrap">
             <button
               type="button"
