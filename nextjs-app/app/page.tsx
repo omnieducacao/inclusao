@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { Navbar } from "@/components/Navbar";
 import { AIEnginesBadge } from "@/components/AIEnginesBadge";
-import { ModuleCards, IntelligenceModuleCard } from "@/components/ModuleCards";
+import { ModuleCardsLottie, IntelligenceModuleCard } from "@/components/ModuleCardsLottie";
 import { SparkleIcon } from "@/components/SparkleIcon";
 
 export default async function RootPage() {
@@ -148,28 +148,31 @@ export default async function RootPage() {
           </div>
 
           {/* Módulos Principais - Fluxo Core */}
-          <ModuleCards 
+          <ModuleCardsLottie 
             modules={primaryModules} 
             title="Módulos Principais" 
             titleIconName="Sparkle"
             titleIconColor="text-sky-600"
+            useLottieOnHover={true}
           />
 
           {/* Módulos de Apoio */}
-          <ModuleCards 
+          <ModuleCardsLottie 
             modules={supportModules} 
             title="Recursos e Acompanhamento" 
             titleIconName="RocketLaunch"
             titleIconColor="text-cyan-600"
+            useLottieOnHover={true}
           />
 
           {/* Módulos Administrativos */}
           {adminModules.length > 0 && (
-            <ModuleCards 
+            <ModuleCardsLottie 
               modules={adminModules} 
               title="Configuração e Gestão" 
               titleIconName="Gear"
               titleIconColor="text-slate-600"
+              useLottieOnHover={true}
             />
           )}
 
