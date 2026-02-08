@@ -51,9 +51,7 @@ function StudentSelectorInner({
       } catch (error) {
         // Fallback se houver erro ao atualizar URL
         console.error("Erro ao atualizar URL:", error);
-        if (onChange) {
-          onChange(id || null);
-        }
+        // Se houver erro, apenas logamos - não há onChange neste contexto
       }
     }
   }
