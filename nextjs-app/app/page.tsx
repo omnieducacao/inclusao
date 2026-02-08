@@ -141,7 +141,7 @@ export default async function RootPage() {
             titleIconName="Sparkle"
             titleIconColor="text-sky-600"
             useLottieOnHover={true}
-            useLottieByDefault={false}
+            useLottieByDefault={true}
           />
 
           {/* Módulos de Apoio */}
@@ -151,7 +151,7 @@ export default async function RootPage() {
             titleIconName="RocketLaunch"
             titleIconColor="text-cyan-600"
             useLottieOnHover={true}
-            useLottieByDefault={false}
+            useLottieByDefault={true}
           />
 
           {/* Módulos Administrativos */}
@@ -162,7 +162,7 @@ export default async function RootPage() {
               titleIconName="Gear"
               titleIconColor="text-slate-600"
               useLottieOnHover={true}
-              useLottieByDefault={false}
+              useLottieByDefault={true}
             />
           )}
 

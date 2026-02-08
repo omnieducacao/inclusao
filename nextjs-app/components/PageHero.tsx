@@ -33,7 +33,6 @@ export function PageHero({ icon: Icon, iconName, title, desc, color = "sky", use
   const colors = getColorClasses(color);
   const lottieAnimation = iconName ? lottieMapOutlineColored[iconName] : null;
   const [isMounted, setIsMounted] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   
   // Garantir que só renderiza Lottie no cliente
   useEffect(() => {
@@ -44,18 +43,16 @@ export function PageHero({ icon: Icon, iconName, title, desc, color = "sky", use
     <div
       className="group rounded-xl border-2 border-slate-200 overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl"
       style={{ backgroundColor: colors.bg }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex items-center gap-5 h-32 px-6">
-        {/* Ícone: Lottie apenas no hover, estático por padrão */}
-        {useLottie && lottieAnimation && isMounted && isHovered ? (
+        {/* Ícone: Lottie sempre que disponível */}
+        {useLottie && lottieAnimation && isMounted ? (
           <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center">
             <LottieIcon
               animation={lottieAnimation}
               size={56}
               loop={true}
-              className="transition-all duration-300"
+              className="transition-all duration-300 group-hover:scale-110"
             />
           </div>
         ) : (

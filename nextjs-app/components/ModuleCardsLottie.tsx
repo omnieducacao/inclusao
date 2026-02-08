@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   UsersFour,
   RocketLaunch,
@@ -129,7 +129,7 @@ export function ModuleCardsLottie({
         {title}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        {modules.map((m) => {
+        {modules.map((m, index) => {
           const Icon = iconMap[m.iconName];
           if (!Icon) return null;
           const colors = getColorClasses(m.color);
@@ -148,6 +148,7 @@ export function ModuleCardsLottie({
               badge={m.badge}
               useLottie={shouldUseLottie && !!lottieAnimation}
               useLottieByDefault={useLottieByDefault}
+              index={index}
             />
           );
         })}
@@ -166,6 +167,7 @@ function ModuleCardWithLottie({
   badge,
   useLottie,
   useLottieByDefault = false,
+  index = 0,
 }: {
   href: string;
   icon: Icon;
@@ -176,18 +178,30 @@ function ModuleCardWithLottie({
   badge?: string;
   useLottie: boolean;
   useLottieByDefault?: boolean;
+  index?: number;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   
-  // Se useLottieByDefault=true, mostrar Lottie sempre (não apenas no hover)
-  const shouldShowLottie = useLottieByDefault 
-    ? (useLottie && !!lottieAnimation) 
-    : (useLottie && isHovered && lottieAnimation);
+  // Animação de entrada escalonada
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, index * 100); // Delay de 100ms entre cada card
+    return () => clearTimeout(timer);
+  }, [index]);
+  
+  // Sempre mostrar Lottie quando disponível (ícones novos coloridos)
+  const shouldShowLottie = useLottie && !!lottieAnimation;
 
   return (
     <Link
       href={href}
-      className="group relative block p-6 rounded-xl border-2 border-slate-200 transition-all duration-300 shadow-sm hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1"
+      className={`group relative block p-6 rounded-xl border-2 border-slate-200 transition-all duration-500 shadow-sm hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 ${
+        isVisible 
+          ? 'opacity-100 translate-y-0' 
+          : 'opacity-0 translate-y-4'
+      }`}
       style={{ backgroundColor: colors.bg }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -198,11 +212,13 @@ function ModuleCardWithLottie({
         </span>
       )}
       <div className="flex items-start gap-5">
-        {/* Ícone: Lottie por padrão (se useLottieByDefault) ou apenas no hover */}
-        <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center">
-          {shouldShowLottie ? (
+        {/* Ícone: Lottie sempre que disponível */}
+        <div className={`w-14 h-14 flex-shrink-0 flex items-center justify-center transition-all duration-500 ${
+          isVisible ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
+        }`}>
+          {useLottie && lottieAnimation ? (
             <LottieIcon
-              animation={lottieAnimation!}
+              animation={lottieAnimation}
               size={56}
               loop={true}
               className="transition-all duration-300 group-hover:scale-110"
