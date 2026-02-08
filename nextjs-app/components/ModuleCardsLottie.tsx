@@ -211,7 +211,10 @@ function ModuleCardWithLottie({
         )}
         <div className="flex items-start gap-5">
           <div className="flex-shrink-0">
-            <div className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10">
+            <div 
+              className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10"
+              style={{ animation: 'float 6s ease-in-out infinite' }}
+            >
               <Icon
                 className="w-8 h-8 transition-all duration-300"
                 style={{ color: colors.icon }}
