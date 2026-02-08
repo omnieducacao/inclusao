@@ -464,3 +464,16 @@ function RegistroCard({ registro, onDelete }: { registro: RegistroDiario; onDele
     </div>
   );
 }
+
+export function DiarioClient({ students, studentId, student }: Props) {
+  return (
+    <Suspense fallback={
+      <div className="space-y-4">
+        <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
+        <div className="text-slate-500 text-center py-8">Carregando...</div>
+      </div>
+    }>
+      <DiarioClientInner students={students} studentId={studentId} student={student} />
+    </Suspense>
+  );
+}
