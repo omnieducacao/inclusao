@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { Navbar } from "@/components/Navbar";
 import { AIEnginesBadge } from "@/components/AIEnginesBadge";
@@ -128,50 +129,60 @@ export default async function RootPage() {
       <Navbar session={session} hideMenu={true} />
       <main className="max-w-[1600px] mx-auto px-6 py-6">
         <div className="space-y-6">
-          <WelcomeHero
-            saudacao={saudacao}
-            userFirst={userFirst}
-            session={session}
-          />
+          <Suspense fallback={<div className="h-36 bg-white rounded-xl border border-slate-200 animate-pulse" />}>
+            <WelcomeHero
+              saudacao={saudacao}
+              userFirst={userFirst}
+              session={session}
+            />
+          </Suspense>
 
           {/* Módulos Principais - Fluxo Core */}
-          <ModuleCardsLottie 
-            modules={primaryModules} 
-            title="Módulos Principais" 
-            titleIconName="Sparkle"
-            titleIconColor="text-sky-600"
-            useLottieOnHover={true}
-            useLottieByDefault={true}
-          />
-
-          {/* Módulos de Apoio */}
-          <ModuleCardsLottie 
-            modules={supportModules} 
-            title="Recursos e Acompanhamento" 
-            titleIconName="RocketLaunch"
-            titleIconColor="text-cyan-600"
-            useLottieOnHover={true}
-            useLottieByDefault={true}
-          />
-
-          {/* Módulos Administrativos */}
-          {adminModules.length > 0 && (
+          <Suspense fallback={<div className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
             <ModuleCardsLottie 
-              modules={adminModules} 
-              title="Configuração e Gestão" 
-              titleIconName="Gear"
-              titleIconColor="text-slate-600"
+              modules={primaryModules} 
+              title="Módulos Principais" 
+              titleIconName="Sparkle"
+              titleIconColor="text-sky-600"
               useLottieOnHover={true}
               useLottieByDefault={true}
             />
+          </Suspense>
+
+          {/* Módulos de Apoio */}
+          <Suspense fallback={<div className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
+            <ModuleCardsLottie 
+              modules={supportModules} 
+              title="Recursos e Acompanhamento" 
+              titleIconName="RocketLaunch"
+              titleIconColor="text-cyan-600"
+              useLottieOnHover={true}
+              useLottieByDefault={true}
+            />
+          </Suspense>
+
+          {/* Módulos Administrativos */}
+          {adminModules.length > 0 && (
+            <Suspense fallback={<div className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
+              <ModuleCardsLottie 
+                modules={adminModules} 
+                title="Configuração e Gestão" 
+                titleIconName="Gear"
+                titleIconColor="text-slate-600"
+                useLottieOnHover={true}
+                useLottieByDefault={true}
+              />
+            </Suspense>
           )}
 
           {/* Central de Inteligência - Destaque Especial */}
-          <IntelligenceModuleCard 
-            href={intelligenceModule.href}
-            title={intelligenceModule.title}
-            desc={intelligenceModule.desc}
-          />
+          <Suspense fallback={<div className="h-32 bg-white rounded-xl border-2 border-slate-200 animate-pulse" />}>
+            <IntelligenceModuleCard 
+              href={intelligenceModule.href}
+              title={intelligenceModule.title}
+              desc={intelligenceModule.desc}
+            />
+          </Suspense>
 
           <div className="rounded-xl border-2 border-slate-200 bg-slate-50/50 p-4">
             <p className="text-sm text-slate-600">
