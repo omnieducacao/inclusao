@@ -840,7 +840,7 @@ export function PEIClient({
                                   console.log("⚠️ Estudante encontrado mas sem pei_data no Supabase");
                                   console.log("pei_data recebido:", peiDataJson);
                                   setErroGlobal("Estudante encontrado mas sem dados de PEI salvos no Supabase");
-                                  alert("Estudante encontrado mas sem dados de PEI salvos.\n\nUse o botão 'Sincronizar Tudo' no Dashboard para salvar o PEI primeiro.");
+                                  alert("Estudante encontrado mas sem dados de PEI salvos.\n\nPreencha o PEI e use o botão 'Criar Novo Estudante' no Dashboard para salvar.");
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setIsLoadingRascunho(false);
