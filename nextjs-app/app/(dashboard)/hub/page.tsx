@@ -35,7 +35,7 @@ export default async function HubPage({ searchParams }: Props) {
         .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, paee_data, daily_logs, created_at")
         .eq("id", studentId)
         .maybeSingle();
-      
+
       if (fullData && fullData.workspace_id === workspaceId) {
         student = fullData as Student;
         console.log("✅ Hub: Estudante encontrado sem filtro de workspace", {
@@ -78,18 +78,18 @@ export default async function HubPage({ searchParams }: Props) {
         useLottie={true}
       />
 
-      <Suspense fallback={<div className="text-slate-500">Carregando…</div>}>
+      <Suspense fallback={<div className="rounded-2xl bg-white animate-pulse min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }} />}>
         <HubClient
           students={students.map((s) => ({ id: s.id, name: s.name }))}
           studentId={studentId}
           student={
             student
               ? {
-                  id: student.id,
-                  name: student.name,
-                  grade: student.grade,
-                  pei_data: (student.pei_data || {}) as Record<string, unknown>,
-                }
+                id: student.id,
+                name: student.name,
+                grade: student.grade,
+                pei_data: (student.pei_data || {}) as Record<string, unknown>,
+              }
               : null
           }
         />

@@ -240,7 +240,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
       </div>
     );
   }
-  
+
   if (!student) {
     return (
       <div className="space-y-4">
@@ -278,50 +278,33 @@ function PAEEClientInner({ students, studentId, student }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Hero Section - PAEE */}
-      <div className="rounded-xl border-2 border-violet-200 overflow-hidden shadow-md bg-gradient-to-br from-violet-50 via-purple-50/50 to-fuchsia-50/30">
-        <div className="flex items-center gap-6 h-32 px-6 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzkzMzNlYSIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
-          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-xl relative z-10">
-            <Puzzle className="w-8 h-8 text-white" />
-          </div>
-          <div className="flex-1 relative z-10">
-            <h1 className="text-2xl font-black text-slate-900 mb-1">Plano de Ação / PAEE</h1>
-            <p className="text-sm text-slate-700 font-medium">
-              Atendimento Educacional Especializado — Planeje e implemente estratégias de AEE para eliminação de barreiras
-            </p>
-          </div>
-        </div>
-      </div>
-
       <StudentSelector students={students} currentId={currentId} />
 
       {/* Card de informações do estudante */}
       {student && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-violet-200 bg-gradient-to-br from-violet-50/80 to-purple-50/50 shadow-sm">
-        <div className="space-y-1">
-          <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Nome</div>
-          <div className="font-bold text-slate-900 text-lg">{student.name}</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-2xl bg-gradient-to-br from-violet-50/80 to-purple-50/50" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(196,181,253,0.4)' }}>
+          <div className="space-y-1">
+            <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Nome</div>
+            <div className="font-bold text-slate-900 text-lg">{student.name}</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Série</div>
+            <div className="font-bold text-slate-800">{student.grade || "—"}</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Diagnóstico</div>
+            <div className="font-semibold text-slate-800 truncate" title={diagnosis}>{diagnosis}</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Hiperfoco</div>
+            <div className="font-semibold text-slate-800 truncate" title={hiperfoco}>{hiperfoco}</div>
+          </div>
         </div>
-        <div className="space-y-1">
-          <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Série</div>
-          <div className="font-bold text-slate-800">{student.grade || "—"}</div>
-        </div>
-        <div className="space-y-1">
-          <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Diagnóstico</div>
-          <div className="font-semibold text-slate-800 truncate" title={diagnosis}>{diagnosis}</div>
-        </div>
-        <div className="space-y-1">
-          <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Hiperfoco</div>
-          <div className="font-semibold text-slate-800 truncate" title={hiperfoco}>{hiperfoco}</div>
-        </div>
-      </div>
       )}
 
       {/* Tabs Navigation - Melhorada com ícones e badges */}
       {student && (
-        <div className="border-b border-violet-200 bg-white rounded-t-xl overflow-x-auto scrollbar-hide shadow-sm">
-        <div className="flex gap-1 min-w-max pb-0 px-2 pt-2">
+        <div className="flex gap-1.5 p-1.5 bg-slate-100/80 rounded-2xl overflow-x-auto scrollbar-hide" style={{ border: '1px solid rgba(226,232,240,0.6)' }}>
           {tabsConfig.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -330,23 +313,21 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`group relative px-4 py-3 rounded-t-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 ${
-                  isActive
-                    ? "bg-gradient-to-b from-violet-100 to-violet-50 text-violet-900 border-t-2 border-x-2 border-violet-300 border-b-white -mb-px shadow-sm"
-                    : "text-slate-600 hover:text-violet-700 hover:bg-violet-50/50"
-                }`}
+                className={`group relative px-4 py-2.5 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 flex-shrink-0 ${isActive
+                  ? "bg-white text-slate-800 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+                  }`}
                 title={tab.desc}
               >
                 <Icon className={`w-4 h-4 ${isActive ? "text-violet-600" : "text-slate-400 group-hover:text-violet-500"}`} />
                 <span>{tab.label}</span>
                 {tab.badge && (
-                  <span className={`w-2 h-2 rounded-full ${isActive ? "bg-violet-600" : "bg-emerald-500"}`} title="Conteúdo gerado" />
+                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isActive ? "bg-violet-500" : "bg-emerald-500"}`} title="Conteúdo gerado" />
                 )}
               </button>
             );
           })}
         </div>
-      </div>
       )}
 
       {student && activeTab === "mapear-barreiras" && (
@@ -422,7 +403,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
       )}
 
       {student && activeTab === "planejamento" && (
-        <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white shadow-sm">
+        <div className="space-y-6 p-6 rounded-2xl bg-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
           {/* Header da aba */}
           <div className="flex items-start gap-4 mb-6">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -431,8 +412,8 @@ function PAEEClientInner({ students, studentId, student }: Props) {
             <div className="flex-1">
               <h3 className="text-2xl font-black text-slate-900 mb-2">Planejamento AEE</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                <strong className="text-violet-700">Documento de referência:</strong> Registro pedagógico do ciclo de atendimento 
-                com objetivos, período, recursos e cronograma geral em <strong>fases</strong> (visão macro). Este documento serve 
+                <strong className="text-violet-700">Documento de referência:</strong> Registro pedagógico do ciclo de atendimento
+                com objetivos, período, recursos e cronograma geral em <strong>fases</strong> (visão macro). Este documento serve
                 como referência para o planejamento geral do AEE. Use "Definir como ciclo ativo" para referência em outras abas.
               </p>
               <p className="text-xs text-violet-600 mt-3 font-medium bg-violet-50 px-3 py-2 rounded-lg border border-violet-200">
@@ -446,83 +427,83 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                 <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
                 Histórico de ciclos de planejamento
               </h3>
-            {cicloAtivoPlanejamento && (
-              <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50">
-                <div className="text-sm font-semibold text-emerald-800">Ciclo ativo</div>
-                <div className="text-slate-700 mt-1">
-                  Foco: {cicloAtivoPlanejamento.config_ciclo?.foco_principal || "—"}
+              {cicloAtivoPlanejamento && (
+                <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50">
+                  <div className="text-sm font-semibold text-emerald-800">Ciclo ativo</div>
+                  <div className="text-slate-700 mt-1">
+                    Foco: {cicloAtivoPlanejamento.config_ciclo?.foco_principal || "—"}
+                  </div>
+                  <div className="text-slate-600 text-sm">
+                    {fmtDataIso(cicloAtivoPlanejamento.config_ciclo?.data_inicio)} → {fmtDataIso(cicloAtivoPlanejamento.config_ciclo?.data_fim)}
+                  </div>
                 </div>
-                <div className="text-slate-600 text-sm">
-                  {fmtDataIso(cicloAtivoPlanejamento.config_ciclo?.data_inicio)} → {fmtDataIso(cicloAtivoPlanejamento.config_ciclo?.data_fim)}
-                </div>
-              </div>
-            )}
-            {ciclosPlanejamento.length > 0 && (
-              <select
-                value={cicloSelecionadoPlanejamento?.ciclo_id || ""}
-                onChange={(e) => {
-                  const c = ciclosPlanejamento.find((x) => x.ciclo_id === e.target.value);
-                  setCicloSelecionadoPlanejamento(c || null);
-                  setCicloPreview(null);
-                }}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-              >
-                <option value="">Selecione um ciclo</option>
-                {ciclosPlanejamento.map((c) => {
-                  const [ic] = badgeStatus(c.status || "rascunho");
-                  const cfg = c.config_ciclo || {};
-                  return (
-                    <option key={c.ciclo_id} value={c.ciclo_id}>
-                      {ic} {cfg.foco_principal || "Ciclo"} • {fmtDataIso(cfg.data_inicio)} • v{c.versao || 1}
-                    </option>
-                  );
-                })}
-              </select>
-            )}
-            {ciclosPlanejamento.length > 0 && cicloSelecionadoPlanejamento?.ciclo_id && (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => definirCicloAtivo(cicloSelecionadoPlanejamento.ciclo_id!)}
-                  className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+              )}
+              {ciclosPlanejamento.length > 0 && (
+                <select
+                  value={cicloSelecionadoPlanejamento?.ciclo_id || ""}
+                  onChange={(e) => {
+                    const c = ciclosPlanejamento.find((x) => x.ciclo_id === e.target.value);
+                    setCicloSelecionadoPlanejamento(c || null);
+                    setCicloPreview(null);
+                  }}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
                 >
-                  Definir como ativo
-                </button>
-              </div>
-            )}
+                  <option value="">Selecione um ciclo</option>
+                  {ciclosPlanejamento.map((c) => {
+                    const [ic] = badgeStatus(c.status || "rascunho");
+                    const cfg = c.config_ciclo || {};
+                    return (
+                      <option key={c.ciclo_id} value={c.ciclo_id}>
+                        {ic} {cfg.foco_principal || "Ciclo"} • {fmtDataIso(cfg.data_inicio)} • v{c.versao || 1}
+                      </option>
+                    );
+                  })}
+                </select>
+              )}
+              {ciclosPlanejamento.length > 0 && cicloSelecionadoPlanejamento?.ciclo_id && (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => definirCicloAtivo(cicloSelecionadoPlanejamento.ciclo_id!)}
+                    className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                  >
+                    Definir como ativo
+                  </button>
+                </div>
+              )}
 
-            <div className="pt-4 border-t border-violet-200">
+              <div className="pt-4 border-t border-violet-200">
+                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+                  Gerar novo ciclo
+                </h3>
+                <FormPlanejamento
+                  metasPei={metasPei}
+                  hiperfoco={hiperfoco}
+                  onGerar={gerarPreviewPlanejamento}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
-                Gerar novo ciclo
+                Visualização
               </h3>
-              <FormPlanejamento
-                metasPei={metasPei}
-                hiperfoco={hiperfoco}
-                onGerar={gerarPreviewPlanejamento}
-              />
+              {cicloParaVerPlanejamento ? (
+                <CicloCard ciclo={cicloParaVerPlanejamento} onSalvar={cicloPreview?.tipo === "planejamento_aee" ? () => saveCiclo(cicloParaVerPlanejamento) : undefined} saving={saving} onLimpar={() => setCicloPreview(null)} />
+              ) : (
+                <div className="p-6 rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
+                  Selecione um ciclo ou gere um novo.
+                </div>
+              )}
             </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
-              Visualização
-            </h3>
-            {cicloParaVerPlanejamento ? (
-              <CicloCard ciclo={cicloParaVerPlanejamento} onSalvar={cicloPreview?.tipo === "planejamento_aee" ? () => saveCiclo(cicloParaVerPlanejamento) : undefined} saving={saving} onLimpar={() => setCicloPreview(null)} />
-            ) : (
-              <div className="p-6 rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
-                Selecione um ciclo ou gere um novo.
-              </div>
-            )}
-          </div>
           </div>
         </div>
       )}
 
       {student && activeTab === "execucao" && (
-        <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white shadow-sm">
+        <div className="space-y-6 p-6 rounded-2xl bg-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
           {/* Header da aba */}
           <div className="flex items-start gap-4 mb-6">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -531,8 +512,8 @@ function PAEEClientInner({ students, studentId, student }: Props) {
             <div className="flex-1">
               <h3 className="text-2xl font-black text-slate-900 mb-2">Execução e Metas SMART</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                <strong className="text-violet-700">Norteador operacional:</strong> Plano de execução e acompanhamento com metas 
-                desdobradas em SMART, ações por <strong>semana</strong> e registro do que foi cumprido. Este ciclo alimenta a 
+                <strong className="text-violet-700">Norteador operacional:</strong> Plano de execução e acompanhamento com metas
+                desdobradas em SMART, ações por <strong>semana</strong> e registro do que foi cumprido. Este ciclo alimenta a
                 <strong> Jornada Gamificada</strong> do estudante e serve como guia prático para a execução do trabalho no AEE.
               </p>
               <p className="text-xs text-violet-600 mt-3 font-medium bg-violet-50 px-3 py-2 rounded-lg border border-violet-200">
@@ -546,61 +527,61 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                 <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
                 Histórico de ciclos de execução
               </h3>
-            {ciclosExecucao.length > 0 && (
-              <>
-                <select
-                  value={cicloSelecionadoExecucao?.ciclo_id || ""}
-                  onChange={(e) => {
-                    const c = ciclosExecucao.find((x) => x.ciclo_id === e.target.value);
-                    setCicloSelecionadoExecucao(c || null);
-                    setCicloPreview(null);
-                  }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                >
-                  <option value="">Selecione um ciclo</option>
-                  {ciclosExecucao.map((c) => {
-                    const cfg = c.config_ciclo || {};
-                    return (
-                      <option key={c.ciclo_id} value={c.ciclo_id}>
-                        {cfg.foco_principal || "Ciclo"} • {fmtDataIso(cfg.data_inicio)}
-                      </option>
-                    );
-                  })}
-                </select>
-                {cicloSelecionadoExecucao?.ciclo_id && (
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      type="button"
-                      onClick={() => definirCicloAtivo(cicloSelecionadoExecucao.ciclo_id!)}
-                      className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
-                    >
-                      Definir como ativo
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-            <div className="pt-4 border-t border-violet-200">
+              {ciclosExecucao.length > 0 && (
+                <>
+                  <select
+                    value={cicloSelecionadoExecucao?.ciclo_id || ""}
+                    onChange={(e) => {
+                      const c = ciclosExecucao.find((x) => x.ciclo_id === e.target.value);
+                      setCicloSelecionadoExecucao(c || null);
+                      setCicloPreview(null);
+                    }}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                  >
+                    <option value="">Selecione um ciclo</option>
+                    {ciclosExecucao.map((c) => {
+                      const cfg = c.config_ciclo || {};
+                      return (
+                        <option key={c.ciclo_id} value={c.ciclo_id}>
+                          {cfg.foco_principal || "Ciclo"} • {fmtDataIso(cfg.data_inicio)}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {cicloSelecionadoExecucao?.ciclo_id && (
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => definirCicloAtivo(cicloSelecionadoExecucao.ciclo_id!)}
+                        className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                      >
+                        Definir como ativo
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+              <div className="pt-4 border-t border-violet-200">
+                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+                  Gerar ciclo de execução
+                </h3>
+                <FormExecucao metasPei={metasPei} onGerar={gerarPreviewExecucao} />
+              </div>
+            </div>
+            <div className="space-y-4">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
-                Gerar ciclo de execução
+                Visualização
               </h3>
-              <FormExecucao metasPei={metasPei} onGerar={gerarPreviewExecucao} />
+              {cicloParaVerExecucao ? (
+                <CicloCard ciclo={cicloParaVerExecucao} onSalvar={cicloPreview?.tipo === "execucao_smart" ? () => saveCiclo(cicloParaVerExecucao) : undefined} saving={saving} onLimpar={() => setCicloPreview(null)} />
+              ) : (
+                <div className="p-6 rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
+                  Gere um ciclo de execução à esquerda.
+                </div>
+              )}
             </div>
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
-              Visualização
-            </h3>
-            {cicloParaVerExecucao ? (
-              <CicloCard ciclo={cicloParaVerExecucao} onSalvar={cicloPreview?.tipo === "execucao_smart" ? () => saveCiclo(cicloParaVerExecucao) : undefined} saving={saving} onLimpar={() => setCicloPreview(null)} />
-            ) : (
-              <div className="p-6 rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
-                Gere um ciclo de execução à esquerda.
-              </div>
-            )}
-          </div>
           </div>
         </div>
       )}
@@ -669,7 +650,7 @@ function JornadaTab({
   onEngineChange: (e: EngineId) => void;
 }) {
   const hiperfoco = (peiData.hiperfoco as string) || (peiData.interesses as string) || "Interesses gerais";
-  
+
   // Opções de origem
   const opcoesOrigem = [
     { value: "ciclo", label: "Execução e Metas SMART (ciclo)" },
@@ -693,14 +674,14 @@ function JornadaTab({
 
   // Ciclo de execução para usar na jornada
   const cicloExecucao = cicloSelecionadoExecucao || (cicloAtivo?.tipo === "execucao_smart" ? cicloAtivo : ciclos.find((c) => c.tipo === "execucao_smart"));
-  
+
   // Conteúdos das outras abas
   const conteudoBarreiras = (paeeData.conteudo_diagnostico_barreiras as string) || "";
   const conteudoPlano = (paeeData.conteudo_plano_habilidades as string) || "";
   const conteudoTec = (paeeData.conteudo_tecnologia_assistiva as string) || "";
 
   // Chave única para esta jornada (por origem)
-  const chaveJornada = origemSelecionada === "ciclo" 
+  const chaveJornada = origemSelecionada === "ciclo"
     ? `ciclo_${cicloExecucao?.ciclo_id || "preview"}`
     : origemSelecionada;
 
@@ -846,7 +827,7 @@ function JornadaTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+    <div className="space-y-6 p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -855,13 +836,13 @@ function JornadaTab({
         <div className="flex-1">
           <h3 className="text-2xl font-black text-slate-900 mb-2">Jornada Gamificada</h3>
           <p className="text-sm text-slate-600 leading-relaxed mb-3">
-            <strong className="text-violet-700">Missão do(a) {student.name}:</strong> Transforme o planejamento do AEE em uma 
-            jornada gamificada motivadora para o estudante e a família. A IA cria um roteiro com linguagem de conquistas, missões 
+            <strong className="text-violet-700">Missão do(a) {student.name}:</strong> Transforme o planejamento do AEE em uma
+            jornada gamificada motivadora para o estudante e a família. A IA cria um roteiro com linguagem de conquistas, missões
             e recompensas, sem incluir diagnósticos ou informações clínicas.
           </p>
           <div className="p-3 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-lg">
             <p className="text-sm text-violet-800">
-              Cada aba do PAEE pode virar uma <strong>jornada gamificada</strong>. Escolha a <strong>origem</strong> na lista abaixo. 
+              Cada aba do PAEE pode virar uma <strong>jornada gamificada</strong>. Escolha a <strong>origem</strong> na lista abaixo.
               ⚠️ O material gerado será entregue ao estudante — diagnósticos e dados clínicos não são incluídos.
             </p>
           </div>
@@ -1510,7 +1491,7 @@ function MapearBarreirasTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+    <div className="space-y-6 p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -1519,9 +1500,9 @@ function MapearBarreirasTab({
         <div className="flex-1">
           <h3 className="text-2xl font-black text-slate-900 mb-2">Mapear Barreiras</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            <strong className="text-violet-700">Diagnóstico de Barreiras:</strong> Mapeie barreiras na aprendizagem (uso interno da equipe). 
-            O resultado ajuda a planejar estratégias; não será exposto ao estudante. A IA classifica as barreiras segundo a LBI 
-            (Lei Brasileira de Inclusão) em: <strong>Comunicacionais</strong>, <strong>Metodológicas</strong>, 
+            <strong className="text-violet-700">Diagnóstico de Barreiras:</strong> Mapeie barreiras na aprendizagem (uso interno da equipe).
+            O resultado ajuda a planejar estratégias; não será exposto ao estudante. A IA classifica as barreiras segundo a LBI
+            (Lei Brasileira de Inclusão) em: <strong>Comunicacionais</strong>, <strong>Metodológicas</strong>,
             <strong> Atitudinais</strong>, <strong>Tecnológicas</strong> e <strong>Arquitetônicas</strong>.
           </p>
         </div>
@@ -1785,7 +1766,7 @@ function PlanoHabilidadesTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+    <div className="space-y-6 p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -1794,8 +1775,8 @@ function PlanoHabilidadesTab({
         <div className="flex-1">
           <h3 className="text-2xl font-black text-slate-900 mb-2">Plano de Habilidades</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            <strong className="text-violet-700">Plano de Intervenção AEE:</strong> A IA cria um plano detalhado de intervenção 
-            a partir do foco de atendimento selecionado. O plano inclui 3 metas SMART (curto, médio e longo prazo) com estratégias 
+            <strong className="text-violet-700">Plano de Intervenção AEE:</strong> A IA cria um plano detalhado de intervenção
+            a partir do foco de atendimento selecionado. O plano inclui 3 metas SMART (curto, médio e longo prazo) com estratégias
             de ensino, recursos necessários, frequência de intervenção e critérios de sucesso. Este plano orienta o trabalho do AEE.
           </p>
         </div>
@@ -2045,7 +2026,7 @@ function TecAssistivaTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+    <div className="space-y-6 p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -2054,9 +2035,9 @@ function TecAssistivaTab({
         <div className="flex-1">
           <h3 className="text-2xl font-black text-slate-900 mb-2">Tecnologia Assistiva</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            <strong className="text-violet-700">Recursos de Tecnologia Assistiva:</strong> A IA sugere recursos em 3 níveis 
-            (Baixa, Média e Alta Tecnologia) para promover autonomia e participação do estudante. Cada sugestão inclui descrição, 
-            finalidade, como usar na prática, benefícios e onde encontrar/comprar. Esses recursos eliminam barreiras e ampliam 
+            <strong className="text-violet-700">Recursos de Tecnologia Assistiva:</strong> A IA sugere recursos em 3 níveis
+            (Baixa, Média e Alta Tecnologia) para promover autonomia e participação do estudante. Cada sugestão inclui descrição,
+            finalidade, como usar na prática, benefícios e onde encontrar/comprar. Esses recursos eliminam barreiras e ampliam
             as possibilidades de participação do estudante.
           </p>
         </div>
@@ -2306,7 +2287,7 @@ function ArticulacaoTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-xl border-2 border-violet-200 bg-white min-h-[200px] shadow-sm">
+    <div className="space-y-6 p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
@@ -2315,9 +2296,9 @@ function ArticulacaoTab({
         <div className="flex-1">
           <h3 className="text-2xl font-black text-slate-900 mb-2">Articulação</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            <strong className="text-violet-700">Documento de Articulação AEE ↔ Sala Regular:</strong> A IA gera uma carta formal 
-            mas acolhedora que articula o trabalho desenvolvido no AEE com a sala regular. O documento inclui resumo das habilidades 
-            desenvolvidas, estratégias de generalização, orientações práticas, plano de ação conjunto e próximos passos. 
+            <strong className="text-violet-700">Documento de Articulação AEE ↔ Sala Regular:</strong> A IA gera uma carta formal
+            mas acolhedora que articula o trabalho desenvolvido no AEE com a sala regular. O documento inclui resumo das habilidades
+            desenvolvidas, estratégias de generalização, orientações práticas, plano de ação conjunto e próximos passos.
             Este documento fortalece a colaboração entre AEE e sala de aula.
           </p>
         </div>
@@ -2522,7 +2503,7 @@ function NivelSuporteRange({
 }) {
   const thumbColor = value === 0 ? '#10b981' : value === 1 ? '#eab308' : value === 2 ? '#f97316' : '#ef4444';
   const rangeId = `range-${id.replace(/[^a-zA-Z0-9]/g, '-')}`;
-  
+
   useEffect(() => {
     const style = document.createElement('style');
     style.id = `style-${rangeId}`;
@@ -2568,7 +2549,7 @@ function NivelSuporteRange({
       if (styleEl) styleEl.remove();
     };
   }, [thumbColor, rangeId]);
-  
+
   // Calcular cor da barra baseada na posição do marcador
   let barColor = '#10b981'; // Verde (Autônomo - valor 0)
   if (value === 1) barColor = '#eab308'; // Amarelo (Monitorado)
@@ -2578,11 +2559,11 @@ function NivelSuporteRange({
   return (
     <div className="relative">
       {/* Barra de fundo cinza */}
-      <div 
+      <div
         className="absolute w-full h-2 rounded-lg pointer-events-none bg-slate-200"
       />
       {/* Barra inteira com a cor baseada na posição do marcador */}
-      <div 
+      <div
         className="absolute w-full h-2 rounded-lg pointer-events-none transition-all duration-200"
         style={{
           background: barColor,

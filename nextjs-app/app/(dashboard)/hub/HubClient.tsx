@@ -76,50 +76,62 @@ const TOOLS_EI: { id: ToolIdEI; icon: LucideIcon; title: string; desc: string }[
   { id: "inclusao-brincar", icon: ToyBrick, title: "Inclusão no Brincar", desc: "Brincadeiras acessíveis" },
 ];
 
-// Mapeamento de ícones Lucide para Lottie outline minimalista (para cards internos)
-function getHubLottieMap(): string {
-  // Todos os ícones do Hub usam o mesmo ícone de notebook/documento minimalista
-  return "wired-outline-738-notebook-2-hover-pinch";
-}
+// Mapeamento de ícones Lottie distintos para cada ferramenta do Hub
+const HUB_LOTTIE_MAP: Record<string, string> = {
+  "adaptar-prova": "wired-outline-967-questionnaire-hover-pinch",       // questionário/prova
+  "adaptar-atividade": "wired-outline-35-edit-hover-circle",            // editar/adaptar
+  "criar-zero": "wired-outline-3139-rocket-space-alt-hover-pinch",      // foguete/criar do zero
+  "estudio-visual": "wired-outline-1431-fibonacci-hover-pinch",              // fibonacci/composição
+  "roteiro": "wired-outline-1020-rules-book-guideline-hover-flutter",   // guia/roteiro
+  "papo-mestre": "wired-outline-2512-artificial-intelligence-ai-alt-hover-pinch", // IA/insight
+  "dinamica": "wired-outline-957-team-work-hover-pinch",                // trabalho em equipe
+  "plano-aula": "wired-outline-738-notebook-2-hover-pinch",            // notebook/plano
+  "criar-experiencia": "wired-outline-458-goal-target-hover-hit",       // objetivo/alvo
+  "rotina-avd": "wired-outline-153-bar-chart-hover-pinch",             // rotina/gráfico
+  "inclusao-brincar": "wired-outline-529-boy-girl-children-hover-pinch", // crianças/brincar
+};
 
-// Componente para card de ferramenta com ícone minimalista
-function ToolCard({ 
-  tool, 
-  isActive, 
-  onClick 
-}: { 
-  tool: { id: string; icon: LucideIcon; title: string; desc: string }; 
-  isActive: boolean; 
+// Componente para card de ferramenta com ícone distinto por recurso
+function ToolCard({
+  tool,
+  isActive,
+  onClick
+}: {
+  tool: { id: string; icon: LucideIcon; title: string; desc: string };
+  isActive: boolean;
   onClick: () => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const Icon = tool.icon;
-  const lottieAnimation = getHubLottieMap();
-  
+  const lottieAnimation = HUB_LOTTIE_MAP[tool.id];
+
   return (
     <button
       type="button"
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group text-left p-6 rounded-xl border-2 transition-all duration-300 bg-gradient-to-br min-h-[160px] flex flex-col ${
-        isActive
-          ? "border-cyan-500 from-cyan-50 to-white shadow-md scale-[1.01]"
-          : "border-slate-200 from-slate-50 to-white hover:border-slate-300 hover:shadow-lg hover:scale-[1.01]"
-      }`}
+      className={`group text-left p-6 rounded-2xl transition-all duration-300 bg-gradient-to-br min-h-[160px] flex flex-col ${isActive
+        ? "border-cyan-500 from-cyan-50 to-white shadow-md scale-[1.01]"
+        : "border-slate-200 from-slate-50 to-white hover:border-slate-300 hover:shadow-lg hover:scale-[1.01]"
+        }`}
     >
       {/* Ícone dentro do quadrado minimalista */}
-      <div 
+      <div
         className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 mb-3"
         style={{ width: '72px', height: '72px', padding: '6px' }}
       >
-        <LottieIcon
-          animation={lottieAnimation}
-          size={60}
-          loop={isHovered}
-          autoplay={isHovered}
-          className="transition-all duration-300"
-        />
+        {lottieAnimation ? (
+          <LottieIcon
+            animation={lottieAnimation}
+            size={60}
+            loop={isHovered}
+            autoplay={isHovered}
+            className="transition-all duration-300"
+          />
+        ) : (
+          <Icon className="w-10 h-10 text-cyan-600" />
+        )}
       </div>
       <div className="font-bold text-slate-800 text-base">{tool.title}</div>
       <div className="text-sm text-slate-600 mt-1">{tool.desc}</div>
@@ -155,19 +167,19 @@ export function HubClient({ students, studentId, student }: Props) {
               <strong>Modo Educação Infantil</strong> — Ferramentas específicas para EI.
             </div>
           )}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-xl border-2 border-slate-200" style={{ backgroundColor: getColorClasses("cyan").bg }}>
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Nome</div>
-            <div className="font-bold text-slate-800">{student.name}</div>
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Série</div>
-            <div className="font-bold text-slate-800">{student.grade || "—"}</div>
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Hiperfoco</div>
-            <div className="font-bold text-slate-800 truncate" title={String(hiperfoco)}>{String(hiperfoco)}</div>
-          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-2xl" style={{ backgroundColor: getColorClasses("cyan").bg, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+            <div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Nome</div>
+              <div className="font-bold text-slate-800">{student.name}</div>
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Série</div>
+              <div className="font-bold text-slate-800">{student.grade || "—"}</div>
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Hiperfoco</div>
+              <div className="font-bold text-slate-800 truncate" title={String(hiperfoco)}>{String(hiperfoco)}</div>
+            </div>
           </div>
         </div>
       )}
@@ -233,7 +245,7 @@ export function HubClient({ students, studentId, student }: Props) {
       )}
 
       {activeTool && !["criar-zero", "criar-experiencia", "papo-mestre", "plano-aula", "adaptar-prova", "adaptar-atividade", "estudio-visual", "roteiro", "dinamica", "rotina-avd", "inclusao-brincar"].includes(activeTool) && (
-        <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white min-h-[180px]">
+        <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
           <p className="text-slate-600">
             <strong>{TOOLS.find((t) => t.id === activeTool)?.title}</strong> — Em breve nesta versão.
           </p>
@@ -297,11 +309,11 @@ function CriarDoZero({
 
   const serieAluno = student?.grade || "";
   const peiData = student?.pei_data || {};
-  
+
   // Carregar BNCC do PEI quando disponível
   useEffect(() => {
     if (!peiData || !student) return;
-    
+
     // Carregar habilidades BNCC validadas do PEI
     const habValidadas = (peiData.habilidades_bncc_validadas || peiData.habilidades_bncc_selecionadas || []) as Array<{ codigo?: string; descricao?: string; habilidade_completa?: string }>;
     if (habValidadas.length > 0) {
@@ -311,7 +323,7 @@ function CriarDoZero({
       }).filter(Boolean);
       setHabilidadesSel(habsFormatadas);
     }
-    
+
     // Carregar EI do PEI
     if (eiMode) {
       const idadePei = peiData.bncc_ei_idade as string;
@@ -331,7 +343,7 @@ function CriarDoZero({
           setEiFaixas(d.faixas || []);
           setEiCampos(d.campos || []);
         })
-        .catch(() => {});
+        .catch(() => { });
       return;
     }
     if (!serieAluno) return;
@@ -372,24 +384,24 @@ function CriarDoZero({
       ? habsDoObjeto.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
       : unidadeData
         ? Object.entries(unidadeData.porObjeto || {}).flatMap(([, habs]) =>
-            (habs || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
-          )
+          (habs || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+        )
         : discData
           ? Object.values(discData.porUnidade || {}).flatMap((v) =>
-              Object.values(v.porObjeto || {}).flatMap((habList) =>
-                (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
-              )
+            Object.values(v.porObjeto || {}).flatMap((habList) =>
+              (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
             )
+          )
           : Object.entries(componentes).flatMap(([disc, habs]) =>
-              (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
-            );
+            (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
+          );
 
-  const temBnccPreenchida = eiMode 
+  const temBnccPreenchida = eiMode
     ? (eiIdade && eiCampo && eiObjetivos.length > 0)
     : habilidadesSel.length > 0;
-  
+
   // Combinar todos os verbos Bloom selecionados
-  const verbosBloomFinais = usarBloom 
+  const verbosBloomFinais = usarBloom
     ? Object.values(verbosBloomSel).flat()
     : [];
 
@@ -437,7 +449,7 @@ function CriarDoZero({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao gerar");
       let textoFinal = data.texto || "Atividade gerada.";
-      
+
       // Processar divisor se existir (separar análise e atividade)
       if (textoFinal.includes("---DIVISOR---")) {
         const parts = textoFinal.split("---DIVISOR---");
@@ -445,7 +457,7 @@ function CriarDoZero({
         const atividade = parts[1]?.replace("[ATIVIDADE]", "").trim() || textoFinal;
         textoFinal = analise ? `## Análise Pedagógica\n\n${analise}\n\n---\n\n## Atividade\n\n${atividade}` : atividade;
       }
-      
+
       let mapa: Record<number, string> = {};
       if (usarImagens && qtdImagens > 0) {
         const genImgRegex = /\[\[GEN_IMG:\s*([^\]]+)\]\]/gi;
@@ -463,9 +475,9 @@ function CriarDoZero({
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ prompt: termos[i], prioridade: "BANCO" }),
             });
-            
+
             let imgData = await imgRes.json();
-            
+
             // Se não encontrou no banco, tenta IA
             if (!imgRes.ok || !imgData.image) {
               imgRes = await fetch("/api/hub/gerar-imagem", {
@@ -475,7 +487,7 @@ function CriarDoZero({
               });
               imgData = await imgRes.json();
             }
-            
+
             if (imgRes.ok && imgData.image) {
               // Remove o prefixo data:image se existir
               const base64 = (imgData.image as string).replace(/^data:image\/\w+;base64,/, "");
@@ -502,7 +514,7 @@ function CriarDoZero({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">{eiMode ? "Criar Experiência (EI)" : "Criar do Zero"}</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -638,7 +650,7 @@ function CriarDoZero({
           </p>
         )}
       </div>
-      
+
       {/* Configuração de Questões */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
@@ -696,7 +708,7 @@ function CriarDoZero({
           <div className="text-center text-sm text-slate-600 mt-1">{qtdImagens} imagem(ns)</div>
         </div>
       </div>
-      
+
       {/* Taxonomia de Bloom e Checklist lado a lado */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Taxonomia de Bloom */}
@@ -769,36 +781,36 @@ function CriarDoZero({
             )}
           </div>
         </details>
-        
+
         {/* Checklist de Adaptação */}
         <details className="border border-slate-200 rounded-lg">
-        <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">
-          Checklist de Adaptação (PEI)
-        </summary>
-        <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-          {[
-            { k: "questoes_desafiadoras", l: "Questões mais desafiadoras" },
-            { k: "compreende_instrucoes_complexas", l: "Compreende instruções complexas" },
-            { k: "instrucoes_passo_a_passo", l: "Instruções passo a passo" },
-            { k: "dividir_em_etapas", l: "Dividir em etapas" },
-            { k: "paragrafos_curtos", l: "Parágrafos curtos" },
-            { k: "dicas_apoio", l: "Dicas de apoio" },
-            { k: "compreende_figuras_linguagem", l: "Compreende figuras de linguagem" },
-            { k: "descricao_imagens", l: "Descrição de imagens" },
-          ].map(({ k, l }) => (
-            <label key={k} className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={!!checklist[k as keyof ChecklistAdaptacao]}
-                onChange={(e) => setChecklist((c) => ({ ...c, [k]: e.target.checked }))}
-              />
-              {l}
-            </label>
-          ))}
-        </div>
-      </details>
+          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">
+            Checklist de Adaptação (PEI)
+          </summary>
+          <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+            {[
+              { k: "questoes_desafiadoras", l: "Questões mais desafiadoras" },
+              { k: "compreende_instrucoes_complexas", l: "Compreende instruções complexas" },
+              { k: "instrucoes_passo_a_passo", l: "Instruções passo a passo" },
+              { k: "dividir_em_etapas", l: "Dividir em etapas" },
+              { k: "paragrafos_curtos", l: "Parágrafos curtos" },
+              { k: "dicas_apoio", l: "Dicas de apoio" },
+              { k: "compreende_figuras_linguagem", l: "Compreende figuras de linguagem" },
+              { k: "descricao_imagens", l: "Descrição de imagens" },
+            ].map(({ k, l }) => (
+              <label key={k} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={!!checklist[k as keyof ChecklistAdaptacao]}
+                  onChange={(e) => setChecklist((c) => ({ ...c, [k]: e.target.checked }))}
+                />
+                {l}
+              </label>
+            ))}
+          </div>
+        </details>
       </div>
-      
+
       <button
         type="button"
         onClick={gerar}
@@ -949,7 +961,7 @@ function PapoDeMestre({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Papo de Mestre — Conexões para Engajamento</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -1035,7 +1047,7 @@ function PapoDeMestre({
               </button>
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Conexões para Engajamento</span>
               <span className="flex gap-2">
@@ -1158,7 +1170,7 @@ function PlanoAulaDua({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Plano de Aula DUA</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -1185,7 +1197,7 @@ function PlanoAulaDua({
           </select>
         </div>
       </div>
-      
+
       {/* Configuração Metodológica */}
       <div className="border-t border-slate-200 pt-4">
         <h4 className="text-sm font-semibold text-slate-700 mb-3">Configuração Metodológica</h4>
@@ -1232,7 +1244,7 @@ function PlanoAulaDua({
           </div>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Qtd Estudantes</label>
@@ -1378,7 +1390,7 @@ function PlanoAulaDua({
               </button>
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Plano de Aula DUA</span>
               <span className="flex gap-2">
@@ -1458,7 +1470,7 @@ function RotinaAvdTool({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800 flex items-center gap-2">
           <RefreshCw className="w-5 h-5" />
@@ -1525,7 +1537,7 @@ function RotinaAvdTool({
               </details>
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Rotina & Previsibilidade</span>
               <span className="flex gap-2">
@@ -1593,7 +1605,7 @@ function InclusaoBrincarTool({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800 flex items-center gap-2">
           <ToyBrick className="w-5 h-5" />
@@ -1650,7 +1662,7 @@ function InclusaoBrincarTool({
               </details>
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Inclusão no Brincar</span>
               <span className="flex gap-2">
@@ -1807,7 +1819,7 @@ function AdaptarProva({
   const temDados = !!docxExtraido?.texto || !!file;
 
   return (
-    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Adaptar Prova (DUA)</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -2051,7 +2063,7 @@ function AdaptarProva({
               <FormattedTextDisplay texto={resultado.analise} />
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Prova Adaptada (DUA)</span>
               <span className="flex gap-2">
@@ -2133,17 +2145,17 @@ function RoteiroIndividual({
     ? habsDoObjeto.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
     : unidadeData
       ? Object.entries(unidadeData.porObjeto || {}).flatMap(([, habs]) =>
-          (habs || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
-        )
+        (habs || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+      )
       : discData
         ? Object.values(discData.porUnidade || {}).flatMap((v) =>
-            Object.values(v.porObjeto || {}).flatMap((habList) =>
-              (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
-            )
+          Object.values(v.porObjeto || {}).flatMap((habList) =>
+            (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
           )
+        )
         : Object.entries(componentes).flatMap(([disc, habs]) =>
-            (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
-          );
+          (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
+        );
 
   const temBnccPreenchida = habilidadesSel.length > 0;
 
@@ -2181,7 +2193,7 @@ function RoteiroIndividual({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Roteiro de Aula Individualizado</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
@@ -2305,7 +2317,7 @@ function RoteiroIndividual({
               </button>
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Roteiro Individual</span>
               <span className="flex gap-2">
@@ -2380,17 +2392,17 @@ function DinamicaInclusiva({
     ? habsDoObjetoD.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
     : unidadeDataD
       ? Object.entries(unidadeDataD.porObjeto || {}).flatMap(([, habs]) =>
-          (habs || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
-        )
+        (habs || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
+      )
       : discDataD
         ? Object.values(discDataD.porUnidade || {}).flatMap((v) =>
-            Object.values(v.porObjeto || {}).flatMap((habList) =>
-              (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
-            )
+          Object.values(v.porObjeto || {}).flatMap((habList) =>
+            (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
           )
+        )
         : Object.entries(componentes).flatMap(([disc, habs]) =>
-            (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
-          );
+          (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
+        );
 
   const temBnccPreenchida = habilidadesSel.length > 0;
 
@@ -2431,7 +2443,7 @@ function DinamicaInclusiva({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Dinâmica Inclusiva</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
@@ -2558,7 +2570,7 @@ function EstudioVisual({
   const hiperfoco = hiperfocoProp || (peiData.hiperfoco as string) || "";
 
   return (
-    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-white space-y-6">
+    <div className="p-6 rounded-2xl bg-white space-y-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Estúdio Visual & CAA</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -2916,7 +2928,7 @@ function AdaptarAtividade({
   };
 
   return (
-    <div className="p-6 rounded-xl border-2 border-slate-200 bg-gradient-to-br from-cyan-50 to-white space-y-4 shadow-sm min-h-[200px]">
+    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Adaptar Atividade (OCR + IA)</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -3276,7 +3288,7 @@ function AdaptarAtividade({
               <FormattedTextDisplay texto={resultado.analise} />
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Atividade Adaptada (DUA)</span>
               <span className="flex gap-2">

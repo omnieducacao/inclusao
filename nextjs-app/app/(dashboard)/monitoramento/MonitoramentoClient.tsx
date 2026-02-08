@@ -153,7 +153,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Expectativa (PEI) */}
-              <div className="p-6 rounded-xl border-2 border-slate-200 bg-white shadow-sm min-h-[180px]">
+              <div className="p-6 rounded-2xl bg-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
                 <h4 className="font-medium text-sky-800 mb-2">Expectativa (PEI)</h4>
                 <p className="text-xs text-slate-500 mb-2">Objetivos cadastrados no Plano de Ensino</p>
                 {objetivosList.length > 0 ? (
@@ -174,7 +174,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
               </div>
 
               {/* Planejamento (PAEE) */}
-              <div className="p-6 rounded-xl border-2 border-slate-200 bg-white shadow-sm min-h-[180px]">
+              <div className="p-6 rounded-2xl bg-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
                 <h4 className="font-medium text-sky-800 mb-2">Planejamento (PAEE)</h4>
                 <p className="text-xs text-slate-500 mb-2">Ciclos de AEE planejados</p>
                 {paeeAtivo ? (
@@ -205,7 +205,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
               </div>
 
               {/* Realidade (Diário) */}
-              <div className="p-6 rounded-xl border-2 border-slate-200 bg-white shadow-sm min-h-[180px]">
+              <div className="p-6 rounded-2xl bg-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
                 <h4 className="font-medium text-sky-800 mb-2">Realidade (Diário)</h4>
                 <p className="text-xs text-slate-500 mb-2">Últimos registros de atividades</p>
                 {registrosOrdenados.length > 0 ? (
@@ -265,7 +265,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
           </div>
 
           {/* Rubrica de Avaliação */}
-          <div className="p-6 rounded-xl border-2 border-slate-200 bg-white shadow-sm min-h-[200px]">
+          <div className="p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
             <h3 className="text-lg font-semibold text-slate-800 mb-2">Rubrica de Desenvolvimento</h3>
             <form onSubmit={handleSalvarAvaliacao} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

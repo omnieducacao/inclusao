@@ -106,7 +106,7 @@ export function GestaoClient() {
       )}
 
       {/* Novo usuário */}
-      <div className="rounded-2xl border-2 border-slate-200 bg-white overflow-hidden shadow-sm">
+      <div className="rounded-2xl bg-white overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
@@ -132,9 +132,8 @@ export function GestaoClient() {
 
       {message && (
         <div
-          className={`p-3 rounded-lg text-sm ${
-            message.type === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
-          }`}
+          className={`p-3 rounded-lg text-sm ${message.type === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
+            }`}
         >
           {message.text}
         </div>
@@ -532,7 +531,7 @@ function MemberCard({
   }
 
   return (
-    <div className="p-6 rounded-2xl border-2 border-slate-200 bg-white min-h-[200px]">
+    <div className="p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="flex justify-between items-start gap-4">
         <div>
           <h4 className="font-medium text-slate-800 flex items-center gap-2">

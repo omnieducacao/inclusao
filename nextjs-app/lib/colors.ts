@@ -1,24 +1,25 @@
-// Paleta de cores suave baseada na home page
+// Paleta premium refinada (NotebookLM → Google Blue harmonizado)
 export const colorPalette: Record<string, { bg: string; icon: string; text: string }> = {
-  audio: { bg: "#E8EAF6", icon: "#3F51B5", text: "#3F51B5" },
-  video: { bg: "#E8F5E9", icon: "#4CAF50", text: "#4CAF50" },
-  mindmap: { bg: "#F3E5F5", icon: "#8E24AA", text: "#8E24AA" },
-  reports: { bg: "#FFFDE7", icon: "#FFB300", text: "#FFB300" },
-  flashcards: { bg: "#FBE9E7", icon: "#D84315", text: "#D84315" },
-  test: { bg: "#E3F2FD", icon: "#2196F3", text: "#2196F3" },
-  infographic: { bg: "#F0F4C3", icon: "#673AB7", text: "#673AB7" },
-  presentation: { bg: "#F9FBE7", icon: "#8BC34A", text: "#8BC34A" },
-  table: { bg: "#E1F5FE", icon: "#03A9F4", text: "#03A9F4" },
+  audio: { bg: "#ECEEFB", icon: "#4F5BD5", text: "#3D4AAD" },
+  video: { bg: "#E9F5EC", icon: "#34A853", text: "#2D8C47" },
+  mindmap: { bg: "#F2E8F5", icon: "#9334E6", text: "#7C2BC4" },
+  reports: { bg: "#FFF8E6", icon: "#F9AB00", text: "#D49300" },
+  flashcards: { bg: "#FCECEA", icon: "#E8453C", text: "#C33B34" },
+  test: { bg: "#E6F0FD", icon: "#4285F4", text: "#3574D4" },
+  infographic: { bg: "#F0F4C3", icon: "#673AB7", text: "#5A2FA0" },
+  presentation: { bg: "#F1F5E9", icon: "#7CB342", text: "#6A9A38" },
+  table: { bg: "#E4F2FD", icon: "#1A73E8", text: "#1567C8" },
 };
 
 // Mapeamento de cores para módulos
 export const moduleColors: Record<string, string> = {
-  sky: "audio", // Estudantes: azul índigo (#3F51B5)
-  blue: "test", // PEI: azul mais claro/vivo (#2196F3)
-  violet: "mindmap", // PAEE: card e ícone na mesma cor roxa
+  sky: "audio", // Estudantes: azul índigo
+  blue: "test", // PEI: azul vivo
+  violet: "mindmap", // PAEE: roxo
   cyan: "video",
   rose: "flashcards",
   slate: "reports",
+  teal: "video", // Monitoramento
   test: "test",
   presentation: "presentation",
   table: "table",
