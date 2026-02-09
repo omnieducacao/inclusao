@@ -46,10 +46,11 @@ export function getEngineError(engine: EngineId): string | null {
 export async function chatCompletionText(
   engine: EngineId,
   messages: Array<{ role: string; content: string }>,
-  options?: { temperature?: number; apiKey?: string }
+  options?: { temperature?: number; apiKey?: string; workspaceId?: string; source?: string; trackUsage?: boolean }
 ): Promise<string> {
   const temp = options?.temperature ?? 0.7;
   const apiKey = options?.apiKey || getApiKey(engine);
+  const shouldTrack = options?.trackUsage !== false; // Por padrão, rastreia uso
 
   // Orange (OpenAI)
   if (engine === "orange") {
@@ -61,7 +62,12 @@ export async function chatCompletionText(
       messages: messages as Parameters<typeof client.chat.completions.create>[0]["messages"],
       temperature: temp,
     });
-    return (resp.choices[0]?.message?.content || "").trim();
+    const result = (resp.choices[0]?.message?.content || "").trim();
+    if (shouldTrack && result) {
+      const { trackAIUsage } = await import("./tracking");
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => {});
+    }
+    return result;
   }
 
   // Red (DeepSeek)
@@ -76,7 +82,12 @@ export async function chatCompletionText(
       messages: messages as Parameters<typeof client.chat.completions.create>[0]["messages"],
       temperature: temp,
     });
-    return (resp.choices[0]?.message?.content || "").trim();
+    const result = (resp.choices[0]?.message?.content || "").trim();
+    if (shouldTrack && result) {
+      const { trackAIUsage } = await import("./tracking");
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => {});
+    }
+    return result;
   }
 
   // Blue (Kimi / OpenRouter)
@@ -92,7 +103,12 @@ export async function chatCompletionText(
       messages: messages as Parameters<typeof client.chat.completions.create>[0]["messages"],
       temperature: temp,
     });
-    return (resp.choices[0]?.message?.content || "").trim();
+    const result = (resp.choices[0]?.message?.content || "").trim();
+    if (shouldTrack && result) {
+      const { trackAIUsage } = await import("./tracking");
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => {});
+    }
+    return result;
   }
 
   // Green (Claude) — requer @anthropic-ai/sdk
@@ -117,7 +133,12 @@ export async function chatCompletionText(
       temperature: temp,
     });
     const text = resp.content.find((c) => c.type === "text");
-    return (text && "text" in text ? text.text : "").trim();
+    const result = (text && "text" in text ? text.text : "").trim();
+    if (shouldTrack && result) {
+      const { trackAIUsage } = await import("./tracking");
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, creditsConsumed: 2.0 }).catch(() => {});
+    }
+    return result;
   }
 
   // Yellow (Gemini)
@@ -129,7 +150,12 @@ export async function chatCompletionText(
     const full = messages.map((m) => `[${m.role}]\n${m.content}`).join("\n\n");
     const result = await model.generateContent(full);
     const resp = result.response;
-    return (resp.text() || "").trim();
+    const textResult = (resp.text() || "").trim();
+    if (shouldTrack && textResult) {
+      const { trackAIUsage } = await import("./tracking");
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => {});
+    }
+    return textResult;
   }
 
   throw new Error(`Motor não suportado: ${engine}`);

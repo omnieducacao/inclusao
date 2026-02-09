@@ -7,6 +7,7 @@ import { EngineSelector } from "@/components/EngineSelector";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { getColorClasses } from "@/lib/colors";
+import { gerarPdfJornada } from "@/lib/paee-pdf-export";
 import type { CicloPAEE, MetaPei, ConfigCiclo } from "@/lib/paee";
 import type { EngineId } from "@/lib/ai-engines";
 import {
@@ -20,6 +21,7 @@ import { LISTAS_BARREIRAS, NIVEIS_SUPORTE } from "@/lib/pei";
 import { Map, AlertTriangle, Target, Puzzle, Users, Search } from "lucide-react";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
+import { ResumoAnexosEstudante } from "@/components/ResumoAnexosEstudante";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -624,6 +626,17 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           onEngineChange={setJornadaEngine}
         />
       )}
+
+      {/* Resumo de Anexos do Estudante */}
+      {student && (
+        <ResumoAnexosEstudante
+          nomeEstudante={student.name}
+          temRelatorioPei={Boolean((peiData.ia_sugestao as string)?.trim())}
+          temJornada={Boolean((peiData.ia_mapa_texto as string)?.trim())}
+          nCiclosPae={ciclos.length}
+          pagina="PAEE"
+        />
+      )}
     </div>
   );
 }
@@ -858,6 +871,47 @@ function JornadaTab({
     URL.revokeObjectURL(url);
   };
 
+  const downloadMapaPNG = () => {
+    if (!mapaMental) return;
+    
+    // Se for base64, converter para blob
+    let blob: Blob;
+    if (mapaMental.startsWith("data:image")) {
+      const base64Data = mapaMental.split(",")[1];
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      blob = new Blob([byteArray], { type: "image/png" });
+    } else {
+      // Se for URL, fazer fetch
+      fetch(mapaMental)
+        .then((res) => res.blob())
+        .then((b) => {
+          const url = URL.createObjectURL(b);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `MapaMental_${student.name.replace(/\s+/g, "_")}.png`;
+          a.click();
+          URL.revokeObjectURL(url);
+        })
+        .catch((err) => {
+          console.error("Erro ao baixar mapa mental:", err);
+          alert("Erro ao baixar imagem. Tente novamente.");
+        });
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `MapaMental_${student.name.replace(/\s+/g, "_")}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6 p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
       {/* Header da aba */}
@@ -994,15 +1048,21 @@ function JornadaTab({
               )}
             </div>
             {mapaMental && (
-              <div className="space-y-2">
-                <img src={mapaMental} alt="Mapa mental da jornada" className="max-w-full rounded-lg border border-slate-200" />
-                <a
-                  href={mapaMental}
-                  download="missao_visual.png"
-                  className="inline-block px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm hover:bg-slate-200"
+              <div className="space-y-3">
+                <div className="border-2 border-violet-200 rounded-lg p-2 bg-white">
+                  <img 
+                    src={mapaMental} 
+                    alt="Mapa mental da jornada" 
+                    className="max-w-full rounded-lg"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={downloadMapaPNG}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm hover:bg-violet-700 transition-colors"
                 >
-                  📥 Baixar imagem
-                </a>
+                  📥 Baixar PNG do Mapa Mental
+                </button>
               </div>
             )}
             <button
@@ -1123,15 +1183,21 @@ function JornadaTab({
               )}
             </div>
             {mapaMental && (
-              <div className="space-y-2">
-                <img src={mapaMental} alt="Mapa mental da jornada" className="max-w-full rounded-lg border border-slate-200" />
-                <a
-                  href={mapaMental}
-                  download="missao_visual.png"
-                  className="inline-block px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm hover:bg-slate-200"
+              <div className="space-y-3">
+                <div className="border-2 border-violet-200 rounded-lg p-2 bg-white">
+                  <img 
+                    src={mapaMental} 
+                    alt="Mapa mental da jornada" 
+                    className="max-w-full rounded-lg"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={downloadMapaPNG}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm hover:bg-violet-700 transition-colors"
                 >
-                  📥 Baixar imagem
-                </a>
+                  📥 Baixar PNG do Mapa Mental
+                </button>
               </div>
             )}
             <button
@@ -1151,15 +1217,17 @@ function JornadaTab({
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <PdfDownloadButton
-              text={texto}
-              filename={`Missao_${student.name.replace(/\s+/g, "_")}.pdf`}
-              title={`Missão - ${student.name}`}
-            />
+            <button
+              type="button"
+              onClick={() => gerarPdfJornada(texto, student.name)}
+              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 flex items-center justify-center gap-2"
+            >
+              📄 Baixar PDF da Jornada
+            </button>
             <button
               type="button"
               onClick={downloadCSV}
-              className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700"
+              className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 flex items-center justify-center gap-2"
             >
               📊 Baixar CSV (importar no Sheets)
             </button>

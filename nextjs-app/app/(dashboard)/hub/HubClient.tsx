@@ -8,6 +8,7 @@ import { ImageCropper } from "@/components/ImageCropper";
 import { detectarNivelEnsino } from "@/lib/pei";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
+import { gerarPptxPlanoAula } from "@/lib/pptx-export";
 import { getColorClasses } from "@/lib/colors";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
@@ -1393,9 +1394,16 @@ function PlanoAulaDua({
           <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Plano de Aula DUA</span>
-              <span className="flex gap-2">
+              <span className="flex gap-2 flex-wrap">
                 <DocxDownloadButton texto={resultado} titulo="Plano de Aula DUA" filename={`Plano_Aula_${new Date().toISOString().slice(0, 10)}.docx`} />
                 <PdfDownloadButton text={resultado} filename={`Plano_Aula_${new Date().toISOString().slice(0, 10)}.pdf`} title="Plano de Aula DUA" />
+                <button
+                  type="button"
+                  onClick={() => gerarPptxPlanoAula(resultado, "Plano de Aula DUA", student?.name)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm flex items-center gap-2"
+                >
+                  📊 Baixar PowerPoint (PPTX)
+                </button>
               </span>
             </div>
             <FormattedTextDisplay texto={resultado} />

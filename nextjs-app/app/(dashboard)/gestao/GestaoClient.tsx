@@ -331,7 +331,45 @@ function NovoUsuarioForm({
     can_gestao: false,
   });
   const [linkType, setLinkType] = useState<"todos" | "turma" | "tutor">("todos");
+  const [teacherAssignments, setTeacherAssignments] = useState<{ class_id: string; component_id: string }[]>([]);
+  const [studentIds, setStudentIds] = useState<string[]>([]);
+  const [classes, setClasses] = useState<Array<{ id: string; label: string }>>([]);
+  const [components, setComponents] = useState<Array<{ id: string; label: string }>>([]);
+  const [students, setStudents] = useState<Array<{ id: string; name: string; grade?: string; class_group?: string }>>([]);
   const [saving, setSaving] = useState(false);
+
+  // Carregar turmas, componentes e estudantes quando necessário
+  useEffect(() => {
+    if (linkType === "turma") {
+      Promise.all([
+        fetch("/api/school/classes").then((r) => r.json()).then((d) => {
+          const classesData = (d.classes || []).map((c: any) => ({
+            id: c.id,
+            label: `${(c.grade || c.grades)?.label || c.grade_id || ""} - Turma ${c.class_group || ""}`,
+          }));
+          setClasses(classesData);
+        }),
+        fetch("/api/school/components").then((r) => r.json()).then((d) => {
+          setComponents((d.components || []).map((c: any) => ({
+            id: c.id,
+            label: c.label || c.id,
+          })));
+        }),
+      ]).catch(() => {});
+    } else if (linkType === "tutor") {
+      fetch("/api/students")
+        .then((r) => r.json())
+        .then((d) => {
+          setStudents((d.students || []).map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            grade: s.grade,
+            class_group: s.class_group,
+          })));
+        })
+        .catch(() => {});
+    }
+  }, [linkType]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -355,6 +393,8 @@ function NovoUsuarioForm({
           telefone: telefone.trim() || undefined,
           cargo: cargo.trim() || undefined,
           link_type: linkType,
+          teacher_assignments: linkType === "turma" && teacherAssignments.length > 0 ? teacherAssignments : undefined,
+          student_ids: linkType === "tutor" && studentIds.length > 0 ? studentIds : undefined,
           ...perms,
         }),
       });
@@ -438,10 +478,100 @@ function NovoUsuarioForm({
               </option>
             ))}
           </select>
-          {linkType !== "todos" && (
-            <p className="text-xs text-amber-600 mt-1">
-              Configure ano letivo e turmas em Configuração Escola para vínculos por turma. Para tutor, cadastre estudantes primeiro.
-            </p>
+          {linkType === "turma" && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs font-medium text-slate-700">Turmas e componentes curriculares</p>
+              {teacherAssignments.map((assignment, idx) => (
+                <div key={idx} className="grid grid-cols-2 gap-2">
+                  <select
+                    value={assignment.class_id}
+                    onChange={(e) => {
+                      const updated = [...teacherAssignments];
+                      updated[idx] = { ...updated[idx], class_id: e.target.value };
+                      setTeacherAssignments(updated);
+                    }}
+                    className="px-2 py-1.5 border border-slate-200 rounded text-sm"
+                  >
+                    <option value="">Selecione turma</option>
+                    {classes.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="flex gap-1">
+                    <select
+                      value={assignment.component_id}
+                      onChange={(e) => {
+                        const updated = [...teacherAssignments];
+                        updated[idx] = { ...updated[idx], component_id: e.target.value };
+                        setTeacherAssignments(updated);
+                      }}
+                      className="flex-1 px-2 py-1.5 border border-slate-200 rounded text-sm"
+                    >
+                      <option value="">Selecione componente</option>
+                      {components.map((comp) => (
+                        <option key={comp.id} value={comp.id}>
+                          {comp.label}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTeacherAssignments(teacherAssignments.filter((_, i) => i !== idx));
+                      }}
+                      className="px-2 py-1.5 text-red-600 hover:bg-red-50 rounded text-sm"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setTeacherAssignments([...teacherAssignments, { class_id: "", component_id: "" }]);
+                }}
+                className="text-xs text-sky-600 hover:underline"
+              >
+                + Adicionar vínculo turma + componente
+              </button>
+              {classes.length === 0 && (
+                <p className="text-xs text-amber-600">
+                  Configure ano letivo e turmas em Configuração Escola primeiro.
+                </p>
+              )}
+            </div>
+          )}
+          {linkType === "tutor" && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs font-medium text-slate-700">Estudantes de que é tutor</p>
+              <select
+                multiple
+                value={studentIds}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions, (opt) => opt.value);
+                  setStudentIds(selected);
+                }}
+                size={Math.min(students.length || 1, 8)}
+                className="w-full px-2 py-1.5 border border-slate-200 rounded text-sm"
+              >
+                {students.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.grade || "—"} - {s.class_group || "—"})
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-slate-500">
+                {studentIds.length > 0 ? `${studentIds.length} estudante(s) selecionado(s)` : "Selecione os estudantes (segure Ctrl/Cmd para múltiplos)"}
+              </p>
+              {students.length === 0 && (
+                <p className="text-xs text-amber-600">
+                  Cadastre estudantes primeiro no módulo PEI ou Estudantes.
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -624,7 +754,60 @@ function EditarUsuarioForm({
     can_gestao: member.can_gestao,
   });
   const [linkType, setLinkType] = useState<"todos" | "turma" | "tutor">(member.link_type);
+  const [teacherAssignments, setTeacherAssignments] = useState<{ class_id: string; component_id: string }[]>([]);
+  const [studentIds, setStudentIds] = useState<string[]>([]);
+  const [classes, setClasses] = useState<Array<{ id: string; label: string }>>([]);
+  const [components, setComponents] = useState<Array<{ id: string; label: string }>>([]);
+  const [students, setStudents] = useState<Array<{ id: string; name: string; grade?: string; class_group?: string }>>([]);
   const [saving, setSaving] = useState(false);
+
+  // Carregar vínculos existentes e dados necessários
+  useEffect(() => {
+    // Carregar turmas e componentes se necessário
+    if (linkType === "turma") {
+      Promise.all([
+        fetch("/api/school/classes").then((r) => r.json()).then((d) => {
+          const classesData = (d.classes || []).map((c: any) => ({
+            id: c.id,
+            label: `${(c.grade || c.grades)?.label || c.grade_id || ""} - Turma ${c.class_group || ""}`,
+          }));
+          setClasses(classesData);
+        }),
+        fetch("/api/school/components").then((r) => r.json()).then((d) => {
+          setComponents((d.components || []).map((c: any) => ({
+            id: c.id,
+            label: c.label || c.id,
+          })));
+        }),
+        // Carregar vínculos existentes
+        fetch(`/api/members/${member.id}/assignments`).then((r) => r.json()).then((d) => {
+          if (d.assignments) {
+            setTeacherAssignments(d.assignments.map((a: any) => ({
+              class_id: a.class_id || "",
+              component_id: a.component_id || "",
+            })));
+          }
+        }),
+      ]).catch(() => {});
+    } else if (linkType === "tutor") {
+      Promise.all([
+        fetch("/api/students").then((r) => r.json()).then((d) => {
+          setStudents((d.students || []).map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            grade: s.grade,
+            class_group: s.class_group,
+          })));
+        }),
+        // Carregar vínculos existentes
+        fetch(`/api/members/${member.id}/student-links`).then((r) => r.json()).then((d) => {
+          if (d.student_ids) {
+            setStudentIds(d.student_ids);
+          }
+        }),
+      ]).catch(() => {});
+    }
+  }, [linkType, member.id]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -640,6 +823,8 @@ function EditarUsuarioForm({
         telefone: telefone.trim() || undefined,
         cargo: cargo.trim() || undefined,
         link_type: linkType,
+        teacher_assignments: linkType === "turma" ? teacherAssignments.filter((a) => a.class_id && a.component_id) : undefined,
+        student_ids: linkType === "tutor" ? studentIds : undefined,
         ...perms,
       };
       if (password.length >= 4) payload.password = password;
@@ -727,7 +912,11 @@ function EditarUsuarioForm({
             <p className="text-sm font-medium text-slate-700 mt-4 mb-2">Vínculo</p>
             <select
               value={linkType}
-              onChange={(e) => setLinkType(e.target.value as "todos" | "turma" | "tutor")}
+              onChange={(e) => {
+                setLinkType(e.target.value as "todos" | "turma" | "tutor");
+                setTeacherAssignments([]);
+                setStudentIds([]);
+              }}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
             >
               {LINK_OPTIONS.map((o) => (
@@ -736,6 +925,101 @@ function EditarUsuarioForm({
                 </option>
               ))}
             </select>
+            {linkType === "turma" && (
+              <div className="mt-3 space-y-2">
+                <p className="text-xs font-medium text-slate-700">Turmas e componentes curriculares</p>
+                {teacherAssignments.map((assignment, idx) => (
+                  <div key={idx} className="grid grid-cols-2 gap-2">
+                    <select
+                      value={assignment.class_id}
+                      onChange={(e) => {
+                        const updated = [...teacherAssignments];
+                        updated[idx] = { ...updated[idx], class_id: e.target.value };
+                        setTeacherAssignments(updated);
+                      }}
+                      className="px-2 py-1.5 border border-slate-200 rounded text-sm"
+                    >
+                      <option value="">Selecione turma</option>
+                      {classes.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="flex gap-1">
+                      <select
+                        value={assignment.component_id}
+                        onChange={(e) => {
+                          const updated = [...teacherAssignments];
+                          updated[idx] = { ...updated[idx], component_id: e.target.value };
+                          setTeacherAssignments(updated);
+                        }}
+                        className="flex-1 px-2 py-1.5 border border-slate-200 rounded text-sm"
+                      >
+                        <option value="">Selecione componente</option>
+                        {components.map((comp) => (
+                          <option key={comp.id} value={comp.id}>
+                            {comp.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTeacherAssignments(teacherAssignments.filter((_, i) => i !== idx));
+                        }}
+                        className="px-2 py-1.5 text-red-600 hover:bg-red-50 rounded text-sm"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTeacherAssignments([...teacherAssignments, { class_id: "", component_id: "" }]);
+                  }}
+                  className="text-xs text-sky-600 hover:underline"
+                >
+                  + Adicionar vínculo turma + componente
+                </button>
+                {classes.length === 0 && (
+                  <p className="text-xs text-amber-600">
+                    Configure ano letivo e turmas em Configuração Escola primeiro.
+                  </p>
+                )}
+              </div>
+            )}
+            {linkType === "tutor" && (
+              <div className="mt-3 space-y-2">
+                <p className="text-xs font-medium text-slate-700">Estudantes de que é tutor</p>
+                <select
+                  multiple
+                  value={studentIds}
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions, (opt) => opt.value);
+                    setStudentIds(selected);
+                  }}
+                  size={Math.min(students.length || 1, 8)}
+                  className="w-full px-2 py-1.5 border border-slate-200 rounded text-sm"
+                >
+                  {students.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} ({s.grade || "—"} - {s.class_group || "—"})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-500">
+                  {studentIds.length > 0 ? `${studentIds.length} estudante(s) selecionado(s)` : "Selecione os estudantes (segure Ctrl/Cmd para múltiplos)"}
+                </p>
+                {students.length === 0 && (
+                  <p className="text-xs text-amber-600">
+                    Cadastre estudantes primeiro no módulo PEI ou Estudantes.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex gap-2">

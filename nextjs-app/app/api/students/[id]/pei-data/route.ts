@@ -46,3 +46,38 @@ export async function GET(
     pei_data: (data.pei_data as Record<string, unknown>) || null,
   });
 }
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession();
+  if (!session?.workspace_id) {
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const body = await req.json();
+  const { pei_data } = body;
+
+  if (!pei_data || typeof pei_data !== "object") {
+    return NextResponse.json({ error: "pei_data é obrigatório." }, { status: 400 });
+  }
+
+  const sb = getSupabase();
+  const { error } = await sb
+    .from("students")
+    .update({ pei_data })
+    .eq("id", id)
+    .eq("workspace_id", session.workspace_id);
+
+  if (error) {
+    console.error("Erro ao atualizar pei_data:", error);
+    return NextResponse.json(
+      { error: "Erro ao atualizar dados do PEI." },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ ok: true });
+}

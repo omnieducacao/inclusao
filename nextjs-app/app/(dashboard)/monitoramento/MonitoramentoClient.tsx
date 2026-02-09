@@ -78,9 +78,37 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
   const paeeAtivo = planejamentoAtivo
     ? paeeCiclos.find((c) => c.ciclo_id === planejamentoAtivo)
     : null;
+  const paeeData = (student?.paee_data || {}) as Record<string, unknown>;
+  const planoHabilidades = (paeeData.conteudo_plano_habilidades as string) || "";
+  const tecnologiasAssistivas = (paeeData.tec_assistivas as string) || "";
 
-  const objetivos = (peiData.objetivos || peiData.goals) as string[] | undefined;
-  const objetivosList = Array.isArray(objetivos) ? objetivos : [];
+  // Extrair objetivos do PEI de múltiplas fontes possíveis
+  let objetivosList: string[] = [];
+  if (Array.isArray(peiData.objetivos)) {
+    objetivosList = peiData.objetivos;
+  } else if (Array.isArray(peiData.goals)) {
+    objetivosList = peiData.goals;
+  } else if (Array.isArray(peiData.proximos_passos_select)) {
+    objetivosList = peiData.proximos_passos_select;
+  } else if (typeof peiData.ia_sugestao === "string" && peiData.ia_sugestao) {
+    // Tentar extrair objetivos do texto da sugestão IA
+    const linhas = peiData.ia_sugestao.split("\n");
+    const metas = linhas
+      .filter((l) => {
+        const lower = l.toLowerCase().trim();
+        return (
+          lower.startsWith("meta:") ||
+          lower.startsWith("objetivo:") ||
+          lower.startsWith("- ") ||
+          lower.startsWith("* ") ||
+          (lower.includes("meta") && lower.length > 10)
+        );
+      })
+      .map((l) => l.replace(/^(meta:|objetivo:|- |\* )/i, "").trim())
+      .filter((l) => l.length > 10)
+      .slice(0, 5);
+    objetivosList = metas;
+  }
 
   const dailyLogs = (student?.daily_logs || []) as RegistroDiario[];
   const registrosOrdenados = [...dailyLogs].sort((a, b) => {
@@ -154,40 +182,64 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Expectativa (PEI) */}
               <div className="p-6 rounded-2xl bg-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
-                <h4 className="font-medium text-sky-800 mb-2">Expectativa (PEI)</h4>
+                <h4 className="font-medium text-sky-700 mb-2">Expectativa (PEI)</h4>
                 <p className="text-xs text-slate-500 mb-2">Objetivos cadastrados no Plano de Ensino</p>
                 {objetivosList.length > 0 ? (
-                  <ul className="space-y-2">
+                  <ul className="space-y-2 max-h-64 overflow-y-auto">
                     {objetivosList.map((obj, i) => (
                       <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
-                        <span className="text-sky-500">📍</span>
-                        {typeof obj === "string" ? obj : String(obj)}
+                        <span className="text-sky-500 mt-0.5 flex-shrink-0">📍</span>
+                        <span className="flex-1">{typeof obj === "string" ? obj : String(obj)}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <div className="text-sm text-slate-600">
-                    <p className="mb-1">Contexto: {student.diagnosis || "Não informado"}</p>
-                    <p>Sem objetivos estruturados no PEI.</p>
+                  <div className="text-sm text-slate-600 space-y-1">
+                    <p><strong>Contexto:</strong> {student.diagnosis || "Não informado"}</p>
+                    {peiData.ia_sugestao && typeof peiData.ia_sugestao === "string" ? (
+                      <div className="mt-2 pt-2 border-t border-slate-200">
+                        <p className="text-xs text-slate-500 mb-1">Resumo das Estratégias (IA):</p>
+                        <p className="text-xs text-slate-700 line-clamp-4">{peiData.ia_sugestao.substring(0, 200)}...</p>
+                      </div>
+                    ) : (
+                      <p>Sem objetivos estruturados no PEI.</p>
+                    )}
                   </div>
                 )}
               </div>
 
               {/* Planejamento (PAEE) */}
               <div className="p-6 rounded-2xl bg-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
-                <h4 className="font-medium text-sky-800 mb-2">Planejamento (PAEE)</h4>
+                <h4 className="font-medium text-emerald-700 mb-2">Planejamento (PAEE)</h4>
                 <p className="text-xs text-slate-500 mb-2">Ciclos de AEE planejados</p>
                 {paeeAtivo ? (
-                  <div className="text-sm space-y-1">
+                  <div className="text-sm space-y-2">
                     <p className="text-emerald-600 font-medium flex items-center gap-1">
                       <CheckCircle2 className="w-4 h-4" />
                       Ciclo PAEE Ativo
                     </p>
-                    <p>
-                      Período: {fmtData(paeeAtivo.config_ciclo?.data_inicio)} a{" "}
-                      {fmtData(paeeAtivo.config_ciclo?.data_fim)}
-                    </p>
-                    <p>Status: {paeeAtivo.status || "rascunho"}</p>
+                    <div className="space-y-1">
+                      <p>
+                        <strong>Período:</strong> {fmtData(paeeAtivo.config_ciclo?.data_inicio)} a{" "}
+                        {fmtData(paeeAtivo.config_ciclo?.data_fim)}
+                      </p>
+                      <p><strong>Status:</strong> {paeeAtivo.status || "rascunho"}</p>
+                      {paeeAtivo.config_ciclo?.foco_principal && (
+                        <p><strong>Foco:</strong> {paeeAtivo.config_ciclo.foco_principal}</p>
+                      )}
+                    </div>
+                    {planoHabilidades && (
+                      <div className="mt-3 pt-3 border-t border-slate-200">
+                        <p className="text-xs font-semibold text-slate-600 mb-1">Plano de Habilidades:</p>
+                        <p className="text-xs text-slate-700 line-clamp-3">{planoHabilidades.substring(0, 150)}...</p>
+                      </div>
+                    )}
+                    {tecnologiasAssistivas && (
+                      <div className="mt-2">
+                        <p className="text-xs font-semibold text-slate-600 mb-1">Tecnologias Assistivas:</p>
+                        <p className="text-xs text-slate-700 line-clamp-2">{tecnologiasAssistivas.substring(0, 100)}...</p>
+                      </div>
+                    )}
                   </div>
                 ) : paeeCiclos.length > 0 ? (
                   <p className="text-sm text-amber-700">
@@ -206,24 +258,49 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
 
               {/* Realidade (Diário) */}
               <div className="p-6 rounded-2xl bg-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
-                <h4 className="font-medium text-sky-800 mb-2">Realidade (Diário)</h4>
+                <h4 className="font-medium text-rose-600 mb-2">Realidade (Diário)</h4>
                 <p className="text-xs text-slate-500 mb-2">Últimos registros de atividades</p>
                 {registrosOrdenados.length > 0 ? (
-                  <div className="space-y-3 max-h-48 overflow-y-auto">
-                    {registrosOrdenados.slice(0, 5).map((r) => {
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
+                    {registrosOrdenados.slice(0, 5).map((r, idx) => {
                       const data = r.data_sessao || r.criado_em || "";
-                      const conteudo =
-                        r.atividade_principal ||
-                        r.objetivos_trabalhados ||
-                        r.observacoes ||
-                        "—";
+                      const atividade = r.atividade_principal || "";
+                      const objetivos = r.objetivos_trabalhados || "";
+                      const observacoes = r.observacoes || "";
+                      const engajamento = r.engajamento_aluno;
+                      const modalidade = r.modalidade_atendimento;
+                      
+                      const getModalidadeColor = (mod?: string) => {
+                        switch (mod) {
+                          case "individual": return "bg-blue-100 border-blue-300";
+                          case "grupo": return "bg-green-100 border-green-300";
+                          case "observacao_sala": return "bg-yellow-100 border-yellow-300";
+                          case "consultoria": return "bg-purple-100 border-purple-300";
+                          default: return "bg-slate-100 border-slate-300";
+                        }
+                      };
+
                       return (
                         <div
-                          key={r.registro_id || data + conteudo}
-                          className="border-l-2 border-sky-500 pl-3 py-2 bg-slate-50 rounded-r text-sm"
+                          key={r.registro_id || `${data}-${idx}`}
+                          className={`border-l-4 pl-3 py-2 rounded-r text-sm ${getModalidadeColor(modalidade)}`}
+                          style={{ borderLeftColor: modalidade === "individual" ? "#3b82f6" : modalidade === "grupo" ? "#10b981" : modalidade === "observacao_sala" ? "#f59e0b" : modalidade === "consultoria" ? "#a855f7" : "#64748b" }}
                         >
-                          <span className="text-slate-500 text-xs">{fmtData(data)}</span>
-                          <p className="text-slate-700 line-clamp-2">{conteudo}</p>
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <span className="text-slate-600 text-xs font-semibold">{fmtData(data)}</span>
+                            {engajamento && (
+                              <span className="text-xs text-slate-500">{"⭐".repeat(engajamento)}</span>
+                            )}
+                          </div>
+                          {atividade && (
+                            <p className="text-slate-800 font-medium text-xs mb-1 line-clamp-1">{atividade}</p>
+                          )}
+                          {objetivos && (
+                            <p className="text-slate-700 text-xs line-clamp-1"><strong>Objetivos:</strong> {objetivos}</p>
+                          )}
+                          {observacoes && (
+                            <p className="text-slate-600 text-xs line-clamp-1 mt-1">{observacoes}</p>
+                          )}
                         </div>
                       );
                     })}

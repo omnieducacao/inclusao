@@ -8,7 +8,9 @@ import {
   type DimensionamentoPGI,
 } from "@/lib/pgi";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
-import { Plus, User, Trash2, Save, MapPin, Calendar } from "lucide-react";
+import { EngineSelector } from "@/components/EngineSelector";
+import { Plus, User, Trash2, Save, MapPin, Calendar, Sparkles, Loader2 } from "lucide-react";
+import type { EngineId } from "@/lib/ai-engines";
 
 type TabId = "inicial" | "gerador";
 
@@ -202,6 +204,8 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
   const [perfil, setPerfil] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [confirmDel, setConfirmDel] = useState<number | null>(null);
+  const [engine, setEngine] = useState<EngineId>("red");
+  const [gerandoAcoes, setGerandoAcoes] = useState(false);
 
   const [dimLocal, setDimLocal] = useState<DimensionamentoPGI>(dimensionamento);
   useEffect(() => {
@@ -330,9 +334,66 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
         </button>
       </details>
 
+      {/* Gerar ações com IA */}
+      {(nTotal > 0 || nDef > 0 || nProf > 0 || horasDia > 0) && (
+        <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm font-semibold text-teal-800">Gerar ações com IA</p>
+              <p className="text-xs text-teal-700 mt-1">
+                A IA analisa o dimensionamento e sugere ações prioritárias para o PGI.
+              </p>
+            </div>
+            <EngineSelector value={engine} onChange={setEngine} />
+          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              setGerandoAcoes(true);
+              try {
+                const res = await fetch("/api/pgi/gerar-acoes", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ dimensionamento: dimLocal, engine }),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                  onError(data.error || "Erro ao gerar ações.");
+                  return;
+                }
+                const novasAcoes = (data.acoes || []).map((a: any) => ({
+                  ...a,
+                  criado_em: new Date().toISOString(),
+                }));
+                await onSave([...acoes, ...novasAcoes]);
+                onSuccess();
+              } catch (err) {
+                onError("Erro ao gerar ações. Tente novamente.");
+              } finally {
+                setGerandoAcoes(false);
+              }
+            }}
+            disabled={gerandoAcoes}
+            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 disabled:opacity-60 flex items-center gap-2"
+          >
+            {gerandoAcoes ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Gerando ações...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                Gerar ações com IA
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
       {/* Ações rápidas */}
       <div>
-        <p className="text-sm font-medium text-slate-700 mb-2">Ações sugeridas</p>
+        <p className="text-sm font-medium text-slate-700 mb-2">Ações sugeridas (rápidas)</p>
         <div className="flex flex-wrap gap-2">
           {[
             ["Contratar mediador adicional", "Insuficiência de mediadores", "dimensionamento_pgei"],

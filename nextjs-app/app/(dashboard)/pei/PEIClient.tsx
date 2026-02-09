@@ -45,6 +45,7 @@ import type { EngineId } from "@/lib/ai-engines";
 import { EngineSelector } from "@/components/EngineSelector";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { peiDataToFullText } from "@/lib/pei-export";
+import { ResumoAnexosEstudante } from "@/components/ResumoAnexosEstudante";
 import {
   Download,
   FileText,
@@ -1951,6 +1952,17 @@ export function PEIClient({
         )}
       </div>
 
+      {/* Resumo de Anexos do Estudante */}
+      {peiData.nome && (
+        <ResumoAnexosEstudante
+          nomeEstudante={peiData.nome}
+          temRelatorioPei={Boolean((peiData.ia_sugestao as string)?.trim())}
+          temJornada={Boolean((peiData.ia_mapa_texto as string)?.trim())}
+          nCiclosPae={0}
+          pagina="PEI"
+        />
+      )}
+
       {/* Rodapé com Assinatura e Aviso sobre IA */}
       <div className="mt-10 pt-6 border-t border-slate-200">
         {/* Aviso sobre IA - Barra fina de um lado ao outro */}
@@ -2272,16 +2284,8 @@ function DashboardTab({
         <h4 className="text-base font-semibold text-slate-800 mb-4">📤 Exportação e Sincronização</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <p className="text-xs text-slate-600 mb-2">📄 PDF</p>
-            <PdfDownloadButton
-              text={peiDataToFullText(peiData)}
-              filename={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`}
-              title={`PEI - ${peiData.nome || "Estudante"}`}
-              className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 flex items-center justify-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Baixar PDF
-            </PdfDownloadButton>
+            <p className="text-xs text-slate-600 mb-2">📄 PDF Oficial</p>
+            <PeiExportPdfButton peiData={peiData} />
           </div>
           <div>
             <p className="text-xs text-slate-600 mb-2">📝 Word</p>
@@ -2505,6 +2509,59 @@ function DashboardTab({
         />
       </div>
     </div>
+  );
+}
+
+function PeiExportPdfButton({ peiData }: { peiData: PEIData }) {
+  const [loading, setLoading] = useState(false);
+  async function handleClick() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/pei/exportar-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ peiData }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Erro ao gerar PDF");
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Erro ao exportar PDF:", err);
+      alert(err instanceof Error ? err.message : "Erro ao gerar PDF oficial");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+    >
+      {loading ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Gerando PDF...
+        </>
+      ) : (
+        <>
+          <Download className="w-4 h-4" />
+          Baixar PDF Oficial
+        </>
+      )}
+    </button>
   );
 }
 

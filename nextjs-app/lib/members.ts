@@ -286,7 +286,7 @@ export async function deleteMember(memberId: string): Promise<boolean> {
 }
 
 export async function getClassAssignments(memberId: string): Promise<
-  { grade?: string; grade_label?: string; class_group?: string; class_id?: string }[]
+  { class_id?: string; component_id?: string; grade?: string; grade_label?: string; class_group?: string }[]
 > {
   const sb = getSupabase();
   const { data } = await sb
@@ -295,7 +295,7 @@ export async function getClassAssignments(memberId: string): Promise<
     .eq("workspace_member_id", memberId);
 
   if (!Array.isArray(data)) return [];
-  const pairs: { grade?: string; grade_label?: string; class_group?: string; class_id?: string }[] = [];
+  const pairs: { class_id?: string; component_id?: string; grade?: string; grade_label?: string; class_group?: string }[] = [];
   const seen = new Set<string>();
   for (const row of data) {
     const r = row as {

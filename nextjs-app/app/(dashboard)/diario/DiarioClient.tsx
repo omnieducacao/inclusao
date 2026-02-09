@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useCallback, Suspense } from "react";
+import { useState, useCallback, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { getColorClasses } from "@/lib/colors";
+import { Filter, Plus, List, BarChart3, Settings, Download, FileText, Calendar, Clock, Users } from "lucide-react";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -33,6 +34,7 @@ type RegistroDiario = {
   encaminhamentos?: string;
   criado_em?: string;
   atualizado_em?: string;
+  students?: { name?: string; grade?: string; class_group?: string };
 };
 
 const MODALIDADES = [
@@ -56,6 +58,8 @@ const COMPETENCIAS = [
   "organização", "regulação emocional",
 ];
 
+type TabId = "filtros" | "novo" | "lista" | "relatorios" | "configuracoes";
+
 type Props = {
   students: Student[];
   studentId: string | null;
@@ -74,9 +78,8 @@ function fmtData(s: string | undefined): string {
 function DiarioClientInner({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
   const currentId = studentId || searchParams?.get("student") || null;
-
-  const [saving, setSaving] = useState(false);
-  const [expandForm, setExpandForm] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabId>("novo");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const peiData = student?.pei_data || {};
   const registros = (student?.daily_logs || []) as RegistroDiario[];
@@ -87,7 +90,6 @@ function DiarioClientInner({ students, studentId, student }: Props) {
   const saveRegistro = useCallback(
     async (reg: RegistroDiario) => {
       if (!student?.id) return false;
-      setSaving(true);
       try {
         const lista = [...registros];
         const id = reg.registro_id || crypto.randomUUID();
@@ -110,13 +112,13 @@ function DiarioClientInner({ students, studentId, student }: Props) {
         });
         const data = await res.json();
         if (data.ok) {
+          setRefreshKey((k) => k + 1);
           window.location.reload();
           return true;
         }
       } catch (e) {
         console.error(e);
       }
-      setSaving(false);
       return false;
     },
     [student?.id, registros]
@@ -132,7 +134,10 @@ function DiarioClientInner({ students, studentId, student }: Props) {
         body: JSON.stringify({ daily_logs: lista }),
       });
       const data = await res.json();
-      if (data.ok) window.location.reload();
+      if (data.ok) {
+        setRefreshKey((k) => k + 1);
+        window.location.reload();
+      }
       return !!data.ok;
     },
     [student?.id, registros]
@@ -155,9 +160,6 @@ function DiarioClientInner({ students, studentId, student }: Props) {
         <StudentSelector students={students} currentId={currentId} />
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
           <p className="text-amber-800 font-medium">Estudante não encontrado</p>
-          <p className="text-sm text-amber-700 mt-1">
-            O estudante selecionado não foi encontrado neste workspace. Verifique se o estudante existe e se você tem acesso a ele.
-          </p>
         </div>
       </div>
     );
@@ -197,49 +199,171 @@ function DiarioClientInner({ students, studentId, student }: Props) {
         </div>
       </div>
 
-      <details open={expandForm} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
-        <summary
-          className="px-4 py-3 cursor-pointer font-semibold text-slate-800"
-          style={{ backgroundColor: getColorClasses("rose").bg }}
-          onClick={() => setExpandForm((x) => !x)}
-        >
-          Nova sessão de AEE
-        </summary>
-        <div className="p-4 bg-white">
-          <FormNovaSessao studentId={student.id} onSave={saveRegistro} saving={saving} />
-        </div>
-      </details>
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-slate-200 mb-6">
+        {[
+          { id: "filtros" as TabId, label: "🔍 Filtros & Estatísticas", icon: Filter },
+          { id: "novo" as TabId, label: "➕ Novo Registro", icon: Plus },
+          { id: "lista" as TabId, label: "📋 Lista de Registros", icon: List },
+          { id: "relatorios" as TabId, label: "📊 Relatórios", icon: BarChart3 },
+          { id: "configuracoes" as TabId, label: "⚙️ Configurações", icon: Settings },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
+              activeTab === tab.id
+                ? "border-rose-600 text-rose-600"
+                : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-      <div>
-        <h3 className="font-bold text-slate-800 mb-3">Histórico de sessões</h3>
-        {registrosOrdenados.length === 0 ? (
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white text-slate-500 min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
-            Nenhum registro ainda. Preencha o formulário acima para criar o primeiro.
+      {/* Tab Content */}
+      {activeTab === "filtros" && (
+        <FiltrosTab students={students} registros={registrosOrdenados} />
+      )}
+      {activeTab === "novo" && (
+        <NovoRegistroTab studentId={student.id} onSave={saveRegistro} />
+      )}
+      {activeTab === "lista" && (
+        <ListaTab registros={registrosOrdenados} onDelete={deleteRegistro} />
+      )}
+      {activeTab === "relatorios" && (
+        <RelatoriosTab registros={registrosOrdenados} student={student} />
+      )}
+      {activeTab === "configuracoes" && (
+        <ConfiguracoesTab />
+      )}
+    </div>
+  );
+}
+
+// Aba: Filtros & Estatísticas
+function FiltrosTab({ students, registros }: { students: Student[]; registros: RegistroDiario[] }) {
+  const [filtroAluno, setFiltroAluno] = useState<string>("Todos");
+  const [filtroPeriodo, setFiltroPeriodo] = useState<string>("Todos");
+  const [filtroModalidade, setFiltroModalidade] = useState<string[]>([]);
+
+  const registrosFiltrados = registros.filter((r) => {
+    if (filtroAluno !== "Todos" && r.student_id !== filtroAluno) return false;
+    if (filtroPeriodo !== "Todos") {
+      const data = r.data_sessao ? new Date(r.data_sessao) : null;
+      if (!data) return false;
+      const hoje = new Date();
+      if (filtroPeriodo === "Últimos 7 dias") {
+        const seteDiasAtras = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000);
+        if (data < seteDiasAtras) return false;
+      } else if (filtroPeriodo === "Últimos 30 dias") {
+        const trintaDiasAtras = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
+        if (data < trintaDiasAtras) return false;
+      }
+    }
+    if (filtroModalidade.length > 0 && !filtroModalidade.includes(r.modalidade_atendimento || "")) return false;
+    return true;
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <h3 className="text-xl font-bold text-slate-900 mb-4">🔍 Filtros</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Estudante</label>
+            <select
+              value={filtroAluno}
+              onChange={(e) => setFiltroAluno(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+            >
+              <option value="Todos">Todos</option>
+              {students.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {registrosOrdenados.map((r) => (
-              <RegistroCard
-                key={r.registro_id || Math.random()}
-                registro={r}
-                onDelete={() => r.registro_id && deleteRegistro(r.registro_id)}
-              />
-            ))}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Período</label>
+            <select
+              value={filtroPeriodo}
+              onChange={(e) => setFiltroPeriodo(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+            >
+              <option value="Todos">Todos</option>
+              <option value="Últimos 7 dias">Últimos 7 dias</option>
+              <option value="Últimos 30 dias">Últimos 30 dias</option>
+              <option value="Este mês">Este mês</option>
+            </select>
           </div>
-        )}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Modalidade</label>
+            <div className="flex flex-wrap gap-2">
+              {MODALIDADES.map((m) => (
+                <label key={m.value} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={filtroModalidade.includes(m.value)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFiltroModalidade([...filtroModalidade, m.value]);
+                      } else {
+                        setFiltroModalidade(filtroModalidade.filter((v) => v !== m.value));
+                      }
+                    }}
+                    className="rounded"
+                  />
+                  {m.label}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <h3 className="text-xl font-bold text-slate-900 mb-4">📊 Estatísticas</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center p-4 bg-slate-50 rounded-lg">
+            <div className="text-2xl font-bold text-rose-600">{registrosFiltrados.length}</div>
+            <div className="text-sm text-slate-600">Total de Registros</div>
+          </div>
+          <div className="text-center p-4 bg-slate-50 rounded-lg">
+            <div className="text-2xl font-bold text-rose-600">
+              {Math.round(registrosFiltrados.reduce((acc, r) => acc + (r.duracao_minutos || 0), 0) / 60)}
+            </div>
+            <div className="text-sm text-slate-600">Horas de Atendimento</div>
+          </div>
+          <div className="text-center p-4 bg-slate-50 rounded-lg">
+            <div className="text-2xl font-bold text-rose-600">
+              {registrosFiltrados.length > 0
+                ? (registrosFiltrados.reduce((acc, r) => acc + (r.engajamento_aluno || 0), 0) / registrosFiltrados.length).toFixed(1)
+                : "0"}
+            </div>
+            <div className="text-sm text-slate-600">Engajamento Médio</div>
+          </div>
+          <div className="text-center p-4 bg-slate-50 rounded-lg">
+            <div className="text-2xl font-bold text-rose-600">
+              {new Set(registrosFiltrados.map((r) => r.student_id).filter(Boolean)).size}
+            </div>
+            <div className="text-sm text-slate-600">Estudantes Atendidos</div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function FormNovaSessao({
+// Aba: Novo Registro (mantém o código existente)
+function NovoRegistroTab({
   studentId,
   onSave,
-  saving,
 }: {
   studentId: string;
   onSave: (r: RegistroDiario) => Promise<boolean>;
-  saving: boolean;
 }) {
   const hoje = new Date().toISOString().slice(0, 10);
   const [dataSessao, setDataSessao] = useState(hoje);
@@ -257,10 +381,12 @@ function FormNovaSessao({
   const [observacoes, setObservacoes] = useState("");
   const [proximosPassos, setProximosPassos] = useState("");
   const [encaminhamentos, setEncaminhamentos] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!atividade.trim() || !objetivos.trim() || !estrategias.trim()) return;
+    setSaving(true);
     const reg: RegistroDiario = {
       student_id: studentId,
       data_sessao: dataSessao,
@@ -291,130 +417,280 @@ function FormNovaSessao({
       setProximosPassos("");
       setEncaminhamentos("");
     }
+    setSaving(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Data da sessão *</label>
-          <input
-            type="date"
-            value={dataSessao}
-            onChange={(e) => setDataSessao(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-          />
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+      <h3 className="text-xl font-bold text-slate-900 mb-4">➕ Nova Sessão de AEE</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Data da sessão *</label>
+            <input
+              type="date"
+              value={dataSessao}
+              onChange={(e) => setDataSessao(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Duração (min)</label>
+            <input
+              type="number"
+              min={15}
+              max={240}
+              step={15}
+              value={duracao}
+              onChange={(e) => setDuracao(Number(e.target.value))}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Modalidade</label>
+            <select value={modalidade} onChange={(e) => setModalidade(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              {MODALIDADES.map((m) => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Duração (min)</label>
-          <input
-            type="number"
-            min={15}
-            max={240}
-            step={15}
-            value={duracao}
-            onChange={(e) => setDuracao(Number(e.target.value))}
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-          />
+          <label className="block text-sm font-medium text-slate-700 mb-1">Atividade principal *</label>
+          <textarea value={atividade} onChange={(e) => setAtividade(e.target.value)} rows={3} required className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Descreva a atividade..." />
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Objetivos trabalhados *</label>
+            <textarea value={objetivos} onChange={(e) => setObjetivos(e.target.value)} rows={3} required className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Quais objetivos?" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Estratégias utilizadas *</label>
+            <textarea value={estrategias} onChange={(e) => setEstrategias(e.target.value)} rows={3} required className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Ex: Modelagem, dicas visuais..." />
+          </div>
+        </div>
+
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Modalidade</label>
-          <select value={modalidade} onChange={(e) => setModalidade(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
-            {MODALIDADES.map((m) => (
-              <option key={m.value} value={m.value}>{m.label}</option>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Recursos e materiais</label>
+          <input type="text" value={recursos} onChange={(e) => setRecursos(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Tablets, jogos..." />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Engajamento (1-5)</label>
+            <input type="range" min={1} max={5} value={engajamento} onChange={(e) => setEngajamento(Number(e.target.value))} className="w-full" />
+            <span className="text-sm text-slate-500">{engajamento}</span>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Nível de dificuldade</label>
+            <select value={nivelDificuldade} onChange={(e) => setNivelDificuldade(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              {NIVEL_DIFICULDADE.map((n) => (
+                <option key={n.value} value={n.value}>{n.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Competências trabalhadas</label>
+          <div className="flex flex-wrap gap-2">
+            {COMPETENCIAS.map((c) => (
+              <label key={c} className="flex items-center gap-1 text-sm">
+                <input
+                  type="checkbox"
+                  checked={competencias.includes(c)}
+                  onChange={(e) =>
+                    setCompetencias((prev) =>
+                      e.target.checked ? [...prev, c] : prev.filter((x) => x !== c)
+                    )
+                  }
+                />
+                {c}
+              </label>
             ))}
-          </select>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Atividade principal *</label>
-        <textarea value={atividade} onChange={(e) => setAtividade(e.target.value)} rows={3} required className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Descreva a atividade..." />
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Pontos positivos</label>
+            <textarea value={pontosPositivos} onChange={(e) => setPontosPositivos(e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Dificuldades identificadas</label>
+            <textarea value={dificuldades} onChange={(e) => setDificuldades(e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
+          </div>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Objetivos trabalhados *</label>
-          <textarea value={objetivos} onChange={(e) => setObjetivos(e.target.value)} rows={3} required className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Quais objetivos?" />
+          <label className="block text-sm font-medium text-slate-700 mb-1">Observações gerais</label>
+          <textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Estratégias utilizadas *</label>
-          <textarea value={estrategias} onChange={(e) => setEstrategias(e.target.value)} rows={3} required className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Ex: Modelagem, dicas visuais..." />
-        </div>
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Recursos e materiais</label>
-        <input type="text" value={recursos} onChange={(e) => setRecursos(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Tablets, jogos..." />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Engajamento (1-5)</label>
-          <input type="range" min={1} max={5} value={engajamento} onChange={(e) => setEngajamento(Number(e.target.value))} className="w-full" />
-          <span className="text-sm text-slate-500">{engajamento}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Próximos passos</label>
+            <textarea value={proximosPassos} onChange={(e) => setProximosPassos(e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Encaminhamentos</label>
+            <input type="text" value={encaminhamentos} onChange={(e) => setEncaminhamentos(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Nível de dificuldade</label>
-          <select value={nivelDificuldade} onChange={(e) => setNivelDificuldade(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
-            {NIVEL_DIFICULDADE.map((n) => (
-              <option key={n.value} value={n.value}>{n.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Competências trabalhadas</label>
-        <div className="flex flex-wrap gap-2">
-          {COMPETENCIAS.map((c) => (
-            <label key={c} className="flex items-center gap-1 text-sm">
-              <input
-                type="checkbox"
-                checked={competencias.includes(c)}
-                onChange={(e) =>
-                  setCompetencias((prev) =>
-                    e.target.checked ? [...prev, c] : prev.filter((x) => x !== c)
-                  )
-                }
+        <button type="submit" disabled={saving} className="px-4 py-2 bg-rose-600 text-white rounded-lg disabled:opacity-50">
+          {saving ? "Salvando…" : "Salvar registro"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// Aba: Lista de Registros
+function ListaTab({
+  registros,
+  onDelete,
+}: {
+  registros: RegistroDiario[];
+  onDelete: (id: string) => void;
+}) {
+  const [viewMode, setViewMode] = useState<"lista" | "timeline">("lista");
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-slate-900">📋 Lista de Registros</h3>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode("lista")}
+              className={`px-3 py-1 text-sm rounded-lg ${
+                viewMode === "lista" ? "bg-rose-600 text-white" : "bg-slate-100 text-slate-700"
+              }`}
+            >
+              Lista
+            </button>
+            <button
+              onClick={() => setViewMode("timeline")}
+              className={`px-3 py-1 text-sm rounded-lg ${
+                viewMode === "timeline" ? "bg-rose-600 text-white" : "bg-slate-100 text-slate-700"
+              }`}
+            >
+              Timeline
+            </button>
+          </div>
+        </div>
+        {registros.length === 0 ? (
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white text-slate-500 min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+            Nenhum registro ainda. Preencha o formulário acima para criar o primeiro.
+          </div>
+        ) : viewMode === "lista" ? (
+          <div className="space-y-3">
+            {registros.map((r) => (
+              <RegistroCard
+                key={r.registro_id || Math.random()}
+                registro={r}
+                onDelete={() => r.registro_id && onDelete(r.registro_id)}
               />
-              {c}
-            </label>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <TimelineView registros={registros} onDelete={onDelete} />
+        )}
       </div>
+    </div>
+  );
+}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Pontos positivos</label>
-          <textarea value={pontosPositivos} onChange={(e) => setPontosPositivos(e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Dificuldades identificadas</label>
-          <textarea value={dificuldades} onChange={(e) => setDificuldades(e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-        </div>
+// Timeline Visual
+function TimelineView({
+  registros,
+  onDelete,
+}: {
+  registros: RegistroDiario[];
+  onDelete: (id: string) => void;
+}) {
+  const getModalidadeColor = (mod: string) => {
+    switch (mod) {
+      case "individual":
+        return "bg-blue-100 border-blue-300 text-blue-800";
+      case "grupo":
+        return "bg-green-100 border-green-300 text-green-800";
+      case "observacao_sala":
+        return "bg-yellow-100 border-yellow-300 text-yellow-800";
+      case "consultoria":
+        return "bg-purple-100 border-purple-300 text-purple-800";
+      default:
+        return "bg-slate-100 border-slate-300 text-slate-800";
+    }
+  };
+
+  return (
+    <div className="relative">
+      {/* Linha vertical da timeline */}
+      <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-slate-300" />
+      <div className="space-y-6">
+        {registros.map((r, idx) => {
+          const modLabel = MODALIDADES.find((m) => m.value === r.modalidade_atendimento)?.label || r.modalidade_atendimento;
+          const data = r.data_sessao ? new Date(r.data_sessao) : null;
+          const dataFormatada = data ? data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+          const horaFormatada = data ? data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
+
+          return (
+            <div key={r.registro_id || idx} className="relative flex items-start gap-4">
+              {/* Ponto na timeline */}
+              <div className="relative z-10 flex-shrink-0">
+                <div className={`w-4 h-4 rounded-full border-2 ${
+                  r.modalidade_atendimento === "individual" ? "bg-blue-500 border-blue-700" :
+                  r.modalidade_atendimento === "grupo" ? "bg-green-500 border-green-700" :
+                  r.modalidade_atendimento === "observacao_sala" ? "bg-yellow-500 border-yellow-700" :
+                  r.modalidade_atendimento === "consultoria" ? "bg-purple-500 border-purple-700" :
+                  "bg-slate-500 border-slate-700"
+                }`} />
+              </div>
+              {/* Card do registro */}
+              <div className={`flex-1 border-2 rounded-lg p-4 ${getModalidadeColor(r.modalidade_atendimento || "")}`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-bold text-lg">{dataFormatada}</span>
+                      {horaFormatada && <span className="text-sm opacity-75">{horaFormatada}</span>}
+                      <span className={`px-2 py-1 text-xs font-semibold rounded ${getModalidadeColor(r.modalidade_atendimento || "")}`}>
+                        {modLabel}
+                      </span>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div><strong>Duração:</strong> {r.duracao_minutos || 0} minutos</div>
+                      {r.engajamento_aluno && (
+                        <div><strong>Engajamento:</strong> {"⭐".repeat(r.engajamento_aluno)} ({r.engajamento_aluno}/5)</div>
+                      )}
+                      {r.atividade_principal && (
+                        <div><strong>Atividade:</strong> {r.atividade_principal.substring(0, 100)}{r.atividade_principal.length > 100 ? "..." : ""}</div>
+                      )}
+                      {r.competencias_trabalhadas && r.competencias_trabalhadas.length > 0 && (
+                        <div><strong>Competências:</strong> {r.competencias_trabalhadas.join(", ")}</div>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (confirm("Excluir este registro?")) {
+                        r.registro_id && onDelete(r.registro_id);
+                      }
+                    }}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
-
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Observações gerais</label>
-        <textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Próximos passos</label>
-          <textarea value={proximosPassos} onChange={(e) => setProximosPassos(e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Encaminhamentos</label>
-          <input type="text" value={encaminhamentos} onChange={(e) => setEncaminhamentos(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-        </div>
-      </div>
-
-      <button type="submit" disabled={saving} className="px-4 py-2 bg-rose-600 text-white rounded-lg disabled:opacity-50">
-        {saving ? "Salvando…" : "Salvar registro"}
-      </button>
-    </form>
+    </div>
   );
 }
 
@@ -461,6 +737,430 @@ function RegistroCard({ registro, onDelete }: { registro: RegistroDiario; onDele
           {registro.proximos_passos && <div><strong>Próximos passos:</strong> {registro.proximos_passos}</div>}
         </div>
       )}
+    </div>
+  );
+}
+
+// Aba: Relatórios
+function RelatoriosTab({ registros, student }: { registros: RegistroDiario[]; student: StudentFull }) {
+  const [selectedStudent, setSelectedStudent] = useState<string>(student.id);
+
+  // Processar dados para gráficos
+  const registrosComData = registros
+    .filter((r) => r.data_sessao)
+    .map((r) => ({
+      ...r,
+      data: new Date(r.data_sessao!),
+      mes: new Date(r.data_sessao!).toLocaleDateString("pt-BR", { year: "numeric", month: "short" }),
+    }));
+
+  // Agrupar por mês
+  const porMes = registrosComData.reduce((acc, r) => {
+    const mes = r.mes;
+    acc[mes] = (acc[mes] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Agrupar por modalidade
+  const porModalidade = registros.reduce((acc, r) => {
+    const mod = r.modalidade_atendimento || "N/A";
+    acc[mod] = (acc[mod] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Engajamento ao longo do tempo (para estudante selecionado)
+  const engajamentoTempo = registrosComData
+    .filter((r) => r.student_id === selectedStudent && r.engajamento_aluno)
+    .sort((a, b) => a.data.getTime() - b.data.getTime())
+    .map((r) => ({
+      data: r.data.toLocaleDateString("pt-BR"),
+      engajamento: r.engajamento_aluno || 0,
+    }));
+
+  // Top competências
+  const competenciasCount: Record<string, number> = {};
+  registros.forEach((r) => {
+    (r.competencias_trabalhadas || []).forEach((c) => {
+      competenciasCount[c] = (competenciasCount[c] || 0) + 1;
+    });
+  });
+  const topCompetencias = Object.entries(competenciasCount)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10);
+
+  // Exportar CSV
+  const exportarCSV = () => {
+    const headers = [
+      "Data",
+      "Duração (min)",
+      "Modalidade",
+      "Atividade",
+      "Objetivos",
+      "Estratégias",
+      "Engajamento",
+      "Competências",
+    ];
+    const rows = registros.map((r) => [
+      r.data_sessao || "",
+      r.duracao_minutos || 0,
+      r.modalidade_atendimento || "",
+      r.atividade_principal || "",
+      r.objetivos_trabalhados || "",
+      r.estrategias_utilizadas || "",
+      r.engajamento_aluno || 0,
+      (r.competencias_trabalhadas || []).join("; "),
+    ]);
+
+    const csv = [
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `diario_bordo_${new Date().toISOString().split("T")[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Exportar JSON
+  const exportarJSON = () => {
+    const json = JSON.stringify(registros, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `diario_bordo_${new Date().toISOString().split("T")[0]}.json`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Gerar relatório resumido
+  const gerarRelatorio = () => {
+    const totalHoras = Math.round(registros.reduce((acc, r) => acc + (r.duracao_minutos || 0), 0) / 60);
+    const engajamentoMedio =
+      registros.length > 0
+        ? registros.reduce((acc, r) => acc + (r.engajamento_aluno || 0), 0) / registros.length
+        : 0;
+
+    const relatorio = {
+      data_geracao: new Date().toISOString(),
+      total_registros: registros.length,
+      periodo_analisado: registrosComData.length > 0
+        ? `${registrosComData[registrosComData.length - 1].data.toLocaleDateString("pt-BR")} a ${registrosComData[0].data.toLocaleDateString("pt-BR")}`
+        : "N/A",
+      total_horas: totalHoras,
+      engajamento_medio: engajamentoMedio.toFixed(1),
+      modalidades: porModalidade,
+      top_competencias: topCompetencias.map(([c, count]) => ({ competencia: c, count })),
+    };
+
+    const json = JSON.stringify(relatorio, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `relatorio_diario_${new Date().toISOString().split("T")[0]}.json`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  if (registros.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <h3 className="text-xl font-bold text-slate-900 mb-4">📊 Relatórios e Análises</h3>
+        <p className="text-slate-600">Nenhum dado disponível para gerar relatórios.</p>
+      </div>
+    );
+  }
+
+  const maxMes = Math.max(...Object.values(porMes), 1);
+  const maxModalidade = Math.max(...Object.values(porModalidade), 1);
+  const maxCompetencia = Math.max(...topCompetencias.map(([, c]) => c), 1);
+
+  return (
+    <div className="space-y-6">
+      {/* Gráfico: Atendimentos por Mês */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <h3 className="text-xl font-bold text-slate-900 mb-4">📅 Atendimentos por Mês</h3>
+        <div className="h-64 flex items-end gap-2">
+          {Object.entries(porMes)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([mes, count]) => (
+              <div key={mes} className="flex-1 flex flex-col items-center">
+                <div
+                  className="w-full bg-rose-500 rounded-t transition-all hover:bg-rose-600"
+                  style={{ height: `${(count / maxMes) * 100}%` }}
+                  title={`${mes}: ${count} atendimentos`}
+                />
+                <div className="text-xs text-slate-600 mt-2 text-center" style={{ writingMode: "vertical-rl" }}>
+                  {mes}
+                </div>
+                <div className="text-sm font-semibold text-slate-800 mt-1">{count}</div>
+              </div>
+            ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Gráfico: Distribuição por Modalidade */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+          <h3 className="text-xl font-bold text-slate-900 mb-4">📊 Distribuição por Modalidade</h3>
+          <div className="space-y-3">
+            {Object.entries(porModalidade).map(([mod, count]) => {
+              const modLabel = MODALIDADES.find((m) => m.value === mod)?.label || mod;
+              const percent = (count / maxModalidade) * 100;
+              return (
+                <div key={mod}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-slate-700">{modLabel}</span>
+                    <span className="font-semibold text-slate-900">{count}</span>
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-2">
+                    <div
+                      className="bg-rose-500 h-2 rounded-full transition-all"
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Gráfico: Top 10 Competências */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+          <h3 className="text-xl font-bold text-slate-900 mb-4">🎯 Top 10 Competências Trabalhadas</h3>
+          <div className="space-y-2">
+            {topCompetencias.map(([comp, count]) => {
+              const percent = (count / maxCompetencia) * 100;
+              return (
+                <div key={comp}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-slate-700 capitalize">{comp}</span>
+                    <span className="font-semibold text-slate-900">{count}</span>
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full transition-all"
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Gráfico: Evolução do Engajamento */}
+      {engajamentoTempo.length > 1 && (
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+          <h3 className="text-xl font-bold text-slate-900 mb-4">📈 Evolução do Engajamento</h3>
+          <div className="h-64 flex items-end gap-1">
+            {engajamentoTempo.map((item, idx) => (
+              <div key={idx} className="flex-1 flex flex-col items-center">
+                <div
+                  className="w-full bg-green-500 rounded-t transition-all hover:bg-green-600"
+                  style={{ height: `${(item.engajamento / 5) * 100}%` }}
+                  title={`${item.data}: ${item.engajamento}/5`}
+                />
+                <div className="text-xs text-slate-600 mt-2 text-center">{item.engajamento}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Exportação */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <h3 className="text-xl font-bold text-slate-900 mb-4">💾 Exportar Dados</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button
+            onClick={exportarCSV}
+            className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Exportar CSV
+          </button>
+          <button
+            onClick={exportarJSON}
+            className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
+          >
+            <FileText className="w-4 h-4" />
+            Exportar JSON
+          </button>
+          <button
+            onClick={gerarRelatorio}
+            className="px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Relatório Resumido
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Aba: Configurações
+function ConfiguracoesTab() {
+  const [duracaoPadrao, setDuracaoPadrao] = useState(45);
+  const [modalidadePadrao, setModalidadePadrao] = useState("individual");
+  const [competenciasPadrao, setCompetenciasPadrao] = useState<string[]>(["atenção", "memória"]);
+  const [notificacoes, setNotificacoes] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    // Carregar configurações salvas do localStorage
+    const saved = localStorage.getItem("diario_config");
+    if (saved) {
+      try {
+        const config = JSON.parse(saved);
+        setDuracaoPadrao(config.duracaoPadrao || 45);
+        setModalidadePadrao(config.modalidadePadrao || "individual");
+        setCompetenciasPadrao(config.competenciasPadrao || ["atenção", "memória"]);
+        setNotificacoes(config.notificacoes !== false);
+      } catch (e) {
+        console.error("Erro ao carregar configurações:", e);
+      }
+    }
+  }, []);
+
+  const handleSave = () => {
+    setSaving(true);
+    const config = {
+      duracaoPadrao,
+      modalidadePadrao,
+      competenciasPadrao,
+      notificacoes,
+    };
+    localStorage.setItem("diario_config", JSON.stringify(config));
+    setTimeout(() => {
+      setSaving(false);
+      alert("Configurações salvas com sucesso!");
+    }, 500);
+  };
+
+  const handleReset = () => {
+    setDuracaoPadrao(45);
+    setModalidadePadrao("individual");
+    setCompetenciasPadrao(["atenção", "memória"]);
+    setNotificacoes(true);
+    localStorage.removeItem("diario_config");
+    alert("Configurações restauradas para os padrões!");
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <h3 className="text-xl font-bold text-slate-900 mb-4">⚙️ Configurações do Diário</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <h4 className="font-semibold text-slate-800">Configurações de Registro</h4>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Duração Padrão (minutos)</label>
+              <input
+                type="number"
+                min={15}
+                max={120}
+                step={15}
+                value={duracaoPadrao}
+                onChange={(e) => setDuracaoPadrao(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Modalidade Padrão</label>
+              <select
+                value={modalidadePadrao}
+                onChange={(e) => setModalidadePadrao(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+              >
+                {MODALIDADES.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Competências Padrão</label>
+              <div className="flex flex-wrap gap-2">
+                {COMPETENCIAS.map((c) => (
+                  <label key={c} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={competenciasPadrao.includes(c)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setCompetenciasPadrao([...competenciasPadrao, c]);
+                        } else {
+                          setCompetenciasPadrao(competenciasPadrao.filter((x) => x !== c));
+                        }
+                      }}
+                      className="rounded"
+                    />
+                    <span className="capitalize">{c}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={notificacoes}
+                  onChange={(e) => setNotificacoes(e.target.checked)}
+                  className="rounded"
+                />
+                <span className="text-sm text-slate-700">Receber lembretes de registro</span>
+              </label>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <h4 className="font-semibold text-slate-800">Ajuda</h4>
+            <div className="text-sm text-slate-600 space-y-2">
+              <p><strong>Guia de Uso do Diário de Bordo:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-2">
+                <li><strong>Novo Registro:</strong> Preencha todos os campos obrigatórios (*) para criar um registro</li>
+                <li><strong>Lista de Registros:</strong> Visualize, filtre e gerencie todos os registros</li>
+                <li><strong>Relatórios:</strong> Acompanhe métricas e gere análises</li>
+                <li><strong>Configurações:</strong> Personalize o comportamento do sistema</li>
+              </ul>
+              <p className="mt-4"><strong>Dicas:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-2">
+                <li>Use tags e competências para facilitar buscas</li>
+                <li>Exporte regularmente seus dados</li>
+                <li>Mantenha observações detalhadas para acompanhamento longitudinal</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div className="mt-6 flex gap-4">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+          >
+            {saving ? "Salvando..." : "💾 Salvar Configurações"}
+          </button>
+          <button
+            onClick={handleReset}
+            className="px-6 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center gap-2"
+          >
+            🔄 Restaurar Padrões
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

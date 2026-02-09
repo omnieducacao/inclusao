@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ClipboardList, FileText, Map, Trash2 } from "lucide-react";
+import { ClipboardList, FileText, Map, Trash2, ChevronDown, ChevronUp, X, AlertTriangle } from "lucide-react";
 
 type Student = {
   id: string;
@@ -24,6 +24,8 @@ export function EstudantesClient({ students }: Props) {
   const [search, setSearch] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [updating, setUpdating] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return students;
@@ -36,6 +38,18 @@ export function EstudantesClient({ students }: Props) {
         (s.diagnosis || "").toLowerCase().includes(q)
     );
   }, [students, search]);
+
+  function toggleExpand(studentId: string) {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(studentId)) {
+        next.delete(studentId);
+      } else {
+        next.add(studentId);
+      }
+      return next;
+    });
+  }
 
   async function handleDelete(studentId: string) {
     if (!confirm("Tem certeza que deseja excluir este estudante? Esta ação não pode ser desfeita.")) {
@@ -57,6 +71,95 @@ export function EstudantesClient({ students }: Props) {
     } finally {
       setDeleting(false);
       setConfirmDeleteId(null);
+    }
+  }
+
+  async function handleApagarRelatorios(studentId: string, peiData: Record<string, unknown>) {
+    if (!confirm("Apagar relatórios PEI? Esta ação não pode ser desfeita.")) {
+      return;
+    }
+
+    setUpdating(studentId);
+    try {
+      const peiNovo = { ...peiData };
+      peiNovo.ia_sugestao = "";
+      peiNovo.status_validacao_pei = "rascunho";
+
+      const res = await fetch(`/api/students/${studentId}/pei-data`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pei_data: peiNovo }),
+      });
+
+      if (res.ok) {
+        router.refresh();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Erro ao apagar relatórios.");
+      }
+    } catch (err) {
+      alert("Erro ao apagar relatórios. Tente novamente.");
+      console.error(err);
+    } finally {
+      setUpdating(null);
+    }
+  }
+
+  async function handleApagarJornada(studentId: string, peiData: Record<string, unknown>) {
+    if (!confirm("Apagar jornada gamificada? Esta ação não pode ser desfeita.")) {
+      return;
+    }
+
+    setUpdating(studentId);
+    try {
+      const peiNovo = { ...peiData };
+      peiNovo.ia_mapa_texto = "";
+      peiNovo.status_validacao_game = "rascunho";
+
+      const res = await fetch(`/api/students/${studentId}/pei-data`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pei_data: peiNovo }),
+      });
+
+      if (res.ok) {
+        router.refresh();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Erro ao apagar jornada.");
+      }
+    } catch (err) {
+      alert("Erro ao apagar jornada. Tente novamente.");
+      console.error(err);
+    } finally {
+      setUpdating(null);
+    }
+  }
+
+  async function handleApagarCiclos(studentId: string) {
+    if (!confirm("Apagar todos os ciclos PAEE? Esta ação não pode ser desfeita.")) {
+      return;
+    }
+
+    setUpdating(studentId);
+    try {
+      const res = await fetch(`/api/students/${studentId}/paee-ciclos`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paee_ciclos: [] }),
+      });
+
+      if (res.ok) {
+        router.refresh();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Erro ao apagar ciclos.");
+      }
+    } catch (err) {
+      alert("Erro ao apagar ciclos. Tente novamente.");
+      console.error(err);
+    } finally {
+      setUpdating(null);
     }
   }
 
@@ -129,81 +232,223 @@ export function EstudantesClient({ students }: Props) {
             const temRelatorio = Boolean((peiData?.ia_sugestao as string)?.trim());
             const temJornada = Boolean((peiData?.ia_mapa_texto as string)?.trim());
             const nCiclos = paeeCiclos.length;
+            const isExpanded = expandedIds.has(s.id);
+            const isConfirmingDelete = confirmDeleteId === s.id;
+            const isUpdating = updating === s.id;
 
             return (
               <div
                 key={s.id}
-                className="p-4 hover:bg-slate-50/50 transition-colors"
+                className="border-b border-slate-100 last:border-b-0"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="font-semibold text-slate-800">{s.name || "—"}</h3>
-                    <div className="flex gap-2 mt-1 flex-wrap">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100">
-                        {s.grade || "—"}
-                      </span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                        {s.class_group || "—"}
-                      </span>
-                      {temRelatorio && (
-                        <span className="text-xs text-amber-600 inline-flex items-center gap-1">
-                          <FileText className="w-3 h-3" />
-                          PEI
-                        </span>
-                      )}
-                      {temJornada && (
-                        <span className="text-xs text-violet-600 inline-flex items-center gap-1">
-                          <Map className="w-3 h-3" />
-                          Jornada
-                        </span>
-                      )}
-                      {nCiclos > 0 && (
-                        <span className="text-xs text-slate-500">{nCiclos} ciclo(s) PAEE</span>
-                      )}
+                {/* Header do estudante */}
+                <div className="p-4 hover:bg-slate-50/50 transition-colors">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleExpand(s.id)}
+                        className="w-full text-left flex items-center justify-between gap-2 group"
+                      >
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-slate-800 group-hover:text-sky-600 transition-colors">
+                            {s.name || "—"}
+                          </h3>
+                          <div className="flex gap-2 mt-1 flex-wrap">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100">
+                              {s.grade || "—"}
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                              {s.class_group || "—"}
+                            </span>
+                            {temRelatorio && (
+                              <span className="text-xs text-amber-600 inline-flex items-center gap-1">
+                                <FileText className="w-3 h-3" />
+                                PEI
+                              </span>
+                            )}
+                            {temJornada && (
+                              <span className="text-xs text-violet-600 inline-flex items-center gap-1">
+                                <Map className="w-3 h-3" />
+                                Jornada
+                              </span>
+                            )}
+                            {nCiclos > 0 && (
+                              <span className="text-xs text-slate-500">{nCiclos} ciclo(s) PAEE</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isExpanded ? (
+                            <ChevronUp className="w-5 h-5 text-slate-400" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-slate-400" />
+                          )}
+                        </div>
+                      </button>
                     </div>
-                    {s.diagnosis && (
-                      <p className="text-xs text-slate-500 mt-2 line-clamp-2">
-                        Contexto (equipe): {s.diagnosis}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-2 shrink-0 flex-wrap items-center">
-                    <Link
-                      href={`/pei?student=${s.id}`}
-                      className="px-3 py-1.5 text-sm font-medium text-sky-600 hover:bg-sky-50 rounded-lg"
-                    >
-                      PEI
-                    </Link>
-                    <Link
-                      href={`/paee?student=${s.id}`}
-                      className="px-3 py-1.5 text-sm font-medium text-violet-600 hover:bg-violet-50 rounded-lg"
-                    >
-                      PAEE
-                    </Link>
-                    <Link
-                      href={`/diario?student=${s.id}`}
-                      className="px-3 py-1.5 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-lg"
-                    >
-                      Diário
-                    </Link>
-                    <Link
-                      href={`/monitoramento?student=${s.id}`}
-                      className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
-                    >
-                      Monitoramento
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(s.id)}
-                      disabled={deleting}
-                      className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                      title="Excluir estudante"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Excluir
-                    </button>
+                    <div className="flex gap-2 shrink-0 flex-wrap items-center">
+                      <Link
+                        href={`/pei?student=${s.id}`}
+                        className="px-3 py-1.5 text-sm font-medium text-sky-600 hover:bg-sky-50 rounded-lg"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        PEI
+                      </Link>
+                      <Link
+                        href={`/paee?student=${s.id}`}
+                        className="px-3 py-1.5 text-sm font-medium text-violet-600 hover:bg-violet-50 rounded-lg"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        PAEE
+                      </Link>
+                      <Link
+                        href={`/diario?student=${s.id}`}
+                        className="px-3 py-1.5 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-lg"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Diário
+                      </Link>
+                      <Link
+                        href={`/monitoramento?student=${s.id}`}
+                        className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Monitoramento
+                      </Link>
+                    </div>
                   </div>
                 </div>
+
+                {/* Conteúdo expandido */}
+                {isExpanded && (
+                  <div className="px-4 pb-4 pt-0 bg-slate-50/30 border-t border-slate-100">
+                    {isConfirmingDelete ? (
+                      <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div className="flex items-start gap-2 mb-3">
+                          <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-semibold text-amber-800">Excluir {s.name}?</p>
+                            <p className="text-sm text-amber-700 mt-1">Esta ação não pode ser desfeita.</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleDelete(s.id)}
+                            disabled={deleting}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm"
+                          >
+                            Sim, excluir
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 text-sm"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-4 space-y-4">
+                        {/* Contexto */}
+                        {s.diagnosis && (
+                          <div>
+                            <p className="text-sm font-semibold text-slate-700 mb-1">Contexto (equipe):</p>
+                            <p className="text-sm text-slate-600">{s.diagnosis}</p>
+                          </div>
+                        )}
+
+                        {/* O que está anexado */}
+                        <div>
+                          <p className="text-sm font-semibold text-slate-700 mb-2">O que está anexado</p>
+                          <div className="space-y-1 mb-3">
+                            {temRelatorio && (
+                              <p className="text-sm text-slate-600 flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-amber-600" />
+                                Relatório PEI (Consultoria IA)
+                              </p>
+                            )}
+                            {temJornada && (
+                              <p className="text-sm text-slate-600 flex items-center gap-2">
+                                <Map className="w-4 h-4 text-violet-600" />
+                                Jornada gamificada
+                              </p>
+                            )}
+                            {nCiclos > 0 && (
+                              <p className="text-sm text-slate-600 flex items-center gap-2">
+                                <ClipboardList className="w-4 h-4 text-slate-600" />
+                                Ciclos PAEE ({nCiclos})
+                              </p>
+                            )}
+                            {!temRelatorio && !temJornada && nCiclos === 0 && (
+                              <p className="text-xs text-slate-500 italic">Nenhum relatório ou jornada anexada ainda.</p>
+                            )}
+                          </div>
+
+                          {/* Botões para apagar */}
+                          {(temRelatorio || temJornada || nCiclos > 0) && (
+                            <div>
+                              <p className="text-xs text-slate-500 mb-2">Apagar apenas relatórios ou jornada (sem excluir o estudante):</p>
+                              <div className="flex flex-wrap gap-2">
+                                {temRelatorio && (
+                                  <button
+                                    onClick={() => handleApagarRelatorios(s.id, peiData)}
+                                    disabled={isUpdating}
+                                    className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50"
+                                  >
+                                    Apagar relatórios
+                                  </button>
+                                )}
+                                {temJornada && (
+                                  <button
+                                    onClick={() => handleApagarJornada(s.id, peiData)}
+                                    disabled={isUpdating}
+                                    className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50"
+                                  >
+                                    Apagar jornada
+                                  </button>
+                                )}
+                                {nCiclos > 0 && (
+                                  <button
+                                    onClick={() => handleApagarCiclos(s.id)}
+                                    disabled={isUpdating}
+                                    className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50"
+                                  >
+                                    Apagar ciclos PAEE
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* PEI Data completa (visualização) */}
+                        {Object.keys(peiData).length > 0 && (
+                          <div>
+                            <p className="text-sm font-semibold text-slate-700 mb-2">Dados completos do PEI</p>
+                            <div className="bg-white border border-slate-200 rounded-lg p-4 max-h-96 overflow-y-auto">
+                              <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono">
+                                {JSON.stringify(peiData, null, 2)}
+                              </pre>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Botão excluir */}
+                        <div className="pt-2 border-t border-slate-200">
+                          <button
+                            onClick={() => setConfirmDeleteId(s.id)}
+                            disabled={deleting || isUpdating}
+                            className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50 flex items-center gap-2"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Excluir estudante
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
