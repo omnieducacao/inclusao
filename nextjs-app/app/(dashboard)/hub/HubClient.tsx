@@ -2414,31 +2414,14 @@ function RoteiroIndividual({
 
       {/* Componente Curricular (fallback se BNCC não disponível) */}
       {(!estruturaBncc || estruturaBncc.disciplinas.length === 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Série (ano BNCC)</label>
-            <input
-              type="text"
-              value={serieAluno || ""}
-              readOnly
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Componente Curricular</label>
-            <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
-              {Object.keys(componentes).length ? Object.keys(componentes).map((c) => <option key={c} value={c}>{c}</option>) : COMPONENTES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Componente Curricular</label>
+          <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
+            {Object.keys(componentes).length ? Object.keys(componentes).map((c) => <option key={c} value={c}>{c}</option>) : COMPONENTES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
         </div>
       )}
       
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Habilidades BNCC (opcional)</label>
-        <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[80px]">
-          {todasHabilidades.slice(0, 80).map((h, i) => <option key={i} value={h}>{h}</option>)}
-        </select>
-      </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
           Assunto
@@ -2626,46 +2609,39 @@ function DinamicaInclusiva({
       </div>
       <p className="text-sm text-slate-600">Atividades em grupo onde todos participam, respeitando as singularidades.</p>
       <EngineSelector value={engine} onChange={onEngineChange} />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Série (ano BNCC)</label>
-          <input
-            type="text"
-            value={serieAluno || ""}
-            readOnly
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Nº de estudantes</label>
-          <input type="number" min={5} max={50} value={qtdAlunos} onChange={(e) => setQtdAlunos(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-        </div>
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-slate-700 mb-1">Características da turma (opcional)</label>
-          <input type="text" value={caracteristicas} onChange={(e) => setCaracteristicas(e.target.value)} placeholder="Ex: Turma agitada, gostam de competição" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-        </div>
-      </div>
+      
+      {/* Módulo BNCC - PRIMEIRO */}
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
-        <details className="border border-slate-200 rounded-lg">
-          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
+        <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+          <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
-            BNCC: Unidade e Objeto
-          </summary>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+            BNCC: Componente Curricular, Unidade e Objeto
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div>
               <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
               <input
                 type="text"
                 value={serieAluno || ""}
                 readOnly
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-600 cursor-not-allowed"
               />
             </div>
             <div>
-              <label className="block text-xs text-slate-600 mb-1">Componente</label>
-              <select value={componenteSel} onChange={(e) => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm">
-                <option value="">Todos</option>
-                {estruturaBncc.disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
+              <label className="block text-xs text-slate-600 mb-1">Componente Curricular</label>
+              <select 
+                value={componenteSel || materia} 
+                onChange={(e) => { 
+                  const val = e.target.value;
+                  setComponenteSel(val);
+                  setMateria(val);
+                  setUnidadeSel(""); 
+                  setObjetoSel(""); 
+                }} 
+                className="w-full px-3 py-2 border rounded-lg text-sm"
+              >
+                <option value="">Selecione...</option>
+                {estruturaBncc?.disciplinas?.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div>
@@ -2683,14 +2659,47 @@ function DinamicaInclusiva({
               </select>
             </div>
           </div>
-        </details>
+          <div>
+            <label className="block text-xs text-slate-600 mb-1">Habilidades BNCC (opcional)</label>
+            <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border rounded-lg text-sm min-h-[60px]">
+              {todasHabilidades.slice(0, 60).map((h, i) => <option key={i} value={h}>{h}</option>)}
+            </select>
+          </div>
+        </div>
       )}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Habilidades BNCC (opcional)</label>
-        <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[80px]">
-          {todasHabilidades.slice(0, 80).map((h, i) => <option key={i} value={h}>{h}</option>)}
-        </select>
+
+      {/* Componente Curricular (fallback se BNCC não disponível) */}
+      {(!estruturaBncc || estruturaBncc.disciplinas.length === 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Série (ano BNCC)</label>
+            <input
+              type="text"
+              value={serieAluno || ""}
+              readOnly
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Componente Curricular</label>
+            <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              {Object.keys(componentes).length ? Object.keys(componentes).map((c) => <option key={c} value={c}>{c}</option>) : COMPONENTES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        </div>
+      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Nº de estudantes</label>
+          <input type="number" min={5} max={50} value={qtdAlunos} onChange={(e) => setQtdAlunos(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-slate-700 mb-1">Características da turma (opcional)</label>
+          <input type="text" value={caracteristicas} onChange={(e) => setCaracteristicas(e.target.value)} placeholder="Ex: Turma agitada, gostam de competição" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
+        </div>
       </div>
+      
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
           Assunto
