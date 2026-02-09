@@ -3,19 +3,18 @@ import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engi
 
 /**
  * Extrai texto do PDF usando pdfjs-dist (página por página, como o Streamlit faz com pypdf).
+ * Versão server-side sem worker - compatível com Next.js e Render.
  */
 async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise<string> {
+  // Importar pdfjs-dist sem worker (server-side)
+  // Usar import dinâmico para evitar problemas de build
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const pdfjs = pdfjsLib.default || pdfjsLib;
 
-  // Disable worker entirely — server-side doesn't need it and the worker .mjs
-  // file is not bundled correctly by Next.js/Turbopack on Render.
-  // For pdfjs-dist v4+, we must set workerSrc to a dummy value (not empty string)
-  // AND disable the worker at document level. An empty string triggers:
-  //   "No GlobalWorkerOptions.workerSrc specified."
-  if (pdfjs.GlobalWorkerOptions) {
-    pdfjs.GlobalWorkerOptions.workerSrc = "noworker";
-  }
+  // Desabilitar worker completamente - server-side não precisa
+  // IMPORTANTE: Não tocar em GlobalWorkerOptions.workerSrc - isso causa erro de import "noworker"
+  // Apenas usar disableWorker: true nas opções do getDocument é suficiente
 
   const loadingTask = pdfjs.getDocument({
     data: new Uint8Array(buffer),
@@ -24,7 +23,8 @@ async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise
     useSystemFonts: true,
     disableAutoFetch: true,
     disableStream: true,
-    disableWorker: true,
+    disableWorker: true, // Esta é a chave - desabilita o worker completamente
+    verbosity: 0, // Reduzir logs no console
   } as Parameters<typeof pdfjs.getDocument>[0]);
 
   const pdf = await loadingTask.promise;
