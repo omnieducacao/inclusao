@@ -2,69 +2,38 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 
 /**
- * Extrai texto do PDF usando pdfjs-dist (página por página, como o Streamlit faz com pypdf).
- * Versão server-side sem worker - compatível com Next.js e Render.
+ * Extrai texto do PDF usando pdf-parse (biblioteca server-side nativa para Node.js).
+ * Compatível com Next.js e Render - não requer workers.
  */
 async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise<string> {
-  // Importar pdfjs-dist sem worker (server-side)
-  // Usar import dinâmico para evitar problemas de build
+  // Importar pdf-parse dinamicamente (server-side apenas)
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const pdfjsModule = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  // O módulo pdfjs-dist/legacy/build/pdf.mjs pode exportar como default ou named exports
-  // Usar acesso via string para evitar erro de TypeScript no build
+  const pdfParseModule = await import("pdf-parse");
+  // pdf-parse pode exportar como default ou named export
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pdfjs: any = (pdfjsModule as Record<string, any>)["default"] || pdfjsModule;
+  const pdfParse = (pdfParseModule as any).default || pdfParseModule;
 
-  // Desabilitar worker completamente - server-side não precisa
-  // IMPORTANTE: Não tocar em GlobalWorkerOptions.workerSrc - isso causa erro de import "noworker"
-  // Apenas usar disableWorker: true nas opções do getDocument é suficiente
+  try {
+    // pdf-parse extrai todo o texto de uma vez
+    // Limitar páginas não é suportado diretamente, mas podemos processar o resultado
+    const data = await pdfParse(buffer, {
+      max: maxPages, // Limitar número de páginas processadas
+    });
 
-  const loadingTask = pdfjs.getDocument({
-    data: new Uint8Array(buffer),
-    useWorkerFetch: false,
-    isEvalSupported: false,
-    useSystemFonts: true,
-    disableAutoFetch: true,
-    disableStream: true,
-    disableWorker: true, // Esta é a chave - desabilita o worker completamente
-    verbosity: 0, // Reduzir logs no console
-  } as Parameters<typeof pdfjs.getDocument>[0]);
+    const textoFinal = (data.text || "").trim();
 
-  const pdf = await loadingTask.promise;
-  const textoCompleto: string[] = [];
-  const numPages = Math.min(pdf.numPages, maxPages);
-
-  console.log(`📄 Processando PDF: ${numPages} de ${pdf.numPages} páginas`);
-
-  for (let i = 1; i <= numPages; i++) {
-    try {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pageText = (textContent.items as any[])
-        .filter((item) => "str" in item && item.str)
-        .map((item) => item.str)
-        .join(" ")
-        .trim();
-
-      if (pageText) {
-        textoCompleto.push(pageText);
-        console.log(`  ✅ Página ${i}: ${pageText.length} chars`);
-      }
-    } catch (pageErr) {
-      console.warn(`  ⚠️ Erro na página ${i}:`, pageErr instanceof Error ? pageErr.message : String(pageErr));
-      continue;
+    if (!textoFinal || textoFinal.length < 30) {
+      throw new Error("PDF extraído mas texto muito curto ou vazio. O PDF pode ser uma imagem escaneada.");
     }
+
+    console.log(`✅ PDF extraído: ${textoFinal.length} chars de ${data.numpages} páginas`);
+    return textoFinal;
+  } catch (err) {
+    console.error("Erro ao extrair texto do PDF:", err);
+    throw new Error(
+      err instanceof Error ? err.message : "Não foi possível extrair texto do PDF. Verifique se o arquivo é um PDF válido."
+    );
   }
-
-  const textoFinal = textoCompleto.join("\n\n").trim();
-
-  if (!textoFinal || textoFinal.length < 30) {
-    throw new Error("PDF extraído mas texto muito curto ou vazio. O PDF pode ser uma imagem escaneada.");
-  }
-
-  console.log(`✅ Total extraído: ${textoFinal.length} chars de ${textoCompleto.length} páginas`);
-  return textoFinal;
 }
 
 export async function POST(req: Request) {
