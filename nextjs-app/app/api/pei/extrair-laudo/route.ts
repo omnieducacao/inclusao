@@ -10,8 +10,11 @@ async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise
 
   // Disable worker entirely — server-side doesn't need it and the worker .mjs
   // file is not bundled correctly by Next.js/Turbopack on Render.
+  // For pdfjs-dist v4+, we must set workerSrc to a dummy value (not empty string)
+  // AND disable the worker at document level. An empty string triggers:
+  //   "No GlobalWorkerOptions.workerSrc specified."
   if (pdfjs.GlobalWorkerOptions) {
-    pdfjs.GlobalWorkerOptions.workerSrc = "";
+    pdfjs.GlobalWorkerOptions.workerSrc = "noworker";
   }
 
   const loadingTask = pdfjs.getDocument({
@@ -21,9 +24,8 @@ async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise
     useSystemFonts: true,
     disableAutoFetch: true,
     disableStream: true,
-    // @ts-expect-error — force disable worker at document level
     disableWorker: true,
-  });
+  } as Parameters<typeof pdfjs.getDocument>[0]);
 
   const pdf = await loadingTask.promise;
   const textoCompleto: string[] = [];

@@ -865,7 +865,7 @@ function CriarDoZero({
                 <PdfDownloadButton text={resultado} filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Atividade Criada" />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado} />
+            <FormattedTextDisplay texto={resultado} mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined} />
           </div>
         </div>
       )}
