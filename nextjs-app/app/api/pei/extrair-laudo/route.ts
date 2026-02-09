@@ -8,11 +8,21 @@ async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
+  // Disable worker entirely — server-side doesn't need it and the worker .mjs
+  // file is not bundled correctly by Next.js/Turbopack on Render.
+  if (pdfjs.GlobalWorkerOptions) {
+    pdfjs.GlobalWorkerOptions.workerSrc = "";
+  }
+
   const loadingTask = pdfjs.getDocument({
     data: new Uint8Array(buffer),
     useWorkerFetch: false,
     isEvalSupported: false,
     useSystemFonts: true,
+    disableAutoFetch: true,
+    disableStream: true,
+    // @ts-expect-error — force disable worker at document level
+    disableWorker: true,
   });
 
   const pdf = await loadingTask.promise;
