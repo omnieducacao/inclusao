@@ -11,27 +11,21 @@ export function gerarPdfJornada(texto: string, nomeEstudante: string): void {
     const maxWidth = pageWidth - margin * 2;
     let y = 20;
 
-    // Limpar texto (similar ao Streamlit _limpar_texto_jornada_pdf)
+    // Limpar texto e garantir encoding seguro para jsPDF (WinAnsiEncoding, Latin-1)
     const limparTexto = (t: string) => {
       if (!t) return "";
-      let limpo = t
+      return t
         .replace(/\*\*/g, "")
         .replace(/__/g, "")
         .replace(/#/g, "")
         .replace(/•/g, "-")
-        .replace(/"/g, '"')
-        .replace(/"/g, '"')
-        .replace(/'/g, "'")
-        .replace(/'/g, "'");
-      
-      // Garantir encoding seguro
-      try {
-        return limpo.replace(/[\u007F-\uFFFF]/g, (c) =>
-          /[\u00C0-\u024F]/.test(c) ? c : "?"
-        );
-      } catch {
-        return limpo.split("").filter((c) => c.charCodeAt(0) < 256).join("");
-      }
+        .replace(/\u201C|\u201D/g, '"')     // smart double quotes
+        .replace(/\u2018|\u2019/g, "'")     // smart single quotes
+        .replace(/\u2013/g, "-")            // en-dash
+        .replace(/\u2014/g, "--")           // em-dash
+        .replace(/\u2026/g, "...")          // ellipsis
+        .replace(/\u00A0/g, " ")            // non-breaking space
+        .replace(/[^\x00-\xFF\n]/g, "");    // manter apenas Latin-1
     };
 
     const textoLimpo = limparTexto(texto);
@@ -63,7 +57,7 @@ export function gerarPdfJornada(texto: string, nomeEstudante: string): void {
 
       // Verificar se é título (uppercase ou tinha **)
       const isTitulo = l === l.toUpperCase() && l.length < 100 && !l.includes(":") && l.length > 3;
-      
+
       if (y > 270) {
         doc.addPage();
         y = 20;

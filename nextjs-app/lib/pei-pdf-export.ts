@@ -30,10 +30,13 @@ function limparTexto(texto: string | undefined | null): string {
     .replace(/__/g, "")
     .replace(/#/g, "")
     .replace(/•/g, "-")
-    .replace(/[""]/g, '"')
-    .replace(/['']/g, "'")
-    .replace(/[–—]/g, "-")
-    .replace(/[\u007F-\uFFFF]/g, (c) => (/[\u00C0-\u024F]/.test(c) ? c : "?"));
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/\u2013/g, "-")
+    .replace(/\u2014/g, "--")
+    .replace(/\u2026/g, "...")
+    .replace(/\u00A0/g, " ")
+    .replace(/[^\x00-\xFF\n]/g, "");
 }
 
 function formatarData(val: string | Date | undefined): string {
@@ -57,20 +60,20 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
   const addHeader = () => {
     doc.setFillColor(248, 250, 252);
     doc.rect(0, 0, PDF_PAGE_WIDTH, 42, "F");
-    
+
     doc.setFontSize(15);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 41, 59);
     doc.text("PEI - PLANO DE ENSINO INDIVIDUALIZADO", PDF_LEFT, 22);
-    
+
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(100, 116, 139);
     doc.text("Documento de Planejamento e Flexibilização Curricular", PDF_LEFT, 28);
-    
+
     doc.setDrawColor(226, 232, 240);
     doc.line(PDF_LEFT, 42, PDF_PAGE_WIDTH - PDF_RIGHT, 42);
-    
+
     y = 50; // Reset Y após header
   };
 
@@ -80,15 +83,15 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
       doc.addPage();
       addHeader();
     }
-    
+
     doc.setFillColor(241, 245, 249);
     doc.rect(PDF_LEFT, y, PDF_CONTENT_WIDTH, 10, "F");
-    
+
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 41, 59);
     doc.text(title.toUpperCase(), PDF_LEFT + 4, y + 7);
-    
+
     y += 16;
   };
 
@@ -98,7 +101,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
       doc.addPage();
       addHeader();
     }
-    
+
     if (boldLabel) {
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
@@ -160,7 +163,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
   // 1. IDENTIFICAÇÃO E CONTEXTO
   // ======================================================================
   addSectionTitle("1. IDENTIFICAÇÃO E CONTEXTO");
-  
+
   addLine("Estudante:", limparTexto(dados.nome) || "—");
   addLine("Data de Nascimento:", formatarData(dados.nasc as string));
   addLine("Série/Ano:", limparTexto(dados.serie) || "—");
@@ -231,7 +234,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
   // ======================================================================
   const potencias = (dados.potencias || []).filter(Boolean) as string[];
   const hiperfoco = limparTexto(dados.hiperfoco);
-  
+
   if (potencias.length || hiperfoco) {
     doc.addPage();
     addHeader();

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 
 export async function POST(req: Request) {
   const apiKey = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
@@ -44,6 +43,7 @@ CRITICAL: NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS. Just the v
   }
 
   try {
+    const OpenAI = (await import("openai")).default;
     const client = new OpenAI({ apiKey: openaiKey });
     const resp = await client.images.generate({
       model: "dall-e-3",

@@ -16,11 +16,19 @@ export function downloadPdfFromText(
     const lineHeight = 6;
     let y = 20;
 
+    // jsPDF Helvetica suporta WinAnsiEncoding (Latin-1, codepoints 0-255).
+    // Preservamos tudo nessa faixa (inclui á, ã, ç, é, ê, ó, õ, ú, etc.)
+    // e mapeamos caracteres fora dela para equivalentes ASCII.
     const safe = (s: string) =>
       s
-        .replace(/[\u007F-\uFFFF]/g, (c) =>
-          /[\u00C0-\u024F]/.test(c) ? c : "?"
-        )
+        .replace(/\u2018|\u2019/g, "'")   // smart quotes → ASCII
+        .replace(/\u201C|\u201D/g, '"')   // smart double quotes → ASCII
+        .replace(/\u2013/g, "-")          // en-dash → hyphen
+        .replace(/\u2014/g, "--")         // em-dash → double hyphen
+        .replace(/\u2026/g, "...")        // ellipsis → three dots
+        .replace(/\u2022/g, "-")          // bullet → hyphen
+        .replace(/\u00A0/g, " ")          // non-breaking space → space
+        .replace(/[^\x00-\xFF]/g, "")     // remover tudo fora de Latin-1
         .replace(/\r\n/g, "\n")
         .replace(/\r/g, "\n");
 
