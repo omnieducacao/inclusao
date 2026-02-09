@@ -17,8 +17,8 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/15 to-sky-50/10 flex flex-col">
       <Navbar session={session} />
-      <main className="max-w-[1600px] mx-auto px-8 py-8 flex-1">{children}</main>
-      <div className="max-w-[1600px] mx-auto px-8 w-full">
+      <main className="w-full px-6 py-6 flex-1">{children}</main>
+      <div className="w-full px-6">
         <Footer />
       </div>
       <AIEnginesBadge />

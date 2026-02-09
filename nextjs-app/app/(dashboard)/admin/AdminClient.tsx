@@ -123,7 +123,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/15 to-sky-50/10">
       <Navbar session={session} />
-      <main className="max-w-[1600px] mx-auto px-8 py-8">
+      <main className="w-full px-6 py-6">
         <div className="mb-6">
           <h1 className="text-3xl font-black text-slate-900 mb-2">🔧 Admin Plataforma Omnisfera</h1>
           <p className="text-slate-600">Gerenciamento completo da plataforma</p>
@@ -141,11 +141,10 @@ export function AdminClient({ session }: { session: SessionPayload }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
-                activeTab === tab.id
+              className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${activeTab === tab.id
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-slate-600 hover:text-slate-900"
-              }`}
+                }`}
             >
               {tab.label}
             </button>
@@ -583,11 +582,10 @@ function WorkspaceCard({
               </button>
               <button
                 onClick={handleToggleActive}
-                className={`px-3 py-1.5 text-sm rounded-lg flex items-center gap-1 ${
-                  workspace.active
+                className={`px-3 py-1.5 text-sm rounded-lg flex items-center gap-1 ${workspace.active
                     ? "border border-slate-300 hover:bg-slate-50"
                     : "bg-green-600 text-white hover:bg-green-700"
-                }`}
+                  }`}
               >
                 {workspace.active ? (
                   <>
@@ -696,9 +694,8 @@ function UsoIATab() {
                   <td className="px-4 py-3 text-center text-sm font-semibold text-slate-900">{u.total_calls || 0}</td>
                   <td className="px-4 py-3 text-center text-sm font-semibold text-blue-600">{u.credits_used?.toFixed(1) || "0.0"}</td>
                   <td className="px-4 py-3 text-center text-sm">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      u.plan === "robusto" ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-800"
-                    }`}>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${u.plan === "robusto" ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-800"
+                      }`}>
                       {u.plan === "robusto" ? "Robusto" : "Basic"}
                     </span>
                   </td>
@@ -711,7 +708,7 @@ function UsoIATab() {
       )}
       {usage.length > 0 && (
         <p className="text-xs text-slate-500 mt-4">
-          Créditos usados = soma das unidades por chamada (1 por padrão, OmniGreen pode ter peso maior). 
+          Créditos usados = soma das unidades por chamada (1 por padrão, OmniGreen pode ter peso maior).
           No futuro, planos terão limite; ao atingir, a escola migra para plano mais robusto.
         </p>
       )}
@@ -742,10 +739,10 @@ function TermoTab() {
           // Valor padrão
           setTermsText(
             "1. Uso profissional: A Omnisfera é uma ferramenta profissional de apoio à inclusão.\n\n" +
-              "2. Confidencialidade: É proibido inserir dados pessoais sensíveis de estudantes.\n\n" +
-              "3. Responsabilidade: Recomendações da IA devem ser validadas por profissionais.\n\n" +
-              "4. Segurança: Credenciais são pessoais e intransferíveis.\n\n" +
-              "5. Conformidade: O uso deve seguir políticas e legislação vigente."
+            "2. Confidencialidade: É proibido inserir dados pessoais sensíveis de estudantes.\n\n" +
+            "3. Responsabilidade: Recomendações da IA devem ser validadas por profissionais.\n\n" +
+            "4. Segurança: Credenciais são pessoais e intransferíveis.\n\n" +
+            "5. Conformidade: O uso deve seguir políticas e legislação vigente."
           );
         }
       }
@@ -1252,12 +1249,12 @@ function IssueCard({
 
   const createdDate = issue.created_at
     ? new Date(issue.created_at).toLocaleString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
     : "—";
 
   return (
@@ -1265,12 +1262,11 @@ function IssueCard({
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <span className={`px-2 py-1 text-xs font-semibold rounded ${
-              localStatus === "aberto" ? "bg-red-100 text-red-800" :
-              localStatus === "em_andamento" ? "bg-yellow-100 text-yellow-800" :
-              localStatus === "resolvido" ? "bg-green-100 text-green-800" :
-              "bg-slate-100 text-slate-800"
-            }`}>
+            <span className={`px-2 py-1 text-xs font-semibold rounded ${localStatus === "aberto" ? "bg-red-100 text-red-800" :
+                localStatus === "em_andamento" ? "bg-yellow-100 text-yellow-800" :
+                  localStatus === "resolvido" ? "bg-green-100 text-green-800" :
+                    "bg-slate-100 text-slate-800"
+              }`}>
               {localStatus.toUpperCase()}
             </span>
             <h4 className="font-bold text-slate-900">{issue.title || "Sem título"}</h4>
