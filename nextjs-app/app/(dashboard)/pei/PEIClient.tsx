@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { HelpTooltip } from "@/components/HelpTooltip";
+import { PEIVersionHistory, createPEISnapshot } from "@/components/PEIVersionHistory";
 
 // Helper para validar e parsear respostas JSON
 async function parseJsonResponse(res: Response, url?: string) {
@@ -296,6 +297,8 @@ export function PEIClient({
 
           setSaved(true);
           setErroGlobal(null);
+          // Auto-create version snapshot
+          createPEISnapshot(novoEstudanteId, `Criação — ${new Date().toLocaleDateString("pt-BR")}`);
           setTimeout(() => setSaved(false), 3000);
           alert(`✅ Novo estudante "${peiData.nome}" criado e PEI salvo na nuvem com sucesso! ☁️`);
         } else {
@@ -963,6 +966,12 @@ export function PEIClient({
                   <h4 className="text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-sky-600" />
                     Omnisfera Cloud
+                    {selectedStudentId && (
+                      <PEIVersionHistory
+                        studentId={selectedStudentId}
+                        onRestore={() => window.location.reload()}
+                      />
+                    )}
                   </h4>
                   <p className="text-[10px] text-slate-600 mb-2 leading-relaxed">
                     <strong>Cria um novo estudante</strong> no Supabase com todos os dados do PEI preenchidos. O estudante será salvo na nuvem junto com o PEI completo.
