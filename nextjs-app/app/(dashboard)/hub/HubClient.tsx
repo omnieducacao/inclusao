@@ -476,59 +476,103 @@ function CriarDoZero({
         while ((m = genImgRegex.exec(textoFinal)) !== null) {
           termos.push(m[1].trim());
         }
-        // Prioridade: BANCO (Unsplash) primeiro; Gemini só em último caso
-        for (let i = 0; i < termos.length; i++) {
-          try {
-            console.log(`🖼️ Gerando imagem ${i + 1} para: "${termos[i]}"`);
-            
-            // Tenta primeiro com prioridade BANCO (Unsplash)
-            let imgRes = await fetch("/api/hub/gerar-imagem", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ prompt: termos[i], prioridade: "BANCO" }),
-            });
-
-            let imgData = await imgRes.json();
-
-            // Se não encontrou no banco, tenta Gemini
-            if (!imgRes.ok || !imgData.image) {
-              console.log(`  ⚠️ Unsplash não retornou imagem, tentando Gemini...`);
-              imgRes = await fetch("/api/hub/gerar-imagem", {
+        
+        // Se não encontrou tags suficientes, criar termos genéricos para garantir número solicitado
+        while (termos.length < qtdImagens) {
+          termos.push(`ilustração educacional ${termos.length + 1}`);
+        }
+        
+        // Prioridade: BANCO (Unsplash) primeiro; Gemini como fallback garantido
+        for (let i = 0; i < termos.length && i < qtdImagens; i++) {
+          let imagemGerada = false;
+          let tentativas = 0;
+          const maxTentativas = 2; // Unsplash + Gemini
+          
+          while (!imagemGerada && tentativas < maxTentativas) {
+            try {
+              const prioridade = tentativas === 0 ? "BANCO" : "IA";
+              console.log(`🖼️ Gerando imagem ${i + 1}/${qtdImagens} para: "${termos[i]}" (${prioridade})`);
+              
+              const imgRes = await fetch("/api/hub/gerar-imagem", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt: termos[i], prioridade: "IA" }),
+                body: JSON.stringify({ prompt: termos[i], prioridade }),
               });
-              imgData = await imgRes.json();
-            }
 
-            if (imgRes.ok && imgData.image) {
-              // Remove o prefixo data:image se existir e valida base64
-              const imgStr = imgData.image as string;
-              let base64 = imgStr;
-              
-              // Se já tem prefixo data:image, remover
-              if (imgStr.startsWith("data:image")) {
-                base64 = imgStr.replace(/^data:image\/\w+;base64,/, "");
-              }
-              
-              // Validar que é base64 válido (mínimo 100 caracteres para ser uma imagem válida)
-              if (base64 && base64.length > 100) {
-                mapa[i + 1] = base64;
-                console.log(`  ✅ Imagem ${i + 1} gerada com sucesso (${Math.round(base64.length / 1024)}KB)`);
+              const imgData = await imgRes.json();
+
+              if (imgRes.ok && imgData.image) {
+                // Remove o prefixo data:image se existir e valida base64
+                const imgStr = imgData.image as string;
+                let base64 = imgStr;
+                
+                // Se já tem prefixo data:image, remover
+                if (imgStr.startsWith("data:image")) {
+                  base64 = imgStr.replace(/^data:image\/\w+;base64,/, "");
+                }
+                
+                // Validar que é base64 válido (mínimo 100 caracteres para ser uma imagem válida)
+                if (base64 && base64.length > 100) {
+                  mapa[i + 1] = base64;
+                  imagemGerada = true;
+                  console.log(`  ✅ Imagem ${i + 1} gerada com sucesso (${Math.round(base64.length / 1024)}KB)`);
+                } else {
+                  console.warn(`  ⚠️ Imagem ${i + 1} gerada mas base64 inválido (${base64?.length || 0} chars), tentando novamente...`);
+                }
               } else {
-                console.warn(`  ⚠️ Imagem ${i + 1} gerada mas base64 inválido ou muito curto (${base64?.length || 0} chars)`);
+                const errorMsg = imgData.error || "Resposta sem imagem";
+                if (tentativas === 0) {
+                  console.log(`  ⚠️ Unsplash não retornou imagem, tentando Gemini...`);
+                } else {
+                  console.warn(`  ❌ Falha ao gerar imagem ${i + 1} com Gemini:`, errorMsg);
+                }
               }
-            } else {
-              const errorMsg = imgData.error || "Resposta sem imagem";
-              console.warn(`  ❌ Falha ao gerar imagem ${i + 1}:`, errorMsg);
+            } catch (error) {
+              console.error(`  ❌ Erro ao gerar imagem ${i + 1} (tentativa ${tentativas + 1}):`, error);
             }
-          } catch (error) {
-            console.error(`  ❌ Erro ao gerar imagem ${i + 1}:`, error);
-            // ignora falha em uma imagem para não bloquear a geração da atividade
+            
+            tentativas++;
+          }
+          
+          if (!imagemGerada) {
+            console.warn(`  ⚠️ Não foi possível gerar imagem ${i + 1} após ${maxTentativas} tentativas`);
           }
         }
         
-        console.log(`📊 Total de imagens geradas: ${Object.keys(mapa).length} de ${termos.length} solicitadas`);
+        console.log(`📊 Total de imagens geradas: ${Object.keys(mapa).length} de ${qtdImagens} solicitadas`);
+        
+        // Se faltaram imagens, tentar gerar com termos genéricos
+        if (Object.keys(mapa).length < qtdImagens) {
+          const faltam = qtdImagens - Object.keys(mapa).length;
+          console.log(`⚠️ Faltam ${faltam} imagem(ns), tentando gerar com Gemini...`);
+          
+          for (let f = 0; f < faltam; f++) {
+            const idx = Object.keys(mapa).length + 1;
+            const termoGenerico = `ilustração educacional ${idx}`;
+            try {
+              const imgRes = await fetch("/api/hub/gerar-imagem", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: termoGenerico, prioridade: "IA" }),
+              });
+              const imgData = await imgRes.json();
+              
+              if (imgRes.ok && imgData.image) {
+                const imgStr = imgData.image as string;
+                let base64 = imgStr.startsWith("data:image") 
+                  ? imgStr.replace(/^data:image\/\w+;base64,/, "") 
+                  : imgStr;
+                
+                if (base64 && base64.length > 100) {
+                  mapa[idx] = base64;
+                  console.log(`  ✅ Imagem ${idx} gerada como fallback`);
+                }
+              }
+            } catch (error) {
+              console.error(`  ❌ Erro ao gerar imagem fallback ${idx}:`, error);
+            }
+          }
+        }
         let idx = 0;
         textoFinal = textoFinal.replace(/\[\[GEN_IMG:\s*[^\]]+\]\]/gi, () => {
           idx++;
@@ -955,10 +999,16 @@ function PapoDeMestre({
   const [materia, setMateria] = useState("Língua Portuguesa");
   const [assunto, setAssunto] = useState("");
   const [temaTurma, setTemaTurma] = useState("");
+  const [hiperfocoEditavel, setHiperfocoEditavel] = useState(hiperfoco);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [validado, setValidado] = useState(false);
+  
+  // Atualizar hiperfoco editável quando o prop mudar (ex: mudança de estudante)
+  useEffect(() => {
+    setHiperfocoEditavel(hiperfoco);
+  }, [hiperfoco]);
 
   const gerar = async () => {
     if (!assunto.trim()) {
@@ -1028,10 +1078,11 @@ function PapoDeMestre({
           <label className="block text-sm font-medium text-slate-700 mb-1">Hiperfoco do estudante</label>
           <input
             type="text"
-            value={hiperfoco}
-            readOnly
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50"
+            value={hiperfocoEditavel}
+            onChange={(e) => setHiperfocoEditavel(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
           />
+          <p className="text-xs text-slate-500 mt-1">Pré-preenchido com o hiperfoco do estudante. Você pode editar ou apagar se necessário.</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Interesse da turma (DUA, opcional)</label>
@@ -1837,6 +1888,7 @@ function AdaptarProva({
     setErro(null);
     setResultado(null);
     setValidado(false);
+    aiLoadingStart(engine || "green", "hub");
     try {
       const questoesComImagem = [...new Set(Object.values(mapaQuestoes).filter((q) => q > 0))];
       const formData = new FormData();
@@ -1866,6 +1918,7 @@ function AdaptarProva({
     } finally {
       setLoading(false);
       setRefazendo(false);
+      aiLoadingStop();
     }
   };
 
@@ -2271,28 +2324,91 @@ function RoteiroIndividual({
       </div>
       <p className="text-sm text-slate-600">Passo a passo de aula específico para o estudante, usando o hiperfoco.</p>
       <EngineSelector value={engine} onChange={onEngineChange} />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Série (ano BNCC)</label>
-          <input
-            type="text"
-            value={serieAluno || ""}
-            readOnly
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Componente</label>
-          <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
-            {Object.keys(componentes).length ? Object.keys(componentes).map((c) => <option key={c} value={c}>{c}</option>) : <option value={materia}>{materia}</option>}
-          </select>
-        </div>
-      </div>
+      
+      {/* Módulo BNCC - PRIMEIRO */}
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
+        <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+          <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            BNCC: Componente Curricular, Unidade e Objeto
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
+              <input
+                type="text"
+                value={serieAluno || ""}
+                readOnly
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-600 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Componente Curricular</label>
+              <select 
+                value={componenteSel || materia} 
+                onChange={(e) => { 
+                  const val = e.target.value;
+                  setComponenteSel(val);
+                  setMateria(val);
+                  setUnidadeSel(""); 
+                  setObjetoSel(""); 
+                }} 
+                className="w-full px-3 py-2 border rounded-lg text-sm"
+              >
+                <option value="">Selecione...</option>
+                {estruturaBncc.disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
+              <select value={unidadeSel} onChange={(e) => { setUnidadeSel(e.target.value); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!componenteSel}>
+                <option value="">Todas</option>
+                {(discData?.unidades || []).map((u) => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
+              <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
+                <option value="">Todos</option>
+                {(unidadeData && typeof unidadeData === "object" && "objetos" in unidadeData ? unidadeData.objetos : []).map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-slate-600 mb-1">Habilidades BNCC (opcional)</label>
+            <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border rounded-lg text-sm min-h-[60px]">
+              {todasHabilidades.slice(0, 60).map((h, i) => <option key={i} value={h}>{h}</option>)}
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* Componente Curricular (fallback se BNCC não disponível) */}
+      {(!estruturaBncc || estruturaBncc.disciplinas.length === 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Série (ano BNCC)</label>
+            <input
+              type="text"
+              value={serieAluno || ""}
+              readOnly
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Componente Curricular</label>
+            <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              {Object.keys(componentes).length ? Object.keys(componentes).map((c) => <option key={c} value={c}>{c}</option>) : COMPONENTES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        </div>
+      )}
+      
+      {estruturaBncc && estruturaBncc.disciplinas.length > 0 && false && (
         <details className="border border-slate-200 rounded-lg">
           <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
-            BNCC: Unidade e Objeto
+            BNCC: Unidade e Objeto (Legado - Oculto)
           </summary>
           <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
@@ -3206,7 +3322,15 @@ function AdaptarAtividade({
               checked={temImagemSeparada}
               onChange={(e) => {
                 setTemImagemSeparada(e.target.checked);
-                if (!e.target.checked) {
+                if (e.target.checked) {
+                  // Quando marcar, usar a mesma imagem inicial para recorte
+                  const imagemParaRecorte = croppedFile || file;
+                  if (imagemParaRecorte && !imagemSeparadaPreviewUrl) {
+                    const url = URL.createObjectURL(imagemParaRecorte);
+                    setImagemSeparadaPreviewUrl(url);
+                    setShowImagemSeparadaCropper(true);
+                  }
+                } else {
                   setImagemSeparadaFile(null);
                   setImagemSeparadaCropped(null);
                   if (imagemSeparadaPreviewUrl) {
@@ -3222,27 +3346,21 @@ function AdaptarAtividade({
             </span>
           </label>
           <p className="text-xs text-slate-600 mb-3">
-            Se a questão tem imagem e você quer recortá-la separadamente para melhor qualidade, marque acima.
+            Se a questão tem imagem e você quer recortá-la separadamente para melhor qualidade, marque acima. A mesma imagem inicial será usada para o recorte.
           </p>
           {temImagemSeparada && (
             <div>
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/jpg"
-                onChange={(e) => {
-                  const f = e.target.files?.[0] || null;
-                  if (imagemSeparadaPreviewUrl) URL.revokeObjectURL(imagemSeparadaPreviewUrl);
-                  setImagemSeparadaPreviewUrl(null);
-                  setImagemSeparadaCropped(null);
-                  setShowImagemSeparadaCropper(false);
-                  setImagemSeparadaFile(f);
-                  if (f) {
-                    setImagemSeparadaPreviewUrl(URL.createObjectURL(f));
-                    setShowImagemSeparadaCropper(true);
-                  }
-                }}
-                className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-100 file:text-cyan-800"
-              />
+              {(() => {
+                // Usar a mesma imagem inicial (croppedFile ou file) para recorte separado
+                const imagemParaRecorte = croppedFile || file;
+                if (imagemParaRecorte && !imagemSeparadaPreviewUrl && !showImagemSeparadaCropper) {
+                  // Criar preview URL automaticamente quando marcar o checkbox
+                  const url = URL.createObjectURL(imagemParaRecorte);
+                  setImagemSeparadaPreviewUrl(url);
+                  setShowImagemSeparadaCropper(true);
+                }
+                return null;
+              })()}
               {showImagemSeparadaCropper && imagemSeparadaPreviewUrl && (
                 <div className="mt-4 p-4 rounded-lg border border-slate-200 bg-white">
                   <ImageCropper
@@ -3291,8 +3409,10 @@ function AdaptarAtividade({
                     type="button"
                     onClick={() => {
                       setImagemSeparadaCropped(null);
-                      if (imagemSeparadaFile) {
-                        setImagemSeparadaPreviewUrl(URL.createObjectURL(imagemSeparadaFile));
+                      const imagemParaRecorte = croppedFile || file;
+                      if (imagemParaRecorte) {
+                        const url = URL.createObjectURL(imagemParaRecorte);
+                        setImagemSeparadaPreviewUrl(url);
                         setShowImagemSeparadaCropper(true);
                       }
                     }}

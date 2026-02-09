@@ -45,6 +45,24 @@ function buildPrompt(dados: PEIDataPayload, modoPratico: boolean, feedback?: str
     : "Nenhuma medicação informada.";
   const serie = dados.serie || "";
   const nivel = detectarNivelEnsino(serie);
+  
+  // Sinalizar segmento e abordagem da IA baseado no nível
+  const segmentoInfo: Record<string, { nome: string; abordagem: string }> = {
+    EI: {
+      nome: "Educação Infantil",
+      abordagem: "ABORDAGEM IA (EI): Foco em Campos de Experiência (BNCC), rotina estruturante, desenvolvimento sensório-motor e socioemocional. Use linguagem lúdica e concreta."
+    },
+    EF: {
+      nome: "Ensino Fundamental",
+      abordagem: "ABORDAGEM IA (EF): Foco em alfabetização, numeracia, habilidades basais (anos iniciais) ou autonomia, funções executivas e aprofundamento conceitual (anos finais)."
+    },
+    EM: {
+      nome: "Ensino Médio / EJA",
+      abordagem: "ABORDAGEM IA (EM): Foco em projeto de vida, áreas do conhecimento, estratégias de estudo e preparação para vida adulta/mercado de trabalho."
+    }
+  };
+  const infoSegmento = segmentoInfo[nivel] || { nome: "Não identificado", abordagem: "" };
+  
   const hiperfocoTxt = dados.hiperfoco
     ? `HIPERFOCO DO ESTUDANTE: ${dados.hiperfoco}`
     : "Hiperfoco: Não identificado.";
@@ -91,6 +109,8 @@ Crie um GUIA PRÁTICO para sala de aula com adaptações concretas baseadas nos 
 
     const system = `Especialista em EDUCAÇÃO INFANTIL e BNCC.
 MISSÃO: Criar PEI Técnico Oficial.
+${infoSegmento.abordagem}
+
 Use Markdown simples. Use títulos H3 (###). Evite tabelas.
 
 ESTRUTURA OBRIGATÓRIA:
@@ -161,6 +181,8 @@ EVIDÊNCIAS: ${evid || "Nenhuma"}${promptFeedback}`;
 
   const system = `Especialista em Inclusão Escolar e BNCC.
 MISSÃO: Criar PEI Técnico Oficial.
+${infoSegmento.abordagem}
+
 REGRA CRÍTICA (Avaliação de Repertório): Cite SOMENTE habilidades da lista fornecida. Ao citar, reproduza EXATAMENTE: código e descrição COMPLETA. Proibido parafrasear.
 
 Use Markdown simples. Use títulos H3 (###). Evite tabelas.

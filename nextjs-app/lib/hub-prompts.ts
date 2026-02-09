@@ -134,6 +134,9 @@ SAÍDA OBRIGATÓRIA:
 ---DIVISOR---
 [ATIVIDADE]
 ...questões...
+
+GABARITO (OBRIGATÓRIO):
+Após todas as questões, inclua uma seção "GABARITO" com as respostas corretas de todas as questões criadas.
 `.trim();
 }
 
