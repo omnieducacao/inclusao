@@ -1,27 +1,6 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const geminiKey = process.env.GEMINI_API_KEY || "";
-  const openaiKeyRaw = process.env.OPENAI_API_KEY || "";
-  // Validar que OPENAI_API_KEY não é do OpenRouter se for usar
-  if (openaiKeyRaw.startsWith("sk-or-")) {
-    return NextResponse.json(
-      {
-        error:
-          "OPENAI_API_KEY está configurada com uma chave do OpenRouter (sk-or-...). " +
-          "Configure uma chave válida do OpenAI (sk-...) ou use GEMINI_API_KEY para gerar imagens.",
-      },
-      { status: 500 }
-    );
-  }
-  const apiKey = geminiKey || openaiKeyRaw.trim();
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "Configure GEMINI_API_KEY ou OPENAI_API_KEY para gerar imagens." },
-      { status: 500 }
-    );
-  }
-
   let body: { tipo: "ilustracao" | "caa"; prompt: string; feedback?: string };
   try {
     body = await req.json();
@@ -36,6 +15,7 @@ export async function POST(req: Request) {
 
   // Por ora usamos DALL-E (OpenAI). Gemini Imagen requer @google/genai ou Vertex AI.
   const openaiKeyRaw = process.env.OPENAI_API_KEY || "";
+  // Validar que OPENAI_API_KEY não é do OpenRouter
   if (openaiKeyRaw.startsWith("sk-or-")) {
     return NextResponse.json(
       {
