@@ -9,15 +9,14 @@ async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise
   // Importar pdf-parse dinamicamente (server-side apenas)
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const pdfParseModule = await import("pdf-parse");
-  // pdf-parse pode exportar como default ou named export
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pdfParse = (pdfParseModule as any).default || pdfParseModule;
+  // pdf-parse exporta como default
+  const pdfParse = pdfParseModule.default || pdfParseModule;
 
   try {
     // pdf-parse extrai todo o texto de uma vez
-    // Limitar páginas não é suportado diretamente, mas podemos processar o resultado
+    // A opção max limita o número de páginas processadas
     const data = await pdfParse(buffer, {
-      max: maxPages, // Limitar número de páginas processadas
+      max: maxPages,
     });
 
     const textoFinal = (data.text || "").trim();
