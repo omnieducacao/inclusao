@@ -86,14 +86,16 @@ export async function trackAIUsage(
 
     // Também registrar na tabela de uso de IA (se existir)
     if (workspaceId) {
-      await sb.from("ia_usage").insert({
-        workspace_id: workspaceId,
-        engine: engine.toLowerCase(),
-        source: source || null,
-        credits_consumed: creditsConsumed,
-      }).catch(() => {
-        // Tabela pode não existir ainda
-      });
+      try {
+        await sb.from("ia_usage").insert({
+          workspace_id: workspaceId,
+          engine: engine.toLowerCase(),
+          source: source || null,
+          credits_consumed: creditsConsumed,
+        });
+      } catch {
+        // Tabela pode não existir ainda - ignorar erro
+      }
     }
   } catch (err) {
     console.error("Erro ao registrar uso de IA:", err);
