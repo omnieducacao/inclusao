@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
+import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { EngineSelector } from "@/components/EngineSelector";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
@@ -707,7 +708,7 @@ function JornadaTab({
   const conteudoBarreiras = (paeeData.conteudo_diagnostico_barreiras as string) || "";
   const conteudoPlano = (paeeData.conteudo_plano_habilidades as string) || "";
   const conteudoTec = (paeeData.conteudo_tecnologia_assistiva as string) || "";
-  
+
   // Log para debug
   useEffect(() => {
     console.log("📋 Jornada - Conteúdos disponíveis:", {
@@ -751,6 +752,7 @@ function JornadaTab({
   const gerar = async (feedbackAjuste?: string) => {
     setLoading(true);
     setErro(null);
+    aiLoadingStart(engine || "red", "paee");
     try {
       const body: Record<string, unknown> = {
         origem: origemSelecionada,
@@ -799,7 +801,7 @@ function JornadaTab({
           setErro(`Gere o conteúdo na aba **${nomeFonte}** primeiro. O conteúdo precisa estar salvo e aprovado.`);
           return;
         }
-        
+
         console.log(`✅ Usando conteúdo de ${nomeFonte}:`, `${textoFonte.length} caracteres`);
         body.texto_fonte = textoFonte;
         body.nome_fonte = nomeFonte;
@@ -821,6 +823,7 @@ function JornadaTab({
       setErro(e instanceof Error ? e.message : "Erro ao gerar.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -838,6 +841,7 @@ function JornadaTab({
   const gerarMapaMental = async () => {
     setMapaLoading(true);
     setMapaErro(null);
+    aiLoadingStart("yellow", "paee");
     try {
       const res = await fetch("/api/paee/mapa-mental", {
         method: "POST",
@@ -856,6 +860,7 @@ function JornadaTab({
       setMapaErro(e instanceof Error ? e.message : "Erro ao gerar mapa mental.");
     } finally {
       setMapaLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -873,7 +878,7 @@ function JornadaTab({
 
   const downloadMapaPNG = () => {
     if (!mapaMental) return;
-    
+
     // Se for base64, converter para blob
     let blob: Blob;
     if (mapaMental.startsWith("data:image")) {
@@ -1050,9 +1055,9 @@ function JornadaTab({
             {mapaMental && (
               <div className="space-y-3">
                 <div className="border-2 border-violet-200 rounded-lg p-2 bg-white">
-                  <img 
-                    src={mapaMental} 
-                    alt="Mapa mental da jornada" 
+                  <img
+                    src={mapaMental}
+                    alt="Mapa mental da jornada"
                     className="max-w-full rounded-lg"
                   />
                 </div>
@@ -1185,9 +1190,9 @@ function JornadaTab({
             {mapaMental && (
               <div className="space-y-3">
                 <div className="border-2 border-violet-200 rounded-lg p-2 bg-white">
-                  <img 
-                    src={mapaMental} 
-                    alt="Mapa mental da jornada" 
+                  <img
+                    src={mapaMental}
+                    alt="Mapa mental da jornada"
                     className="max-w-full rounded-lg"
                   />
                 </div>
@@ -1551,6 +1556,7 @@ function MapearBarreirasTab({
     }
     setLoading(true);
     setErro(null);
+    aiLoadingStart(engine || "red", "paee");
     try {
       const res = await fetch("/api/paee/diagnostico-barreiras", {
         method: "POST",
@@ -1578,6 +1584,7 @@ function MapearBarreirasTab({
       setErro(e instanceof Error ? e.message : "Erro ao gerar diagnóstico");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -1817,25 +1824,25 @@ function PlanoHabilidadesTab({
       console.log("⏸️ Sincronização pausada durante geração");
       return;
     }
-    
+
     const conteudoSalvo = (paeeData.conteudo_plano_habilidades as string) || "";
     const statusSalvo = (paeeData.status_plano_habilidades as string) || "rascunho";
     const inputSalvo = (paeeData.input_original_plano_habilidades as { foco?: string }) || {};
-    
+
     // Só atualizar se o conteúdo salvo for diferente E não estiver vazio
     if (conteudoSalvo && conteudoSalvo !== plano) {
-      console.log("🔄 Sincronizando plano do paeeData:", { 
-        conteudoSalvoLength: conteudoSalvo.length, 
-        planoLength: plano.length 
+      console.log("🔄 Sincronizando plano do paeeData:", {
+        conteudoSalvoLength: conteudoSalvo.length,
+        planoLength: plano.length
       });
       setPlano(conteudoSalvo);
     }
-    
+
     if (statusSalvo && statusSalvo !== status) {
       console.log("🔄 Sincronizando status do paeeData:", { statusSalvo, status });
       setStatus((statusSalvo as typeof status) || "rascunho");
     }
-    
+
     if (inputSalvo?.foco && inputSalvo.foco !== foco) {
       setFoco(inputSalvo.foco);
     }
@@ -1850,6 +1857,7 @@ function PlanoHabilidadesTab({
     setLoading(true);
     setErro(null);
     setIsGenerating(true); // Bloquear sincronização durante geração
+    aiLoadingStart(engine || "red", "paee");
     try {
       console.log("Gerando plano de habilidades...", { foco, engine });
       const res = await fetch("/api/paee/plano-habilidades", {
@@ -1864,24 +1872,24 @@ function PlanoHabilidadesTab({
           engine,
         }),
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || `Erro HTTP ${res.status}`);
       }
-      
+
       const data = await res.json();
-      console.log("Plano gerado com sucesso, salvando...", { 
+      console.log("Plano gerado com sucesso, salvando...", {
         planoLength: data.plano?.length,
-        planoPreview: data.plano?.substring(0, 100) 
+        planoPreview: data.plano?.substring(0, 100)
       });
-      
+
       const planoTexto = (data.plano || "").trim();
-      
+
       if (!planoTexto) {
         throw new Error("A IA retornou um plano vazio. Tente novamente.");
       }
-      
+
       // Atualizar paeeData de forma atômica PRIMEIRO (antes de atualizar estado local)
       const novoPaeeData = {
         ...paeeData,
@@ -1889,21 +1897,21 @@ function PlanoHabilidadesTab({
         status_plano_habilidades: "revisao",
         input_original_plano_habilidades: { foco },
       };
-      
+
       // Atualizar via onUpdate PRIMEIRO (isso atualiza o estado pai)
       onUpdate(novoPaeeData);
-      
+
       // Depois atualizar estado local (para garantir sincronização)
       setPlano(planoTexto);
       setStatus("revisao");
-      
-      console.log("✅ Estado atualizado:", { 
-        planoLength: planoTexto.length, 
+
+      console.log("✅ Estado atualizado:", {
+        planoLength: planoTexto.length,
         status: "revisao",
         paeeDataUpdated: !!novoPaeeData.conteudo_plano_habilidades,
         planoPreview: planoTexto.substring(0, 100)
       });
-      
+
       // Salvar no Supabase e aguardar
       if (student?.id) {
         try {
@@ -1912,7 +1920,7 @@ function PlanoHabilidadesTab({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ paee_data: novoPaeeData }),
           });
-          
+
           if (!saveRes.ok) {
             console.error("Erro ao salvar plano no Supabase:", await saveRes.text());
           } else {
@@ -1923,7 +1931,7 @@ function PlanoHabilidadesTab({
           // Não bloquear o fluxo, apenas logar o erro
         }
       }
-      
+
       console.log("✅ Plano de habilidades gerado e disponível para jornada gamificada");
     } catch (e) {
       console.error("Erro ao gerar plano:", e);
@@ -1931,6 +1939,7 @@ function PlanoHabilidadesTab({
     } finally {
       setLoading(false);
       setIsGenerating(false); // Liberar sincronização após geração
+      aiLoadingStop();
     }
   };
 
@@ -2011,28 +2020,28 @@ function PlanoHabilidadesTab({
           {!plano || plano.trim() === "" ? (
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
               <p className="text-sm text-amber-800">
-              ⚠️ O plano foi gerado mas o conteúdo não está disponível. 
-              <br />
-              <span className="text-xs">Status: {status} | Plano length: {plano?.length || 0} | Loading: {loading ? "sim" : "não"}</span>
-              <br />
-              <button 
-                onClick={() => {
-                  const conteudoSalvo = (paeeData.conteudo_plano_habilidades as string) || "";
-                  console.log("🔍 Debug - Tentando recarregar:", { 
-                    conteudoSalvoLength: conteudoSalvo.length,
-                    planoLength: plano.length,
-                    paeeDataKeys: Object.keys(paeeData)
-                  });
-                  if (conteudoSalvo) {
-                    setPlano(conteudoSalvo);
-                    setStatus("revisao");
-                  }
-                }}
-                className="mt-2 px-3 py-1 bg-amber-600 text-white rounded text-xs"
-              >
-                🔄 Tentar Recarregar do paeeData
-              </button>
-            </p>
+                ⚠️ O plano foi gerado mas o conteúdo não está disponível.
+                <br />
+                <span className="text-xs">Status: {status} | Plano length: {plano?.length || 0} | Loading: {loading ? "sim" : "não"}</span>
+                <br />
+                <button
+                  onClick={() => {
+                    const conteudoSalvo = (paeeData.conteudo_plano_habilidades as string) || "";
+                    console.log("🔍 Debug - Tentando recarregar:", {
+                      conteudoSalvoLength: conteudoSalvo.length,
+                      planoLength: plano.length,
+                      paeeDataKeys: Object.keys(paeeData)
+                    });
+                    if (conteudoSalvo) {
+                      setPlano(conteudoSalvo);
+                      setStatus("revisao");
+                    }
+                  }}
+                  className="mt-2 px-3 py-1 bg-amber-600 text-white rounded text-xs"
+                >
+                  🔄 Tentar Recarregar do paeeData
+                </button>
+              </p>
             </div>
           ) : (
             <>

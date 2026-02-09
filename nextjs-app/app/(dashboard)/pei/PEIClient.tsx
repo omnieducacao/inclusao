@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 
 // Helper para validar e parsear respostas JSON
 async function parseJsonResponse(res: Response, url?: string) {
@@ -2523,6 +2524,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
 
   const gerarMapa = async () => {
     setMapaLoading(true); setMapaErr(null); setMapaData(null);
+    aiLoadingStart("yellow", "pei");
     try {
       const res = await fetch("/api/pei/mapa-mental", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -2532,11 +2534,12 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
       if (!res.ok) throw new Error(data.error || "Erro");
       setMapaData(data.mapa);
     } catch (e) { setMapaErr(e instanceof Error ? e.message : "Erro"); }
-    finally { setMapaLoading(false); }
+    finally { setMapaLoading(false); aiLoadingStop(); }
   };
 
   const gerarResumo = async () => {
     setResumoLoading(true); setResumoErr(null); setResumoTexto(null);
+    aiLoadingStart(engine || "blue", "pei");
     try {
       const res = await fetch("/api/pei/resumo-familia", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -2546,11 +2549,12 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
       if (!res.ok) throw new Error(data.error || "Erro");
       setResumoTexto(data.texto);
     } catch (e) { setResumoErr(e instanceof Error ? e.message : "Erro"); }
-    finally { setResumoLoading(false); }
+    finally { setResumoLoading(false); aiLoadingStop(); }
   };
 
   const gerarFaq = async () => {
     setFaqLoading(true); setFaqErr(null); setFaqData(null);
+    aiLoadingStart(engine || "blue", "pei");
     try {
       const res = await fetch("/api/pei/faq-caso", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -2560,7 +2564,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
       if (!res.ok) throw new Error(data.error || "Erro");
       setFaqData(data.faqs);
     } catch (e) { setFaqErr(e instanceof Error ? e.message : "Erro"); }
-    finally { setFaqLoading(false); }
+    finally { setFaqLoading(false); aiLoadingStop(); }
   };
 
   if (!peiData.nome) return null;
@@ -2871,6 +2875,7 @@ function ConsultoriaTab({
     }
     setLoading(true);
     setErro(null);
+    aiLoadingStart(engine || "red", "pei");
     try {
       const res = await fetch("/api/pei/consultoria", {
         method: "POST",
@@ -2893,6 +2898,7 @@ function ConsultoriaTab({
       setErro(e instanceof Error ? e.message : "Erro ao gerar.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -3786,6 +3792,7 @@ function LaudoPdfSection({
     setErro(null);
     setExtraido(null);
     setModoRevisao(false);
+    aiLoadingStart(engine || "orange", "pei");
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -3806,6 +3813,7 @@ function LaudoPdfSection({
       setErro(e instanceof Error ? e.message : "Erro ao processar laudo.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   }
 

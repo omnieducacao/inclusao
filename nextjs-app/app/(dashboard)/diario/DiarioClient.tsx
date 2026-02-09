@@ -3,6 +3,7 @@
 import { useState, useCallback, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
+import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { getColorClasses } from "@/lib/colors";
 import { Filter, Plus, List, BarChart3, Settings, Download, FileText, Calendar, Clock, Users, Loader2, Sparkles } from "lucide-react";
@@ -1234,6 +1235,7 @@ function AnaliseIADiario({ registros, student }: { registros: RegistroDiario[]; 
 
   const gerar = async () => {
     setLoading(true); setErro(null); setResultado(null);
+    aiLoadingStart("red", "diario");
     try {
       const res = await fetch("/api/diario/analise-ia", {
         method: "POST",
@@ -1265,6 +1267,7 @@ function AnaliseIADiario({ registros, student }: { registros: RegistroDiario[]; 
       setErro(e instanceof Error ? e.message : "Erro ao analisar.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 

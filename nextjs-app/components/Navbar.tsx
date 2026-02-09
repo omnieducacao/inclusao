@@ -7,6 +7,7 @@ import type { SessionPayload } from "@/lib/session";
 import type { Icon } from "phosphor-react";
 import { useState, useEffect } from "react";
 import { LottieIcon } from "./LottieIcon";
+import { useAILoading } from "@/hooks/useAILoading";
 
 type PermissionKey =
   | "can_estudantes"
@@ -168,6 +169,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   const router = useRouter();
   const [navIcons, setNavIcons] = useState<Awaited<ReturnType<typeof loadNavIcons>>>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const { state: aiState } = useAILoading();
 
   useEffect(() => {
     setIsMounted(true);
@@ -242,7 +244,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
           >
             <div className="flex items-center gap-2">
               <div className="relative">
-                <div className="flex items-center justify-center group-hover:scale-105 transition-transform omni-logo-spin">
+                <div className={`flex items-center justify-center group-hover:scale-105 transition-transform omni-logo-spin ${aiState.isLoading ? 'opacity-30' : ''}`}>
                   <Image
                     src="/omni_icone.png"
                     alt="Omnisfera"
@@ -252,7 +254,18 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
                     priority
                   />
                 </div>
-                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-[1.5px] border-white animate-pulse-soft" title="Sistema online" />
+                {aiState.isLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center omni-logo-spin-fast">
+                    <Image
+                      src="/omni_icone.png"
+                      alt=""
+                      width={36}
+                      height={36}
+                      className="object-contain"
+                    />
+                  </div>
+                )}
+                <div className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 ${aiState.isLoading ? 'bg-amber-400' : 'bg-emerald-400'} rounded-full border-[1.5px] border-white animate-pulse-soft`} title={aiState.isLoading ? 'IA processando' : 'Sistema online'} />
               </div>
               <img
                 src="/omni_texto.png"

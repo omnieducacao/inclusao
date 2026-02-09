@@ -376,3 +376,29 @@ h6 {
 .omni-logo-spin {
   animation: logo-spin 45s linear infinite;
 }
+
+/* ─── AI Loading: Fast Spin ─── */
+.omni-logo-spin-fast {
+  animation: logo-spin 0.8s linear infinite;
+}
+
+/* ─── AI Loading: Indeterminate Bar ─── */
+@keyframes indeterminate-bar {
+  0% {
+    transform: translateX(-100%);
+    width: 40%;
+  }
+
+  50% {
+    width: 60%;
+  }
+
+  100% {
+    transform: translateX(350%);
+    width: 40%;
+  }
+}
+
+.animate-indeterminate-bar {
+  animation: indeterminate-bar 1.8s ease-in-out infinite;
+}

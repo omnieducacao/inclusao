@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
+import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { EngineSelector } from "@/components/EngineSelector";
 import { ImageCropper } from "@/components/ImageCropper";
 import { detectarNivelEnsino } from "@/lib/pei";
@@ -427,6 +428,7 @@ function CriarDoZero({
     setResultado(null);
     setMapaImagensResultado({});
     setValidado(false);
+    aiLoadingStart(engine || "green", "hub");
     try {
       const res = await fetch("/api/hub/criar-atividade", {
         method: "POST",
@@ -511,6 +513,7 @@ function CriarDoZero({
       setErro(e instanceof Error ? e.message : "Erro ao gerar atividade.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -938,6 +941,7 @@ function PapoDeMestre({
     setErro(null);
     setResultado(null);
     setValidado(false);
+    aiLoadingStart(engine || "green", "hub");
     try {
       const res = await fetch("/api/hub/papo-mestre", {
         method: "POST",
@@ -958,6 +962,7 @@ function PapoDeMestre({
       setErro(e instanceof Error ? e.message : "Erro ao gerar conexões.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -1140,6 +1145,7 @@ function PlanoAulaDua({
     setErro(null);
     setResultado(null);
     setValidado(false);
+    aiLoadingStart(engine || "green", "hub");
     try {
       const res = await fetch("/api/hub/plano-aula", {
         method: "POST",
@@ -1167,6 +1173,7 @@ function PlanoAulaDua({
       setErro(e instanceof Error ? e.message : "Erro ao gerar plano.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -2930,7 +2937,7 @@ function AdaptarAtividade({
         console.error("Erro na API adaptar-atividade:", data);
         throw new Error(data.error || "Erro ao adaptar");
       }
-      
+
       // Processar imagens se houver imagem separada
       const novoMapa: Record<number, string> = {};
       if (temImagemSeparada && imagemSeparadaParaEnvio) {
@@ -2949,7 +2956,7 @@ function AdaptarAtividade({
           console.error("Erro ao processar imagem separada:", err);
         }
       }
-      
+
       // Se houver IMG_1 no texto (imagem principal), processar também
       if (croppedFile && data.texto?.includes("[[IMG_1]]")) {
         try {
@@ -2967,7 +2974,7 @@ function AdaptarAtividade({
           console.error("Erro ao processar imagem principal:", err);
         }
       }
-      
+
       setMapaImagensAdaptar(novoMapa);
       setResultado({ analise: data.analise || "", texto: data.texto || "" });
     } catch (e) {
@@ -3343,9 +3350,9 @@ function AdaptarAtividade({
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Atividade Adaptada (DUA)</span>
               <span className="flex gap-2">
-                <DocxDownloadButton 
-                  texto={`${resultado.analise}\n\n---\n\n${resultado.texto}`} 
-                  titulo="Atividade Adaptada (DUA)" 
+                <DocxDownloadButton
+                  texto={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
+                  titulo="Atividade Adaptada (DUA)"
                   filename={`Atividade_Adaptada_${new Date().toISOString().slice(0, 10)}.docx`}
                   mapaImagens={Object.keys(mapaImagensAdaptar).length > 0 ? mapaImagensAdaptar : undefined}
                 />
