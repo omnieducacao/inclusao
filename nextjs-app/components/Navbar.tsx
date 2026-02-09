@@ -309,6 +309,19 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               </div>
             </>
           )}
+          {/* Global Search Trigger */}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-slate-400 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200"
+            title="Buscar (⌘K)"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <span>Buscar...</span>
+            <span className="font-mono bg-slate-200 px-1 py-0.5 rounded text-[10px]">⌘K</span>
+          </button>
 
           {/* User Info & Logout */}
           <div className="flex items-center gap-3 ml-3 flex-shrink-0">
