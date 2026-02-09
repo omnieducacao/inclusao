@@ -9,8 +9,11 @@ async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise
   // Importar pdfjs-dist sem worker (server-side)
   // Usar import dinâmico para evitar problemas de build
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  const pdfjs = pdfjsLib.default || pdfjsLib;
+  const pdfjsModule = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  // O módulo pdfjs-dist/legacy/build/pdf.mjs pode exportar como default ou named exports
+  // Usar acesso via string para evitar erro de TypeScript no build
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pdfjs: any = (pdfjsModule as Record<string, any>)["default"] || pdfjsModule;
 
   // Desabilitar worker completamente - server-side não precisa
   // IMPORTANTE: Não tocar em GlobalWorkerOptions.workerSrc - isso causa erro de import "noworker"
