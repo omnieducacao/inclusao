@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
+import { HelpTooltip } from "@/components/HelpTooltip";
 
 // Helper para validar e parsear respostas JSON
 async function parseJsonResponse(res: Response, url?: string) {
@@ -1206,7 +1207,7 @@ export function PEIClient({
             <div>
               <h4 className="text-base font-semibold text-slate-800 mb-3">Contexto Clínico</h4>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Diagnóstico</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1 flex items-center gap-1.5">Diagnóstico <HelpTooltip fieldId="pei-diagnostico" /></label>
                 <input
                   type="text"
                   value={peiData.diagnostico || ""}
@@ -1512,7 +1513,7 @@ export function PEIClient({
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Hiperfoco (se houver)</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1.5">Hiperfoco (se houver) <HelpTooltip fieldId="pei-hiperfoco" /></label>
                   <input
                     type="text"
                     value={peiData.hiperfoco || ""}

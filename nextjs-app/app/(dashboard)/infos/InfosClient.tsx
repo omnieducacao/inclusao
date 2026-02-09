@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { RestartTourButton } from "@/components/GuidedTour";
 import {
   BookMarked,
   BarChart3,
@@ -730,6 +731,11 @@ export default function InfosClient() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+
+              {/* Restart Tour */}
+              <div className="flex justify-center pt-2">
+                <RestartTourButton />
               </div>
             </div>
           </div>
