@@ -60,6 +60,16 @@ export async function gerarImagemInteligente(
 
   // Se prioridade é IA ou BANCO não retornou, tenta IA
   if (prioridade === "IA" && openaiKey) {
+    // Validar que não é uma chave do OpenRouter
+    if (openaiKey.startsWith("sk-or-")) {
+      console.error("OPENAI_API_KEY é uma chave do OpenRouter. Use uma chave válida do OpenAI.");
+      // Fallback para Unsplash se chave inválida
+      if (unsplashKey) {
+        const termo = prompt.split(".")[0] || prompt;
+        return await buscarImagemUnsplash(termo, unsplashKey);
+      }
+      return null;
+    }
     try {
       // Importar OpenAI dinamicamente para uso no servidor
       const OpenAI = (await import("openai")).default;

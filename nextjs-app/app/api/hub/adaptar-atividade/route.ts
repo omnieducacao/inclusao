@@ -147,7 +147,14 @@ export async function POST(req: Request) {
       } catch (geminiError) {
         console.error("Erro ao usar Gemini com múltiplas imagens, tentando fallback OpenAI:", geminiError);
         // Fallback: usar OpenAI gpt-4o que também suporta múltiplas imagens
-        const openaiKey = process.env.OPENAI_API_KEY;
+        const openaiKeyRaw = process.env.OPENAI_API_KEY || "";
+        if (openaiKeyRaw.startsWith("sk-or-")) {
+          throw new Error(
+            "OPENAI_API_KEY está configurada com uma chave do OpenRouter (sk-or-...). " +
+            "Configure uma chave válida do OpenAI (sk-...) para usar visão com múltiplas imagens."
+          );
+        }
+        const openaiKey = openaiKeyRaw.trim();
         if (openaiKey) {
           try {
             const OpenAI = (await import("openai")).default;

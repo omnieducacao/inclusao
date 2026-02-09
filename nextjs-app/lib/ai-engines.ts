@@ -17,9 +17,37 @@ function getEnv(key: string): string {
   return (process.env[key] || "").trim();
 }
 
+/**
+ * Valida se uma chave do OpenAI não é uma chave do OpenRouter.
+ * OPENAI_API_KEY deve começar com "sk-" mas NÃO com "sk-or-" (que é OpenRouter).
+ * OPENROUTER_API_KEY começa com "sk-or-" e é apenas para engine "blue" (Kimi).
+ */
+function validateOpenAIKey(key: string, keyName: string = "OPENAI_API_KEY"): string {
+  if (!key) return key;
+  if (key.startsWith("sk-or-")) {
+    throw new Error(
+      `A variável ${keyName} está configurada com uma chave do OpenRouter (sk-or-...). ` +
+      `Configure uma chave válida do OpenAI (sk-... mas não sk-or-...). ` +
+      `Para usar Kimi/OpenRouter, configure OPENROUTER_API_KEY e use o engine "blue".`
+    );
+  }
+  if (!key.startsWith("sk-")) {
+    throw new Error(
+      `A variável ${keyName} não parece ser uma chave válida do OpenAI (deve começar com "sk-").`
+    );
+  }
+  return key;
+}
+
 function getApiKey(engine: EngineId, overrideKey?: string): string {
   const k = overrideKey?.trim();
-  if (k) return k;
+  if (k) {
+    // Se for engine orange e a chave for fornecida, validar
+    if (engine === "orange") {
+      return validateOpenAIKey(k, "apiKey override");
+    }
+    return k;
+  }
   switch (engine) {
     case "red":
       return getEnv("DEEPSEEK_API_KEY");
@@ -30,9 +58,9 @@ function getApiKey(engine: EngineId, overrideKey?: string): string {
     case "yellow":
       return getEnv("GEMINI_API_KEY");
     case "orange":
-      return getEnv("OPENAI_API_KEY");
+      return validateOpenAIKey(getEnv("OPENAI_API_KEY"));
     default:
-      return getEnv("OPENAI_API_KEY");
+      return validateOpenAIKey(getEnv("OPENAI_API_KEY"));
   }
 }
 
@@ -166,7 +194,11 @@ export function getVisionApiKey(): { engine: "yellow" | "orange"; key: string } 
   const gemini = getEnv("GEMINI_API_KEY");
   if (gemini) return { engine: "yellow", key: gemini };
   const openai = getEnv("OPENAI_API_KEY");
-  if (openai) return { engine: "orange", key: openai };
+  if (openai) {
+    // Validar que não é uma chave do OpenRouter
+    validateOpenAIKey(openai);
+    return { engine: "orange", key: openai };
+  }
   return null;
 }
 

@@ -15,7 +15,19 @@ export async function POST(req: Request) {
   }
 
   const unsplashKey = process.env.UNSPLASH_ACCESS_KEY || "";
-  const openaiKey = process.env.OPENAI_API_KEY || "";
+  const openaiKeyRaw = process.env.OPENAI_API_KEY || "";
+  // Validar que não é uma chave do OpenRouter
+  if (openaiKeyRaw.startsWith("sk-or-")) {
+    return NextResponse.json(
+      {
+        error:
+          "OPENAI_API_KEY está configurada com uma chave do OpenRouter (sk-or-...). " +
+          "Configure uma chave válida do OpenAI (sk-...) para gerar imagens.",
+      },
+      { status: 500 }
+    );
+  }
+  const openaiKey = openaiKeyRaw.trim();
 
   try {
     // Prioridade: BANCO (Unsplash) primeiro; IA só em último caso
