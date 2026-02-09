@@ -8,6 +8,7 @@ import type { Icon } from "phosphor-react";
 import { useState, useEffect } from "react";
 import { LottieIcon } from "./LottieIcon";
 import { useAILoading } from "@/hooks/useAILoading";
+import { NotificationBell } from "@/components/NotificationBell";
 
 type PermissionKey =
   | "can_estudantes"
@@ -322,6 +323,9 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
             <span>Buscar...</span>
             <span className="font-mono bg-slate-200 px-1 py-0.5 rounded text-[10px]">⌘K</span>
           </button>
+
+          {/* Notification Bell */}
+          <NotificationBell />
 
           {/* User Info & Logout */}
           <div className="flex items-center gap-3 ml-3 flex-shrink-0">

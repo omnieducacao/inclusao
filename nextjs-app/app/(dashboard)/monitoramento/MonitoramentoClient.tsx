@@ -5,7 +5,8 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { StudentSelector } from "@/components/StudentSelector";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
-import { CheckCircle2, Info, AlertTriangle, Save } from "lucide-react";
+import { CheckCircle2, Info, AlertTriangle, Save, Sparkles, Loader2 } from "lucide-react";
+import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 
 type Student = { id: string; name: string };
 type CicloPAEE = {
@@ -74,6 +75,48 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
   const [observacao, setObservacao] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [sugLoading, setSugLoading] = useState(false);
+
+  const sugerirRubricas = async () => {
+    if (!currentId) return;
+    setSugLoading(true);
+    setMessage(null);
+    aiLoadingStart("red", "monitoramento");
+    try {
+      const res = await fetch("/api/monitoring/sugerir-rubricas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId: currentId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage({ type: "err", text: data.error || "Erro ao sugerir rubricas." });
+        return;
+      }
+      if (data.rubricas) {
+        const map: Record<number, string> = { 1: "Não Iniciado", 2: "Iniciado", 3: "Em Desenvolvimento", 4: "Consolidado", 5: "Consolidado" };
+        const r = data.rubricas;
+        setRubrica({
+          autonomia: map[r.autonomia?.score] || "Em Desenvolvimento",
+          social: map[r.social?.score] || "Em Desenvolvimento",
+          conteudo: map[r.conteudo?.score] || "Em Desenvolvimento",
+          comportamento: map[r.comportamento?.score] || "Em Desenvolvimento",
+        });
+        const justifs = [r.autonomia, r.social, r.conteudo, r.comportamento]
+          .filter(Boolean)
+          .map((x: { justificativa?: string }) => x.justificativa)
+          .filter(Boolean)
+          .join(" | ");
+        setObservacao(r.resumo ? `${r.resumo}\n\nDetalhes: ${justifs}` : justifs);
+        setMessage({ type: "ok", text: "Rubricas sugeridas pela IA! Revise antes de salvar." });
+      }
+    } catch {
+      setMessage({ type: "err", text: "Erro ao sugerir rubricas." });
+    } finally {
+      setSugLoading(false);
+      aiLoadingStop();
+    }
+  };
 
   const peiData = student?.pei_data || {};
   const paeeCiclos = (student?.paee_ciclos || []) as CicloPAEE[];
@@ -272,7 +315,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
                       const observacoes = r.observacoes || "";
                       const engajamento = r.engajamento_aluno;
                       const modalidade = r.modalidade_atendimento;
-                      
+
                       const getModalidadeColor = (mod?: string | null) => {
                         switch (mod) {
                           case "individual": return "bg-blue-100 border-blue-300";
@@ -346,7 +389,19 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
 
           {/* Rubrica de Avaliação */}
           <div className="p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">Rubrica de Desenvolvimento</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-slate-800">Rubrica de Desenvolvimento</h3>
+              <button
+                type="button"
+                onClick={sugerirRubricas}
+                disabled={sugLoading}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 transition-all shadow-sm"
+                title="Analisa registros do Diário para sugerir pontuações"
+              >
+                {sugLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                Sugerir com IA
+              </button>
+            </div>
             <form onSubmit={handleSalvarAvaliacao} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.entries(CRITERIOS).map(([key, label]) => (

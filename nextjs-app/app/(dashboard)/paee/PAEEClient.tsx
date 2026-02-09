@@ -54,6 +54,8 @@ function PAEEClientInner({ students, studentId, student }: Props) {
   const [saved, setSaved] = useState(false);
   const [jornadaEngine, setJornadaEngine] = useState<EngineId>("red");
   const [paeeData, setPaeeData] = useState<Record<string, unknown>>({});
+  const [relatorio, setRelatorio] = useState<string | null>(null);
+  const [relLoading, setRelLoading] = useState(false);
 
   const ciclos = (student?.paee_ciclos || []) as CicloPAEE[];
 
@@ -487,6 +489,43 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                   >
                     Definir como ativo
                   </button>
+                  <button
+                    type="button"
+                    disabled={relLoading}
+                    onClick={async () => {
+                      setRelLoading(true);
+                      setRelatorio(null);
+                      aiLoadingStart(jornadaEngine || "red", "paee");
+                      try {
+                        const res = await fetch("/api/paee/relatorio-ciclo", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            studentId: currentId,
+                            ciclo: cicloSelecionadoPlanejamento,
+                            engine: jornadaEngine,
+                          }),
+                        });
+                        const data = await res.json();
+                        if (res.ok && data.texto) setRelatorio(data.texto);
+                      } catch { /* ignore */ } finally {
+                        setRelLoading(false);
+                        aiLoadingStop();
+                      }
+                    }}
+                    className="px-3 py-1.5 text-sm bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    {relLoading ? "Gerando..." : "📊 Relatório do Ciclo"}
+                  </button>
+                </div>
+              )}
+              {relatorio && (
+                <div className="mt-4 p-5 rounded-xl bg-violet-50 border border-violet-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-bold text-violet-900 flex items-center gap-2">📊 Relatório do Ciclo</h4>
+                    <button type="button" onClick={() => setRelatorio(null)} className="text-xs text-violet-400 hover:text-violet-600">Fechar</button>
+                  </div>
+                  <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap">{relatorio}</div>
                 </div>
               )}
 
