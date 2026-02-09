@@ -283,7 +283,7 @@ export function PEIClient({
       if (res.ok) {
         const data = await res.json();
         const novoEstudanteId = data.student?.id;
-        
+
         if (novoEstudanteId) {
           // Atualizar o ID do estudante selecionado
           setSelectedStudentId(novoEstudanteId);
@@ -291,7 +291,7 @@ export function PEIClient({
           const url = new URL(window.location.href);
           url.searchParams.set("student", novoEstudanteId);
           window.history.pushState({}, "", url.toString());
-          
+
           setSaved(true);
           setErroGlobal(null);
           setTimeout(() => setSaved(false), 3000);
@@ -362,12 +362,12 @@ export function PEIClient({
       console.log("useEffect ignorado - isLoadingRascunho está ativo");
       return;
     }
-    
+
     if (studentPendingId) {
       console.log("useEffect ignorado - studentPendingId está definido");
       return;
     }
-    
+
     if (selectedStudentId && selectedStudentId !== studentId) {
       console.log("useEffect executando para selectedStudentId:", selectedStudentId);
       setErroGlobal(null);
@@ -446,12 +446,12 @@ export function PEIClient({
         setJsonFileName("");
         setSaved(false);
         setErroGlobal(null);
-        
+
         // Limpar parâmetro student da URL para modo rascunho
         const url = new URL(window.location.href);
         url.searchParams.delete("student");
         window.history.pushState({}, "", url.toString());
-        
+
         console.log("✅ JSON aplicado! peiData deve ter", Object.keys(jsonPending).length, "campos agora");
       }, 0);
     }
@@ -466,7 +466,7 @@ export function PEIClient({
       setJsonFileName("");
       setSaved(false);
       setErroGlobal(null);
-      
+
       // Limpar parâmetro student da URL para modo rascunho
       const url = new URL(window.location.href);
       url.searchParams.delete("student");
@@ -747,7 +747,7 @@ export function PEIClient({
                               console.log("=== BOTÃO CARREGAR CLICADO ===");
                               console.log("studentPendingId:", studentPendingId);
                               console.log("studentPendingName:", studentPendingName);
-                              
+
                               // Usar o valor atual diretamente
                               const idToLoad = studentPendingId;
                               console.log("idToLoad:", idToLoad);
@@ -756,7 +756,7 @@ export function PEIClient({
                                 console.error("idToLoad está vazio!");
                                 return;
                               }
-                              
+
                               setErroGlobal(null);
                               const studentFromList = students.find((s) => s.id === idToLoad);
                               if (!studentFromList) {
@@ -774,7 +774,7 @@ export function PEIClient({
                                 console.log("Tentando API principal:", apiUrl);
                                 let res = await fetch(apiUrl);
                                 console.log("Resposta da API principal:", res.status, res.ok);
-                                
+
                                 // Se falhar, tentar a rota alternativa que busca apenas pei_data
                                 if (!res.ok) {
                                   console.log("API principal falhou, tentando rota alternativa...");
@@ -782,7 +782,7 @@ export function PEIClient({
                                   res = await fetch(apiUrl);
                                   console.log("Resposta da API alternativa:", res.status, res.ok);
                                 }
-                                
+
                                 if (!res.ok) {
                                   // Tentar ler a mensagem de erro
                                   let errorMessage = "Estudante não encontrado";
@@ -793,14 +793,14 @@ export function PEIClient({
                                   } catch (e) {
                                     console.error("Erro ao ler resposta de erro:", e);
                                   }
-                                  
+
                                   console.error("❌ Não foi possível buscar o PEI:", {
                                     id: idToLoad,
                                     status: res.status,
                                     statusText: res.statusText,
                                     errorMessage
                                   });
-                                  
+
                                   setErroGlobal(`Erro: ${errorMessage} (Status: ${res.status})`);
                                   alert(`Erro ao buscar PEI: ${errorMessage}\n\nID: ${idToLoad}\nStatus: ${res.status}\n\nO estudante pode não ter PEI salvo ainda.`);
                                   setIsLoadingRascunho(false);
@@ -809,32 +809,32 @@ export function PEIClient({
 
                                 const data = await res.json();
                                 console.log("✅ Dados recebidos da API:", data);
-                                
+
                                 // A rota alternativa retorna { pei_data: ... }, a principal retorna { pei_data: ..., id: ..., name: ... }
                                 // Pegar o pei_data de qualquer uma das rotas
                                 const peiDataJson = data.pei_data;
                                 console.log("Tem pei_data?", !!peiDataJson);
-                                
+
                                 if (peiDataJson && typeof peiDataJson === 'object' && !Array.isArray(peiDataJson)) {
                                   // Usar a MESMA lógica que funciona para JSON local
                                   // Colocar em jsonPending e usar aplicarJson()
                                   const campos = Object.keys(peiDataJson);
                                   console.log("✅ JSON encontrado no Supabase com", campos.length, "campos");
                                   console.log("Primeiros campos:", campos.slice(0, 10));
-                                  
+
                                   // Criar cópia profunda do JSON (mesmo que FileReader faz)
                                   const jsonCopiado = JSON.parse(JSON.stringify(peiDataJson)) as PEIData;
-                                  
+
                                   // Colocar em jsonPending (mesmo que o upload de arquivo faz)
                                   // O useEffect vai detectar e aplicar automaticamente
                                   setJsonPending(jsonCopiado);
                                   setJsonFileName(`PEI_${studentFromList.name}_do_Supabase.json`);
-                                  
+
                                   // Limpar estados de seleção
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setIsLoadingRascunho(false);
-                                  
+
                                   console.log("✅ JSON colocado em jsonPending, useEffect vai aplicar automaticamente");
                                 } else {
                                   // Estudante encontrado mas sem pei_data
@@ -1942,9 +1942,9 @@ export function PEIClient({
         )}
 
         {activeTab === "dashboard" && (
-          <DashboardTab 
-            peiData={peiData} 
-            currentStudentId={currentStudentId} 
+          <DashboardTab
+            peiData={peiData}
+            currentStudentId={currentStudentId}
             updateField={updateField}
             onSave={handleSave}
             saving={saving}
@@ -2493,6 +2493,215 @@ function DashboardTab({
           className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
         />
       </div>
+
+      {/* ============================================================ */}
+      {/* 🤖 INTELIGÊNCIA DO CASO                                      */}
+      {/* ============================================================ */}
+      <InteligenciaDoCaso peiData={peiData} />
+    </div>
+  );
+}
+
+// ================================================================
+// Sub-componente: Inteligência do Caso (Mapa Mental, Resumo, FAQ)
+// ================================================================
+function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
+  const [engine, setEngine] = useState<EngineId>("red");
+  // Mapa Mental
+  const [mapaLoading, setMapaLoading] = useState(false);
+  const [mapaData, setMapaData] = useState<{ centro: string; ramos: { titulo: string; cor: string; icone: string; filhos: string[] }[] } | null>(null);
+  const [mapaErr, setMapaErr] = useState<string | null>(null);
+  // Resumo Família
+  const [resumoLoading, setResumoLoading] = useState(false);
+  const [resumoTexto, setResumoTexto] = useState<string | null>(null);
+  const [resumoErr, setResumoErr] = useState<string | null>(null);
+  // FAQ
+  const [faqLoading, setFaqLoading] = useState(false);
+  const [faqData, setFaqData] = useState<{ pergunta: string; resposta: string }[] | null>(null);
+  const [faqErr, setFaqErr] = useState<string | null>(null);
+  const [faqOpen, setFaqOpen] = useState<number | null>(null);
+
+  const gerarMapa = async () => {
+    setMapaLoading(true); setMapaErr(null); setMapaData(null);
+    try {
+      const res = await fetch("/api/pei/mapa-mental", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ peiData, engine }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro");
+      setMapaData(data.mapa);
+    } catch (e) { setMapaErr(e instanceof Error ? e.message : "Erro"); }
+    finally { setMapaLoading(false); }
+  };
+
+  const gerarResumo = async () => {
+    setResumoLoading(true); setResumoErr(null); setResumoTexto(null);
+    try {
+      const res = await fetch("/api/pei/resumo-familia", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ peiData, engine }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro");
+      setResumoTexto(data.texto);
+    } catch (e) { setResumoErr(e instanceof Error ? e.message : "Erro"); }
+    finally { setResumoLoading(false); }
+  };
+
+  const gerarFaq = async () => {
+    setFaqLoading(true); setFaqErr(null); setFaqData(null);
+    try {
+      const res = await fetch("/api/pei/faq-caso", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ peiData, engine }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro");
+      setFaqData(data.faqs);
+    } catch (e) { setFaqErr(e instanceof Error ? e.message : "Erro"); }
+    finally { setFaqLoading(false); }
+  };
+
+  if (!peiData.nome) return null;
+
+  return (
+    <div className="mt-8">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-violet-600" />
+          <h4 className="text-base font-semibold text-slate-800">Inteligência do Caso</h4>
+        </div>
+        <div className="w-48">
+          <EngineSelector value={engine} onChange={setEngine} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Card: Mapa Mental */}
+        <button
+          type="button"
+          onClick={gerarMapa}
+          disabled={mapaLoading}
+          className="group p-5 rounded-2xl border-2 border-dashed border-violet-200 hover:border-violet-400 bg-gradient-to-br from-violet-50 to-white transition-all hover:shadow-lg text-left disabled:opacity-60"
+        >
+          <div className="text-3xl mb-3">🧠</div>
+          <h5 className="font-semibold text-slate-800 mb-1 group-hover:text-violet-700 transition-colors">Mapa Mental</h5>
+          <p className="text-xs text-slate-500">
+            {mapaLoading ? "Gerando mapa mental..." : "Visualize o perfil completo como mapa interativo"}
+          </p>
+          {mapaLoading && <Loader2 className="w-4 h-4 animate-spin text-violet-500 mt-2" />}
+        </button>
+
+        {/* Card: Resumo Família */}
+        <button
+          type="button"
+          onClick={gerarResumo}
+          disabled={resumoLoading}
+          className="group p-5 rounded-2xl border-2 border-dashed border-emerald-200 hover:border-emerald-400 bg-gradient-to-br from-emerald-50 to-white transition-all hover:shadow-lg text-left disabled:opacity-60"
+        >
+          <div className="text-3xl mb-3">👨‍👩‍👧</div>
+          <h5 className="font-semibold text-slate-800 mb-1 group-hover:text-emerald-700 transition-colors">Resumo para Família</h5>
+          <p className="text-xs text-slate-500">
+            {resumoLoading ? "Preparando resumo acolhedor..." : "Relatório com linguagem sem jargão para reunião"}
+          </p>
+          {resumoLoading && <Loader2 className="w-4 h-4 animate-spin text-emerald-500 mt-2" />}
+        </button>
+
+        {/* Card: FAQ */}
+        <button
+          type="button"
+          onClick={gerarFaq}
+          disabled={faqLoading}
+          className="group p-5 rounded-2xl border-2 border-dashed border-amber-200 hover:border-amber-400 bg-gradient-to-br from-amber-50 to-white transition-all hover:shadow-lg text-left disabled:opacity-60"
+        >
+          <div className="text-3xl mb-3">❓</div>
+          <h5 className="font-semibold text-slate-800 mb-1 group-hover:text-amber-700 transition-colors">FAQ do Caso</h5>
+          <p className="text-xs text-slate-500">
+            {faqLoading ? "Gerando perguntas e respostas..." : "Perguntas frequentes com respostas práticas"}
+          </p>
+          {faqLoading && <Loader2 className="w-4 h-4 animate-spin text-amber-500 mt-2" />}
+        </button>
+      </div>
+
+      {/* Erros */}
+      {mapaErr && <p className="text-red-600 text-sm mb-3">❌ Mapa Mental: {mapaErr}</p>}
+      {resumoErr && <p className="text-red-600 text-sm mb-3">❌ Resumo: {resumoErr}</p>}
+      {faqErr && <p className="text-red-600 text-sm mb-3">❌ FAQ: {faqErr}</p>}
+
+      {/* ====== RESULTADO: MAPA MENTAL ====== */}
+      {mapaData && (
+        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-violet-50 to-slate-50 border border-violet-200">
+          <h5 className="font-bold text-violet-800 text-lg mb-6 text-center">🧠 {mapaData.centro}</h5>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {mapaData.ramos.map((ramo, i) => (
+              <div
+                key={i}
+                className="rounded-xl p-4 bg-white shadow-sm transition-all hover:shadow-md"
+                style={{ borderLeft: `4px solid ${ramo.cor}` }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xl">{ramo.icone}</span>
+                  <span className="font-semibold text-sm" style={{ color: ramo.cor }}>{ramo.titulo}</span>
+                </div>
+                <ul className="space-y-1.5">
+                  {ramo.filhos.map((filho, j) => (
+                    <li key={j} className="text-xs text-slate-700 flex items-start gap-1.5">
+                      <span className="mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: ramo.cor }} />
+                      {filho}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ====== RESULTADO: RESUMO FAMÍLIA ====== */}
+      {resumoTexto && (
+        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-emerald-50 to-slate-50 border border-emerald-200">
+          <div className="flex justify-between items-center mb-4">
+            <h5 className="font-bold text-emerald-800 text-lg">👨‍👩‍👧 Resumo para Família</h5>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(resumoTexto)}
+              className="px-3 py-1.5 text-xs bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors"
+            >
+              📋 Copiar
+            </button>
+          </div>
+          <div className="prose prose-sm prose-emerald max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap">
+            {resumoTexto}
+          </div>
+        </div>
+      )}
+
+      {/* ====== RESULTADO: FAQ ====== */}
+      {faqData && (
+        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-amber-50 to-slate-50 border border-amber-200">
+          <h5 className="font-bold text-amber-800 text-lg mb-4">❓ FAQ do Caso — {peiData.nome}</h5>
+          <div className="space-y-2">
+            {faqData.map((item, i) => (
+              <div key={i} className="rounded-xl bg-white border border-amber-100 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setFaqOpen(faqOpen === i ? null : i)}
+                  className="w-full px-4 py-3 text-left flex justify-between items-center hover:bg-amber-50 transition-colors"
+                >
+                  <span className="text-sm font-medium text-slate-800">{item.pergunta}</span>
+                  <span className="text-slate-400 text-lg ml-2 flex-shrink-0">{faqOpen === i ? "−" : "+"}</span>
+                </button>
+                {faqOpen === i && (
+                  <div className="px-4 pb-3 text-sm text-slate-600 leading-relaxed border-t border-amber-100 pt-3">
+                    {item.resposta}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

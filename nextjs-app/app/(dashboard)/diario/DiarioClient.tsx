@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { getColorClasses } from "@/lib/colors";
-import { Filter, Plus, List, BarChart3, Settings, Download, FileText, Calendar, Clock, Users } from "lucide-react";
+import { Filter, Plus, List, BarChart3, Settings, Download, FileText, Calendar, Clock, Users, Loader2, Sparkles } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 
 type Student = { id: string; name: string };
@@ -212,11 +212,10 @@ function DiarioClientInner({ students, studentId, student }: Props) {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${
-              activeTab === tab.id
-                ? "border-rose-600 text-rose-600"
-                : "border-transparent text-slate-600 hover:text-slate-900"
-            }`}
+            className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${activeTab === tab.id
+              ? "border-rose-600 text-rose-600"
+              : "border-transparent text-slate-600 hover:text-slate-900"
+              }`}
           >
             {tab.label}
           </button>
@@ -567,17 +566,15 @@ function ListaTab({
           <div className="flex gap-2">
             <button
               onClick={() => setViewMode("lista")}
-              className={`px-3 py-1 text-sm rounded-lg ${
-                viewMode === "lista" ? "bg-rose-600 text-white" : "bg-slate-100 text-slate-700"
-              }`}
+              className={`px-3 py-1 text-sm rounded-lg ${viewMode === "lista" ? "bg-rose-600 text-white" : "bg-slate-100 text-slate-700"
+                }`}
             >
               Lista
             </button>
             <button
               onClick={() => setViewMode("timeline")}
-              className={`px-3 py-1 text-sm rounded-lg ${
-                viewMode === "timeline" ? "bg-rose-600 text-white" : "bg-slate-100 text-slate-700"
-              }`}
+              className={`px-3 py-1 text-sm rounded-lg ${viewMode === "timeline" ? "bg-rose-600 text-white" : "bg-slate-100 text-slate-700"
+                }`}
             >
               Timeline
             </button>
@@ -643,13 +640,12 @@ function TimelineView({
             <div key={r.registro_id || idx} className="relative flex items-start gap-4">
               {/* Ponto na timeline */}
               <div className="relative z-10 flex-shrink-0">
-                <div className={`w-4 h-4 rounded-full border-2 ${
-                  r.modalidade_atendimento === "individual" ? "bg-blue-500 border-blue-700" :
+                <div className={`w-4 h-4 rounded-full border-2 ${r.modalidade_atendimento === "individual" ? "bg-blue-500 border-blue-700" :
                   r.modalidade_atendimento === "grupo" ? "bg-green-500 border-green-700" :
-                  r.modalidade_atendimento === "observacao_sala" ? "bg-yellow-500 border-yellow-700" :
-                  r.modalidade_atendimento === "consultoria" ? "bg-purple-500 border-purple-700" :
-                  "bg-slate-500 border-slate-700"
-                }`} />
+                    r.modalidade_atendimento === "observacao_sala" ? "bg-yellow-500 border-yellow-700" :
+                      r.modalidade_atendimento === "consultoria" ? "bg-purple-500 border-purple-700" :
+                        "bg-slate-500 border-slate-700"
+                  }`} />
               </div>
               {/* Card do registro */}
               <div className={`flex-1 border-2 rounded-lg p-4 ${getModalidadeColor(r.modalidade_atendimento || "")}`}>
@@ -1040,6 +1036,9 @@ function RelatoriosTab({ registros, student }: { registros: RegistroDiario[]; st
         </div>
       )}
 
+      {/* 🤖 Análise IA */}
+      <AnaliseIADiario registros={registros} student={student} />
+
       {/* Exportação */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
         <h3 className="text-xl font-bold text-slate-900 mb-4">💾 Exportar Dados</h3>
@@ -1221,6 +1220,102 @@ function ConfiguracoesTab() {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ================================================================
+// Sub-componente: Análise IA do Diário
+// ================================================================
+function AnaliseIADiario({ registros, student }: { registros: RegistroDiario[]; student: StudentFull }) {
+  const [loading, setLoading] = useState(false);
+  const [resultado, setResultado] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const gerar = async () => {
+    setLoading(true); setErro(null); setResultado(null);
+    try {
+      const res = await fetch("/api/diario/analise-ia", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          registros: registros.slice(0, 30).map((r) => ({
+            data_sessao: r.data_sessao,
+            duracao_minutos: r.duracao_minutos,
+            modalidade_atendimento: r.modalidade_atendimento,
+            atividade_principal: r.atividade_principal,
+            objetivos_trabalhados: r.objetivos_trabalhados,
+            estrategias_utilizadas: r.estrategias_utilizadas,
+            engajamento_aluno: r.engajamento_aluno,
+            nivel_dificuldade: r.nivel_dificuldade,
+            competencias_trabalhadas: r.competencias_trabalhadas,
+            pontos_positivos: r.pontos_positivos,
+            dificuldades_identificadas: r.dificuldades_identificadas,
+            proximos_passos: r.proximos_passos,
+          })),
+          nomeEstudante: student.name,
+          diagnostico: (student.pei_data?.diagnostico as string) || "",
+          engine: "red",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro");
+      setResultado(data.texto);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro ao analisar.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (registros.length < 2) return null;
+
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-violet-600" />
+          Análise IA dos Registros
+        </h3>
+        <button
+          type="button"
+          onClick={gerar}
+          disabled={loading}
+          className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-60 flex items-center gap-2 text-sm transition-colors"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Analisando padrões...
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4" />
+              Analisar com IA
+            </>
+          )}
+        </button>
+      </div>
+      <p className="text-sm text-slate-500 mb-4">
+        A IA analisa os registros e identifica tendências de engajamento, competências em progresso, alertas e recomendações práticas.
+      </p>
+      {erro && <p className="text-red-600 text-sm mb-3">❌ {erro}</p>}
+      {resultado && (
+        <div className="p-5 rounded-xl bg-gradient-to-br from-violet-50 to-slate-50 border border-violet-200">
+          <div className="flex justify-end mb-2">
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(resultado)}
+              className="px-3 py-1 text-xs bg-violet-100 text-violet-700 rounded hover:bg-violet-200 transition-colors"
+            >
+              📋 Copiar
+            </button>
+          </div>
+          <div className="prose prose-sm prose-violet max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap">
+            {resultado}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

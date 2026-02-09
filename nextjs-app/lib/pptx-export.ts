@@ -1,7 +1,24 @@
 /**
- * Gera PPTX (PowerPoint) a partir do texto do plano de aula.
- * Versão simplificada - converte texto em slides estruturados.
+ * Gera PPTX (PowerPoint) premium a partir do plano de aula.
+ * Templates visuais com gradientes, formas decorativas e tipografia profissional.
  */
+
+// Cores do design system Omnisfera
+const COLORS = {
+  primary: "0D9488",      // teal-600
+  primaryDark: "0F766E",  // teal-700
+  primaryLight: "CCFBF1", // teal-100
+  accent: "7C3AED",       // violet-600
+  accentLight: "EDE9FE",  // violet-100
+  slate900: "0F172A",
+  slate700: "334155",
+  slate500: "64748B",
+  slate200: "E2E8F0",
+  slate50: "F8FAFC",
+  white: "FFFFFF",
+  warm: "FFF7ED",         // orange-50
+};
+
 export function gerarPptxPlanoAula(
   texto: string,
   titulo: string = "Plano de Aula DUA",
@@ -12,165 +29,216 @@ export function gerarPptxPlanoAula(
   import("pptxgenjs").then((module) => {
     const PptxGen = (module.default || module) as any;
     const pptx = new PptxGen();
-    
-    // Configurações da apresentação
+
     pptx.layout = "LAYOUT_WIDE" as any;
     pptx.author = "Omnisfera";
     pptx.company = "Omni Soluções Educacionais";
     pptx.title = titulo;
     pptx.subject = nomeEstudante ? `Plano de Aula - ${nomeEstudante}` : "Plano de Aula DUA";
 
-    // Slide de capa
+    // ======== SLIDE DE CAPA ========
     const slideCover = pptx.addSlide();
-    slideCover.background = { color: "F0FDFA" };
-    slideCover.addText(titulo, {
-      x: 0.5,
-      y: 2.5,
-      w: 9,
-      h: 1.5,
-      fontSize: 44,
-      bold: true,
-      color: "0F766E",
-      align: "center",
+    slideCover.background = { color: COLORS.primaryDark };
+
+    // Faixa decorativa diagonal (simulada com retângulo)
+    slideCover.addShape(pptx.ShapeType.rect as any, {
+      x: -0.5, y: 5.5, w: 14, h: 2.5,
+      fill: { color: COLORS.primary },
+      rotate: -3,
     });
+
+    // Círculo decorativo
+    slideCover.addShape(pptx.ShapeType.ellipse as any, {
+      x: 9, y: -1, w: 4, h: 4,
+      fill: { color: COLORS.primary },
+    });
+
+    // Título
+    slideCover.addText(titulo, {
+      x: 0.8, y: 1.5, w: 8, h: 1.6,
+      fontSize: 44, bold: true, color: COLORS.white,
+      fontFace: "Calibri",
+    });
+
+    // Subtítulo com nome
     if (nomeEstudante) {
       slideCover.addText(`Plano personalizado para ${nomeEstudante}`, {
-        x: 0.5,
-        y: 4,
-        w: 9,
-        h: 0.8,
-        fontSize: 20,
-        italic: true,
-        color: "64748B",
-        align: "center",
+        x: 0.8, y: 3.2, w: 8, h: 0.7,
+        fontSize: 20, italic: true, color: COLORS.primaryLight,
+        fontFace: "Calibri",
       });
     }
-    slideCover.addText(new Date().toLocaleDateString("pt-BR"), {
-      x: 0.5,
-      y: 5.5,
-      w: 9,
-      h: 0.5,
-      fontSize: 14,
-      color: "64748B",
-      align: "center",
+
+    // Data
+    slideCover.addText(new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }), {
+      x: 0.8, y: 4.2, w: 8, h: 0.5,
+      fontSize: 14, color: COLORS.primaryLight,
+      fontFace: "Calibri",
     });
 
-    // Processar texto em seções
-    const linhas = texto.split("\n").filter((l) => l.trim());
-    let slideAtual: any = null;
-    let conteudoAtual: string[] = [];
-    let tituloSlide = "";
+    // Logo text
+    slideCover.addText("Omnisfera", {
+      x: 0.8, y: 6.2, w: 3, h: 0.5,
+      fontSize: 16, bold: true, color: COLORS.white,
+      fontFace: "Calibri",
+    });
 
-    const criarSlide = (titulo: string, conteudo: string[]) => {
-      const slide = pptx.addSlide();
-      slide.background = { color: "FFFFFF" };
-      
-      // Barra superior decorativa
-      slide.addShape(pptx.ShapeType.rect as any, {
-        x: 0.5,
-        y: 0.2,
-        w: 9,
-        h: 0.05,
-        fill: { color: "0F766E" },
-        line: { color: "0F766E", width: 0 },
-      });
+    // ======== PROCESSAR SEÇÕES ========
+    const secoes = parsearSecoes(texto);
 
-      // Título do slide
-      slide.addText(titulo, {
-        x: 0.5,
-        y: 0.5,
-        w: 9,
-        h: 0.6,
-        fontSize: 28,
-        bold: true,
-        color: "0F766E",
-      });
+    const slideColors = [
+      COLORS.primary,
+      COLORS.accent,
+      "E11D48",   // rose
+      "EA580C",   // orange
+      "2563EB",   // blue
+      "16A34A",   // green
+    ];
 
-      // Conteúdo
-      if (conteudo.length > 0) {
-        const textoConteudo = conteudo.join("\n");
-        slide.addText(textoConteudo, {
-          x: 0.5,
-          y: 1.3,
-          w: 9,
-          h: 4.5,
-          fontSize: 18,
-          color: "0F172A",
-          bullet: true,
-        });
-      }
-    };
+    secoes.forEach((secao, idx) => {
+      const corAccent = slideColors[idx % slideColors.length];
+      criarSlideConteudo(pptx, secao.titulo, secao.itens, corAccent);
+    });
 
-    for (const linha of linhas) {
-      const l = linha.trim();
-      if (!l) continue;
-
-      // Detectar títulos (linhas em maiúsculas ou começando com #)
-      const isTitulo = 
-        (l.length < 100 && l === l.toUpperCase() && l.length > 3 && !l.includes(":")) ||
-        l.startsWith("#") ||
-        l.startsWith("##") ||
-        l.startsWith("###");
-
-      if (isTitulo) {
-        // Salvar slide anterior se houver conteúdo
-        if (slideAtual && (tituloSlide || conteudoAtual.length > 0)) {
-          criarSlide(tituloSlide || "Conteúdo", conteudoAtual);
-        }
-        // Novo slide
-        tituloSlide = l.replace(/^#+\s*/, "").replace(/\*\*/g, "").trim();
-        conteudoAtual = [];
-        slideAtual = null;
-      } else {
-        // Adicionar ao conteúdo atual
-        const textoLimpo = l.replace(/\*\*/g, "").replace(/^[-•]\s*/, "").trim();
-        if (textoLimpo) {
-          conteudoAtual.push(textoLimpo);
-        }
-      }
+    // Se não há seções detectadas, criar um slide com todo o texto
+    if (secoes.length === 0) {
+      criarSlideConteudo(pptx, "Plano de Aula", texto.split("\n").filter(l => l.trim()), COLORS.primary);
     }
 
-    // Criar último slide se houver conteúdo
-    if (tituloSlide || conteudoAtual.length > 0) {
-      criarSlide(tituloSlide || "Conteúdo", conteudoAtual);
-    }
+    // ======== SLIDE FINAL ========
+    const slideFinal = pptx.addSlide();
+    slideFinal.background = { color: COLORS.primaryDark };
 
-    // Se não criou nenhum slide de conteúdo, criar um com todo o texto
-    if (pptx.slides.length === 1) {
-      const slide = pptx.addSlide();
-      slide.background = { color: "FFFFFF" };
-      slide.addShape(pptx.ShapeType.rect as any, {
-        x: 0.5,
-        y: 0.2,
-        w: 9,
-        h: 0.05,
-        fill: { color: "0F766E" },
-        line: { color: "0F766E", width: 0 },
-      });
-      slide.addText("Plano de Aula", {
-        x: 0.5,
-        y: 0.5,
-        w: 9,
-        h: 0.6,
-        fontSize: 28,
-        bold: true,
-        color: "0F766E",
-      });
-      slide.addText(texto, {
-        x: 0.5,
-        y: 1.3,
-        w: 9,
-        h: 5.5,
-        fontSize: 16,
-        color: "0F172A",
-      });
-    }
+    slideFinal.addShape(pptx.ShapeType.rect as any, {
+      x: -0.5, y: -0.5, w: 14, h: 2.5,
+      fill: { color: COLORS.primary },
+      rotate: 2,
+    });
 
-    // Salvar arquivo
+    slideFinal.addText("Omnisfera", {
+      x: 0, y: 2, w: 13.33, h: 1.5,
+      fontSize: 48, bold: true, color: COLORS.white,
+      fontFace: "Calibri", align: "center",
+    });
+    slideFinal.addText("Educação inclusiva impulsionada por inteligência artificial", {
+      x: 0, y: 3.5, w: 13.33, h: 0.8,
+      fontSize: 18, italic: true, color: COLORS.primaryLight,
+      fontFace: "Calibri", align: "center",
+    });
+    slideFinal.addText("© Omni Soluções Educacionais", {
+      x: 0, y: 6.2, w: 13.33, h: 0.5,
+      fontSize: 12, color: COLORS.primaryLight,
+      fontFace: "Calibri", align: "center",
+    });
+
+    // Salvar
     const nomeArquivo = `Plano_Aula_${nomeEstudante ? nomeEstudante.replace(/\s+/g, "_") + "_" : ""}${new Date().toISOString().slice(0, 10)}.pptx`;
     pptx.writeFile({ fileName: nomeArquivo });
   }).catch((err) => {
     console.error("Erro ao gerar PPTX:", err);
     alert("Erro ao gerar PowerPoint. Tente novamente.");
+  });
+}
+
+// ================================================================
+// Parser de seções do texto Markdown
+// ================================================================
+function parsearSecoes(texto: string): { titulo: string; itens: string[] }[] {
+  const linhas = texto.split("\n");
+  const secoes: { titulo: string; itens: string[] }[] = [];
+  let secAtual: { titulo: string; itens: string[] } | null = null;
+
+  for (const linha of linhas) {
+    const l = linha.trim();
+    if (!l) continue;
+
+    const isTitulo =
+      l.startsWith("###") || l.startsWith("##") || l.startsWith("#") ||
+      (l.length < 100 && l === l.toUpperCase() && l.length > 3 && !l.includes(":"));
+
+    if (isTitulo) {
+      if (secAtual && (secAtual.titulo || secAtual.itens.length > 0)) {
+        secoes.push(secAtual);
+      }
+      const tituloLimpo = l.replace(/^#+\s*/, "").replace(/\*\*/g, "").replace(/[🎯📊📈📝✅🧩⚠️💡🏁🎓🔍📋🏥🌟🚀]/g, "").trim();
+      secAtual = { titulo: tituloLimpo, itens: [] };
+    } else if (secAtual) {
+      const item = l.replace(/\*\*/g, "").replace(/^[-•]\s*/, "").replace(/^\d+\.\s*/, "").trim();
+      if (item) secAtual.itens.push(item);
+    } else {
+      // Items without a header
+      if (!secAtual) secAtual = { titulo: "Conteúdo", itens: [] };
+      const item = l.replace(/\*\*/g, "").replace(/^[-•]\s*/, "").trim();
+      if (item) secAtual.itens.push(item);
+    }
+  }
+
+  if (secAtual && (secAtual.titulo || secAtual.itens.length > 0)) {
+    secoes.push(secAtual);
+  }
+
+  return secoes;
+}
+
+// ================================================================
+// Cria slide de conteúdo com design premium
+// ================================================================
+function criarSlideConteudo(pptx: any, titulo: string, itens: string[], corAccent: string) {
+  const slide = pptx.addSlide();
+  slide.background = { color: COLORS.white };
+
+  // Barra lateral decorativa
+  slide.addShape(pptx.ShapeType.rect as any, {
+    x: 0, y: 0, w: 0.15, h: 7.5,
+    fill: { color: corAccent },
+  });
+
+  // Orbe decorativa
+  slide.addShape(pptx.ShapeType.ellipse as any, {
+    x: 11.5, y: -0.5, w: 2.5, h: 2.5,
+    fill: { color: corAccent + "15" },
+    line: { color: corAccent, width: 0.5 },
+  });
+
+  // Título
+  slide.addText(titulo, {
+    x: 0.6, y: 0.3, w: 10, h: 0.7,
+    fontSize: 26, bold: true, color: corAccent,
+    fontFace: "Calibri",
+  });
+
+  // Linha separadora fina
+  slide.addShape(pptx.ShapeType.rect as any, {
+    x: 0.6, y: 1.05, w: 3, h: 0.04,
+    fill: { color: corAccent },
+  });
+
+  // Conteúdo em duas colunas se muitos itens
+  if (itens.length > 6) {
+    const metade = Math.ceil(itens.length / 2);
+    const col1 = itens.slice(0, metade);
+    const col2 = itens.slice(metade);
+
+    slide.addText(col1.map(item => ({ text: item, options: { bullet: { code: "2023" }, fontSize: 14, color: COLORS.slate700, breakLine: true, lineSpacing: 22 } })), {
+      x: 0.6, y: 1.3, w: 5.8, h: 5.5,
+      fontFace: "Calibri", valign: "top",
+    });
+
+    slide.addText(col2.map(item => ({ text: item, options: { bullet: { code: "2023" }, fontSize: 14, color: COLORS.slate700, breakLine: true, lineSpacing: 22 } })), {
+      x: 6.8, y: 1.3, w: 5.8, h: 5.5,
+      fontFace: "Calibri", valign: "top",
+    });
+  } else {
+    slide.addText(itens.map(item => ({ text: item, options: { bullet: { code: "2023" }, fontSize: 16, color: COLORS.slate700, breakLine: true, lineSpacing: 26 } })), {
+      x: 0.6, y: 1.3, w: 11.5, h: 5.5,
+      fontFace: "Calibri", valign: "top",
+    });
+  }
+
+  // Rodapé
+  slide.addText("Omnisfera · Plano de Aula DUA", {
+    x: 0.6, y: 7, w: 5, h: 0.3,
+    fontSize: 9, color: COLORS.slate500,
+    fontFace: "Calibri",
   });
 }
