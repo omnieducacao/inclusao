@@ -27,6 +27,7 @@ type StudentFull = Student & {
   diagnosis?: string | null;
   pei_data?: Record<string, unknown>;
   paee_ciclos?: unknown[];
+  paee_data?: Record<string, unknown> | null;
   planejamento_ativo?: string | null;
   daily_logs?: unknown[];
 };
