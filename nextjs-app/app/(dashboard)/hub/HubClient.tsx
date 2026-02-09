@@ -398,6 +398,7 @@ function CriarDoZero({
             (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
           );
 
+  // Verificar se BNCC está preenchida corretamente
   const temBnccPreenchida = eiMode
     ? (eiIdade && eiCampo && eiObjetivos.length > 0)
     : habilidadesSel.length > 0;
@@ -418,9 +419,15 @@ function CriarDoZero({
   }, [qtdQuestoes, qtdImagens, usarImagens]);
 
   const gerar = async () => {
-    // Assunto só é obrigatório se não tiver BNCC preenchida
+    // Validação: Assunto só é obrigatório se não tiver BNCC preenchida
     if (!assunto.trim() && !temBnccPreenchida) {
       setErro("Informe o assunto ou selecione habilidades BNCC.");
+      return;
+    }
+    
+    // Validação adicional para modo EI
+    if (eiMode && (!eiIdade || !eiCampo || eiObjetivos.length === 0)) {
+      setErro("No modo Educação Infantil, preencha idade, campo e objetivos BNCC.");
       return;
     }
     setLoading(true);
@@ -439,7 +446,7 @@ function CriarDoZero({
           ei_mode: eiMode,
           ei_idade: eiMode ? eiIdade : undefined,
           ei_campo: eiMode ? eiCampo : undefined,
-          ei_objetivos: eiMode && habilidadesSel.length ? habilidadesSel : undefined,
+          ei_objetivos: eiMode && eiObjetivos.length > 0 ? eiObjetivos : undefined,
           habilidades: !eiMode && habilidadesSel.length > 0 ? habilidadesSel : undefined,
           verbos_bloom: usarBloom && verbosBloomFinais.length > 0 ? verbosBloomFinais : undefined,
           qtd_questoes: qtdQuestoes,
@@ -492,9 +499,14 @@ function CriarDoZero({
             }
 
             if (imgRes.ok && imgData.image) {
-              // Remove o prefixo data:image se existir
-              const base64 = (imgData.image as string).replace(/^data:image\/\w+;base64,/, "");
-              mapa[i + 1] = base64;
+              // Remove o prefixo data:image se existir e valida base64
+              const imgStr = imgData.image as string;
+              const base64 = imgStr.replace(/^data:image\/\w+;base64,/, "");
+              if (base64 && base64.length > 0) {
+                mapa[i + 1] = base64;
+              } else {
+                console.warn(`Imagem ${i + 1} gerada mas base64 inválido`);
+              }
             }
           } catch (error) {
             console.error(`Erro ao gerar imagem ${i + 1}:`, error);
@@ -1162,7 +1174,7 @@ function PlanoAulaDua({
           unidade_tematica: unidadeSel || undefined,
           objeto_conhecimento: objetoSel || undefined,
           estudante: student
-            ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 300) }
+            ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 500) || undefined }
             : undefined,
         }),
       });
@@ -1406,7 +1418,14 @@ function PlanoAulaDua({
                 <PdfDownloadButton text={resultado} filename={`Plano_Aula_${new Date().toISOString().slice(0, 10)}.pdf`} title="Plano de Aula DUA" />
                 <button
                   type="button"
-                  onClick={() => gerarPptxPlanoAula(resultado, "Plano de Aula DUA", student?.name)}
+                  onClick={() => {
+                    try {
+                      gerarPptxPlanoAula(resultado, "Plano de Aula DUA", student?.name);
+                    } catch (err) {
+                      console.error("Erro ao gerar PPTX:", err);
+                      alert("Erro ao gerar PowerPoint. Verifique o console para mais detalhes.");
+                    }
+                  }}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm flex items-center gap-2"
                 >
                   📊 Baixar PowerPoint (PPTX)
@@ -1605,7 +1624,7 @@ function InclusaoBrincarTool({
           tema,
           feedback: refazer ? feedback : undefined,
           engine,
-          estudante: student ? { nome: student.name, hiperfoco, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 300) } : undefined,
+          estudante: student ? { nome: student.name, hiperfoco, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 500) || undefined } : undefined,
         }),
       });
       const data = await res.json();
@@ -1804,7 +1823,7 @@ function AdaptarProva({
           modo_profundo: usarModoProfundo || modoProfundo,
           unidade_tematica: unidadeSel || undefined,
           objeto_conhecimento: objetoSel || undefined,
-          estudante: student ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 800) } : { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 800) },
+          estudante: student ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 1000) || undefined } : { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 1000) || undefined },
           texto: texto || undefined,
           questoes_com_imagem: questoesComImagem,
         })
@@ -1821,13 +1840,21 @@ function AdaptarProva({
     }
   };
 
+  // Mapear imagens extraídas do DOCX para as questões adaptadas
   const mapaImagensParaDocx: Record<number, string> = {};
   if (docxExtraido?.imagens?.length) {
     for (const [imgIdxStr, questao] of Object.entries(mapaQuestoes)) {
       if (questao > 0) {
         const idx = parseInt(imgIdxStr, 10);
         const img = docxExtraido.imagens[idx];
-        if (img?.base64) mapaImagensParaDocx[questao] = img.base64;
+        // Garantir que a imagem existe e tem base64 válido
+        if (img?.base64 && typeof img.base64 === "string" && img.base64.length > 0) {
+          // Remover prefixo data: se existir
+          const base64Clean = img.base64.replace(/^data:image\/\w+;base64,/, "");
+          if (base64Clean.length > 0) {
+            mapaImagensParaDocx[questao] = base64Clean;
+          }
+        }
       }
     }
   }
@@ -2437,7 +2464,7 @@ function DinamicaInclusiva({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          aluno: { nome: student?.name, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 400), hiperfoco: (peiData.hiperfoco as string) || "Geral" },
+          aluno: { nome: student?.name, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 800) || undefined, hiperfoco: (peiData.hiperfoco as string) || "Geral" },
           materia: materiaFinal,
           assunto: assunto.trim() || undefined,
           qtd_alunos: qtdAlunos,
@@ -2928,7 +2955,7 @@ function AdaptarAtividade({
           engine,
           unidade_tematica: unidadeSel || undefined,
           objeto_conhecimento: objetoSel || undefined,
-          estudante: student ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 600) } : { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 600) },
+          estudante: student ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 1000) || undefined } : { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 1000) || undefined },
         })
       );
       const res = await fetch("/api/hub/adaptar-atividade", { method: "POST", body: formData });

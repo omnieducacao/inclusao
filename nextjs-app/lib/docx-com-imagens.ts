@@ -11,6 +11,7 @@ import {
   AlignmentType,
 } from "docx";
 
+// Regex para capturar tags de imagem: [[IMG_1]], [[IMG_2]], [[GEN_IMG: termo]] (convertido para [[IMG_n]])
 const TAG_REGEX = /\[\[(?:IMG|GEN_IMG)[^\]]*?(\d+)\]\]/gi;
 
 export type MapaImagens = Record<number, Buffer>;
