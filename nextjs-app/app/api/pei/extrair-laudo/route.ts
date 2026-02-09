@@ -2,85 +2,54 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 
 /**
- * Extrai texto de PDF usando múltiplas estratégias (similar ao Streamlit que usa pypdf página por página)
- * 1. Tenta pdf-parse primeiro (mais rápido)
- * 2. Se falhar, usa pdfjs-dist diretamente página por página (mais robusto)
+ * Extrai texto do PDF usando pdfjs-dist (página por página, como o Streamlit faz com pypdf).
  */
 async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise<string> {
-  // Estratégia 1: Tentar pdf-parse primeiro (mais rápido)
-  try {
-    const pdfParse = await import("pdf-parse");
-    // pdf-parse pode ser exportado como default ou named export dependendo da versão
-    const parseFunction = (pdfParse as any).default || pdfParse;
-    const result = await parseFunction(buffer);
-    const texto = (result?.text || "").trim();
-    
-    if (texto && texto.length > 50) {
-      console.log(`✅ PDF extraído com pdf-parse: ${texto.length} caracteres`);
-      return texto;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+
+  const loadingTask = pdfjs.getDocument({
+    data: new Uint8Array(buffer),
+    useWorkerFetch: false,
+    isEvalSupported: false,
+    useSystemFonts: true,
+  });
+
+  const pdf = await loadingTask.promise;
+  const textoCompleto: string[] = [];
+  const numPages = Math.min(pdf.numPages, maxPages);
+
+  console.log(`📄 Processando PDF: ${numPages} de ${pdf.numPages} páginas`);
+
+  for (let i = 1; i <= numPages; i++) {
+    try {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pageText = (textContent.items as any[])
+        .filter((item) => "str" in item && item.str)
+        .map((item) => item.str)
+        .join(" ")
+        .trim();
+
+      if (pageText) {
+        textoCompleto.push(pageText);
+        console.log(`  ✅ Página ${i}: ${pageText.length} chars`);
+      }
+    } catch (pageErr) {
+      console.warn(`  ⚠️ Erro na página ${i}:`, pageErr instanceof Error ? pageErr.message : String(pageErr));
+      continue;
     }
-  } catch (err) {
-    console.warn("⚠️ pdf-parse falhou, tentando pdfjs-dist:", err instanceof Error ? err.message : String(err));
   }
 
-  // Estratégia 2: Usar pdfjs-dist diretamente (mais robusto, similar ao Streamlit)
-  try {
-    // Importar pdfjs-dist - tentar diferentes caminhos dependendo da versão
-    let pdfjs: any;
-    try {
-      pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-    } catch {
-      // Fallback para import padrão
-      pdfjs = await import("pdfjs-dist");
-    }
-    
-    // Configurar worker se necessário (para Node.js)
-    // No Node.js, podemos usar disableWorker: true ou configurar o worker manualmente
-    const loadingTask = pdfjs.getDocument({ 
-      data: buffer,
-      useWorkerFetch: false,
-      isEvalSupported: false,
-      useSystemFonts: true,
-    });
-    const pdf = await loadingTask.promise;
-    
-    const textoCompleto: string[] = [];
-    const numPages = Math.min(pdf.numPages, maxPages);
-    
-    console.log(`📄 Processando PDF com pdfjs-dist: ${numPages} páginas (máx ${maxPages})`);
-    
-    for (let i = 1; i <= numPages; i++) {
-      try {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(" ")
-          .trim();
-        
-        if (pageText) {
-          textoCompleto.push(pageText);
-          console.log(`  ✅ Página ${i}: ${pageText.length} caracteres`);
-        }
-      } catch (pageErr) {
-        // Se uma página falhar, continua com as próximas (como no Streamlit)
-        console.warn(`  ⚠️ Erro na página ${i}, continuando:`, pageErr instanceof Error ? pageErr.message : String(pageErr));
-        continue;
-      }
-    }
-    
-    const textoFinal = textoCompleto.join("\n\n").trim();
-    
-    if (textoFinal && textoFinal.length > 50) {
-      console.log(`✅ PDF extraído com pdfjs-dist: ${textoFinal.length} caracteres de ${textoCompleto.length} páginas`);
-      return textoFinal;
-    }
-    
-    throw new Error("PDF extraído mas texto muito curto ou vazio");
-  } catch (err) {
-    console.error("❌ Erro ao extrair texto com pdfjs-dist:", err instanceof Error ? err.message : String(err));
-    throw new Error(`Não foi possível extrair texto do PDF: ${err instanceof Error ? err.message : String(err)}`);
+  const textoFinal = textoCompleto.join("\n\n").trim();
+
+  if (!textoFinal || textoFinal.length < 30) {
+    throw new Error("PDF extraído mas texto muito curto ou vazio. O PDF pode ser uma imagem escaneada.");
   }
+
+  console.log(`✅ Total extraído: ${textoFinal.length} chars de ${textoCompleto.length} páginas`);
+  return textoFinal;
 }
 
 export async function POST(req: Request) {
@@ -90,7 +59,7 @@ export async function POST(req: Request) {
     const engineRaw = formData.get("engine");
     const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(String(engineRaw || ""))
       ? (engineRaw as EngineId)
-      : "red";
+      : "orange"; // Streamlit usa gpt-4o-mini (orange) como padrão para laudos
 
     const engineErr = getEngineError(engine);
     if (engineErr) {
@@ -104,6 +73,14 @@ export async function POST(req: Request) {
       );
     }
 
+    // Verificar tipo
+    if (!file.type.includes("pdf") && !file.name.toLowerCase().endsWith(".pdf")) {
+      return NextResponse.json(
+        { error: "O arquivo precisa ser um PDF." },
+        { status: 400 }
+      );
+    }
+
     const buf = Buffer.from(await file.arrayBuffer());
     let textoPdf = "";
 
@@ -112,23 +89,18 @@ export async function POST(req: Request) {
     } catch (err) {
       console.error("Erro ao extrair texto do PDF:", err);
       return NextResponse.json(
-        { error: "Não foi possível extrair texto do PDF. Verifique se o arquivo é um PDF válido." },
+        { error: err instanceof Error ? err.message : "Não foi possível extrair texto do PDF." },
         { status: 400 }
       );
     }
 
-    if (!textoPdf || textoPdf.length < 50) {
-      return NextResponse.json(
-        { error: "O PDF está vazio ou não contém texto legível." },
-        { status: 400 }
-      );
-    }
-
+    // Enviar para IA (mesmo prompt do Streamlit)
     const textoLimitado = textoPdf.slice(0, 6000);
     const prompt =
       "Analise este laudo médico/escolar. Extraia: 1) Diagnóstico; 2) Medicamentos. " +
-      'Responda APENAS em JSON, sem markdown: { "diagnostico": "...", "medicamentos": [ {"nome": "...", "posologia": "..."} ] }. ' +
-      `Texto: ${textoLimitado}`;
+      'Responda APENAS em JSON, sem markdown, sem backticks: { "diagnostico": "...", "medicamentos": [ {"nome": "...", "posologia": "..."} ] }. ' +
+      "Se não houver medicamentos, retorne lista vazia. " +
+      `Texto do laudo:\n\n${textoLimitado}`;
 
     const raw = (await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.2 })).trim();
     if (!raw) {
@@ -138,40 +110,30 @@ export async function POST(req: Request) {
       );
     }
 
+    // Parse do JSON (com fallbacks robustos)
     let jsonStr = raw;
     // Remover markdown code blocks se existirem
     const codeBlock = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (codeBlock) jsonStr = codeBlock[1].trim();
-    
-    // Tentar encontrar JSON no texto mesmo que tenha texto antes/depois
+
+    // Encontrar JSON no texto
     const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
     if (jsonMatch) jsonStr = jsonMatch[0];
-    
+
     let parsed: {
       diagnostico?: string;
       medicamentos?: { nome?: string; posologia?: string }[];
     };
-    
+
     try {
       parsed = JSON.parse(jsonStr);
-    } catch (parseError) {
-      console.error("Erro ao fazer parse do JSON retornado pela IA:", parseError);
-      console.error("Texto recebido:", raw.substring(0, 500));
-      // Tentar extrair diagnóstico e medicamentos manualmente se o JSON falhar
-      const diagnosticoMatch = raw.match(/(?:diagnóstico|diagnostico)[\s:]*([^,\n}]+)/i);
-      const medicamentosMatch = raw.match(/(?:medicamentos|medicamento)[\s:]*\[?([^\]]+)\]?/i);
-      
+    } catch {
+      console.error("Erro ao fazer parse do JSON. Texto recebido:", raw.substring(0, 500));
+      // Fallback: extrair manualmente
+      const diagnosticoMatch = raw.match(/(?:diagnóstico|diagnostico)[\s:"]*([^",\n}]+)/i);
       parsed = {
         diagnostico: diagnosticoMatch ? diagnosticoMatch[1].trim() : "",
-        medicamentos: medicamentosMatch 
-          ? medicamentosMatch[1].split(",").map(m => {
-              const parts = m.trim().split(/\s+-\s+/);
-              return {
-                nome: parts[0] || "",
-                posologia: parts[1] || "",
-              };
-            })
-          : [],
+        medicamentos: [],
       };
     }
 
@@ -179,9 +141,9 @@ export async function POST(req: Request) {
       diagnostico: parsed.diagnostico || "",
       medicamentos: Array.isArray(parsed.medicamentos)
         ? parsed.medicamentos.map((m) => ({
-            nome: String(m.nome || "").trim(),
-            posologia: String(m.posologia || "").trim(),
-          }))
+          nome: String(m.nome || "").trim(),
+          posologia: String(m.posologia || "").trim(),
+        }))
         : [],
     });
   } catch (err) {
