@@ -19,6 +19,8 @@ type RegistroDiario = {
   atividade_principal?: string;
   objetivos_trabalhados?: string;
   observacoes?: string;
+  engajamento_aluno?: number | null;
+  modalidade_atendimento?: string | null;
   criado_em?: string;
 };
 
