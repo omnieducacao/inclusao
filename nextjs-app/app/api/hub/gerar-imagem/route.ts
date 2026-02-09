@@ -15,27 +15,15 @@ export async function POST(req: Request) {
   }
 
   const unsplashKey = process.env.UNSPLASH_ACCESS_KEY || "";
-  const openaiKeyRaw = process.env.OPENAI_API_KEY || "";
-  // Validar que não é uma chave do OpenRouter
-  if (openaiKeyRaw.startsWith("sk-or-")) {
-    return NextResponse.json(
-      {
-        error:
-          "OPENAI_API_KEY está configurada com uma chave do OpenRouter (sk-or-...). " +
-          "Configure uma chave válida do OpenAI (sk-...) para gerar imagens.",
-      },
-      { status: 500 }
-    );
-  }
-  const openaiKey = openaiKeyRaw.trim();
+  const geminiKey = process.env.GEMINI_API_KEY || "";
 
   try {
-    // Prioridade: BANCO (Unsplash) primeiro; IA só em último caso
-    let urlOuBase64 = await gerarImagemInteligente(prompt, prioridade, unsplashKey, openaiKey);
+    // Prioridade: BANCO (Unsplash) primeiro; Gemini só em último caso
+    let urlOuBase64 = await gerarImagemInteligente(prompt, prioridade, unsplashKey, geminiKey);
     
-    // Se não encontrou no banco e prioridade era BANCO, tenta IA
+    // Se não encontrou no banco e prioridade era BANCO, tenta Gemini
     if (!urlOuBase64 && prioridade === "BANCO") {
-      urlOuBase64 = await gerarImagemInteligente(prompt, "IA", unsplashKey, openaiKey);
+      urlOuBase64 = await gerarImagemInteligente(prompt, "IA", unsplashKey, geminiKey);
     }
     
     if (!urlOuBase64) {

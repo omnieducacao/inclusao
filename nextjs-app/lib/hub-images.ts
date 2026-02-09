@@ -38,16 +38,16 @@ export async function buscarImagemUnsplash(
 /**
  * Gera imagem inteligente com prioridade:
  * 1. BANCO (Unsplash) se prioridade="BANCO"
- * 2. IA (DALL-E/Gemini) se prioridade="IA"
+ * 2. IA (Gemini) se prioridade="IA"
  * 3. Fallback para Unsplash se IA falhar
  * 
- * Retorna URL da imagem ou null
+ * Retorna URL da imagem ou base64
  */
 export async function gerarImagemInteligente(
   prompt: string,
   prioridade: "BANCO" | "IA" = "IA",
   unsplashKey?: string,
-  openaiKey?: string
+  geminiKey?: string
 ): Promise<string | null> {
   // Se prioridade é BANCO, tenta Unsplash primeiro
   if (prioridade === "BANCO" && unsplashKey) {
@@ -58,42 +58,65 @@ export async function gerarImagemInteligente(
     }
   }
 
-  // Se prioridade é IA ou BANCO não retornou, tenta IA
-  if (prioridade === "IA" && openaiKey) {
-    // Validar que não é uma chave do OpenRouter
-    if (openaiKey.startsWith("sk-or-")) {
-      console.error("OPENAI_API_KEY é uma chave do OpenRouter. Use uma chave válida do OpenAI.");
-      // Fallback para Unsplash se chave inválida
-      if (unsplashKey) {
-        const termo = prompt.split(".")[0] || prompt;
-        return await buscarImagemUnsplash(termo, unsplashKey);
-      }
-      return null;
-    }
+  // Se prioridade é IA ou BANCO não retornou, tenta Gemini
+  if (prioridade === "IA" && geminiKey) {
     try {
-      // Importar OpenAI dinamicamente para uso no servidor
-      const OpenAI = (await import("openai")).default;
-      const client = new OpenAI({ apiKey: openaiKey });
-      
-      const didacticPrompt = `Educational textbook illustration, clean flat vector style, white background. CRITICAL RULE: STRICTLY NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS inside the image. Just the visual representation of: ${prompt}`;
-      
-      const resp = await client.images.generate({
-        model: "dall-e-3",
-        prompt: didacticPrompt,
-        size: "1024x1024",
-        quality: "standard",
-        n: 1,
-        response_format: "b64_json",
-      });
+      // Usar Gemini para geração de imagens via API REST
+      const models = ["gemini-2.5-flash-image", "gemini-3-pro-image-preview"];
+      let lastError: Error | null = null;
 
-      if (resp.data && resp.data.length > 0 && "b64_json" in resp.data[0]) {
-        const b64 = resp.data[0].b64_json;
-        if (b64) {
-          return `data:image/png;base64,${b64}`;
+      const didacticPrompt = `Educational textbook illustration, clean flat vector style, white background. CRITICAL RULE: STRICTLY NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS inside the image. Just the visual representation of: ${prompt}`;
+
+      for (const modelId of models) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${geminiKey}`;
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: didacticPrompt }] }],
+            }),
+          });
+
+          if (!response.ok) {
+            if (response.status === 404) {
+              continue; // Tentar próximo modelo
+            }
+            const errorText = await response.text();
+            throw new Error(`API retornou ${response.status}: ${errorText}`);
+          }
+
+          const data = await response.json();
+          
+          // Extrair imagem da resposta
+          const candidates = data.candidates || [];
+          if (candidates.length > 0) {
+            const candidate = candidates[0];
+            const content = candidate.content || {};
+            const parts = content.parts || [];
+            
+            for (const part of parts) {
+              if (part.inlineData) {
+                const b64 = part.inlineData.data;
+                return `data:image/png;base64,${b64}`;
+              }
+            }
+          }
+        } catch (err: any) {
+          const errStr = String(err).toLowerCase();
+          if (errStr.includes("404") || errStr.includes("not found")) {
+            lastError = err;
+            continue; // Tentar próximo modelo
+          }
+          throw err;
         }
       }
+
+      if (lastError) {
+        throw lastError;
+      }
     } catch (error) {
-      console.error("Erro ao gerar imagem IA:", error);
+      console.error("Erro ao gerar imagem com Gemini:", error);
     }
 
     // Fallback para Unsplash se IA falhar

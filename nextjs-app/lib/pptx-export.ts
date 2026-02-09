@@ -3,6 +3,8 @@
  * Templates visuais com gradientes, formas decorativas e tipografia profissional.
  */
 
+import { getDataBrasiliaFormatada, getDataBrasiliaISO } from "./date-utils";
+
 // Cores do design system Omnisfera
 const COLORS = {
   primary: "0D9488",      // teal-600
@@ -69,8 +71,8 @@ export function gerarPptxPlanoAula(
       });
     }
 
-    // Data
-    slideCover.addText(new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }), {
+    // Data (horário de Brasília)
+    slideCover.addText(getDataBrasiliaFormatada(), {
       x: 0.8, y: 4.2, w: 8, h: 0.5,
       fontSize: 14, color: COLORS.primaryLight,
       fontFace: "Calibri",
@@ -131,8 +133,8 @@ export function gerarPptxPlanoAula(
       fontFace: "Calibri", align: "center",
     });
 
-    // Salvar
-    const nomeArquivo = `Plano_Aula_${nomeEstudante ? nomeEstudante.replace(/\s+/g, "_") + "_" : ""}${new Date().toISOString().slice(0, 10)}.pptx`;
+    // Salvar (usar data de Brasília)
+    const nomeArquivo = `Plano_Aula_${nomeEstudante ? nomeEstudante.replace(/\s+/g, "_") + "_" : ""}${getDataBrasiliaISO()}.pptx`;
     pptx.writeFile({ fileName: nomeArquivo });
   }).catch((err) => {
     console.error("Erro ao gerar PPTX:", err);
@@ -141,16 +143,35 @@ export function gerarPptxPlanoAula(
 }
 
 // ================================================================
-// Parser de seções do texto Markdown
+// Parser de seções do texto Markdown - Extrai conteúdo para uso na aula
+// Foca em DESENVOLVIMENTO DA AULA e cria slides práticos para apresentação
 // ================================================================
 function parsearSecoes(texto: string): { titulo: string; itens: string[] }[] {
   const linhas = texto.split("\n");
   const secoes: { titulo: string; itens: string[] }[] = [];
   let secAtual: { titulo: string; itens: string[] } | null = null;
+  let dentroDesenvolvimento = false;
 
   for (const linha of linhas) {
     const l = linha.trim();
     if (!l) continue;
+
+    // Detectar início da seção DESENVOLVIMENTO DA AULA
+    if (l.toLowerCase().includes("desenvolvimento") || l.toLowerCase().includes("🚀")) {
+      dentroDesenvolvimento = true;
+    }
+
+    // Ignorar seções administrativas (objetivos, recursos, avaliação, etc) quando não estamos em desenvolvimento
+    if (!dentroDesenvolvimento && (
+      l.toLowerCase().includes("objetivo") ||
+      l.toLowerCase().includes("recursos") ||
+      l.toLowerCase().includes("avaliação") && !l.toLowerCase().includes("desenvolvimento") ||
+      l.toLowerCase().includes("referência") ||
+      l.toLowerCase().includes("adaptação") ||
+      l.toLowerCase().includes("recuperação")
+    )) {
+      continue;
+    }
 
     const isTitulo =
       l.startsWith("###") || l.startsWith("##") || l.startsWith("#") ||
@@ -160,21 +181,45 @@ function parsearSecoes(texto: string): { titulo: string; itens: string[] }[] {
       if (secAtual && (secAtual.titulo || secAtual.itens.length > 0)) {
         secoes.push(secAtual);
       }
-      const tituloLimpo = l.replace(/^#+\s*/, "").replace(/\*\*/g, "").replace(/[🎯📊📈📝✅🧩⚠️💡🏁🎓🔍📋🏥🌟🚀]/g, "").trim();
-      secAtual = { titulo: tituloLimpo, itens: [] };
+      const tituloLimpo = l.replace(/^#+\s*/, "").replace(/\*\*/g, "").replace(/[🎯📊📈📝✅🧩⚠️💡🏁🎓🔍📋🏥🌟🚀]/g, "").replace(/\d+\.\s*/, "").trim();
+      // Criar slide apenas se for etapa de desenvolvimento ou conteúdo prático
+      if (dentroDesenvolvimento || tituloLimpo.toLowerCase().includes("conteúdo") || tituloLimpo.toLowerCase().includes("atividade")) {
+        secAtual = { titulo: tituloLimpo, itens: [] };
+      } else {
+        secAtual = null;
+      }
     } else if (secAtual) {
       const item = l.replace(/\*\*/g, "").replace(/^[-•]\s*/, "").replace(/^\d+\.\s*/, "").trim();
-      if (item) secAtual.itens.push(item);
-    } else {
-      // Items without a header
-      if (!secAtual) secAtual = { titulo: "Conteúdo", itens: [] };
-      const item = l.replace(/\*\*/g, "").replace(/^[-•]\s*/, "").trim();
-      if (item) secAtual.itens.push(item);
+      if (item && !item.toLowerCase().includes("minutos") && !item.toLowerCase().includes("tempo")) {
+        secAtual.itens.push(item);
+      }
     }
   }
 
   if (secAtual && (secAtual.titulo || secAtual.itens.length > 0)) {
     secoes.push(secAtual);
+  }
+
+  // Se não encontrou seções de desenvolvimento, criar slides do conteúdo principal
+  if (secoes.length === 0) {
+    const conteudoLinhas = linhas.filter(l => {
+      const linha = l.trim();
+      return linha && 
+        !linha.toLowerCase().includes("objetivo") &&
+        !linha.toLowerCase().includes("recursos") &&
+        !linha.toLowerCase().includes("avaliação") &&
+        !linha.toLowerCase().includes("referência") &&
+        !linha.toLowerCase().includes("adaptação") &&
+        !linha.toLowerCase().includes("recuperação") &&
+        !linha.toLowerCase().includes("tempo estimado");
+    });
+    
+    if (conteudoLinhas.length > 0) {
+      const conteudo = conteudoLinhas.map(l => l.replace(/^#+\s*/, "").replace(/\*\*/g, "").replace(/^[-•]\s*/, "").trim()).filter(l => l);
+      if (conteudo.length > 0) {
+        secoes.push({ titulo: "Conteúdo da Aula", itens: conteudo });
+      }
+    }
   }
 
   return secoes;

@@ -13,23 +13,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Informe o prompt ou conceito." }, { status: 400 });
   }
 
-  // Por ora usamos DALL-E (OpenAI). Gemini Imagen requer @google/genai ou Vertex AI.
-  const openaiKeyRaw = process.env.OPENAI_API_KEY || "";
-  // Validar que OPENAI_API_KEY não é do OpenRouter
-  if (openaiKeyRaw.startsWith("sk-or-")) {
+  // Usar Gemini para geração de imagens (mesmo comando da versão Streamlit)
+  const geminiKey = process.env.GEMINI_API_KEY || "";
+  if (!geminiKey) {
     return NextResponse.json(
-      {
-        error:
-          "OPENAI_API_KEY está configurada com uma chave do OpenRouter (sk-or-...). " +
-          "Configure uma chave válida do OpenAI (sk-...) para gerar imagens (Estúdio Visual).",
-      },
-      { status: 500 }
-    );
-  }
-  const openaiKey = openaiKeyRaw.trim();
-  if (!openaiKey) {
-    return NextResponse.json(
-      { error: "Configure OPENAI_API_KEY para gerar imagens (Estúdio Visual)." },
+      { error: "Configure GEMINI_API_KEY para gerar imagens (Estúdio Visual)." },
       { status: 500 }
     );
   }
@@ -47,27 +35,60 @@ CRITICAL: NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS. Just the v
   }
 
   try {
-    const OpenAI = (await import("openai")).default;
-    const client = new OpenAI({ apiKey: openaiKey });
-    const resp = await client.images.generate({
-      model: "dall-e-3",
-      prompt: finalPrompt,
-      size: "1024x1024",
-      quality: "standard",
-      n: 1,
-      response_format: "b64_json",
-    });
+    // Usar Gemini para geração de imagens via API REST (mesmo método do mapa-mental)
+    const models = ["gemini-2.5-flash-image", "gemini-3-pro-image-preview"];
+    let lastError: Error | null = null;
 
-    if (!resp.data || resp.data.length === 0) {
-      return NextResponse.json({ error: "Resposta sem imagem." }, { status: 500 });
+    for (const modelId of models) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${geminiKey}`;
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: finalPrompt }] }],
+          }),
+        });
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            continue; // Tentar próximo modelo
+          }
+          const errorText = await response.text();
+          throw new Error(`API retornou ${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+        
+        // Extrair imagem da resposta
+        const candidates = data.candidates || [];
+        if (candidates.length > 0) {
+          const candidate = candidates[0];
+          const content = candidate.content || {};
+          const parts = content.parts || [];
+          
+          for (const part of parts) {
+            if (part.inlineData) {
+              const b64 = part.inlineData.data;
+              return NextResponse.json({ image: `data:image/png;base64,${b64}` });
+            }
+          }
+        }
+      } catch (err: any) {
+        const errStr = String(err).toLowerCase();
+        if (errStr.includes("404") || errStr.includes("not found")) {
+          lastError = err;
+          continue; // Tentar próximo modelo
+        }
+        throw err;
+      }
     }
 
-    const b64 = resp.data[0];
-    if (!b64 || !("b64_json" in b64)) {
-      return NextResponse.json({ error: "Resposta sem imagem." }, { status: 500 });
+    if (lastError) {
+      throw lastError;
     }
-    const dataUrl = `data:image/png;base64,${(b64 as { b64_json?: string }).b64_json}`;
-    return NextResponse.json({ image: dataUrl });
+
+    return NextResponse.json({ error: "Nenhum modelo Gemini disponível para geração de imagens." }, { status: 500 });
   } catch (err) {
     console.error("Estudio imagem:", err);
     return NextResponse.json(
