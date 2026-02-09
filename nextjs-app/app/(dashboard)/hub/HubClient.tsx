@@ -476,9 +476,11 @@ function CriarDoZero({
         while ((m = genImgRegex.exec(textoFinal)) !== null) {
           termos.push(m[1].trim());
         }
-        // Prioridade: BANCO (Unsplash) primeiro; IA só em último caso
+        // Prioridade: BANCO (Unsplash) primeiro; Gemini só em último caso
         for (let i = 0; i < termos.length; i++) {
           try {
+            console.log(`🖼️ Gerando imagem ${i + 1} para: "${termos[i]}"`);
+            
             // Tenta primeiro com prioridade BANCO (Unsplash)
             let imgRes = await fetch("/api/hub/gerar-imagem", {
               method: "POST",
@@ -488,8 +490,9 @@ function CriarDoZero({
 
             let imgData = await imgRes.json();
 
-            // Se não encontrou no banco, tenta IA
+            // Se não encontrou no banco, tenta Gemini
             if (!imgRes.ok || !imgData.image) {
+              console.log(`  ⚠️ Unsplash não retornou imagem, tentando Gemini...`);
               imgRes = await fetch("/api/hub/gerar-imagem", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -501,18 +504,31 @@ function CriarDoZero({
             if (imgRes.ok && imgData.image) {
               // Remove o prefixo data:image se existir e valida base64
               const imgStr = imgData.image as string;
-              const base64 = imgStr.replace(/^data:image\/\w+;base64,/, "");
-              if (base64 && base64.length > 0) {
-                mapa[i + 1] = base64;
-              } else {
-                console.warn(`Imagem ${i + 1} gerada mas base64 inválido`);
+              let base64 = imgStr;
+              
+              // Se já tem prefixo data:image, remover
+              if (imgStr.startsWith("data:image")) {
+                base64 = imgStr.replace(/^data:image\/\w+;base64,/, "");
               }
+              
+              // Validar que é base64 válido (mínimo 100 caracteres para ser uma imagem válida)
+              if (base64 && base64.length > 100) {
+                mapa[i + 1] = base64;
+                console.log(`  ✅ Imagem ${i + 1} gerada com sucesso (${Math.round(base64.length / 1024)}KB)`);
+              } else {
+                console.warn(`  ⚠️ Imagem ${i + 1} gerada mas base64 inválido ou muito curto (${base64?.length || 0} chars)`);
+              }
+            } else {
+              const errorMsg = imgData.error || "Resposta sem imagem";
+              console.warn(`  ❌ Falha ao gerar imagem ${i + 1}:`, errorMsg);
             }
           } catch (error) {
-            console.error(`Erro ao gerar imagem ${i + 1}:`, error);
-            // ignora falha em uma imagem
+            console.error(`  ❌ Erro ao gerar imagem ${i + 1}:`, error);
+            // ignora falha em uma imagem para não bloquear a geração da atividade
           }
         }
+        
+        console.log(`📊 Total de imagens geradas: ${Object.keys(mapa).length} de ${termos.length} solicitadas`);
         let idx = 0;
         textoFinal = textoFinal.replace(/\[\[GEN_IMG:\s*[^\]]+\]\]/gi, () => {
           idx++;

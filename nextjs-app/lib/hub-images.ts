@@ -83,7 +83,14 @@ export async function gerarImagemInteligente(
               continue; // Tentar próximo modelo
             }
             const errorText = await response.text();
-            throw new Error(`API retornou ${response.status}: ${errorText}`);
+            let errorMessage = `API retornou ${response.status}: ${errorText}`;
+            
+            // Melhorar mensagem de erro para chave inválida
+            if (response.status === 400 && errorText.includes("API key not valid")) {
+              errorMessage = "GEMINI_API_KEY não é válida. Verifique se a chave está correta no Render e se tem permissões para geração de imagens.";
+            }
+            
+            throw new Error(errorMessage);
           }
 
           const data = await response.json();
@@ -130,7 +137,7 @@ export async function gerarImagemInteligente(
 }
 
 /**
- * Baixa imagem de uma URL e retorna como base64
+ * Baixa imagem de uma URL e retorna como base64 (funciona no servidor)
  */
 export async function baixarImagemUrl(url: string): Promise<string | null> {
   try {
@@ -138,19 +145,18 @@ export async function baixarImagemUrl(url: string): Promise<string | null> {
     const timeoutId = setTimeout(() => controller.abort(), 10000);
     const resp = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
-    if (!resp.ok) return null;
+    if (!resp.ok) {
+      console.error(`Erro ao baixar imagem de ${url}: ${resp.status} ${resp.statusText}`);
+      return null;
+    }
     
-    const blob = await resp.blob();
-    const reader = new FileReader();
+    // No servidor, usar arrayBuffer e converter para base64
+    const arrayBuffer = await resp.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64 = buffer.toString("base64");
+    const mimeType = resp.headers.get("content-type") || "image/jpeg";
     
-    return new Promise((resolve) => {
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        resolve(base64);
-      };
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
+    return `data:${mimeType};base64,${base64}`;
   } catch (error) {
     console.error("Erro ao baixar imagem:", error);
     return null;

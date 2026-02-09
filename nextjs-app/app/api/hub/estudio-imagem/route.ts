@@ -15,9 +15,11 @@ export async function POST(req: Request) {
 
   // Usar Gemini para geração de imagens (mesmo comando da versão Streamlit)
   const geminiKey = process.env.GEMINI_API_KEY || "";
-  if (!geminiKey) {
+  if (!geminiKey || geminiKey.trim().length < 20) {
     return NextResponse.json(
-      { error: "Configure GEMINI_API_KEY para gerar imagens (Estúdio Visual)." },
+      { 
+        error: "GEMINI_API_KEY não está configurada ou é inválida. Configure uma chave válida do Google Gemini no Render para gerar imagens (Estúdio Visual)." 
+      },
       { status: 500 }
     );
   }
@@ -55,7 +57,14 @@ CRITICAL: NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS. Just the v
             continue; // Tentar próximo modelo
           }
           const errorText = await response.text();
-          throw new Error(`API retornou ${response.status}: ${errorText}`);
+          let errorMessage = `API retornou ${response.status}: ${errorText}`;
+          
+          // Melhorar mensagem de erro para chave inválida
+          if (response.status === 400 && errorText.includes("API key not valid")) {
+            errorMessage = "GEMINI_API_KEY não é válida. Verifique se a chave está correta no Render e se tem permissões para geração de imagens.";
+          }
+          
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();
