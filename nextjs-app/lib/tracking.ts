@@ -121,17 +121,19 @@ export async function trackAIFeedback(
     const { workspaceId, engine, contentType, feedbackText, metadata } = options;
 
     // Registrar na tabela ai_feedback (se existir)
-    await sb.from("ai_feedback").insert({
-      workspace_id: workspaceId || null,
-      engine: engine || null,
-      source: source,
-      content_type: contentType || null,
-      action: action,
-      feedback_text: feedbackText || null,
-      metadata: metadata || {},
-    }).catch(() => {
-      // Tabela pode não existir ainda
-    });
+    try {
+      await sb.from("ai_feedback").insert({
+        workspace_id: workspaceId || null,
+        engine: engine || null,
+        source: source,
+        content_type: contentType || null,
+        action: action,
+        feedback_text: feedbackText || null,
+        metadata: metadata || {},
+      });
+    } catch {
+      // Tabela pode não existir ainda - ignorar erro
+    }
 
     // Também registrar como evento de uso
     await trackUsageEvent("ai_feedback", {
