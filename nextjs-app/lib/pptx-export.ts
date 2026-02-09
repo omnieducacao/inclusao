@@ -9,12 +9,12 @@ export function gerarPptxPlanoAula(
 ): void {
   if (typeof window === "undefined") return;
 
-  import("pptxgenjs").then((PptxGenJS) => {
-    const PptxGen = PptxGenJS.default || PptxGenJS;
+  import("pptxgenjs").then((module) => {
+    const PptxGen = (module.default || module) as any;
     const pptx = new PptxGen();
     
     // Configurações da apresentação
-    pptx.layout = "LAYOUT_WIDE";
+    pptx.layout = "LAYOUT_WIDE" as any;
     pptx.author = "Omnisfera";
     pptx.company = "Omni Soluções Educacionais";
     pptx.title = titulo;
