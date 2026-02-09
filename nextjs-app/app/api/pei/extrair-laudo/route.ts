@@ -40,9 +40,32 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const engineRaw = formData.get("engine");
-    const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(String(engineRaw || ""))
+    let engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(String(engineRaw || ""))
       ? (engineRaw as EngineId)
       : "orange"; // Streamlit usa gpt-4o-mini (orange) como padrão para laudos
+
+    // Verificar se a chave está configurada corretamente
+    if (engine === "orange") {
+      const openaiKey = process.env.OPENAI_API_KEY || "";
+      if (openaiKey.startsWith("sk-or-")) {
+        return NextResponse.json(
+          {
+            error:
+              "A variável OPENAI_API_KEY está configurada com uma chave do OpenRouter (sk-or-...). " +
+              "Configure uma chave válida do OpenAI (sk-...) no Render, ou use OPENROUTER_API_KEY e selecione o engine 'blue'.",
+          },
+          { status: 500 }
+        );
+      }
+      if (!openaiKey || openaiKey.length < 20) {
+        return NextResponse.json(
+          {
+            error: "OPENAI_API_KEY não está configurada ou é inválida. Configure no Render.",
+          },
+          { status: 500 }
+        );
+      }
+    }
 
     const engineErr = getEngineError(engine);
     if (engineErr) {
@@ -85,7 +108,31 @@ export async function POST(req: Request) {
       "Se não houver medicamentos, retorne lista vazia. " +
       `Texto do laudo:\n\n${textoLimitado}`;
 
-    const raw = (await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.2 })).trim();
+    let raw: string;
+    try {
+      raw = (await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.2 })).trim();
+    } catch (apiErr: any) {
+      // Melhorar mensagem de erro para chaves incorretas
+      const errorMsg = apiErr?.message || String(apiErr);
+      if (errorMsg.includes("API key") || errorMsg.includes("401") || errorMsg.includes("Incorrect API key")) {
+        const apiKey = process.env.OPENAI_API_KEY || "";
+        if (apiKey.startsWith("sk-or-")) {
+          return NextResponse.json(
+            {
+              error: "A chave OPENAI_API_KEY está configurada com uma chave do OpenRouter (sk-or-...). Configure uma chave válida do OpenAI (sk-...) no Render.",
+            },
+            { status: 500 }
+          );
+        }
+        return NextResponse.json(
+          {
+            error: `Erro de autenticação da API: ${errorMsg}. Verifique se OPENAI_API_KEY está configurada corretamente no Render.`,
+          },
+          { status: 500 }
+        );
+      }
+      throw apiErr;
+    }
     if (!raw) {
       return NextResponse.json(
         { error: "A IA não retornou dados válidos." },
