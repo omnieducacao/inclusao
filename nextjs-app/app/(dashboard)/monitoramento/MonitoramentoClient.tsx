@@ -273,7 +273,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
                       const engajamento = r.engajamento_aluno;
                       const modalidade = r.modalidade_atendimento;
                       
-                      const getModalidadeColor = (mod?: string) => {
+                      const getModalidadeColor = (mod?: string | null) => {
                         switch (mod) {
                           case "individual": return "bg-blue-100 border-blue-300";
                           case "grupo": return "bg-green-100 border-green-300";
@@ -286,7 +286,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
                       return (
                         <div
                           key={r.registro_id || `${data}-${idx}`}
-                          className={`border-l-4 pl-3 py-2 rounded-r text-sm ${getModalidadeColor(modalidade)}`}
+                          className={`border-l-4 pl-3 py-2 rounded-r text-sm ${getModalidadeColor(modalidade || undefined)}`}
                           style={{ borderLeftColor: modalidade === "individual" ? "#3b82f6" : modalidade === "grupo" ? "#10b981" : modalidade === "observacao_sala" ? "#f59e0b" : modalidade === "consultoria" ? "#a855f7" : "#64748b" }}
                         >
                           <div className="flex items-start justify-between gap-2 mb-1">
