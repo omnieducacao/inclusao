@@ -1924,7 +1924,9 @@ function AdaptarProva({
 
   // Mapear imagens extraídas do DOCX para as questões adaptadas
   const mapaImagensParaDocx: Record<number, string> = {};
-  if (docxExtraido?.imagens?.length) {
+  let textoComImagensParaDocx = resultado?.texto || "";
+  
+  if (docxExtraido?.imagens?.length && resultado?.texto) {
     for (const [imgIdxStr, questao] of Object.entries(mapaQuestoes)) {
       if (questao > 0) {
         const idx = parseInt(imgIdxStr, 10);
@@ -1936,6 +1938,33 @@ function AdaptarProva({
           if (base64Clean.length > 0) {
             mapaImagensParaDocx[questao] = base64Clean;
           }
+        }
+      }
+    }
+    
+    // Garantir que o texto tenha as tags [[IMG_N]] para as questões mapeadas
+    // Se não tiver, adicionar após o número da questão
+    textoComImagensParaDocx = resultado.texto;
+    const questoesComImagem = Object.values(mapaQuestoes).filter((q) => q > 0);
+    for (const questao of questoesComImagem) {
+      const tag = `[[IMG_${questao}]]`;
+      // Verificar se a tag já existe no texto
+      if (!textoComImagensParaDocx.includes(tag)) {
+        // Tentar encontrar a questão no texto e adicionar a tag após o enunciado
+        const regexQuestao = new RegExp(`(Questão\\s+${questao}[^\\d]|${questao}\\.\\s*[^\\d])`, "i");
+        const match = textoComImagensParaDocx.match(regexQuestao);
+        if (match && match.index !== undefined) {
+          // Encontrar o final do enunciado (antes das alternativas ou próximo parágrafo)
+          const inicio = match.index + match[0].length;
+          const proximoParagrafo = textoComImagensParaDocx.indexOf("\n", inicio);
+          const posicaoInsercao = proximoParagrafo > 0 ? proximoParagrafo : inicio + 100;
+          textoComImagensParaDocx = textoComImagensParaDocx.slice(0, posicaoInsercao) + `\n${tag}\n` + textoComImagensParaDocx.slice(posicaoInsercao);
+        } else {
+          // Se não encontrar, adicionar antes do texto da questão (fallback)
+          textoComImagensParaDocx = textoComImagensParaDocx.replace(
+            new RegExp(`(Questão\\s+${questao}|${questao}\\.)`, "i"),
+            `$1\n${tag}\n`
+          );
         }
       }
     }
@@ -3021,12 +3050,19 @@ function AdaptarAtividade({
   };
 
   const handleImagemSeparadaCropComplete = (blob: Blob, mime: string) => {
-    const f = new File([blob], "imagem_separada.jpg", { type: mime });
-    setImagemSeparadaCropped(f);
-    setShowImagemSeparadaCropper(false);
-    if (imagemSeparadaPreviewUrl) {
-      URL.revokeObjectURL(imagemSeparadaPreviewUrl);
-      setImagemSeparadaPreviewUrl(null);
+    try {
+      const f = new File([blob], "imagem_separada.jpg", { type: mime });
+      setImagemSeparadaCropped(f);
+      setShowImagemSeparadaCropper(false);
+      // Limpar preview URL após um pequeno delay para garantir que o componente foi desmontado
+      setTimeout(() => {
+        if (imagemSeparadaPreviewUrl) {
+          URL.revokeObjectURL(imagemSeparadaPreviewUrl);
+          setImagemSeparadaPreviewUrl(null);
+        }
+      }, 100);
+    } catch (error) {
+      console.error("Erro ao processar recorte de imagem separada:", error);
     }
   };
 
@@ -3332,8 +3368,10 @@ function AdaptarAtividade({
                     <button
                       type="button"
                       onClick={() => {
-                        if (imagemSeparadaFile) {
-                          setImagemSeparadaCropped(imagemSeparadaFile);
+                        // Usar a mesma imagem inicial (croppedFile ou file) para imagem separada
+                        const imagemParaRecorte = croppedFile || file;
+                        if (imagemParaRecorte) {
+                          setImagemSeparadaCropped(imagemParaRecorte);
                           setShowImagemSeparadaCropper(false);
                           if (imagemSeparadaPreviewUrl) {
                             URL.revokeObjectURL(imagemSeparadaPreviewUrl);
