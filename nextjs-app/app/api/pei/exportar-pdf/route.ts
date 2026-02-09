@@ -12,7 +12,10 @@ export async function POST(req: Request) {
     const pdfBytes = await gerarPdfPei(peiData);
     const nomeEstudante = (peiData.nome || "Estudante").toString().replace(/\s+/g, "_");
 
-    return new NextResponse(pdfBytes, {
+    // Converter Uint8Array para Buffer para NextResponse
+    const buffer = Buffer.from(pdfBytes);
+
+    return new NextResponse(buffer, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="PEI_${nomeEstudante}.pdf"`,
