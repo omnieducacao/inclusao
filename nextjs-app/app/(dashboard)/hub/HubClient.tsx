@@ -626,7 +626,7 @@ function CriarDoZero({
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
               >
                 <option value="">Todos</option>
-                {estruturaBncc.disciplinas.map((d) => (
+                {estruturaBncc?.disciplinas?.map((d) => (
                   <option key={d} value={d}>{d}</option>
                 ))}
               </select>
@@ -1297,7 +1297,7 @@ function PlanoAulaDua({
                 className="w-full px-3 py-2 border rounded-lg text-sm"
               >
                 <option value="">Selecione...</option>
-                {estruturaBncc.disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
+                {estruturaBncc?.disciplinas?.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div>
@@ -1980,7 +1980,7 @@ function AdaptarProva({
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
               >
                 <option value="">Todos</option>
-                {estruturaBncc.disciplinas.map((d) => (
+                {estruturaBncc?.disciplinas?.map((d) => (
                   <option key={d} value={d}>{d}</option>
                 ))}
               </select>
@@ -2356,7 +2356,7 @@ function RoteiroIndividual({
                 className="w-full px-3 py-2 border rounded-lg text-sm"
               >
                 <option value="">Selecione...</option>
-                {estruturaBncc.disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
+                {estruturaBncc?.disciplinas?.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div>
@@ -2404,46 +2404,6 @@ function RoteiroIndividual({
         </div>
       )}
       
-      {estruturaBncc && estruturaBncc.disciplinas.length > 0 && false && (
-        <details className="border border-slate-200 rounded-lg">
-          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
-            <BookOpen className="w-4 h-4" />
-            BNCC: Unidade e Objeto (Legado - Oculto)
-          </summary>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
-              <input
-                type="text"
-                value={serieAluno || ""}
-                readOnly
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Componente</label>
-              <select value={componenteSel} onChange={(e) => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm">
-                <option value="">Todos</option>
-                {estruturaBncc.disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
-              <select value={unidadeSel} onChange={(e) => { setUnidadeSel(e.target.value); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!componenteSel}>
-                <option value="">Todas</option>
-                {(discData?.unidades || []).map((u) => <option key={u} value={u}>{u}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
-              <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
-                <option value="">Todos</option>
-                {(unidadeData && typeof unidadeData === "object" && "objetos" in unidadeData ? unidadeData.objetos : []).map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </div>
-          </div>
-        </details>
-      )}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Habilidades BNCC (opcional)</label>
         <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[80px]">
@@ -3195,7 +3155,7 @@ function AdaptarAtividade({
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
               >
                 <option value="">Todos</option>
-                {estruturaBncc.disciplinas.map((d) => (
+                {estruturaBncc?.disciplinas?.map((d) => (
                   <option key={d} value={d}>{d}</option>
                 ))}
               </select>
