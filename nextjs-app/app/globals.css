@@ -402,3 +402,32 @@ h6 {
 .animate-indeterminate-bar {
   animation: indeterminate-bar 1.8s ease-in-out infinite;
 }
+
+/* ─── Login Page: Orbital Rings ─── */
+@keyframes orbit {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes orbit-reverse {
+  from {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+
+  to {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+}
+
+.login-orbit {
+  animation: orbit 60s linear infinite;
+}
+
+.login-orbit-reverse {
+  animation: orbit-reverse 90s linear infinite;
+}
