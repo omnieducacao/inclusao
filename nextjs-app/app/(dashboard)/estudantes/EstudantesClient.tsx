@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ClipboardList, FileText, Map, Trash2, ChevronDown, ChevronUp, X, AlertTriangle } from "lucide-react";
+import { ClipboardList, FileText, Map, Trash2, ChevronDown, ChevronUp, X, AlertTriangle, Edit2, Save, XCircle } from "lucide-react";
 
 type Student = {
   id: string;
@@ -26,6 +26,14 @@ export function EstudantesClient({ students }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [updating, setUpdating] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{
+    name: string;
+    grade: string;
+    class_group: string;
+    diagnosis: string;
+  } | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return students;
@@ -133,6 +141,54 @@ export function EstudantesClient({ students }: Props) {
       console.error(err);
     } finally {
       setUpdating(null);
+    }
+  }
+
+  function iniciarEdicao(student: Student) {
+    setEditingId(student.id);
+    setEditForm({
+      name: student.name || "",
+      grade: student.grade || "",
+      class_group: student.class_group || "",
+      diagnosis: student.diagnosis || "",
+    });
+  }
+
+  function cancelarEdicao() {
+    setEditingId(null);
+    setEditForm(null);
+  }
+
+  async function salvarEdicao(studentId: string) {
+    if (!editForm) return;
+
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/students/${studentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editForm.name.trim() || null,
+          grade: editForm.grade.trim() || null,
+          class_group: editForm.class_group.trim() || null,
+          diagnosis: editForm.diagnosis.trim() || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Erro ao salvar alterações.");
+        return;
+      }
+
+      setEditingId(null);
+      setEditForm(null);
+      router.refresh();
+    } catch (err) {
+      alert("Erro ao salvar alterações. Tente novamente.");
+      console.error(err);
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -350,8 +406,110 @@ export function EstudantesClient({ students }: Props) {
                       </div>
                     ) : (
                       <div className="mt-4 space-y-4">
-                        {/* Contexto */}
-                        {s.diagnosis && (
+                        {/* Edição Inline de Campos Básicos */}
+                        {editingId === s.id ? (
+                          <div className="bg-white border border-sky-200 rounded-lg p-4 space-y-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-sm font-semibold text-slate-800">Editar dados do estudante</h4>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => salvarEdicao(s.id)}
+                                  disabled={saving}
+                                  className="px-3 py-1.5 text-xs font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-lg disabled:opacity-50 flex items-center gap-1.5"
+                                >
+                                  <Save className="w-3.5 h-3.5" />
+                                  Salvar
+                                </button>
+                                <button
+                                  onClick={cancelarEdicao}
+                                  disabled={saving}
+                                  className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-300 disabled:opacity-50 flex items-center gap-1.5"
+                                >
+                                  <XCircle className="w-3.5 h-3.5" />
+                                  Cancelar
+                                </button>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-medium text-slate-700 mb-1">Nome</label>
+                                <input
+                                  type="text"
+                                  value={editForm?.name || ""}
+                                  onChange={(e) => setEditForm({ ...editForm!, name: e.target.value })}
+                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                  placeholder="Nome do estudante"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-slate-700 mb-1">Série</label>
+                                <input
+                                  type="text"
+                                  value={editForm?.grade || ""}
+                                  onChange={(e) => setEditForm({ ...editForm!, grade: e.target.value })}
+                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                  placeholder="Ex: 1º ano, 2º ano"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-slate-700 mb-1">Turma</label>
+                                <input
+                                  type="text"
+                                  value={editForm?.class_group || ""}
+                                  onChange={(e) => setEditForm({ ...editForm!, class_group: e.target.value })}
+                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                  placeholder="Ex: A, B, C"
+                                />
+                              </div>
+                              <div className="md:col-span-2">
+                                <label className="block text-xs font-medium text-slate-700 mb-1">Contexto (equipe)</label>
+                                <textarea
+                                  value={editForm?.diagnosis || ""}
+                                  onChange={(e) => setEditForm({ ...editForm!, diagnosis: e.target.value })}
+                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
+                                  placeholder="Diagnóstico ou contexto do estudante"
+                                  rows={3}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-sm font-semibold text-slate-800">Dados básicos</h4>
+                              <button
+                                onClick={() => iniciarEdicao(s)}
+                                className="px-3 py-1.5 text-xs font-medium text-sky-600 hover:bg-sky-50 rounded-lg border border-sky-200 flex items-center gap-1.5"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                                Editar
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                              <div>
+                                <span className="text-slate-500">Nome:</span>
+                                <span className="ml-2 font-medium text-slate-800">{s.name || "—"}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-500">Série:</span>
+                                <span className="ml-2 font-medium text-slate-800">{s.grade || "—"}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-500">Turma:</span>
+                                <span className="ml-2 font-medium text-slate-800">{s.class_group || "—"}</span>
+                              </div>
+                              {s.diagnosis && (
+                                <div className="md:col-span-2">
+                                  <span className="text-slate-500">Contexto (equipe):</span>
+                                  <p className="mt-1 text-slate-700">{s.diagnosis}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Contexto (modo visualização - apenas se não estiver editando) */}
+                        {editingId !== s.id && s.diagnosis && (
                           <div>
                             <p className="text-sm font-semibold text-slate-700 mb-1">Contexto (equipe):</p>
                             <p className="text-sm text-slate-600">{s.diagnosis}</p>

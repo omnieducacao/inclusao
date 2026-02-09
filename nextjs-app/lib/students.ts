@@ -208,6 +208,35 @@ export async function getStudent(
   }
 }
 
+export async function updateStudent(
+  workspaceId: string,
+  studentId: string,
+  updates: {
+    name?: string;
+    grade?: string | null;
+    class_group?: string | null;
+    diagnosis?: string | null;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  const sb = getSupabase();
+  const payload: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+  if (updates.name !== undefined) payload.name = updates.name;
+  if (updates.grade !== undefined) payload.grade = updates.grade;
+  if (updates.class_group !== undefined) payload.class_group = updates.class_group;
+  if (updates.diagnosis !== undefined) payload.diagnosis = updates.diagnosis;
+
+  const { error } = await sb
+    .from("students")
+    .update(payload)
+    .eq("id", studentId)
+    .eq("workspace_id", workspaceId);
+
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
 export async function updateStudentPeiData(
   workspaceId: string,
   studentId: string,

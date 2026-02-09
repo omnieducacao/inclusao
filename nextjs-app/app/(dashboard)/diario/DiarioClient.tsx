@@ -6,6 +6,7 @@ import { StudentSelector } from "@/components/StudentSelector";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { getColorClasses } from "@/lib/colors";
 import { Filter, Plus, List, BarChart3, Settings, Download, FileText, Calendar, Clock, Users } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -882,101 +883,160 @@ function RelatoriosTab({ registros, student }: { registros: RegistroDiario[]; st
     );
   }
 
-  const maxMes = Math.max(...Object.values(porMes), 1);
-  const maxModalidade = Math.max(...Object.values(porModalidade), 1);
-  const maxCompetencia = Math.max(...topCompetencias.map(([, c]) => c), 1);
+  // Preparar dados para gráficos recharts
+  const dadosPorMes = Object.entries(porMes)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([mes, count]) => ({ mes, atendimentos: count }));
+
+  const dadosPorModalidade = Object.entries(porModalidade).map(([mod, count]) => {
+    const modLabel = MODALIDADES.find((m) => m.value === mod)?.label || mod;
+    return { modalidade: modLabel, quantidade: count };
+  });
+
+  const dadosTopCompetencias = topCompetencias.map(([comp, count]) => ({
+    competencia: comp.charAt(0).toUpperCase() + comp.slice(1),
+    quantidade: count,
+  }));
+
+  const coresModalidade = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#8b5cf6"];
 
   return (
     <div className="space-y-6">
       {/* Gráfico: Atendimentos por Mês */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
         <h3 className="text-xl font-bold text-slate-900 mb-4">📅 Atendimentos por Mês</h3>
-        <div className="h-64 flex items-end gap-2">
-          {Object.entries(porMes)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([mes, count]) => (
-              <div key={mes} className="flex-1 flex flex-col items-center">
-                <div
-                  className="w-full bg-rose-500 rounded-t transition-all hover:bg-rose-600"
-                  style={{ height: `${(count / maxMes) * 100}%` }}
-                  title={`${mes}: ${count} atendimentos`}
-                />
-                <div className="text-xs text-slate-600 mt-2 text-center" style={{ writingMode: "vertical-rl" }}>
-                  {mes}
-                </div>
-                <div className="text-sm font-semibold text-slate-800 mt-1">{count}</div>
-              </div>
-            ))}
-        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={dadosPorMes} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis
+              dataKey="mes"
+              angle={-45}
+              textAnchor="end"
+              height={80}
+              tick={{ fontSize: 12, fill: "#64748b" }}
+            />
+            <YAxis tick={{ fontSize: 12, fill: "#64748b" }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "white",
+                border: "1px solid #e2e8f0",
+                borderRadius: "8px",
+                padding: "8px 12px",
+              }}
+              formatter={(value: number) => [`${value} atendimentos`, "Quantidade"]}
+            />
+            <Bar dataKey="atendimentos" fill="#ef4444" radius={[8, 8, 0, 0]} animationDuration={800} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Gráfico: Distribuição por Modalidade */}
+        {/* Gráfico: Distribuição por Modalidade (Pizza) */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
           <h3 className="text-xl font-bold text-slate-900 mb-4">📊 Distribuição por Modalidade</h3>
-          <div className="space-y-3">
-            {Object.entries(porModalidade).map(([mod, count]) => {
-              const modLabel = MODALIDADES.find((m) => m.value === mod)?.label || mod;
-              const percent = (count / maxModalidade) * 100;
-              return (
-                <div key={mod}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-700">{modLabel}</span>
-                    <span className="font-semibold text-slate-900">{count}</span>
-                  </div>
-                  <div className="w-full bg-slate-200 rounded-full h-2">
-                    <div
-                      className="bg-rose-500 h-2 rounded-full transition-all"
-                      style={{ width: `${percent}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={dadosPorModalidade}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ modalidade, quantidade, percent }) =>
+                  `${modalidade}: ${quantidade} (${(percent * 100).toFixed(0)}%)`
+                }
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="quantidade"
+                animationDuration={800}
+              >
+                {dadosPorModalidade.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={coresModalidade[index % coresModalidade.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "white",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "8px",
+                  padding: "8px 12px",
+                }}
+                formatter={(value: number) => [`${value} atendimentos`, "Quantidade"]}
+              />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Gráfico: Top 10 Competências */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
           <h3 className="text-xl font-bold text-slate-900 mb-4">🎯 Top 10 Competências Trabalhadas</h3>
-          <div className="space-y-2">
-            {topCompetencias.map(([comp, count]) => {
-              const percent = (count / maxCompetencia) * 100;
-              return (
-                <div key={comp}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-700 capitalize">{comp}</span>
-                    <span className="font-semibold text-slate-900">{count}</span>
-                  </div>
-                  <div className="w-full bg-slate-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-500 h-2 rounded-full transition-all"
-                      style={{ width: `${percent}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={dadosTopCompetencias}
+              layout="vertical"
+              margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis type="number" tick={{ fontSize: 12, fill: "#64748b" }} />
+              <YAxis
+                dataKey="competencia"
+                type="category"
+                width={90}
+                tick={{ fontSize: 11, fill: "#64748b" }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "white",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "8px",
+                  padding: "8px 12px",
+                }}
+                formatter={(value: number) => [`${value} vezes`, "Frequência"]}
+              />
+              <Bar dataKey="quantidade" fill="#3b82f6" radius={[0, 8, 8, 0]} animationDuration={800} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Gráfico: Evolução do Engajamento */}
+      {/* Gráfico: Evolução do Engajamento (Linha) */}
       {engajamentoTempo.length > 1 && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
           <h3 className="text-xl font-bold text-slate-900 mb-4">📈 Evolução do Engajamento</h3>
-          <div className="h-64 flex items-end gap-1">
-            {engajamentoTempo.map((item, idx) => (
-              <div key={idx} className="flex-1 flex flex-col items-center">
-                <div
-                  className="w-full bg-green-500 rounded-t transition-all hover:bg-green-600"
-                  style={{ height: `${(item.engajamento / 5) * 100}%` }}
-                  title={`${item.data}: ${item.engajamento}/5`}
-                />
-                <div className="text-xs text-slate-600 mt-2 text-center">{item.engajamento}</div>
-              </div>
-            ))}
-          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={engajamentoTempo} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis
+                dataKey="data"
+                tick={{ fontSize: 12, fill: "#64748b" }}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis
+                domain={[0, 5]}
+                tick={{ fontSize: 12, fill: "#64748b" }}
+                label={{ value: "Engajamento (1-5)", angle: -90, position: "insideLeft", style: { fill: "#64748b" } }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "white",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "8px",
+                  padding: "8px 12px",
+                }}
+                formatter={(value: number) => [`${value}/5`, "Engajamento"]}
+              />
+              <Line
+                type="monotone"
+                dataKey="engajamento"
+                stroke="#22c55e"
+                strokeWidth={3}
+                dot={{ fill: "#22c55e", r: 5 }}
+                activeDot={{ r: 7 }}
+                animationDuration={800}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       )}
 

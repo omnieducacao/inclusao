@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
-import { getStudent, deleteStudent } from "@/lib/students";
+import { getStudent, deleteStudent, updateStudent } from "@/lib/students";
 
 export async function GET(
   _req: Request,
@@ -24,6 +24,36 @@ export async function GET(
     class_group: student.class_group,
     pei_data: (student.pei_data as Record<string, unknown>) || {},
   });
+}
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession();
+  if (!session?.workspace_id) {
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const body = await req.json();
+  const { name, grade, class_group, diagnosis } = body;
+
+  const result = await updateStudent(session.workspace_id, id, {
+    name,
+    grade,
+    class_group,
+    diagnosis,
+  });
+
+  if (!result.success) {
+    return NextResponse.json(
+      { error: result.error || "Erro ao atualizar estudante." },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(
