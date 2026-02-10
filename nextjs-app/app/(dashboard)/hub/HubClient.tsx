@@ -424,7 +424,7 @@ function CriarDoZero({
       setErro("Informe o assunto ou selecione habilidades BNCC.");
       return;
     }
-    
+
     // Validação adicional para modo EI
     if (eiMode && (!eiIdade || !eiCampo || eiObjetivos.length === 0)) {
       setErro("No modo Educação Infantil, preencha idade, campo e objetivos BNCC.");
@@ -476,23 +476,23 @@ function CriarDoZero({
         while ((m = genImgRegex.exec(textoFinal)) !== null) {
           termos.push(m[1].trim());
         }
-        
+
         // Se não encontrou tags suficientes, criar termos genéricos para garantir número solicitado
         while (termos.length < qtdImagens) {
           termos.push(`ilustração educacional ${termos.length + 1}`);
         }
-        
+
         // Prioridade: BANCO (Unsplash) primeiro; Gemini como fallback garantido
         for (let i = 0; i < termos.length && i < qtdImagens; i++) {
           let imagemGerada = false;
           let tentativas = 0;
           const maxTentativas = 2; // Unsplash + Gemini
-          
+
           while (!imagemGerada && tentativas < maxTentativas) {
             try {
               const prioridade = tentativas === 0 ? "BANCO" : "IA";
               console.log(`🖼️ Gerando imagem ${i + 1}/${qtdImagens} para: "${termos[i]}" (${prioridade})`);
-              
+
               const imgRes = await fetch("/api/hub/gerar-imagem", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -505,12 +505,12 @@ function CriarDoZero({
                 // Remove o prefixo data:image se existir e valida base64
                 const imgStr = imgData.image as string;
                 let base64 = imgStr;
-                
+
                 // Se já tem prefixo data:image, remover
                 if (imgStr.startsWith("data:image")) {
                   base64 = imgStr.replace(/^data:image\/\w+;base64,/, "");
                 }
-                
+
                 // Validar que é base64 válido (mínimo 100 caracteres para ser uma imagem válida)
                 if (base64 && base64.length > 100) {
                   mapa[i + 1] = base64;
@@ -530,22 +530,22 @@ function CriarDoZero({
             } catch (error) {
               console.error(`  ❌ Erro ao gerar imagem ${i + 1} (tentativa ${tentativas + 1}):`, error);
             }
-            
+
             tentativas++;
           }
-          
+
           if (!imagemGerada) {
             console.warn(`  ⚠️ Não foi possível gerar imagem ${i + 1} após ${maxTentativas} tentativas`);
           }
         }
-        
+
         console.log(`📊 Total de imagens geradas: ${Object.keys(mapa).length} de ${qtdImagens} solicitadas`);
-        
+
         // Se faltaram imagens, tentar gerar com termos genéricos
         if (Object.keys(mapa).length < qtdImagens) {
           const faltam = qtdImagens - Object.keys(mapa).length;
           console.log(`⚠️ Faltam ${faltam} imagem(ns), tentando gerar com Gemini...`);
-          
+
           for (let f = 0; f < faltam; f++) {
             const idx = Object.keys(mapa).length + 1;
             const termoGenerico = `ilustração educacional ${idx}`;
@@ -556,13 +556,13 @@ function CriarDoZero({
                 body: JSON.stringify({ prompt: termoGenerico, prioridade: "IA" }),
               });
               const imgData = await imgRes.json();
-              
+
               if (imgRes.ok && imgData.image) {
                 const imgStr = imgData.image as string;
-                let base64 = imgStr.startsWith("data:image") 
-                  ? imgStr.replace(/^data:image\/\w+;base64,/, "") 
+                let base64 = imgStr.startsWith("data:image")
+                  ? imgStr.replace(/^data:image\/\w+;base64,/, "")
                   : imgStr;
-                
+
                 if (base64 && base64.length > 100) {
                   mapa[idx] = base64;
                   console.log(`  ✅ Imagem ${idx} gerada como fallback`);
@@ -1004,7 +1004,7 @@ function PapoDeMestre({
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [validado, setValidado] = useState(false);
-  
+
   // Atualizar hiperfoco editável quando o prop mudar (ex: mudança de estudante)
   useEffect(() => {
     setHiperfocoEditavel(hiperfoco);
@@ -1265,7 +1265,7 @@ function PlanoAulaDua({
         </button>
       </div>
       <EngineSelector value={engine} onChange={onEngineChange} />
-      
+
       {/* Módulo BNCC - PRIMEIRO */}
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
         <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
@@ -1285,15 +1285,15 @@ function PlanoAulaDua({
             </div>
             <div>
               <label className="block text-xs text-slate-600 mb-1">Componente Curricular</label>
-              <select 
-                value={componenteSel || materia} 
-                onChange={(e) => { 
+              <select
+                value={componenteSel || materia}
+                onChange={(e) => {
                   const val = e.target.value;
                   setComponenteSel(val);
                   setMateria(val);
-                  setUnidadeSel(""); 
-                  setObjetoSel(""); 
-                }} 
+                  setUnidadeSel("");
+                  setObjetoSel("");
+                }}
                 className="w-full px-3 py-2 border rounded-lg text-sm"
               >
                 <option value="">Selecione...</option>
@@ -1925,7 +1925,7 @@ function AdaptarProva({
   // Mapear imagens extraídas do DOCX para as questões adaptadas
   const mapaImagensParaDocx: Record<number, string> = {};
   let textoComImagensParaDocx = resultado?.texto || "";
-  
+
   if (docxExtraido?.imagens?.length && resultado?.texto) {
     for (const [imgIdxStr, questao] of Object.entries(mapaQuestoes)) {
       if (questao > 0) {
@@ -1941,15 +1941,15 @@ function AdaptarProva({
         }
       }
     }
-    
+
     // Garantir que o texto tenha as tags [[IMG_N]] para as questões mapeadas
     // Se não tiver, adicionar após o número da questão
     textoComImagensParaDocx = resultado.texto;
     const questoesComImagem = Object.values(mapaQuestoes).filter((q) => q > 0);
-    
+
     // Primeiro, verificar se a IA já inseriu as tags
     const tagsExistentes = questoesComImagem.filter((q) => textoComImagensParaDocx.includes(`[[IMG_${q}]]`));
-    
+
     // Para questões sem tag, inserir de forma mais robusta
     for (const questao of questoesComImagem) {
       const tag = `[[IMG_${questao}]]`;
@@ -1962,7 +1962,7 @@ function AdaptarProva({
         `[Imagem ${questao}]`,
       ];
       const temTag = tagVariations.some((t) => textoComImagensParaDocx.includes(t));
-      
+
       if (!temTag) {
         // Tentar encontrar a questão no texto de forma mais robusta
         const patterns = [
@@ -1970,7 +1970,7 @@ function AdaptarProva({
           new RegExp(`(${questao}\\.\\s*[^\\d])`, "gi"),
           new RegExp(`(${questao})\\s*[^\\d]`, "gi"),
         ];
-        
+
         let inserido = false;
         for (const pattern of patterns) {
           const match = textoComImagensParaDocx.match(pattern);
@@ -1980,18 +1980,18 @@ function AdaptarProva({
             // Procurar por padrões de alternativas (a), b), c), etc) ou quebra de linha
             const proxAlternativa = textoComImagensParaDocx.search(new RegExp(`[a-e]\\)|\\n\\n`, "i"));
             const proxParagrafo = textoComImagensParaDocx.indexOf("\n", inicio);
-            const posicaoInsercao = proxAlternativa > inicio && proxAlternativa < inicio + 200 
-              ? proxAlternativa 
-              : proxParagrafo > 0 
-                ? proxParagrafo 
+            const posicaoInsercao = proxAlternativa > inicio && proxAlternativa < inicio + 200
+              ? proxAlternativa
+              : proxParagrafo > 0
+                ? proxParagrafo
                 : inicio + 50;
-            
+
             textoComImagensParaDocx = textoComImagensParaDocx.slice(0, posicaoInsercao) + `\n${tag}\n` + textoComImagensParaDocx.slice(posicaoInsercao);
             inserido = true;
             break;
           }
         }
-        
+
         // Fallback: adicionar no início se não encontrou a questão
         if (!inserido) {
           textoComImagensParaDocx = `\n${tag}\n\n${textoComImagensParaDocx}`;
@@ -2251,19 +2251,19 @@ function AdaptarProva({
               <span className="text-base font-semibold text-slate-800">Prova Adaptada (DUA)</span>
               <span className="flex gap-2">
                 <DocxDownloadButton
-                  texto={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
+                  texto={`${resultado.analise}\n\n---\n\n${textoComImagensParaDocx}`}
                   titulo="Prova Adaptada (DUA)"
                   filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.docx`}
                   mapaImagens={Object.keys(mapaImagensParaDocx).length > 0 ? mapaImagensParaDocx : undefined}
                 />
                 <PdfDownloadButton
-                  text={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
+                  text={`${resultado.analise}\n\n---\n\n${textoComImagensParaDocx}`}
                   filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.pdf`}
                   title="Prova Adaptada (DUA)"
                 />
               </span>
             </div>
-            <FormattedTextDisplay texto={resultado.texto} />
+            <FormattedTextDisplay texto={textoComImagensParaDocx} mapaImagens={Object.keys(mapaImagensParaDocx).length > 0 ? mapaImagensParaDocx : undefined} />
           </div>
         </div>
       )}
@@ -2383,7 +2383,7 @@ function RoteiroIndividual({
       </div>
       <p className="text-sm text-slate-600">Passo a passo de aula específico para o estudante, usando o hiperfoco.</p>
       <EngineSelector value={engine} onChange={onEngineChange} />
-      
+
       {/* Módulo BNCC - PRIMEIRO */}
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
         <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
@@ -2403,15 +2403,15 @@ function RoteiroIndividual({
             </div>
             <div>
               <label className="block text-xs text-slate-600 mb-1">Componente Curricular</label>
-              <select 
-                value={componenteSel || materia} 
-                onChange={(e) => { 
+              <select
+                value={componenteSel || materia}
+                onChange={(e) => {
                   const val = e.target.value;
                   setComponenteSel(val);
                   setMateria(val);
-                  setUnidadeSel(""); 
-                  setObjetoSel(""); 
-                }} 
+                  setUnidadeSel("");
+                  setObjetoSel("");
+                }}
                 className="w-full px-3 py-2 border rounded-lg text-sm"
               >
                 <option value="">Selecione...</option>
@@ -2451,7 +2451,7 @@ function RoteiroIndividual({
           </select>
         </div>
       )}
-      
+
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
           Assunto
@@ -2639,7 +2639,7 @@ function DinamicaInclusiva({
       </div>
       <p className="text-sm text-slate-600">Atividades em grupo onde todos participam, respeitando as singularidades.</p>
       <EngineSelector value={engine} onChange={onEngineChange} />
-      
+
       {/* Módulo BNCC - PRIMEIRO */}
       {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
         <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
@@ -2659,15 +2659,15 @@ function DinamicaInclusiva({
             </div>
             <div>
               <label className="block text-xs text-slate-600 mb-1">Componente Curricular</label>
-              <select 
-                value={componenteSel || materia} 
-                onChange={(e) => { 
+              <select
+                value={componenteSel || materia}
+                onChange={(e) => {
                   const val = e.target.value;
                   setComponenteSel(val);
                   setMateria(val);
-                  setUnidadeSel(""); 
-                  setObjetoSel(""); 
-                }} 
+                  setUnidadeSel("");
+                  setObjetoSel("");
+                }}
                 className="w-full px-3 py-2 border rounded-lg text-sm"
               >
                 <option value="">Selecione...</option>
@@ -2718,7 +2718,7 @@ function DinamicaInclusiva({
           </div>
         </div>
       )}
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Nº de estudantes</label>
@@ -2729,7 +2729,7 @@ function DinamicaInclusiva({
           <input type="text" value={caracteristicas} onChange={(e) => setCaracteristicas(e.target.value)} placeholder="Ex: Turma agitada, gostam de competição" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
         </div>
       </div>
-      
+
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
           Assunto
@@ -3392,20 +3392,6 @@ function AdaptarAtividade({
           </p>
           {temImagemSeparada && (
             <div>
-              {(() => {
-                // IMPORTANTE: Usar APENAS a imagem já recortada (croppedFile) para o segundo recorte
-                // Não usar file diretamente, pois o primeiro recorte já foi feito
-                if (croppedFile && !imagemSeparadaPreviewUrl && !showImagemSeparadaCropper) {
-                  // Criar preview URL automaticamente quando marcar o checkbox
-                  const url = URL.createObjectURL(croppedFile);
-                  setImagemSeparadaPreviewUrl(url);
-                  setShowImagemSeparadaCropper(true);
-                } else if (!croppedFile) {
-                  // Se não tem croppedFile, não pode fazer segundo recorte
-                  console.warn("É necessário recortar a questão primeiro antes de recortar a imagem separada");
-                }
-                return null;
-              })()}
               {showImagemSeparadaCropper && imagemSeparadaPreviewUrl && (
                 <div className="mt-4 p-4 rounded-lg border border-slate-200 bg-white">
                   <ImageCropper
