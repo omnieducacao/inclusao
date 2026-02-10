@@ -64,17 +64,13 @@ export function AdminClient({ session }: { session: SessionPayload }) {
     setLoading(true);
     setError(null);
     try {
-      console.log("[AdminClient] Carregando workspaces...");
       const res = await fetch("/api/admin/workspaces");
-      console.log("[AdminClient] Resposta:", res.status);
       if (res.ok) {
         const data = await res.json();
-        console.log("[AdminClient] Dados:", data);
         setWorkspaces(data.workspaces || []);
       } else {
         const errorText = await res.text();
-        console.error("[AdminClient] Erro HTTP:", res.status, errorText);
-        setError(`Erro HTTP ${res.status}: ${errorText}`);
+        setError(`Erro ao carregar: ${res.status}. ${errorText.slice(0, 200)}`);
       }
     } catch (err) {
       console.error("[AdminClient] Erro ao carregar escolas:", err);
@@ -127,6 +123,23 @@ export function AdminClient({ session }: { session: SessionPayload }) {
     } finally {
       setCreating(false);
     }
+  }
+
+  // Mostrar erro de carregamento em vez de quebrar
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+        <h2 className="text-lg font-bold text-amber-900 mb-2">Erro ao carregar painel</h2>
+        <p className="text-sm text-amber-800 mb-4">{error}</p>
+        <button
+          type="button"
+          onClick={() => { setError(null); loadWorkspaces(); }}
+          className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
   }
 
   return (

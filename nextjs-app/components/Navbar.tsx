@@ -97,8 +97,8 @@ function canAccess(
   session: SessionPayload
 ): boolean {
   if (!item.permission) return true;
-  if (session.is_platform_admin) return true;
-  const member = session.member as Record<string, boolean> | undefined;
+  if (session?.is_platform_admin) return true;
+  const member = session?.member as Record<string, boolean> | undefined;
   // Se não tem member e não é admin, deve negar o acesso para evitar vazamento
   if (!member) return false;
   return member[item.permission] === true;
@@ -127,6 +127,15 @@ function NavItemWithLottie({ item, isActive }: { item: NavItem; isActive: boolea
   const lottieMap = getNavLottieMap();
   const lottieAnimation = lottieMap[item.href];
   const routeColor = NAV_ROUTE_COLORS[item.href] || { from: "#3b82f6", to: "#6366f1" };
+
+  // Evitar crash se ícone não carregou (ex.: admin com ShieldCheckered)
+  if (!Icon) {
+    return (
+      <Link href={item.href} className="px-3.5 py-2 rounded-xl text-[13px] font-semibold text-slate-500">
+        <span>{item.label}</span>
+      </Link>
+    );
+  }
 
   return (
     <Link
@@ -187,12 +196,12 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   const navItems = navIcons ? getNavItems(navIcons) : [];
   const items = !isMounted || !navIcons
     ? []
-    : session.is_platform_admin
-      ? [{ href: "/admin", label: "Admin", icon: navIcons.ShieldCheckered }]
+    : session?.is_platform_admin
+      ? [{ href: "/admin", label: "Admin", icon: navIcons.ShieldCheckered, group: "main" as const }]
       : navItems.filter((item) => canAccess(item, session));
 
-  // Get initials for avatar
-  const initials = (session.usuario_nome || "U")
+  // Get initials for avatar (safe para admin sem workspace)
+  const initials = (session?.usuario_nome || "U")
     .split(" ")
     .map((s) => s[0])
     .slice(0, 2)
@@ -331,8 +340,8 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
           {/* User Info & Logout */}
           <div className="flex items-center gap-3 ml-3 flex-shrink-0">
             <div className="hidden lg:flex flex-col items-end text-right">
-              <span className="text-[13px] font-semibold text-slate-800 leading-tight">{session.usuario_nome}</span>
-              <span className="text-[11px] text-slate-400 font-medium">{session.workspace_name}</span>
+              <span className="text-[13px] font-semibold text-slate-800 leading-tight">{session?.usuario_nome ?? "Admin"}</span>
+              <span className="text-[11px] text-slate-400 font-medium">{session?.workspace_name ?? "Plataforma"}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md ring-2 ring-white">
