@@ -178,7 +178,7 @@ export function adaptarPromptProva(params: AdaptarProvaParams): string {
   // Usar questoes_com_imagem como fonte principal (mais específico que questoes_mapeadas)
   const questoesComImagemFinal = questoes_com_imagem.length > 0 ? questoes_com_imagem : questoes_mapeadas;
   const lista_q = questoesComImagemFinal.length > 0 ? questoesComImagemFinal.join(", ") : "";
-  
+
   const style = modo_profundo
     ? "Seja didático e use uma Cadeia de Pensamento para adaptar."
     : "Seja objetivo.";
@@ -788,4 +788,108 @@ export function gerarPromptExperienciaEi(params: ExperienciaEiParams): string {
     **👣 Como Acontece:** ...
     **🎨 Adaptação para ${aluno.nome.split(" ")[0]}:** ...
     `.trim();
+}
+
+// ==============================================================================
+// MAPA MENTAL (IMAGEM + HTML)
+// ==============================================================================
+
+export interface MapaMentalParams {
+  materia: string;
+  assunto: string;
+  planoTexto: string;
+  estudante?: { nome?: string; hiperfoco?: string };
+  unidade_tematica?: string;
+  objeto_conhecimento?: string;
+}
+
+export function gerarPromptMapaMentalImagem(params: MapaMentalParams): string {
+  const { materia, assunto, planoTexto, estudante, unidade_tematica, objeto_conhecimento } = params;
+  const hiperfoco = estudante?.hiperfoco || "Geral";
+
+  const contexto = [
+    `Subject: ${materia}`,
+    `Topic: ${assunto}`,
+    unidade_tematica ? `BNCC Unit: ${unidade_tematica}` : "",
+    objeto_conhecimento ? `Knowledge Object: ${objeto_conhecimento}` : "",
+    `Student interest (hiperfoco): ${hiperfoco}`,
+  ].filter(Boolean).join(". ");
+
+  // Extrair tópicos-chave do plano para o mapa mental
+  const resumoPlano = planoTexto.slice(0, 2000);
+
+  return `Create a BEAUTIFUL, COLORFUL educational MIND MAP image about this lesson topic.
+
+CONTEXT: ${contexto}
+
+LESSON CONTENT TO MAP (extract the key concepts):
+${resumoPlano}
+
+STYLE RULES:
+- Central node: main topic in a large, bold, colorful circle
+- Branch out into 4-6 main branches with different vibrant colors
+- Each branch has 2-4 sub-nodes with key concepts
+- Use clean, modern flat design with rounded shapes
+- White or very light background  
+- Use icons/emojis where appropriate for visual engagement
+- Text should be in PORTUGUESE (Brazilian)
+- Make it visually stunning - suitable for classroom display
+- NO walls of text - short labels only (2-5 words per node)
+- Use a radial/organic layout, not a tree
+- Colors: use a harmonious palette (teals, purples, oranges, greens)
+
+CRITICAL: This is an IMAGE of a mind map, not text. Create a visual diagram.`.trim();
+}
+
+export function gerarPromptMapaMentalHtml(params: MapaMentalParams): string {
+  const { materia, assunto, planoTexto, estudante, unidade_tematica, objeto_conhecimento } = params;
+  const hiperfoco = estudante?.hiperfoco || "Geral";
+
+  const infoBncc = [
+    unidade_tematica ? `Unidade Temática: ${unidade_tematica}` : "",
+    objeto_conhecimento ? `Objeto do Conhecimento: ${objeto_conhecimento}` : "",
+  ].filter(Boolean).join("\n");
+
+  const resumoPlano = planoTexto.slice(0, 3000);
+
+  return `
+Você é um designer de mapas mentais interativos. Crie um arquivo HTML COMPLETO e AUTOSSUFICIENTE (sem dependências externas) que renderiza um MAPA MENTAL VISUAL INCRÍVEL para ser usado em sala de aula.
+
+INFORMAÇÕES DA AULA:
+- Componente Curricular: ${materia}
+- Assunto: ${assunto}
+- Hiperfoco do estudante: ${hiperfoco}
+${infoBncc ? `- ${infoBncc}` : ""}
+
+CONTEÚDO DO PLANO (extraia os conceitos-chave):
+${resumoPlano}
+
+REGRAS DO HTML:
+1. ARQUIVO HTML COMPLETO: <!DOCTYPE html>, <html>, <head> com <style>, <body> com <script>
+2. TODO o CSS deve estar inline no <style> (não use CDNs, não use Tailwind)
+3. TODO o JavaScript deve estar inline no <script> (não use bibliotecas externas)
+4. Use Canvas API ou SVG para desenhar o mapa mental. Prefira SVG para qualidade.
+5. Design PREMIUM e MODERNO:
+   - Fundo escuro (gradiente de #0f172a para #1e293b)
+   - Nós com bordas arredondadas, cores vibrantes (cyan, purple, orange, emerald, pink)
+   - Linhas curvas conectando os nós (bezier curves)
+   - Sombras suaves (drop-shadow)
+   - Tipografia limpa (system-ui, -apple-system)
+   - Nó central grande e chamativo
+6. INTERATIVIDADE:
+   - Hover nos nós mostra tooltip com detalhe
+   - Nós expandem/contraem ao clicar
+   - Animação suave de entrada (fade-in)
+7. ORGANIZAÇÃO:
+   - Nó central: tema principal
+   - 4-6 ramos principais com cores distintas
+   - Cada ramo com 2-4 sub-nós
+   - Textos curtos (2-5 palavras por nó)
+   - Todo texto em PORTUGUÊS (brasileiro)
+8. No canto superior direito, adicione um botão discreto "📥 Salvar como Imagem" que usa html2canvas inline ou captura via Canvas
+9. Responsivo: funciona bem em telas de 1024px+ 
+10. Adicione no rodapé: "Mapa Mental — ${materia}: ${assunto} | Omnisfera"
+
+SAÍDA: Apenas o HTML completo. Nenhum texto antes ou depois. Comece com <!DOCTYPE html> e termine com </html>.
+`.trim();
 }
