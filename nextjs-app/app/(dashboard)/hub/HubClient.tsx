@@ -1177,8 +1177,8 @@ function PlanoAulaDua({
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [validado, setValidado] = useState(false);
-  const [loadingMapa, setLoadingMapa] = useState<"imagem" | "html" | null>(null);
-  const [mapaImagem, setMapaImagem] = useState<string | null>(null);
+  const [loadingMapa, setLoadingMapa] = useState<"html" | null>(null);
+  const [mapaHtml, setMapaHtml] = useState<string | null>(null);
   const [mapaErro, setMapaErro] = useState<string | null>(null);
 
   const peiData = student?.pei_data || {};
@@ -1505,6 +1505,7 @@ function PlanoAulaDua({
                   onClick={async () => {
                     setLoadingMapa("html");
                     setMapaErro(null);
+                    setMapaHtml(null);
                     try {
                       const res = await fetch("/api/hub/mapa-mental", {
                         method: "POST",
@@ -1521,10 +1522,7 @@ function PlanoAulaDua({
                       });
                       const data = await res.json();
                       if (!res.ok) throw new Error(data.error || "Erro");
-                      const blob = new Blob([data.html], { type: "text/html" });
-                      const url = URL.createObjectURL(blob);
-                      window.open(url, "_blank");
-                      setTimeout(() => URL.revokeObjectURL(url), 60000);
+                      setMapaHtml(data.html);
                     } catch (e) {
                       setMapaErro(e instanceof Error ? e.message : "Erro ao gerar mapa mental.");
                     } finally {
@@ -1538,6 +1536,41 @@ function PlanoAulaDua({
               </span>
             </div>
             {mapaErro && <div className="text-red-600 text-sm mb-3">{mapaErro}</div>}
+            {mapaHtml && (
+              <div className="mb-4 rounded-xl border border-indigo-200 overflow-hidden">
+                <div className="flex justify-between items-center px-4 py-2 bg-indigo-50 border-b border-indigo-200">
+                  <span className="text-sm font-medium text-indigo-800">🧠 Mapa Mental do Conteúdo</span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const blob = new Blob([mapaHtml], { type: "text/html" });
+                        const url = URL.createObjectURL(blob);
+                        window.open(url, "_blank");
+                        setTimeout(() => URL.revokeObjectURL(url), 60000);
+                      }}
+                      className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg text-xs hover:bg-indigo-200"
+                    >
+                      🔗 Abrir em nova aba
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMapaHtml(null)}
+                      className="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs hover:bg-slate-200"
+                    >
+                      ✕ Fechar
+                    </button>
+                  </div>
+                </div>
+                <iframe
+                  srcDoc={mapaHtml}
+                  title="Mapa Mental"
+                  className="w-full border-0"
+                  style={{ height: "600px" }}
+                  sandbox="allow-scripts"
+                />
+              </div>
+            )}
             <FormattedTextDisplay texto={resultado} />
           </div>
         </div>
