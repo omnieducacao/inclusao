@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import type { SessionPayload } from "@/lib/session";
-import { Building2, Settings, FileText, BarChart3, Bug, Loader2, Plus, Edit2, Trash2, Play, Pause, Save, X } from "lucide-react";
+import { Building2, Settings, FileText, BarChart3, Bug, Loader2, Plus, Edit2, Trash2, Play, Pause, Save, X, Eye, Users, ScrollText, Megaphone, Download, Activity } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Workspace = {
   id: string;
@@ -17,7 +18,7 @@ type Workspace = {
   created_at?: string;
 };
 
-type TabId = "escolas" | "uso-ia" | "termo" | "dashboard" | "bugs";
+type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "avisos" | "termo" | "bugs";
 
 const SEGMENT_OPTIONS: Record<string, string> = {
   EI: "Educação Infantil",
@@ -150,13 +151,16 @@ export function AdminClient({ session }: { session: SessionPayload }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 mb-6">
+      <div className="flex gap-2 border-b border-slate-200 mb-6 overflow-x-auto">
         {[
-          { id: "escolas" as TabId, label: "🏫 Escolas", icon: Building2 },
-          { id: "uso-ia" as TabId, label: "📊 Uso de IAs", icon: BarChart3 },
-          { id: "termo" as TabId, label: "📜 Termo de Uso", icon: FileText },
-          { id: "dashboard" as TabId, label: "📊 Dashboard", icon: BarChart3 },
-          { id: "bugs" as TabId, label: "🐛 Bugs e Erros", icon: Bug },
+          { id: "escolas" as TabId, label: "🏫 Escolas" },
+          { id: "usuarios" as TabId, label: "👥 Usuários" },
+          { id: "uso-ia" as TabId, label: "📊 Uso de IAs" },
+          { id: "dashboard" as TabId, label: "📈 Dashboard" },
+          { id: "logs" as TabId, label: "📋 Logs" },
+          { id: "avisos" as TabId, label: "📢 Avisos" },
+          { id: "termo" as TabId, label: "📜 Termo" },
+          { id: "bugs" as TabId, label: "🐛 Bugs" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -193,8 +197,11 @@ export function AdminClient({ session }: { session: SessionPayload }) {
       )}
 
       {activeTab === "uso-ia" && <UsoIATab />}
+      {activeTab === "usuarios" && <UsuariosTab workspaces={workspaces} />}
+      {activeTab === "dashboard" && <EnhancedDashboardTab />}
+      {activeTab === "logs" && <LogsTab workspaces={workspaces} />}
+      {activeTab === "avisos" && <AvisosTab workspaces={workspaces} />}
       {activeTab === "termo" && <TermoTab />}
-      {activeTab === "dashboard" && <DashboardTab />}
       {activeTab === "bugs" && <BugsTab />}
     </div>
 
@@ -626,6 +633,7 @@ function WorkspaceCard({
                 <Trash2 className="w-4 h-4" />
                 Excluir
               </button>
+              <SimulateButton workspaceId={workspace.id} workspaceName={workspace.name} />
             </div>
           </div>
         </div>
@@ -1345,6 +1353,692 @@ function IssueCard({
         >
           {expanded ? "Ocultar" : "Expandir"}
         </button>
+      </div>
+    </div>
+  );
+}
+
+// Simulate School Button
+function SimulateButton({ workspaceId, workspaceName }: { workspaceId: string; workspaceName: string }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function handleSimulate() {
+    if (!confirm(`Deseja simular a escola "${workspaceName}"?\nVocê verá a plataforma como o master desta escola.`)) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspace_id: workspaceId }),
+      });
+      if (res.ok) {
+        router.push("/");
+        router.refresh();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Erro ao iniciar simulação.");
+      }
+    } catch {
+      alert("Erro ao iniciar simulação.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleSimulate}
+      disabled={loading}
+      className="px-3 py-1.5 text-sm border border-amber-400 text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 flex items-center gap-1 disabled:opacity-50"
+    >
+      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+      Simular
+    </button>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Tab: Enhanced Dashboard
+// ═══════════════════════════════════════════════════════════════
+function EnhancedDashboardTab() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/dashboard")
+      .then((r) => r.json())
+      .then(setData)
+      .catch(() => { })
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return <p className="text-center text-slate-600 py-8">Erro ao carregar dashboard.</p>;
+  }
+
+  const { kpis, school_breakdown } = data;
+
+  return (
+    <div className="space-y-6">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-5 bg-blue-50 rounded-xl border border-blue-200">
+          <p className="text-sm text-blue-700 font-medium">Total de Escolas</p>
+          <p className="text-3xl font-bold text-blue-900 mt-1">{kpis.total_schools}</p>
+          <p className="text-xs text-blue-600 mt-1">{kpis.active_schools} ativas, {kpis.inactive_schools} inativas</p>
+        </div>
+        <div className="p-5 bg-green-50 rounded-xl border border-green-200">
+          <p className="text-sm text-green-700 font-medium">Usuários Cadastrados</p>
+          <p className="text-3xl font-bold text-green-900 mt-1">{kpis.total_users}</p>
+          <p className="text-xs text-green-600 mt-1">{kpis.active_users} ativos</p>
+        </div>
+        <div className="p-5 bg-purple-50 rounded-xl border border-purple-200">
+          <p className="text-sm text-purple-700 font-medium">Total de Alunos</p>
+          <p className="text-3xl font-bold text-purple-900 mt-1">{kpis.total_students}</p>
+          <p className="text-xs text-purple-600 mt-1">{kpis.students_with_pei} com PEI</p>
+        </div>
+        <div className="p-5 bg-amber-50 rounded-xl border border-amber-200">
+          <p className="text-sm text-amber-700 font-medium">Eventos (7 dias)</p>
+          <p className="text-3xl font-bold text-amber-900 mt-1">{kpis.recent_events_7d}</p>
+          <p className="text-xs text-amber-600 mt-1">uso da plataforma</p>
+        </div>
+      </div>
+
+      {/* Per-School Breakdown */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-slate-900">📊 Panorama por Escola</h3>
+          <button
+            onClick={() => window.open("/api/admin/export?type=schools", "_blank")}
+            className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center gap-1"
+          >
+            <Download className="w-4 h-4" /> Exportar CSV
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200">
+                <th className="text-left py-3 px-4 font-semibold text-slate-700">Escola</th>
+                <th className="text-center py-3 px-4 font-semibold text-slate-700">Status</th>
+                <th className="text-center py-3 px-4 font-semibold text-slate-700">Usuários</th>
+                <th className="text-center py-3 px-4 font-semibold text-slate-700">Alunos</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(school_breakdown || []).map((s: any) => (
+                <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
+                  <td className="py-3 px-4 font-medium text-slate-900">{s.name}</td>
+                  <td className="py-3 px-4 text-center">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded ${s.active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                      {s.active ? "Ativa" : "Inativa"}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-center font-medium">{s.users}</td>
+                  <td className="py-3 px-4 text-center font-medium">{s.students}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Tab: Usuarios (Global User Management)
+// ═══════════════════════════════════════════════════════════════
+function UsuariosTab({ workspaces }: { workspaces: Workspace[] }) {
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [wsFilter, setWsFilter] = useState("");
+  const [toggling, setToggling] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadUsers();
+  }, [wsFilter]);
+
+  async function loadUsers() {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (wsFilter) params.set("workspace_id", wsFilter);
+      if (search) params.set("search", search);
+      const res = await fetch(`/api/admin/users?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data.users || []);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar usuários:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function toggleUser(userId: string, currentActive: boolean) {
+    setToggling(userId);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, active: !currentActive }),
+      });
+      if (res.ok) {
+        loadUsers();
+      }
+    } catch (err) {
+      alert("Erro ao alterar status.");
+    } finally {
+      setToggling(null);
+    }
+  }
+
+  const filteredUsers = search
+    ? users.filter(
+      (u) =>
+        u.nome.toLowerCase().includes(search.toLowerCase()) ||
+        u.email.toLowerCase().includes(search.toLowerCase())
+    )
+    : users;
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-slate-900">👥 Gestão de Usuários</h3>
+          <button
+            onClick={() => window.open("/api/admin/export?type=users", "_blank")}
+            className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center gap-1"
+          >
+            <Download className="w-4 h-4" /> Exportar CSV
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <input
+            type="text"
+            placeholder="Buscar por nome ou email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && loadUsers()}
+            className="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 rounded-lg text-sm"
+          />
+          <select
+            value={wsFilter}
+            onChange={(e) => setWsFilter(e.target.value)}
+            className="px-3 py-2 border border-slate-300 rounded-lg text-sm"
+          >
+            <option value="">Todas as escolas</option>
+            {workspaces.map((ws) => (
+              <option key={ws.id} value={ws.id}>{ws.name}</option>
+            ))}
+          </select>
+          <button
+            onClick={loadUsers}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+          >
+            Buscar
+          </button>
+        </div>
+
+        {/* Users Table */}
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+          </div>
+        ) : filteredUsers.length === 0 ? (
+          <p className="text-slate-600 text-center py-8">Nenhum usuário encontrado.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-3 px-4 font-semibold text-slate-700">Nome</th>
+                  <th className="text-left py-3 px-4 font-semibold text-slate-700">Email</th>
+                  <th className="text-left py-3 px-4 font-semibold text-slate-700">Escola</th>
+                  <th className="text-center py-3 px-4 font-semibold text-slate-700">Papel</th>
+                  <th className="text-center py-3 px-4 font-semibold text-slate-700">Status</th>
+                  <th className="text-center py-3 px-4 font-semibold text-slate-700">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr key={user.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <td className="py-3 px-4 font-medium text-slate-900">{user.nome || "—"}</td>
+                    <td className="py-3 px-4 text-slate-600">{user.email || "—"}</td>
+                    <td className="py-3 px-4 text-slate-600">{user.workspace_name}</td>
+                    <td className="py-3 px-4 text-center">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded ${user.role === "master"
+                        ? "bg-purple-100 text-purple-800"
+                        : "bg-blue-100 text-blue-800"
+                        }`}>
+                        {user.role === "master" ? "Master" : "Membro"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded ${user.active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                        }`}>
+                        {user.active ? "Ativo" : "Inativo"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <button
+                        onClick={() => toggleUser(user.id, user.active)}
+                        disabled={toggling === user.id}
+                        className="px-3 py-1 text-xs border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50"
+                      >
+                        {toggling === user.id ? "..." : user.active ? "Desativar" : "Ativar"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <p className="text-sm text-slate-500 mt-3">{filteredUsers.length} usuário(s) encontrado(s)</p>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Tab: Logs de Atividade
+// ═══════════════════════════════════════════════════════════════
+function LogsTab({ workspaces }: { workspaces: Workspace[] }) {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [eventTypes, setEventTypes] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [wsFilter, setWsFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [offset, setOffset] = useState(0);
+  const limit = 50;
+
+  useEffect(() => {
+    loadLogs();
+  }, [wsFilter, typeFilter, offset]);
+
+  async function loadLogs() {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+      if (wsFilter) params.set("workspace_id", wsFilter);
+      if (typeFilter) params.set("event_type", typeFilter);
+      const res = await fetch(`/api/admin/activity-log?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setLogs(data.logs || []);
+        setTotal(data.total || 0);
+        if (data.event_types) setEventTypes(data.event_types);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar logs:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-slate-900">📋 Logs de Atividade</h3>
+          <button
+            onClick={() => { setOffset(0); loadLogs(); }}
+            className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center gap-1"
+          >
+            <Activity className="w-4 h-4" /> Atualizar
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <select
+            value={wsFilter}
+            onChange={(e) => { setWsFilter(e.target.value); setOffset(0); }}
+            className="px-3 py-2 border border-slate-300 rounded-lg text-sm"
+          >
+            <option value="">Todas as escolas</option>
+            {workspaces.map((ws) => (
+              <option key={ws.id} value={ws.id}>{ws.name}</option>
+            ))}
+          </select>
+          <select
+            value={typeFilter}
+            onChange={(e) => { setTypeFilter(e.target.value); setOffset(0); }}
+            className="px-3 py-2 border border-slate-300 rounded-lg text-sm"
+          >
+            <option value="">Todos os tipos</option>
+            {eventTypes.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <span className="self-center text-sm text-slate-500">{total} evento(s) total</span>
+        </div>
+
+        {/* Logs Table */}
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+          </div>
+        ) : logs.length === 0 ? (
+          <p className="text-slate-600 text-center py-8">Nenhum log encontrado.</p>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200">
+                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Data</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Evento</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Escola</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Origem</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Motor IA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.map((log: any) => {
+                    const date = log.created_at
+                      ? new Date(log.created_at).toLocaleString("pt-BR", {
+                        day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+                      })
+                      : "—";
+                    return (
+                      <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="py-3 px-4 text-slate-600 whitespace-nowrap">{date}</td>
+                        <td className="py-3 px-4 font-medium text-slate-900">{log.event_type}</td>
+                        <td className="py-3 px-4 text-slate-600">{log.workspace_name}</td>
+                        <td className="py-3 px-4 text-slate-600">{log.source || "—"}</td>
+                        <td className="py-3 px-4 text-slate-600">
+                          {log.ai_engine ? (ENGINE_OPTIONS[log.ai_engine] || log.ai_engine) : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between mt-4">
+              <button
+                disabled={offset === 0}
+                onClick={() => setOffset(Math.max(0, offset - limit))}
+                className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50"
+              >
+                ← Anterior
+              </button>
+              <span className="text-sm text-slate-600">
+                {offset + 1}–{Math.min(offset + limit, total)} de {total}
+              </span>
+              <button
+                disabled={offset + limit >= total}
+                onClick={() => setOffset(offset + limit)}
+                className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50"
+              >
+                Próxima →
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Tab: Avisos (Announcements)
+// ═══════════════════════════════════════════════════════════════
+function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+
+  // Form state
+  const [title, setTitle] = useState("");
+  const [message, setMessage] = useState("");
+  const [type, setType] = useState<"info" | "warning" | "alert">("info");
+  const [target, setTarget] = useState("all");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    loadAnnouncements();
+  }, []);
+
+  async function loadAnnouncements() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/announcements");
+      if (res.ok) {
+        const data = await res.json();
+        setAnnouncements(data.announcements || []);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar avisos:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleCreate() {
+    if (!title.trim() || !message.trim()) {
+      alert("Preencha título e mensagem.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/announcements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "create",
+          announcement: { title: title.trim(), message: message.trim(), type, target },
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAnnouncements(data.announcements || []);
+        setTitle("");
+        setMessage("");
+        setType("info");
+        setTarget("all");
+        setShowForm(false);
+      }
+    } catch (err) {
+      alert("Erro ao criar aviso.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleToggle(id: string) {
+    try {
+      const res = await fetch("/api/admin/announcements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "toggle", announcement_id: id }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAnnouncements(data.announcements || []);
+      }
+    } catch {
+      alert("Erro ao alterar aviso.");
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Excluir este aviso?")) return;
+    try {
+      const res = await fetch("/api/admin/announcements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", announcement_id: id }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAnnouncements(data.announcements || []);
+      }
+    } catch {
+      alert("Erro ao excluir aviso.");
+    }
+  }
+
+  const typeColors = {
+    info: "bg-blue-100 text-blue-800",
+    warning: "bg-amber-100 text-amber-800",
+    alert: "bg-red-100 text-red-800",
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* New Announcement Form */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-slate-900">📢 Avisos da Plataforma</h3>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            {showForm ? <X className="w-4 h-4" /> : <Megaphone className="w-4 h-4" />}
+            {showForm ? "Cancelar" : "Novo Aviso"}
+          </button>
+        </div>
+
+        {showForm && (
+          <div className="mt-4 space-y-4 border-t border-slate-200 pt-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Título *</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: Manutenção programada"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Mensagem *</label>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={3}
+                placeholder="Detalhe o aviso para os usuários..."
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+              />
+            </div>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Tipo</label>
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value as any)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                >
+                  <option value="info">ℹ️ Informativo</option>
+                  <option value="warning">⚠️ Aviso</option>
+                  <option value="alert">🔴 Alerta</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Destino</label>
+                <select
+                  value={target}
+                  onChange={(e) => setTarget(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                >
+                  <option value="all">Todas as escolas</option>
+                  {workspaces.map((ws) => (
+                    <option key={ws.id} value={ws.id}>{ws.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <button
+              onClick={handleCreate}
+              disabled={submitting}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Megaphone className="w-4 h-4" />}
+              Publicar aviso
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Announcements List */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <h3 className="text-xl font-bold text-slate-900 mb-4">Avisos Publicados</h3>
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+          </div>
+        ) : announcements.length === 0 ? (
+          <p className="text-slate-600 text-center py-8">Nenhum aviso publicado.</p>
+        ) : (
+          <div className="space-y-3">
+            {announcements.map((a: any) => {
+              const wsName = a.target === "all"
+                ? "Todas as escolas"
+                : workspaces.find((w) => w.id === a.target)?.name || a.target;
+              const date = a.created_at
+                ? new Date(a.created_at).toLocaleString("pt-BR", {
+                  day: "2-digit", month: "2-digit", year: "numeric",
+                })
+                : "";
+              return (
+                <div key={a.id} className={`border rounded-lg p-4 ${a.active ? "border-slate-200" : "border-slate-100 opacity-60"}`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`px-2 py-0.5 text-xs font-semibold rounded ${typeColors[a.type as keyof typeof typeColors] || typeColors.info}`}>
+                          {a.type === "info" ? "INFO" : a.type === "warning" ? "AVISO" : "ALERTA"}
+                        </span>
+                        <span className={`px-2 py-0.5 text-xs rounded ${a.active ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-600"}`}>
+                          {a.active ? "Ativo" : "Inativo"}
+                        </span>
+                        <span className="text-xs text-slate-500">· {date} · {wsName}</span>
+                      </div>
+                      <h4 className="font-bold text-slate-900">{a.title}</h4>
+                      <p className="text-sm text-slate-600 mt-1">{a.message}</p>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => handleToggle(a.id)}
+                        className="px-3 py-1 text-xs border border-slate-300 rounded-lg hover:bg-slate-50"
+                      >
+                        {a.active ? "Desativar" : "Ativar"}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(a.id)}
+                        className="px-3 py-1 text-xs border border-red-300 text-red-700 rounded-lg hover:bg-red-50"
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

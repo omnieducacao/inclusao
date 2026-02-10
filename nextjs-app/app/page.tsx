@@ -6,6 +6,8 @@ import { AIEnginesBadge } from "@/components/AIEnginesBadge";
 import { ModuleCardsLottie, IntelligenceModuleCard } from "@/components/ModuleCardsLottie";
 import { WelcomeHero } from "@/components/WelcomeHero";
 import { TermsOfUseModal } from "@/components/TermsOfUseModal";
+import { AnnouncementBanner } from "@/components/AnnouncementBanner";
+import { SimulationBanner } from "@/components/SimulationBanner";
 
 export default async function RootPage() {
   const session = await getSession();
@@ -159,9 +161,11 @@ export default async function RootPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/15 to-sky-50/10">
+      <SimulationBanner session={sessionNonNull} />
       <Navbar session={sessionNonNull} hideMenu={true} />
       <main className="max-w-[1600px] mx-auto px-8 py-8">
         <div className="space-y-8">
+          <AnnouncementBanner />
           <Suspense fallback={<div className="h-[140px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
             <WelcomeHero
               saudacao={saudacao}

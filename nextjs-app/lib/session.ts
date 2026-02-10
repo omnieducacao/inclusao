@@ -14,6 +14,9 @@ export type SessionPayload = {
   member?: Record<string, unknown>;
   is_platform_admin?: boolean;
   terms_accepted?: boolean;
+  // Simulation mode fields
+  simulating_workspace_id?: string;
+  simulating_workspace_name?: string;
   exp: number;
 };
 
