@@ -1946,25 +1946,55 @@ function AdaptarProva({
     // Se não tiver, adicionar após o número da questão
     textoComImagensParaDocx = resultado.texto;
     const questoesComImagem = Object.values(mapaQuestoes).filter((q) => q > 0);
+    
+    // Primeiro, verificar se a IA já inseriu as tags
+    const tagsExistentes = questoesComImagem.filter((q) => textoComImagensParaDocx.includes(`[[IMG_${q}]]`));
+    
+    // Para questões sem tag, inserir de forma mais robusta
     for (const questao of questoesComImagem) {
       const tag = `[[IMG_${questao}]]`;
-      // Verificar se a tag já existe no texto
-      if (!textoComImagensParaDocx.includes(tag)) {
-        // Tentar encontrar a questão no texto e adicionar a tag após o enunciado
-        const regexQuestao = new RegExp(`(Questão\\s+${questao}[^\\d]|${questao}\\.\\s*[^\\d])`, "i");
-        const match = textoComImagensParaDocx.match(regexQuestao);
-        if (match && match.index !== undefined) {
-          // Encontrar o final do enunciado (antes das alternativas ou próximo parágrafo)
-          const inicio = match.index + match[0].length;
-          const proximoParagrafo = textoComImagensParaDocx.indexOf("\n", inicio);
-          const posicaoInsercao = proximoParagrafo > 0 ? proximoParagrafo : inicio + 100;
-          textoComImagensParaDocx = textoComImagensParaDocx.slice(0, posicaoInsercao) + `\n${tag}\n` + textoComImagensParaDocx.slice(posicaoInsercao);
-        } else {
-          // Se não encontrar, adicionar antes do texto da questão (fallback)
-          textoComImagensParaDocx = textoComImagensParaDocx.replace(
-            new RegExp(`(Questão\\s+${questao}|${questao}\\.)`, "i"),
-            `$1\n${tag}\n`
-          );
+      // Verificar se a tag já existe no texto (com variações possíveis)
+      const tagVariations = [
+        tag,
+        tag.replace(/\[\[/g, "[").replace(/\]\]/g, "]"),
+        `IMG_${questao}`,
+        `[Imagem ${questao}]`,
+        `[Imagem ${questao}]`,
+      ];
+      const temTag = tagVariations.some((t) => textoComImagensParaDocx.includes(t));
+      
+      if (!temTag) {
+        // Tentar encontrar a questão no texto de forma mais robusta
+        const patterns = [
+          new RegExp(`(Questão\\s+${questao}[^\\d])`, "gi"),
+          new RegExp(`(${questao}\\.\\s*[^\\d])`, "gi"),
+          new RegExp(`(${questao})\\s*[^\\d]`, "gi"),
+        ];
+        
+        let inserido = false;
+        for (const pattern of patterns) {
+          const match = textoComImagensParaDocx.match(pattern);
+          if (match && match.index !== undefined) {
+            // Encontrar o final do enunciado (procurar por alternativas ou próximo parágrafo)
+            const inicio = match.index + match[0].length;
+            // Procurar por padrões de alternativas (a), b), c), etc) ou quebra de linha
+            const proxAlternativa = textoComImagensParaDocx.search(new RegExp(`[a-e]\\)|\\n\\n`, "i"));
+            const proxParagrafo = textoComImagensParaDocx.indexOf("\n", inicio);
+            const posicaoInsercao = proxAlternativa > inicio && proxAlternativa < inicio + 200 
+              ? proxAlternativa 
+              : proxParagrafo > 0 
+                ? proxParagrafo 
+                : inicio + 50;
+            
+            textoComImagensParaDocx = textoComImagensParaDocx.slice(0, posicaoInsercao) + `\n${tag}\n` + textoComImagensParaDocx.slice(posicaoInsercao);
+            inserido = true;
+            break;
+          }
+        }
+        
+        // Fallback: adicionar no início se não encontrou a questão
+        if (!inserido) {
+          textoComImagensParaDocx = `\n${tag}\n\n${textoComImagensParaDocx}`;
         }
       }
     }
@@ -2983,7 +3013,6 @@ function AdaptarAtividade({
   const [croppedFile, setCroppedFile] = useState<File | null>(null);
   const [showCropper, setShowCropper] = useState(false);
   const [temImagemSeparada, setTemImagemSeparada] = useState(false);
-  const [imagemSeparadaFile, setImagemSeparadaFile] = useState<File | null>(null);
   const [imagemSeparadaPreviewUrl, setImagemSeparadaPreviewUrl] = useState<string | null>(null);
   const [imagemSeparadaCropped, setImagemSeparadaCropped] = useState<File | null>(null);
   const [showImagemSeparadaCropper, setShowImagemSeparadaCropper] = useState(false);
@@ -3061,22 +3090,26 @@ function AdaptarAtividade({
   const handleImagemSeparadaCropComplete = (blob: Blob, mime: string) => {
     try {
       const f = new File([blob], "imagem_separada.jpg", { type: mime });
-      setImagemSeparadaCropped(f);
+      // Fechar o cropper primeiro
       setShowImagemSeparadaCropper(false);
-      // Limpar preview URL após um pequeno delay para garantir que o componente foi desmontado
-      setTimeout(() => {
-        if (imagemSeparadaPreviewUrl) {
-          URL.revokeObjectURL(imagemSeparadaPreviewUrl);
-          setImagemSeparadaPreviewUrl(null);
-        }
-      }, 100);
+      // Limpar preview URL imediatamente
+      if (imagemSeparadaPreviewUrl) {
+        URL.revokeObjectURL(imagemSeparadaPreviewUrl);
+        setImagemSeparadaPreviewUrl(null);
+      }
+      // Depois atualizar a imagem recortada
+      setImagemSeparadaCropped(f);
+      console.log("✅ Imagem separada recortada e cropper fechado");
     } catch (error) {
       console.error("Erro ao processar recorte de imagem separada:", error);
+      setShowImagemSeparadaCropper(false);
     }
   };
 
   const imagemParaEnvio = croppedFile || file;
-  const imagemSeparadaParaEnvio = imagemSeparadaCropped || imagemSeparadaFile;
+  // IMPORTANTE: imagemSeparadaParaEnvio deve ser APENAS imagemSeparadaCropped (não imagemSeparadaFile)
+  // O fluxo é: questão recortada → imagem da questão recortada
+  const imagemSeparadaParaEnvio = imagemSeparadaCropped;
 
   const gerar = async (usarModoProfundo = false) => {
     if (!imagemParaEnvio) {
@@ -3325,18 +3358,22 @@ function AdaptarAtividade({
             <input
               type="checkbox"
               checked={temImagemSeparada}
+              disabled={!croppedFile}
               onChange={(e) => {
+                if (!croppedFile) {
+                  alert("Por favor, primeiro recorte a questão antes de recortar a imagem separada.");
+                  return;
+                }
                 setTemImagemSeparada(e.target.checked);
                 if (e.target.checked) {
-                  // Quando marcar, usar a mesma imagem inicial para recorte
-                  const imagemParaRecorte = croppedFile || file;
-                  if (imagemParaRecorte && !imagemSeparadaPreviewUrl) {
-                    const url = URL.createObjectURL(imagemParaRecorte);
+                  // IMPORTANTE: Usar APENAS a imagem já recortada (croppedFile) para o segundo recorte
+                  // O fluxo é: foto completa → recortar questão → recortar imagem da questão recortada
+                  if (!imagemSeparadaPreviewUrl && !showImagemSeparadaCropper) {
+                    const url = URL.createObjectURL(croppedFile);
                     setImagemSeparadaPreviewUrl(url);
                     setShowImagemSeparadaCropper(true);
                   }
                 } else {
-                  setImagemSeparadaFile(null);
                   setImagemSeparadaCropped(null);
                   if (imagemSeparadaPreviewUrl) {
                     URL.revokeObjectURL(imagemSeparadaPreviewUrl);
@@ -3351,18 +3388,21 @@ function AdaptarAtividade({
             </span>
           </label>
           <p className="text-xs text-slate-600 mb-3">
-            Se a questão tem imagem e você quer recortá-la separadamente para melhor qualidade, marque acima. A mesma imagem inicial será usada para o recorte.
+            Se a questão tem imagem e você quer recortá-la separadamente para melhor qualidade, marque acima. A imagem da questão recortada será usada para recortar apenas a imagem.
           </p>
           {temImagemSeparada && (
             <div>
               {(() => {
-                // Usar a mesma imagem inicial (croppedFile ou file) para recorte separado
-                const imagemParaRecorte = croppedFile || file;
-                if (imagemParaRecorte && !imagemSeparadaPreviewUrl && !showImagemSeparadaCropper) {
+                // IMPORTANTE: Usar APENAS a imagem já recortada (croppedFile) para o segundo recorte
+                // Não usar file diretamente, pois o primeiro recorte já foi feito
+                if (croppedFile && !imagemSeparadaPreviewUrl && !showImagemSeparadaCropper) {
                   // Criar preview URL automaticamente quando marcar o checkbox
-                  const url = URL.createObjectURL(imagemParaRecorte);
+                  const url = URL.createObjectURL(croppedFile);
                   setImagemSeparadaPreviewUrl(url);
                   setShowImagemSeparadaCropper(true);
+                } else if (!croppedFile) {
+                  // Se não tem croppedFile, não pode fazer segundo recorte
+                  console.warn("É necessário recortar a questão primeiro antes de recortar a imagem separada");
                 }
                 return null;
               })()}
@@ -3377,10 +3417,9 @@ function AdaptarAtividade({
                     <button
                       type="button"
                       onClick={() => {
-                        // Usar a mesma imagem inicial (croppedFile ou file) para imagem separada
-                        const imagemParaRecorte = croppedFile || file;
-                        if (imagemParaRecorte) {
-                          setImagemSeparadaCropped(imagemParaRecorte);
+                        // Usar a imagem da questão recortada (croppedFile) como imagem separada inteira
+                        if (croppedFile) {
+                          setImagemSeparadaCropped(croppedFile);
                           setShowImagemSeparadaCropper(false);
                           if (imagemSeparadaPreviewUrl) {
                             URL.revokeObjectURL(imagemSeparadaPreviewUrl);
@@ -3390,12 +3429,13 @@ function AdaptarAtividade({
                       }}
                       className="text-sm text-slate-600 hover:text-slate-800"
                     >
-                      Usar imagem inteira
+                      Usar questão recortada inteira
                     </button>
                     <button
                       type="button"
                       onClick={() => {
-                        setImagemSeparadaFile(null);
+                        setTemImagemSeparada(false);
+                        setImagemSeparadaCropped(null);
                         if (imagemSeparadaPreviewUrl) {
                           URL.revokeObjectURL(imagemSeparadaPreviewUrl);
                           setImagemSeparadaPreviewUrl(null);
@@ -3416,9 +3456,9 @@ function AdaptarAtividade({
                     type="button"
                     onClick={() => {
                       setImagemSeparadaCropped(null);
-                      const imagemParaRecorte = croppedFile || file;
-                      if (imagemParaRecorte) {
-                        const url = URL.createObjectURL(imagemParaRecorte);
+                      // Usar APENAS croppedFile (questão recortada) para refazer o recorte da imagem
+                      if (croppedFile) {
+                        const url = URL.createObjectURL(croppedFile);
                         setImagemSeparadaPreviewUrl(url);
                         setShowImagemSeparadaCropper(true);
                       }

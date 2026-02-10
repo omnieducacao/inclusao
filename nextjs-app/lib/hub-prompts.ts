@@ -175,7 +175,10 @@ export function adaptarPromptProva(params: AdaptarProvaParams): string {
     objeto_conhecimento,
   } = params;
 
-  const lista_q = questoes_mapeadas.length > 0 ? questoes_mapeadas.join(", ") : "";
+  // Usar questoes_com_imagem como fonte principal (mais específico que questoes_mapeadas)
+  const questoesComImagemFinal = questoes_com_imagem.length > 0 ? questoes_com_imagem : questoes_mapeadas;
+  const lista_q = questoesComImagemFinal.length > 0 ? questoesComImagemFinal.join(", ") : "";
+  
   const style = modo_profundo
     ? "Seja didático e use uma Cadeia de Pensamento para adaptar."
     : "Seja objetivo.";
@@ -230,9 +233,33 @@ Analise cada questão individualmente e selecione as adaptações mais relevante
 `;
   }
 
+  // Instrução de imagens mais enfática e clara
   const instrucaoImagens =
-    questoes_com_imagem.length > 0
-      ? `\nREGRA DE IMAGENS: O professor indicou imagens nas questões: ${questoes_com_imagem.join(", ")}. Para cada questão com imagem, use a tag [[IMG_N]] (onde N é o número da questão) EXATAMENTE no local onde a figura deve aparecer (após o enunciado, antes das alternativas). Exemplo: Questão 1 tem imagem → use [[IMG_1]]. NUNCA remova ou mova imagens de posição.\n`
+    questoesComImagemFinal.length > 0
+      ? `\n
+REGRA CRÍTICA DE IMAGENS (OBRIGATÓRIA):
+O professor mapeou imagens nas seguintes questões: ${questoesComImagemFinal.join(", ")}.
+
+PARA CADA QUESTÃO COM IMAGEM, VOCÊ DEVE:
+1. Manter a imagem no MESMO local onde estava na prova original
+2. Inserir a tag [[IMG_N]] (onde N é o número da questão) EXATAMENTE após o enunciado e ANTES das alternativas
+3. Exemplos:
+   - Questão 1 tem imagem → use [[IMG_1]]
+   - Questão 3 tem imagem → use [[IMG_3]]
+   - Questão 5 tem imagem → use [[IMG_5]]
+
+ESTRUTURA OBRIGATÓRIA para questões com imagem:
+Questão N
+[enunciado da questão]
+[[IMG_N]]
+a) alternativa 1
+b) alternativa 2
+...
+
+ATENÇÃO: Se você não inserir as tags [[IMG_N]] corretamente, as imagens não aparecerão no documento final.
+NUNCA remova ou mova imagens de sua posição original.
+NUNCA esqueça de inserir as tags [[IMG_N]] para questões com imagens mapeadas.
+`
       : "";
 
   const infoBncc = unidade_tematica || objeto_conhecimento
@@ -243,13 +270,13 @@ Analise cada questão individualmente e selecione as adaptações mais relevante
 ESPECIALISTA EM DUA E INCLUSÃO. ${style}
 1. ANALISE O PERFIL: ${(aluno.ia_sugestao || "").slice(0, 1000)}
 2. ADAPTE A ${tipo_atv}: Use o hiperfoco (${aluno.hiperfoco || "Geral"}) em 30% das questões.
-${instrucoes_checklist}${infoBncc}
+${instrucoes_checklist}${infoBncc}${instrucaoImagens}
 
 REGRA ABSOLUTA DE IMAGENS: O professor indicou imagens nas questões: ${lista_q || "nenhuma"}.
 MANTENHA AS IMAGENS NO MESMO LOCAL ONDE ESTAVAM NA PROVA ORIGINAL.
 Para questões com imagens, a estrutura OBRIGATÓRIA é: 1. Enunciado -> 2. [[IMG_número]] -> 3. Alternativas.
 NUNCA remova ou mova imagens de sua posição original.
-${instrucaoImagens}
+
 SAÍDA OBRIGATÓRIA (Use EXATAMENTE este divisor):
 [ANÁLISE PEDAGÓGICA]
 ...análise...
