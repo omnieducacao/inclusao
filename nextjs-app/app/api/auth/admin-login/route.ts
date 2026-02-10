@@ -34,6 +34,7 @@ export async function POST(req: Request) {
       usuario_nome: (data?.nome as string) || email,
       user_role: "platform_admin",
       is_platform_admin: true,
+      member: {}, // evita crash em componentes que acessam session.member
     });
 
     return NextResponse.json({

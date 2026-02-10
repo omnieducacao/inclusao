@@ -12,8 +12,12 @@ import { getSupabase } from "@/lib/supabase";
 export async function GET() {
     try {
         const session = await getSession();
-        if (!session?.workspace_id) {
+        if (!session) {
             return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+        }
+        // Admin da plataforma não tem workspace — retornar lista vazia em vez de 401
+        if (session.is_platform_admin || !session.workspace_id) {
+            return NextResponse.json({ notifications: [], total: 0 });
         }
 
         const sb = getSupabase();
