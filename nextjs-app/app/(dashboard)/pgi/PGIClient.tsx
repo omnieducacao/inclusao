@@ -11,6 +11,7 @@ import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { EngineSelector } from "@/components/EngineSelector";
 import { Plus, User, Trash2, Save, MapPin, Calendar, Sparkles, Loader2 } from "lucide-react";
 import type { EngineId } from "@/lib/ai-engines";
+import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 
 type TabId = "inicial" | "gerador";
 
@@ -74,8 +75,8 @@ export function PGIClient() {
           type="button"
           onClick={() => setTab("inicial")}
           className={`px-4 py-2 text-sm font-medium rounded-t-lg ${tab === "inicial"
-              ? "bg-teal-50 text-teal-800 border border-slate-200 border-b-0 -mb-px"
-              : "text-slate-600 hover:bg-slate-50"
+            ? "bg-teal-50 text-teal-800 border border-slate-200 border-b-0 -mb-px"
+            : "text-slate-600 hover:bg-slate-50"
             }`}
         >
           Inicial — Acolhimento
@@ -84,8 +85,8 @@ export function PGIClient() {
           type="button"
           onClick={() => setTab("gerador")}
           className={`px-4 py-2 text-sm font-medium rounded-t-lg ${tab === "gerador"
-              ? "bg-teal-50 text-teal-800 border border-slate-200 border-b-0 -mb-px"
-              : "text-slate-600 hover:bg-slate-50"
+            ? "bg-teal-50 text-teal-800 border border-slate-200 border-b-0 -mb-px"
+            : "text-slate-600 hover:bg-slate-50"
             }`}
         >
           Gerador — O Plano da Escola
@@ -350,6 +351,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
             type="button"
             onClick={async () => {
               setGerandoAcoes(true);
+              aiLoadingStart(engine || "red", "pgi");
               try {
                 const res = await fetch("/api/pgi/gerar-acoes", {
                   method: "POST",
@@ -371,6 +373,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
                 onError("Erro ao gerar ações. Tente novamente.");
               } finally {
                 setGerandoAcoes(false);
+                aiLoadingStop();
               }
             }}
             disabled={gerandoAcoes}

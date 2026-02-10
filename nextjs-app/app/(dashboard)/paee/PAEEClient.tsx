@@ -2548,6 +2548,7 @@ function ArticulacaoTab({
     }
     setLoading(true);
     setErro(null);
+    aiLoadingStart(engine || "red", "paee");
     try {
       const res = await fetch("/api/paee/documento-articulacao", {
         method: "POST",
@@ -2563,15 +2564,39 @@ function ArticulacaoTab({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao gerar documento");
-      setDocumento(data.documento || "");
+      const docTexto = (data.documento || "").trim();
+
+      // Atualização atômica
+      const novoPaeeData = {
+        ...paeeData,
+        conteudo_documento_articulacao: docTexto,
+        status_documento_articulacao: "revisao",
+        input_original_documento_articulacao: { freq: frequencia, turno, acoes },
+      };
+      onUpdate(novoPaeeData);
+      setDocumento(docTexto);
       setStatus("revisao");
-      updateField("conteudo_documento_articulacao", data.documento);
-      updateField("status_documento_articulacao", "revisao");
-      updateField("input_original_documento_articulacao", { freq: frequencia, turno, acoes });
+
+      // Salvar no Supabase
+      if (student?.id) {
+        try {
+          const saveRes = await fetch(`/api/students/${student.id}/paee`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ paee_data: novoPaeeData }),
+          });
+          if (!saveRes.ok) {
+            console.error("Erro ao salvar articulação no Supabase:", await saveRes.text());
+          }
+        } catch (saveErr) {
+          console.error("Erro ao salvar articulação:", saveErr);
+        }
+      }
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar documento");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 

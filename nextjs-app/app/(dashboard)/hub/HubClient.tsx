@@ -1506,6 +1506,7 @@ function PlanoAulaDua({
                     setLoadingMapa("html");
                     setMapaErro(null);
                     setMapaHtml(null);
+                    aiLoadingStart("blue", "hub");
                     try {
                       const res = await fetch("/api/hub/mapa-mental", {
                         method: "POST",
@@ -1527,6 +1528,7 @@ function PlanoAulaDua({
                       setMapaErro(e instanceof Error ? e.message : "Erro ao gerar mapa mental.");
                     } finally {
                       setLoadingMapa(null);
+                      aiLoadingStop();
                     }
                   }}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm flex items-center gap-2 disabled:opacity-50"
@@ -1618,6 +1620,7 @@ function RotinaAvdTool({
     setErro(null);
     setResultado(null);
     setValidado(false);
+    aiLoadingStart(engine || "green", "hub");
     try {
       const peiData = student?.pei_data || {};
       const res = await fetch("/api/hub/rotina-avd", {
@@ -1639,6 +1642,7 @@ function RotinaAvdTool({
       setErro(e instanceof Error ? e.message : "Erro.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -1755,6 +1759,7 @@ function InclusaoBrincarTool({
     setErro(null);
     setResultado(null);
     setValidado(false);
+    aiLoadingStart(engine || "green", "hub");
     try {
       const res = await fetch("/api/hub/inclusao-brincar", {
         method: "POST",
@@ -1774,6 +1779,7 @@ function InclusaoBrincarTool({
       setErro(e instanceof Error ? e.message : "Erro.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -2422,6 +2428,7 @@ function RoteiroIndividual({
     setErro(null);
     setResultado(null);
     setValidado(false);
+    aiLoadingStart(engine || "green", "hub");
     try {
       const peiData = student?.pei_data || {};
       const res = await fetch("/api/hub/roteiro", {
@@ -2443,6 +2450,7 @@ function RoteiroIndividual({
       setErro(e instanceof Error ? e.message : "Erro ao gerar roteiro.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -2675,6 +2683,7 @@ function DinamicaInclusiva({
     setErro(null);
     setResultado(null);
     setValidado(false);
+    aiLoadingStart(engine || "green", "hub");
     try {
       const peiData = student?.pei_data || {};
       const materiaFinal = componenteSel || materia;
@@ -2699,6 +2708,7 @@ function DinamicaInclusiva({
       setErro(e instanceof Error ? e.message : "Erro ao gerar dinâmica.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -2893,6 +2903,7 @@ function IlustracaoSection({ hiperfoco }: { hiperfoco: string }) {
     setLoading(true);
     setErro(null);
     setValidado(false);
+    aiLoadingStart("yellow", "hub");
     try {
       const res = await fetch("/api/hub/estudio-imagem", {
         method: "POST",
@@ -2907,6 +2918,7 @@ function IlustracaoSection({ hiperfoco }: { hiperfoco: string }) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar imagem.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -2994,6 +3006,7 @@ function PictogramaCaaSection() {
     setLoading(true);
     setErro(null);
     setValidado(false);
+    aiLoadingStart("yellow", "hub");
     try {
       const res = await fetch("/api/hub/estudio-imagem", {
         method: "POST",
@@ -3008,6 +3021,7 @@ function PictogramaCaaSection() {
       setErro(e instanceof Error ? e.message : "Erro ao gerar pictograma.");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
@@ -3191,6 +3205,7 @@ function AdaptarAtividade({
     setErro(null);
     setResultado(null);
     setValidado(false);
+    aiLoadingStart(engine || "green", "hub");
     try {
       const formData = new FormData();
       formData.append("file", imagemParaEnvio);
@@ -3263,6 +3278,7 @@ function AdaptarAtividade({
     } finally {
       setLoading(false);
       setRefazendo(false);
+      aiLoadingStop();
     }
   };
 
