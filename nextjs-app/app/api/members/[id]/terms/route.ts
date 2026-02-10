@@ -18,6 +18,21 @@ export async function GET(
     return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
   }
 
+  // Verificar se o membro pertence ao workspace do usuário
+  // Admin da plataforma tem acesso total
+  if (session.is_platform_admin) {
+    // Pula verificação de permissão
+  }
+  // Verificar se o membro pertence ao workspace do usuário (apenas para membros)
+  else if (session.user_role === "member") {
+    if (!session.member?.id) {
+      return NextResponse.json({ error: "Dados de membro incompletos." }, { status: 403 });
+    }
+    if (session.member.id !== id) {
+      return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
+    }
+  }
+
   const sb = getSupabase();
   const { data, error } = await sb
     .from("workspace_members")
@@ -80,7 +95,12 @@ export async function POST(
       );
     }
 
-    const sb = getSupabase();
+    // Verificar permissões (GET já checou, mas por segurança repetir para POST)
+  if (!session.is_platform_admin && session.user_role === "member" && session.member?.id !== id) {
+    return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
+  }
+
+  const sb = getSupabase();
     
     // Tentar atualizar com os campos (pode não existir ainda)
     const updateData: Record<string, unknown> = {};

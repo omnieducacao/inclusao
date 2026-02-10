@@ -18,6 +18,13 @@ export default async function RootPage() {
   }
 
   // TypeScript agora sabe que session não é null após o check acima
+  // Garantir que workspace_id existe para usuários não-admin
+  if (!session.workspace_id && !session.is_platform_admin) {
+    console.error("[RootPage] Usuário sem workspace:", session);
+    redirect("/login?error=no_workspace");
+    return null;
+  }
+
   const sessionNonNull = session;
 
   const saudacao =

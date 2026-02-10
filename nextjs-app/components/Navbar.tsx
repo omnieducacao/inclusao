@@ -99,7 +99,8 @@ function canAccess(
   if (!item.permission) return true;
   if (session.is_platform_admin) return true;
   const member = session.member as Record<string, boolean> | undefined;
-  if (!member) return true;
+  // Se não tem member e não é admin, deve negar o acesso para evitar vazamento
+  if (!member) return false;
   return member[item.permission] === true;
 }
 

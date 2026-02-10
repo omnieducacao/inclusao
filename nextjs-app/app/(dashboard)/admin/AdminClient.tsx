@@ -48,6 +48,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Formulário nova escola
   const [newSchoolName, setNewSchoolName] = useState("");
@@ -61,14 +62,23 @@ export function AdminClient({ session }: { session: SessionPayload }) {
 
   async function loadWorkspaces() {
     setLoading(true);
+    setError(null);
     try {
+      console.log("[AdminClient] Carregando workspaces...");
       const res = await fetch("/api/admin/workspaces");
+      console.log("[AdminClient] Resposta:", res.status);
       if (res.ok) {
         const data = await res.json();
+        console.log("[AdminClient] Dados:", data);
         setWorkspaces(data.workspaces || []);
+      } else {
+        const errorText = await res.text();
+        console.error("[AdminClient] Erro HTTP:", res.status, errorText);
+        setError(`Erro HTTP ${res.status}: ${errorText}`);
       }
     } catch (err) {
-      console.error("Erro ao carregar escolas:", err);
+      console.error("[AdminClient] Erro ao carregar escolas:", err);
+      setError(err instanceof Error ? err.message : "Erro desconhecido");
     } finally {
       setLoading(false);
     }
