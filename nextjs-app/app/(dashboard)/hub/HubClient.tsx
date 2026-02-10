@@ -1959,42 +1959,54 @@ function AdaptarProva({
         tag.replace(/\[\[/g, "[").replace(/\]\]/g, "]"),
         `IMG_${questao}`,
         `[Imagem ${questao}]`,
-        `[Imagem ${questao}]`,
       ];
       const temTag = tagVariations.some((t) => textoComImagensParaDocx.includes(t));
 
       if (!temTag) {
-        // Tentar encontrar a questão no texto de forma mais robusta
+        // Tentar encontrar a questão no texto — patterns com regex correto
         const patterns = [
-          new RegExp(`(Questão\\s+${questao}[^\\d])`, "gi"),
-          new RegExp(`(${questao}\\.\\s*[^\\d])`, "gi"),
-          new RegExp(`(${questao})\\s*[^\\d]`, "gi"),
+          new RegExp(`(Questão\\s+${questao})\\b`, "gi"),
+          new RegExp(`(\\b${questao}\\.)\\s`, "gi"),
+          new RegExp(`(\\b${questao}\\))\\s`, "gi"),
         ];
 
         let inserido = false;
         for (const pattern of patterns) {
-          const match = textoComImagensParaDocx.match(pattern);
+          const match = pattern.exec(textoComImagensParaDocx);
           if (match && match.index !== undefined) {
-            // Encontrar o final do enunciado (procurar por alternativas ou próximo parágrafo)
+            // A partir da posição do match, encontrar o final do enunciado
             const inicio = match.index + match[0].length;
-            // Procurar por padrões de alternativas (a), b), c), etc) ou quebra de linha
-            const proxAlternativa = textoComImagensParaDocx.search(new RegExp(`[a-e]\\)|\\n\\n`, "i"));
-            const proxParagrafo = textoComImagensParaDocx.indexOf("\n", inicio);
-            const posicaoInsercao = proxAlternativa > inicio && proxAlternativa < inicio + 200
-              ? proxAlternativa
-              : proxParagrafo > 0
-                ? proxParagrafo
-                : inicio + 50;
+            const restoTexto = textoComImagensParaDocx.slice(inicio);
 
+            // Procurar o ponto de inserção: logo antes das alternativas ou da próxima questão
+            const altMatch = restoTexto.match(/\n\s*[a-eA-E]\s*\)/);
+            const proxQuestaoMatch = restoTexto.match(/\n\s*(?:Questão\s+\d+|\d+\.|\d+\))/i);
+            const quebraLinhaIdx = restoTexto.indexOf("\n");
+
+            let posicaoRelativa: number;
+            if (altMatch && altMatch.index !== undefined) {
+              // Inserir logo antes das alternativas
+              posicaoRelativa = altMatch.index;
+            } else if (proxQuestaoMatch && proxQuestaoMatch.index !== undefined) {
+              // Inserir antes da próxima questão
+              posicaoRelativa = proxQuestaoMatch.index;
+            } else if (quebraLinhaIdx >= 0) {
+              // Inserir após a primeira linha do enunciado
+              posicaoRelativa = quebraLinhaIdx;
+            } else {
+              posicaoRelativa = Math.min(restoTexto.length, 200);
+            }
+
+            const posicaoInsercao = inicio + posicaoRelativa;
             textoComImagensParaDocx = textoComImagensParaDocx.slice(0, posicaoInsercao) + `\n${tag}\n` + textoComImagensParaDocx.slice(posicaoInsercao);
             inserido = true;
             break;
           }
         }
 
-        // Fallback: adicionar no início se não encontrou a questão
+        // Fallback: adicionar no final do texto (não no início!)
         if (!inserido) {
-          textoComImagensParaDocx = `\n${tag}\n\n${textoComImagensParaDocx}`;
+          textoComImagensParaDocx = `${textoComImagensParaDocx}\n\n${tag}`;
         }
       }
     }
