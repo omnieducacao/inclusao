@@ -1503,40 +1503,6 @@ function PlanoAulaDua({
                   type="button"
                   disabled={!!loadingMapa}
                   onClick={async () => {
-                    setLoadingMapa("imagem");
-                    setMapaErro(null);
-                    setMapaImagem(null);
-                    try {
-                      const res = await fetch("/api/hub/mapa-mental", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          tipo: "imagem",
-                          materia: componenteSel || materia,
-                          assunto: assunto || "Geral",
-                          plano_texto: resultado,
-                          estudante: student ? { nome: student.name, hiperfoco } : undefined,
-                          unidade_tematica: unidadeSel || undefined,
-                          objeto_conhecimento: objetoSel || undefined,
-                        }),
-                      });
-                      const data = await res.json();
-                      if (!res.ok) throw new Error(data.error || "Erro");
-                      setMapaImagem(data.image);
-                    } catch (e) {
-                      setMapaErro(e instanceof Error ? e.message : "Erro ao gerar mapa mental.");
-                    } finally {
-                      setLoadingMapa(null);
-                    }
-                  }}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  {loadingMapa === "imagem" ? "Gerando…" : "🧠 Mapa Mental (Imagem)"}
-                </button>
-                <button
-                  type="button"
-                  disabled={!!loadingMapa}
-                  onClick={async () => {
                     setLoadingMapa("html");
                     setMapaErro(null);
                     try {
@@ -1567,26 +1533,11 @@ function PlanoAulaDua({
                   }}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm flex items-center gap-2 disabled:opacity-50"
                 >
-                  {loadingMapa === "html" ? "Gerando…" : "🌐 Mapa Mental (HTML)"}
+                  {loadingMapa === "html" ? "Gerando…" : "🧠 Mapa Mental"}
                 </button>
               </span>
             </div>
             {mapaErro && <div className="text-red-600 text-sm mb-3">{mapaErro}</div>}
-            {mapaImagem && (
-              <div className="mb-4 p-4 bg-white rounded-xl border border-slate-200">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-sm font-medium text-slate-700">🧠 Mapa Mental do Conteúdo</span>
-                  <a
-                    href={mapaImagem}
-                    download={`Mapa_Mental_${assunto || materia}_${new Date().toISOString().slice(0, 10)}.png`}
-                    className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs hover:bg-purple-200"
-                  >
-                    📥 Baixar Imagem
-                  </a>
-                </div>
-                <img src={mapaImagem} alt="Mapa Mental" className="w-full rounded-lg" />
-              </div>
-            )}
             <FormattedTextDisplay texto={resultado} />
           </div>
         </div>

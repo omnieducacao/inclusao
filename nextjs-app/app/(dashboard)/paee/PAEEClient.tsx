@@ -1612,12 +1612,30 @@ function MapearBarreirasTab({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao gerar diagnóstico");
-      setDiagnostico(data.diagnostico || "");
+      const diagnosticoTexto = (data.diagnostico || "").trim();
+      setDiagnostico(diagnosticoTexto);
       setStatus("revisao");
-      updateField("conteudo_diagnostico_barreiras", data.diagnostico);
-      updateField("status_diagnostico_barreiras", "revisao");
-      if (feedbackAjuste) {
-        updateField("input_original_diagnostico_barreiras", { obs: observacoes });
+
+      // Atualização atômica do paeeData (mesmo padrão do PlanoHabilidadesTab)
+      const novoPaeeData = {
+        ...paeeData,
+        conteudo_diagnostico_barreiras: diagnosticoTexto,
+        status_diagnostico_barreiras: "revisao",
+        input_original_diagnostico_barreiras: feedbackAjuste ? { obs: observacoes } : undefined,
+      };
+      onUpdate(novoPaeeData);
+
+      // Salvar no Supabase explicitamente
+      if (student?.id) {
+        try {
+          await fetch(`/api/students/${student.id}/paee`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ paee_data: novoPaeeData }),
+          });
+        } catch (saveErr) {
+          console.error("Erro ao salvar barreiras no Supabase:", saveErr);
+        }
       }
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar diagnóstico");
@@ -2247,6 +2265,7 @@ function TecAssistivaTab({
     }
     setLoading(true);
     setErro(null);
+    aiLoadingStart(engine || "red", "paee");
     try {
       const res = await fetch("/api/paee/tecnologia-assistiva", {
         method: "POST",
@@ -2262,15 +2281,36 @@ function TecAssistivaTab({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao gerar sugestões");
-      setSugestoes(data.sugestoes || "");
+      const sugestoesTexto = (data.sugestoes || "").trim();
+      setSugestoes(sugestoesTexto);
       setStatus("revisao");
-      updateField("conteudo_tecnologia_assistiva", data.sugestoes);
-      updateField("status_tecnologia_assistiva", "revisao");
-      updateField("input_original_tecnologia_assistiva", { dificuldade });
+
+      // Atualização atômica do paeeData (mesmo padrão do PlanoHabilidadesTab)
+      const novoPaeeData = {
+        ...paeeData,
+        conteudo_tecnologia_assistiva: sugestoesTexto,
+        status_tecnologia_assistiva: "revisao",
+        input_original_tecnologia_assistiva: { dificuldade },
+      };
+      onUpdate(novoPaeeData);
+
+      // Salvar no Supabase explicitamente
+      if (student?.id) {
+        try {
+          await fetch(`/api/students/${student.id}/paee`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ paee_data: novoPaeeData }),
+          });
+        } catch (saveErr) {
+          console.error("Erro ao salvar tec assistiva no Supabase:", saveErr);
+        }
+      }
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar sugestões");
     } finally {
       setLoading(false);
+      aiLoadingStop();
     }
   };
 
