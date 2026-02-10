@@ -352,15 +352,15 @@ function WorkspaceCard({
   onRefresh: () => void;
 }) {
   const [localName, setLocalName] = useState(workspace.name);
-  const [localSegments, setLocalSegments] = useState(workspace.segments);
-  const [localEngines, setLocalEngines] = useState(workspace.ai_engines);
+  const [localSegments, setLocalSegments] = useState(workspace.segments ?? []);
+  const [localEngines, setLocalEngines] = useState(workspace.ai_engines ?? []);
   const [localPlan, setLocalPlan] = useState(workspace.plan || "basic");
   const [localCreditsLimit, setLocalCreditsLimit] = useState(workspace.credits_limit || 0);
   const [localModules, setLocalModules] = useState<Record<string, boolean>>(() => {
     const mods = workspace.enabled_modules;
     const result: Record<string, boolean> = {};
     MODULE_OPTIONS.forEach(([key]) => {
-      result[key] = mods === null || mods.includes(key);
+      result[key] = mods == null || (Array.isArray(mods) && mods.includes(key));
     });
     return result;
   });
@@ -580,11 +580,11 @@ function WorkspaceCard({
                 🏫 {workspace.name} — PIN: {workspace.pin} · {workspace.active ? "🟢 Ativa" : "🔴 Inativa"}
               </h4>
               <div className="mt-2 space-y-1 text-sm text-slate-600">
-                {workspace.segments.length > 0 && (
-                  <p>Segmentos: {workspace.segments.map((s) => SEGMENT_OPTIONS[s] || s).join(", ")}</p>
+                {(workspace.segments ?? []).length > 0 && (
+                  <p>Segmentos: {(workspace.segments ?? []).map((s) => SEGMENT_OPTIONS[s] || s).join(", ")}</p>
                 )}
-                {workspace.ai_engines.length > 0 && (
-                  <p>Motores IA: {workspace.ai_engines.map((e) => ENGINE_OPTIONS[e] || e).join(", ")}</p>
+                {(workspace.ai_engines ?? []).length > 0 && (
+                  <p>Motores IA: {(workspace.ai_engines ?? []).map((e) => ENGINE_OPTIONS[e] || e).join(", ")}</p>
                 )}
                 <p>
                   Plano: {workspace.plan === "robusto" ? "Robusto (omnigreen)" : "Basic"} · Limite créditos:{" "}
