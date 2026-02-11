@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { PEIVersionHistory, createPEISnapshot } from "@/components/PEIVersionHistory";
 
@@ -130,12 +131,14 @@ export function PEIClient({
   const [studentPendingName, setStudentPendingName] = useState<string>("");
   const [erroGlobal, setErroGlobal] = useState<string | null>(null);
   const [isLoadingRascunho, setIsLoadingRascunho] = useState(false);
+  const { markDirty, markClean } = useUnsavedChanges();
 
   const currentStudentId = selectedStudentId;
 
   function updateField<K extends keyof PEIData>(key: K, value: PEIData[K]) {
     setPeiData((prev) => ({ ...prev, [key]: value }));
     setSaved(false);
+    markDirty();
   }
 
   function toggleChecklist(key: string, label: string) {
@@ -296,6 +299,7 @@ export function PEIClient({
           window.history.pushState({}, "", url.toString());
 
           setSaved(true);
+          markClean();
           setErroGlobal(null);
           // Auto-create version snapshot
           createPEISnapshot(novoEstudanteId, `Criação — ${new Date().toLocaleDateString("pt-BR")}`);

@@ -1,3 +1,4 @@
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { visionAdapt, getVisionError, getVisionApiKey, chatCompletionText, type EngineId } from "@/lib/ai-engines";
 import { adaptarPromptAtividade } from "@/lib/hub-prompts";
@@ -8,6 +9,7 @@ const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
 const MAX_VISION_BYTES = 3 * 1024 * 1024; // 3MB (limite para APIs de visão)
 
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   const err = getVisionError();
   if (err) {
     return NextResponse.json({ error: err }, { status: 500 });

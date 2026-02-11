@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { listStudents } from "@/lib/students";
 import { getSupabase } from "@/lib/supabase";
+import { requirePermission } from "@/lib/permissions";
 
 export async function GET() {
   const session = await getSession();
@@ -32,6 +33,10 @@ export async function POST(req: Request) {
       { status: 401 }
     );
   }
+
+  // Permission check: members need can_estudantes
+  const denied = requirePermission(session, "can_estudantes");
+  if (denied) return denied;
 
   try {
     const body = await req.json();

@@ -1,8 +1,10 @@
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   try {
     const body = await req.json();
     const { focoTreino, studentId, studentName, contextoPei, feedback, engine = "red" } = body;

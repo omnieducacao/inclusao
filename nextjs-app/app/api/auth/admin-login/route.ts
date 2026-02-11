@@ -1,9 +1,11 @@
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { verifyPlatformAdmin } from "@/lib/auth";
 import { createSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.AUTH); if (rl) return rl;
   try {
     const { email, password } = await req.json();
     if (!email || !password) {

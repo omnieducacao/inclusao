@@ -119,7 +119,8 @@ export async function verifyMemberPassword(
     .eq("active", true)
     .maybeSingle();
 
-  if (!data?.password_hash) return true;
+  // Security fix: do NOT allow login if member has no password set
+  if (!data?.password_hash) return false;
   return verifyPassword(password, data.password_hash);
 }
 

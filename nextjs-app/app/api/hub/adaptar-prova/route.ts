@@ -1,9 +1,11 @@
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import mammoth from "mammoth";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 import { adaptarPromptProva } from "@/lib/hub-prompts";
 
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   let texto = "";
   let materia = "Geral";
   let tema = "Geral";

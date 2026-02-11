@@ -1,3 +1,4 @@
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 
@@ -36,6 +37,7 @@ async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise
 }
 
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;

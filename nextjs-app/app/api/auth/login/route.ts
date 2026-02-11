@@ -1,3 +1,4 @@
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import {
   findUserByEmail,
@@ -7,6 +8,7 @@ import {
 import { createSession } from "@/lib/session";
 
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.AUTH); if (rl) return rl;
   try {
     const { email, password } = await req.json();
     if (!email || !password) {

@@ -1,8 +1,10 @@
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 import { gerarPromptDinamicaInclusiva } from "@/lib/hub-prompts";
 
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   let body: {
     aluno?: { nome?: string; ia_sugestao?: string; hiperfoco?: string };
     materia?: string;

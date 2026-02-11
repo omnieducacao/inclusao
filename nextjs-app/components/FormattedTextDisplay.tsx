@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import DOMPurify from "isomorphic-dompurify";
 
 type Props = {
   texto: string;
@@ -42,7 +43,7 @@ export function FormattedTextDisplay({ texto, titulo, className = "", mapaImagen
     const formatarLinhaComImagens = (linha: string): React.ReactNode => {
       // Verificar se há tags de imagem na linha
       const matches = [...linha.matchAll(new RegExp(TAG_REGEX.source, "gi"))];
-      
+
       if (matches.length === 0) {
         // Sem imagens, processar markdown normalmente
         return formatarLinha(linha);
@@ -108,7 +109,8 @@ export function FormattedTextDisplay({ texto, titulo, className = "", mapaImagen
       // Processar links básicos
       textoFormatado = textoFormatado.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-cyan-600 hover:text-cyan-700 hover:underline font-medium" target="_blank" rel="noopener noreferrer">$1</a>');
 
-      return <span dangerouslySetInnerHTML={{ __html: textoFormatado }} />;
+      const textoLimpo = DOMPurify.sanitize(textoFormatado);
+      return <span dangerouslySetInnerHTML={{ __html: textoLimpo }} />;
     };
 
     linhas.forEach((linha, idx) => {

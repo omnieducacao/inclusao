@@ -1,8 +1,10 @@
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, type EngineId } from "@/lib/ai-engines";
 import { gerarPromptMapaMentalImagem, gerarPromptMapaMentalHtml } from "@/lib/hub-prompts";
 
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
     let body: {
         tipo: "imagem" | "html";
         materia: string;

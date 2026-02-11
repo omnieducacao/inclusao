@@ -1,3 +1,4 @@
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
@@ -224,6 +225,7 @@ ${habTxt || "(carregue do contexto BNCC do ano/série)"}`;
 }
 
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   let dados: PEIDataPayload = {};
   let engine: EngineId = "red";
   let modoPratico = false;

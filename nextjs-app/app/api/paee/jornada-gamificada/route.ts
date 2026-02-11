@@ -1,3 +1,4 @@
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
@@ -19,6 +20,7 @@ type CicloPayload = {
 };
 
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   let body: {
     origem: "ciclo" | "barreiras" | "plano-habilidades" | "tecnologia-assistiva";
     engine?: string;
