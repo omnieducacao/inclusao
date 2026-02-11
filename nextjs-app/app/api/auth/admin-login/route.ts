@@ -1,3 +1,4 @@
+import { parseBody, adminLoginSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { verifyPlatformAdmin } from "@/lib/auth";
@@ -7,14 +8,9 @@ import { getSupabase } from "@/lib/supabase";
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AUTH); if (rl) return rl;
   try {
-    const { email, password } = await req.json();
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email e senha são obrigatórios." },
-        { status: 400 }
-      );
-    }
-
+    const parsed = await parseBody(req, adminLoginSchema);
+    if (parsed.error) return parsed.error;
+    const { email, password } = parsed.data;
     const ok = await verifyPlatformAdmin(email, password);
     if (!ok) {
       return NextResponse.json(

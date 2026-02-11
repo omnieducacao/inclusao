@@ -30,7 +30,8 @@
     "react-dom": "19.2.3",
     "react-image-crop": "^11.0.10",
     "recharts": "^2.15.4",
-    "sharp": "^0.33.5"
+    "sharp": "^0.33.5",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

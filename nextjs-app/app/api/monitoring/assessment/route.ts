@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { parseBody, assessmentSchema } from "@/lib/validation";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { requirePermission } from "@/lib/permissions";
@@ -14,19 +15,9 @@ export async function POST(request: NextRequest) {
     const denied = requirePermission(session, "can_monitoramento");
     if (denied) return denied;
 
-    const body = await request.json();
-    const { student_id, rubric_data, observation } = body as {
-      student_id?: string;
-      rubric_data?: Record<string, string>;
-      observation?: string;
-    };
-
-    if (!student_id) {
-      return NextResponse.json(
-        { error: "student_id obrigatório" },
-        { status: 400 }
-      );
-    }
+    const parsed = await parseBody(request, assessmentSchema);
+    if (parsed.error) return parsed.error;
+    const { student_id, rubric_data, observation } = parsed.data;
 
     const sb = getSupabase();
     const { data, error } = await sb

@@ -1,4 +1,5 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { parseBody, peiConsultoriaSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
@@ -233,17 +234,13 @@ export async function POST(req: Request) {
   let modoPratico = false;
   let feedback: string | undefined;
 
-  try {
-    const body = await req.json();
-    dados = (body.peiData || body) as PEIDataPayload;
-    if (body.engine && ["red", "blue", "green", "yellow", "orange"].includes(body.engine)) {
-      engine = body.engine as EngineId;
-    }
-    modoPratico = !!body.modo_pratico;
-    feedback = body.feedback || undefined;
-  } catch {
-    return NextResponse.json({ error: "Corpo da requisição inválido." }, { status: 400 });
-  }
+  const parsed = await parseBody(req, peiConsultoriaSchema);
+  if (parsed.error) return parsed.error;
+  const body = parsed.data;
+  dados = (body.peiData || body) as PEIDataPayload;
+  engine = (body.engine || "red") as EngineId;
+  modoPratico = !!body.modo_pratico;
+  feedback = body.feedback || undefined;
 
   const engineErr = getEngineError(engine);
   if (engineErr) {

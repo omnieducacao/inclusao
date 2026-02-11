@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { listStudents } from "@/lib/students";
 import { getSupabase } from "@/lib/supabase";
 import { requirePermission } from "@/lib/permissions";
+import { parseBody, createStudentSchema } from "@/lib/validation";
 
 export async function GET() {
   const session = await getSession();
@@ -39,15 +40,9 @@ export async function POST(req: Request) {
   if (denied) return denied;
 
   try {
-    const body = await req.json();
-    const { name, grade, class_group, diagnosis, pei_data } = body;
-
-    if (!name || !name.trim()) {
-      return NextResponse.json(
-        { error: "Nome do estudante é obrigatório." },
-        { status: 400 }
-      );
-    }
+    const parsed = await parseBody(req, createStudentSchema);
+    if (parsed.error) return parsed.error;
+    const { name, grade, class_group, diagnosis, pei_data } = parsed.data;
 
     const sb = getSupabase();
     const { data, error } = await sb

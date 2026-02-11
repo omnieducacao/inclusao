@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { parseBody, createClassSchema } from "@/lib/validation";
 import { getSession } from "@/lib/session";
 import { listClasses, createClass } from "@/lib/school";
 import { requirePermission } from "@/lib/permissions";
@@ -28,19 +29,9 @@ export async function POST(request: NextRequest) {
   const denied = requirePermission(session, "can_config");
   if (denied) return denied;
 
-  const body = await request.json();
-  const { school_year_id, grade_id, class_group } = body ?? {};
-  if (
-    typeof school_year_id !== "string" ||
-    typeof grade_id !== "string" ||
-    !school_year_id ||
-    !grade_id
-  ) {
-    return NextResponse.json(
-      { error: "school_year_id e grade_id são obrigatórios" },
-      { status: 400 }
-    );
-  }
+  const parsed = await parseBody(request, createClassSchema);
+  if (parsed.error) return parsed.error;
+  const { school_year_id, grade_id, class_group } = parsed.data;
 
   const result = await createClass(
     workspaceId,

@@ -1,4 +1,5 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { parseBody, loginSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import {
   findUserByEmail,
@@ -10,13 +11,9 @@ import { createSession } from "@/lib/session";
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AUTH); if (rl) return rl;
   try {
-    const { email, password } = await req.json();
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email e senha são obrigatórios." },
-        { status: 400 }
-      );
-    }
+    const parsed = await parseBody(req, loginSchema);
+    if (parsed.error) return parsed.error;
+    const { email, password } = parsed.data;
 
     const found = await findUserByEmail(email);
     if (!found) {

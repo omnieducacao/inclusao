@@ -1,4 +1,5 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { parseBody, planoAulaSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 import { gerarPromptPlanoAula } from "@/lib/hub-prompts";

@@ -1,4 +1,5 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { parseBody, adaptarAtividadeSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { visionAdapt, getVisionError, getVisionApiKey, chatCompletionText, type EngineId } from "@/lib/ai-engines";
 import { adaptarPromptAtividade } from "@/lib/hub-prompts";
