@@ -4,6 +4,7 @@ import {
   getStudent,
   updateStudentPeiData,
 } from "@/lib/students";
+import { requirePermission } from "@/lib/permissions";
 
 export async function GET(
   _req: Request,
@@ -34,6 +35,9 @@ export async function PATCH(
   if (!session?.workspace_id) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
+
+  const denied = requirePermission(session, "can_pei");
+  if (denied) return denied;
 
   const { id } = await params;
   const body = await req.json();

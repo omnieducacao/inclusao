@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getPGIData, updatePGIData, type AcaoPGI, type PGIData } from "@/lib/pgi";
+import { requirePermission } from "@/lib/permissions";
 
 export async function GET() {
   const session = await getSession();
@@ -19,6 +20,9 @@ export async function PATCH(request: NextRequest) {
   if (!workspaceId) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
+
+  const denied = requirePermission(session, "can_pgi");
+  if (denied) return denied;
 
   const body = await request.json();
   const acoes = Array.isArray(body.acoes) ? body.acoes : undefined;

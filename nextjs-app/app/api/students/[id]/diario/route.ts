@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { updateStudentDailyLogs } from "@/lib/students";
+import { requirePermission } from "@/lib/permissions";
 
 export async function PATCH(
   req: Request,
@@ -10,6 +11,9 @@ export async function PATCH(
   if (!session?.workspace_id) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
+
+  const denied = requirePermission(session, "can_diario");
+  if (denied) return denied;
 
   const { id } = await params;
   const body = await req.json();

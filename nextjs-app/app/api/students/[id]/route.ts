@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getStudent, deleteStudent, updateStudent } from "@/lib/students";
+import { requirePermission } from "@/lib/permissions";
 
 export async function GET(
   _req: Request,
@@ -35,6 +36,9 @@ export async function PATCH(
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
 
+  const denied = requirePermission(session, "can_estudantes");
+  if (denied) return denied;
+
   const { id } = await params;
   const body = await req.json();
   const { name, grade, class_group, diagnosis } = body;
@@ -65,9 +69,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
 
+  const denied = requirePermission(session, "can_estudantes");
+  if (denied) return denied;
+
   const { id } = await params;
   const result = await deleteStudent(session.workspace_id, id);
-  
+
   if (!result.success) {
     return NextResponse.json(
       { error: result.error || "Erro ao excluir estudante." },
