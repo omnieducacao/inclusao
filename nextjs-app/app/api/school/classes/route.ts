@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { listClasses, createClass } from "@/lib/school";
+import { requirePermission } from "@/lib/permissions";
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
@@ -23,6 +24,9 @@ export async function POST(request: NextRequest) {
   if (!workspaceId) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
+
+  const denied = requirePermission(session, "can_config");
+  if (denied) return denied;
 
   const body = await request.json();
   const { school_year_id, grade_id, class_group } = body ?? {};

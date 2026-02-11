@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { textToDocxBuffer } from "@/lib/docx-simples";
 import { peiDataToFullText } from "@/lib/pei-export";
 import type { PEIData } from "@/lib/pei";
+import { requireAuth } from "@/lib/permissions";
 
 export async function POST(req: Request) {
+  const { error: authError } = await requireAuth(); if (authError) return authError;
   try {
     const { peiData } = (await req.json()) as { peiData: PEIData };
     if (!peiData || typeof peiData !== "object") {

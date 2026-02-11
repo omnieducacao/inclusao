@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { textToDocxBuffer } from "@/lib/docx-simples";
 import { docxComImagens } from "@/lib/docx-com-imagens";
+import { requireAuth } from "@/lib/permissions";
 
 export async function POST(req: Request) {
+  const { error: authError } = await requireAuth(); if (authError) return authError;
   try {
     const body = await req.json();
     const texto = typeof body.texto === "string" ? body.texto : "";

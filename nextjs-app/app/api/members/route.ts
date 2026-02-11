@@ -6,6 +6,7 @@ import {
   getWorkspaceMaster,
   createWorkspaceMaster,
 } from "@/lib/members";
+import { requirePermission } from "@/lib/permissions";
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
@@ -32,6 +33,9 @@ export async function POST(request: NextRequest) {
   if (!workspaceId) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
+
+  const denied = requirePermission(session, "can_gestao");
+  if (denied) return denied;
 
   const body = await request.json();
 

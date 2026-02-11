@@ -8,6 +8,7 @@ import {
   carregarHabilidadesEMPorArea,
   objetivosEIPorIdadeCampo,
 } from "@/lib/bncc";
+import { requireAuth } from "@/lib/permissions";
 
 type PEIDataPayload = {
   nome?: string;
@@ -226,6 +227,7 @@ ${habTxt || "(carregue do contexto BNCC do ano/série)"}`;
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const { error: authError } = await requireAuth(); if (authError) return authError;
   let dados: PEIDataPayload = {};
   let engine: EngineId = "red";
   let modoPratico = false;

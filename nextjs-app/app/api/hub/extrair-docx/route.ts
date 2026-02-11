@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import mammoth from "mammoth";
+import { requireAuth } from "@/lib/permissions";
 
 export async function POST(req: Request) {
+  const { error: authError } = await requireAuth(); if (authError) return authError;
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;

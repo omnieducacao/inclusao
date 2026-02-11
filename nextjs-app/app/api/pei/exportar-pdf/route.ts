@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { gerarPdfPei } from "@/lib/pei-pdf-export";
 import type { PEIData } from "@/lib/pei";
+import { requireAuth } from "@/lib/permissions";
 
 export async function POST(req: Request) {
+  const { error: authError } = await requireAuth(); if (authError) return authError;
   try {
     const { peiData } = (await req.json()) as { peiData: PEIData };
     if (!peiData || typeof peiData !== "object") {

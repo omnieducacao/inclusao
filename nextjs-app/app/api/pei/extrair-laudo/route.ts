@@ -1,6 +1,7 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { requireAuth } from "@/lib/permissions";
 
 /**
  * Extrai texto do PDF usando pdf-parse (biblioteca server-side nativa para Node.js).
@@ -38,6 +39,7 @@ async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const { error: authError } = await requireAuth(); if (authError) return authError;
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;

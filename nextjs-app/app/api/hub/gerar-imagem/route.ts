@@ -1,9 +1,11 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { gerarImagemInteligente, baixarImagemUrl } from "@/lib/hub-images";
+import { requireAuth } from "@/lib/permissions";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_IMAGE); if (rl) return rl;
+  const { error: authError } = await requireAuth(); if (authError) return authError;
   let body: { prompt: string; prioridade?: "BANCO" | "IA" };
   try {
     body = await req.json();

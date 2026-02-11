@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { carregarHabilidadesEMPorArea } from "@/lib/bncc";
+import { requireAuth } from "@/lib/permissions";
 
 export async function GET(req: Request) {
+  const { error: authError } = await requireAuth(); if (authError) return authError;
   try {
     const blocos = carregarHabilidadesEMPorArea();
     return NextResponse.json(blocos);

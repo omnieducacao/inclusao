@@ -4,8 +4,10 @@ import {
   camposExperienciaEI,
   objetivosEIPorIdadeCampo,
 } from "@/lib/bncc";
+import { requireAuth } from "@/lib/permissions";
 
 export async function GET(req: Request) {
+  const { error: authError } = await requireAuth(); if (authError) return authError;
   const { searchParams } = new URL(req.url);
   const idade = searchParams.get("idade");
   const campo = searchParams.get("campo");

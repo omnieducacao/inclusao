@@ -4,12 +4,14 @@ import { visionAdapt, getVisionError, getVisionApiKey, chatCompletionText, type 
 import { adaptarPromptAtividade } from "@/lib/hub-prompts";
 import { garantirTagImagem } from "@/lib/hub-utils";
 import { comprimirArquivoImagem } from "@/lib/image-compression";
+import { requireAuth } from "@/lib/permissions";
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
 const MAX_VISION_BYTES = 3 * 1024 * 1024; // 3MB (limite para APIs de visão)
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const { error: authError } = await requireAuth(); if (authError) return authError;
   const err = getVisionError();
   if (err) {
     return NextResponse.json({ error: err }, { status: 500 });

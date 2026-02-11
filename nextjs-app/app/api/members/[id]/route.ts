@@ -8,6 +8,7 @@ import {
   getClassAssignments,
   getStudentLinks,
 } from "@/lib/members";
+import { requirePermission } from "@/lib/permissions";
 
 export async function PATCH(
   request: NextRequest,
@@ -17,6 +18,9 @@ export async function PATCH(
   if (!session?.workspace_id) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
+
+  const denied = requirePermission(session, "can_gestao");
+  if (denied) return denied;
 
   const { id } = await params;
   if (!id) {
@@ -78,6 +82,9 @@ export async function DELETE(
   if (!session?.workspace_id) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
+
+  const denied2 = requirePermission(session, "can_gestao");
+  if (denied2) return denied2;
 
   const { id } = await params;
   if (!id) {

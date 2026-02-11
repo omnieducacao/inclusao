@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { carregarHabilidadesEFPorComponente, carregarEstruturaEF } from "@/lib/bncc";
+import { requireAuth } from "@/lib/permissions";
 
 export async function GET(req: Request) {
+  const { error: authError } = await requireAuth(); if (authError) return authError;
   const { searchParams } = new URL(req.url);
   const serie = searchParams.get("serie") || "";
   const estrutura = searchParams.get("estrutura") === "1";

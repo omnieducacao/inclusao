@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/permissions";
 
 export async function POST(req: Request) {
+  const { error: authError } = await requireAuth(); if (authError) return authError;
   const apiKey = (process.env.GEMINI_API_KEY || "").trim();
   if (!apiKey) {
     return NextResponse.json(

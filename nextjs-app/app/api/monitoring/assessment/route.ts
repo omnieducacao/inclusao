@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { requirePermission } from "@/lib/permissions";
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +10,9 @@ export async function POST(request: NextRequest) {
     if (!workspaceId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
+
+    const denied = requirePermission(session, "can_monitoramento");
+    if (denied) return denied;
 
     const body = await request.json();
     const { student_id, rubric_data, observation } = body as {
