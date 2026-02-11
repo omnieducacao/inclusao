@@ -1,3 +1,4 @@
+import { parseBody, studentPatchDataSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getStudent, deleteStudent, updateStudent } from "@/lib/students";
@@ -40,14 +41,17 @@ export async function PATCH(
   if (denied) return denied;
 
   const { id } = await params;
-  const body = await req.json();
-  const { name, grade, class_group, diagnosis } = body;
+  const parsed = await parseBody(req, studentPatchDataSchema);
+
+  if (parsed.error) return parsed.error;
+
+  const body = parsed.data;
 
   const result = await updateStudent(session.workspace_id, id, {
-    name,
-    grade,
-    class_group,
-    diagnosis,
+    name: body.name as string | undefined,
+    grade: body.grade as string | null | undefined,
+    class_group: body.class_group as string | null | undefined,
+    diagnosis: body.diagnosis as string | null | undefined,
   });
 
   if (!result.success) {

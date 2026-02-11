@@ -1,3 +1,4 @@
+import { parseBody, schoolYearCreateSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { listSchoolYears, createSchoolYear } from "@/lib/school";
@@ -20,7 +21,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const parsed = await parseBody(request, schoolYearCreateSchema);
+
+
+  if (parsed.error) return parsed.error;
+
+
+  const body = parsed.data;
   const year = body?.year;
   const name = body?.name;
   if (typeof year !== "number" || year < 2020 || year > 2030) {

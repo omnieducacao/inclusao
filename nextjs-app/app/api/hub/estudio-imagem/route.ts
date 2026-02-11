@@ -1,3 +1,4 @@
+import { parseBody, hubEstudioImagemSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/permissions";
@@ -5,12 +6,9 @@ import { requireAuth } from "@/lib/permissions";
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_IMAGE); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
-  let body: { tipo: "ilustracao" | "caa"; prompt: string; feedback?: string };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
-  }
+  const parsed = await parseBody(req, hubEstudioImagemSchema);
+  if (parsed.error) return parsed.error;
+  const body = parsed.data;
 
   const { tipo, prompt, feedback } = body;
   if (!prompt?.trim()) {
@@ -21,8 +19,8 @@ export async function POST(req: Request) {
   const geminiKey = process.env.GEMINI_API_KEY || "";
   if (!geminiKey || geminiKey.trim().length < 20) {
     return NextResponse.json(
-      { 
-        error: "GEMINI_API_KEY não está configurada ou é inválida. Configure uma chave válida do Google Gemini no Render para gerar imagens (Estúdio Visual)." 
+      {
+        error: "GEMINI_API_KEY não está configurada ou é inválida. Configure uma chave válida do Google Gemini no Render para gerar imagens (Estúdio Visual)."
       },
       { status: 500 }
     );
@@ -62,24 +60,24 @@ CRITICAL: NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS. Just the v
           }
           const errorText = await response.text();
           let errorMessage = `API retornou ${response.status}: ${errorText}`;
-          
+
           // Melhorar mensagem de erro para chave inválida
           if (response.status === 400 && errorText.includes("API key not valid")) {
             errorMessage = "GEMINI_API_KEY não é válida. Verifique se a chave está correta no Render e se tem permissões para geração de imagens.";
           }
-          
+
           throw new Error(errorMessage);
         }
 
         const data = await response.json();
-        
+
         // Extrair imagem da resposta
         const candidates = data.candidates || [];
         if (candidates.length > 0) {
           const candidate = candidates[0];
           const content = candidate.content || {};
           const parts = content.parts || [];
-          
+
           for (const part of parts) {
             if (part.inlineData) {
               const b64 = part.inlineData.data;

@@ -1,3 +1,4 @@
+import { parseBody, pgiGerarAcoesSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
@@ -13,7 +14,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const body = await req.json();
+    const parsed = await parseBody(req, pgiGerarAcoesSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
     const dimensionamento = body.dimensionamento as DimensionamentoPGI;
     const engine = (["red", "blue", "green"].includes(body.engine || "") ? body.engine : "red") as EngineId;
 
@@ -88,8 +91,8 @@ REGRAS:
       jsonStr = jsonStr.split("```")[1].split("```")[0].trim();
     }
 
-    const parsed = JSON.parse(jsonStr);
-    const acoes = Array.isArray(parsed.acoes) ? parsed.acoes : [];
+    const parsedJson = JSON.parse(jsonStr);
+    const acoes = Array.isArray(parsedJson.acoes) ? parsedJson.acoes : [];
 
     return NextResponse.json({ acoes });
   } catch (err) {

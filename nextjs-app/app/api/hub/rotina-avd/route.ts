@@ -1,3 +1,4 @@
+import { parseBody, hubRotinaAvdSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
@@ -7,18 +8,9 @@ import { requireAuth } from "@/lib/permissions";
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
-  let body: {
-    rotina_detalhada?: string;
-    topico_foco?: string;
-    feedback?: string;
-    engine?: string;
-    estudante?: { nome?: string; ia_sugestao?: string };
-  };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
-  }
+  const parsed = await parseBody(req, hubRotinaAvdSchema);
+  if (parsed.error) return parsed.error;
+  const body = parsed.data;
   const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
     ? (body.engine as EngineId)
     : "red";

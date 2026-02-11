@@ -1,3 +1,4 @@
+import { parseBody, adminWorkspacePatchSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
@@ -14,7 +15,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   try {
-    const body = await req.json();
+    const parsed = await parseBody(req, adminWorkspacePatchSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
     const updates: Record<string, unknown> = {};
 
     if (body.name !== undefined) updates.name = String(body.name).trim();
@@ -24,7 +27,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (body.active !== undefined) updates.active = Boolean(body.active);
     if (body.plan !== undefined) updates.plan = String(body.plan).trim() || "basic";
     if (body.credits_limit !== undefined) {
-      updates.credits_limit = body.credits_limit >= 0 ? body.credits_limit : null;
+      const cl = Number(body.credits_limit);
+      updates.credits_limit = cl >= 0 ? cl : null;
     }
 
     if (Object.keys(updates).length === 0) {

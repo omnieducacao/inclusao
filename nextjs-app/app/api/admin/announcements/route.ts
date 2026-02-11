@@ -1,3 +1,4 @@
+import { parseBody, adminAnnouncementSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
@@ -63,7 +64,9 @@ export async function POST(req: Request) {
     }
 
     try {
-        const body = await req.json();
+        const parsed = await parseBody(req, adminAnnouncementSchema);
+        if (parsed.error) return parsed.error;
+        const body = parsed.data;
         const { action, announcement, announcement_id } = body;
 
         const sb = getSupabase();
@@ -81,6 +84,9 @@ export async function POST(req: Request) {
         }
 
         if (action === "create") {
+            if (!announcement) {
+                return NextResponse.json({ error: "Dados do aviso obrigatórios." }, { status: 400 });
+            }
             const newAnnouncement: Announcement = {
                 id: crypto.randomUUID(),
                 title: announcement.title || "",

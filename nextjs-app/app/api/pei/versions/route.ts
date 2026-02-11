@@ -1,3 +1,4 @@
+import { parseBody, peiVersionCreateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
@@ -67,7 +68,9 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const body = await req.json();
+    const parsed = await parseBody(req, peiVersionCreateSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
     const { studentId, label } = body;
     if (!studentId) {
         return NextResponse.json({ error: "studentId obrigatório" }, { status: 400 });

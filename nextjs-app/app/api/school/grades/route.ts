@@ -1,3 +1,4 @@
+import { parseBody, schoolGradePatchSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import {
@@ -36,7 +37,13 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const parsed = await parseBody(request, schoolGradePatchSchema);
+
+
+  if (parsed.error) return parsed.error;
+
+
+  const body = parsed.data;
   const gradeIds = Array.isArray(body?.grade_ids) ? body.grade_ids : [];
   const valid = gradeIds.filter((id: unknown) => typeof id === "string");
 

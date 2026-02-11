@@ -1,3 +1,4 @@
+import { parseBody, hubDinamicaSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
@@ -7,24 +8,9 @@ import { requireAuth } from "@/lib/permissions";
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
-  let body: {
-    aluno?: { nome?: string; ia_sugestao?: string; hiperfoco?: string };
-    materia?: string;
-    assunto?: string;
-    qtd_alunos?: number;
-    caracteristicas_turma?: string;
-    ano?: string;
-    unidade_tematica?: string;
-    objeto_conhecimento?: string;
-    habilidades_bncc?: string[];
-    engine?: string;
-  };
-
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
-  }
+  const parsed = await parseBody(req, hubDinamicaSchema);
+  if (parsed.error) return parsed.error;
+  const body = parsed.data;
 
   const aluno = body.aluno || {};
   const materia = (body.materia || "Geral").trim();

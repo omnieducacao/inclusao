@@ -1,3 +1,4 @@
+import { parseBody, studentPatchDataSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { updateStudentPaeeCiclos } from "@/lib/students";
@@ -16,7 +17,11 @@ export async function PATCH(
   if (denied) return denied;
 
   const { id } = await params;
-  const body = await req.json();
+  const parsed = await parseBody(req, studentPatchDataSchema);
+
+  if (parsed.error) return parsed.error;
+
+  const body = parsed.data;
 
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
@@ -27,12 +32,12 @@ export async function PATCH(
     session.workspace_id,
     id,
     ciclos,
-    body.planejamento_ativo ?? null,
+    (body.planejamento_ativo as string | null) ?? null,
     {
-      status_planejamento: body.status_planejamento,
-      data_inicio_ciclo: body.data_inicio_ciclo ?? null,
-      data_fim_ciclo: body.data_fim_ciclo ?? null,
-      paee_data: body.paee_data ?? null,
+      status_planejamento: body.status_planejamento as string | undefined,
+      data_inicio_ciclo: (body.data_inicio_ciclo as string | null) ?? null,
+      data_fim_ciclo: (body.data_fim_ciclo as string | null) ?? null,
+      paee_data: (body.paee_data as Record<string, unknown> | null) ?? null,
     }
   );
 

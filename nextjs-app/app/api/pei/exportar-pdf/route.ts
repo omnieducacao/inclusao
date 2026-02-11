@@ -1,3 +1,4 @@
+import { parseBody, peiExportSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { gerarPdfPei } from "@/lib/pei-pdf-export";
 import type { PEIData } from "@/lib/pei";
@@ -6,7 +7,9 @@ import { requireAuth } from "@/lib/permissions";
 export async function POST(req: Request) {
   const { error: authError } = await requireAuth(); if (authError) return authError;
   try {
-    const { peiData } = (await req.json()) as { peiData: PEIData };
+    const parsed = await parseBody(req, peiExportSchema);
+    if (parsed.error) return parsed.error;
+    const {  peiData  } = parsed.data;
     if (!peiData || typeof peiData !== "object") {
       return NextResponse.json({ error: "peiData obrigatório." }, { status: 400 });
     }

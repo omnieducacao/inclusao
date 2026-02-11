@@ -1,3 +1,4 @@
+import { parseBody, paeeDocumentoArticulacaoSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText } from "@/lib/ai-engines";
@@ -8,7 +9,9 @@ export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
   try {
-    const body = await req.json();
+    const parsed = await parseBody(req, paeeDocumentoArticulacaoSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
     const { frequencia, acoes, studentId, studentName, feedback, engine = "red" } = body;
 
     if (!acoes || !studentName) {

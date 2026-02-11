@@ -1,3 +1,4 @@
+import { parseBody, hubMapaMentalSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, type EngineId } from "@/lib/ai-engines";
@@ -7,21 +8,9 @@ import { requireAuth } from "@/lib/permissions";
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
-    let body: {
-        tipo: "imagem" | "html";
-        materia: string;
-        assunto: string;
-        plano_texto: string;
-        estudante?: { nome?: string; hiperfoco?: string };
-        unidade_tematica?: string;
-        objeto_conhecimento?: string;
-    };
-
-    try {
-        body = await req.json();
-    } catch {
-        return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
-    }
+    const parsed = await parseBody(req, hubMapaMentalSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
 
     const { tipo, materia, assunto, plano_texto, estudante, unidade_tematica, objeto_conhecimento } = body;
 

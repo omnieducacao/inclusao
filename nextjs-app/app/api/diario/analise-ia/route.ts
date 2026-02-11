@@ -1,3 +1,4 @@
+import { parseBody, diarioAnaliseSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
@@ -28,7 +29,9 @@ export async function POST(req: Request) {
     let diagnostico = "";
 
     try {
-        const body = await req.json();
+        const parsed = await parseBody(req, diarioAnaliseSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
         registros = body.registros || [];
         nomeEstudante = body.nomeEstudante || "Estudante";
         diagnostico = body.diagnostico || "";

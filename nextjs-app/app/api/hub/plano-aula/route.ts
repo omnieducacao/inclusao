@@ -8,26 +8,9 @@ import { requireAuth } from "@/lib/permissions";
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
-  let body: {
-    materia?: string;
-    assunto?: string;
-    engine?: string;
-    duracao_minutos?: number;
-    metodologia?: string;
-    tecnica?: string;
-    qtd_alunos?: number;
-    recursos?: string[];
-    habilidades_bncc?: string[];
-    unidade_tematica?: string;
-    objeto_conhecimento?: string;
-    estudante?: { nome?: string; hiperfoco?: string; perfil?: string };
-  };
-
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
-  }
+  const parsed = await parseBody(req, planoAulaSchema);
+  if (parsed.error) return parsed.error;
+  const body = parsed.data;
 
   const materia = (body.materia || "Geral").trim();
   const assunto = (body.assunto || "").trim();

@@ -1,3 +1,4 @@
+import { parseBody, peiDataEngineSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
@@ -11,7 +12,9 @@ export async function POST(req: Request) {
     let engine: EngineId = "red";
 
     try {
-        const body = await req.json();
+        const parsed = await parseBody(req, peiDataEngineSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
         peiData = body.peiData || {};
         if (body.engine && ["red", "blue", "green", "yellow", "orange"].includes(body.engine)) {
             engine = body.engine as EngineId;

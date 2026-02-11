@@ -1,3 +1,4 @@
+import { parseBody, paeeJornadaGamificadaSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
@@ -23,22 +24,9 @@ type CicloPayload = {
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
-  let body: {
-    origem: "ciclo" | "barreiras" | "plano-habilidades" | "tecnologia-assistiva";
-    engine?: string;
-    ciclo?: CicloPayload;
-    texto_fonte?: string;
-    nome_fonte?: string;
-    estudante?: { nome?: string; serie?: string; hiperfoco?: string };
-    feedback?: string;
-    estilo?: string;
-  };
-
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
-  }
+  const parsed = await parseBody(req, paeeJornadaGamificadaSchema);
+  if (parsed.error) return parsed.error;
+  const body = parsed.data;
 
   const engine: EngineId = ["red", "blue", "green"].includes(body.engine || "")
     ? (body.engine as EngineId)
@@ -56,7 +44,7 @@ export async function POST(req: Request) {
   const promptFeedback = body.feedback?.trim()
     ? `\nAJUSTE SOLICITADO: ${body.feedback}\n`
     : "";
-  
+
   const estiloPrompt = body.estilo?.trim()
     ? `\nESTILO PREFERIDO: ${body.estilo}\n`
     : "";
@@ -64,7 +52,8 @@ export async function POST(req: Request) {
   let prompt = "";
 
   if (body.origem === "ciclo" && body.ciclo) {
-    const cfg = body.ciclo.config_ciclo || {};
+    const ciclo = body.ciclo as CicloPayload;
+    const cfg = ciclo.config_ciclo || {};
     const foco = cfg.foco_principal || "Ciclo AEE";
     const desc = cfg.descricao || "";
     const metasList = cfg.metas_selecionadas || [];
@@ -72,24 +61,24 @@ export async function POST(req: Request) {
       .slice(0, 8)
       .map((m) => `- ${m.tipo || ""}: ${m.descricao || m.meta || ""}`)
       .join("\n");
-    
+
     const smartTxt = cfg.desdobramento_smart_texto || "";
     const metasCompleto = smartTxt
       ? `${metasTexto}\n\nMETAS SMART (desdobradas):\n${smartTxt.slice(0, 1500)}`
       : metasTexto;
 
-    const crono = body.ciclo.cronograma || {};
+    const crono = ciclo.cronograma || {};
     const fases = crono.fases || [];
     const semanas = crono.semanas || [];
     let cronTexto = "";
     if (fases.length > 0) {
-      cronTexto += "FASES:\n" + fases.slice(0, 5).map((f) => `- ${f.nome || ""}: ${f.objetivo_geral || ""}`).join("\n");
+      cronTexto += "FASES:\n" + fases.slice(0, 5).map((f: any) => `- ${f.nome || ""}: ${f.objetivo_geral || ""}`).join("\n");
     }
     if (semanas.length > 0) {
-      cronTexto += "\n\nSEMANAS (resumo):\n" + semanas.slice(0, 6).map((w) => `- Sem ${w.numero}: ${w.tema || ""} — ${w.objetivo || ""}`).join("\n");
+      cronTexto += "\n\nSEMANAS (resumo):\n" + semanas.slice(0, 6).map((w: any) => `- Sem ${w.numero}: ${w.tema || ""} — ${w.objetivo || ""}`).join("\n");
     }
 
-    const recs = body.ciclo.recursos_incorporados || {};
+    const recs = ciclo.recursos_incorporados || {};
     const recTexto = Object.keys(recs).slice(0, 5).join(", ") || "—";
 
     const contexto = `ESTUDANTE: ${nomeCurto}

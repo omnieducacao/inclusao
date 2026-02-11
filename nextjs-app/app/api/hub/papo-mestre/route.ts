@@ -1,3 +1,4 @@
+import { parseBody, hubPapoMestreSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
@@ -7,20 +8,9 @@ import { requireAuth } from "@/lib/permissions";
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
-  let body: {
-    materia?: string;
-    assunto?: string;
-    hiperfoco?: string;
-    tema_turma?: string;
-    nome_estudante?: string;
-    engine?: string;
-  };
-
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
-  }
+  const parsed = await parseBody(req, hubPapoMestreSchema);
+  if (parsed.error) return parsed.error;
+  const body = parsed.data;
 
   const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
     ? (body.engine as EngineId)

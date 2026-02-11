@@ -1,3 +1,4 @@
+import { parseBody, adminIssuePatchSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
@@ -14,7 +15,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   try {
-    const body = await req.json();
+    const parsed = await parseBody(req, adminIssuePatchSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
     const updates: Record<string, unknown> = {};
 
     if (body.status !== undefined) {

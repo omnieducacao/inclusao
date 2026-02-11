@@ -1,3 +1,4 @@
+import { parseBody, hubAdaptarProvaSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import mammoth from "mammoth";

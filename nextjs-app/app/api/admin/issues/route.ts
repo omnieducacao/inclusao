@@ -1,3 +1,4 @@
+import { parseBody, adminIssueCreateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
@@ -48,7 +49,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const body = await req.json();
+    const parsed = await parseBody(req, adminIssueCreateSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
     const { title, description, severity, workspace_id, source, created_by, ai_insight } = body;
 
     if (!title || !title.trim()) {

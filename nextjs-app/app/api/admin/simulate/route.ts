@@ -1,3 +1,5 @@
+import { parseBody } from "@/lib/validation";
+import { z } from "zod";
 import { NextResponse } from "next/server";
 import { getSession, createSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
@@ -15,7 +17,9 @@ export async function POST(req: Request) {
     }
 
     try {
-        const { workspace_id } = await req.json();
+        const parsed = await parseBody(req, z.object({ workspace_id: z.string().min(1, "workspace_id obrigatório") }));
+        if (parsed.error) return parsed.error;
+        const { workspace_id } = parsed.data;
         if (!workspace_id) {
             return NextResponse.json({ error: "workspace_id é obrigatório." }, { status: 400 });
         }

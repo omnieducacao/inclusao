@@ -1,3 +1,4 @@
+import { parseBody, paeeMapaMentalSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/permissions";
 
@@ -11,12 +12,9 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { texto: string; nome?: string; hiperfoco?: string };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
-  }
+  const parsed = await parseBody(req, paeeMapaMentalSchema);
+  if (parsed.error) return parsed.error;
+  const body = parsed.data;
 
   const texto = (body.texto || "").trim();
   if (!texto) {
@@ -78,14 +76,14 @@ ${roteiro}
         }
 
         const data = await response.json();
-        
+
         // Extrair imagem da resposta
         const candidates = data.candidates || [];
         if (candidates.length > 0) {
           const candidate = candidates[0];
           const content = candidate.content || {};
           const parts = content.parts || [];
-          
+
           for (const part of parts) {
             if (part.inlineData) {
               const b64 = part.inlineData.data;

@@ -150,15 +150,25 @@ export const planoAulaSchema = z.object({
     engine: engineId,
     serie: z.string().optional().default(""),
     duracao: z.string().optional().default(""),
+    duracao_minutos: z.number().optional(),
+    materia: z.string().optional(),
     metodologia: z.string().optional().default(""),
     objetivo: z.string().optional().default(""),
     habilidades: z.array(z.string()).optional().default([]),
+    habilidades_bncc: z.array(z.string()).optional(),
+    unidade_tematica: z.string().optional(),
+    objeto_conhecimento: z.string().optional(),
+    qtd_alunos: z.number().optional(),
+    tecnica: z.string().optional(),
+    recursos: z.array(z.string()).optional(),
     estudante: z.object({
         nome: z.string().optional(),
         serie: z.string().optional(),
         hiperfoco: z.string().optional(),
+        perfil: z.string().optional(),
+        ia_sugestao: z.string().optional(),
     }).optional(),
-});
+}).passthrough();
 
 export const adaptarAtividadeSchema = z.object({
     texto: z.string().min(1, "Texto da atividade é obrigatório"),
@@ -199,13 +209,13 @@ export const diagnosticoBarreirasSchema = z.object({
 });
 
 export const planoHabilidadesSchema = z.object({
-    observacoes: z.string().optional().default(""),
-    studentName: nonEmpty,
-    diagnosis: z.string().optional().default(""),
-    contextoPaee: z.string().optional().default(""),
+    focoTreino: z.string().optional().default(""),
+    studentId: z.string().optional(),
+    studentName: z.string().optional().default(""),
+    contextoPei: z.string().optional().default(""),
     feedback: z.string().optional(),
     engine: engineId,
-});
+}).passthrough();
 
 // ==========================================
 // School Schemas
@@ -226,3 +236,308 @@ export const assessmentSchema = z.object({
     rubric_data: z.record(z.string(), z.string()).optional().default({}),
     observation: z.string().optional().nullable(),
 });
+
+// ==========================================
+// Hub — remaining AI tools
+// ==========================================
+
+const estudanteField = z.object({
+    nome: z.string().optional(),
+    serie: z.string().optional(),
+    diagnostico: z.string().optional(),
+    hiperfoco: z.string().optional(),
+    ia_sugestao: z.string().optional(),
+    perfil: z.string().optional(),
+}).optional();
+
+export const hubAdaptarProvaSchema = z.object({
+    texto: z.string().min(1, "Texto da prova é obrigatório"),
+    engine: engineId,
+    estudante: estudanteField,
+    checklist_adaptacao: z.record(z.string(), z.boolean()).optional(),
+}).passthrough();
+
+export const hubRoteiroSchema = z.object({
+    materia: z.string().optional().default("Geral"),
+    assunto: z.string().optional().default(""),
+    engine: engineId,
+    aluno: z.any().optional(),
+    ano: z.string().optional(),
+    unidade_tematica: z.string().optional(),
+    objeto_conhecimento: z.string().optional(),
+    habilidades_bncc: z.array(z.string()).optional(),
+}).passthrough();
+
+export const hubDinamicaSchema = z.object({
+    materia: z.string().optional().default("Geral"),
+    assunto: z.string().optional().default(""),
+    engine: engineId,
+    aluno: z.any().optional(),
+    qtd_alunos: z.number().optional().default(25),
+    caracteristicas_turma: z.string().optional().default(""),
+    ano: z.string().optional(),
+    unidade_tematica: z.string().optional(),
+    objeto_conhecimento: z.string().optional(),
+    habilidades_bncc: z.array(z.string()).optional(),
+}).passthrough();
+
+export const hubInclusaoBrincarSchema = z.object({
+    engine: engineId,
+    aluno: z.any().optional(),
+    estudante: estudanteField,
+    tema: z.string().optional(),
+    feedback: z.string().optional(),
+}).passthrough();
+
+export const hubPapoMestreSchema = z.object({
+    materia: z.string().optional().default("Geral"),
+    assunto: z.string().optional().default(""),
+    engine: engineId,
+    aluno: z.any().optional(),
+    hiperfoco: z.string().optional(),
+    nome_estudante: z.string().optional(),
+    tema_turma: z.string().optional(),
+}).passthrough();
+
+export const hubRotinaAvdSchema = z.object({
+    engine: engineId,
+    aluno: z.any().optional(),
+    estudante: estudanteField,
+    feedback: z.string().optional(),
+    rotina_detalhada: z.string().optional(),
+    topico_foco: z.string().optional(),
+}).passthrough();
+
+export const hubMapaMentalSchema = z.object({
+    texto: z.string().optional().default(""),
+    engine: engineId,
+    aluno: z.any().optional(),
+    tipo: z.string().optional(),
+    materia: z.string().optional(),
+    assunto: z.string().optional(),
+    plano_texto: z.string().optional(),
+    estudante: estudanteField,
+    unidade_tematica: z.string().optional(),
+    objeto_conhecimento: z.string().optional(),
+}).passthrough();
+
+export const hubGerarImagemSchema = z.object({
+    prompt: z.string().optional().default(""),
+    prioridade: z.enum(["BANCO", "IA"]).optional().default("BANCO"),
+    engine: engineId,
+}).passthrough();
+
+export const hubEstudioImagemSchema = z.object({
+    tipo: z.enum(["ilustracao", "caa"]).optional().default("ilustracao"),
+    prompt: z.string().optional().default(""),
+    feedback: z.string().optional(),
+    engine: engineId,
+}).passthrough();
+
+export const hubGerarDocxSchema = z.object({
+    texto: z.string().min(1, "Texto é obrigatório"),
+    titulo: z.string().optional(),
+    filename: z.string().optional(),
+    mapa_imagens: z.record(z.string(), z.string()).optional(),
+}).passthrough();
+
+// ==========================================
+// PEI — remaining tools
+// ==========================================
+
+export const peiDataEngineSchema = z.object({
+    engine: engineId,
+    peiData: z.record(z.string(), z.unknown()).optional(),
+    feedback: z.string().optional(),
+}).passthrough();
+
+export const peiExportSchema = z.object({
+    peiData: z.record(z.string(), z.unknown()),
+});
+
+export const peiVersionCreateSchema = z.object({
+    studentId: nonEmpty,
+    label: z.string().optional(),
+});
+
+export const peiVersionRestoreSchema = z.object({
+    studentId: nonEmpty,
+    versionIndex: z.number().int().min(0),
+});
+
+// ==========================================
+// PAEE — remaining tools
+// ==========================================
+
+export const paeeDocumentoArticulacaoSchema = z.object({
+    frequencia: z.string().optional().default(""),
+    acoes: nonEmpty,
+    studentId: z.string().optional(),
+    studentName: nonEmpty,
+    feedback: z.string().optional(),
+    engine: engineId,
+});
+
+export const paeeTecnologiaAssistivaSchema = z.object({
+    dificuldade: nonEmpty,
+    studentId: z.string().optional(),
+    studentName: nonEmpty,
+    contextoPei: z.string().optional().default(""),
+    feedback: z.string().optional(),
+    engine: engineId,
+});
+
+export const paeeMapaMentalSchema = z.object({
+    texto: nonEmpty,
+    nome: z.string().optional().default(""),
+    hiperfoco: z.string().optional().default(""),
+    engine: engineId,
+}).passthrough();
+
+export const paeeJornadaGamificadaSchema = z.object({
+    engine: engineId,
+    aluno: z.any().optional(),
+    estudante: estudanteField,
+    ciclo: z.any().optional(),
+    estilo: z.string().optional(),
+    feedback: z.string().optional(),
+    nome_fonte: z.string().optional(),
+    origem: z.string().optional(),
+    texto_fonte: z.string().optional(),
+}).passthrough();
+
+export const paeeRelatorioCicloSchema = z.object({
+    studentId: nonEmpty,
+    ciclo: z.any(),
+    engine: engineId,
+});
+
+// ==========================================
+// Diário
+// ==========================================
+
+export const diarioAnaliseSchema = z.object({
+    registros: z.array(z.any()).min(1, "Nenhum registro para analisar."),
+    nomeEstudante: z.string().optional().default("Estudante"),
+    diagnostico: z.string().optional().default(""),
+    engine: engineId,
+});
+
+// ==========================================
+// PGI
+// ==========================================
+
+export const pgiPatchSchema = z.object({
+    acoes: z.array(z.any()).optional(),
+    dimensionamento: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const pgiGerarAcoesSchema = z.object({
+    dimensionamento: z.record(z.string(), z.unknown()),
+    engine: z.enum(["red", "blue", "green"]).optional().default("red"),
+});
+
+// ==========================================
+// Monitoring — sugerir rubricas
+// ==========================================
+
+export const sugerirRubricasSchema = z.object({
+    studentId: nonEmpty,
+    engine: engineId,
+});
+
+// ==========================================
+// BNCC
+// ==========================================
+
+export const bnccSugerirSchema = z.object({
+    serie: nonEmpty,
+    tipo: nonEmpty,
+    habilidades: z.array(z.any()).min(1, "Habilidades obrigatórias"),
+});
+
+// ==========================================
+// Members — update
+// ==========================================
+
+export const updateMemberSchema = z.object({
+    action: z.string().optional(),
+    nome: z.string().optional(),
+    email: z.string().optional(),
+    password: z.string().optional(),
+    telefone: z.string().optional(),
+    cargo: z.string().optional(),
+    can_estudantes: z.boolean().optional(),
+    can_pei: z.boolean().optional(),
+    can_paee: z.boolean().optional(),
+    can_hub: z.boolean().optional(),
+    can_diario: z.boolean().optional(),
+    can_avaliacao: z.boolean().optional(),
+    can_gestao: z.boolean().optional(),
+    link_type: z.enum(["todos", "turma", "tutor"]).optional(),
+    teacher_assignments: z.any().optional(),
+    student_ids: z.array(z.string()).optional(),
+}).passthrough();
+
+// ==========================================
+// Students — PATCH data routes
+// ==========================================
+
+export const studentPatchDataSchema = z.record(z.string(), z.unknown());
+
+// ==========================================
+// School — years, grades
+// ==========================================
+
+export const schoolYearCreateSchema = z.object({
+    name: z.string().optional(),
+    label: z.string().optional(),
+    year: z.string().optional(),
+}).passthrough();
+
+export const schoolGradePatchSchema = z.object({
+    grade_id: z.string().optional(),
+    grade_ids: z.array(z.string()).optional(),
+    enabled: z.boolean().optional(),
+}).passthrough();
+
+// ==========================================
+// Admin Schemas
+// ==========================================
+
+export const adminWorkspaceCreateSchema = z.object({
+    name: nonEmpty,
+    segments: z.array(z.string()).min(1, "Selecione ao menos um segmento"),
+    ai_engines: z.array(z.string()).min(1, "Selecione ao menos um motor de IA"),
+}).passthrough();
+
+export const adminWorkspacePatchSchema = z.record(z.string(), z.unknown());
+
+export const adminAnnouncementSchema = z.object({
+    action: z.enum(["create", "toggle", "delete"]),
+    announcement: z.object({
+        title: z.string().optional().default(""),
+        message: z.string().optional().default(""),
+        type: z.enum(["info", "warning", "alert"]).optional().default("info"),
+        target: z.string().optional().default("all"),
+        expires_at: z.string().optional(),
+    }).optional(),
+    announcement_id: z.string().optional(),
+}).passthrough();
+
+export const adminIssueCreateSchema = z.object({
+    title: nonEmpty,
+    description: z.string().optional().default(""),
+    severity: z.string().optional().default("média"),
+    workspace_id: z.string().optional(),
+    source: z.string().optional().default(""),
+    created_by: z.string().optional().default(""),
+    ai_insight: z.string().optional(),
+}).passthrough();
+
+export const adminIssuePatchSchema = z.object({
+    status: z.string().optional(),
+    resolution_notes: z.string().optional(),
+}).passthrough();
+
+export const adminPlatformConfigSchema = z.record(z.string(), z.unknown());

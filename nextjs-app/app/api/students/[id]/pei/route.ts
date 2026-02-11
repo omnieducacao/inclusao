@@ -1,3 +1,4 @@
+import { parseBody, studentPatchDataSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import {
@@ -40,7 +41,11 @@ export async function PATCH(
   if (denied) return denied;
 
   const { id } = await params;
-  const body = await req.json();
+  const parsed = await parseBody(req, studentPatchDataSchema);
+
+  if (parsed.error) return parsed.error;
+
+  const body = parsed.data;
 
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "Payload inválido." }, { status: 400 });

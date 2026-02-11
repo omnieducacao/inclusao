@@ -1,3 +1,4 @@
+import { parseBody, paeeRelatorioCicloSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
@@ -18,7 +19,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
         }
 
-        const body = await req.json();
+        const parsed = await parseBody(req, paeeRelatorioCicloSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
         const { studentId, ciclo, engine: engineParam } = body;
 
         if (!studentId || !ciclo) {

@@ -1,3 +1,4 @@
+import { parseBody, pgiPatchSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getPGIData, updatePGIData, type AcaoPGI, type PGIData } from "@/lib/pgi";
@@ -24,7 +25,13 @@ export async function PATCH(request: NextRequest) {
   const denied = requirePermission(session, "can_pgi");
   if (denied) return denied;
 
-  const body = await request.json();
+  const parsed = await parseBody(request, pgiPatchSchema);
+
+
+  if (parsed.error) return parsed.error;
+
+
+  const body = parsed.data;
   const acoes = Array.isArray(body.acoes) ? body.acoes : undefined;
   const dimensionamento =
     body.dimensionamento && typeof body.dimensionamento === "object"

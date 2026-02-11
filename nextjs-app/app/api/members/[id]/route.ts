@@ -1,3 +1,4 @@
+import { parseBody, updateMemberSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import {
@@ -27,7 +28,13 @@ export async function PATCH(
     return NextResponse.json({ error: "ID obrigatório" }, { status: 400 });
   }
 
-  const body = await request.json();
+  const parsed = await parseBody(request, updateMemberSchema);
+
+
+  if (parsed.error) return parsed.error;
+
+
+  const body = parsed.data;
   const action = body?.action;
 
   if (action === "deactivate") {

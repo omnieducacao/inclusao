@@ -1,3 +1,4 @@
+import { parseBody, hubGerarImagemSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { gerarImagemInteligente, baixarImagemUrl } from "@/lib/hub-images";
@@ -6,12 +7,9 @@ import { requireAuth } from "@/lib/permissions";
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_IMAGE); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
-  let body: { prompt: string; prioridade?: "BANCO" | "IA" };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
-  }
+  const parsed = await parseBody(req, hubGerarImagemSchema);
+  if (parsed.error) return parsed.error;
+  const body = parsed.data;
 
   const { prompt, prioridade = "BANCO" } = body;
   if (!prompt?.trim()) {
@@ -24,12 +22,12 @@ export async function POST(req: Request) {
   try {
     // Prioridade: BANCO (Unsplash) primeiro; Gemini só em último caso
     let urlOuBase64 = await gerarImagemInteligente(prompt, prioridade, unsplashKey, geminiKey);
-    
+
     // Se não encontrou no banco e prioridade era BANCO, tenta Gemini
     if (!urlOuBase64 && prioridade === "BANCO") {
       urlOuBase64 = await gerarImagemInteligente(prompt, "IA", unsplashKey, geminiKey);
     }
-    
+
     if (!urlOuBase64) {
       return NextResponse.json({ error: "Não foi possível gerar a imagem." }, { status: 500 });
     }

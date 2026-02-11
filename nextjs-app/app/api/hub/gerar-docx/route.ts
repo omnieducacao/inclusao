@@ -1,3 +1,4 @@
+import { parseBody, hubGerarDocxSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { textToDocxBuffer } from "@/lib/docx-simples";
 import { docxComImagens } from "@/lib/docx-com-imagens";
@@ -6,7 +7,9 @@ import { requireAuth } from "@/lib/permissions";
 export async function POST(req: Request) {
   const { error: authError } = await requireAuth(); if (authError) return authError;
   try {
-    const body = await req.json();
+    const parsed = await parseBody(req, hubGerarDocxSchema);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data;
     const texto = typeof body.texto === "string" ? body.texto : "";
     const titulo = typeof body.titulo === "string" ? body.titulo : "Documento";
     const filename = typeof body.filename === "string" ? body.filename : `Documento_${new Date().toISOString().slice(0, 10)}.docx`;
