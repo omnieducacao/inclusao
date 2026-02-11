@@ -2,9 +2,23 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 const COOKIE_NAME = "omnisfera_session";
-const SECRET = new TextEncoder().encode(
-  process.env.SESSION_SECRET || "omnisfera-dev-secret-change-in-prod"
-);
+
+let _secret: Uint8Array | null = null;
+
+function getSecret(): Uint8Array {
+  if (!_secret) {
+    const raw = process.env.SESSION_SECRET;
+    if (!raw && process.env.NODE_ENV === "production") {
+      throw new Error(
+        "🔒 FATAL: SESSION_SECRET não está definida em produção. " +
+        "Defina a variável de ambiente SESSION_SECRET antes de iniciar a aplicação. " +
+        "Sem ela, os tokens JWT podem ser forjados por qualquer pessoa."
+      );
+    }
+    _secret = new TextEncoder().encode(raw || "omnisfera-dev-secret-change-in-prod");
+  }
+  return _secret;
+}
 
 export type SessionPayload = {
   workspace_id: string | null;
@@ -27,7 +41,7 @@ export async function createSession(payload: Omit<SessionPayload, "exp">): Promi
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .sign(SECRET);
+    .sign(getSecret());
 
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, token, {
@@ -45,7 +59,7 @@ export async function getSession(): Promise<SessionPayload | null> {
   if (!token) return null;
 
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, getSecret());
     return payload as unknown as SessionPayload;
   } catch {
     return null;
