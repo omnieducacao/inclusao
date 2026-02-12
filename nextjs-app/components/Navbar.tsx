@@ -220,7 +220,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               </div>
               <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-[1.5px] border-white animate-pulse-soft" />
             </div>
-            <img src="/omni_texto.png" alt="Omnisfera" className="h-7 object-contain" style={{ width: 'auto', maxHeight: '28px' }} />
+            <img src="/omni_texto.png" alt="Omnisfera" className="h-8 object-contain" style={{ width: 'auto', maxHeight: '32px' }} />
           </Link>
           {!hideMenu && (
             <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center px-4">
@@ -281,8 +281,8 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               <img
                 src="/omni_texto.png"
                 alt="Omnisfera"
-                className="h-7 object-contain"
-                style={{ width: 'auto', maxHeight: '28px' }}
+                className="h-8 object-contain"
+                style={{ width: 'auto', maxHeight: '32px' }}
               />
             </div>
           </Link>

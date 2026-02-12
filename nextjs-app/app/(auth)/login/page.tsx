@@ -175,8 +175,8 @@ function LoginForm() {
             <img
               src="/omni_texto.png"
               alt="Omnisfera"
-              className="h-[66px] object-contain -mt-4"
-              style={{ width: "auto", maxHeight: "66px" }}
+              className="h-[86px] object-contain -mt-4"
+              style={{ width: "auto", maxHeight: "86px" }}
             />
 
             {/* Tagline */}
