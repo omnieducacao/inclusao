@@ -18,9 +18,6 @@ if (SENTRY_DSN) {
     // Capture 100% of errors
     sampleRate: 1.0,
     
-    // Enable performance monitoring
-    enableTracing: true,
-    
     // Debug mode in development
     debug: process.env.NODE_ENV === "development",
     

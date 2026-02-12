@@ -22,9 +22,6 @@ if (SENTRY_DSN) {
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
     
-    // Enable performance monitoring
-    enableTracing: true,
-    
     // Debug mode in development
     debug: process.env.NODE_ENV === "development",
     
