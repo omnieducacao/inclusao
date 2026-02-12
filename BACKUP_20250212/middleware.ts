@@ -1,0 +1,52 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
+
+let _secret: Uint8Array | null = null;
+
+function getSecret(): Uint8Array {
+  if (!_secret) {
+    const raw = process.env.SESSION_SECRET;
+    if (!raw && process.env.NODE_ENV === "production") {
+      throw new Error(
+        "🔒 FATAL: SESSION_SECRET não está definida em produção. " +
+        "Defina a variável de ambiente SESSION_SECRET antes de iniciar."
+      );
+    }
+    _secret = new TextEncoder().encode(raw || "omnisfera-dev-secret-change-in-prod");
+  }
+  return _secret;
+}
+
+
+const PUBLIC_PATHS = ["/login", "/api/auth/login", "/api/auth/admin-login"];
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
+
+  const token = request.cookies.get("omnisfera_session")?.value;
+  if (!token) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  try {
+    await jwtVerify(token, getSecret());
+    return NextResponse.next();
+  } catch {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    const res = NextResponse.redirect(loginUrl);
+    res.cookies.delete("omnisfera_session");
+    return res;
+  }
+}
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+};

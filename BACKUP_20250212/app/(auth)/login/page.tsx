@@ -161,7 +161,7 @@ function LoginForm() {
               {/* Logo — 200px for strong visual presence */}
               <div className="omni-logo-spin relative">
                 <Image
-                  src="/omni_icone.png?v=2"
+                  src="/omni_icone.png"
                   alt="Omnisfera"
                   width={240}
                   height={240}
