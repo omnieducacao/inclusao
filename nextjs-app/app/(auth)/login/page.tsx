@@ -158,14 +158,14 @@ function LoginForm() {
                 className="absolute w-[450px] h-[450px] rounded-full border border-slate-100/12 login-orbit-reverse"
                 style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
               />
-              {/* Logo — 200px for strong visual presence */}
-              <div className="omni-logo-spin relative">
+              {/* Logo */}
+              <div className="relative">
                 <Image
                   src="/omni_icone.png?v=2"
                   alt="Omnisfera"
-                  width={240}
-                  height={240}
-                  className="object-contain drop-shadow-xl"
+                  width={180}
+                  height={180}
+                  className="object-contain"
                   priority
                 />
               </div>
