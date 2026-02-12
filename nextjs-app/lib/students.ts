@@ -1,4 +1,5 @@
 import { getSupabase } from "./supabase";
+import { logger } from "./logger";
 
 export type Student = {
   id: string;
@@ -17,12 +18,12 @@ export type Student = {
 
 export async function listStudents(workspaceId: string): Promise<Student[]> {
   if (!workspaceId) {
-    console.error("❌ listStudents: workspaceId ausente");
+    logger.error("listStudents: workspaceId ausente");
     return [];
   }
 
   const sb = getSupabase();
-  console.log("🔍 listStudents: buscando estudantes", { workspaceId });
+  logger.debug("listStudents: buscando estudantes", { workspaceId });
   
   const { data, error } = await sb
     .from("students")
@@ -31,22 +32,18 @@ export async function listStudents(workspaceId: string): Promise<Student[]> {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("❌ listStudents error:", error, { 
+    logger.error("listStudents: erro ao buscar", { 
       workspaceId,
       errorMessage: error.message,
-      errorDetails: error.details
+      errorCode: error.code
     });
     return [];
   }
   
-  if (data) {
-    console.log(`✅ listStudents: encontrados ${data.length} estudantes para workspace ${workspaceId}`, {
-      studentIds: data.map(s => s.id),
-      studentNames: data.map(s => s.name)
-    });
-  } else {
-    console.warn("⚠️ listStudents: nenhum estudante encontrado", { workspaceId });
-  }
+  logger.debug("listStudents: encontrados", { 
+    count: data?.length || 0,
+    workspaceId
+  });
   
   return (data || []) as Student[];
 }
@@ -57,26 +54,13 @@ export async function getStudent(
 ): Promise<Student | null> {
   try {
     if (!workspaceId || !studentId) {
-      console.error("❌ getStudent: workspaceId ou studentId ausente", { 
-        workspaceId: workspaceId || "NULL", 
-        studentId: studentId || "NULL",
-        workspaceIdType: typeof workspaceId,
-        studentIdType: typeof studentId
-      });
+      logger.error("getStudent: workspaceId ou studentId ausente");
       return null;
     }
 
     const sb = getSupabase();
     
-    // Log da query que será executada
-    console.log("🔍 getStudent: buscando estudante", { 
-      workspaceId, 
-      studentId,
-      workspaceIdLength: workspaceId?.length,
-      studentIdLength: studentId?.length,
-      workspaceIdTrimmed: workspaceId?.trim(),
-      studentIdTrimmed: studentId?.trim()
-    });
+    logger.debug("getStudent: buscando", { workspaceId, studentId });
     
     // Normalizar IDs (remover espaços e garantir formato correto)
     const normalizedWorkspaceId = workspaceId.trim();
@@ -121,62 +105,20 @@ export async function getStudent(
         errorConstructor: error?.constructor?.name || "Unknown"
       };
       
-      // Log apenas se houver informações úteis
-      if (errorMessage !== "Erro desconhecido" || errorCode !== "Sem código") {
-        console.error("❌ getStudent error:", errorInfo);
-      }
+      logger.error("getStudent: erro ao buscar", { 
+        errorCode,
+        errorMessage 
+      });
       
       return null;
     }
     
     if (!data) {
-      console.error("⚠️ getStudent: estudante não encontrado com filtros workspace_id + id", { 
-        workspaceId: normalizedWorkspaceId, 
-        studentId: normalizedStudentId,
-        originalWorkspaceId: workspaceId,
-        originalStudentId: studentId
-      });
-      
-      // Tentar buscar sem filtro de workspace para debug
-      const { data: debugData, error: debugError } = await sb
-        .from("students")
-        .select("id, workspace_id, name")
-        .eq("id", normalizedStudentId)
-        .maybeSingle();
-        
-      if (debugError) {
-        console.error("❌ getStudent: erro ao buscar estudante para debug", { 
-          error: debugError,
-          studentId: normalizedStudentId 
-        });
-      } else if (debugData) {
-        console.error("⚠️ getStudent: estudante EXISTE mas com workspace_id DIFERENTE", {
-          estudante_workspace: debugData.workspace_id,
-          sessao_workspace: normalizedWorkspaceId,
-          studentId: normalizedStudentId,
-          studentName: debugData.name,
-          mismatch: debugData.workspace_id !== normalizedWorkspaceId,
-          workspaceIdsEqual: debugData.workspace_id === normalizedWorkspaceId,
-          workspaceIdTypes: {
-            estudante: typeof debugData.workspace_id,
-            sessao: typeof normalizedWorkspaceId
-          }
-        });
-      } else {
-        console.error("❌ getStudent: estudante NÃO EXISTE no banco de dados", { 
-          studentId: normalizedStudentId,
-          originalStudentId: studentId
-        });
-      }
-      
+      logger.debug("getStudent: estudante não encontrado");
       return null;
     }
     
-    console.log("✅ getStudent: estudante encontrado", { 
-      studentId: data.id, 
-      name: data.name,
-      workspaceId: data.workspace_id 
-    });
+    logger.debug("getStudent: encontrado", { studentId: data.id });
     
     return data as Student;
   } catch (err) {
@@ -203,7 +145,7 @@ export async function getStudent(
       errorStack: errorStack?.substring(0, 200) // Limitar tamanho do stack trace
     };
     
-    console.error("❌ getStudent: erro inesperado capturado:", errorInfo);
+    logger.error("getStudent: erro inesperado", { errorMessage });
     return null;
   }
 }
@@ -323,10 +265,10 @@ export async function deleteStudent(
     .eq("workspace_id", workspaceId);
 
   if (error) {
-    console.error("❌ deleteStudent error:", error, { workspaceId, studentId });
+    logger.error("deleteStudent: erro", { workspaceId, studentId, errorCode: error.code });
     return { success: false, error: error.message };
   }
 
-  console.log("✅ deleteStudent: estudante excluído", { studentId, workspaceId });
+  logger.debug("deleteStudent: estudante excluído", { studentId, workspaceId });
   return { success: true };
 }

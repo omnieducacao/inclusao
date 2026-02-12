@@ -4,6 +4,7 @@
  */
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
+import { logger } from "./logger";
 
 const DATA_DIR = join(process.cwd(), "data");
 
@@ -48,13 +49,13 @@ export function loadBnccEI(): BnccEIRow[] {
   const path = join(DATA_DIR, "bncc_ei.csv");
   try {
     if (!existsSync(path)) {
-      console.error(`BNCC EI: Arquivo não encontrado em ${path}`);
+      logger.error(`BNCC EI: Arquivo não encontrado`);
       return [];
     }
     const content = readFileSync(path, "utf-8");
     const rows = parseCSV(content);
     const filtered = rows.filter((r) => getCell(r, "Campo de Experiência", "Campo de Experiencia") && getCell(r, "OBJETIVOS DE APRENDIZAGEM E DESENVOLVIMENTO", "Objetivo de Aprendizagem", "Objetivo"));
-    console.log(`BNCC EI: Carregadas ${filtered.length} linhas de ${rows.length} total`);
+    logger.debug(`BNCC EI: Carregadas ${filtered.length} linhas`);
     const result = filtered.map((r) => ({
       idade: getCell(r, "Idade"),
       campo_experiencia: getCell(r, "Campo de Experiência", "Campo de Experiencia"),
@@ -63,7 +64,7 @@ export function loadBnccEI(): BnccEIRow[] {
     _cacheEI = result;
     return result;
   } catch (err) {
-    console.error("BNCC EI: Erro ao carregar arquivo:", err);
+    logger.error("BNCC EI: Erro ao carregar arquivo");
     return [];
   }
 }
@@ -159,13 +160,13 @@ export function loadBnccEF(): BnccEFRow[] {
   try {
     if (!existsSync(path)) path = join(DATA_DIR, "bncc.csv");
     if (!existsSync(path)) {
-      console.error(`BNCC EF: Arquivo não encontrado em ${path}`);
+      logger.error(`BNCC EF: Arquivo não encontrado`);
       return [];
     }
     const content = readFileSync(path, "utf-8");
     const rows = parseCSV(content);
     const filtered = rows.filter((r) => getCell(r, "Ano") && getCell(r, "Disciplina") && getCell(r, "Habilidade"));
-    console.log(`BNCC EF: Carregadas ${filtered.length} linhas de ${rows.length} total`);
+    logger.debug(`BNCC EF: Carregadas ${filtered.length} linhas`);
     const result = filtered.map((r) => ({
       ano: getCell(r, "Ano"),
       disciplina: getCell(r, "Disciplina"),
@@ -176,7 +177,7 @@ export function loadBnccEF(): BnccEFRow[] {
     _cacheEF = result;
     return result;
   } catch (err) {
-    console.error("BNCC EF: Erro ao carregar arquivo:", err);
+    logger.error("BNCC EF: Erro ao carregar arquivo");
     return [];
   }
 }
@@ -190,7 +191,7 @@ export function carregarHabilidadesEFPorComponente(serie: string): {
   const anoNum = parseInt(anoSerie.match(/\d+/)?.[0] ?? "0", 10) || 0;
   const raw = loadBnccEF();
   if (!raw.length) {
-    console.warn("BNCC EF: Nenhum dado carregado. Verifique se data/bncc.csv ou data/bncc_ef.csv existe.");
+    logger.warn("BNCC EF: Nenhum dado carregado");
     return { ano_atual: {}, anos_anteriores: {} };
   }
 
@@ -229,7 +230,7 @@ export function carregarHabilidadesEFPorComponente(serie: string): {
     }
   }
 
-  console.log(`BNCC EF: Carregadas ${Object.keys(ano_atual).length} disciplinas para ano atual, ${Object.keys(anos_anteriores).length} para anos anteriores`);
+  logger.debug(`BNCC EF: Carregadas ${Object.keys(ano_atual).length} disciplinas`);
   return { ano_atual, anos_anteriores };
 }
 
