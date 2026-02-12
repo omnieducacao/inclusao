@@ -1,4 +1,4 @@
-/"use server";
+"use server";
 
 /**
  * Sentry utility functions for error tracking
