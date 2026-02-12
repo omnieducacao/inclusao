@@ -1,2 +1,4 @@
 # Git ignore file
 omniprof_repo
+BACKUP_*/
+*.md
