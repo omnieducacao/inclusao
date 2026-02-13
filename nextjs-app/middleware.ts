@@ -1,22 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
-
-let _secret: Uint8Array | null = null;
-
-function getSecret(): Uint8Array {
-  if (!_secret) {
-    const raw = process.env.SESSION_SECRET;
-    if (!raw && process.env.NODE_ENV === "production") {
-      throw new Error(
-        "🔒 FATAL: SESSION_SECRET não está definida em produção. " +
-        "Defina a variável de ambiente SESSION_SECRET antes de iniciar."
-      );
-    }
-    _secret = new TextEncoder().encode(raw || "omnisfera-dev-secret-change-in-prod");
-  }
-  return _secret;
-}
+import { getSecret } from "@/lib/jwt-secret";
 
 
 const PUBLIC_PATHS = ["/login", "/api/auth/login", "/api/auth/admin-login"];

@@ -1,0 +1,41 @@
+name: CI — Testes Automatizados
+
+on:
+  push:
+    branches: [main, nextjs-migration]
+    paths:
+      - 'nextjs-app/**'
+  pull_request:
+    branches: [main, nextjs-migration]
+    paths:
+      - 'nextjs-app/**'
+
+defaults:
+  run:
+    working-directory: nextjs-app
+
+jobs:
+  test:
+    name: Vitest Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: nextjs-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run tests with coverage
+        if: github.event_name == 'pull_request'
+        run: npx vitest run --coverage --reporter=verbose
