@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { LottieIcon } from "./LottieIcon";
 import { useAILoading } from "@/hooks/useAILoading";
 import { NotificationBell } from "@/components/NotificationBell";
+import { ThemeToggle } from "./ThemeToggle";
 
 type PermissionKey =
   | "can_estudantes"
@@ -144,11 +145,24 @@ function NavItemWithLottie({ item, isActive }: { item: NavItem; isActive: boolea
       onMouseLeave={() => setIsHovered(false)}
       className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap flex-shrink-0 ${isActive
         ? "text-white shadow-md"
-        : "text-slate-500 hover:bg-white/60 hover:text-slate-800 hover:shadow-sm"
+        : "hover:shadow-sm"
         }`}
       style={{
+        color: isActive ? 'white' : 'var(--text-muted)',
         transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
         ...(isActive ? { background: `linear-gradient(to right, ${routeColor.from}, ${routeColor.to})` } : {}),
+      }}
+      onMouseOver={(e) => {
+        if (!isActive) {
+          (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)';
+          (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
+        }
+      }}
+      onMouseOut={(e) => {
+        if (!isActive) {
+          (e.currentTarget as HTMLElement).style.backgroundColor = '';
+          (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)';
+        }
       }}
       title={item.label}
     >
@@ -172,7 +186,7 @@ function NavItemWithLottie({ item, isActive }: { item: NavItem; isActive: boolea
 
 // Separator dot between nav groups
 function NavSeparator() {
-  return <div className="w-1 h-1 bg-slate-300 rounded-full mx-2 flex-shrink-0" />;
+  return <div className="w-1 h-1 rounded-full mx-2 flex-shrink-0" style={{ backgroundColor: 'var(--border-strong)' }} />;
 }
 
 export function Navbar({ session, hideMenu = false }: { session: SessionPayload; hideMenu?: boolean }) {
@@ -210,7 +224,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
 
   // Skeleton navbar during SSR
   const navSkeleton = (
-    <header className="glass-strong border-b border-slate-200/60 sticky top-0 z-50" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+    <header className="glass-strong sticky top-0 z-50" style={{ boxShadow: 'var(--shadow-xs)', borderBottom: '1px solid var(--border-default)' }}>
       <div className="max-w-[1920px] mx-auto px-5">
         <div className="flex items-center justify-between h-[68px]">
           <Link href="/" className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group flex-shrink-0">
@@ -245,7 +259,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   const adminItems = items.filter((i: NavItem) => i.group === "admin");
 
   return (
-    <header className="glass-strong border-b border-slate-200/60 sticky top-0 z-50" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+    <header className="glass-strong sticky top-0 z-50" style={{ boxShadow: 'var(--shadow-xs)', borderBottom: '1px solid var(--border-default)' }}>
       <div className="max-w-[1920px] mx-auto px-5">
         <div className="flex items-center justify-between h-[68px]">
           {/* Logo */}
@@ -309,7 +323,8 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
                 <select
                   value={pathname}
                   onChange={(e) => router.push(e.target.value)}
-                  className="text-sm px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 font-medium"
+                  className="text-sm px-3 py-2 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', borderColor: 'var(--border-default)', border: '1px solid var(--border-default)' }}
                 >
                   {items.map((item: NavItem) => (
                     <option key={item.href} value={item.href}>
@@ -324,15 +339,19 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
           <button
             type="button"
             onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-slate-400 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200"
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg transition-colors"
+            style={{ color: 'var(--text-muted)', backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-default)' }}
             title="Buscar (⌘K)"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <span>Buscar...</span>
-            <span className="font-mono bg-slate-200 px-1 py-0.5 rounded text-[10px]">⌘K</span>
+            <span className="font-mono px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--border-strong)' }}>⌘K</span>
           </button>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
 
           {/* Notification Bell */}
           <NotificationBell />
@@ -340,8 +359,8 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
           {/* User Info & Logout */}
           <div className="flex items-center gap-3 ml-3 flex-shrink-0">
             <div className="hidden lg:flex flex-col items-end text-right">
-              <span className="text-[13px] font-semibold text-slate-800 leading-tight">{session?.usuario_nome ?? "Admin"}</span>
-              <span className="text-[11px] text-slate-400 font-medium">{session?.workspace_name ?? "Plataforma"}</span>
+              <span className="text-[13px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>{session?.usuario_nome ?? "Admin"}</span>
+              <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>{session?.workspace_name ?? "Plataforma"}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md ring-2 ring-white">
@@ -349,7 +368,8 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium hover:text-red-500 transition-all"
+                style={{ color: 'var(--text-muted)' }}
                 title="Sair"
               >
                 {navIcons?.SignOut && <navIcons.SignOut className="w-4 h-4" weight="regular" />}

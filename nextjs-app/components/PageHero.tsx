@@ -74,7 +74,7 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
           </div>
           <div>
             <h1 className="text-xl font-extrabold" style={{ color: colors.text }}>{title}</h1>
-            <p className="text-[13px] text-slate-500 mt-0.5">{desc}</p>
+            <p className="text-[13px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>{desc}</p>
           </div>
         </div>
       </div>
@@ -99,8 +99,8 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
       <div className="flex items-center gap-6 h-[120px] px-8 md:px-10">
         {/* Ícone dentro do quadrado minimalista - estático, anima só no hover */}
         <div
-          className="rounded-xl bg-white/40 flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-105 flex-shrink-0"
-          style={{ width: '64px', height: '64px', padding: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
+          className="rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-105 flex-shrink-0"
+          style={{ width: '64px', height: '64px', padding: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', backgroundColor: 'var(--surface-2)' }}
         >
           <LottieIcon
             animation={lottieAnimation}
@@ -112,7 +112,7 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
         </div>
         <div className="flex-1">
           <h1 className="text-2xl font-extrabold mb-0.5 tracking-tight" style={{ color: colors.text }}>{title}</h1>
-          <p className="text-[13px] text-slate-500 leading-relaxed">{desc}</p>
+          <p className="text-[13px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{desc}</p>
         </div>
       </div>
     </div>

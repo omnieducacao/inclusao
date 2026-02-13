@@ -18,7 +18,12 @@ export default async function DashboardLayout({
 
   return (
     <AILoadingWrapper>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/15 to-sky-50/10 flex flex-col">
+      <div
+        className="min-h-screen flex flex-col transition-colors duration-300"
+        style={{
+          background: `linear-gradient(135deg, var(--bg-gradient-from), var(--bg-gradient-via), var(--bg-gradient-to))`,
+        }}
+      >
         <SimulationBanner session={session} />
         <Navbar session={session} />
         <main className="w-full px-6 py-6 flex-1">{children}</main>
