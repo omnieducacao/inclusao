@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import type { Icon } from "phosphor-react";
-import { getColorClasses, colorPalette } from "@/lib/colors";
+import { getColorClasses, colorPalette, colorPaletteDark } from "@/lib/colors";
 import { LottieIcon } from "./LottieIcon";
+import { useTheme } from "./ThemeProvider";
 
 // Import dinâmico dos ícones Phosphor para evitar problemas de SSR
 let iconMap: Record<string, Icon> | null = null;
@@ -117,6 +118,8 @@ export function ModuleCardsLottie({
   const [isMounted, setIsMounted] = useState(false);
   const [iconsLoaded, setIconsLoaded] = useState(false);
   const [loadedIconMap, setLoadedIconMap] = useState<Record<string, Icon>>({});
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     setIsMounted(true);
@@ -161,7 +164,7 @@ export function ModuleCardsLottie({
         {modules.map((m, index) => {
           const Icon = loadedIconMap[m.iconName];
           if (!Icon) return null;
-          const colors = getColorClasses(m.color);
+          const colors = getColorClasses(m.color, isDark);
           const lottieMaps = getLottieMaps();
           const lottieAnimation = lottieMaps.default[m.iconName];
           const shouldUseLottie = (m.useLottie ?? useLottieOnHover) || useLottieByDefault;
@@ -364,6 +367,8 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
   const [isMounted, setIsMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [ClipboardTextIcon, setClipboardTextIcon] = useState<Icon | null>(null);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const lottieMaps = getLottieMaps();
   const lottieAnimation = lottieMaps.colored.BookBookmark; // Agora aponta para livros (mesmo de PGI)
 
@@ -400,7 +405,7 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
         href={href}
         className="group relative block rounded-2xl overflow-hidden transition-all duration-300"
         style={{
-          backgroundColor: colorPalette.table.bg,
+          backgroundColor: isDark ? colorPaletteDark.table.bg : colorPalette.table.bg,
           boxShadow: isHovered
             ? '0 8px 32px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.06)'
             : '0 4px 12px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)',
@@ -411,10 +416,10 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Top accent bar */}
-        <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${colorPalette.table.icon}, #a855f7)` }} />
+        <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${isDark ? colorPaletteDark.table.icon : colorPalette.table.icon}, #a855f7)` }} />
 
         <div className="p-8">
-          <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${colorPalette.table.icon}15, transparent, ${colorPalette.table.icon}15)` }} />
+          <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${isDark ? colorPaletteDark.table.icon : colorPalette.table.icon}15, transparent, ${isDark ? colorPaletteDark.table.icon : colorPalette.table.icon}15)` }} />
           <div className="relative flex items-start gap-6">
             {lottieAnimation ? (
               <div
@@ -437,7 +442,7 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
                 >
                   <ClipboardTextIcon
                     className="transition-all duration-300"
-                    style={{ color: colorPalette.table.icon, width: '56px', height: '56px' }}
+                    style={{ color: isDark ? colorPaletteDark.table.icon : colorPalette.table.icon, width: '56px', height: '56px' }}
                     weight="duotone"
                   />
                 </div>
@@ -445,17 +450,17 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
             )}
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <span className="font-extrabold text-2xl transition-colors" style={{ color: colorPalette.table.text }}>
+                <span className="font-extrabold text-2xl transition-colors" style={{ color: isDark ? colorPaletteDark.table.text : colorPalette.table.text }}>
                   {title}
                 </span>
-                <span className="px-2.5 py-0.5 text-[11px] font-bold text-white rounded-full shadow-sm" style={{ backgroundColor: colorPalette.table.icon }}>
+                <span className="px-2.5 py-0.5 text-[11px] font-bold text-white rounded-full shadow-sm" style={{ backgroundColor: isDark ? colorPaletteDark.table.icon : colorPalette.table.icon }}>
                   Novo
                 </span>
               </div>
               <p className="text-[15px] text-slate-600 leading-relaxed">
                 {desc}
               </p>
-              <div className="mt-4 flex items-center gap-2 text-sm font-bold group-hover:gap-3 transition-all" style={{ color: colorPalette.table.icon }}>
+              <div className="mt-4 flex items-center gap-2 text-sm font-bold group-hover:gap-3 transition-all" style={{ color: isDark ? colorPaletteDark.table.icon : colorPalette.table.icon }}>
                 <span>Explorar recursos</span>
                 <span className="group-hover:translate-x-1 transition-transform">→</span>
               </div>
