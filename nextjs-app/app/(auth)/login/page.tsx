@@ -95,10 +95,10 @@ function LoginForm() {
   }
 
   const inputCls =
-    "w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 focus:bg-white outline-none transition-all duration-200";
+    "w-full px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 outline-none transition-all duration-200";
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-white">
+    <div className="min-h-screen relative flex items-center justify-center overflow-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
       {/* ═══════ Full-Screen Aurora Background ═══════ */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-[5%] left-[2%] w-[500px] h-[500px] rounded-full bg-red-400/[0.07] blur-[120px] animate-blob" />
@@ -176,11 +176,11 @@ function LoginForm() {
               src="/omni_texto.png"
               alt="Omnisfera"
               className="h-[86px] object-contain -mt-4"
-              style={{ width: "auto", maxHeight: "86px" }}
+              style={{ width: "auto", maxHeight: "86px", filter: 'var(--img-dark-invert, none)' }}
             />
 
             {/* Tagline */}
-            <p className="text-slate-400 text-base font-medium tracking-wide -mt-1">
+            <p className="text-base font-medium tracking-wide -mt-1" style={{ color: 'var(--text-muted)' }}>
               Plataforma de Inclusão Educacional
             </p>
           </div>
@@ -206,8 +206,8 @@ function LoginForm() {
 
             {/* Form Card */}
             <div
-              className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 p-7"
-              style={{ boxShadow: "0 8px 32px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.02)" }}
+              className="backdrop-blur-xl rounded-2xl p-7"
+              style={{ backgroundColor: 'var(--glass-bg)', borderColor: 'var(--border-default)', border: '1px solid var(--border-default)', boxShadow: 'var(--shadow-lg)' }}
             >
               {!adminMode ? (
                 <form onSubmit={handleLogin} className="space-y-5">
@@ -324,7 +324,7 @@ function LoginForm() {
             </div>
 
             {/* Footer */}
-            <p className="text-center text-xs text-slate-300 mt-1.5 font-medium tracking-wide">
+            <p className="text-center text-xs mt-1.5 font-medium tracking-wide" style={{ color: 'var(--text-muted)' }}>
               © {new Date().getFullYear()} Omnisfera — Inclusão Educacional
             </p>
           </div>
@@ -337,7 +337,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
         <div className="omni-logo-spin">
           <Image src="/omni_icone.png" alt="Omnisfera" width={48} height={48} className="object-contain" priority />
         </div>

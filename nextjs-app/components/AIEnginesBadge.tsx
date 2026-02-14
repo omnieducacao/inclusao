@@ -46,7 +46,7 @@ export function AIEnginesBadge() {
       {isExpanded && (
         <div
           className="glass-strong rounded-2xl p-4 animate-fade-in-up"
-          style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)', border: '1px solid rgba(226,232,240,0.5)' }}
+          style={{ boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-default)' }}
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
@@ -84,7 +84,7 @@ export function AIEnginesBadge() {
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="group flex items-center gap-2 px-3 py-2 rounded-full glass-strong transition-all duration-300 hover:scale-105"
-        style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.1)', border: '1px solid rgba(226,232,240,0.5)' }}
+        style={{ boxShadow: 'var(--shadow-md)', border: '1px solid var(--border-default)' }}
         title={isExpanded ? "Ocultar motores" : "Motores IA ativos"}
       >
         <div className="w-5 h-5 flex items-center justify-center">

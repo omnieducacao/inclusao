@@ -160,7 +160,7 @@ export default async function RootPage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/15 to-sky-50/10">
+    <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom right, var(--bg-primary), var(--bg-gradient-via), var(--bg-gradient-to))' }}>
       <SimulationBanner session={sessionNonNull} />
       <Navbar session={sessionNonNull} hideMenu={true} />
       <main className="max-w-[1600px] mx-auto px-8 py-8">
@@ -225,8 +225,8 @@ export default async function RootPage() {
             />
           </Suspense>
 
-          <footer className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.03)', border: '1px solid rgba(226,232,240,0.5)' }}>
-            <div className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-indigo-50/20 px-6 py-5">
+          <footer className="rounded-2xl overflow-hidden" style={{ boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border-default)' }}>
+            <div className="px-6 py-5" style={{ background: 'linear-gradient(to right, var(--bg-secondary), var(--bg-tertiary))', borderTop: '1px solid var(--border-default)' }}>
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center opacity-40">

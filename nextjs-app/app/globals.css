@@ -88,6 +88,9 @@
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15);
+
+  /* Image inversion for dark logos */
+  --img-dark-invert: brightness(0) invert(1) opacity(0.9);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35), 0 16px 48px rgba(0, 0, 0, 0.25);
   --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.4), 0 24px 64px rgba(0, 0, 0, 0.3);
@@ -503,4 +506,257 @@ h6 {
 
 .login-orbit-reverse {
   animation: orbit-reverse 90s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════
+   Dark Mode — Global Overrides
+   Catches ALL hardcoded Tailwind colors across
+   internal module components (PEI, PAEE, Hub, etc.)
+   ═══════════════════════════════════════════════════ */
+
+[data-theme="dark"] {
+
+  /* ─── Backgrounds ─── */
+  & .bg-white {
+    background-color: var(--bg-secondary) !important;
+  }
+
+  & .bg-slate-50,
+  & .bg-gray-50 {
+    background-color: var(--bg-tertiary) !important;
+  }
+
+  & .bg-slate-100,
+  & .bg-gray-100 {
+    background-color: var(--bg-tertiary) !important;
+  }
+
+  & .bg-slate-200,
+  & .bg-gray-200 {
+    background-color: rgba(51, 65, 85, 0.4) !important;
+  }
+
+  /* ─── Text ─── */
+  & .text-slate-900,
+  & .text-gray-900 {
+    color: var(--text-primary) !important;
+  }
+
+  & .text-slate-800,
+  & .text-gray-800 {
+    color: var(--text-primary) !important;
+  }
+
+  & .text-slate-700,
+  & .text-gray-700 {
+    color: #cbd5e1 !important;
+  }
+
+  & .text-slate-600,
+  & .text-gray-600 {
+    color: var(--text-secondary) !important;
+  }
+
+  & .text-slate-500,
+  & .text-gray-500 {
+    color: var(--text-muted) !important;
+  }
+
+  & .text-slate-400,
+  & .text-gray-400 {
+    color: var(--text-muted) !important;
+  }
+
+  /* ─── Borders ─── */
+  & .border-slate-200,
+  & .border-gray-200 {
+    border-color: var(--border-default) !important;
+  }
+
+  & .border-slate-300,
+  & .border-gray-300 {
+    border-color: var(--border-strong) !important;
+  }
+
+  & .border-slate-100,
+  & .border-gray-100 {
+    border-color: var(--border-subtle) !important;
+  }
+
+  /* ─── Divide ─── */
+  & .divide-slate-200>*+* {
+    border-color: var(--border-default) !important;
+  }
+
+  & .divide-slate-100>*+* {
+    border-color: var(--border-subtle) !important;
+  }
+
+  /* ─── Hover States ─── */
+  & .hover\:bg-slate-50:hover,
+  & .hover\:bg-gray-50:hover {
+    background-color: var(--bg-hover) !important;
+  }
+
+  & .hover\:bg-slate-100:hover {
+    background-color: rgba(51, 65, 85, 0.3) !important;
+  }
+
+  & .hover\:bg-white:hover {
+    background-color: var(--bg-hover) !important;
+  }
+
+  /* ─── Form Inputs ─── */
+  & input:not([type="checkbox"]):not([type="radio"]),
+  & textarea,
+  & select {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-strong) !important;
+  }
+
+  & input::placeholder,
+  & textarea::placeholder {
+    color: var(--text-muted) !important;
+  }
+
+  /* ─── Tables ─── */
+  & table {
+    border-color: var(--border-default) !important;
+  }
+
+  & th {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-default) !important;
+  }
+
+  & td {
+    border-color: var(--border-subtle) !important;
+  }
+
+  & tr:hover td {
+    background-color: var(--bg-hover) !important;
+  }
+
+  /* ─── Accent Backgrounds (amber/yellow warnings, blue/green info) ─── */
+  & .bg-amber-50,
+  & .bg-yellow-50 {
+    background-color: rgba(245, 158, 11, 0.1) !important;
+  }
+
+  & .bg-amber-100,
+  & .bg-yellow-100 {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+  }
+
+  & .bg-blue-50 {
+    background-color: rgba(59, 130, 246, 0.1) !important;
+  }
+
+  & .bg-blue-100 {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+  }
+
+  & .bg-green-50 {
+    background-color: rgba(34, 197, 94, 0.1) !important;
+  }
+
+  & .bg-green-100 {
+    background-color: rgba(34, 197, 94, 0.15) !important;
+  }
+
+  & .bg-red-50 {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+  }
+
+  & .bg-red-100 {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+  }
+
+  & .bg-purple-50,
+  & .bg-violet-50 {
+    background-color: rgba(139, 92, 246, 0.1) !important;
+  }
+
+  & .bg-indigo-50 {
+    background-color: rgba(99, 102, 241, 0.1) !important;
+  }
+
+  & .bg-emerald-50 {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+  }
+
+  & .bg-cyan-50 {
+    background-color: rgba(6, 182, 212, 0.1) !important;
+  }
+
+  & .bg-orange-50 {
+    background-color: rgba(249, 115, 22, 0.1) !important;
+  }
+
+  & .bg-rose-50 {
+    background-color: rgba(244, 63, 94, 0.1) !important;
+  }
+
+  & .bg-teal-50 {
+    background-color: rgba(20, 184, 166, 0.1) !important;
+  }
+
+  /* ─── Accent Borders ─── */
+  & .border-amber-200,
+  & .border-yellow-200 {
+    border-color: rgba(245, 158, 11, 0.3) !important;
+  }
+
+  & .border-blue-200 {
+    border-color: rgba(59, 130, 246, 0.3) !important;
+  }
+
+  & .border-green-200 {
+    border-color: rgba(34, 197, 94, 0.3) !important;
+  }
+
+  & .border-red-200 {
+    border-color: rgba(239, 68, 68, 0.3) !important;
+  }
+
+  /* ─── Rings ─── */
+  & .ring-white {
+    --tw-ring-color: var(--bg-secondary) !important;
+  }
+
+  /* ─── Shadow adjustments ─── */
+  & .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+  }
+
+  & .shadow-md {
+    box-shadow: var(--shadow-md) !important;
+  }
+
+  & .shadow-lg {
+    box-shadow: var(--shadow-lg) !important;
+  }
+
+  /* ─── Tabs / Pills with white bg ─── */
+  & [class*="bg-white/"] {
+    background-color: var(--surface-2) !important;
+  }
+
+  /* ─── Progress bars ─── */
+  & .bg-slate-100 .bg-blue-500,
+  & .bg-slate-200 .bg-blue-500 {
+    background-color: #3b82f6 !important;
+  }
+
+  /* ─── Omni Logo Online dot ─── */
+  & .border-white {
+    border-color: var(--bg-secondary) !important;
+  }
+
+  /* ─── Images: keep them visible but subtle ─── */
+  & img.omni-text-dark {
+    filter: brightness(0.85) invert(1);
+  }
 }

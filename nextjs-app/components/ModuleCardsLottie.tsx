@@ -139,8 +139,8 @@ export function ModuleCardsLottie({
           {modules.map((m) => (
             <div
               key={m.href}
-              className="h-[130px] bg-white rounded-2xl animate-pulse"
-              style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}
+              className="h-[130px] rounded-2xl animate-pulse"
+              style={{ backgroundColor: 'var(--bg-secondary)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border-default)' }}
             />
           ))}
         </div>
@@ -241,7 +241,7 @@ function ModuleCardWithLottie({
       <Link
         href={href}
         className="group relative block p-6 rounded-2xl transition-all duration-500 shadow-sm hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 opacity-100"
-        style={{ backgroundColor: colors.bg, border: '1px solid rgba(226,232,240,0.6)' }}
+        style={{ backgroundColor: colors.bg, border: '1px solid var(--border-default)' }}
       >
         {badge && (
           <span className="absolute top-3 right-3 px-2 py-0.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow-sm">
@@ -285,7 +285,7 @@ function ModuleCardWithLottie({
           : '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.8)',
         border: isHovered
           ? `1px solid ${colors.icon}40`
-          : '1px solid rgba(226,232,240,0.6)',
+          : '1px solid var(--border-default)',
         transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -404,7 +404,7 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
           boxShadow: isHovered
             ? '0 8px 32px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.06)'
             : '0 4px 12px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)',
-          border: '1px solid rgba(226,232,240,0.6)',
+          border: '1px solid var(--border-default)',
           transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
         }}
         onMouseEnter={() => setIsHovered(true)}
