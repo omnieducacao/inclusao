@@ -296,7 +296,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
                 src="/omni_texto.png"
                 alt="Omnisfera"
                 className="h-8 object-contain"
-                style={{ width: 'auto', maxHeight: '32px' }}
+                style={{ width: 'auto', maxHeight: '32px', filter: 'var(--img-dark-invert, none)' }}
               />
             </div>
           </Link>
@@ -335,29 +335,32 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               </div>
             </>
           )}
-          {/* Global Search Trigger */}
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg transition-colors"
-            style={{ color: 'var(--text-muted)', backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-default)' }}
-            title="Buscar (⌘K)"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <span>Buscar...</span>
-            <span className="font-mono px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--border-strong)' }}>⌘K</span>
-          </button>
+          {/* ─── Right Actions: Search + Dark Mode + Notifications ─── */}
+          <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+            {/* Global Search Trigger */}
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg transition-colors"
+              style={{ color: 'var(--text-muted)', backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-default)' }}
+              title="Buscar (⌘K)"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span>Buscar...</span>
+              <span className="font-mono px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--border-strong)' }}>⌘K</span>
+            </button>
 
-          {/* Theme Toggle */}
-          <ThemeToggle />
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
-          {/* Notification Bell */}
-          <NotificationBell />
+            {/* Notification Bell */}
+            <NotificationBell />
+          </div>
 
           {/* User Info & Logout */}
-          <div className="flex items-center gap-3 ml-3 flex-shrink-0">
+          <div className="flex items-center gap-3 ml-2 flex-shrink-0">
             <div className="hidden lg:flex flex-col items-end text-right">
               <span className="text-[13px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>{session?.usuario_nome ?? "Admin"}</span>
               <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>{session?.workspace_name ?? "Plataforma"}</span>

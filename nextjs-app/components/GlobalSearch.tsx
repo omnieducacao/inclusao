@@ -131,12 +131,12 @@ export function GlobalSearch() {
             }}
         >
             <div
-                className="bg-white rounded-2xl shadow-2xl max-w-xl w-full mx-4 overflow-hidden animate-fade-in"
-                style={{ border: "1px solid rgba(226, 232, 240, 0.8)" }}
+                className="rounded-2xl shadow-2xl max-w-xl w-full mx-4 overflow-hidden animate-fade-in"
+                style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}
             >
                 {/* Search input */}
-                <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
-                    <Search className="w-5 h-5 text-slate-400 flex-shrink-0" />
+                <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid var(--border-default)' }}>
+                    <Search className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
                     <input
                         ref={inputRef}
                         type="text"
@@ -144,13 +144,15 @@ export function GlobalSearch() {
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={handleKeydown}
                         placeholder="Buscar estudante, diagnóstico ou membro..."
-                        className="flex-1 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                        className="flex-1 text-sm outline-none"
+                        style={{ color: 'var(--text-primary)', backgroundColor: 'transparent' }}
                     />
                     {loading && <Loader2 className="w-4 h-4 text-blue-500 animate-spin flex-shrink-0" />}
                     <button
                         type="button"
                         onClick={() => setOpen(false)}
-                        className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-md font-mono"
+                        className="text-xs px-2 py-1 rounded-md font-mono"
+                        style={{ color: 'var(--text-muted)', backgroundColor: 'var(--bg-tertiary)' }}
                     >
                         ESC
                     </button>
@@ -159,13 +161,13 @@ export function GlobalSearch() {
                 {/* Results */}
                 <div className="max-h-[50vh] overflow-y-auto">
                     {hasQuery && !hasResults && !loading && (
-                        <div className="py-8 text-center text-sm text-slate-400">
+                        <div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
                             Nenhum resultado para "{query}"
                         </div>
                     )}
 
                     {!hasQuery && (
-                        <div className="py-8 text-center text-sm text-slate-400">
+                        <div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
                             Digite ao menos 2 caracteres para buscar
                         </div>
                     )}
@@ -184,8 +186,8 @@ export function GlobalSearch() {
                                         type="button"
                                         onClick={() => navigate(result)}
                                         className={`w-full text-left px-3 py-3 rounded-xl flex items-center gap-3 transition-colors ${selectedIndex === globalIdx
-                                                ? "bg-blue-50 text-blue-800"
-                                                : "hover:bg-slate-50 text-slate-700"
+                                            ? "bg-blue-50 text-blue-800"
+                                            : "hover:bg-slate-50 text-slate-700"
                                             }`}
                                     >
                                         <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center flex-shrink-0">
@@ -219,8 +221,8 @@ export function GlobalSearch() {
                                         type="button"
                                         onClick={() => navigate(result)}
                                         className={`w-full text-left px-3 py-3 rounded-xl flex items-center gap-3 transition-colors ${selectedIndex === globalIdx
-                                                ? "bg-blue-50 text-blue-800"
-                                                : "hover:bg-slate-50 text-slate-700"
+                                            ? "bg-blue-50 text-blue-800"
+                                            : "hover:bg-slate-50 text-slate-700"
                                             }`}
                                     >
                                         <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
@@ -241,15 +243,15 @@ export function GlobalSearch() {
                 </div>
 
                 {/* Footer */}
-                <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                <div className="px-4 py-2.5 flex items-center justify-between text-xs" style={{ backgroundColor: 'var(--bg-tertiary)', borderTop: '1px solid var(--border-default)', color: 'var(--text-muted)' }}>
                     <div className="flex items-center gap-3">
                         <span>↑↓ navegar</span>
                         <span>↵ selecionar</span>
                         <span>ESC fechar</span>
                     </div>
                     <div className="flex items-center gap-1">
-                        <span className="font-mono bg-slate-200 px-1.5 py-0.5 rounded text-[10px]">⌘</span>
-                        <span className="font-mono bg-slate-200 px-1.5 py-0.5 rounded text-[10px]">K</span>
+                        <span className="font-mono px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--border-strong)' }}>⌘</span>
+                        <span className="font-mono px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--border-strong)' }}>K</span>
                     </div>
                 </div>
             </div>

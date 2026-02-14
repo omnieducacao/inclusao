@@ -89,7 +89,10 @@ export function NotificationBell() {
             <button
                 type="button"
                 onClick={handleToggle}
-                className="relative p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                className="relative p-2 rounded-lg transition-colors"
+                style={{ color: 'var(--text-muted)' }}
+                onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'; }}
+                onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
                 title="Notificações"
             >
                 <Bell className="w-5 h-5" />
@@ -102,21 +105,22 @@ export function NotificationBell() {
 
             {open && (
                 <div
-                    className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-fade-in z-50"
-                    style={{ maxHeight: "60vh" }}
+                    className="absolute right-0 top-full mt-2 w-80 rounded-2xl shadow-2xl overflow-hidden animate-fade-in z-50"
+                    style={{ maxHeight: "60vh", backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}
                 >
                     {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100">
-                        <h3 className="text-sm font-bold text-slate-800">
+                    <div className="flex items-center justify-between px-4 py-3" style={{ backgroundColor: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-default)' }}>
+                        <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
                             Notificações
                             {total > 0 && (
-                                <span className="ml-2 text-xs font-semibold text-slate-400">({total})</span>
+                                <span className="ml-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>({total})</span>
                             )}
                         </h3>
                         <button
                             type="button"
                             onClick={() => setOpen(false)}
-                            className="text-slate-400 hover:text-slate-600"
+                            className="hover:opacity-70 transition-opacity"
+                            style={{ color: 'var(--text-muted)' }}
                         >
                             <X className="w-4 h-4" />
                         </button>
@@ -125,7 +129,7 @@ export function NotificationBell() {
                     {/* Content */}
                     <div className="overflow-y-auto" style={{ maxHeight: "50vh" }}>
                         {loading && (
-                            <div className="py-8 text-center text-sm text-slate-400">
+                            <div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
                                 Verificando...
                             </div>
                         )}
@@ -133,8 +137,8 @@ export function NotificationBell() {
                         {!loading && notifications.length === 0 && (
                             <div className="py-8 text-center">
                                 <div className="text-2xl mb-2">✅</div>
-                                <div className="text-sm text-slate-500">Tudo em dia!</div>
-                                <div className="text-xs text-slate-400">Nenhuma notificação pendente.</div>
+                                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>Tudo em dia!</div>
+                                <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Nenhuma notificação pendente.</div>
                             </div>
                         )}
 
@@ -147,10 +151,10 @@ export function NotificationBell() {
                                     <div className="flex items-start gap-2.5">
                                         {getSeverityIcon(n.severity)}
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-xs font-bold text-slate-800 mb-0.5">
+                                            <div className="text-xs font-bold mb-0.5" style={{ color: 'var(--text-primary)' }}>
                                                 {n.title}
                                             </div>
-                                            <div className="text-xs text-slate-600 leading-relaxed">
+                                            <div className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                                                 {n.description}
                                             </div>
                                             {n.studentId && (

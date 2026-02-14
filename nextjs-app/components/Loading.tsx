@@ -16,13 +16,13 @@ export function Loading({ text = "Carregando...", size = "md", fullScreen = fals
   };
 
   const containerClasses = fullScreen
-    ? "fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center"
+    ? "fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center"
     : "flex items-center justify-center gap-2 py-4";
 
   return (
-    <div className={containerClasses}>
+    <div className={containerClasses} style={fullScreen ? { backgroundColor: 'var(--glass-bg-strong)' } : undefined}>
       <Loader2 className={`${sizeClasses[size]} animate-spin text-blue-600`} />
-      {text && <span className="text-slate-600 text-sm font-medium">{text}</span>}
+      {text && <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>{text}</span>}
     </div>
   );
 }
