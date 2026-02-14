@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     const parsed = await parseBody(req, bnccSugerirSchema);
     if (parsed.error) return parsed.error;
     const body = parsed.data;
-    const { serie, tipo, habilidades } = body;
+    const { serie, tipo, habilidades, diagnostico, barreiras, potencias, hiperfoco } = body;
 
     if (!serie || !tipo || !habilidades) {
       return NextResponse.json({ error: "Parâmetros inválidos" }, { status: 400 });
@@ -27,10 +27,22 @@ export async function POST(req: Request) {
       })
       .join("\n");
 
+    // ── Contexto do estudante ──
+    const contextoParts: string[] = [];
+    if (diagnostico) contextoParts.push(`Diagnóstico: ${diagnostico}`);
+    if (barreiras && barreiras.length > 0) contextoParts.push(`Barreiras identificadas: ${barreiras.join(", ")}`);
+    if (potencias && potencias.length > 0) contextoParts.push(`Potencialidades/pontos fortes: ${potencias.join(", ")}`);
+    if (hiperfoco) contextoParts.push(`Hiperfoco: ${hiperfoco}`);
+    const contextoBloco = contextoParts.length > 0
+      ? `\nPERFIL DO ESTUDANTE:\n${contextoParts.join("\n")}\n\nUse o perfil acima para priorizar habilidades relevantes ao estudante. Considere o diagnóstico e as barreiras para selecionar habilidades que atendam às necessidades específicas, e as potencialidades para escolher habilidades que valorizem os pontos fortes.\n`
+      : "";
+
     const prompt =
       tipo === "ano_atual"
         ? `O estudante está no ano/série: ${serie}. Abaixo estão as habilidades BNCC do ano atual (código e descrição).
-Indique as habilidades mais fundamentais para esse ano (máximo 3 a 5 por componente curricular).
+${contextoBloco}
+Considerando o perfil do estudante, indique as habilidades mais relevantes e prioritárias para ele (máximo 3 a 5 por componente curricular).
+Selecione habilidades de MÚLTIPLOS componentes curriculares (Português, Matemática, Ciências, Geografia, História, Arte, Ed. Física etc.), não apenas de uma área.
 
 Retorne EXATAMENTE neste formato:
 CODES:
@@ -41,7 +53,9 @@ MOTIVO:
 HABILIDADES DO ANO ATUAL:
 ${textoLista}`
         : `O estudante está no ano/série: ${serie}. Abaixo estão habilidades BNCC de ANOS ANTERIORES (que podem merecer atenção ou reforço).
-Indique as habilidades mais relevantes para esse estudante (máximo 3 a 5 por componente curricular).
+${contextoBloco}
+Considerando o perfil do estudante, indique as habilidades de anos anteriores mais relevantes para reforço (máximo 3 a 5 por componente curricular).
+Selecione habilidades de MÚLTIPLOS componentes curriculares (Português, Matemática, Ciências, Geografia, História, Arte, Ed. Física etc.), não apenas de uma área.
 
 Retorne EXATAMENTE neste formato:
 CODES:
@@ -52,8 +66,8 @@ MOTIVO:
 HABILIDADES DE ANOS ANTERIORES:
 ${textoLista}`;
 
-    // Usar engine padrão (yellow/Gemini ou fallback)
-    const engine: EngineId = "yellow";
+    // Usar engine red (DeepSeek) — mais barato
+    const engine: EngineId = "red";
     const resposta = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.7 });
 
     if (!resposta) {

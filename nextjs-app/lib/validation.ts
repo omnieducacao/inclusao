@@ -454,6 +454,10 @@ export const bnccSugerirSchema = z.object({
     serie: nonEmpty,
     tipo: nonEmpty,
     habilidades: z.array(z.any()).min(1, "Habilidades obrigatórias"),
+    diagnostico: z.string().optional(),
+    barreiras: z.array(z.string()).optional(),
+    potencias: z.array(z.string()).optional(),
+    hiperfoco: z.string().optional(),
 });
 
 // ==========================================

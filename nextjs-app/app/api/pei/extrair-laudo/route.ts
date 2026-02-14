@@ -1,42 +1,31 @@
-import { parseBody, peiDataEngineSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
-import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { chatCompletionText, visionAdapt, getEngineError, type EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
 
+const IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const PDF_TYPES = ["application/pdf"];
+
 /**
- * Extrai texto do PDF usando pdf-parse (biblioteca server-side nativa para Node.js).
- * Compatível com Next.js e Render - não requer workers.
+ * Extrai texto do PDF usando pdf-parse.
  */
 async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise<string> {
-  // Importar pdf-parse dinamicamente (server-side apenas)
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const pdfParseModule = await import("pdf-parse");
-  // pdf-parse exporta como default
   const pdfParse = pdfParseModule.default || pdfParseModule;
 
-  try {
-    // pdf-parse extrai todo o texto de uma vez
-    // A opção max limita o número de páginas processadas
-    const data = await pdfParse(buffer, {
-      max: maxPages,
-    });
+  const data = await pdfParse(buffer, { max: maxPages });
+  const textoFinal = (data.text || "").trim();
 
-    const textoFinal = (data.text || "").trim();
-
-    if (!textoFinal || textoFinal.length < 30) {
-      throw new Error("PDF extraído mas texto muito curto ou vazio. O PDF pode ser uma imagem escaneada.");
-    }
-
-    console.log(`✅ PDF extraído: ${textoFinal.length} chars de ${data.numpages} páginas`);
-    return textoFinal;
-  } catch (err) {
-    console.error("Erro ao extrair texto do PDF:", err);
-    throw new Error(
-      err instanceof Error ? err.message : "Não foi possível extrair texto do PDF. Verifique se o arquivo é um PDF válido."
-    );
+  if (!textoFinal || textoFinal.length < 30) {
+    throw new Error("PDF extraído mas texto muito curto ou vazio. O PDF pode ser uma imagem escaneada — tente enviar como imagem (foto/print).");
   }
+
+  console.log(`✅ PDF extraído: ${textoFinal.length} chars de ${data.numpages} páginas`);
+  return textoFinal;
 }
+
+const PROMPT_EXTRAIR = `Analise este laudo médico/escolar. Extraia: 1) Diagnóstico; 2) Medicamentos. Responda APENAS em JSON, sem markdown, sem backticks: { "diagnostico": "...", "medicamentos": [ {"nome": "...", "posologia": "..."} ] }. Se não houver medicamentos, retorne lista vazia.`;
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -47,97 +36,98 @@ export async function POST(req: Request) {
     const engineRaw = formData.get("engine");
     let engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(String(engineRaw || ""))
       ? (engineRaw as EngineId)
-      : "orange"; // Streamlit usa gpt-4o-mini (orange) como padrão para laudos
-
-    // Verificar se a chave está configurada corretamente
-    if (engine === "orange") {
-      const openaiKey = process.env.OPENAI_API_KEY || "";
-      if (openaiKey.startsWith("sk-or-")) {
-        return NextResponse.json(
-          {
-            error:
-              "A variável OPENAI_API_KEY está configurada com uma chave do OpenRouter (sk-or-...). " +
-              "Configure uma chave válida do OpenAI (sk-...) no Render, ou use OPENROUTER_API_KEY e selecione o engine 'blue'.",
-          },
-          { status: 500 }
-        );
-      }
-      if (!openaiKey || openaiKey.length < 20) {
-        return NextResponse.json(
-          {
-            error: "OPENAI_API_KEY não está configurada ou é inválida. Configure no Render.",
-          },
-          { status: 500 }
-        );
-      }
-    }
-
-    const engineErr = getEngineError(engine);
-    if (engineErr) {
-      return NextResponse.json({ error: engineErr }, { status: 500 });
-    }
+      : "orange";
 
     if (!file || !file.size) {
       return NextResponse.json(
-        { error: "Envie um arquivo PDF." },
+        { error: "Envie um arquivo (PDF ou imagem)." },
         { status: 400 }
       );
     }
 
-    // Verificar tipo
-    if (!file.type.includes("pdf") && !file.name.toLowerCase().endsWith(".pdf")) {
+    const fileType = file.type.toLowerCase();
+    const fileName = file.name.toLowerCase();
+    const isImage = IMAGE_TYPES.some(t => fileType.includes(t)) ||
+      [".jpg", ".jpeg", ".png", ".webp"].some(ext => fileName.endsWith(ext));
+    const isPdf = PDF_TYPES.some(t => fileType.includes(t)) || fileName.endsWith(".pdf");
+
+    if (!isImage && !isPdf) {
       return NextResponse.json(
-        { error: "O arquivo precisa ser um PDF." },
+        { error: "Formato não suportado. Envie PDF, JPG, PNG ou WebP." },
         { status: 400 }
       );
     }
 
     const buf = Buffer.from(await file.arrayBuffer());
-    let textoPdf = "";
-
-    try {
-      textoPdf = await extractTextFromPdf(buf);
-    } catch (err) {
-      console.error("Erro ao extrair texto do PDF:", err);
-      return NextResponse.json(
-        { error: err instanceof Error ? err.message : "Não foi possível extrair texto do PDF." },
-        { status: 400 }
-      );
-    }
-
-    // Enviar para IA (mesmo prompt do Streamlit)
-    const textoLimitado = textoPdf.slice(0, 6000);
-    const prompt =
-      "Analise este laudo médico/escolar. Extraia: 1) Diagnóstico; 2) Medicamentos. " +
-      'Responda APENAS em JSON, sem markdown, sem backticks: { "diagnostico": "...", "medicamentos": [ {"nome": "...", "posologia": "..."} ] }. ' +
-      "Se não houver medicamentos, retorne lista vazia. " +
-      `Texto do laudo:\n\n${textoLimitado}`;
-
     let raw: string;
-    try {
-      raw = (await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.2 })).trim();
-    } catch (apiErr: any) {
-      // Melhorar mensagem de erro para chaves incorretas
-      const errorMsg = apiErr?.message || String(apiErr);
-      if (errorMsg.includes("API key") || errorMsg.includes("401") || errorMsg.includes("Incorrect API key")) {
-        const apiKey = process.env.OPENAI_API_KEY || "";
-        if (apiKey.startsWith("sk-or-")) {
-          return NextResponse.json(
-            {
-              error: "A chave OPENAI_API_KEY está configurada com uma chave do OpenRouter (sk-or-...). Configure uma chave válida do OpenAI (sk-...) no Render.",
-            },
-            { status: 500 }
-          );
-        }
+
+    if (isImage) {
+      // ── Imagem: usar visionAdapt (Gemini Flash ou GPT-4o) ──
+      const base64 = buf.toString("base64");
+      const mime = fileType || "image/jpeg";
+      const prompt = `${PROMPT_EXTRAIR}\n\nA imagem a seguir é um laudo médico/escolar. Leia o texto da imagem e extraia as informações solicitadas.`;
+
+      try {
+        raw = await visionAdapt(prompt, base64, mime);
+      } catch (visionErr: any) {
+        console.error("Erro na visão:", visionErr);
         return NextResponse.json(
-          {
-            error: `Erro de autenticação da API: ${errorMsg}. Verifique se OPENAI_API_KEY está configurada corretamente no Render.`,
-          },
+          { error: `Erro ao processar imagem: ${visionErr?.message || visionErr}` },
           { status: 500 }
         );
       }
-      throw apiErr;
+    } else {
+      // ── PDF: extrair texto e enviar para IA ──
+      // Verificar engine para PDF
+      if (engine === "orange") {
+        const openaiKey = process.env.OPENAI_API_KEY || "";
+        if (openaiKey.startsWith("sk-or-")) {
+          return NextResponse.json(
+            { error: "A variável OPENAI_API_KEY está configurada com uma chave do OpenRouter (sk-or-...). Configure uma chave válida do OpenAI (sk-...)." },
+            { status: 500 }
+          );
+        }
+        if (!openaiKey || openaiKey.length < 20) {
+          return NextResponse.json(
+            { error: "OPENAI_API_KEY não está configurada ou é inválida." },
+            { status: 500 }
+          );
+        }
+      }
+
+      const engineErr = getEngineError(engine);
+      if (engineErr) {
+        return NextResponse.json({ error: engineErr }, { status: 500 });
+      }
+
+      let textoPdf: string;
+      try {
+        textoPdf = await extractTextFromPdf(buf);
+      } catch (err) {
+        console.error("Erro ao extrair texto do PDF:", err);
+        return NextResponse.json(
+          { error: err instanceof Error ? err.message : "Não foi possível extrair texto do PDF." },
+          { status: 400 }
+        );
+      }
+
+      const textoLimitado = textoPdf.slice(0, 6000);
+      const prompt = `${PROMPT_EXTRAIR}\n\nTexto do laudo:\n\n${textoLimitado}`;
+
+      try {
+        raw = (await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.2 })).trim();
+      } catch (apiErr: any) {
+        const errorMsg = apiErr?.message || String(apiErr);
+        if (errorMsg.includes("API key") || errorMsg.includes("401") || errorMsg.includes("Incorrect API key")) {
+          return NextResponse.json(
+            { error: `Erro de autenticação da API: ${errorMsg}` },
+            { status: 500 }
+          );
+        }
+        throw apiErr;
+      }
     }
+
     if (!raw) {
       return NextResponse.json(
         { error: "A IA não retornou dados válidos." },
@@ -147,11 +137,9 @@ export async function POST(req: Request) {
 
     // Parse do JSON (com fallbacks robustos)
     let jsonStr = raw;
-    // Remover markdown code blocks se existirem
     const codeBlock = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (codeBlock) jsonStr = codeBlock[1].trim();
 
-    // Encontrar JSON no texto
     const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
     if (jsonMatch) jsonStr = jsonMatch[0];
 
@@ -164,7 +152,6 @@ export async function POST(req: Request) {
       parsed = JSON.parse(jsonStr);
     } catch {
       console.error("Erro ao fazer parse do JSON. Texto recebido:", raw.substring(0, 500));
-      // Fallback: extrair manualmente
       const diagnosticoMatch = raw.match(/(?:diagnóstico|diagnostico)[\s:"]*([^",\n}]+)/i);
       parsed = {
         diagnostico: diagnosticoMatch ? diagnosticoMatch[1].trim() : "",

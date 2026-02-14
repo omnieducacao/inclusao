@@ -1450,6 +1450,65 @@ export function PEIClient({
                         className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-3"
                         placeholder="Ex.: recomendações de intervenção, frequência, sinais de alerta, ajustes para sala de aula..."
                       />
+
+                      {/* ─── Upload de Laudo / Relatório ─── */}
+                      <div className="p-3 rounded-lg bg-sky-50/50 border border-sky-200/60 mb-3 space-y-2">
+                        <label className="block text-xs font-semibold text-sky-700">
+                          📄 Transcrever laudo / relatório (PDF ou imagem)
+                        </label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="file"
+                            accept=".pdf,application/pdf,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                            id={`laudo-upload-${prof}`}
+                            className="hidden"
+                            onChange={async (e) => {
+                              const selectedFile = e.target.files?.[0];
+                              if (!selectedFile) return;
+
+                              // Indicar loading
+                              const btn = document.getElementById(`laudo-btn-${prof}`) as HTMLButtonElement | null;
+                              if (btn) { btn.disabled = true; btn.textContent = "⏳ Transcrevendo..."; }
+
+                              try {
+                                const fd = new FormData();
+                                fd.append("file", selectedFile);
+                                const res = await fetch("/api/pei/transcrever-laudo", { method: "POST", body: fd });
+                                const data = await res.json();
+
+                                if (!res.ok) {
+                                  alert(data.error || "Erro ao transcrever.");
+                                  return;
+                                }
+
+                                // Append transcription to textarea
+                                const textoAtual = (peiData.orientacoes_por_profissional || {})[prof] || "";
+                                const separador = textoAtual ? "\n\n--- LAUDO / RELATÓRIO TRANSCRITO ---\n\n" : "--- LAUDO / RELATÓRIO TRANSCRITO ---\n\n";
+                                updateField("orientacoes_por_profissional", {
+                                  ...(peiData.orientacoes_por_profissional || {}),
+                                  [prof]: textoAtual + separador + data.transcricao,
+                                });
+                              } catch (err) {
+                                alert(`Erro: ${err instanceof Error ? err.message : err}`);
+                              } finally {
+                                if (btn) { btn.disabled = false; btn.textContent = "📤 Enviar laudo/relatório"; }
+                                // Reset file input
+                                e.target.value = "";
+                              }
+                            }}
+                          />
+                          <button
+                            id={`laudo-btn-${prof}`}
+                            type="button"
+                            onClick={() => document.getElementById(`laudo-upload-${prof}`)?.click()}
+                            className="px-3 py-1.5 text-xs bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors"
+                          >
+                            📤 Enviar laudo/relatório
+                          </button>
+                          <span className="text-[10px] text-slate-400">PDF, JPG, PNG ou WebP</span>
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-2 gap-2 mt-3">
                         <button
                           type="button"
@@ -3467,6 +3526,10 @@ function BNCCTab({
           serie,
           tipo,
           habilidades: habilidadesParaIA,
+          diagnostico: peiData.diagnostico || "",
+          barreiras: Array.isArray(peiData.barreiras_selecionadas) ? peiData.barreiras_selecionadas : [],
+          potencias: Array.isArray(peiData.potencias) ? peiData.potencias : [],
+          hiperfoco: peiData.hiperfoco || "",
         }),
       });
 
@@ -3800,7 +3863,7 @@ function LaudoPdfSection({
 
   async function extrair() {
     if (!file) {
-      setErro("Selecione um arquivo PDF.");
+      setErro("Selecione um arquivo (PDF ou imagem).");
       return;
     }
     setLoading(true);
@@ -3859,7 +3922,7 @@ function LaudoPdfSection({
         <div className="md:col-span-2">
           <input
             type="file"
-            accept=".pdf,application/pdf"
+            accept=".pdf,application/pdf,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
             onChange={(e) => {
               const selectedFile = e.target.files?.[0];
               setFile(selectedFile || null);
@@ -3871,7 +3934,12 @@ function LaudoPdfSection({
             className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-sky-100 file:text-sky-800 file:cursor-pointer hover:file:bg-sky-200"
           />
           {file && (
-            <p className="text-xs text-emerald-600 mt-1">Arquivo selecionado. Clique em "Extrair Dados do Laudo" para processar.</p>
+            <p className="text-xs text-emerald-600 mt-1">
+              {file.type.includes("image") || file.name.match(/\.(jpg|jpeg|png|webp)$/i)
+                ? "📷 Imagem selecionada — será feita leitura por IA (OCR)."
+                : "📄 PDF selecionado."}
+              {" "}Clique em &quot;Extrair Dados do Laudo&quot; para processar.
+            </p>
           )}
         </div>
         {/* Coluna direita: Botão (1 coluna) */}
