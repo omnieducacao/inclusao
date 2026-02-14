@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getColorClasses } from "@/lib/colors";
 import { LottieIcon } from "./LottieIcon";
+import { useTheme } from "./ThemeProvider";
 
 // Mapeamento de ícones para Lottie OUTLINE COLORIDOS (minimalistas coloridas) - versões com cores nos tons de cada página!
 // Versões com "(1)" são as coloridas que você enviou mais para o final
@@ -48,7 +49,9 @@ type PageHeroProps = {
 };
 
 export function PageHero({ iconName, title, desc, color = "sky", useLottie = true }: PageHeroProps) {
-  const colors = getColorClasses(color);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const colors = getColorClasses(color, isDark);
   // Mapear nome do ícone Lucide para nome do ícone Lottie se necessário
   const lottieIconName = lucideToLottieMap[iconName] || iconName;
   const lottieAnimation = useLottie && lottieIconName ? lottieMapOutlineColored[lottieIconName] : null;

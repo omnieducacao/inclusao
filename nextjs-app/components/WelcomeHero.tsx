@@ -35,7 +35,7 @@ export function WelcomeHero({ saudacao, userFirst, session }: WelcomeHeroProps) 
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
   return (
-    <div className="rounded-2xl overflow-hidden animate-fade-in-up" style={{ boxShadow: '0 8px 32px rgba(37, 99, 235, 0.12)' }}>
+    <div className="rounded-2xl overflow-hidden animate-fade-in-up" style={{ boxShadow: 'var(--shadow-lg)' }}>
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600">
         {/* Subtle background pattern */}
         <div className="absolute inset-0 opacity-[0.04]" style={{
