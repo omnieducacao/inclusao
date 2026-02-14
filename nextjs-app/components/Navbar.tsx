@@ -10,6 +10,7 @@ import { LottieIcon } from "./LottieIcon";
 import { useAILoading } from "@/hooks/useAILoading";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
+import { useTheme } from "./ThemeProvider";
 
 type PermissionKey =
   | "can_estudantes"
@@ -195,6 +196,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   const [navIcons, setNavIcons] = useState<Awaited<ReturnType<typeof loadNavIcons>>>(null);
   const [isMounted, setIsMounted] = useState(false);
   const { state: aiState } = useAILoading();
+  const { isDark } = useTheme();
 
   useEffect(() => {
     setIsMounted(true);
@@ -230,11 +232,11 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
           <Link href="/" className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group flex-shrink-0">
             <div className="relative">
               <div className="flex items-center justify-center group-hover:scale-105 transition-transform omni-logo-spin">
-                <Image src="/omni_icone.png" alt="Omnisfera" width={36} height={36} className="object-contain" priority />
+                <Image src={isDark ? "/logo-dark.png" : "/omni_icone.png"} alt="Omnisfera" width={36} height={36} className="object-contain" priority />
               </div>
               <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-[1.5px] border-white animate-pulse-soft" />
             </div>
-            <img src="/omni_texto.png" alt="Omnisfera" className="h-8 object-contain" style={{ width: 'auto', maxHeight: '32px' }} />
+            <img src={isDark ? "/logo-dark.png" : "/omni_texto.png"} alt="Omnisfera" className="h-8 object-contain" style={{ width: 'auto', maxHeight: '32px' }} />
           </Link>
           {!hideMenu && (
             <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center px-4">
@@ -271,7 +273,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               <div className="relative">
                 <div className={`flex items-center justify-center group-hover:scale-105 transition-transform omni-logo-spin ${aiState.isLoading ? 'opacity-30' : ''}`}>
                   <Image
-                    src="/omni_icone.png"
+                    src={isDark ? "/logo-dark.png" : "/omni_icone.png"}
                     alt="Omnisfera"
                     width={36}
                     height={36}
@@ -282,7 +284,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
                 {aiState.isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center omni-logo-spin-fast">
                     <Image
-                      src="/omni_icone.png"
+                      src={isDark ? "/logo-dark.png" : "/omni_icone.png"}
                       alt=""
                       width={36}
                       height={36}
@@ -293,10 +295,10 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
                 <div className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 ${aiState.isLoading ? 'bg-amber-400' : 'bg-emerald-400'} rounded-full border-[1.5px] border-white animate-pulse-soft`} title={aiState.isLoading ? 'IA processando' : 'Sistema online'} />
               </div>
               <img
-                src="/omni_texto.png"
+                src={isDark ? "/logo-dark.png" : "/omni_texto.png"}
                 alt="Omnisfera"
                 className="h-8 object-contain"
-                style={{ width: 'auto', maxHeight: '32px', filter: 'var(--img-dark-invert, none)' }}
+                style={{ width: 'auto', maxHeight: '32px' }}
               />
             </div>
           </Link>
