@@ -246,7 +246,7 @@ export function PEIClient({
 
     return (
       <div className="mb-4">
-        <div className="relative w-full h-2 bg-slate-200 rounded-full overflow-hidden shadow-inner">
+        <div className="relative w-full h-2 rounded-full overflow-hidden shadow-inner" style={{ backgroundColor: 'var(--border-strong)' }}>
           {/* Barra de progresso com animação - cor única */}
           <div
             className="absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out shadow-sm"
@@ -522,15 +522,15 @@ export function PEIClient({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden" style={{ border: '1px solid rgba(226,232,240,0.6)' }}>
+    <div className="rounded-2xl shadow-lg overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
       {/* Barra de Progresso Global */}
-      <div className="px-6 pt-4 pb-2 bg-gradient-to-r from-slate-50 to-blue-50/30 border-b border-slate-200">
+      <div className="px-6 pt-4 pb-2" style={{ backgroundColor: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-default)' }}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-            <span className="text-xs font-semibold text-slate-600">Progresso do PEI</span>
+            <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>Progresso do PEI</span>
           </div>
-          <span className="text-sm font-bold text-slate-700">{calcularProgresso()}%</span>
+          <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{calcularProgresso()}%</span>
         </div>
         <RenderProgresso />
       </div>
@@ -554,7 +554,7 @@ export function PEIClient({
       )}
 
       {/* Navegação de Abas com Indicadores Visuais */}
-      <div className="flex gap-1.5 p-1.5 bg-slate-100/80 rounded-2xl overflow-x-auto scrollbar-hide" style={{ border: '1px solid rgba(226,232,240,0.6)' }}>
+      <div className="flex gap-1.5 p-1.5 rounded-2xl overflow-x-auto scrollbar-hide" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-default)' }}>
         {TABS.map((t) => {
           const status = getTabStatus(t.id);
           const isActive = activeTab === t.id;
@@ -564,9 +564,10 @@ export function PEIClient({
               key={t.id}
               onClick={() => setActiveTab(t.id)}
               className={`group relative px-3 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-[13px] font-semibold whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 sm:gap-2 rounded-xl transition-all duration-200 ${isActive
-                ? "bg-white text-slate-800 shadow-sm"
-                : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+                ? "shadow-sm"
+                : ""
                 }`}
+              style={isActive ? { backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' } : { color: 'var(--text-muted)' }}
             >
               {/* Indicador de Status */}
               <div className={`w-2 h-2 rounded-full transition-all duration-200 flex-shrink-0 ${status === "complete"
@@ -588,7 +589,7 @@ export function PEIClient({
       </div>
 
       {/* Breadcrumb e Navegação Contextual */}
-      <div className="px-4 sm:px-6 py-3 bg-slate-50/50 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+      <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2" style={{ backgroundColor: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-default)' }}>
         <div className="flex items-center gap-2 text-xs sm:text-sm flex-wrap">
           <Link href="/" className="text-slate-500 hover:text-sky-600 transition-colors">Home</Link>
           <span className="text-slate-300">/</span>
