@@ -2615,11 +2615,29 @@ function DashboardTab({
                 Atenção Farmacológica
                 {alertaEscola && <span className="pulse-alert">⚠️</span>}
               </div>
-              <div className="sc-body">
-                <strong>Uso Contínuo:</strong> {nomesMeds || "Medicação cadastrada."}
-                {alertaEscola && (
-                  <div className="mt-1 text-red-700 font-bold text-xs">🚨 ATENÇÃO: ADMINISTRAÇÃO NA ESCOLA NECESSÁRIA</div>
-                )}
+              <div className="sc-body" style={{ gap: "8px", display: "flex", flexDirection: "column" }}>
+                {listaMeds.map((m, i) => (
+                  <div key={i} style={{ padding: "8px 10px", background: "rgba(255,255,255,0.7)", borderRadius: "8px", borderLeft: m.escola ? "3px solid #E53E3E" : "3px solid #DD6B20" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontWeight: 700, fontSize: "0.82rem", color: "#1e293b" }}>💊 {m.nome}</span>
+                      {m.escola && <span style={{ fontSize: "0.65rem", background: "#FED7D7", color: "#C53030", padding: "1px 6px", borderRadius: "10px", fontWeight: 700 }}>Escola</span>}
+                    </div>
+                    {m.posologia && <div style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "2px" }}>Posologia: {m.posologia}</div>}
+                    {m.escola && <div style={{ fontSize: "0.72rem", color: "#C53030", fontWeight: 600, marginTop: "3px" }}>🚨 Administração na escola necessária</div>}
+                  </div>
+                ))}
+
+                {/* Pontos de Atenção */}
+                <div style={{ marginTop: "4px", padding: "8px 10px", background: "rgba(255,237,213,0.6)", borderRadius: "8px" }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.78rem", color: "#9A3412", marginBottom: "4px" }}>⚠️ Pontos de Atenção:</div>
+                  <ul style={{ fontSize: "0.72rem", color: "#78350F", margin: 0, paddingLeft: "16px", lineHeight: "1.6" }}>
+                    <li>Observar sinais de <strong>sonolência</strong> ou <strong>agitação incomum</strong> em sala</li>
+                    <li>Monitorar mudanças de <strong>apetite</strong> e <strong>humor</strong> ao longo do dia</li>
+                    {alertaEscola && <li><strong>Garantir horário correto</strong> de administração na escola</li>}
+                    <li>Comunicar à família qualquer <strong>alteração comportamental</strong></li>
+                    <li>Registrar observações no <strong>Diário de Bordo</strong></li>
+                  </ul>
+                </div>
               </div>
               <div className="bg-icon">💊</div>
             </div>
