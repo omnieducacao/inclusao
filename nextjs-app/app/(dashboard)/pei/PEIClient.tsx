@@ -2275,37 +2275,38 @@ function DashboardTab({
         }
         .metric-card {
           background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-          border-radius: 14px;
-          padding: 12px 10px;
+          border-radius: 12px;
+          padding: 10px 14px;
           border: 1px solid #e2e8f0;
           display: flex;
-          flex-direction: column;
+          flex-direction: row;
           align-items: center;
-          justify-content: center;
-          height: 110px;
+          gap: 10px;
+          height: 72px;
           box-shadow: 0 1px 4px rgba(0,0,0,0.04);
           transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .metric-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          transform: translateY(-1px);
+          box-shadow: 0 3px 10px rgba(0,0,0,0.07);
         }
         .css-donut {
-          width: 56px;
-          height: 56px;
+          width: 40px;
+          height: 40px;
+          min-width: 40px;
           border-radius: 50%;
           position: relative;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 6px;
+          margin-bottom: 0;
           box-shadow: inset 0 0 2px rgba(0,0,0,0.06);
         }
         .css-donut::after {
           content: "";
           position: absolute;
-          width: 42px;
-          height: 42px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
           background: white;
         }
@@ -2530,55 +2531,59 @@ function DashboardTab({
 
       <hr className="my-6" />
 
-      {/* KPIs — 4 Cards Enriquecidos */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* KPIs — 4 Cards Compactos */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* 1. Progresso do PEI */}
         <div className="metric-card">
           <div className="css-donut" style={{ background: `conic-gradient(${progrColor} ${progresso}%, #F3F4F6 0)` }}>
-            <div className="d-val">{progresso}%</div>
+            <div className="d-val" style={{ fontSize: "0.65rem" }}>{progresso}%</div>
           </div>
-          <div className="d-lbl">Progresso do PEI</div>
-          <div className="text-[10px] mt-1 text-center" style={{ color: progrColor }}>
-            {progresso >= 100 ? "Completo ✅" : `${Math.round(progresso / 12.5)}/8 abas preenchidas`}
+          <div style={{ minWidth: 0 }}>
+            <div className="d-lbl" style={{ marginTop: 0 }}>Progresso do PEI</div>
+            <div className="text-[10px]" style={{ color: progrColor }}>
+              {progresso >= 100 ? "Completo ✅" : `${Math.round(progresso / 12.5)}/8 abas`}
+            </div>
           </div>
         </div>
 
         {/* 2. Diagnóstico */}
-        <div className="metric-card group relative" style={{ justifyContent: "flex-start", paddingTop: "14px", cursor: "default" }}>
-          <div className="text-xl mb-1">🏥</div>
-          <div
-            className="font-bold text-[11px] text-slate-800 text-center leading-snug px-1"
-            title={String(peiData.diagnostico || "Não informado")}
-            style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", wordBreak: "break-word" }}
-          >
-            {diagTxt}
+        <div className="metric-card" style={{ cursor: "default" }}>
+          <div style={{ fontSize: "1.2rem", minWidth: "24px", textAlign: "center" }}>🏥</div>
+          <div style={{ minWidth: 0, overflow: "hidden" }}>
+            <div
+              className="font-bold text-[10px] text-slate-800 leading-snug"
+              title={String(peiData.diagnostico || "Não informado")}
+              style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", wordBreak: "break-word" }}
+            >
+              {diagTxt}
+            </div>
+            <div className="d-lbl" style={{ marginTop: "1px" }}>Diagnóstico{nDetalhes > 0 ? ` • ${nDetalhes} det.` : ""}</div>
           </div>
-          {nDetalhes > 0 && (
-            <div className="text-[10px] text-blue-600 font-semibold mt-0.5">{nDetalhes} detalhe{nDetalhes > 1 ? "s" : ""} clínico{nDetalhes > 1 ? "s" : ""}</div>
-          )}
-          <div className="d-lbl mt-auto">Diagnóstico</div>
         </div>
 
         {/* 3. Habilidades BNCC */}
         <div className="metric-card">
           <div className="css-donut" style={{ background: `conic-gradient(${bnccColor} ${Math.min(nHabBncc * 8, 100)}%, #F3F4F6 0)` }}>
-            <div className="d-val">{nHabBncc}</div>
+            <div className="d-val" style={{ fontSize: "0.65rem" }}>{nHabBncc}</div>
           </div>
-          <div className="d-lbl">Habilidades BNCC</div>
-          {nHabBncc === 0 && (
-            <div className="text-[10px] text-amber-600 mt-1">Selecione na aba BNCC</div>
-          )}
+          <div style={{ minWidth: 0 }}>
+            <div className="d-lbl" style={{ marginTop: 0 }}>Habilidades BNCC</div>
+            {nHabBncc === 0 && <div className="text-[10px] text-amber-600">Selecione na aba BNCC</div>}
+            {nHabBncc > 0 && <div className="text-[10px] text-emerald-600">{nHabBncc} selecionada{nHabBncc > 1 ? "s" : ""}</div>}
+          </div>
         </div>
 
-        {/* 4. Compliance LBI — Clicável com checklist retrátil */}
-        <div className="metric-card" style={{ cursor: "pointer", position: "relative" }} onClick={() => setShowLbiChecklist((v) => !v)}>
+        {/* 4. Compliance LBI */}
+        <div className="metric-card" style={{ cursor: "pointer" }} onClick={() => setShowLbiChecklist((v) => !v)}>
           <div className="css-donut" style={{ background: `conic-gradient(${lbiColor} ${lbiPct}%, #F3F4F6 0)` }}>
-            <div className="d-val" style={{ fontSize: "0.9rem" }}>{lbiOk}/{lbiChecks.length}</div>
+            <div className="d-val" style={{ fontSize: "0.6rem" }}>{lbiOk}/{lbiChecks.length}</div>
           </div>
-          <div className="d-lbl">Compliance LBI</div>
-          <div className="text-[10px] mt-1 flex items-center gap-1" style={{ color: lbiColor }}>
-            {lbiPct >= 75 ? "Conforme ✅" : lbiPct >= 50 ? "Parcial ⚠️" : "Pendente ❌"}
-            <span className="text-slate-400 text-[9px]">{showLbiChecklist ? "▲" : "▼"}</span>
+          <div style={{ minWidth: 0 }}>
+            <div className="d-lbl" style={{ marginTop: 0 }}>Compliance LBI</div>
+            <div className="text-[10px] flex items-center gap-1" style={{ color: lbiColor }}>
+              {lbiPct >= 75 ? "Conforme ✅" : lbiPct >= 50 ? "Parcial ⚠️" : "Pendente ❌"}
+              <span className="text-slate-400 text-[9px]">{showLbiChecklist ? "▲" : "▼"}</span>
+            </div>
           </div>
         </div>
       </div>
