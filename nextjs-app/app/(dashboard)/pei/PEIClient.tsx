@@ -4474,26 +4474,74 @@ function extrairMetasEstruturadas(texto: string | undefined): { Curto: string; M
   const metas = { Curto: "Definir...", Medio: "Definir...", Longo: "Definir..." };
   if (!texto) return metas;
 
+  const limpar = (s: string) => s.replace(/\*\*/g, "").replace(/^[\-\*#●•]+\s*/, "").trim();
+
+  // Encontrar a seção de METAS primeiro (### 4 ou ### 5 com METAS/SMART)
   const linhas = texto.split("\n");
+  let dentroMetas = false;
+  let secaoAtual: "curto" | "medio" | "longo" | null = null;
 
   for (const l of linhas) {
-    const lClean = l.replace(/^[\-\*#]+/, "").trim();
-    if (!lClean || lClean.length < 5) continue;
+    const clean = limpar(l);
+    const upper = clean.toUpperCase();
 
-    // Extrair valor após o primeiro ":"
-    const partes = lClean.split(":");
-    const valor = partes.length > 1 ? partes.slice(1).join(":").trim() : "";
+    // Detectar início da seção METAS
+    if (upper.includes("META") && upper.includes("SMART") && (l.startsWith("#") || l.startsWith("**"))) {
+      dentroMetas = true;
+      continue;
+    }
 
-    const lUpper = lClean.toUpperCase();
+    // Detectar fim da seção METAS (próximo H3)
+    if (dentroMetas && l.startsWith("###") && !upper.includes("META")) {
+      break;
+    }
 
-    if (lUpper.includes("CURTO") && (lUpper.includes("PRAZO") || lUpper.includes("META") || lUpper.includes("2 MESES") || lUpper.includes("MÊS"))) {
-      metas.Curto = valor || lClean;
-    } else if (lUpper.includes("MÉDIO") || lUpper.includes("MEDIO")) {
-      if (lUpper.includes("PRAZO") || lUpper.includes("META") || lUpper.includes("SEMESTRE") || lUpper.includes("6 MESES")) {
-        metas.Medio = valor || lClean;
+    if (!dentroMetas) continue;
+    if (!clean || clean.length < 3) continue;
+
+    // Detectar sub-seção curto/médio/longo
+    if (upper.includes("CURTO")) {
+      secaoAtual = "curto";
+      // Se tiver conteúdo na mesma linha após ":" 
+      const afterColon = clean.split(":").slice(1).join(":").trim();
+      if (afterColon && afterColon.length > 5) {
+        metas.Curto = limpar(afterColon);
       }
-    } else if (lUpper.includes("LONGO") && (lUpper.includes("PRAZO") || lUpper.includes("META") || lUpper.includes("ANO") || lUpper.includes("12 MESES"))) {
-      metas.Longo = valor || lClean;
+      continue;
+    }
+    if (upper.includes("MÉDIO") || upper.includes("MEDIO")) {
+      secaoAtual = "medio";
+      const afterColon = clean.split(":").slice(1).join(":").trim();
+      if (afterColon && afterColon.length > 5) {
+        metas.Medio = limpar(afterColon);
+      }
+      continue;
+    }
+    if (upper.includes("LONGO")) {
+      secaoAtual = "longo";
+      const afterColon = clean.split(":").slice(1).join(":").trim();
+      if (afterColon && afterColon.length > 5) {
+        metas.Longo = limpar(afterColon);
+      }
+      continue;
+    }
+
+    // Acumular conteúdo da sub-seção (primeira linha descritiva relevante)
+    if (secaoAtual && clean.length > 10) {
+      // Se contém "O quê" ou "Descrição" ou é a primeira linha descritiva
+      const isDescricao = upper.includes("O QUÊ") || upper.includes("O QUE") || upper.includes("DESCRI");
+      const afterColon = clean.split(":").slice(1).join(":").trim();
+
+      if (isDescricao && afterColon) {
+        if (secaoAtual === "curto" && metas.Curto === "Definir...") metas.Curto = limpar(afterColon);
+        if (secaoAtual === "medio" && metas.Medio === "Definir...") metas.Medio = limpar(afterColon);
+        if (secaoAtual === "longo" && metas.Longo === "Definir...") metas.Longo = limpar(afterColon);
+      } else if (!upper.includes("CRITÉRIO") && !upper.includes("PRAZO") && !upper.includes("RESPONSÁVEL") && !upper.includes("SUCESSO")) {
+        // Primeira linha de conteúdo que não é um campo SMART
+        if (secaoAtual === "curto" && metas.Curto === "Definir...") metas.Curto = clean.length > 80 ? clean.slice(0, 80) + "…" : clean;
+        if (secaoAtual === "medio" && metas.Medio === "Definir...") metas.Medio = clean.length > 80 ? clean.slice(0, 80) + "…" : clean;
+        if (secaoAtual === "longo" && metas.Longo === "Definir...") metas.Longo = clean.length > 80 ? clean.slice(0, 80) + "…" : clean;
+      }
     }
   }
   return metas;
