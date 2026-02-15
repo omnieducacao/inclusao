@@ -520,9 +520,26 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
 
     addInfoBox("Motor IA:", motorNome[motor] || motor, [254, 243, 199]); // yellow-100
 
-    // Processar texto da IA (remover markdown, formatar títulos e listas)
+    // ---------------------------------------------------------------
+    // Filtrar seções da IA que duplicam dados já presentes no PDF
+    // Seções 1-7 já cobrem: perfil, diagnóstico, BNCC, estratégias
+    // Manter apenas: Metas, Componentes, Dicas, Checklist, Intervenção
+    // ---------------------------------------------------------------
     const textoIa = limparTexto(dados.ia_sugestao).replace(/\[.*?\]/g, "");
     const linhas = textoIa.split("\n");
+
+    // Palavras-chave de seções redundantes (já no PDF estruturado)
+    const SECOES_REDUNDANTES = [
+      "QUEM E O ESTUDANTE",
+      "PERFIL NARRATIVO",
+      "DIAGNOSTICO E IMPACTO",
+      "DIAGNOSTICO",
+      "AVALIACAO DE REPERTORIO",
+      "MAPEAMENTO BNCC",
+      "HABILIDADES",
+    ];
+
+    let skipSection = false; // pular conteúdo de seção redundante
 
     for (const linha of linhas) {
       const l = linha.trim();
@@ -533,24 +550,40 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
         addHeader();
       }
 
-      if (l.startsWith("###") || l.startsWith("##")) {
-        y += 4;
-        doc.setFontSize(11);
+      // Detectar títulos (## ou ###)
+      if (l.startsWith("##")) {
+        const tituloLimpo = limparTexto(l.replace(/#/g, "").trim()).toUpperCase();
+
+        // Verificar se é seção redundante
+        skipSection = SECOES_REDUNDANTES.some((sr) => tituloLimpo.includes(sr));
+        if (skipSection) continue;
+
+        y += 3;
+        doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
-        doc.setTextColor(30, 64, 175);
-        const titulo = limparTexto(l.replace(/#/g, "").trim());
-        doc.text(titulo, PDF_LEFT, y);
+        doc.setTextColor(30, 64, 175); // blue-800
+        doc.text(limparTexto(l.replace(/#/g, "").trim()), PDF_LEFT, y);
         doc.setTextColor(0, 0, 0);
         y += 7;
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
+      } else if (skipSection) {
+        // Dentro de seção redundante — pular
+        continue;
       } else if (l.startsWith("-") || l.startsWith("*")) {
         const texto = limparTexto(l.replace(/[-*]/g, "").trim());
-        addBulletItem(texto, "dot");
+        if (texto) addBulletItem(texto, "dot");
       } else {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
         addMultiline(l);
       }
     }
+
+    // Reset de fonte após seção IA
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(0, 0, 0);
   }
 
   // ======================================================================
