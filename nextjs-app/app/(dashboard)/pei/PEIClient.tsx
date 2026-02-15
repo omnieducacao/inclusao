@@ -2150,18 +2150,12 @@ function DashboardTab({
   const vinculoTxt = currentStudentId ? "Vinculado ao Supabase ✅" : "Rascunho (não sincronizado)";
 
   const nPot = (Array.isArray(peiData.potencias) ? peiData.potencias : []).length;
-  const colorPot = nPot > 0 ? "#38A169" : "#CBD5E0";
-  const potPercent = Math.min(nPot * 10, 100);
 
   const barreiras = peiData.barreiras_selecionadas || {};
   const nBar = Object.values(barreiras).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
-  const colorBar = nBar > 5 ? "#E53E3E" : "#DD6B20";
-  const barPercent = Math.min(nBar * 5, 100);
 
   const hf = peiData.hiperfoco || "-";
   const hfEmoji = getHiperfocoEmoji(peiData.hiperfoco);
-
-  const [txtComp, bgComp, txtCompColor] = calcularComplexidadePei(peiData);
 
   const listaMeds = Array.isArray(peiData.lista_medicamentos) ? peiData.lista_medicamentos : [];
   const nomesMeds = listaMeds.map((m) => m.nome?.trim()).filter(Boolean).join(", ");
@@ -2170,6 +2164,40 @@ function DashboardTab({
   const metas = extrairMetasEstruturadas(peiData.ia_sugestao);
   const compsInferidos = inferirComponentesImpactados(peiData);
   const rede = Array.isArray(peiData.rede_apoio) ? peiData.rede_apoio : [];
+
+  // Dados enriquecidos para os cards
+  const progresso = calcularProgresso();
+  const progrColor = progresso >= 80 ? "#38A169" : progresso >= 50 ? "#D69E2E" : "#E53E3E";
+
+  const diagTxt = (peiData.diagnostico || "Não informado").toString().slice(0, 60);
+  const detalhesDiag = (peiData.detalhes_diagnostico || {}) as Record<string, string | string[]>;
+  const detalhesFiltrados = Object.entries(detalhesDiag).filter(
+    ([, v]) => v && (typeof v === "string" ? v.trim() : (v as string[]).length > 0)
+  );
+  const nDetalhes = detalhesFiltrados.length;
+
+  const habBncc = peiData.habilidades_bncc_validadas || peiData.habilidades_bncc_selecionadas || [];
+  const bnccEI = peiData.bncc_ei_objetivos || [];
+  const nHabBncc = (Array.isArray(habBncc) ? habBncc.length : 0) + (Array.isArray(bnccEI) ? bnccEI.length : 0);
+  const bnccColor = nHabBncc > 0 ? "#38A169" : "#CBD5E0";
+
+  // LBI Compliance
+  const lbiChecks = [
+    { label: "Nome", ok: !!peiData.nome },
+    { label: "Serie", ok: !!peiData.serie },
+    { label: "Diagnostico", ok: !!peiData.diagnostico?.toString().trim() },
+    { label: "Barreiras", ok: nBar > 0 },
+    { label: "Estrategias", ok: (peiData.estrategias_acesso || []).length > 0 || (peiData.estrategias_ensino || []).length > 0 },
+    { label: "BNCC", ok: nHabBncc > 0 },
+    { label: "Rede apoio", ok: rede.length > 0 },
+    { label: "Potencialidades", ok: nPot > 0 },
+  ];
+  const lbiOk = lbiChecks.filter(c => c.ok).length;
+  const lbiPct = Math.round((lbiOk / lbiChecks.length) * 100);
+  const lbiColor = lbiPct >= 75 ? "#38A169" : lbiPct >= 50 ? "#D69E2E" : "#E53E3E";
+
+  const nEstratTotal = (peiData.estrategias_acesso || []).length + (peiData.estrategias_ensino || []).length + (peiData.estrategias_avaliacao || []).length;
+  const nivelAlfab = peiData.nivel_alfabetizacao || "";
 
   function calcularProgresso(): number {
     function _isFilled(value: unknown): boolean {
@@ -2498,35 +2526,55 @@ function DashboardTab({
 
       <hr className="my-6" />
 
-      {/* KPIs */}
+      {/* KPIs — 4 Cards Enriquecidos */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* 1. Progresso do PEI */}
         <div className="metric-card">
-          <div className="css-donut" style={{ background: `conic-gradient(${colorPot} ${potPercent}%, #F3F4F6 0)` }}>
-            <div className="d-val">{nPot}</div>
+          <div className="css-donut" style={{ background: `conic-gradient(${progrColor} ${progresso}%, #F3F4F6 0)` }}>
+            <div className="d-val">{progresso}%</div>
           </div>
-          <div className="d-lbl">Potencialidades</div>
+          <div className="d-lbl">Progresso do PEI</div>
+          <div className="text-[10px] text-slate-500 mt-1 text-center">
+            {progresso < 100 ? "Abas pendentes" : "Completo ✅"}
+          </div>
         </div>
+
+        {/* 2. Diagnóstico */}
+        <div className="metric-card" style={{ justifyContent: "flex-start", paddingTop: "18px" }}>
+          <div className="text-2xl mb-1">🏥</div>
+          <div className="font-bold text-xs text-slate-800 text-center leading-tight mb-1" style={{ maxHeight: "32px", overflow: "hidden" }}>
+            {diagTxt}
+          </div>
+          {nDetalhes > 0 && (
+            <div className="text-[10px] text-blue-600 font-semibold">{nDetalhes} detalhe{nDetalhes > 1 ? "s" : ""} clínico{nDetalhes > 1 ? "s" : ""}</div>
+          )}
+          <div className="d-lbl mt-auto">Diagnóstico</div>
+        </div>
+
+        {/* 3. Habilidades BNCC */}
         <div className="metric-card">
-          <div className="css-donut" style={{ background: `conic-gradient(${colorBar} ${barPercent}%, #F3F4F6 0)` }}>
-            <div className="d-val">{nBar}</div>
+          <div className="css-donut" style={{ background: `conic-gradient(${bnccColor} ${Math.min(nHabBncc * 8, 100)}%, #F3F4F6 0)` }}>
+            <div className="d-val">{nHabBncc}</div>
           </div>
-          <div className="d-lbl">Barreiras</div>
+          <div className="d-lbl">Habilidades BNCC</div>
+          {nHabBncc === 0 && (
+            <div className="text-[10px] text-amber-600 mt-1">Selecione na aba BNCC</div>
+          )}
         </div>
+
+        {/* 4. Compliance LBI */}
         <div className="metric-card">
-          <div className="text-4xl mb-2">{hfEmoji}</div>
-          <div className="font-extrabold text-lg text-slate-800 my-2">{hf}</div>
-          <div className="d-lbl">Hiperfoco</div>
-        </div>
-        <div className="metric-card" style={{ backgroundColor: bgComp, borderColor: txtCompColor }}>
-          <div className="comp-icon-box">
-            <AlertTriangle className="w-8 h-8" style={{ color: txtCompColor }} />
+          <div className="css-donut" style={{ background: `conic-gradient(${lbiColor} ${lbiPct}%, #F3F4F6 0)` }}>
+            <div className="d-val" style={{ fontSize: "0.9rem" }}>{lbiOk}/{lbiChecks.length}</div>
           </div>
-          <div className="font-extrabold text-lg my-1" style={{ color: txtCompColor }}>{txtComp}</div>
-          <div className="d-lbl" style={{ color: txtCompColor }}>Nível de Atenção (Execução)</div>
+          <div className="d-lbl">Compliance LBI</div>
+          <div className="text-[10px] mt-1" style={{ color: lbiColor }}>
+            {lbiPct >= 75 ? "Conforme ✅" : lbiPct >= 50 ? "Parcial ⚠️" : "Pendente ❌"}
+          </div>
         </div>
       </div>
 
-      {/* Cards Principais */}
+      {/* Cards Principais — 2x2 Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-4">
           {/* Medicação */}
@@ -2556,11 +2604,56 @@ function DashboardTab({
             </div>
           )}
 
-          {/* Cronograma de Metas */}
+          {/* DNA do Estudante — Hiperfoco + Potencialidades + Nível Alfabetização */}
+          <div className="soft-card sc-blue">
+            <div className="sc-head">
+              <Sparkles className="w-5 h-5" style={{ color: "#3182CE" }} />
+              DNA do Estudante
+            </div>
+            <div className="sc-body">
+              {hf !== "-" && (
+                <div className="mb-2">
+                  <span className="text-lg mr-1">{hfEmoji}</span>
+                  <strong>Hiperfoco:</strong> {hf}
+                </div>
+              )}
+              {nivelAlfab && nivelAlfab !== "Nao se aplica (Educacao Infantil)" && (
+                <div className="mb-2">
+                  <strong>Alfabetização:</strong> {nivelAlfab}
+                </div>
+              )}
+              {nPot > 0 ? (
+                <div>
+                  <strong>Potencialidades ({nPot}):</strong>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {(peiData.potencias as string[] || []).slice(0, 5).map((p: string) => (
+                      <span key={p} className="rede-chip" style={{ fontSize: "0.75rem", padding: "2px 8px", borderColor: "#3182CE", color: "#2B6CB0" }}>
+                        {p}
+                      </span>
+                    ))}
+                    {nPot > 5 && <span className="text-xs text-blue-500">+{nPot - 5} mais</span>}
+                  </div>
+                </div>
+              ) : (
+                <div className="opacity-60">Preencha potencialidades na aba Mapeamento</div>
+              )}
+            </div>
+            <div className="bg-icon">🧬</div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* Cronograma de Metas + Status */}
           <div className="soft-card sc-yellow">
             <div className="sc-head">
               <FileText className="w-5 h-5" style={{ color: "#D69E2E" }} />
               Cronograma de Metas
+              {peiData.status_meta && (
+                <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full" style={{
+                  background: peiData.status_meta === "Concluído" ? "#C6F6D5" : peiData.status_meta === "Em Progresso" ? "#FEFCBF" : "#FED7D7",
+                  color: peiData.status_meta === "Concluído" ? "#276749" : peiData.status_meta === "Em Progresso" ? "#975A16" : "#9B2C2C",
+                }}>{peiData.status_meta}</span>
+              )}
             </div>
             <div className="sc-body">
               <div className="meta-row">
@@ -2575,57 +2668,66 @@ function DashboardTab({
                 <span className="text-xl">🏔️</span>
                 <strong>Longo:</strong> {metas.Longo}
               </div>
+              {peiData.parecer_geral && (
+                <div className="mt-2 text-xs p-2 rounded bg-yellow-50 border border-yellow-200">
+                  <strong>Parecer:</strong> {peiData.parecer_geral}
+                </div>
+              )}
             </div>
             <div className="bg-icon">🏁</div>
           </div>
-        </div>
 
-        <div className="space-y-4">
-          {/* Radar Curricular */}
-          {compsInferidos.length > 0 ? (
-            <div className="soft-card sc-orange" style={{ borderLeftColor: "#FC8181", backgroundColor: "#FFF5F5" }}>
-              <div className="sc-head">
-                <Radar className="w-5 h-5" style={{ color: "#C53030" }} />
-                Radar Curricular (Automático)
-              </div>
-              <div className="sc-body mb-2">
-                Componentes que exigem maior flexibilização (baseado nas barreiras):
-              </div>
-              <div>
-                {compsInferidos.map((c) => (
-                  <span key={c} className="rede-chip" style={{ borderColor: "#FC8181", color: "#C53030" }}>
-                    {c}
-                  </span>
-                ))}
-              </div>
-              <div className="bg-icon">🎯</div>
-            </div>
-          ) : (
-            <div className="soft-card sc-blue">
-              <div className="sc-head">
-                <Radar className="w-5 h-5" style={{ color: "#3182CE" }} />
-                Radar Curricular
-              </div>
-              <div className="sc-body">Nenhum componente específico marcado como crítico.</div>
-              <div className="bg-icon">🎯</div>
-            </div>
-          )}
-
-          {/* Rede de Apoio */}
+          {/* Rede de Apoio + Estratégias */}
           <div className="soft-card sc-cyan">
             <div className="sc-head">
               <Users className="w-5 h-5" style={{ color: "#0BC5EA" }} />
-              Rede de Apoio
+              Rede de Apoio & Estratégias
             </div>
             <div className="sc-body">
               {rede.length > 0 ? (
-                rede.map((p) => (
-                  <span key={p} className="rede-chip">
-                    {getProIcon(p)} {p}
-                  </span>
-                ))
+                <div className="mb-2">
+                  {rede.map((p) => (
+                    <span key={p} className="rede-chip">
+                      {getProIcon(p)} {p}
+                    </span>
+                  ))}
+                </div>
               ) : (
-                <span className="opacity-60">Sem rede.</span>
+                <div className="mb-2 opacity-60">Sem rede cadastrada.</div>
+              )}
+              {nEstratTotal > 0 && (
+                <div className="mt-2 pt-2 border-t border-cyan-200">
+                  <strong className="text-xs">Estratégias selecionadas:</strong>
+                  <div className="flex gap-3 mt-1">
+                    {(peiData.estrategias_acesso || []).length > 0 && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                        🔓 Acesso: {(peiData.estrategias_acesso || []).length}
+                      </span>
+                    )}
+                    {(peiData.estrategias_ensino || []).length > 0 && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                        📚 Ensino: {(peiData.estrategias_ensino || []).length}
+                      </span>
+                    )}
+                    {(peiData.estrategias_avaliacao || []).length > 0 && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                        📝 Avaliação: {(peiData.estrategias_avaliacao || []).length}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {compsInferidos.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-cyan-200">
+                  <strong className="text-xs text-red-600">Componentes críticos:</strong>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {compsInferidos.map((c) => (
+                      <span key={c} className="rede-chip" style={{ borderColor: "#FC8181", color: "#C53030", fontSize: "0.75rem", padding: "2px 8px" }}>
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
             <div className="bg-icon">🤝</div>
