@@ -783,8 +783,12 @@ function JornadaTab({
   }, [paeeData, chaveJornada]);
 
   const updateField = (key: string, value: unknown) => {
+    updateFields({ [key]: value });
+  };
+
+  const updateFields = (fields: Record<string, unknown>) => {
     const jornadas = (paeeData.jornadas_gamificadas || {}) as Record<string, unknown>;
-    jornadas[chaveJornada] = { ...(jornadas[chaveJornada] as Record<string, unknown> || {}), [key]: value };
+    jornadas[chaveJornada] = { ...(jornadas[chaveJornada] as Record<string, unknown> || {}), ...fields };
     onUpdate({ ...paeeData, jornadas_gamificadas: jornadas });
   };
 
@@ -855,9 +859,7 @@ function JornadaTab({
       if (!res.ok) throw new Error(data.error || "Erro ao gerar jornada.");
       setTexto(data.texto || "");
       setStatus("revisao");
-      updateField("texto", data.texto);
-      updateField("status", "revisao");
-      updateField("origem", origemSelecionada);
+      updateFields({ texto: data.texto, status: "revisao", origem: origemSelecionada });
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar.");
     } finally {
@@ -871,10 +873,7 @@ function JornadaTab({
     setStatus("rascunho");
     setFeedback("");
     setMapaMental(null);
-    updateField("texto", "");
-    updateField("status", "rascunho");
-    updateField("feedback", "");
-    updateField("imagem_bytes", null);
+    updateFields({ texto: "", status: "rascunho", feedback: "", imagem_bytes: null });
   };
 
   const gerarMapaMental = async () => {
