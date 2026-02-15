@@ -7,6 +7,7 @@ import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { PEIVersionHistory, createPEISnapshot } from "@/components/PEIVersionHistory";
+import { DiagnosticConditionalFields, LBIComplianceChecklist } from "@/components/PEIDiagnosticFields";
 
 // Helper para validar e parsear respostas JSON
 async function parseJsonResponse(res: Response, url?: string) {
@@ -974,6 +975,7 @@ export function PEIClient({
                     {selectedStudentId && (
                       <PEIVersionHistory
                         studentId={selectedStudentId}
+                        currentPeiData={peiData}
                         onRestore={() => window.location.reload()}
                       />
                     )}
@@ -1228,6 +1230,11 @@ export function PEIClient({
                   onChange={(e) => updateField("diagnostico", e.target.value)}
                   className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
                   placeholder="Nunca em materiais do estudante."
+                />
+                {/* Campos condicionais por diagnóstico */}
+                <DiagnosticConditionalFields
+                  peiData={peiData}
+                  onUpdate={(key, value) => { updateField(key, value); }}
                 />
               </div>
               <div className="mt-4">
@@ -2337,6 +2344,11 @@ function DashboardTab({
           <div className="text-xs opacity-85">IDADE</div>
           <div className="text-xl font-extrabold">{idadeStr}</div>
         </div>
+      </div>
+
+      {/* Compliance LBI - Checklist antes de exportar */}
+      <div className="mb-6">
+        <LBIComplianceChecklist peiData={peiData} />
       </div>
 
       {/* Exportação - Movido para antes dos cards */}

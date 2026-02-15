@@ -45,6 +45,21 @@ export async function GET(req: Request) {
     const peiData = (data?.pei_data || {}) as Record<string, unknown>;
     const versions = (peiData._versions || []) as VersionEntry[];
 
+    // If compare mode, return full snapshots
+    const compare = url.searchParams.get("compare");
+    if (compare) {
+        const [leftStr, rightStr] = compare.split(",");
+        const leftIdx = parseInt(leftStr, 10);
+        const rightIdx = parseInt(rightStr, 10);
+        if (isNaN(leftIdx) || isNaN(rightIdx) || leftIdx < 0 || rightIdx < 0 || leftIdx >= versions.length || rightIdx >= versions.length) {
+            return NextResponse.json({ error: "Índices de comparação inválidos" }, { status: 400 });
+        }
+        return NextResponse.json({
+            left: versions[leftIdx].snapshot,
+            right: versions[rightIdx].snapshot,
+        });
+    }
+
     // Return versions without the full snapshots (to keep response small)
     const summaries = versions.map((v) => ({
         version: v.version,
