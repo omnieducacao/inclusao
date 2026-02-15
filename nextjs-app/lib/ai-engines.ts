@@ -1,7 +1,10 @@
 /**
  * Multi-engine AI: OmniRed, OmniBlue, OmniGreen, OmniYellow, OmniOrange.
  * Compatível com omni_utils.chat_completion_multi_engine do Streamlit.
+ * Inclui cache LRU com TTL para reduzir custos.
  */
+
+import { aiCache } from "./ai-cache";
 
 export type EngineId = "red" | "blue" | "green" | "yellow" | "orange";
 
@@ -74,11 +77,18 @@ export function getEngineError(engine: EngineId): string | null {
 export async function chatCompletionText(
   engine: EngineId,
   messages: Array<{ role: string; content: string }>,
-  options?: { temperature?: number; apiKey?: string; workspaceId?: string; source?: string; trackUsage?: boolean }
+  options?: { temperature?: number; apiKey?: string; workspaceId?: string; source?: string; trackUsage?: boolean; useCache?: boolean }
 ): Promise<string> {
   const temp = options?.temperature ?? 0.7;
   const apiKey = options?.apiKey || getApiKey(engine);
   const shouldTrack = options?.trackUsage !== false; // Por padrão, rastreia uso
+  const shouldCache = options?.useCache !== false; // Por padrão, usa cache
+
+  // Verificar cache antes de chamar a IA
+  if (shouldCache) {
+    const cached = aiCache.get(engine, messages);
+    if (cached) return cached;
+  }
 
   // Orange (OpenAI)
   if (engine === "orange") {
@@ -93,7 +103,7 @@ export async function chatCompletionText(
     const result = (resp.choices[0]?.message?.content || "").trim();
     if (shouldTrack && result) {
       const { trackAIUsage } = await import("./tracking");
-      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => {});
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
     }
     return result;
   }
@@ -113,7 +123,7 @@ export async function chatCompletionText(
     const result = (resp.choices[0]?.message?.content || "").trim();
     if (shouldTrack && result) {
       const { trackAIUsage } = await import("./tracking");
-      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => {});
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
     }
     return result;
   }
@@ -134,7 +144,7 @@ export async function chatCompletionText(
     const result = (resp.choices[0]?.message?.content || "").trim();
     if (shouldTrack && result) {
       const { trackAIUsage } = await import("./tracking");
-      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => {});
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
     }
     return result;
   }
@@ -164,8 +174,9 @@ export async function chatCompletionText(
     const result = (text && "text" in text ? text.text : "").trim();
     if (shouldTrack && result) {
       const { trackAIUsage } = await import("./tracking");
-      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, creditsConsumed: 2.0 }).catch(() => {});
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, creditsConsumed: 2.0 }).catch(() => { });
     }
+    if (shouldCache && result) aiCache.set(engine, messages, result);
     return result;
   }
 
@@ -181,8 +192,9 @@ export async function chatCompletionText(
     const textResult = (resp.text() || "").trim();
     if (shouldTrack && textResult) {
       const { trackAIUsage } = await import("./tracking");
-      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => {});
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
     }
+    if (shouldCache && textResult) aiCache.set(engine, messages, textResult);
     return textResult;
   }
 
