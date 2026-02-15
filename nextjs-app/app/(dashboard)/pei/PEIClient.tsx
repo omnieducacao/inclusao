@@ -2249,54 +2249,61 @@ function DashboardTab({
         .dash-hero {
           background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%);
           border-radius: 16px;
-          padding: 25px;
+          padding: 22px 25px;
           color: white;
-          margin-bottom: 20px;
+          margin-bottom: 16px;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          box-shadow: 0 4px 12px rgba(15, 82, 186, 0.15);
+          box-shadow: 0 4px 16px rgba(15, 82, 186, 0.2);
         }
         .apple-avatar {
-          width: 60px;
-          height: 60px;
+          width: 52px;
+          height: 52px;
           border-radius: 50%;
           background: rgba(255,255,255,0.15);
-          border: 2px solid rgba(255,255,255,0.4);
+          border: 2px solid rgba(255,255,255,0.35);
           color: white;
           font-weight: 800;
-          font-size: 1.6rem;
+          font-size: 1.4rem;
           display: flex;
           align-items: center;
           justify-content: center;
+          backdrop-filter: blur(8px);
         }
         .metric-card {
-          background: white;
-          border-radius: 16px;
-          padding: 15px;
-          border: 1px solid #E2E8F0;
+          background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+          border-radius: 14px;
+          padding: 12px 10px;
+          border: 1px solid #e2e8f0;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          height: 140px;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+          height: 110px;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .metric-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         .css-donut {
-          width: 80px;
-          height: 80px;
+          width: 56px;
+          height: 56px;
           border-radius: 50%;
           position: relative;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 10px;
+          margin-bottom: 6px;
+          box-shadow: inset 0 0 2px rgba(0,0,0,0.06);
         }
         .css-donut::after {
           content: "";
           position: absolute;
-          width: 60px;
-          height: 60px;
+          width: 42px;
+          height: 42px;
           border-radius: 50%;
           background: white;
         }
@@ -2304,58 +2311,53 @@ function DashboardTab({
           position: relative;
           z-index: 10;
           font-weight: 800;
-          font-size: 1.2rem;
-          color: #2D3748;
+          font-size: 1rem;
+          color: #1e293b;
         }
         .d-lbl {
-          font-size: 0.75rem;
+          font-size: 0.65rem;
           font-weight: 700;
-          color: #718096;
+          color: #64748b;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.6px;
           text-align: center;
         }
-        .comp-icon-box {
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.2);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 10px;
-        }
         .soft-card {
-          border-radius: 12px;
-          padding: 20px;
-          min-height: 220px;
+          border-radius: 14px;
+          padding: 16px;
+          min-height: 170px;
           height: 100%;
           display: flex;
           flex-direction: column;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-          border: 1px solid rgba(0,0,0,0.05);
-          border-left: 5px solid;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+          border: 1px solid rgba(0,0,0,0.06);
+          border-left: 4px solid;
           position: relative;
           overflow: hidden;
           z-index: 0;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .sc-orange { background-color: #FFF5F5; border-left-color: #DD6B20; }
-        .sc-blue { background-color: #EBF8FF; border-left-color: #3182CE; }
-        .sc-yellow { background-color: #FFFFF0; border-left-color: #D69E2E; }
-        .sc-cyan { background-color: #E6FFFA; border-left-color: #0BC5EA; }
-        .sc-green { background-color: #F0FFF4; border-left-color: #38A169; }
+        .soft-card:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+        }
+        .sc-orange { background: linear-gradient(135deg, #FFF5F5 0%, #FFF0F0 100%); border-left-color: #DD6B20; }
+        .sc-blue { background: linear-gradient(135deg, #EBF8FF 0%, #E0F2FE 100%); border-left-color: #3182CE; }
+        .sc-yellow { background: linear-gradient(135deg, #FFFFF0 0%, #FEFCE8 100%); border-left-color: #D69E2E; }
+        .sc-cyan { background: linear-gradient(135deg, #E6FFFA 0%, #ECFDF5 100%); border-left-color: #0BC5EA; }
+        .sc-green { background: linear-gradient(135deg, #F0FFF4 0%, #ECFDF5 100%); border-left-color: #38A169; }
         .sc-head {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 7px;
           font-weight: 800;
-          font-size: 0.95rem;
-          margin-bottom: 15px;
-          color: #2D3748;
+          font-size: 0.85rem;
+          margin-bottom: 10px;
+          color: #1e293b;
         }
         .sc-body {
-          font-size: 0.85rem;
-          color: #4A5568;
+          font-size: 0.8rem;
+          color: #475569;
           line-height: 1.5;
           flex-grow: 1;
         }
@@ -2363,55 +2365,55 @@ function DashboardTab({
           position: absolute;
           bottom: -10px;
           right: -10px;
-          font-size: 5rem;
-          opacity: 0.08;
+          font-size: 4.5rem;
+          opacity: 0.06;
           pointer-events: none;
         }
         .meta-row {
           display: flex;
           align-items: center;
-          gap: 10px;
-          margin-bottom: 8px;
-          font-size: 0.85rem;
-          border-bottom: 1px solid rgba(0,0,0,0.05);
+          gap: 8px;
+          margin-bottom: 6px;
+          font-size: 0.8rem;
+          border-bottom: 1px solid rgba(0,0,0,0.04);
           padding-bottom: 5px;
         }
         .dna-bar-container {
-          margin-bottom: 15px;
+          margin-bottom: 12px;
         }
         .dna-bar-flex {
           display: flex;
           justify-content: space-between;
-          font-size: 0.8rem;
-          margin-bottom: 3px;
+          font-size: 0.75rem;
+          margin-bottom: 2px;
           font-weight: 600;
-          color: #4A5568;
+          color: #475569;
         }
         .dna-bar-bg {
           width: 100%;
-          height: 8px;
-          background-color: #E2E8F0;
-          border-radius: 4px;
+          height: 6px;
+          background-color: #e2e8f0;
+          border-radius: 3px;
           overflow: hidden;
         }
         .dna-bar-fill {
           height: 100%;
-          border-radius: 4px;
+          border-radius: 3px;
           transition: width 1s ease;
         }
         .rede-chip {
           display: inline-flex;
           align-items: center;
-          gap: 5px;
+          gap: 4px;
           background: white;
-          padding: 5px 12px;
+          padding: 3px 10px;
           border-radius: 20px;
-          font-size: 0.85rem;
+          font-size: 0.78rem;
           font-weight: 600;
-          color: #2D3748;
+          color: #334155;
           box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-          border: 1px solid #E2E8F0;
-          margin: 0 5px 5px 0;
+          border: 1px solid #e2e8f0;
+          margin: 0 4px 4px 0;
         }
         .pulse-alert {
           animation: pulse 2s infinite;
