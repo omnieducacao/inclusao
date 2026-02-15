@@ -3351,9 +3351,9 @@ function BNCCTab({
           setEiLoading(false);
         })
         .catch(() => setEiLoading(false));
-    } else if (nivel === "EF" || nivel === "EM") {
+    } else if (nivel === "EFI" || nivel === "EFII" || nivel === "EM") {
       setBlocosLoading(true);
-      const url = nivel === "EF" ? `/api/bncc/ef?serie=${encodeURIComponent(serie)}` : "/api/bncc/em";
+      const url = (nivel === "EFI" || nivel === "EFII") ? `/api/bncc/ef?serie=${encodeURIComponent(serie)}` : "/api/bncc/em";
       fetch(url)
         .then((res) => parseJsonResponse(res, url))
         .then((d) => {
@@ -4247,7 +4247,7 @@ function inferirComponentesImpactados(dados: PEIData): string[] {
   const nivel = detectarNivelEnsino(serie);
   // Detectar se é anos finais do fundamental (EFII)
   const serieLower = serie.toLowerCase();
-  const isEFII = nivel === "EF" && (serieLower.includes("6º") || serieLower.includes("7º") || serieLower.includes("8º") || serieLower.includes("9º"));
+  const isEFII = nivel === "EFII";
   const impactados = new Set<string>();
 
   // Leitura

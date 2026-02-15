@@ -150,19 +150,28 @@ export const PROXIMOS_PASSOS = [
   "Mudança de Lugar em Sala", "Novo PEI", "Observação em Sala",
 ];
 
-/** Detecta EI, EF ou EM a partir da série (client-safe, sem fs). */
+/** Detecta EI, EFI, EFII ou EM a partir da série (client-safe, sem fs). */
 export function detectarNivelEnsino(
   serie: string
-): "EI" | "EF" | "EM" | "" {
+): "EI" | "EFI" | "EFII" | "EM" | "" {
   if (!serie) return "";
   const s = serie.toLowerCase();
   if (s.includes("infantil")) return "EI";
   if (
     s.includes("série") ||
-    s.includes("em") ||
     s.includes("médio") ||
     s.includes("eja")
   )
     return "EM";
-  return "EF";
+  // Ensino Fundamental: distinguir Anos Iniciais (1º-5º) vs Anos Finais (6º-9º)
+  if (s.includes("efaf")) return "EFII";
+  if (s.includes("efai")) return "EFI";
+  // Fallback: tentar pelo número do ano
+  const m = s.match(/(\d+)/);
+  if (m) {
+    const n = parseInt(m[1], 10);
+    if (n >= 6) return "EFII";
+    return "EFI";
+  }
+  return "EFI";
 }
