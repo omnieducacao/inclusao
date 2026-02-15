@@ -4473,20 +4473,27 @@ function calcularComplexidadePei(dados: PEIData): [string, string, string] {
 function extrairMetasEstruturadas(texto: string | undefined): { Curto: string; Medio: string; Longo: string } {
   const metas = { Curto: "Definir...", Medio: "Definir...", Longo: "Definir..." };
   if (!texto) return metas;
-  const regex = /METAS_SMART[\s\S]*?(\n\n|$)/i;
-  const match = texto.match(regex);
-  if (!match) return metas;
-  const bloco = match[0];
-  const linhas = bloco.split("\n");
+
+  const linhas = texto.split("\n");
+
   for (const l of linhas) {
-    const lClean = l.replace(/^[\-\*]+/, "").trim();
-    if (!lClean) continue;
-    if (lClean.includes("Curto") || lClean.includes("2 meses")) {
-      metas.Curto = lClean.split(":")[-1]?.trim() || lClean;
-    } else if (lClean.includes("Médio") || lClean.includes("Semestre") || lClean.includes("Medio")) {
-      metas.Medio = lClean.split(":")[-1]?.trim() || lClean;
-    } else if (lClean.includes("Longo") || lClean.includes("Ano")) {
-      metas.Longo = lClean.split(":")[-1]?.trim() || lClean;
+    const lClean = l.replace(/^[\-\*#]+/, "").trim();
+    if (!lClean || lClean.length < 5) continue;
+
+    // Extrair valor após o primeiro ":"
+    const partes = lClean.split(":");
+    const valor = partes.length > 1 ? partes.slice(1).join(":").trim() : "";
+
+    const lUpper = lClean.toUpperCase();
+
+    if (lUpper.includes("CURTO") && (lUpper.includes("PRAZO") || lUpper.includes("META") || lUpper.includes("2 MESES") || lUpper.includes("MÊS"))) {
+      metas.Curto = valor || lClean;
+    } else if (lUpper.includes("MÉDIO") || lUpper.includes("MEDIO")) {
+      if (lUpper.includes("PRAZO") || lUpper.includes("META") || lUpper.includes("SEMESTRE") || lUpper.includes("6 MESES")) {
+        metas.Medio = valor || lClean;
+      }
+    } else if (lUpper.includes("LONGO") && (lUpper.includes("PRAZO") || lUpper.includes("META") || lUpper.includes("ANO") || lUpper.includes("12 MESES"))) {
+      metas.Longo = valor || lClean;
     }
   }
   return metas;
