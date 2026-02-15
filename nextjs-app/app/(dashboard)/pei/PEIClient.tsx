@@ -2134,6 +2134,8 @@ function DashboardTab({
   isEditing: boolean;
   saving: boolean;
 }) {
+  const [showLbiChecklist, setShowLbiChecklist] = React.useState(false);
+
   if (!peiData.nome) {
     return (
       <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
@@ -2536,19 +2538,23 @@ function DashboardTab({
             <div className="d-val">{progresso}%</div>
           </div>
           <div className="d-lbl">Progresso do PEI</div>
-          <div className="text-[10px] text-slate-500 mt-1 text-center">
-            {progresso < 100 ? "Abas pendentes" : "Completo ✅"}
+          <div className="text-[10px] mt-1 text-center" style={{ color: progrColor }}>
+            {progresso >= 100 ? "Completo ✅" : `${Math.round(progresso / 12.5)}/8 abas preenchidas`}
           </div>
         </div>
 
         {/* 2. Diagnóstico */}
-        <div className="metric-card" style={{ justifyContent: "flex-start", paddingTop: "18px" }}>
-          <div className="text-2xl mb-1">🏥</div>
-          <div className="font-bold text-xs text-slate-800 text-center leading-tight mb-1" style={{ maxHeight: "32px", overflow: "hidden" }}>
+        <div className="metric-card group relative" style={{ justifyContent: "flex-start", paddingTop: "14px", cursor: "default" }}>
+          <div className="text-xl mb-1">🏥</div>
+          <div
+            className="font-bold text-[11px] text-slate-800 text-center leading-snug px-1"
+            title={String(peiData.diagnostico || "Não informado")}
+            style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", wordBreak: "break-word" }}
+          >
             {diagTxt}
           </div>
           {nDetalhes > 0 && (
-            <div className="text-[10px] text-blue-600 font-semibold">{nDetalhes} detalhe{nDetalhes > 1 ? "s" : ""} clínico{nDetalhes > 1 ? "s" : ""}</div>
+            <div className="text-[10px] text-blue-600 font-semibold mt-0.5">{nDetalhes} detalhe{nDetalhes > 1 ? "s" : ""} clínico{nDetalhes > 1 ? "s" : ""}</div>
           )}
           <div className="d-lbl mt-auto">Diagnóstico</div>
         </div>
@@ -2564,17 +2570,39 @@ function DashboardTab({
           )}
         </div>
 
-        {/* 4. Compliance LBI */}
-        <div className="metric-card">
+        {/* 4. Compliance LBI — Clicável com checklist retrátil */}
+        <div className="metric-card" style={{ cursor: "pointer", position: "relative" }} onClick={() => setShowLbiChecklist((v) => !v)}>
           <div className="css-donut" style={{ background: `conic-gradient(${lbiColor} ${lbiPct}%, #F3F4F6 0)` }}>
             <div className="d-val" style={{ fontSize: "0.9rem" }}>{lbiOk}/{lbiChecks.length}</div>
           </div>
           <div className="d-lbl">Compliance LBI</div>
-          <div className="text-[10px] mt-1" style={{ color: lbiColor }}>
+          <div className="text-[10px] mt-1 flex items-center gap-1" style={{ color: lbiColor }}>
             {lbiPct >= 75 ? "Conforme ✅" : lbiPct >= 50 ? "Parcial ⚠️" : "Pendente ❌"}
+            <span className="text-slate-400 text-[9px]">{showLbiChecklist ? "▲" : "▼"}</span>
           </div>
         </div>
       </div>
+
+      {/* Checklist LBI expandido (abaixo dos KPIs) */}
+      {showLbiChecklist && (
+        <div className="mt-2 p-4 rounded-xl border border-slate-200 bg-white shadow-sm" style={{ transition: "all 0.2s ease" }}>
+          <div className="flex items-center justify-between mb-3">
+            <h5 className="text-sm font-bold text-slate-700">📋 Checklist Compliance LBI (Lei 13.146/2015)</h5>
+            <button onClick={() => setShowLbiChecklist(false)} className="text-xs text-slate-400 hover:text-slate-600">Fechar ✕</button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {lbiChecks.map((c) => (
+              <div key={c.label} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ${c.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+                <span>{c.ok ? "✅" : "❌"}</span>
+                {c.label}
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 text-[10px] text-slate-400 text-right">
+            {lbiPct}% de conformidade • Clique no card para fechar
+          </div>
+        </div>
+      )}
 
       {/* Cards Principais — 2x2 Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
