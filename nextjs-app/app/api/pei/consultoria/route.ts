@@ -43,12 +43,12 @@ function buildPrompt(dados: PEIDataPayload, modoPratico: boolean, feedback?: str
   const listaMeds = Array.isArray(dados.lista_medicamentos) ? dados.lista_medicamentos : [];
   const medsInfo = listaMeds.length
     ? listaMeds
-        .map((m: { nome?: string; posologia?: string }) => `- ${m.nome || ""} (${m.posologia || ""}).`)
-        .join("\n")
+      .map((m: { nome?: string; posologia?: string }) => `- ${m.nome || ""} (${m.posologia || ""}).`)
+      .join("\n")
     : "Nenhuma medicação informada.";
   const serie = dados.serie || "";
   const nivel = detectarNivelEnsino(serie);
-  
+
   // Sinalizar segmento e abordagem da IA baseado no nível
   const segmentoInfo: Record<string, { nome: string; abordagem: string }> = {
     EI: {
@@ -65,7 +65,7 @@ function buildPrompt(dados: PEIDataPayload, modoPratico: boolean, feedback?: str
     }
   };
   const infoSegmento = segmentoInfo[nivel] || { nome: "Não identificado", abordagem: "" };
-  
+
   const hiperfocoTxt = dados.hiperfoco
     ? `HIPERFOCO DO ESTUDANTE: ${dados.hiperfoco}`
     : "Hiperfoco: Não identificado.";
@@ -79,18 +79,41 @@ function buildPrompt(dados: PEIDataPayload, modoPratico: boolean, feedback?: str
     .join("\n");
 
   if (modoPratico) {
+    // Detalhes condicionais do diagnóstico
+    const detalhesDiagMP = (dados.detalhes_diagnostico || {}) as Record<string, string | string[]>;
+    const detalhesDiagMPTxt = Object.entries(detalhesDiagMP)
+      .filter(([, v]) => v && (typeof v === "string" ? v.trim() : (v as string[]).length > 0))
+      .map(([k, v]) => `  - ${k.replace(/_/g, " ")}: ${Array.isArray(v) ? v.join(", ") : v}`)
+      .join("\n");
+    const potenciasMPTxt = Array.isArray(dados.potencias) && dados.potencias.length
+      ? `POTENCIALIDADES: ${dados.potencias.join(", ")}`
+      : "";
+    const redeApoioMPTxt = Array.isArray(dados.rede_apoio) && dados.rede_apoio.length
+      ? `REDE DE APOIO: ${dados.rede_apoio.join(", ")}`
+      : "";
+
     const system = `Especialista em Inclusão Escolar e DUA.
 GUIA PRÁTICO PARA SALA DE AULA.
 Use Markdown simples. Seja objetivo e aplicável.
 
+ESTRUTURA:
+### 1. ENTENDENDO O ESTUDANTE: Resumo do perfil, diagnóstico e como impacta o dia a dia em sala.
+### 2. ADAPTAÇÕES IMEDIATAS: O que fazer AGORA na sala de aula (lugar, materiais, rotina).
+### 3. ESTRATÉGIAS DE MEDIAÇÃO: Como mediar as atividades (fragmentação, scaffolding, instruções passo a passo).
+### 4. ACESSIBILIDADE: Adaptações de acesso (visual, auditivo, motor, cognitivo).
+### 5. METAS SMART PRÁTICAS: 3 metas concretas e mensuráveis (curto, médio, longo prazo) com critério de sucesso.
+### 6. DICAS DO DIA: 5 dicas rápidas para a rotina diária.
 ### 7. 🧩 CHECKLIST DE ADAPTAÇÃO E ACESSIBILIDADE:
 **A. Mediação (Triângulo de Ouro):** Instruções passo a passo, Fragmentação de tarefas, Scaffolding
 **B. Acessibilidade:** Inferências/figuras de linguagem, Descrição de imagens, Adaptação visual, Adequação de desafio`;
 
-    const promptFeedback = feedback ? `\n\nAJUSTE SOLICITADO: ${feedback}` : "";
+    const promptFeedback = feedback ? `\n\nAJUSTE SOLICITADO PELO PROFESSOR: ${feedback}` : "";
 
     const user = `ALUNO: ${dados.nome || ""} | SÉRIE: ${serie} | DIAGNÓSTICO: ${dados.diagnostico || "em observação"}
+${detalhesDiagMPTxt ? `DETALHAMENTO CLÍNICO:\n${detalhesDiagMPTxt}` : ""}
 ${hiperfocoTxt}
+${potenciasMPTxt}
+${redeApoioMPTxt}
 MEDS: ${medsInfo}
 EVIDÊNCIAS: ${evid || "Nenhuma"}
 BARREIRAS: ${barreirasTxt || "Não mapeadas"}
@@ -98,8 +121,9 @@ ESTRATÉGIAS ACESSO: ${(dados.estrategias_acesso || []).join(", ")}
 ESTRATÉGIAS ENSINO: ${(dados.estrategias_ensino || []).join(", ")}
 ESTRATÉGIAS AVALIAÇÃO: ${(dados.estrategias_avaliacao || []).join(", ")}
 ORIENTAÇÕES ESPECIALISTAS: ${(dados.orientacoes_especialistas || "").slice(0, 500)}
+NÍVEL DE ALFABETIZAÇÃO: ${alfabetizacao}
 
-Crie um GUIA PRÁTICO para sala de aula com adaptações concretas baseadas nos dados acima.${promptFeedback}`;
+Crie um GUIA PRÁTICO para sala de aula com adaptações concretas baseadas em TODOS os dados acima.${promptFeedback}`;
 
     return { system, user };
   }
@@ -110,17 +134,31 @@ Crie um GUIA PRÁTICO para sala de aula com adaptações concretas baseadas nos 
     const objList = dados.bncc_ei_objetivos || objetivosEIPorIdadeCampo(idade, campo);
     const objTxt = objList.length ? objList.map((o) => `- ${o}`).join("\n") : "(não selecionados)";
 
+    // Detalhes condicionais para EI
+    const detalhesDiagEI = (dados.detalhes_diagnostico || {}) as Record<string, string | string[]>;
+    const detalhesDiagEITxt = Object.entries(detalhesDiagEI)
+      .filter(([, v]) => v && (typeof v === "string" ? v.trim() : (v as string[]).length > 0))
+      .map(([k, v]) => `  - ${k.replace(/_/g, " ")}: ${Array.isArray(v) ? v.join(", ") : v}`)
+      .join("\n");
+    const potenciasEITxt = Array.isArray(dados.potencias) && dados.potencias.length
+      ? `POTENCIALIDADES: ${dados.potencias.join(", ")}`
+      : "";
+    const redeApoioEITxt = Array.isArray(dados.rede_apoio) && dados.rede_apoio.length
+      ? `REDE DE APOIO: ${dados.rede_apoio.join(", ")}`
+      : "";
+
     const system = `Especialista em EDUCAÇÃO INFANTIL e BNCC.
-MISSÃO: Criar PEI Técnico Oficial.
+MISSÃO: Criar PEI Técnico Oficial COMPLETO e PERSONALIZADO.
 ${infoSegmento.abordagem}
 
 Use Markdown simples. Use títulos H3 (###). Evite tabelas.
 
 ESTRUTURA OBRIGATÓRIA:
 
-[PERFIL_NARRATIVO] Inicie com "👤 QUEM É O ESTUDANTE?". Parágrafo humanizado. ${hiperfocoTxt}. [/PERFIL_NARRATIVO]
+[PERFIL_NARRATIVO] Inicie com "👤 QUEM É O ESTUDANTE?". Parágrafo humanizado incluindo diagnóstico, hiperfoco, potências e nível de desenvolvimento. ${hiperfocoTxt}. [/PERFIL_NARRATIVO]
 
 ### 1. 🏥 DIAGNÓSTICO E IMPACTO: Cite diagnóstico (e CID se disponível), impactos na aprendizagem, cuidados.
+${detalhesDiagEITxt ? `Use os detalhes clínicos fornecidos para PERSONALIZAR o impacto e as estratégias.` : ""}
 
 ### 2. 🌟 AVALIAÇÃO DE REPERTÓRIO:
 [MAPEAMENTO_BNCC_EI] Use APENAS:
@@ -130,20 +168,37 @@ ESTRUTURA OBRIGATÓRIA:
 ${objTxt}
 [/MAPEAMENTO_BNCC_EI]
 
-### 3. 🚀 ESTRATÉGIAS DE INTERVENÇÃO: Estratégias de acolhimento, rotina, adaptação sensorial.
+### 3. 🚀 ESTRATÉGIAS DE INTERVENÇÃO: Estratégias de acolhimento, rotina, adaptação sensorial. Inclua as estratégias já selecionadas pelo professor e AMPLIE.
 
-### 4. 🎯 METAS SMART: Meta curto prazo (2 meses), médio (1 semestre), longo (1 ano). Específicas, mensuráveis, personalizadas.
+### 4. 🎯 METAS SMART: Crie metas ESPECÍFICAS, MENSURÁVEIS, ATINGÍVEIS, RELEVANTES e com PRAZO.
+Para cada meta inclua OBRIGATORIAMENTE:
+- **O quê**: descrição clara
+- **Critério de sucesso**: como medir
+- **Prazo**: período específico
+- **Responsável**: quem acompanha
+- **Curto prazo** (2 meses) | **Médio** (1 semestre) | **Longo** (1 ano)
+Baseie nas BARREIRAS, POTENCIALIDADES e OBJETIVOS BNCC EI do estudante.
 
 ### 5. ⚠️ PONTOS DE ATENÇÃO FARMACOLÓGICA: [ANALISE_FARMA] Se houver medicação, cite efeitos colaterais para atenção pedagógica. [/ANALISE_FARMA]
 
 ### 6. 🧩 CHECKLIST DE ADAPTAÇÃO: Mediação (instruções passo a passo, fragmentação, scaffolding), Acessibilidade (inferências, imagens, visual, desafio).`;
 
-    const promptFeedback = feedback ? `\n\nAJUSTE SOLICITADO: ${feedback}` : "";
+    const promptFeedback = feedback ? `\n\nAJUSTE SOLICITADO PELO PROFESSOR: ${feedback}` : "";
 
-    const user = `ALUNO: ${dados.nome || ""} | SÉRIE: ${serie} | HISTÓRICO: ${(dados.historico || "").slice(0, 500)}
+    const user = `ALUNO: ${dados.nome || ""} | SÉRIE: ${serie} | SEGMENTO: Educação Infantil
+HISTÓRICO: ${(dados.historico || "").slice(0, 500)}
 DIAGNÓSTICO: ${dados.diagnostico || "em observação"}
+${detalhesDiagEITxt ? `DETALHAMENTO CLÍNICO:\n${detalhesDiagEITxt}` : ""}
 MEDS: ${medsInfo}
-EVIDÊNCIAS: ${evid || "Nenhuma"}${promptFeedback}`;
+${hiperfocoTxt}
+${potenciasEITxt}
+${redeApoioEITxt}
+NÍVEL DE ALFABETIZAÇÃO: ${alfabetizacao}
+EVIDÊNCIAS OBSERVADAS: ${evid || "Nenhuma"}
+BARREIRAS: ${barreirasTxt || "Não mapeadas"}
+ESTRATÉGIAS ACESSO: ${(dados.estrategias_acesso || []).join(", ")}
+ESTRATÉGIAS ENSINO: ${(dados.estrategias_ensino || []).join(", ")}
+ORIENTAÇÕES ESPECIALISTAS: ${(dados.orientacoes_especialistas || "").slice(0, 500)}${promptFeedback}`;
 
     return { system, user };
   }
@@ -177,13 +232,40 @@ EVIDÊNCIAS: ${evid || "Nenhuma"}${promptFeedback}`;
   }
   const promptLiteracia =
     alfabetizacao &&
-    !alfabetizacao.includes("Alfabético") &&
-    alfabetizacao !== "Não se aplica (Educação Infantil)"
+      !alfabetizacao.includes("Alfabético") &&
+      alfabetizacao !== "Não se aplica (Educação Infantil)"
       ? `[ATENÇÃO ALFABETIZAÇÃO] Fase: ${alfabetizacao}. Inclua 2 ações de consciência fonológica. [/ATENÇÃO ALFABETIZAÇÃO]`
       : "";
 
+  // Dados completos para contextualizar a IA
+  const potenciasTxt = Array.isArray(dados.potencias) && dados.potencias.length
+    ? `POTENCIALIDADES: ${dados.potencias.join(", ")}`
+    : "POTENCIALIDADES: Não identificadas.";
+  const redeApoioTxt = Array.isArray(dados.rede_apoio) && dados.rede_apoio.length
+    ? `REDE DE APOIO: ${dados.rede_apoio.join(", ")}`
+    : "REDE DE APOIO: Não informada.";
+  const estratAcessoTxt = Array.isArray(dados.estrategias_acesso) && dados.estrategias_acesso.length
+    ? `ESTRATÉGIAS DE ACESSO: ${dados.estrategias_acesso.join(", ")}`
+    : "";
+  const estratEnsinoTxt = Array.isArray(dados.estrategias_ensino) && dados.estrategias_ensino.length
+    ? `ESTRATÉGIAS DE ENSINO: ${dados.estrategias_ensino.join(", ")}`
+    : "";
+  const estratAvalTxt = Array.isArray(dados.estrategias_avaliacao) && dados.estrategias_avaliacao.length
+    ? `ESTRATÉGIAS DE AVALIAÇÃO: ${dados.estrategias_avaliacao.join(", ")}`
+    : "";
+  const orientacoesTxt = dados.orientacoes_especialistas
+    ? `ORIENTAÇÕES DE ESPECIALISTAS: ${(dados.orientacoes_especialistas).slice(0, 500)}`
+    : "";
+
+  // Detalhes condicionais do diagnóstico (TEA nível suporte, TDAH tipo, etc.)
+  const detalhesDiag = (dados.detalhes_diagnostico || {}) as Record<string, string | string[]>;
+  const detalhesDiagTxt = Object.entries(detalhesDiag)
+    .filter(([, v]) => v && (typeof v === "string" ? v.trim() : (v as string[]).length > 0))
+    .map(([k, v]) => `  - ${k.replace(/_/g, " ")}: ${Array.isArray(v) ? v.join(", ") : v}`)
+    .join("\n");
+
   const system = `Especialista em Inclusão Escolar e BNCC.
-MISSÃO: Criar PEI Técnico Oficial.
+MISSÃO: Criar PEI Técnico Oficial COMPLETO e PERSONALIZADO.
 ${infoSegmento.abordagem}
 
 REGRA CRÍTICA (Avaliação de Repertório): Cite SOMENTE habilidades da lista fornecida. Ao citar, reproduza EXATAMENTE: código e descrição COMPLETA. Proibido parafrasear.
@@ -192,9 +274,10 @@ Use Markdown simples. Use títulos H3 (###). Evite tabelas.
 
 ESTRUTURA OBRIGATÓRIA:
 
-[PERFIL_NARRATIVO] Inicie com "👤 QUEM É O ESTUDANTE?". Parágrafo humanizado. ${hiperfocoTxt}. [/PERFIL_NARRATIVO]
+[PERFIL_NARRATIVO] Inicie com "👤 QUEM É O ESTUDANTE?". Parágrafo humanizado incluindo: diagnóstico, hiperfoco, potências, rede de apoio, composição familiar, nível de alfabetização. ${hiperfocoTxt}. [/PERFIL_NARRATIVO]
 
 ### 1. 🏥 DIAGNÓSTICO E IMPACTO: Cite diagnóstico (e CID se disponível), impactos na aprendizagem, cuidados.
+${detalhesDiagTxt ? `Use os detalhes clínicos fornecidos (nível de suporte, tipo, comunicação etc.) para PERSONALIZAR o impacto e as estratégias.` : ""}
 
 ### 2. 🌟 AVALIAÇÃO DE REPERTÓRIO:
 [MAPEAMENTO_BNCC] Cite SOMENTE habilidades da lista abaixo. Reproduza EXATAMENTE código + descrição. NÃO invente outras.
@@ -203,28 +286,52 @@ ${habTxt || "(use habilidades do ano/série do estudante conforme BNCC)"}
 [/HABILIDADES]
 [/MAPEAMENTO_BNCC]
 
-### 3. 🚀 ESTRATÉGIAS DE INTERVENÇÃO: Adaptações curriculares e de acesso. ${promptLiteracia}
+### 3. 🚀 ESTRATÉGIAS DE INTERVENÇÃO: Adaptações curriculares e de acesso. Inclua as estratégias já selecionadas pelo professor e AMPLIE com sugestões complementares. ${promptLiteracia}
 
 ### 4. 📊 COMPONENTES QUE MERECEM ATENÇÃO: Quadro com componente, nível (Alta|Média|Monitoramento), motivos ligando diagnóstico + barreiras às habilidades.
 
-### 5. 🎯 METAS SMART: Meta curto prazo (2 meses), médio (1 semestre), longo (1 ano). Específicas, mensuráveis, personalizadas.
+### 5. 🎯 METAS SMART: Crie metas ESPECÍFICAS, MENSURÁVEIS, ATINGÍVEIS, RELEVANTES e com PRAZO definido.
+Para cada meta inclua OBRIGATORIAMENTE:
+- **O quê**: descrição clara da habilidade ou comportamento alvo
+- **Critério de sucesso**: como medir (ex: "em 3 de 5 tentativas", "com 80% de acerto")
+- **Prazo**: data ou período específico
+- **Responsável**: quem acompanha (professor, AEE, família)
+- **Meta de curto prazo** (2 meses): foco em adaptações imediatas
+- **Meta de médio prazo** (1 semestre): foco em consolidação
+- **Meta de longo prazo** (1 ano): foco em autonomia e generalização
+Baseie as metas nas BARREIRAS, POTENCIALIDADES e HABILIDADES BNCC do estudante.
 
 ### 6. ⚠️ PONTOS DE ATENÇÃO FARMACOLÓGICA: [ANALISE_FARMA] Se houver medicação, cite efeitos colaterais para atenção pedagógica. [/ANALISE_FARMA]
 
-### 7. 🧩 CHECKLIST DE ADAPTAÇÃO: Mediação (instruções passo a passo, fragmentação, scaffolding), Acessibilidade (inferências, imagens, visual, desafio).`;
+### 7. 🧩 CHECKLIST DE ADAPTAÇÃO E ACESSIBILIDADE:
+**A. Mediação (Triângulo de Ouro):** Instruções passo a passo, Fragmentação de tarefas, Scaffolding
+**B. Acessibilidade:** Inferências/figuras de linguagem, Descrição de imagens, Adaptação visual, Adequação de desafio`;
 
-  const user = `ALUNO: ${dados.nome || ""} | SÉRIE: ${serie} | HISTÓRICO: ${(dados.historico || "").slice(0, 500)}
+  const promptFeedback = feedback ? `\n\nAJUSTE SOLICITADO PELO PROFESSOR: ${feedback}` : "";
+
+  const user = `ALUNO: ${dados.nome || ""} | SÉRIE: ${serie} | SEGMENTO: ${infoSegmento.nome}
+HISTÓRICO: ${(dados.historico || "").slice(0, 500)}
 DIAGNÓSTICO: ${dados.diagnostico || "em observação"}
+${detalhesDiagTxt ? `DETALHAMENTO CLÍNICO:\n${detalhesDiagTxt}` : ""}
 MEDS: ${medsInfo}
-EVIDÊNCIAS: ${evid || "Nenhuma"}
+${hiperfocoTxt}
+${potenciasTxt}
+${redeApoioTxt}
+NÍVEL DE ALFABETIZAÇÃO: ${alfabetizacao}
+EVIDÊNCIAS OBSERVADAS: ${evid || "Nenhuma"}
 BARREIRAS: ${barreirasTxt || "Não mapeadas"}
 NÍVEIS SUPORTE: ${JSON.stringify(dados.niveis_suporte || {})}
+${estratAcessoTxt}
+${estratEnsinoTxt}
+${estratAvalTxt}
+${orientacoesTxt}
 
 [LISTA DE HABILIDADES PERMITIDAS — cite SOMENTE estas, COPIANDO EXATAMENTE:]
-${habTxt || "(carregue do contexto BNCC do ano/série)"}`;
+${habTxt || "(carregue do contexto BNCC do ano/série)"}${promptFeedback}`;
 
   return { system, user };
 }
+
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
