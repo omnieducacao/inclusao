@@ -1055,10 +1055,10 @@ export function PEIClient({
                   {peiData.serie && (() => {
                     const nivel = detectarNivelEnsino(peiData.serie);
                     const segmentoInfo: Record<string, { nome: string; cor: string; emoji: string }> = {
-                      EI: { nome: "Educação Infantil", cor: "#4299e1", emoji: "👶" },
-                      EFI: { nome: "Ensino Fundamental Anos Iniciais", cor: "#48bb78", emoji: "📚" },
-                      EFII: { nome: "Ensino Fundamental Anos Finais", cor: "#ed8936", emoji: "🎓" },
-                      EM: { nome: "Ensino Médio / EJA", cor: "#9f7aea", emoji: "🎯" },
+                      EI: { nome: "EI — Educação Infantil", cor: "#4299e1", emoji: "👶" },
+                      EFI: { nome: "EFAI — Ensino Fundamental Anos Iniciais", cor: "#48bb78", emoji: "📚" },
+                      EFII: { nome: "EFAF — Ensino Fundamental Anos Finais", cor: "#ed8936", emoji: "🎓" },
+                      EM: { nome: "EM — Ensino Médio / EJA", cor: "#9f7aea", emoji: "🎯" },
                     };
                     const seg = segmentoInfo[nivel];
                     if (!seg) return null;
@@ -1098,10 +1098,10 @@ export function PEIClient({
               {peiData.serie && (() => {
                 const nivel = detectarNivelEnsino(peiData.serie);
                 const segmentoInfo: Record<string, { nome: string; cor: string; desc: string }> = {
-                  EI: { nome: "Educação Infantil", cor: "#4299e1", desc: "Foco: Campos de Experiência (BNCC) e rotina estruturante." },
-                  EFI: { nome: "Ensino Fundamental Anos Iniciais (EFAI)", cor: "#48bb78", desc: "Foco: alfabetização, numeracia e consolidação de habilidades basais." },
-                  EFII: { nome: "Ensino Fundamental Anos Finais (EFAF)", cor: "#ed8936", desc: "Foco: autonomia, funções executivas, organização e aprofundamento conceitual." },
-                  EM: { nome: "Ensino Médio / EJA", cor: "#9f7aea", desc: "Foco: projeto de vida, áreas do conhecimento e estratégias de estudo." },
+                  EI: { nome: "EI — Educação Infantil", cor: "#4299e1", desc: "Foco: Campos de Experiência (BNCC) e rotina estruturante." },
+                  EFI: { nome: "EFAI — Ensino Fundamental Anos Iniciais", cor: "#48bb78", desc: "Foco: alfabetização, numeracia e consolidação de habilidades basais." },
+                  EFII: { nome: "EFAF — Ensino Fundamental Anos Finais", cor: "#ed8936", desc: "Foco: autonomia, funções executivas, organização e aprofundamento conceitual." },
+                  EM: { nome: "EM — Ensino Médio / EJA", cor: "#9f7aea", desc: "Foco: projeto de vida, áreas do conhecimento e estratégias de estudo." },
                 };
                 const info = segmentoInfo[nivel] || { nome: "Selecione a Série/Ano", cor: "#718096", desc: "Aguardando seleção..." };
                 return (
@@ -2935,10 +2935,10 @@ function ConsultoriaTab({
 
   const nivel = detectarNivelEnsinoLocal(serie);
   const segmentoInfo: Record<string, { nome: string; cor: string; desc: string }> = {
-    EI: { nome: "Educação Infantil", cor: "#4299e1", desc: "Foco: Campos de Experiência (BNCC) e rotina estruturante." },
-    EFI: { nome: "Ensino Fundamental Anos Iniciais (EFAI)", cor: "#48bb78", desc: "Foco: alfabetização, numeracia e consolidação de habilidades basais." },
-    EFII: { nome: "Ensino Fundamental Anos Finais (EFAF)", cor: "#ed8936", desc: "Foco: autonomia, funções executivas, organização e aprofundamento conceitual." },
-    EM: { nome: "Ensino Médio / EJA", cor: "#9f7aea", desc: "Foco: projeto de vida, áreas do conhecimento e estratégias de estudo." },
+    EI: { nome: "EI — Educação Infantil", cor: "#4299e1", desc: "Foco: Campos de Experiência (BNCC) e rotina estruturante." },
+    EFI: { nome: "EFAI — Ensino Fundamental Anos Iniciais", cor: "#48bb78", desc: "Foco: alfabetização, numeracia e consolidação de habilidades basais." },
+    EFII: { nome: "EFAF — Ensino Fundamental Anos Finais", cor: "#ed8936", desc: "Foco: autonomia, funções executivas, organização e aprofundamento conceitual." },
+    EM: { nome: "EM — Ensino Médio / EJA", cor: "#9f7aea", desc: "Foco: projeto de vida, áreas do conhecimento e estratégias de estudo." },
   };
   const segInfo = segmentoInfo[nivel] || { nome: "Selecione a Série/Ano", cor: "#718096", desc: "Aguardando seleção..." };
 
