@@ -333,6 +333,9 @@ ${habTxt || "(carregue do contexto BNCC do ano/série)"}${promptFeedback}`;
 }
 
 
+// Allow up to 60s for AI generation (Vercel default is 10s)
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
