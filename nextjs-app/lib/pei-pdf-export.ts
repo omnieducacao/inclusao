@@ -288,8 +288,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
   // ======================================================================
   // 2. DIAGNÓSTICO E CONTEXTO CLÍNICO
   // ======================================================================
-  doc.addPage();
-  addHeader();
+  addSpacer(6);
   addSectionTitle("2. DIAGNOSTICO E CONTEXTO CLINICO");
 
   addSubtitle("Diagnostico");
@@ -341,8 +340,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
   const hiperfoco = limparTexto(dados.hiperfoco);
 
   if (potencias.length || hiperfoco) {
-    doc.addPage();
-    addHeader();
+    addSpacer(6);
     addSectionTitle("3. POTENCIALIDADES E INTERESSES");
 
     if (hiperfoco) {
@@ -364,8 +362,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
   const orientacoesPorProf = dados.orientacoes_por_profissional || {};
 
   if (rede.length || orientacoes || Object.keys(orientacoesPorProf).length) {
-    doc.addPage();
-    addHeader();
+    addSpacer(6);
     addSectionTitle("4. REDE DE APOIO E ORIENTACOES");
 
     if (rede.length) {
@@ -397,8 +394,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
   const temBarreiras = Object.values(barreiras).some((itens) => Array.isArray(itens) && itens.length > 0);
 
   if (temBarreiras) {
-    doc.addPage();
-    addHeader();
+    addSpacer(6);
     addSectionTitle("5. MAPEAMENTO DE BARREIRAS E NIVEIS DE SUPORTE");
 
     Object.entries(barreiras).forEach(([area, itens]) => {
@@ -427,8 +423,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
   const outrosEnsino = limparTexto(dados.outros_ensino);
 
   if (estAcesso.length || estEnsino.length || estAval.length || outrosAcesso || outrosEnsino) {
-    doc.addPage();
-    addHeader();
+    addSpacer(6);
     addSectionTitle("6. PLANO DE ACAO - ESTRATEGIAS");
 
     if (estAcesso.length) {
@@ -462,8 +457,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
   const bnccEI = dados.bncc_ei_objetivos || [];
 
   if ((Array.isArray(habBncc) && habBncc.length) || (Array.isArray(bnccEI) && bnccEI.length)) {
-    doc.addPage();
-    addHeader();
+    addSpacer(6);
     addSectionTitle("7. HABILIDADES BNCC SELECIONADAS");
 
     if (dados.bncc_ei_idade || dados.bncc_ei_campo) {
@@ -512,8 +506,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
   // 8. PLANEJAMENTO PEDAGÓGICO DETALHADO (IA)
   // ======================================================================
   if (limparTexto(dados.ia_sugestao)) {
-    doc.addPage();
-    addHeader();
+    addSpacer(6);
     addSectionTitle("8. PLANEJAMENTO PEDAGOGICO DETALHADO");
 
     const motor = dados.consultoria_engine || "red";
@@ -569,8 +562,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
   const proximosPassos = (dados.proximos_passos_select || []).filter(Boolean) as string[];
 
   if (monitoramentoData || statusMeta || parecerGeral || proximosPassos.length) {
-    doc.addPage();
-    addHeader();
+    addSpacer(6);
     addSectionTitle("9. MONITORAMENTO E ACOMPANHAMENTO");
 
     if (monitoramentoData) {
@@ -614,8 +606,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
     const compliant = checks.filter((c) => c.ok).length;
     const pct = Math.round((compliant / total) * 100);
 
-    doc.addPage();
-    addHeader();
+    addSpacer(6);
     addSectionTitle("10. COMPLIANCE LBI");
 
     addInfoBox("Conformidade:", `${compliant}/${total} campos (${pct}%)`, pct >= 75 ? [236, 253, 245] : [254, 226, 226]);

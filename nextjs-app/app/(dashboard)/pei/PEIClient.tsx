@@ -330,6 +330,49 @@ export function PEIClient({
     }
   }
 
+  // Atualizar PEI de um estudante existente
+  async function handleUpdate() {
+    if (!selectedStudentId) return;
+    setSaving(true);
+    setErroGlobal(null);
+    try {
+      // Atualizar pei_data
+      const res = await fetch(`/api/students/${selectedStudentId}/pei-data`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pei_data: peiData }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+
+      // Também atualizar name, grade, class_group na tabela students
+      await fetch(`/api/students/${selectedStudentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: peiData.nome?.toString().trim() || undefined,
+          grade: peiData.serie || undefined,
+          class_group: peiData.turma || undefined,
+          diagnosis: peiData.diagnostico || undefined,
+        }),
+      });
+
+      setSaved(true);
+      markClean();
+      createPEISnapshot(selectedStudentId, `Atualização — ${new Date().toLocaleDateString("pt-BR")}`);
+      setTimeout(() => setSaved(false), 3000);
+      alert(`✅ PEI de "${peiData.nome}" atualizado com sucesso! ☁️`);
+    } catch (err) {
+      const mensagem = err instanceof Error ? err.message : "Erro ao atualizar PEI";
+      setErroGlobal(mensagem);
+      alert(`Erro ao atualizar PEI: ${mensagem}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   // Componente de feedback de salvamento
   function SaveFeedback() {
     if (saving) {
@@ -980,16 +1023,36 @@ export function PEIClient({
                       />
                     )}
                   </h4>
-                  <p className="text-[10px] text-slate-600 mb-2 leading-relaxed">
-                    <strong>Cria um novo estudante</strong> no Supabase com todos os dados do PEI preenchidos. O estudante será salvo na nuvem junto com o PEI completo.
-                  </p>
-                  <button
-                    onClick={handleSave}
-                    disabled={saving || !peiData.nome}
-                    className="w-full px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 disabled:opacity-60 mb-2"
-                  >
-                    {saving ? "Criando estudante…" : "🔗 Criar Novo Estudante"}
-                  </button>
+
+                  {selectedStudentId ? (
+                    /* Estudante existente — atualizar */
+                    <>
+                      <p className="text-[10px] text-slate-600 mb-2 leading-relaxed">
+                        <strong>Atualiza os dados do PEI</strong> do estudante já salvo na nuvem.
+                      </p>
+                      <button
+                        onClick={handleUpdate}
+                        disabled={saving}
+                        className="w-full px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 disabled:opacity-60 mb-2"
+                      >
+                        {saving ? "Atualizando…" : "💾 Atualizar PEI"}
+                      </button>
+                    </>
+                  ) : (
+                    /* Novo estudante — criar */
+                    <>
+                      <p className="text-[10px] text-slate-600 mb-2 leading-relaxed">
+                        <strong>Cria um novo estudante</strong> no Supabase com todos os dados do PEI preenchidos.
+                      </p>
+                      <button
+                        onClick={handleSave}
+                        disabled={saving || !peiData.nome}
+                        className="w-full px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 disabled:opacity-60 mb-2"
+                      >
+                        {saving ? "Criando estudante…" : "🔗 Criar Novo Estudante"}
+                      </button>
+                    </>
+                  )}
                   {saved && (
                     <a
                       href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
@@ -2029,6 +2092,8 @@ export function PEIClient({
             currentStudentId={currentStudentId}
             updateField={updateField}
             onSave={handleSave}
+            onUpdate={handleUpdate}
+            isEditing={!!selectedStudentId}
             saving={saving}
           />
         )}
@@ -2057,12 +2122,16 @@ function DashboardTab({
   currentStudentId,
   updateField,
   onSave,
+  onUpdate,
+  isEditing,
   saving,
 }: {
   peiData: PEIData;
   currentStudentId: string | null;
   updateField: <K extends keyof PEIData>(key: K, value: PEIData[K]) => void;
   onSave: () => void;
+  onUpdate: () => void;
+  isEditing: boolean;
   saving: boolean;
 }) {
   if (!peiData.nome) {
@@ -2374,28 +2443,48 @@ function DashboardTab({
             </a>
           </div>
           <div>
-            <p className="text-xs text-slate-600 mb-2">☁️ Criar Novo Estudante</p>
+            <p className="text-xs text-slate-600 mb-2">☁️ {isEditing ? "Atualizar PEI" : "Criar Novo Estudante"}</p>
             {peiData.nome ? (
-              <button
-                onClick={onSave}
-                disabled={saving}
-                className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60 flex items-center justify-center gap-2 text-sm"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Criando estudante…
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4" />
-                    Criar Novo Estudante
-                  </>
-                )}
-              </button>
+              isEditing ? (
+                <button
+                  onClick={onUpdate}
+                  disabled={saving}
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-60 flex items-center justify-center gap-2 text-sm"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Atualizando…
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      Atualizar PEI
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={onSave}
+                  disabled={saving}
+                  className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60 flex items-center justify-center gap-2 text-sm"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Criando estudante…
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      Criar Novo Estudante
+                    </>
+                  )}
+                </button>
+              )
             ) : (
               <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-                <p className="text-xs text-amber-800">Preencha o nome do estudante na aba Estudante para criar</p>
+                <p className="text-xs text-amber-800">Preencha o nome do estudante na aba Estudante para salvar</p>
               </div>
             )}
           </div>
