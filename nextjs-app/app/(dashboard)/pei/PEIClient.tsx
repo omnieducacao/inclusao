@@ -2911,21 +2911,23 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         {/* Card: Mapa Mental */}
         <button
           type="button"
           onClick={gerarMapa}
           disabled={mapaLoading}
-          className="group rounded-2xl border-2 border-dashed border-violet-200 hover:border-violet-400 bg-gradient-to-br from-violet-50 to-white transition-all hover:shadow-lg text-left disabled:opacity-60"
-          style={{ padding: "20px", minHeight: "120px", display: "flex", flexDirection: "column", justifyContent: "center" }}
+          className="group rounded-xl border-2 border-dashed border-violet-200 hover:border-violet-400 bg-gradient-to-r from-violet-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60"
+          style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px", height: "70px" }}
         >
-          <div className="text-2xl mb-2">🧠</div>
-          <h5 className="font-semibold text-sm text-slate-800 mb-1 group-hover:text-violet-700 transition-colors">Mapa Mental</h5>
-          <p className="text-[11px] text-slate-500 leading-snug">
-            {mapaLoading ? "Gerando mapa mental..." : "Visualize o perfil completo como mapa interativo"}
-          </p>
-          {mapaLoading && <Loader2 className="w-4 h-4 animate-spin text-violet-500 mt-2" />}
+          <div className="text-2xl">🧠</div>
+          <div>
+            <h5 className="font-semibold text-xs text-slate-800 group-hover:text-violet-700 transition-colors">Mapa Mental</h5>
+            <p className="text-[10px] text-slate-500 leading-snug mt-0.5">
+              {mapaLoading ? "Gerando..." : "Perfil completo como mapa interativo"}
+            </p>
+          </div>
+          {mapaLoading && <Loader2 className="w-4 h-4 animate-spin text-violet-500 ml-auto" />}
         </button>
 
         {/* Card: Resumo Família */}
@@ -2933,15 +2935,17 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
           type="button"
           onClick={gerarResumo}
           disabled={resumoLoading}
-          className="group rounded-2xl border-2 border-dashed border-emerald-200 hover:border-emerald-400 bg-gradient-to-br from-emerald-50 to-white transition-all hover:shadow-lg text-left disabled:opacity-60"
-          style={{ padding: "20px", minHeight: "120px", display: "flex", flexDirection: "column", justifyContent: "center" }}
+          className="group rounded-xl border-2 border-dashed border-emerald-200 hover:border-emerald-400 bg-gradient-to-r from-emerald-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60"
+          style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px", height: "70px" }}
         >
-          <div className="text-2xl mb-2">👨‍👩‍👧</div>
-          <h5 className="font-semibold text-sm text-slate-800 mb-1 group-hover:text-emerald-700 transition-colors">Resumo para Família</h5>
-          <p className="text-[11px] text-slate-500 leading-snug">
-            {resumoLoading ? "Preparando resumo acolhedor..." : "Relatório com linguagem sem jargão para reunião"}
-          </p>
-          {resumoLoading && <Loader2 className="w-4 h-4 animate-spin text-emerald-500 mt-2" />}
+          <div className="text-2xl">👨‍👩‍👧</div>
+          <div>
+            <h5 className="font-semibold text-xs text-slate-800 group-hover:text-emerald-700 transition-colors">Resumo para Família</h5>
+            <p className="text-[10px] text-slate-500 leading-snug mt-0.5">
+              {resumoLoading ? "Preparando..." : "Linguagem sem jargão para reunião"}
+            </p>
+          </div>
+          {resumoLoading && <Loader2 className="w-4 h-4 animate-spin text-emerald-500 ml-auto" />}
         </button>
 
         {/* Card: FAQ */}
@@ -2949,15 +2953,17 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
           type="button"
           onClick={gerarFaq}
           disabled={faqLoading}
-          className="group rounded-2xl border-2 border-dashed border-amber-200 hover:border-amber-400 bg-gradient-to-br from-amber-50 to-white transition-all hover:shadow-lg text-left disabled:opacity-60"
-          style={{ padding: "20px", minHeight: "120px", display: "flex", flexDirection: "column", justifyContent: "center" }}
+          className="group rounded-xl border-2 border-dashed border-amber-200 hover:border-amber-400 bg-gradient-to-r from-amber-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60"
+          style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px", height: "70px" }}
         >
-          <div className="text-2xl mb-2">❓</div>
-          <h5 className="font-semibold text-sm text-slate-800 mb-1 group-hover:text-amber-700 transition-colors">FAQ do Caso</h5>
-          <p className="text-[11px] text-slate-500 leading-snug">
-            {faqLoading ? "Gerando perguntas e respostas..." : "Perguntas frequentes com respostas práticas"}
-          </p>
-          {faqLoading && <Loader2 className="w-4 h-4 animate-spin text-amber-500 mt-2" />}
+          <div className="text-2xl">❓</div>
+          <div>
+            <h5 className="font-semibold text-xs text-slate-800 group-hover:text-amber-700 transition-colors">FAQ do Caso</h5>
+            <p className="text-[10px] text-slate-500 leading-snug mt-0.5">
+              {faqLoading ? "Gerando..." : "Perguntas frequentes com respostas práticas"}
+            </p>
+          </div>
+          {faqLoading && <Loader2 className="w-4 h-4 animate-spin text-amber-500 ml-auto" />}
         </button>
       </div>
 
