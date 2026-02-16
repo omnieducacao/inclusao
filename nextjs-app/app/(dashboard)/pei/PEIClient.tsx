@@ -876,20 +876,22 @@ export function PEIClient({
                                   console.log("✅ JSON encontrado no Supabase com", campos.length, "campos");
                                   console.log("Primeiros campos:", campos.slice(0, 10));
 
-                                  // Criar cópia profunda do JSON (mesmo que FileReader faz)
+                                  // Criar cópia profunda do JSON
                                   const jsonCopiado = JSON.parse(JSON.stringify(peiDataJson)) as PEIData;
 
-                                  // Colocar em jsonPending (mesmo que o upload de arquivo faz)
-                                  // O useEffect vai detectar e aplicar automaticamente
-                                  setJsonPending(jsonCopiado);
-                                  setJsonFileName(`PEI_${studentFromList.name}_do_Supabase.json`);
+                                  // Aplicar diretamente (NÃO usar jsonPending, pois o useEffect
+                                  // de jsonPending seta selectedStudentId=null, perdendo o vínculo)
+                                  setPeiData(jsonCopiado);
+                                  setSelectedStudentId(idToLoad); // Manter vínculo com o estudante
+                                  setSaved(false);
+                                  setErroGlobal(null);
 
                                   // Limpar estados de seleção
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setIsLoadingRascunho(false);
 
-                                  console.log("✅ JSON colocado em jsonPending, useEffect vai aplicar automaticamente");
+                                  console.log("✅ PEI carregado do Supabase com vínculo ao estudante:", idToLoad);
                                 } else {
                                   // Estudante encontrado mas sem pei_data
                                   console.log("⚠️ Estudante encontrado mas sem pei_data no Supabase");
