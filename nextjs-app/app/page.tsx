@@ -165,15 +165,6 @@ export default async function RootPage() {
       <Navbar session={sessionNonNull} hideMenu={true} />
       <main className="max-w-[1600px] mx-auto px-8 py-8">
         <div className="space-y-8">
-          <AnnouncementBanner />
-          <Suspense fallback={<div className="h-[140px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>
-            <WelcomeHero
-              saudacao={saudacao}
-              userFirst={userFirst}
-              session={sessionNonNull}
-            />
-          </Suspense>
-
           {/* Módulos Principais - Fluxo Core */}
           {primaryModules.length > 0 && (
             <Suspense fallback={<div className="h-[120px] bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />}>

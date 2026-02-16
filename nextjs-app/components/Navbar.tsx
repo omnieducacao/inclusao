@@ -80,7 +80,6 @@ function getNavItems(icons: ReturnType<typeof loadNavIcons> extends Promise<infe
   if (!icons) return [];
 
   return [
-    { href: "/", label: "Home", icon: icons.House, group: "main" },
     { href: "/estudantes", label: "Estudantes", icon: icons.UsersFour, permission: "can_estudantes", group: "main" },
     { href: "/pei", label: "PEI", icon: icons.FileText, permission: "can_pei", group: "modules" },
     { href: "/paee", label: "PAEE", icon: icons.PuzzlePiece, permission: "can_paee", group: "modules" },
@@ -228,8 +227,8 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   const navSkeleton = (
     <header className="glass-strong sticky top-0 z-50" style={{ boxShadow: 'var(--shadow-xs)', borderBottom: '1px solid var(--border-default)' }}>
       <div className="max-w-[1920px] mx-auto px-5">
-        <div className="flex items-center justify-between h-[68px]">
-          <Link href="/" className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group flex-shrink-0">
+        <div className="flex items-center h-[68px]">
+          <Link href="/" className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group flex-shrink-0 mr-4">
             <div className="relative">
               <div className="flex items-center justify-center group-hover:scale-105 transition-transform omni-logo-spin">
                 <Image src={isDark ? "/logo-dark.png" : "/omni_icone.png"} alt="Omnisfera" width={36} height={36} className="object-contain" priority />
@@ -243,7 +242,10 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               <div className="w-32 h-7 bg-slate-100 rounded-lg animate-pulse" />
             </nav>
           )}
-          <div className="flex items-center gap-3 ml-2 flex-shrink-0">
+          <div className="flex items-center gap-1 ml-auto flex-shrink-0">
+            <div className="w-8 h-8 bg-slate-100 rounded-full animate-pulse" />
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
             <div className="w-8 h-8 bg-slate-100 rounded-full animate-pulse" />
           </div>
         </div>
@@ -263,11 +265,13 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   return (
     <header className="glass-strong sticky top-0 z-50" style={{ boxShadow: 'var(--shadow-xs)', borderBottom: '1px solid var(--border-default)' }}>
       <div className="max-w-[1920px] mx-auto px-5">
-        <div className="flex items-center justify-between h-[68px]">
-          {/* Logo */}
+        {/* LAYOUT: Logo (esquerda) | Nav (centro, flex-1) | Busca+Ícones (direita) | Perfil (extrema direita) */}
+        <div className="flex items-center h-[68px]">
+
+          {/* 1️⃣ LOGO - Sempre esquerda, nunca encolhe */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group flex-shrink-0"
+            className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group flex-shrink-0 mr-4"
           >
             <div className="flex items-center gap-2">
               <div className="relative">
@@ -303,10 +307,10 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
             </div>
           </Link>
 
-          {/* Navegação Principal - Desktop (lg+) */}
+          {/* 2️⃣ NAVEGAÇÃO - Centro, expande para ocupar espaço disponível */}
           {!hideMenu && (
             <>
-              <nav className="hidden lg:flex items-center gap-0.5 flex-1 justify-center px-4 overflow-x-auto scrollbar-hide">
+              <nav className="hidden lg:flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-hide min-w-0">
                 {mainItems.map((item: NavItem) => (
                   <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} />
                 ))}
@@ -320,8 +324,8 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
                 ))}
               </nav>
 
-              {/* Menu Mobile/Tablet */}
-              <div className="lg:hidden flex items-center gap-2 ml-2 flex-shrink-0">
+              {/* Menu Mobile/Tablet - Aparece no lugar da nav em lg */}
+              <div className="lg:hidden flex items-center gap-2 flex-1 justify-center">
                 <select
                   value={pathname}
                   onChange={(e) => router.push(e.target.value)}
@@ -337,21 +341,20 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               </div>
             </>
           )}
-          {/* ─── Right Actions: Search + Dark Mode + Notifications ─── */}
-          <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+
+          {/* 3️⃣ BUSCA + ÍCONES AUXILIARES - Direita, antes do perfil */}
+          <div className="flex items-center gap-1 ml-auto flex-shrink-0 pl-4">
             {/* Global Search Trigger */}
             <button
               type="button"
               onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg transition-colors"
+              className="flex items-center justify-center w-9 h-9 rounded-lg transition-all hover:scale-105"
               style={{ color: 'var(--text-muted)', backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-default)' }}
-              title="Buscar (⌘K)"
+              title="Buscar"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <span>Buscar...</span>
-              <span className="font-mono px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--border-strong)' }}>⌘K</span>
             </button>
 
             {/* Theme Toggle */}
@@ -361,8 +364,8 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
             <NotificationBell />
           </div>
 
-          {/* User Info & Logout */}
-          <div className="flex items-center gap-3 ml-2 flex-shrink-0">
+          {/* 4️⃣ PERFIL + LOGOUT - Extrema direita, elemento final */}
+          <div className="flex items-center gap-3 flex-shrink-0">
             <div className="hidden lg:flex flex-col items-end text-right">
               <span className="text-[13px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>{session?.usuario_nome ?? "Admin"}</span>
               <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>{session?.workspace_name ?? "Plataforma"}</span>

@@ -16,7 +16,10 @@ type Announcement = {
     expires_at?: string;
 };
 
-// GET: List announcements (admin or user-facing)
+/**
+ * GET /api/admin/announcements
+ * Lists all announcements for admin management
+ */
 export async function GET(req: Request) {
     const session = await getSession();
     if (!session) {
@@ -56,7 +59,10 @@ export async function GET(req: Request) {
     }
 }
 
-// POST: Create/update announcements (admin only)
+/**
+ * POST /api/admin/announcements
+ * Create, toggle, or delete announcements (admin only)
+ */
 export async function POST(req: Request) {
     const session = await getSession();
     if (!session?.is_platform_admin) {
