@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
@@ -133,6 +133,9 @@ export function PEIClient({
   const [erroGlobal, setErroGlobal] = useState<string | null>(null);
   const [isLoadingRascunho, setIsLoadingRascunho] = useState(false);
   const { markDirty, markClean } = useUnsavedChanges();
+
+  // Ref para evitar que o useEffect re-fetche dados quando já carregamos manualmente
+  const manualLoadIdRef = useRef<string | null>(null);
 
   const currentStudentId = selectedStudentId;
 
@@ -422,6 +425,12 @@ export function PEIClient({
     }
 
     if (selectedStudentId && selectedStudentId !== studentId) {
+      // Se acabamos de carregar manualmente, pular o re-fetch
+      if (manualLoadIdRef.current === selectedStudentId) {
+        console.log("useEffect ignorado - dados já carregados manualmente para:", selectedStudentId);
+        manualLoadIdRef.current = null; // Limpar para permitir re-fetch futuro
+        return;
+      }
       console.log("useEffect executando para selectedStudentId:", selectedStudentId);
       setErroGlobal(null);
 
@@ -879,6 +888,9 @@ export function PEIClient({
                                   // Criar cópia profunda do JSON
                                   const jsonCopiado = JSON.parse(JSON.stringify(peiDataJson)) as PEIData;
 
+                                  // Marcar que carregamos manualmente — o useEffect deve pular o re-fetch
+                                  manualLoadIdRef.current = idToLoad;
+
                                   // Aplicar diretamente (NÃO usar jsonPending, pois o useEffect
                                   // de jsonPending seta selectedStudentId=null, perdendo o vínculo)
                                   setPeiData(jsonCopiado);
@@ -889,10 +901,7 @@ export function PEIClient({
                                   // Limpar estados de seleção
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
-                                  // NÃO limpar isLoadingRascunho imediatamente — ele serve de guard
-                                  // para o useEffect que detecta mudanças em selectedStudentId.
-                                  // Se limparmos agora, o useEffect refaz o fetch e sobrescreve peiData.
-                                  setTimeout(() => setIsLoadingRascunho(false), 100);
+                                  setIsLoadingRascunho(false);
 
                                   console.log("✅ PEI carregado do Supabase com vínculo ao estudante:", idToLoad);
                                 } else {
