@@ -134,8 +134,8 @@ export function PEIClient({
   const [isLoadingRascunho, setIsLoadingRascunho] = useState(false);
   const { markDirty, markClean } = useUnsavedChanges();
 
-  // Ref para evitar que o useEffect re-fetche dados quando já carregamos manualmente
-  const manualLoadIdRef = useRef<string | null>(null);
+  // Ref para preservar o ID do estudante ao carregar do Supabase (via jsonPending)
+  const cloudLoadIdRef = useRef<string | null>(null);
 
   const currentStudentId = selectedStudentId;
 
@@ -425,12 +425,6 @@ export function PEIClient({
     }
 
     if (selectedStudentId && selectedStudentId !== studentId) {
-      // Se acabamos de carregar manualmente, pular o re-fetch
-      if (manualLoadIdRef.current === selectedStudentId) {
-        console.log("useEffect ignorado - dados já carregados manualmente para:", selectedStudentId);
-        manualLoadIdRef.current = null; // Limpar para permitir re-fetch futuro
-        return;
-      }
       console.log("useEffect executando para selectedStudentId:", selectedStudentId);
       setErroGlobal(null);
 
@@ -503,7 +497,13 @@ export function PEIClient({
       // Usar setTimeout para garantir que o estado foi atualizado
       setTimeout(() => {
         setPeiData(jsonPending);
-        setSelectedStudentId(null); // JSON local não cria vínculo com nuvem
+        // Se carregamos do Supabase, preservar vínculo; senão (JSON local) limpar
+        if (cloudLoadIdRef.current) {
+          setSelectedStudentId(cloudLoadIdRef.current);
+          cloudLoadIdRef.current = null;
+        } else {
+          setSelectedStudentId(null); // JSON local não cria vínculo com nuvem
+        }
         setJsonPending(null);
         setJsonFileName("");
         setSaved(false);
@@ -885,25 +885,23 @@ export function PEIClient({
                                   console.log("✅ JSON encontrado no Supabase com", campos.length, "campos");
                                   console.log("Primeiros campos:", campos.slice(0, 10));
 
-                                  // Criar cópia profunda do JSON
+                                  // Criar cópia profunda do JSON (mesmo que FileReader faz)
                                   const jsonCopiado = JSON.parse(JSON.stringify(peiDataJson)) as PEIData;
 
-                                  // Marcar que carregamos manualmente — o useEffect deve pular o re-fetch
-                                  manualLoadIdRef.current = idToLoad;
+                                  // Marcar que veio do Supabase para preservar vínculo no jsonPending useEffect
+                                  cloudLoadIdRef.current = idToLoad;
 
-                                  // Aplicar diretamente (NÃO usar jsonPending, pois o useEffect
-                                  // de jsonPending seta selectedStudentId=null, perdendo o vínculo)
-                                  setPeiData(jsonCopiado);
-                                  setSelectedStudentId(idToLoad); // Manter vínculo com o estudante
-                                  setSaved(false);
-                                  setErroGlobal(null);
+                                  // Colocar em jsonPending (mesmo que o upload de arquivo faz)
+                                  // O useEffect vai detectar e aplicar automaticamente
+                                  setJsonPending(jsonCopiado);
+                                  setJsonFileName(`PEI_${studentFromList.name}_do_Supabase.json`);
 
                                   // Limpar estados de seleção
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setIsLoadingRascunho(false);
 
-                                  console.log("✅ PEI carregado do Supabase com vínculo ao estudante:", idToLoad);
+                                  console.log("✅ JSON colocado em jsonPending (cloudLoadIdRef:", idToLoad, ")");
                                 } else {
                                   // Estudante encontrado mas sem pei_data
                                   console.log("⚠️ Estudante encontrado mas sem pei_data no Supabase");
