@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "HOSTNAME=127.0.0.1 NEXT_TELEMETRY_DISABLED=1 next dev -p 3000 --hostname 127.0.0.1",
+    "dev": "cross-env HOSTNAME=127.0.0.1 NEXT_TELEMETRY_DISABLED=1 next dev -p 3000 --hostname 127.0.0.1",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -43,13 +43,14 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/pdf-parse": "^1.1.4",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.0.18",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5",
+    "typescript": "5.9.3",
     "vitest": "^4.0.18"
   }
 }

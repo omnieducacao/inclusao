@@ -2,3 +2,4 @@
 omniprof_repo
 BACKUP_*/
 *.md
+.env

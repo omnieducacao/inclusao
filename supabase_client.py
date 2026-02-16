@@ -3,6 +3,7 @@ import os
 import time
 from typing import Optional, Tuple
 import streamlit as st
+from pathlib import Path
 
 # 🔒 Nome da função RPC
 RPC_NAME = "workspace_from_pin"
@@ -49,6 +50,24 @@ def _get_secret(name: str) -> Optional[str]:
                 return v
     except Exception:
         pass
+
+    # Fallback: tentar ler do arquivo .env
+    try:
+        env_file = Path(__file__).parent / ".env"
+        if env_file.exists():
+            with open(env_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        if "=" in line:
+                            key, value = line.split("=", 1)
+                            if key.strip() == name:
+                                v = _norm(value)
+                                if v:
+                                    return v
+    except Exception:
+        pass
+
     return None
 
 

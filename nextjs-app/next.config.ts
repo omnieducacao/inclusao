@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // Configura o diretório raiz do Turbopack para evitar conflitos com lockfiles
+  turbopack: {
+    root: process.cwd(),
+  },
   // Força o uso de localhost para evitar problemas de rede
   experimental: {
     serverActions: {
