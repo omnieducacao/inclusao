@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import type { SessionPayload } from "@/lib/session";
 import type { Icon } from "phosphor-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { LottieIcon } from "./LottieIcon";
 import { useAILoading } from "@/hooks/useAILoading";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -189,6 +189,130 @@ function NavSeparator() {
   return <div className="w-1 h-1 rounded-full mx-2 flex-shrink-0" style={{ backgroundColor: 'var(--border-strong)' }} />;
 }
 
+// Dropdown component for navigation items
+function NavDropdown({ label, items, isActive, icon: Icon }: { label: string; items: NavItem[]; isActive: boolean; icon: Icon }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const routeColor = { from: "#F9AB00", to: "#D49300" }; // Cor para Config/Gestão
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setIsOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    // Delay para permitir movimento entre botão e menu
+    timeoutRef.current = setTimeout(() => {
+      setIsOpen(false);
+    }, 150);
+  };
+
+  return (
+    <div
+      className="relative flex-shrink-0"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      style={{ zIndex: isOpen ? 100 : 1 }}
+    >
+      <button
+        type="button"
+        className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap flex-shrink-0 ${
+          isActive
+            ? "text-white shadow-md"
+            : "hover:shadow-sm"
+        }`}
+        style={{
+          color: isActive ? 'white' : 'var(--text-muted)',
+          transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+          ...(isActive
+            ? { backgroundImage: `linear-gradient(to right, ${routeColor.from}, ${routeColor.to})` }
+            : { backgroundColor: isOpen ? 'var(--bg-hover)' : 'transparent' }
+          ),
+        }}
+      >
+        {Icon && (
+          <Icon
+            className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? "text-white" : "text-slate-400"}`}
+            weight={isActive ? "fill" : "regular"}
+          />
+        )}
+        <span>{label}</span>
+        <svg
+          className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && items.length > 0 && (
+        <div
+          className="absolute top-full left-0 py-2 rounded-xl border min-w-[220px]"
+          style={{
+            backgroundColor: 'var(--bg-primary)',
+            borderColor: 'var(--border-default)',
+            zIndex: 9999,
+            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+            marginTop: '2px',
+          }}
+        >
+          {items.map((item) => {
+            const ItemIcon = item.icon;
+            const lottieMap = getNavLottieMap();
+            const lottieAnimation = lottieMap[item.href];
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all block"
+                style={{
+                  color: 'var(--text-primary)',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.backgroundColor = '';
+                }}
+              >
+                {lottieAnimation ? (
+                  <div className="w-[18px] h-[18px] flex items-center justify-center flex-shrink-0">
+                    <LottieIcon
+                      animation={lottieAnimation}
+                      size={18}
+                      loop={false}
+                      autoplay={false}
+                      className="opacity-60 grayscale"
+                    />
+                  </div>
+                ) : ItemIcon ? (
+                  <ItemIcon className="w-[18px] h-[18px] flex-shrink-0 text-slate-400" weight="regular" />
+                ) : null}
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Navbar({ session, hideMenu = false }: { session: SessionPayload; hideMenu?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -225,9 +349,9 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
 
   // Skeleton navbar during SSR
   const navSkeleton = (
-    <header className="glass-strong sticky top-0 z-50" style={{ boxShadow: 'var(--shadow-xs)', borderBottom: '1px solid var(--border-default)' }}>
-      <div className="max-w-[1920px] mx-auto px-5">
-        <div className="flex items-center h-[68px]">
+    <header className="glass-strong sticky top-0 z-50" style={{ boxShadow: 'var(--shadow-xs)', borderBottom: '1px solid var(--border-default)', overflow: 'visible' }}>
+      <div className="max-w-[1920px] mx-auto px-5" style={{ overflow: 'visible' }}>
+        <div className="flex items-center h-[68px]" style={{ overflow: 'visible' }}>
           <Link href="/" className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group flex-shrink-0 mr-4">
             <div className="relative">
               <div className="flex items-center justify-center group-hover:scale-105 transition-transform omni-logo-spin">
@@ -262,11 +386,22 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   const moduleItems = items.filter((i: NavItem) => i.group === "modules");
   const adminItems = items.filter((i: NavItem) => i.group === "admin");
 
+  // Items para o dropdown "Configuração e Gestão"
+  const configDropdownPaths = ["/gestao", "/config-escola", "/estudantes"];
+  const configDropdownItems = items.filter((i: NavItem) => configDropdownPaths.includes(i.href));
+  const hasConfigDropdown = configDropdownItems.length > 0;
+  const isConfigDropdownActive = configDropdownPaths.includes(pathname);
+
+  // Remove config dropdown items from their respective groups
+  const filteredMainItems = mainItems.filter((i: NavItem) => !configDropdownPaths.includes(i.href));
+  const filteredModuleItems = moduleItems.filter((i: NavItem) => !configDropdownPaths.includes(i.href));
+  const filteredAdminItems = adminItems.filter((i: NavItem) => !configDropdownPaths.includes(i.href));
+
   return (
-    <header className="glass-strong sticky top-0 z-50" style={{ boxShadow: 'var(--shadow-xs)', borderBottom: '1px solid var(--border-default)' }}>
-      <div className="max-w-[1920px] mx-auto px-5">
+    <header className="glass-strong sticky top-0 z-50" style={{ boxShadow: 'var(--shadow-xs)', borderBottom: '1px solid var(--border-default)', overflow: 'visible' }}>
+      <div className="max-w-[1920px] mx-auto px-5" style={{ overflow: 'visible' }}>
         {/* LAYOUT: Logo (esquerda) | Nav (centro, flex-1) | Busca+Ícones (direita) | Perfil (extrema direita) */}
-        <div className="flex items-center h-[68px]">
+        <div className="flex items-center h-[68px]" style={{ overflow: 'visible' }}>
 
           {/* 1️⃣ LOGO - Sempre esquerda, nunca encolhe */}
           <Link
@@ -310,19 +445,32 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
           {/* 2️⃣ NAVEGAÇÃO - Centro, expande para ocupar espaço disponível */}
           {!hideMenu && (
             <>
-              <nav className="hidden lg:flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-hide min-w-0">
-                {mainItems.map((item: NavItem) => (
-                  <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} />
-                ))}
-                {moduleItems.length > 0 && <NavSeparator />}
-                {moduleItems.map((item: NavItem) => (
-                  <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} />
-                ))}
-                {adminItems.length > 0 && <NavSeparator />}
-                {adminItems.map((item: NavItem) => (
-                  <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} />
-                ))}
-              </nav>
+              <div className="hidden lg:flex items-center gap-0.5 flex-1 min-w-0" style={{ position: 'relative' }}>
+                <nav className="flex items-center gap-0.5 overflow-x-auto scrollbar-hide" style={{ flexShrink: 1 }}>
+                  {filteredMainItems.map((item: NavItem) => (
+                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} />
+                  ))}
+                  {filteredModuleItems.map((item: NavItem) => (
+                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} />
+                  ))}
+                  {(filteredAdminItems.length > 0 || hasConfigDropdown)}
+                  {filteredAdminItems.map((item: NavItem) => (
+                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} />
+                  ))}
+                </nav>
+
+                {/* Dropdown fora do nav para evitar overflow */}
+                {hasConfigDropdown && navIcons && (
+                  <div className="flex-shrink-0">
+                    <NavDropdown
+                      label=""
+                      items={configDropdownItems}
+                      isActive={isConfigDropdownActive}
+                      icon={navIcons.Gear}
+                    />
+                  </div>
+                )}
+              </div>
 
               {/* Menu Mobile/Tablet - Aparece no lugar da nav em lg */}
               <div className="lg:hidden flex items-center gap-2 flex-1 justify-center">
