@@ -15,10 +15,10 @@ export async function GET() {
 
         const sb = getSupabase();
         const workspaceId = session.workspace_id;
-        const memberId = (session.member as { id?: string })?.id;
+        const userEmail = session.usuario_nome; // Used as identifier
 
         // Platform admins don't have workspace context
-        if (session.is_platform_admin || !workspaceId || !memberId) {
+        if (session.is_platform_admin || !workspaceId || !userEmail) {
             return NextResponse.json({ announcements: [] });
         }
 
@@ -50,11 +50,12 @@ export async function GET() {
                 (!a.expires_at || a.expires_at > now)
         );
 
-        // Get already viewed announcements for this member
+        // Get already viewed announcements for this user
         const { data: viewedData } = await sb
             .from("announcement_views")
             .select("announcement_id")
-            .eq("workspace_member_id", memberId);
+            .eq("workspace_id", workspaceId)
+            .eq("user_email", userEmail);
 
         const viewedIds = new Set(viewedData?.map((v) => v.announcement_id) || []);
 

@@ -24,11 +24,11 @@ export async function GET() {
 
         const sb = getSupabase();
         const workspaceId = session.workspace_id;
-        const memberId = (session.member as { id?: string })?.id;
+        const userEmail = session.usuario_nome;
         const notifications: { id: string; type: string; title: string; description: string; severity: "info" | "warning" | "alert"; studentId?: string; studentName?: string }[] = [];
 
-        // If no member ID, return empty (shouldn't happen for logged-in member)
-        if (!memberId) {
+        // If no user email, return empty (shouldn't happen for logged-in user)
+        if (!userEmail) {
             return NextResponse.json({ notifications: [], total: 0 });
         }
 
@@ -117,26 +117,32 @@ export async function GET() {
                 // Get already viewed announcements
                 const { data: viewedData } = await sb
                     .from("announcement_views")
-                    .select("announcement_id, shown_as_modal")
-                    .eq("workspace_member_id", memberId);
+                    .select("announcement_id, shown_as_modal, dismissed")
+                    .eq("workspace_id", workspaceId)
+                    .eq("user_email", userEmail);
 
-                const viewedMap = new Map<string, boolean>();
+                const viewedMap = new Map<string, { shown_as_modal: boolean; dismissed: boolean }>();
                 viewedData?.forEach((v) => {
-                    viewedMap.set(v.announcement_id, v.shown_as_modal);
+                    viewedMap.set(v.announcement_id, {
+                        shown_as_modal: v.shown_as_modal,
+                        dismissed: v.dismissed || false
+                    });
                 });
 
                 for (const ann of announcements) {
+                    const viewInfo = viewedMap.get(ann.id);
                     // Only show as notification if:
                     // - Active
                     // - Not expired
                     // - Target matches (all or workspace)
                     // - Already viewed as modal (so now show in notifications)
+                    // - NOT dismissed
                     if (
                         ann.active &&
                         (ann.target === "all" || ann.target === workspaceId) &&
                         (!ann.expires_at || ann.expires_at > now) &&
-                        viewedMap.has(ann.id) &&
-                        viewedMap.get(ann.id) === true
+                        viewInfo?.shown_as_modal === true &&
+                        viewInfo?.dismissed !== true
                     ) {
                         const severityMap: Record<string, "info" | "warning" | "alert"> = {
                             info: "info",

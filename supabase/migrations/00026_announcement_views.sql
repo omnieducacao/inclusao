@@ -1,16 +1,18 @@
 -- Migration: 00026_announcement_views.sql
--- Rastreia quando cada usuário (workspace_member) visualiza anúncios
+-- Rastreia quando cada usuário (master ou member) visualiza anúncios
 
 CREATE TABLE IF NOT EXISTS announcement_views (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  workspace_member_id uuid NOT NULL REFERENCES workspace_members(id) ON DELETE CASCADE,
+  workspace_id uuid NOT NULL,
+  user_email text NOT NULL,
   announcement_id text NOT NULL,
   viewed_at timestamptz DEFAULT now(),
   shown_as_modal boolean DEFAULT false,
-  UNIQUE(workspace_member_id, announcement_id)
+  dismissed boolean DEFAULT false,
+  UNIQUE(workspace_id, user_email, announcement_id)
 );
 
-CREATE INDEX idx_announcement_views_member ON announcement_views(workspace_member_id);
+CREATE INDEX idx_announcement_views_workspace_user ON announcement_views(workspace_id, user_email);
 CREATE INDEX idx_announcement_views_announcement ON announcement_views(announcement_id);
 
 ALTER TABLE announcement_views ENABLE ROW LEVEL SECURITY;
@@ -28,4 +30,4 @@ DROP POLICY IF EXISTS "Members can update own announcement views" ON announcemen
 CREATE POLICY "Members can update own announcement views" ON announcement_views
   FOR UPDATE USING (true) WITH CHECK (true); -- Allow updates via backend API
 
-COMMENT ON TABLE announcement_views IS 'Rastreia visualizações de anúncios por usuário (modal ou notificação).';
+COMMENT ON TABLE announcement_views IS 'Rastreia visualizações de anúncios por usuário (master ou member via workspace+email).';

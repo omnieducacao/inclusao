@@ -3,8 +3,8 @@ import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 
 /**
- * POST /api/announcements/mark-viewed
- * Marks an announcement as viewed by the current user
+ * POST /api/notifications/dismiss
+ * Marks an announcement notification as dismissed
  */
 export async function POST(request: Request) {
     try {
@@ -20,35 +20,38 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { announcementId, shownAsModal } = body;
+        const { notificationId } = body;
 
-        if (!announcementId) {
-            return NextResponse.json({ error: "ID do aviso é obrigatório" }, { status: 400 });
+        if (!notificationId || !notificationId.startsWith("announcement-")) {
+            return NextResponse.json({ error: "ID de notificação inválido" }, { status: 400 });
         }
+
+        // Extract announcement ID from notification ID (format: "announcement-{uuid}")
+        const announcementId = notificationId.replace("announcement-", "");
 
         const sb = getSupabase();
 
-        // Insert or update the view record
+        // Update or insert the dismissal
         const { error } = await sb
             .from("announcement_views")
             .upsert({
                 workspace_id: workspaceId,
                 user_email: userEmail,
                 announcement_id: announcementId,
-                shown_as_modal: shownAsModal || false,
+                dismissed: true,
                 viewed_at: new Date().toISOString(),
             }, {
                 onConflict: "workspace_id,user_email,announcement_id"
             });
 
         if (error) {
-            console.error("Error marking announcement as viewed:", error);
-            return NextResponse.json({ error: "Erro ao registrar visualização." }, { status: 500 });
+            console.error("Error dismissing notification:", error);
+            return NextResponse.json({ error: "Erro ao dispensar notificação." }, { status: 500 });
         }
 
         return NextResponse.json({ ok: true });
     } catch (err) {
-        console.error("Mark viewed error:", err);
-        return NextResponse.json({ error: "Erro ao registrar visualização." }, { status: 500 });
+        console.error("Dismiss notification error:", err);
+        return NextResponse.json({ error: "Erro ao dispensar notificação." }, { status: 500 });
     }
 }
