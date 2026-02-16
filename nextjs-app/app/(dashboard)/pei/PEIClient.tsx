@@ -889,7 +889,10 @@ export function PEIClient({
                                   // Limpar estados de seleção
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
-                                  setIsLoadingRascunho(false);
+                                  // NÃO limpar isLoadingRascunho imediatamente — ele serve de guard
+                                  // para o useEffect que detecta mudanças em selectedStudentId.
+                                  // Se limparmos agora, o useEffect refaz o fetch e sobrescreve peiData.
+                                  setTimeout(() => setIsLoadingRascunho(false), 100);
 
                                   console.log("✅ PEI carregado do Supabase com vínculo ao estudante:", idToLoad);
                                 } else {
