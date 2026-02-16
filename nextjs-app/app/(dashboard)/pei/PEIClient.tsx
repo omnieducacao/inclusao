@@ -2326,10 +2326,8 @@ function DashboardTab({
           text-align: center;
         }
         .soft-card {
-          border-radius: 14px;
-          padding: 16px;
-          min-height: 170px;
-          height: 100%;
+          border-radius: 12px;
+          padding: 12px 14px;
           display: flex;
           flex-direction: column;
           box-shadow: 0 1px 4px rgba(0,0,0,0.03);
@@ -2352,17 +2350,16 @@ function DashboardTab({
         .sc-head {
           display: flex;
           align-items: center;
-          gap: 7px;
+          gap: 6px;
           font-weight: 800;
-          font-size: 0.85rem;
-          margin-bottom: 10px;
+          font-size: 0.78rem;
+          margin-bottom: 6px;
           color: #1e293b;
         }
         .sc-body {
-          font-size: 0.8rem;
+          font-size: 0.75rem;
           color: #475569;
-          line-height: 1.5;
-          flex-grow: 1;
+          line-height: 1.45;
         }
         .bg-icon {
           position: absolute;
