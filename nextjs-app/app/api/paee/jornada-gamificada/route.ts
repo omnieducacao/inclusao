@@ -40,6 +40,7 @@ export async function POST(req: Request) {
   const nomeCurto = nome.split(" ")[0] || "Estudante";
   const hiperfoco = estudante.hiperfoco || "interesses gerais";
   const serie = estudante.serie || "";
+  const perfilPei = estudante.ia_sugestao || estudante.perfil || "";
 
   const promptFeedback = body.feedback?.trim()
     ? `\nAJUSTE SOLICITADO: ${body.feedback}\n`
@@ -90,7 +91,9 @@ ${metasCompleto}
 
 ${cronTexto}
 
-RECURSOS: ${recTexto}`;
+RECURSOS: ${recTexto}
+${hiperfoco && hiperfoco !== "interesses gerais" ? `HIPERFOCO/INTERESSE DO ESTUDANTE: ${hiperfoco} — use como tema narrativo da gamificação.` : ""}
+${perfilPei ? `CONTEXTO PEDAGÓGICO (USO INTERNO DA IA — NUNCA incluir no texto gerado): ${perfilPei.slice(0, 1500)}` : ""}`;
 
     prompt = `Você é um Game Master. Crie uma versão GAMIFICADA do planejamento do ciclo AEE para o estudante e a família: linguagem motivadora, missões, recompensas.
 REGRA OBRIGATÓRIA: NUNCA inclua diagnóstico clínico, CID, condições médicas ou qualquer informação de saúde no texto.
@@ -109,7 +112,9 @@ ${contexto}`;
 ORIGEM DO CONTEÚDO: ${nomeFonte} (material da escola para o AEE)
 
 CONTEÚDO A SER TRANSFORMADO EM JORNADA GAMIFICADA PARA O ESTUDANTE:
-${texto}`;
+${texto}
+${hiperfoco && hiperfoco !== "interesses gerais" ? `HIPERFOCO/INTERESSE DO ESTUDANTE: ${hiperfoco} — use como tema narrativo da gamificação.` : ""}
+${perfilPei ? `CONTEXTO PEDAGÓGICO (USO INTERNO DA IA — NUNCA incluir no texto gerado): ${perfilPei.slice(0, 1500)}` : ""}`;
 
     prompt = `Você é um Game Master. Transforme o conteúdo abaixo em uma versão GAMIFICADA para o estudante e a família: linguagem motivadora, missões, recompensas.
 REGRA OBRIGATÓRIA: NUNCA inclua diagnóstico clínico, CID, condições médicas ou qualquer informação de saúde no texto.

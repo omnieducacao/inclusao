@@ -453,7 +453,7 @@ function CriarDoZero({
           tipo_questao: tipoQuestao,
           qtd_imagens: usarImagens ? qtdImagens : 0,
           checklist_adaptacao: Object.keys(checklist).length > 0 ? checklist : undefined,
-          estudante: student ? { nome: student.name, serie: student.grade, hiperfoco: (student.pei_data as Record<string, unknown>)?.hiperfoco } : undefined,
+          estudante: student ? { nome: student.name, serie: student.grade, hiperfoco: (student.pei_data as Record<string, unknown>)?.hiperfoco, perfil: ((student.pei_data as Record<string, unknown>)?.ia_sugestao as string)?.slice(0, 800) || undefined } : undefined,
         }),
       });
       const data = await res.json();
@@ -2440,6 +2440,8 @@ function RoteiroIndividual({
           assunto: assunto.trim() || undefined,
           ano: serieAluno || serie || undefined,
           habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
+          unidade_tematica: unidadeSel || undefined,
+          objeto_conhecimento: objetoSel || undefined,
           engine,
         }),
       });
@@ -2698,6 +2700,8 @@ function DinamicaInclusiva({
           caracteristicas_turma: caracteristicas || undefined,
           ano: serieAluno || serie || undefined,
           habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
+          unidade_tematica: unidadeSel || undefined,
+          objeto_conhecimento: objetoSel || undefined,
           engine,
         }),
       });

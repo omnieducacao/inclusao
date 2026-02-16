@@ -15,6 +15,7 @@ export interface CriarAtividadeParams {
   modo_profundo?: boolean;
   checklist_adaptacao?: Record<string, boolean>;
   hiperfoco?: string;
+  ia_sugestao?: string;
 }
 
 export function criarPromptProfissional(params: CriarAtividadeParams): string {
@@ -29,6 +30,7 @@ export function criarPromptProfissional(params: CriarAtividadeParams): string {
     modo_profundo = false,
     checklist_adaptacao = {},
     hiperfoco = "Geral",
+    ia_sugestao = "",
   } = params;
 
   // Instrução de imagens
@@ -126,7 +128,12 @@ REGRA DE OURO GRAMATICAL (IMPERATIVO):
 - Se houver verbos de Bloom selecionados, CONJUGUE-OS para o IMPERATIVO.
 - O verbo de comando deve vir no início do enunciado, em **NEGRITO E CAIXA ALTA** (Ex: **ANALISE**, **IDENTIFIQUE**).
 
-${instrucao_bloom}${instrucao_habilidades}${instrucoes_checklist}
+${ia_sugestao ? `
+9. PERFIL DO ESTUDANTE (PEI):
+   Considere o seguinte perfil ao elaborar as questões:
+   ${ia_sugestao.slice(0, 800)}
+   Adapte linguagem, complexidade e abordagem de acordo com as necessidades indicadas.
+` : ""}${instrucao_bloom}${instrucao_habilidades}${instrucoes_checklist}
 
 SAÍDA OBRIGATÓRIA:
 [ANÁLISE PEDAGÓGICA]

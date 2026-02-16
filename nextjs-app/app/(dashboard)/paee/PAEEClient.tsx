@@ -408,6 +408,8 @@ function PAEEClientInner({ students, studentId, student }: Props) {
       {activeTab === "articulacao" && (
         <ArticulacaoTab
           student={student}
+          peiData={peiData}
+          diagnosis={diagnosis}
           paeeData={paeeData}
           onUpdate={(data) => {
             setPaeeData(data);
@@ -804,6 +806,7 @@ function JornadaTab({
           nome: student.name,
           serie: student.grade,
           hiperfoco,
+          ia_sugestao: ((peiData.ia_sugestao as string) || "").slice(0, 1500) || undefined,
         },
       };
 
@@ -2499,10 +2502,14 @@ function TecAssistivaTab({
 // Aba: Articulação
 function ArticulacaoTab({
   student,
+  peiData,
+  diagnosis,
   paeeData,
   onUpdate,
 }: {
   student: StudentFull | null;
+  peiData: Record<string, unknown>;
+  diagnosis: string;
   paeeData: Record<string, unknown>;
   onUpdate: (data: Record<string, unknown>) => void;
 }) {
@@ -2557,6 +2564,8 @@ function ArticulacaoTab({
           acoes,
           studentId: student?.id,
           studentName: student?.name || "",
+          contextoPei: ((peiData.ia_sugestao as string) || "").slice(0, 2000) || undefined,
+          diagnosis: diagnosis || undefined,
           feedback: feedbackAjuste || feedback || undefined,
           engine,
         }),
