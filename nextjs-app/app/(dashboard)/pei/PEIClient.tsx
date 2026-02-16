@@ -2810,18 +2810,6 @@ function DashboardTab({
         </div>
       </div>
 
-
-      {/* Jornada Gamificada */}
-      <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-2">Jornada Gamificada (ia_mapa_texto)</label>
-        <textarea
-          value={peiData.ia_mapa_texto || ""}
-          onChange={(e) => updateField("ia_mapa_texto", e.target.value)}
-          rows={8}
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
-        />
-      </div>
-
       {/* ============================================================ */}
       {/* 🤖 INTELIGÊNCIA DO CASO                                      */}
       {/* ============================================================ */}
