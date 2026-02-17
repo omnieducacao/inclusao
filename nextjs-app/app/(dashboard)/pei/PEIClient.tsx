@@ -136,6 +136,8 @@ export function PEIClient({
 
   // Ref para preservar o ID do estudante ao carregar do Supabase (via jsonPending)
   const cloudLoadIdRef = useRef<string | null>(null);
+  // Ref para impedir que o useEffect de fetch re-busque após um load manual (via jsonPending)
+  const skipNextFetchRef = useRef(false);
 
   const currentStudentId = selectedStudentId;
 
@@ -424,6 +426,13 @@ export function PEIClient({
       return;
     }
 
+    // Não re-buscar se acabamos de fazer um load manual (Carregar do Supabase)
+    if (skipNextFetchRef.current) {
+      console.log("useEffect ignorado - skipNextFetchRef ativo (load manual recente)");
+      skipNextFetchRef.current = false;
+      return;
+    }
+
     if (selectedStudentId && selectedStudentId !== studentId) {
       console.log("useEffect executando para selectedStudentId:", selectedStudentId);
       setErroGlobal(null);
@@ -499,6 +508,8 @@ export function PEIClient({
         setPeiData(jsonPending);
         // Se carregamos do Supabase, preservar vínculo; senão (JSON local) limpar
         if (cloudLoadIdRef.current) {
+          // Marcar para pular o próximo fetch — evita que o useEffect re-busque e sobrescreva
+          skipNextFetchRef.current = true;
           setSelectedStudentId(cloudLoadIdRef.current);
           cloudLoadIdRef.current = null;
         } else {
