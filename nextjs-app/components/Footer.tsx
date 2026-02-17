@@ -10,7 +10,7 @@ export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" |
         {/* Esquerda: Logo Omni Educação (imagem oficial) */}
         <div className="flex items-center gap-2">
           <img
-            src="/omni_educacao_logo.png"
+            src="/omni_horizontal.png"
             alt="Omni Educação"
             className="h-8 w-auto object-contain"
             style={{ filter: 'var(--img-dark-invert, none)' }}
