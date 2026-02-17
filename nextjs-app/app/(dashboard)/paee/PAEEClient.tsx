@@ -1169,7 +1169,7 @@ function JornadaTab({
               disabled={loading || !feedback.trim()}
               className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
             >
-              {loading ? "⏳ Reescrevendo..." : "🔄 Regerar com Ajustes"}
+              {loading ? "⏳ Reescrevendo..." : "🔄 Gerar Novamente com Ajustes"}
             </button>
             <button
               type="button"
@@ -1790,7 +1790,7 @@ function MapearBarreirasTab({
                 </>
               ) : (
                 <>
-                  Regerar com Ajustes
+                  Gerar Novamente com Ajustes
                 </>
               )}
             </button>
@@ -2171,7 +2171,7 @@ function PlanoHabilidadesTab({
               disabled={loading || !feedback.trim()}
               className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
             >
-              {loading ? "Aplicando ajustes..." : "🔄 Regerar com Ajustes"}
+              {loading ? "Aplicando ajustes..." : "🔄 Gerar Novamente com Ajustes"}
             </button>
             <button
               type="button"
@@ -2450,7 +2450,7 @@ function TecAssistivaTab({
               disabled={loading || !feedback.trim()}
               className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
             >
-              {loading ? "Aplicando ajustes..." : "🔄 Regerar com Ajustes"}
+              {loading ? "Aplicando ajustes..." : "🔄 Gerar Novamente com Ajustes"}
             </button>
             <button
               type="button"
@@ -2771,7 +2771,7 @@ function ArticulacaoTab({
               disabled={loading || !feedback.trim()}
               className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
             >
-              {loading ? "Aplicando ajustes..." : "🔄 Regerar com Ajustes"}
+              {loading ? "Aplicando ajustes..." : "🔄 Gerar Novamente com Ajustes"}
             </button>
             <button
               type="button"

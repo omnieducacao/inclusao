@@ -3671,7 +3671,7 @@ function ConsultoriaTab({
                       }}
                       className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
                     >
-                      🔁 Regerar do Zero
+                      🔁 Gerar Novamente do Zero
                     </button>
                     <button
                       type="button"
@@ -3688,7 +3688,7 @@ function ConsultoriaTab({
             </>
           )}
 
-          {/* Ajustando: caixa de feedback + regerar */}
+          {/* Ajustando: caixa de feedback + gerar novamente */}
           {statusValidacao === "ajustando" && (
             <>
               <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
@@ -3708,7 +3708,7 @@ function ConsultoriaTab({
                   disabled={loading}
                   className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50 hover:bg-cyan-700 transition-colors"
                 >
-                  {loading ? "Regerando…" : "Regerar com Ajustes"}
+                  {loading ? "Gerando…" : "Gerar Novamente com Ajustes"}
                 </button>
                 <button
                   type="button"
