@@ -190,7 +190,7 @@ function NavSeparator() {
 }
 
 // Dropdown component for navigation items
-function NavDropdown({ label, items, isActive, icon: Icon }: { label: string; items: NavItem[]; isActive: boolean; icon: Icon }) {
+function NavDropdown({ label, items, isActive, icon: Icon, pathname }: { label: string; items: NavItem[]; isActive: boolean; icon: Icon; pathname: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const routeColor = { from: "#F9AB00", to: "#D49300" }; // Cor para Config/Gestão
@@ -274,20 +274,29 @@ function NavDropdown({ label, items, isActive, icon: Icon }: { label: string; it
             const ItemIcon = item.icon;
             const lottieMap = getNavLottieMap();
             const lottieAnimation = lottieMap[item.href];
+            const isCurrentPage = pathname === item.href;
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all block"
+                className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all block rounded-lg mx-2"
                 style={{
-                  color: 'var(--text-primary)',
+                  color: isCurrentPage ? '#4285F4' : 'var(--text-primary)',
+                  backgroundColor: isCurrentPage ? 'rgba(66, 133, 244, 0.1)' : 'transparent',
+                  fontWeight: isCurrentPage ? 600 : 500,
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)';
+                  if (!isCurrentPage) {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.backgroundColor = '';
+                  if (!isCurrentPage) {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = '';
+                  } else {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(66, 133, 244, 0.1)';
+                  }
                 }}
               >
                 {lottieAnimation ? (
@@ -297,16 +306,147 @@ function NavDropdown({ label, items, isActive, icon: Icon }: { label: string; it
                       size={18}
                       loop={false}
                       autoplay={false}
-                      className="opacity-60 grayscale"
+                      className={isCurrentPage ? "opacity-100" : "opacity-60 grayscale"}
                     />
                   </div>
                 ) : ItemIcon ? (
-                  <ItemIcon className="w-[18px] h-[18px] flex-shrink-0 text-slate-400" weight="regular" />
+                  <ItemIcon
+                    className="w-[18px] h-[18px] flex-shrink-0"
+                    style={{ color: isCurrentPage ? '#4285F4' : 'var(--text-muted)' }}
+                    weight={isCurrentPage ? "fill" : "regular"}
+                  />
                 ) : null}
                 <span>{item.label}</span>
+                {isCurrentPage && (
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#4285F4' }} />
+                )}
               </Link>
             );
           })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Profile dropdown component
+function ProfileDropdown({
+  session,
+  initials,
+  onLogout,
+  signOutIcon
+}: {
+  session: SessionPayload;
+  initials: string;
+  onLogout: () => void;
+  signOutIcon?: Icon;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setIsOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsOpen(false);
+    }, 150);
+  };
+
+  return (
+    <div
+      className="relative flex items-center gap-3 flex-shrink-0"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      style={{ zIndex: isOpen ? 100 : 1 }}
+    >
+      {/* Profile trigger button */}
+      <button
+        type="button"
+        className="flex items-center gap-3 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+      >
+        <div className="hidden lg:flex flex-col items-end text-right">
+          <span className="text-[13px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+            {session?.usuario_nome ?? "Admin"}
+          </span>
+          <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
+            {session?.workspace_name ?? "Plataforma"}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md ring-2 ring-white">
+            {initials}
+          </div>
+          <svg
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            style={{ color: 'var(--text-muted)' }}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </button>
+
+      {/* Dropdown menu */}
+      {isOpen && (
+        <div
+          className="absolute top-full right-0 py-2 rounded-xl border min-w-[200px]"
+          style={{
+            backgroundColor: 'var(--bg-primary)',
+            borderColor: 'var(--border-default)',
+            zIndex: 9999,
+            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+            marginTop: '2px',
+          }}
+        >
+          {/* User info */}
+          <div className="px-4 py-2.5 border-b" style={{ borderColor: 'var(--border-default)' }}>
+            <div className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {session?.usuario_nome ?? "Admin"}
+            </div>
+            <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+              {session?.workspace_name ?? "Plataforma"}
+            </div>
+          </div>
+
+          {/* Menu items */}
+          <div className="py-1">
+            <button
+              onClick={onLogout}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all text-left"
+              style={{
+                color: 'var(--text-primary)',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.backgroundColor = '';
+              }}
+            >
+              {signOutIcon && (() => {
+                const SignOutIcon = signOutIcon;
+                return <SignOutIcon className="w-[18px] h-[18px] flex-shrink-0 text-red-500" weight="regular" />;
+              })()}
+              <span>Sair</span>
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -352,7 +492,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
     <header className="glass-strong sticky top-0 z-50" style={{ boxShadow: 'var(--shadow-xs)', borderBottom: '1px solid var(--border-default)', overflow: 'visible' }}>
       <div className="max-w-[1920px] mx-auto px-5" style={{ overflow: 'visible' }}>
         <div className="flex items-center h-[68px]" style={{ overflow: 'visible' }}>
-          <Link href="/" className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group flex-shrink-0 mr-4">
+          <Link href="/" className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group flex-shrink-0">
             <div className="relative">
               <div className="flex items-center justify-center group-hover:scale-105 transition-transform omni-logo-spin">
                 <Image src={isDark ? "/logo-dark.png" : "/omni_icone.png"} alt="Omnisfera" width={36} height={36} className="object-contain" priority />
@@ -406,7 +546,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
           {/* 1️⃣ LOGO - Sempre esquerda, nunca encolhe */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group flex-shrink-0 mr-4"
+            className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group flex-shrink-0"
           >
             <div className="flex items-center gap-2">
               <div className="relative">
@@ -467,6 +607,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
                       items={configDropdownItems}
                       isActive={isConfigDropdownActive}
                       icon={navIcons.Gear}
+                      pathname={pathname}
                     />
                   </div>
                 )}
@@ -512,27 +653,13 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
             <NotificationBell />
           </div>
 
-          {/* 4️⃣ PERFIL + LOGOUT - Extrema direita, elemento final */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="hidden lg:flex flex-col items-end text-right">
-              <span className="text-[13px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>{session?.usuario_nome ?? "Admin"}</span>
-              <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>{session?.workspace_name ?? "Plataforma"}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md ring-2 ring-white">
-                {initials}
-              </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium hover:text-red-500 transition-all"
-                style={{ color: 'var(--text-muted)' }}
-                title="Sair"
-              >
-                {navIcons?.SignOut && <navIcons.SignOut className="w-4 h-4" weight="regular" />}
-                <span className="hidden md:inline">Sair</span>
-              </button>
-            </div>
-          </div>
+          {/* 4️⃣ PERFIL - Extrema direita, elemento final */}
+          <ProfileDropdown
+            session={session}
+            initials={initials}
+            onLogout={handleLogout}
+            signOutIcon={navIcons?.SignOut}
+          />
         </div>
       </div>
     </header>
