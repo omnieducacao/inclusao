@@ -2465,10 +2465,14 @@ function DashboardTab({
       {/* Exportação - Movido para antes dos cards */}
       <div className="mb-6">
         <h4 className="text-base font-semibold text-slate-800 mb-4">📤 Exportação e Sincronização</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
-            <p className="text-xs text-slate-600 mb-2">📄 PDF Oficial</p>
+            <p className="text-xs text-slate-600 mb-2">📄 PDF Dados</p>
             <PeiExportPdfButton peiData={peiData} />
+          </div>
+          <div>
+            <p className="text-xs text-slate-600 mb-2">📋 PDF Oficial (IA)</p>
+            <PeiExportPdfOficialButton peiData={peiData} />
           </div>
           <div>
             <p className="text-xs text-slate-600 mb-2">📝 Word</p>
@@ -3093,6 +3097,59 @@ function PeiExportPdfButton({ peiData }: { peiData: PEIData }) {
         <>
           <Download className="w-4 h-4" />
           Baixar PDF Oficial
+        </>
+      )}
+    </button>
+  );
+}
+
+function PeiExportPdfOficialButton({ peiData }: { peiData: PEIData }) {
+  const [loading, setLoading] = useState(false);
+  async function handleClick() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/pei/gerar-pdf-oficial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ peiData, engine: peiData.consultoria_engine || "red" }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Erro ao gerar documento oficial");
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `PEI_Oficial_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Erro ao gerar PDF oficial:", err);
+      alert(err instanceof Error ? err.message : "Erro ao gerar documento oficial");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+    >
+      {loading ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          IA processando...
+        </>
+      ) : (
+        <>
+          <FileText className="w-4 h-4" />
+          Gerar Documento Oficial
         </>
       )}
     </button>
