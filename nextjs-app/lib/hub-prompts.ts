@@ -900,3 +900,215 @@ REGRAS DO HTML:
 SAÍDA: Apenas o HTML completo. Nenhum texto antes ou depois. Comece com <!DOCTYPE html> e termine com </html>.
 `.trim();
 }
+
+// ==============================================================================
+// CRIAR ITENS AVANÇADO (Padrão INEP/BNI)
+// ==============================================================================
+// Este prompt é mais robusto e gera itens de avaliação com qualidade técnica
+// superior (texto-base obrigatório, distratores com diagnóstico de erro,
+// grade de correção para discursivas). Pode levar mais tempo para gerar.
+// A interface CriarAtividadeParams é reutilizada para manter compatibilidade
+// com a mesma UI do "Criar Questões".
+// ==============================================================================
+
+export function criarPromptItensAvancado(params: CriarAtividadeParams): string {
+  const {
+    materia,
+    objeto,
+    qtd,
+    tipo_q,
+    qtd_imgs,
+    verbos_bloom = [],
+    habilidades_bncc = [],
+    modo_profundo = false,
+    checklist_adaptacao = {},
+    hiperfoco = "Geral",
+    ia_sugestao = "",
+  } = params;
+
+  // ── Instrução de imagens ──
+  const instrucao_img =
+    qtd_imgs > 0
+      ? `Incluir imagens em ${qtd_imgs} questões (use [[GEN_IMG: termo]]). REGRA DE POSIÇÃO: A tag da imagem ([[GEN_IMG: termo]]) DEVE vir logo APÓS o enunciado e ANTES das alternativas.`
+      : "Sem imagens.";
+
+  // ── Instrução de Bloom ──
+  let instrucao_bloom = "";
+  if (verbos_bloom.length > 0) {
+    const lista_verbos = verbos_bloom.join(", ");
+    instrucao_bloom = `
+TAXONOMIA DE BLOOM (RIGOROSO):
+- Utilize OBRIGATORIAMENTE os seguintes verbos de ação: ${lista_verbos}.
+- Distribua esses verbos entre os itens criados.
+- REGRA: O verbo de comando deve vir no início do enunciado, em **NEGRITO E CAIXA ALTA** (Ex: **ANALISE**, **IDENTIFIQUE**).
+- Use apenas UM verbo de comando por item.
+`;
+  }
+
+  // ── Instrução de habilidades BNCC ──
+  let instrucao_habilidades = "";
+  if (habilidades_bncc.length > 0) {
+    const habilidades_str = habilidades_bncc.map((h) => `- ${h}`).join("\n");
+    instrucao_habilidades = `
+HABILIDADES BNCC (RIGOROSO):
+- Alinhe os itens com as seguintes habilidades:
+${habilidades_str}
+- Inclua referências às habilidades nos enunciados quando pertinente.
+`;
+  }
+
+  // ── Checklist de adaptação (PEI) ──
+  let instrucoes_checklist = "";
+  const necessidades_ativas: string[] = [];
+  if (checklist_adaptacao.questoes_desafiadoras) {
+    necessidades_ativas.push("Incluir itens mais desafiadores");
+  } else {
+    necessidades_ativas.push("Manter nível de dificuldade acessível");
+  }
+  if (!checklist_adaptacao.compreende_instrucoes_complexas) {
+    necessidades_ativas.push("Usar instruções simples e diretas");
+  }
+  if (checklist_adaptacao.instrucoes_passo_a_passo) {
+    necessidades_ativas.push("Fornecer instruções passo a passo");
+  }
+  if (checklist_adaptacao.dividir_em_etapas) {
+    necessidades_ativas.push("Dividir em etapas menores");
+  }
+  if (checklist_adaptacao.paragrafos_curtos) {
+    necessidades_ativas.push("Usar parágrafos curtos");
+  }
+  if (checklist_adaptacao.dicas_apoio) {
+    necessidades_ativas.push("Incluir dicas de apoio");
+  }
+  if (!checklist_adaptacao.compreende_figuras_linguagem) {
+    necessidades_ativas.push("Evitar figuras de linguagem complexas");
+  }
+  if (checklist_adaptacao.descricao_imagens) {
+    necessidades_ativas.push("Incluir descrição de imagens quando houver");
+  }
+  if (necessidades_ativas.length > 0) {
+    instrucoes_checklist = `
+ADAPTAÇÕES INDIVIDUAIS (baseado no PEI do estudante):
+${necessidades_ativas.map((n) => `- ${n}`).join("\n")}
+Aplique essas orientações de forma coerente nos itens criados.
+`;
+  }
+
+  // ── Perfil PEI ──
+  const perfil_pei = ia_sugestao
+    ? `
+PERFIL DO ESTUDANTE (PEI — OBRIGATÓRIO CONSIDERAR):
+Considere o seguinte perfil ao elaborar os itens:
+${ia_sugestao.slice(0, 800)}
+Adapte linguagem, complexidade e abordagem de acordo com as necessidades indicadas.
+`
+    : "";
+
+  // ── Bloco específico por tipo ──
+  const style = modo_profundo
+    ? "Atue como uma banca examinadora rigorosa do INEP."
+    : "Atue como especialista sênior em elaboração de itens de avaliação, seguindo as diretrizes do BNI (Banco Nacional de Itens).";
+
+  let bloco_tipo = "";
+
+  if (tipo_q === "Objetiva") {
+    bloco_tipo = `
+FORMATO: ITEM OBJETIVO (MÚLTIPLA ESCOLHA) — REGRAS RIGOROSAS:
+
+1. TEXTO-BASE OBRIGATÓRIO (Situação-Estímulo):
+   - Todo item DEVE iniciar com um texto-base motivador: pode ser um trecho de reportagem, um gráfico descrito, um caso clínico/pedagógico, um cenário real ou uma situação-problema.
+   - REGRA DE OURO: Se o item pode ser respondido SEM ler o texto-base, ele está ERRADO — refaça.
+   - O texto-base NÃO pode ser pretexto; ele deve ser NECESSÁRIO para resolver o item.
+
+2. ENUNCIADO (Comando):
+   - Claro, impessoal, no modo IMPERATIVO.
+   - Apresenta a tarefa de forma objetiva.
+
+3. ALTERNATIVAS (A–E):
+   - Exatamente 5 alternativas com paralelismo sintático e tamanho similar (formato trapezoidal).
+   - Gabarito único e indiscutível.
+   - Os DISTRATORES devem refletir ERROS REAIS de raciocínio, NÃO absurdos óbvios.
+
+4. PROIBIÇÕES ABSOLUTAS:
+   - NUNCA use termos absolutos: "sempre", "nunca", "todo", "apenas", "somente".
+   - NUNCA use: "Todas as anteriores", "Nenhuma das anteriores".
+   - NUNCA use comandos negativos: "Marque a incorreta", "Exceto".
+   - NUNCA crie "pegadinhas" baseadas em detalhes irrelevantes.
+
+5. JUSTIFICATIVA OBRIGATÓRIA (após cada item):
+   Para CADA alternativa, forneça:
+   - **GABARITO (letra X):** Justificativa de por que esta é a resposta correta.
+   - **Distrator A/B/C/D:** Qual erro de raciocínio ou lacuna de competência levaria o aluno a escolher esta alternativa? (diagnóstico de erro)
+`;
+  } else {
+    bloco_tipo = `
+FORMATO: ITEM DISCURSIVO (RESPOSTA LIVRE) — REGRAS RIGOROSAS:
+
+1. SITUAÇÃO-PROBLEMA OBRIGATÓRIA:
+   - Todo item DEVE iniciar com uma situação-problema complexa e contextualizad: caso real, cenário, dados ou trecho.
+   - REGRA DE OURO: Se o item pode ser respondido SEM ler a situação-problema, ele está ERRADO — refaça.
+
+2. ENUNCIADO (Comando):
+   - Use VERBOS DE COMANDO PRECISOS no IMPERATIVO: **ANALISE**, **JUSTIFIQUE**, **PROPONHA**, **COMPARE**, **AVALIE**, **REDIJA**.
+   - NUNCA use verbos vagos como "Comente", "Fale sobre", "Discorra".
+   - Defina EXATAMENTE o que se espera (ex: "Cite dois motivos e explique um impacto").
+   - Se complexo, divida em subitens (a, b, c).
+
+3. LIMITE DE EXTENSÃO:
+   - Cada item deve ser respondível em aproximadamente 15 linhas.
+
+4. PROIBIÇÕES ABSOLUTAS:
+   - NUNCA crie perguntas de "Sim/Não".
+   - NUNCA crie perguntas de memorização simples ("Quem descobriu X?", "Em que ano ocorreu Y?").
+   - NUNCA solicite opinião pessoal subjetiva — o foco é argumentação técnica fundamentada.
+
+5. PADRÃO DE RESPOSTA OBRIGATÓRIO (Grade de Correção):
+   Após CADA item, forneça o ESPELHO DE CORREÇÃO contendo:
+   - Lista dos TÓPICOS ESSENCIAIS que o aluno precisa mencionar.
+   - PONTUAÇÃO atribuída a cada tópico (distribua a nota total).
+   - CAMINHOS ALTERNATIVOS: diferentes formas válidas de responder.
+   - Exemplo de resposta ideal resumida.
+`;
+  }
+
+  return `
+${style}
+
+OBJETIVO: Criar ${qtd} item(ns) de avaliação de alta qualidade técnica sobre ${materia} (${objeto}).
+Tipo: ${tipo_q}.
+
+REGRA FUNDAMENTAL: O item avalia COMPETÊNCIA (capacidade de mobilizar conhecimento para resolver um problema), JAMAIS memorização pura. Todo item deve nascer de uma "encomenda": Competência + Conteúdo.
+
+${bloco_tipo}
+
+REGRA DE OURO GRAMATICAL (IMPERATIVO):
+- TODOS os comandos devem estar no modo IMPERATIVO (Ex: "Cite", "Explique", "Calcule", "Analise").
+- JAMAIS use o infinitivo (Ex: "Citar", "Explicar", "Calcular").
+- O verbo de comando deve vir no início do enunciado, em **NEGRITO E CAIXA ALTA**.
+
+HIPERFOCO DO ESTUDANTE: ${hiperfoco}
+- Incorpore o hiperfoco em aproximadamente 30% dos itens para engajar o estudante.
+${instrucao_bloom}${instrucao_habilidades}${instrucoes_checklist}${perfil_pei}
+IMAGENS: ${instrucao_img} (NUNCA repita a mesma imagem).
+
+CHECKLIST DE QUALIDADE FINAL (aplique antes de entregar CADA item):
+□ O item pode ser respondido sem ler o texto-base/situação-problema? → Se sim, REFAÇA.
+□ Há subjetividade ou polêmica desnecessária? → Se sim, NEUTRALIZE.
+□ O gabarito/padrão de resposta é indiscutível?
+□ Os distratores refletem erros reais de raciocínio? (apenas para objetivas)
+□ A linguagem está adaptada ao perfil PEI do estudante?
+
+SAÍDA OBRIGATÓRIA:
+[ANÁLISE PEDAGÓGICA]
+...análise breve da encomenda, competências avaliadas e alinhamento com o PEI...
+---DIVISOR---
+[ITENS DE AVALIAÇÃO]
+...itens com texto-base, enunciado, alternativas/comando, e justificativas/padrão de resposta...
+
+GABARITO COMPLETO (OBRIGATÓRIO):
+${tipo_q === "Objetiva"
+      ? "Após todos os itens, inclua seção GABARITO com a letra correta + justificativa de cada alternativa (por que certa, por que errada — diagnóstico de erro)."
+      : "Após todos os itens, inclua seção PADRÃO DE RESPOSTA com a grade de correção, tópicos essenciais e pontuação de cada item."
+    }
+`.trim();
+}

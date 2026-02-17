@@ -28,6 +28,7 @@ import {
   ToyBrick,
   BookOpen,
   Loader2,
+  GraduationCap,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -55,7 +56,7 @@ type EstruturaBncc = {
   }>;
 } | null;
 
-type ToolIdEFEM = "adaptar-prova" | "adaptar-atividade" | "criar-zero" | "estudio-visual" | "papo-mestre" | "plano-aula" | "roteiro" | "dinamica";
+type ToolIdEFEM = "adaptar-prova" | "adaptar-atividade" | "criar-zero" | "criar-itens" | "estudio-visual" | "papo-mestre" | "plano-aula" | "roteiro" | "dinamica";
 type ToolIdEI = "criar-experiencia" | "estudio-visual" | "rotina-avd" | "inclusao-brincar";
 type ToolId = ToolIdEFEM | ToolIdEI;
 type EngineId = "red" | "blue" | "green" | "yellow" | "orange";
@@ -63,7 +64,8 @@ type EngineId = "red" | "blue" | "green" | "yellow" | "orange";
 const TOOLS_EF_EM: { id: ToolIdEFEM; icon: LucideIcon; title: string; desc: string }[] = [
   { id: "adaptar-prova", icon: FileText, title: "Adaptar Prova", desc: "Upload DOCX, adaptação com DUA" },
   { id: "adaptar-atividade", icon: ImageIcon, title: "Adaptar Atividade", desc: "Imagem → OCR → IA adapta" },
-  { id: "criar-zero", icon: Sparkles, title: "Criar do Zero", desc: "BNCC + assunto → atividade gerada" },
+  { id: "criar-zero", icon: Sparkles, title: "Criar Questões", desc: "Rápido: BNCC + assunto → questões" },
+  { id: "criar-itens", icon: GraduationCap, title: "Criar Itens", desc: "Avançado: padrão INEP/BNI" },
   { id: "estudio-visual", icon: Palette, title: "Estúdio Visual", desc: "Pictogramas, cenas sociais" },
   { id: "roteiro", icon: FileEdit, title: "Roteiro Individual", desc: "Passo a passo de aula personalizado" },
   { id: "papo-mestre", icon: MessageSquare, title: "Papo de Mestre", desc: "Sugestões de mediação" },
@@ -82,7 +84,8 @@ const TOOLS_EI: { id: ToolIdEI; icon: LucideIcon; title: string; desc: string }[
 const HUB_LOTTIE_MAP: Record<string, string> = {
   "adaptar-prova": "wired-outline-967-questionnaire-hover-pinch",       // questionário/prova
   "adaptar-atividade": "wired-outline-35-edit-hover-circle",            // editar/adaptar
-  "criar-zero": "wired-outline-36-bulb-morph-turn-on",                  // lâmpada/criar do zero
+  "criar-zero": "wired-outline-36-bulb-morph-turn-on",                  // lâmpada/criar questões
+  "criar-itens": "wired-outline-1171-review-document-hover-lineal",     // documento avançado/criar itens
   "estudio-visual": "wired-outline-3077-polaroids-photos-hover-pinch",  // polaroids/estúdio visual
   "roteiro": "wired-outline-1020-rules-book-guideline-hover-flutter",   // guia/roteiro
   "papo-mestre": "wired-outline-981-consultation-hover-conversation-alt", // conversação/papo de mestre
@@ -207,6 +210,10 @@ export function HubClient({ students, studentId, student }: Props) {
         <CriarDoZero student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
       )}
 
+      {activeTool === "criar-itens" && (
+        <CriarItens student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
+      )}
+
       {activeTool === "papo-mestre" && (
         <PapoDeMestre student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
       )}
@@ -246,7 +253,7 @@ export function HubClient({ students, studentId, student }: Props) {
         <DinamicaInclusiva student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
       )}
 
-      {activeTool && !["criar-zero", "criar-experiencia", "papo-mestre", "plano-aula", "adaptar-prova", "adaptar-atividade", "estudio-visual", "roteiro", "dinamica", "rotina-avd", "inclusao-brincar"].includes(activeTool) && (
+      {activeTool && !["criar-zero", "criar-itens", "criar-experiencia", "papo-mestre", "plano-aula", "adaptar-prova", "adaptar-atividade", "estudio-visual", "roteiro", "dinamica", "rotina-avd", "inclusao-brincar"].includes(activeTool) && (
         <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
           <p className="text-slate-600">
             <strong>{TOOLS.find((t) => t.id === activeTool)?.title}</strong> — Em breve nesta versão.
@@ -273,12 +280,18 @@ function CriarDoZero({
   onEngineChange,
   onClose,
   eiMode = false,
+  apiEndpoint = "/api/hub/criar-atividade",
+  label,
+  infoBanner,
 }: {
   student: StudentFull | null;
   engine: EngineId;
   onEngineChange: (e: EngineId) => void;
   onClose: () => void;
   eiMode?: boolean;
+  apiEndpoint?: string;
+  label?: string;
+  infoBanner?: React.ReactNode;
 }) {
   const [serie, setSerie] = useState("");
   const [componentes, setComponentes] = useState<Record<string, { codigo: string; descricao: string }[]>>({});
@@ -437,7 +450,7 @@ function CriarDoZero({
     setValidado(false);
     aiLoadingStart(engine || "green", "hub");
     try {
-      const res = await fetch("/api/hub/criar-atividade", {
+      const res = await fetch(apiEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -592,11 +605,12 @@ function CriarDoZero({
   return (
     <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
       <div className="flex justify-between items-center">
-        <h3 className="font-bold text-slate-800">{eiMode ? "Criar Experiência (EI)" : "Criar do Zero"}</h3>
+        <h3 className="font-bold text-slate-800">{label || (eiMode ? "Criar Experiência (EI)" : "Criar Questões")}</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
           Fechar
         </button>
       </div>
+      {infoBanner && infoBanner}
       <EngineSelector value={engine} onChange={onEngineChange} />
       {!eiMode && estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
         <details className="border border-slate-200 rounded-lg" open>
@@ -944,6 +958,39 @@ function CriarDoZero({
     </div>
   );
 }
+
+// ==============================================================================
+// CRIAR ITENS (Padrão INEP/BNI) — reutiliza a UI do CriarDoZero com prompt avançado
+// ==============================================================================
+function CriarItens({
+  student,
+  engine,
+  onEngineChange,
+  onClose,
+}: {
+  student: StudentFull | null;
+  engine: EngineId;
+  onEngineChange: (e: EngineId) => void;
+  onClose: () => void;
+}) {
+  return (
+    <CriarDoZero
+      student={student}
+      engine={engine}
+      onEngineChange={onEngineChange}
+      onClose={onClose}
+      apiEndpoint="/api/hub/criar-itens"
+      label="Criar Itens (Avançado)"
+      infoBanner={
+        <div className="px-4 py-3 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 text-sm">
+          <GraduationCap className="w-4 h-4 inline mr-2" />
+          <strong>Modo Avançado (INEP/BNI)</strong> — Gera itens com texto-base obrigatório, distratores com diagnóstico de erro e grade de correção para discursivas. Mais completo, porém pode levar mais tempo para gerar.
+        </div>
+      }
+    />
+  );
+}
+
 
 const COMPONENTES = ["Língua Portuguesa", "Matemática", "Arte", "Ciências", "Educação Física", "Geografia", "História", "Língua Inglesa", "Ensino Religioso"];
 

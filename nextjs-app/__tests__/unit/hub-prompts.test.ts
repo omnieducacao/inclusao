@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
     criarPromptProfissional,
+    criarPromptItensAvancado,
     adaptarPromptProva,
     gerarPromptPlanoAula,
     gerarPromptDinamicaInclusiva,
@@ -9,6 +10,63 @@ import {
 } from "@/lib/hub-prompts";
 
 describe("hub-prompts", () => {
+    describe("criarPromptItensAvancado", () => {
+        it("gera prompt Objetiva com diagnóstico de erro", () => {
+            const prompt = criarPromptItensAvancado({
+                materia: "Matemática",
+                objeto: "Frações",
+                qtd: 3,
+                tipo_q: "Objetiva",
+                qtd_imgs: 0,
+            });
+            expect(prompt).toContain("TEXTO-BASE OBRIGATÓRIO");
+            expect(prompt).toContain("diagnóstico de erro");
+            expect(prompt).toContain("CHECKLIST DE QUALIDADE");
+            expect(prompt).toContain("COMPETÊNCIA");
+        });
+
+        it("gera prompt Discursiva com padrão de resposta", () => {
+            const prompt = criarPromptItensAvancado({
+                materia: "Ciências",
+                objeto: "Ecossistemas",
+                qtd: 2,
+                tipo_q: "Discursiva",
+                qtd_imgs: 0,
+            });
+            expect(prompt).toContain("PADRÃO DE RESPOSTA");
+            expect(prompt).toContain("ESPELHO DE CORREÇÃO");
+            expect(prompt).toContain("15 linhas");
+            expect(prompt).toContain("CHECKLIST DE QUALIDADE");
+        });
+
+        it("inclui perfil PEI quando fornecido", () => {
+            const prompt = criarPromptItensAvancado({
+                materia: "Português",
+                objeto: "Leitura",
+                qtd: 3,
+                tipo_q: "Objetiva",
+                qtd_imgs: 0,
+                ia_sugestao: "Estudante com TEA, necessita apoio visual",
+            });
+            expect(prompt).toContain("TEA");
+            expect(prompt).toContain("PERFIL DO ESTUDANTE");
+        });
+
+        it("inclui hiperfoco e habilidades BNCC", () => {
+            const prompt = criarPromptItensAvancado({
+                materia: "Geografia",
+                objeto: "Biomas",
+                qtd: 2,
+                tipo_q: "Objetiva",
+                qtd_imgs: 0,
+                hiperfoco: "dinossauros",
+                habilidades_bncc: ["EF03GE01"],
+            });
+            expect(prompt.toLowerCase()).toContain("dinossauros");
+            expect(prompt).toContain("EF03GE01");
+        });
+    });
+
     describe("criarPromptProfissional", () => {
         it("gera prompt não-vazio", () => {
             const prompt = criarPromptProfissional({
