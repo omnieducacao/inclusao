@@ -2472,10 +2472,17 @@ function DashboardTab({
         </div>
       </div>
 
-      {/* Compliance LBI - Checklist antes de exportar */}
-      <div className="mb-6">
-        <LBIComplianceChecklist peiData={peiData} />
-      </div>
+      {/* Compliance LBI - Checklist retrátil */}
+      <details className="mb-6 rounded-xl border border-slate-200 bg-white overflow-hidden">
+        <summary className="px-4 py-3 cursor-pointer select-none flex items-center gap-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+          <span>📋</span>
+          <span>Checklist Compliance LBI (Lei 13.146/2015)</span>
+          <span className="ml-auto text-xs text-slate-400">clique para expandir</span>
+        </summary>
+        <div className="px-4 pb-4">
+          <LBIComplianceChecklist peiData={peiData} />
+        </div>
+      </details>
 
       {/* Exportação - Movido para antes dos cards */}
       <div className="mb-6">
