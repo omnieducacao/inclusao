@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
@@ -133,6 +133,11 @@ export function PEIClient({
   const [erroGlobal, setErroGlobal] = useState<string | null>(null);
   const [isLoadingRascunho, setIsLoadingRascunho] = useState(false);
   const { markDirty, markClean } = useUnsavedChanges();
+
+  // Ref para preservar o ID do estudante ao carregar do Supabase (via jsonPending)
+  const cloudLoadIdRef = useRef<string | null>(null);
+  // Ref para impedir que o useEffect de fetch re-busque após um load manual (via jsonPending)
+  const skipNextFetchRef = useRef(false);
 
   const currentStudentId = selectedStudentId;
 
@@ -421,6 +426,13 @@ export function PEIClient({
       return;
     }
 
+    // Não re-buscar se acabamos de fazer um load manual (Carregar do Supabase)
+    if (skipNextFetchRef.current) {
+      console.log("useEffect ignorado - skipNextFetchRef ativo (load manual recente)");
+      skipNextFetchRef.current = false;
+      return;
+    }
+
     if (selectedStudentId && selectedStudentId !== studentId) {
       console.log("useEffect executando para selectedStudentId:", selectedStudentId);
       setErroGlobal(null);
@@ -494,7 +506,15 @@ export function PEIClient({
       // Usar setTimeout para garantir que o estado foi atualizado
       setTimeout(() => {
         setPeiData(jsonPending);
-        setSelectedStudentId(null); // JSON local não cria vínculo com nuvem
+        // Se carregamos do Supabase, preservar vínculo; senão (JSON local) limpar
+        if (cloudLoadIdRef.current) {
+          // Marcar para pular o próximo fetch — evita que o useEffect re-busque e sobrescreva
+          skipNextFetchRef.current = true;
+          setSelectedStudentId(cloudLoadIdRef.current);
+          cloudLoadIdRef.current = null;
+        } else {
+          setSelectedStudentId(null); // JSON local não cria vínculo com nuvem
+        }
         setJsonPending(null);
         setJsonFileName("");
         setSaved(false);
@@ -868,28 +888,42 @@ export function PEIClient({
                                 // Pegar o pei_data de qualquer uma das rotas
                                 const peiDataJson = data.pei_data;
                                 console.log("Tem pei_data?", !!peiDataJson);
+                                console.log("Tipo pei_data:", typeof peiDataJson);
+                                console.log("pei_data é array?", Array.isArray(peiDataJson));
+                                console.log("pei_data keys:", peiDataJson && typeof peiDataJson === 'object' ? Object.keys(peiDataJson).length : 'N/A');
+                                console.log("Resposta completa keys:", Object.keys(data));
+                                if (peiDataJson && typeof peiDataJson === 'object') {
+                                  console.log("pei_data primeiros campos:", Object.keys(peiDataJson).slice(0, 15));
+                                }
 
-                                if (peiDataJson && typeof peiDataJson === 'object' && !Array.isArray(peiDataJson)) {
-                                  // Usar a MESMA lógica que funciona para JSON local
-                                  // Colocar em jsonPending e usar aplicarJson()
+                                if (peiDataJson && typeof peiDataJson === 'object' && !Array.isArray(peiDataJson) && Object.keys(peiDataJson).length > 0) {
                                   const campos = Object.keys(peiDataJson);
                                   console.log("✅ JSON encontrado no Supabase com", campos.length, "campos");
                                   console.log("Primeiros campos:", campos.slice(0, 10));
 
-                                  // Criar cópia profunda do JSON (mesmo que FileReader faz)
+                                  // Criar cópia profunda do JSON
                                   const jsonCopiado = JSON.parse(JSON.stringify(peiDataJson)) as PEIData;
 
-                                  // Colocar em jsonPending (mesmo que o upload de arquivo faz)
-                                  // O useEffect vai detectar e aplicar automaticamente
-                                  setJsonPending(jsonCopiado);
-                                  setJsonFileName(`PEI_${studentFromList.name}_do_Supabase.json`);
+                                  // *** CORREÇÃO: Aplicar diretamente em vez de usar jsonPending ***
+                                  // O fluxo jsonPending → useEffect → setTimeout criava race condition
+                                  // com o useEffect de fetch (que dispara ao mudar isLoadingRascunho)
+                                  skipNextFetchRef.current = true;
+                                  setPeiData(jsonCopiado);
+                                  setSelectedStudentId(idToLoad);
 
                                   // Limpar estados de seleção
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setIsLoadingRascunho(false);
+                                  setSaved(false);
+                                  setErroGlobal(null);
 
-                                  console.log("✅ JSON colocado em jsonPending, useEffect vai aplicar automaticamente");
+                                  // Limpar parâmetro student da URL
+                                  const url = new URL(window.location.href);
+                                  url.searchParams.delete("student");
+                                  window.history.pushState({}, "", url.toString());
+
+                                  console.log("✅ PEI carregado diretamente com", campos.length, "campos. StudentId:", idToLoad);
                                 } else {
                                   // Estudante encontrado mas sem pei_data
                                   console.log("⚠️ Estudante encontrado mas sem pei_data no Supabase");
@@ -2445,18 +2479,29 @@ function DashboardTab({
         </div>
       </div>
 
-      {/* Compliance LBI - Checklist antes de exportar */}
-      <div className="mb-6">
-        <LBIComplianceChecklist peiData={peiData} />
-      </div>
+      {/* Compliance LBI - Checklist retrátil */}
+      <details className="mb-6 rounded-xl border border-slate-200 bg-white overflow-hidden">
+        <summary className="px-4 py-3 cursor-pointer select-none flex items-center gap-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+          <span>📋</span>
+          <span>Checklist Compliance LBI (Lei 13.146/2015)</span>
+          <span className="ml-auto text-xs text-slate-400">clique para expandir</span>
+        </summary>
+        <div className="px-4 pb-4">
+          <LBIComplianceChecklist peiData={peiData} />
+        </div>
+      </details>
 
       {/* Exportação - Movido para antes dos cards */}
       <div className="mb-6">
         <h4 className="text-base font-semibold text-slate-800 mb-4">📤 Exportação e Sincronização</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
-            <p className="text-xs text-slate-600 mb-2">📄 PDF Oficial</p>
+            <p className="text-xs text-slate-600 mb-2">📄 PDF Dados</p>
             <PeiExportPdfButton peiData={peiData} />
+          </div>
+          <div>
+            <p className="text-xs text-slate-600 mb-2">📋 PDF Oficial (IA)</p>
+            <PeiExportPdfOficialButton peiData={peiData} />
           </div>
           <div>
             <p className="text-xs text-slate-600 mb-2">📝 Word</p>
@@ -2991,13 +3036,43 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
         <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-emerald-50 to-slate-50 border border-emerald-200">
           <div className="flex justify-between items-center mb-4">
             <h5 className="font-bold text-emerald-800 text-lg">👨‍👩‍👧 Resumo para Família</h5>
-            <button
-              type="button"
-              onClick={() => navigator.clipboard.writeText(resumoTexto)}
-              className="px-3 py-1.5 text-xs bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors"
-            >
-              📋 Copiar
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => navigator.clipboard.writeText(resumoTexto)}
+                className="px-3 py-1.5 text-xs bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors"
+              >
+                📋 Copiar
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const { jsPDF } = await import("jspdf");
+                  const doc = new jsPDF({ unit: "mm", format: "a4" });
+                  const safeText = (s: string) => s.replace(/[^\x00-\xFF\n]/g, (ch) => { const n = ch.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); return n || ""; });
+                  doc.setFontSize(14);
+                  doc.setFont("helvetica", "bold");
+                  doc.text("Resumo para Familia", 20, 20);
+                  doc.setFontSize(10);
+                  doc.setFont("helvetica", "normal");
+                  doc.setTextColor(100, 116, 139);
+                  doc.text(`Estudante: ${safeText(String(peiData.nome || "Estudante"))}  |  ${new Date().toLocaleDateString("pt-BR")}`, 20, 28);
+                  doc.setTextColor(15, 23, 42);
+                  doc.setFontSize(11);
+                  const lines = doc.splitTextToSize(safeText(resumoTexto), 170);
+                  let y = 36;
+                  for (const line of lines) {
+                    if (y > 275) { doc.addPage(); y = 20; }
+                    doc.text(line, 20, y);
+                    y += 5.5;
+                  }
+                  doc.save(`Resumo_Familia_${String(peiData.nome || "Estudante").replace(/\s+/g, "_")}.pdf`);
+                }}
+                className="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              >
+                📥 Baixar PDF
+              </button>
+            </div>
           </div>
           <div className="prose prose-sm prose-emerald max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap">
             {resumoTexto}
@@ -3008,7 +3083,59 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
       {/* ====== RESULTADO: FAQ ====== */}
       {faqData && (
         <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-amber-50 to-slate-50 border border-amber-200">
-          <h5 className="font-bold text-amber-800 text-lg mb-4">❓ FAQ do Caso — {peiData.nome}</h5>
+          <div className="flex justify-between items-center mb-4">
+            <h5 className="font-bold text-amber-800 text-lg">❓ FAQ do Caso — {peiData.nome}</h5>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const txt = faqData.map((f, i) => `${i + 1}. ${f.pergunta}\n${f.resposta}`).join("\n\n");
+                  navigator.clipboard.writeText(txt);
+                }}
+                className="px-3 py-1.5 text-xs bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors"
+              >
+                📋 Copiar
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const { jsPDF } = await import("jspdf");
+                  const doc = new jsPDF({ unit: "mm", format: "a4" });
+                  const safeText = (s: string) => s.replace(/[^\x00-\xFF\n]/g, (ch) => { const n = ch.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); return n || ""; });
+                  doc.setFontSize(14);
+                  doc.setFont("helvetica", "bold");
+                  doc.text("FAQ do Caso", 20, 20);
+                  doc.setFontSize(10);
+                  doc.setFont("helvetica", "normal");
+                  doc.setTextColor(100, 116, 139);
+                  doc.text(`Estudante: ${safeText(String(peiData.nome || "Estudante"))}  |  ${new Date().toLocaleDateString("pt-BR")}`, 20, 28);
+                  doc.setTextColor(15, 23, 42);
+                  let y = 38;
+                  faqData.forEach((f, i) => {
+                    doc.setFontSize(11);
+                    doc.setFont("helvetica", "bold");
+                    const q = doc.splitTextToSize(safeText(`${i + 1}. ${f.pergunta}`), 170);
+                    for (const ql of q) {
+                      if (y > 275) { doc.addPage(); y = 20; }
+                      doc.text(ql, 20, y); y += 5.5;
+                    }
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(10);
+                    const a = doc.splitTextToSize(safeText(f.resposta), 165);
+                    for (const al of a) {
+                      if (y > 275) { doc.addPage(); y = 20; }
+                      doc.text(al, 25, y); y += 5;
+                    }
+                    y += 4;
+                  });
+                  doc.save(`FAQ_${String(peiData.nome || "Estudante").replace(/\s+/g, "_")}.pdf`);
+                }}
+                className="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+              >
+                📥 Baixar PDF
+              </button>
+            </div>
+          </div>
           <div className="space-y-2">
             {faqData.map((item, i) => (
               <div key={i} className="rounded-xl bg-white border border-amber-100 overflow-hidden">
@@ -3081,6 +3208,59 @@ function PeiExportPdfButton({ peiData }: { peiData: PEIData }) {
         <>
           <Download className="w-4 h-4" />
           Baixar PDF Oficial
+        </>
+      )}
+    </button>
+  );
+}
+
+function PeiExportPdfOficialButton({ peiData }: { peiData: PEIData }) {
+  const [loading, setLoading] = useState(false);
+  async function handleClick() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/pei/gerar-pdf-oficial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ peiData, engine: peiData.consultoria_engine || "red" }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Erro ao gerar documento oficial");
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `PEI_Oficial_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Erro ao gerar PDF oficial:", err);
+      alert(err instanceof Error ? err.message : "Erro ao gerar documento oficial");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+    >
+      {loading ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          IA processando...
+        </>
+      ) : (
+        <>
+          <FileText className="w-4 h-4" />
+          Gerar Documento Oficial
         </>
       )}
     </button>
@@ -3491,7 +3671,7 @@ function ConsultoriaTab({
                       }}
                       className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
                     >
-                      🔁 Regerar do Zero
+                      🔁 Gerar Novamente do Zero
                     </button>
                     <button
                       type="button"
@@ -3508,7 +3688,7 @@ function ConsultoriaTab({
             </>
           )}
 
-          {/* Ajustando: caixa de feedback + regerar */}
+          {/* Ajustando: caixa de feedback + gerar novamente */}
           {statusValidacao === "ajustando" && (
             <>
               <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
@@ -3528,7 +3708,7 @@ function ConsultoriaTab({
                   disabled={loading}
                   className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50 hover:bg-cyan-700 transition-colors"
                 >
-                  {loading ? "Regerando…" : "Regerar com Ajustes"}
+                  {loading ? "Gerando…" : "Gerar Novamente com Ajustes"}
                 </button>
                 <button
                   type="button"

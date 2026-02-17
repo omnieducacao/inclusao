@@ -1,24 +1,56 @@
 /**
  * Gera e baixa PDF a partir de texto (client-side).
  * Usado em Hub (Adaptar Prova/Atividade) e PGI.
+ * Suporta formatação inclusiva (OpenDyslexic, 14pt, 1.5x espaçamento, fundo creme).
  */
+
+export interface PdfDownloadOptions {
+  formatoInclusivo?: boolean;
+}
+
 export function downloadPdfFromText(
   text: string,
   filename: string,
-  title?: string
+  title?: string,
+  options?: PdfDownloadOptions
 ): void {
   if (typeof window === "undefined") return;
-  import("jspdf").then(({ jsPDF }) => {
+  const inclusive = options?.formatoInclusivo === true;
+
+  import("jspdf").then(async ({ jsPDF }) => {
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 20;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = inclusive ? 25 : 20;
     const maxWidth = pageWidth - margin * 2;
-    const lineHeight = 6;
-    let y = 20;
+    const lineHeight = inclusive ? 9 : 6;
+    let y = inclusive ? 25 : 20;
+
+    // Se formato inclusivo, registrar OpenDyslexic
+    if (inclusive) {
+      try {
+        const fontModule = await import("@/lib/fonts/opendyslexic-base64");
+        const { OPENDYSLEXIC_REGULAR_BASE64, OPENDYSLEXIC_BOLD_BASE64 } = fontModule;
+
+        doc.addFileToVFS("OpenDyslexic-Regular.otf", OPENDYSLEXIC_REGULAR_BASE64);
+        doc.addFont("OpenDyslexic-Regular.otf", "OpenDyslexic", "normal");
+
+        doc.addFileToVFS("OpenDyslexic-Bold.otf", OPENDYSLEXIC_BOLD_BASE64);
+        doc.addFont("OpenDyslexic-Bold.otf", "OpenDyslexic", "bold");
+      } catch (err) {
+        console.warn("Não foi possível carregar OpenDyslexic, usando Arial:", err);
+      }
+    }
+
+    // Função para desenhar fundo creme em cada página
+    const drawCreamBg = () => {
+      if (inclusive) {
+        doc.setFillColor(253, 246, 227); // #FDF6E3 — creme suave
+        doc.rect(0, 0, pageWidth, pageHeight, "F");
+      }
+    };
 
     // jsPDF Helvetica suporta WinAnsiEncoding (Latin-1, codepoints 0-255).
-    // Preservamos tudo nessa faixa (inclui á, ã, ç, é, ê, ó, õ, ú, etc.)
-    // e mapeamos caracteres fora dela para equivalentes ASCII.
     const safe = (s: string) =>
       s
         .replace(/\u2018|\u2019/g, "'")   // smart quotes → ASCII
@@ -32,20 +64,35 @@ export function downloadPdfFromText(
         .replace(/\r\n/g, "\n")
         .replace(/\r/g, "\n");
 
+    // Primeira página — fundo creme
+    drawCreamBg();
+
+    const fontName = inclusive ? "OpenDyslexic" : "helvetica";
+
     if (title) {
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
+      const titleSize = inclusive ? 18 : 14;
+      doc.setFontSize(titleSize);
+      doc.setFont(fontName, "bold");
+      if (inclusive) doc.setTextColor(33, 37, 41); // #212529
       doc.text(safe(title), margin, y);
       y += lineHeight * 2;
     }
 
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
+    const bodySize = inclusive ? 14 : 10;
+    doc.setFontSize(bodySize);
+    doc.setFont(fontName, "normal");
+    if (inclusive) doc.setTextColor(33, 37, 41);
+
     const lines = doc.splitTextToSize(safe(text || "—"), maxWidth);
     for (const line of lines) {
-      if (y > 270) {
+      const pageBreakY = inclusive ? 260 : 270;
+      if (y > pageBreakY) {
         doc.addPage();
-        y = 20;
+        drawCreamBg();
+        y = inclusive ? 25 : 20;
+        doc.setFontSize(bodySize);
+        doc.setFont(fontName, "normal");
+        if (inclusive) doc.setTextColor(33, 37, 41);
       }
       doc.text(line, margin, y);
       y += lineHeight;

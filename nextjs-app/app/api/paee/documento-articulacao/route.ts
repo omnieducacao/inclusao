@@ -6,25 +6,27 @@ import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-  const { error: authError } = await requireAuth(); if (authError) return authError;
-  try {
-    const parsed = await parseBody(req, paeeDocumentoArticulacaoSchema);
-    if (parsed.error) return parsed.error;
-    const body = parsed.data;
-    const { frequencia, acoes, studentId, studentName, feedback, engine = "red" } = body;
+   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+   const { error: authError } = await requireAuth(); if (authError) return authError;
+   try {
+      const parsed = await parseBody(req, paeeDocumentoArticulacaoSchema);
+      if (parsed.error) return parsed.error;
+      const body = parsed.data;
+      const { frequencia, acoes, studentId, studentName, contextoPei, diagnosis, feedback, engine = "red" } = body;
 
-    if (!acoes || !studentName) {
-      return NextResponse.json({ error: "Ações desenvolvidas e nome do estudante são obrigatórios." }, { status: 400 });
-    }
+      if (!acoes || !studentName) {
+         return NextResponse.json({ error: "Ações desenvolvidas e nome do estudante são obrigatórios." }, { status: 400 });
+      }
 
-    const engineId = (["red", "blue", "green", "yellow", "orange"].includes(engine) ? engine : "red") as EngineId;
+      const engineId = (["red", "blue", "green", "yellow", "orange"].includes(engine) ? engine : "red") as EngineId;
 
-    const prompt = `
+      const prompt = `
     CARTA DE ARTICULAÇÃO (AEE -> SALA REGULAR).
-    Estudante: ${studentName}. 
+    Estudante: ${studentName}.
+    ${diagnosis ? `Diagnóstico: ${diagnosis}.` : ""}
     Frequência no AEE: ${frequencia || "Não informado"}.
     Ações desenvolvidas no AEE: ${acoes}.
+    ${contextoPei ? `\nPERFIL DO ESTUDANTE (PEI):\n${(contextoPei).slice(0, 2000)}\n` : ""}
     ${feedback ? `\nFEEDBACK PARA AJUSTE (revisão do professor): ${feedback}\n` : ""}
     
     ESTRUTURA DO DOCUMENTO:
@@ -67,14 +69,14 @@ export async function POST(req: Request) {
     Formato: Documento formal mas acolhedor, com linguagem clara e objetiva.
     `;
 
-    const resultado = await chatCompletionText(engineId, [{ role: "user", content: prompt }], { temperature: 0.6 });
+      const resultado = await chatCompletionText(engineId, [{ role: "user", content: prompt }], { temperature: 0.6 });
 
-    return NextResponse.json({ documento: resultado });
-  } catch (error) {
-    console.error("Erro ao gerar documento de articulação:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erro ao gerar documento de articulação." },
-      { status: 500 }
-    );
-  }
+      return NextResponse.json({ documento: resultado });
+   } catch (error) {
+      console.error("Erro ao gerar documento de articulação:", error);
+      return NextResponse.json(
+         { error: error instanceof Error ? error.message : "Erro ao gerar documento de articulação." },
+         { status: 500 }
+      );
+   }
 }

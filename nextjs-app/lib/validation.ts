@@ -137,6 +137,8 @@ export const criarAtividadeSchema = z.object({
         nome: z.string().optional(),
         serie: z.string().optional(),
         hiperfoco: z.string().optional(),
+        perfil: z.string().optional(),
+        ia_sugestao: z.string().optional(),
     }).optional(),
     verbos_bloom: z.array(z.string()).optional(),
     qtd_questoes: z.number().int().min(1).max(20).optional(),
@@ -339,6 +341,7 @@ export const hubGerarDocxSchema = z.object({
     titulo: z.string().optional(),
     filename: z.string().optional(),
     mapa_imagens: z.record(z.string(), z.string()).optional(),
+    formato_inclusivo: z.boolean().optional(),
 }).passthrough();
 
 // ==========================================
@@ -374,6 +377,8 @@ export const paeeDocumentoArticulacaoSchema = z.object({
     acoes: nonEmpty,
     studentId: z.string().optional(),
     studentName: nonEmpty,
+    contextoPei: z.string().optional().default(""),
+    diagnosis: z.string().optional().default(""),
     feedback: z.string().optional(),
     engine: engineId,
 });

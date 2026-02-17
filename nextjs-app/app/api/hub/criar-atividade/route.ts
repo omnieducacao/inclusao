@@ -36,6 +36,7 @@ export async function POST(req: Request) {
   const ctxEstudante = estudante.nome
     ? `Estudante: ${estudante.nome}. Série: ${estudante.serie || "-"}. Interesses: ${estudante.hiperfoco || "gerais"}.`
     : "";
+  const perfilPei = estudante.perfil || estudante.ia_sugestao || "";
 
   const habParaPrompt = eiMode ? eiObjetivos : habilidades;
 
@@ -51,6 +52,7 @@ export async function POST(req: Request) {
     modo_profundo: false,
     checklist_adaptacao: checklist,
     hiperfoco: estudante.hiperfoco || "Geral",
+    ia_sugestao: perfilPei,
   });
 
   // Adicionar contexto do estudante se disponível

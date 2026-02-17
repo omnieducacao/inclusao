@@ -14,6 +14,7 @@ export async function POST(req: Request) {
     const titulo = typeof body.titulo === "string" ? body.titulo : "Documento";
     const filename = typeof body.filename === "string" ? body.filename : `Documento_${new Date().toISOString().slice(0, 10)}.docx`;
     const mapaImagens = body.mapa_imagens as Record<string, string> | undefined;
+    const formatoInclusivo = body.formato_inclusivo === true;
 
     let buffer: Buffer;
     if (mapaImagens && typeof mapaImagens === "object" && Object.keys(mapaImagens).length > 0) {
@@ -23,9 +24,9 @@ export async function POST(req: Request) {
           mapa[parseInt(k, 10)] = Buffer.from(v, "base64");
         }
       }
-      buffer = await docxComImagens(texto, titulo, mapa);
+      buffer = await docxComImagens(texto, titulo, mapa, { formatoInclusivo });
     } else {
-      buffer = await textToDocxBuffer(texto, titulo);
+      buffer = await textToDocxBuffer(texto, titulo, { formatoInclusivo });
     }
 
     return new NextResponse(new Uint8Array(buffer), {

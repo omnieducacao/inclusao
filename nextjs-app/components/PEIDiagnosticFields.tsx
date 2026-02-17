@@ -152,8 +152,8 @@ export function DiagnosticConditionalFields({
                                                             onUpdate("detalhes_diagnostico", { ...detalhes, [field.key]: next });
                                                         }}
                                                         className={`px-2.5 py-1 text-xs rounded-full border transition-all ${active
-                                                                ? "bg-sky-100 border-sky-300 text-sky-800 font-semibold"
-                                                                : "bg-white border-slate-200 text-slate-600 hover:border-sky-200"
+                                                            ? "bg-sky-100 border-sky-300 text-sky-800 font-semibold"
+                                                            : "bg-white border-slate-200 text-slate-600 hover:border-sky-200"
                                                             }`}
                                                     >
                                                         {active ? "✓ " : ""}{opt}
@@ -221,7 +221,7 @@ const COMPLIANCE_ITEMS: ComplianceItem[] = [
             return (d.estrategias_acesso?.length || 0) + (d.estrategias_ensino?.length || 0) + (d.estrategias_avaliacao?.length || 0) > 0;
         }, severity: "obrigatorio", ref: "Art. 28 §II LBI"
     },
-    { label: "Habilidades BNCC selecionadas", check: (d) => Array.isArray(d.habilidades_bncc_selecionadas) && d.habilidades_bncc_selecionadas.length > 0, severity: "obrigatorio", ref: "BNCC / Resolução CNE 2/2001" },
+    { label: "Habilidades BNCC ou Objetivos EI selecionados", check: (d) => (Array.isArray(d.habilidades_bncc_selecionadas) && d.habilidades_bncc_selecionadas.length > 0) || (Array.isArray((d as Record<string, unknown>).bncc_ei_objetivos) && ((d as Record<string, unknown>).bncc_ei_objetivos as unknown[]).length > 0), severity: "obrigatorio", ref: "BNCC / Resolução CNE 2/2001" },
     { label: "Rede de apoio (profissionais)", check: (d) => Array.isArray(d.rede_apoio) && d.rede_apoio.length > 0, severity: "recomendado", ref: "Art. 18 LBI" },
     { label: "Potencialidades do estudante", check: (d) => Array.isArray(d.potencias) && d.potencias.length > 0, severity: "recomendado", ref: "Art. 27 LBI" },
     { label: "Monitoramento (status da meta)", check: (d) => Boolean(d.status_meta && d.status_meta !== "Não Iniciado"), severity: "recomendado", ref: "Art. 28 §V LBI" },
@@ -248,8 +248,8 @@ export function LBIComplianceChecklist({ peiData }: { peiData: PEIData }) {
                     Compliance LBI — Checklist de Validação
                 </h4>
                 <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${allObrigatoriosPassed
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-amber-100 text-amber-700"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-amber-100 text-amber-700"
                     }`}>
                     {allObrigatoriosPassed ? "✅ Pronto para exportar" : "⚠️ Campos pendentes"}
                 </span>

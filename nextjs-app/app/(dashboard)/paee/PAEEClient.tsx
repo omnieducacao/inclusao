@@ -408,6 +408,8 @@ function PAEEClientInner({ students, studentId, student }: Props) {
       {activeTab === "articulacao" && (
         <ArticulacaoTab
           student={student}
+          peiData={peiData}
+          diagnosis={diagnosis}
           paeeData={paeeData}
           onUpdate={(data) => {
             setPaeeData(data);
@@ -804,6 +806,7 @@ function JornadaTab({
           nome: student.name,
           serie: student.grade,
           hiperfoco,
+          ia_sugestao: ((peiData.ia_sugestao as string) || "").slice(0, 1500) || undefined,
         },
       };
 
@@ -1166,7 +1169,7 @@ function JornadaTab({
               disabled={loading || !feedback.trim()}
               className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
             >
-              {loading ? "⏳ Reescrevendo..." : "🔄 Regerar com Ajustes"}
+              {loading ? "⏳ Reescrevendo..." : "🔄 Gerar Novamente com Ajustes"}
             </button>
             <button
               type="button"
@@ -1787,7 +1790,7 @@ function MapearBarreirasTab({
                 </>
               ) : (
                 <>
-                  Regerar com Ajustes
+                  Gerar Novamente com Ajustes
                 </>
               )}
             </button>
@@ -2168,7 +2171,7 @@ function PlanoHabilidadesTab({
               disabled={loading || !feedback.trim()}
               className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
             >
-              {loading ? "Aplicando ajustes..." : "🔄 Regerar com Ajustes"}
+              {loading ? "Aplicando ajustes..." : "🔄 Gerar Novamente com Ajustes"}
             </button>
             <button
               type="button"
@@ -2447,7 +2450,7 @@ function TecAssistivaTab({
               disabled={loading || !feedback.trim()}
               className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
             >
-              {loading ? "Aplicando ajustes..." : "🔄 Regerar com Ajustes"}
+              {loading ? "Aplicando ajustes..." : "🔄 Gerar Novamente com Ajustes"}
             </button>
             <button
               type="button"
@@ -2499,10 +2502,14 @@ function TecAssistivaTab({
 // Aba: Articulação
 function ArticulacaoTab({
   student,
+  peiData,
+  diagnosis,
   paeeData,
   onUpdate,
 }: {
   student: StudentFull | null;
+  peiData: Record<string, unknown>;
+  diagnosis: string;
   paeeData: Record<string, unknown>;
   onUpdate: (data: Record<string, unknown>) => void;
 }) {
@@ -2557,6 +2564,8 @@ function ArticulacaoTab({
           acoes,
           studentId: student?.id,
           studentName: student?.name || "",
+          contextoPei: ((peiData.ia_sugestao as string) || "").slice(0, 2000) || undefined,
+          diagnosis: diagnosis || undefined,
           feedback: feedbackAjuste || feedback || undefined,
           engine,
         }),
@@ -2762,7 +2771,7 @@ function ArticulacaoTab({
               disabled={loading || !feedback.trim()}
               className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
             >
-              {loading ? "Aplicando ajustes..." : "🔄 Regerar com Ajustes"}
+              {loading ? "Aplicando ajustes..." : "🔄 Gerar Novamente com Ajustes"}
             </button>
             <button
               type="button"
