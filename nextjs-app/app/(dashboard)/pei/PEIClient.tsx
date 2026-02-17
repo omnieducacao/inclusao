@@ -3022,13 +3022,43 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
         <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-emerald-50 to-slate-50 border border-emerald-200">
           <div className="flex justify-between items-center mb-4">
             <h5 className="font-bold text-emerald-800 text-lg">👨‍👩‍👧 Resumo para Família</h5>
-            <button
-              type="button"
-              onClick={() => navigator.clipboard.writeText(resumoTexto)}
-              className="px-3 py-1.5 text-xs bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors"
-            >
-              📋 Copiar
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => navigator.clipboard.writeText(resumoTexto)}
+                className="px-3 py-1.5 text-xs bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors"
+              >
+                📋 Copiar
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const { jsPDF } = await import("jspdf");
+                  const doc = new jsPDF({ unit: "mm", format: "a4" });
+                  const safeText = (s: string) => s.replace(/[^\x00-\xFF\n]/g, (ch) => { const n = ch.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); return n || ""; });
+                  doc.setFontSize(14);
+                  doc.setFont("helvetica", "bold");
+                  doc.text("Resumo para Familia", 20, 20);
+                  doc.setFontSize(10);
+                  doc.setFont("helvetica", "normal");
+                  doc.setTextColor(100, 116, 139);
+                  doc.text(`Estudante: ${safeText(String(peiData.nome || "Estudante"))}  |  ${new Date().toLocaleDateString("pt-BR")}`, 20, 28);
+                  doc.setTextColor(15, 23, 42);
+                  doc.setFontSize(11);
+                  const lines = doc.splitTextToSize(safeText(resumoTexto), 170);
+                  let y = 36;
+                  for (const line of lines) {
+                    if (y > 275) { doc.addPage(); y = 20; }
+                    doc.text(line, 20, y);
+                    y += 5.5;
+                  }
+                  doc.save(`Resumo_Familia_${String(peiData.nome || "Estudante").replace(/\s+/g, "_")}.pdf`);
+                }}
+                className="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              >
+                📥 Baixar PDF
+              </button>
+            </div>
           </div>
           <div className="prose prose-sm prose-emerald max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap">
             {resumoTexto}
@@ -3039,7 +3069,59 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
       {/* ====== RESULTADO: FAQ ====== */}
       {faqData && (
         <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-amber-50 to-slate-50 border border-amber-200">
-          <h5 className="font-bold text-amber-800 text-lg mb-4">❓ FAQ do Caso — {peiData.nome}</h5>
+          <div className="flex justify-between items-center mb-4">
+            <h5 className="font-bold text-amber-800 text-lg">❓ FAQ do Caso — {peiData.nome}</h5>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const txt = faqData.map((f, i) => `${i + 1}. ${f.pergunta}\n${f.resposta}`).join("\n\n");
+                  navigator.clipboard.writeText(txt);
+                }}
+                className="px-3 py-1.5 text-xs bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors"
+              >
+                📋 Copiar
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const { jsPDF } = await import("jspdf");
+                  const doc = new jsPDF({ unit: "mm", format: "a4" });
+                  const safeText = (s: string) => s.replace(/[^\x00-\xFF\n]/g, (ch) => { const n = ch.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); return n || ""; });
+                  doc.setFontSize(14);
+                  doc.setFont("helvetica", "bold");
+                  doc.text("FAQ do Caso", 20, 20);
+                  doc.setFontSize(10);
+                  doc.setFont("helvetica", "normal");
+                  doc.setTextColor(100, 116, 139);
+                  doc.text(`Estudante: ${safeText(String(peiData.nome || "Estudante"))}  |  ${new Date().toLocaleDateString("pt-BR")}`, 20, 28);
+                  doc.setTextColor(15, 23, 42);
+                  let y = 38;
+                  faqData.forEach((f, i) => {
+                    doc.setFontSize(11);
+                    doc.setFont("helvetica", "bold");
+                    const q = doc.splitTextToSize(safeText(`${i + 1}. ${f.pergunta}`), 170);
+                    for (const ql of q) {
+                      if (y > 275) { doc.addPage(); y = 20; }
+                      doc.text(ql, 20, y); y += 5.5;
+                    }
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(10);
+                    const a = doc.splitTextToSize(safeText(f.resposta), 165);
+                    for (const al of a) {
+                      if (y > 275) { doc.addPage(); y = 20; }
+                      doc.text(al, 25, y); y += 5;
+                    }
+                    y += 4;
+                  });
+                  doc.save(`FAQ_${String(peiData.nome || "Estudante").replace(/\s+/g, "_")}.pdf`);
+                }}
+                className="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+              >
+                📥 Baixar PDF
+              </button>
+            </div>
+          </div>
           <div className="space-y-2">
             {faqData.map((item, i) => (
               <div key={i} className="rounded-xl bg-white border border-amber-100 overflow-hidden">
