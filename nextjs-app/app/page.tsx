@@ -8,6 +8,7 @@ import { WelcomeHero } from "@/components/WelcomeHero";
 import { TermsOfUseModal } from "@/components/TermsOfUseModal";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { SimulationBanner } from "@/components/SimulationBanner";
+import { OmniEducacaoSignature } from "@/components/Footer";
 
 export default async function RootPage() {
   const session = await getSession();
@@ -227,25 +228,7 @@ export default async function RootPage() {
 
           <footer className="rounded-2xl overflow-hidden" style={{ boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border-default)' }}>
             <div className="px-6 py-5" style={{ background: 'linear-gradient(to right, var(--bg-secondary), var(--bg-tertiary))', borderTop: '1px solid var(--border-default)' }}>
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center opacity-40">
-                    <span className="text-white text-[9px] font-bold">O</span>
-                  </div>
-                  <p className="body-caption">
-                    <strong className="text-slate-600 font-semibold">Omnisfera</strong>
-                    <span className="mx-1.5 text-slate-300">·</span>
-                    Plataforma de inclusão educacional
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="body-caption">Decretos 12.686/2025 e 12.773/2025</span>
-                  <span className="text-slate-300">·</span>
-                  <span className="body-caption">Alinhada à BNCC</span>
-                  <span className="text-slate-300">·</span>
-                  <span className="body-caption text-slate-400">v2.0</span>
-                </div>
-              </div>
+              <OmniEducacaoSignature variant="compact" />
             </div>
           </footer>
         </div>

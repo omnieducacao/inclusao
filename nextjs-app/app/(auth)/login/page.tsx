@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { OmniEducacaoSignature } from "@/components/Footer";
 
 /* ═══════════════════════════════════════════════════
    Floating Particle — decorative circle
@@ -323,10 +324,10 @@ function LoginForm() {
               </button>
             </div>
 
-            {/* Footer */}
-            <p className="text-center text-xs mt-1.5 font-medium tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              © {new Date().getFullYear()} Omnisfera — Inclusão Educacional
-            </p>
+            {/* Footer — Omni Educação + OmniProf */}
+            <div className="mt-6">
+              <OmniEducacaoSignature variant="compact" />
+            </div>
           </div>
         </div>
       </div>
