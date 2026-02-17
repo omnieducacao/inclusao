@@ -9,6 +9,7 @@ import { getSupabase } from "@/lib/supabase";
  * - Students without Diário entries in X days
  * - PAEE cycles expiring soon
  * - PEI not reviewed in X months
+ * - Active announcements (as notifications, not modal)
  */
 export async function GET() {
     try {
@@ -23,7 +24,13 @@ export async function GET() {
 
         const sb = getSupabase();
         const workspaceId = session.workspace_id;
+        const userEmail = session.usuario_nome;
         const notifications: { id: string; type: string; title: string; description: string; severity: "info" | "warning" | "alert"; studentId?: string; studentName?: string }[] = [];
+
+        // If no user email, return empty (shouldn't happen for logged-in user)
+        if (!userEmail) {
+            return NextResponse.json({ notifications: [], total: 0 });
+        }
 
         // 1. Students without recent Diário entries (> 14 days)
         const { data: students } = await sb
@@ -92,6 +99,67 @@ export async function GET() {
                         });
                     }
                 }
+            }
+        }
+
+        // 3. Announcements (já visualizados como modal, então aparecem aqui como notificações)
+        const { data: configData } = await sb
+            .from("platform_config")
+            .select("value")
+            .eq("key", "announcements")
+            .maybeSingle();
+
+        if (configData?.value) {
+            try {
+                const announcements = JSON.parse(configData.value);
+                const now = new Date().toISOString();
+
+                // Get already viewed announcements
+                const { data: viewedData } = await sb
+                    .from("announcement_views")
+                    .select("announcement_id, shown_as_modal, dismissed")
+                    .eq("workspace_id", workspaceId)
+                    .eq("user_email", userEmail);
+
+                const viewedMap = new Map<string, { shown_as_modal: boolean; dismissed: boolean }>();
+                viewedData?.forEach((v) => {
+                    viewedMap.set(v.announcement_id, {
+                        shown_as_modal: v.shown_as_modal,
+                        dismissed: v.dismissed || false
+                    });
+                });
+
+                for (const ann of announcements) {
+                    const viewInfo = viewedMap.get(ann.id);
+                    // Only show as notification if:
+                    // - Active
+                    // - Not expired
+                    // - Target matches (all or workspace)
+                    // - Already viewed as modal (so now show in notifications)
+                    // - NOT dismissed
+                    if (
+                        ann.active &&
+                        (ann.target === "all" || ann.target === workspaceId) &&
+                        (!ann.expires_at || ann.expires_at > now) &&
+                        viewInfo?.shown_as_modal === true &&
+                        viewInfo?.dismissed !== true
+                    ) {
+                        const severityMap: Record<string, "info" | "warning" | "alert"> = {
+                            info: "info",
+                            warning: "warning",
+                            alert: "alert",
+                        };
+                        notifications.push({
+                            id: `announcement-${ann.id}`,
+                            type: "announcement",
+                            title: ann.title,
+                            description: ann.message,
+                            severity: severityMap[ann.type] || "info",
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Error parsing announcements:", err);
             }
         }
 

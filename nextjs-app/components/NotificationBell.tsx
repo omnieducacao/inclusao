@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Bell, X, AlertTriangle, Info, AlertCircle, ExternalLink } from "lucide-react";
+import { Bell, X, AlertTriangle, Info, AlertCircle, ExternalLink, Megaphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type Notification = {
@@ -14,6 +14,13 @@ type Notification = {
     studentName?: string;
 };
 
+type Announcement = {
+    id: string;
+    title: string;
+    message: string;
+    type: "info" | "warning" | "alert";
+};
+
 /**
  * NotificationBell — shows a bell icon with a badge count.
  * Fetches notifications on hover/click from /api/notifications.
@@ -24,6 +31,7 @@ export function NotificationBell() {
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
     const [fetched, setFetched] = useState(false);
+    const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
     const ref = useRef<HTMLDivElement>(null);
     const router = useRouter();
 
@@ -62,6 +70,50 @@ export function NotificationBell() {
         setOpen((prev) => !prev);
     };
 
+    const handleDismiss = async (notificationId: string) => {
+        try {
+            // Optimistically remove from UI
+            setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+            setTotal((prev) => Math.max(0, prev - 1));
+
+            // If it's an announcement, mark as dismissed in backend
+            if (notificationId.startsWith("announcement-")) {
+                await fetch("/api/notifications/dismiss", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ notificationId }),
+                });
+            }
+        } catch (err) {
+            console.error("Error dismissing notification:", err);
+        }
+    };
+
+    const handleAnnouncementClick = async (notificationId: string) => {
+        if (!notificationId.startsWith("announcement-")) return;
+
+        // Fetch announcement details from backend
+        const announcementId = notificationId.replace("announcement-", "");
+        try {
+            const res = await fetch("/api/admin/announcements");
+            if (res.ok) {
+                const data = await res.json();
+                const announcement = data.announcements?.find((a: any) => a.id === announcementId);
+                if (announcement) {
+                    setSelectedAnnouncement({
+                        id: announcement.id,
+                        title: announcement.title,
+                        message: announcement.message,
+                        type: announcement.type || "info"
+                    });
+                    setOpen(false);
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching announcement:", err);
+        }
+    };
+
     const getSeverityIcon = (severity: string) => {
         switch (severity) {
             case "alert":
@@ -82,6 +134,33 @@ export function NotificationBell() {
             default:
                 return "bg-blue-50 border-blue-100";
         }
+    };
+
+    const getAnnouncementConfig = (type: "info" | "warning" | "alert") => {
+        const configs = {
+            info: {
+                bg: "bg-blue-50",
+                border: "border-blue-200",
+                text: "text-blue-900",
+                icon: <Info className="w-6 h-6 text-blue-600" />,
+                buttonBg: "bg-blue-600 hover:bg-blue-700",
+            },
+            warning: {
+                bg: "bg-amber-50",
+                border: "border-amber-200",
+                text: "text-amber-900",
+                icon: <AlertTriangle className="w-6 h-6 text-amber-600" />,
+                buttonBg: "bg-amber-600 hover:bg-amber-700",
+            },
+            alert: {
+                bg: "bg-red-50",
+                border: "border-red-200",
+                text: "text-red-900",
+                icon: <AlertCircle className="w-6 h-6 text-red-600" />,
+                buttonBg: "bg-red-600 hover:bg-red-700",
+            },
+        };
+        return configs[type] || configs.info;
     };
 
     return (
@@ -146,12 +225,17 @@ export function NotificationBell() {
                             notifications.map((n) => (
                                 <div
                                     key={n.id}
-                                    className={`px-4 py-3 border-b border-slate-50 hover:bg-slate-25 transition-colors ${getSeverityBg(n.severity)} border-l-4`}
+                                    className={`px-4 py-3 border-b border-slate-50 hover:bg-slate-25 transition-colors ${getSeverityBg(n.severity)} border-l-4 relative group`}
                                 >
                                     <div className="flex items-start gap-2.5">
                                         {getSeverityIcon(n.severity)}
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-xs font-bold mb-0.5" style={{ color: 'var(--text-primary)' }}>
+                                            <div
+                                                className={`text-xs font-bold mb-0.5 ${n.type === "announcement" ? "cursor-pointer hover:underline flex items-center gap-1.5" : ""}`}
+                                                style={{ color: 'var(--text-primary)' }}
+                                                onClick={() => n.type === "announcement" && handleAnnouncementClick(n.id)}
+                                            >
+                                                {n.type === "announcement" && <Megaphone className="w-3.5 h-3.5" />}
                                                 {n.title}
                                             </div>
                                             <div className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
@@ -175,9 +259,58 @@ export function NotificationBell() {
                                                 </button>
                                             )}
                                         </div>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDismiss(n.id);
+                                            }}
+                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-200 rounded"
+                                            title="Dispensar notificação"
+                                        >
+                                            <X className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+                                        </button>
                                     </div>
                                 </div>
                             ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Announcement Modal */}
+            {selectedAnnouncement && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+                        {/* Header */}
+                        <div className={`${getAnnouncementConfig(selectedAnnouncement.type).bg} ${getAnnouncementConfig(selectedAnnouncement.type).border} border-b px-6 py-4 flex items-center gap-3`}>
+                            <div>{getAnnouncementConfig(selectedAnnouncement.type).icon}</div>
+                            <h2 className={`font-semibold text-lg flex-1 ${getAnnouncementConfig(selectedAnnouncement.type).text}`}>
+                                {selectedAnnouncement.title}
+                            </h2>
+                            <button
+                                onClick={() => setSelectedAnnouncement(null)}
+                                className={`${getAnnouncementConfig(selectedAnnouncement.type).text} opacity-60 hover:opacity-100 transition-opacity`}
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-6">
+                            <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                                {selectedAnnouncement.message}
+                            </p>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="bg-slate-50 px-6 py-4 flex justify-end">
+                            <button
+                                onClick={() => setSelectedAnnouncement(null)}
+                                className={`${getAnnouncementConfig(selectedAnnouncement.type).buttonBg} text-white px-6 py-2 rounded-lg font-medium transition-colors`}
+                            >
+                                Fechar
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

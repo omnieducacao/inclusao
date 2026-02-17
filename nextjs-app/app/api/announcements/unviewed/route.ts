@@ -1,0 +1,72 @@
+import { NextResponse } from "next/server";
+import { getSession } from "@/lib/session";
+import { getSupabase } from "@/lib/supabase";
+
+/**
+ * GET /api/announcements/unviewed
+ * Returns announcements that the current user hasn't viewed yet
+ */
+export async function GET() {
+    try {
+        const session = await getSession();
+        if (!session) {
+            return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+        }
+
+        const sb = getSupabase();
+        const workspaceId = session.workspace_id;
+        const userEmail = session.usuario_nome; // Used as identifier
+
+        // Platform admins don't have workspace context
+        if (session.is_platform_admin || !workspaceId || !userEmail) {
+            return NextResponse.json({ announcements: [] });
+        }
+
+        // Get all active announcements from platform_config
+        const { data: configData } = await sb
+            .from("platform_config")
+            .select("value")
+            .eq("key", "announcements")
+            .maybeSingle();
+
+        if (!configData?.value) {
+            return NextResponse.json({ announcements: [] });
+        }
+
+        let allAnnouncements: any[] = [];
+        try {
+            allAnnouncements = JSON.parse(configData.value);
+        } catch {
+            return NextResponse.json({ announcements: [] });
+        }
+
+        const now = new Date().toISOString();
+
+        // Filter to active, non-expired, relevant announcements
+        const relevantAnnouncements = allAnnouncements.filter(
+            (a: any) =>
+                a.active &&
+                (a.target === "all" || a.target === workspaceId) &&
+                (!a.expires_at || a.expires_at > now)
+        );
+
+        // Get already viewed announcements for this user
+        const { data: viewedData } = await sb
+            .from("announcement_views")
+            .select("announcement_id")
+            .eq("workspace_id", workspaceId)
+            .eq("user_email", userEmail);
+
+        const viewedIds = new Set(viewedData?.map((v) => v.announcement_id) || []);
+
+        // Return unviewed announcements
+        const unviewedAnnouncements = relevantAnnouncements.filter(
+            (a: any) => !viewedIds.has(a.id)
+        );
+
+        return NextResponse.json({ announcements: unviewedAnnouncements });
+    } catch (err) {
+        console.error("Unviewed announcements error:", err);
+        return NextResponse.json({ error: "Erro ao buscar avisos." }, { status: 500 });
+    }
+}

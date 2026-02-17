@@ -5,6 +5,7 @@ import { AIEnginesBadge } from "@/components/AIEnginesBadge";
 import { Footer } from "@/components/Footer";
 import { AILoadingWrapper } from "@/components/AILoadingWrapper";
 import { SimulationBanner } from "@/components/SimulationBanner";
+import { AnnouncementModal } from "@/components/AnnouncementModal";
 
 export default async function DashboardLayout({
   children,
@@ -31,6 +32,7 @@ export default async function DashboardLayout({
           <Footer />
         </div>
         <AIEnginesBadge />
+        <AnnouncementModal />
       </div>
     </AILoadingWrapper>
   );
