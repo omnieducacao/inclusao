@@ -85,7 +85,7 @@ const HUB_LOTTIE_MAP: Record<string, string> = {
   "adaptar-prova": "wired-outline-967-questionnaire-hover-pinch",       // questionário/prova
   "adaptar-atividade": "wired-outline-35-edit-hover-circle",            // editar/adaptar
   "criar-zero": "wired-outline-36-bulb-morph-turn-on",                  // lâmpada/criar questões
-  "criar-itens": "wired-outline-1171-review-document-hover-lineal",     // documento avançado/criar itens
+  "criar-itens": "wired-outline-406-study-graduation-hover-pinch",     // graduação/itens avançados
   "estudio-visual": "wired-outline-3077-polaroids-photos-hover-pinch",  // polaroids/estúdio visual
   "roteiro": "wired-outline-1020-rules-book-guideline-hover-flutter",   // guia/roteiro
   "papo-mestre": "wired-outline-981-consultation-hover-conversation-alt", // conversação/papo de mestre
