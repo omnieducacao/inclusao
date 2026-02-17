@@ -341,6 +341,7 @@ export const hubGerarDocxSchema = z.object({
     titulo: z.string().optional(),
     filename: z.string().optional(),
     mapa_imagens: z.record(z.string(), z.string()).optional(),
+    formato_inclusivo: z.boolean().optional(),
 }).passthrough();
 
 // ==========================================

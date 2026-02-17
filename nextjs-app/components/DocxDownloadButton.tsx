@@ -6,11 +6,13 @@ type Props = {
   filename: string;
   /** Mapa de número da questão -> base64 da imagem. Usado para DOCX com imagens. */
   mapaImagens?: Record<number, string>;
+  /** Quando true, aplica formatação inclusiva (OpenDyslexic, 14pt, 1.5x espaçamento). */
+  formatoInclusivo?: boolean;
   className?: string;
   children?: React.ReactNode;
 };
 
-export function DocxDownloadButton({ texto, titulo, filename, mapaImagens, className, children }: Props) {
+export function DocxDownloadButton({ texto, titulo, filename, mapaImagens, formatoInclusivo, className, children }: Props) {
   async function handleClick() {
     try {
       const body: Record<string, unknown> = { texto, titulo, filename };
@@ -20,6 +22,9 @@ export function DocxDownloadButton({ texto, titulo, filename, mapaImagens, class
           if (v) mapa[k] = v;
         }
         body.mapa_imagens = mapa;
+      }
+      if (formatoInclusivo) {
+        body.formato_inclusivo = true;
       }
       const res = await fetch("/api/hub/gerar-docx", {
         method: "POST",

@@ -321,6 +321,7 @@ function CriarDoZero({
   const [mapaImagensResultado, setMapaImagensResultado] = useState<Record<number, string>>({});
   const [erro, setErro] = useState<string | null>(null);
   const [validado, setValidado] = useState(false);
+  const [formatoInclusivo, setFormatoInclusivo] = useState(false);
 
   const serieAluno = student?.grade || "";
   const peiData = student?.pei_data || {};
@@ -941,14 +942,24 @@ function CriarDoZero({
           <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Atividade Criada</span>
-              <span className="flex gap-2">
+              <span className="flex gap-2 items-center">
+                <label className="flex items-center gap-1.5 text-xs text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-200 cursor-pointer hover:bg-indigo-100 transition-colors" title="Exporta com fonte OpenDyslexic, tamanho 14pt, espaçamento 1.5x e fundo creme (PDF)">
+                  <input
+                    type="checkbox"
+                    checked={formatoInclusivo}
+                    onChange={(e) => setFormatoInclusivo(e.target.checked)}
+                    className="accent-indigo-600"
+                  />
+                  ♿ Formato Inclusivo
+                </label>
                 <DocxDownloadButton
                   texto={resultado}
                   titulo="Atividade Criada"
                   filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`}
                   mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
+                  formatoInclusivo={formatoInclusivo}
                 />
-                <PdfDownloadButton text={resultado} filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Atividade Criada" />
+                <PdfDownloadButton text={resultado} filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Atividade Criada" formatoInclusivo={formatoInclusivo} />
               </span>
             </div>
             <FormattedTextDisplay texto={resultado} mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined} />
@@ -1937,6 +1948,7 @@ function AdaptarProva({
   const [erro, setErro] = useState<string | null>(null);
   const [validado, setValidado] = useState(false);
   const [refazendo, setRefazendo] = useState(false);
+  const [formatoInclusivo, setFormatoInclusivo] = useState(false);
 
   const peiData = student?.pei_data || {};
   const serieAluno = student?.grade || "";
@@ -2373,17 +2385,28 @@ function AdaptarProva({
           <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Prova Adaptada (DUA)</span>
-              <span className="flex gap-2">
+              <span className="flex gap-2 items-center">
+                <label className="flex items-center gap-1.5 text-xs text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-200 cursor-pointer hover:bg-indigo-100 transition-colors" title="Exporta com fonte OpenDyslexic, tamanho 14pt, espaçamento 1.5x e fundo creme (PDF)">
+                  <input
+                    type="checkbox"
+                    checked={formatoInclusivo}
+                    onChange={(e) => setFormatoInclusivo(e.target.checked)}
+                    className="accent-indigo-600"
+                  />
+                  ♿ Formato Inclusivo
+                </label>
                 <DocxDownloadButton
                   texto={`${resultado.analise}\n\n---\n\n${textoComImagensParaDocx}`}
                   titulo="Prova Adaptada (DUA)"
                   filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.docx`}
                   mapaImagens={Object.keys(mapaImagensParaDocx).length > 0 ? mapaImagensParaDocx : undefined}
+                  formatoInclusivo={formatoInclusivo}
                 />
                 <PdfDownloadButton
                   text={`${resultado.analise}\n\n---\n\n${textoComImagensParaDocx}`}
                   filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.pdf`}
                   title="Prova Adaptada (DUA)"
+                  formatoInclusivo={formatoInclusivo}
                 />
               </span>
             </div>
@@ -3170,6 +3193,7 @@ function AdaptarAtividade({
   const [validado, setValidado] = useState(false);
   const [refazendo, setRefazendo] = useState(false);
   const [mapaImagensAdaptar, setMapaImagensAdaptar] = useState<Record<number, string>>({});
+  const [formatoInclusivo, setFormatoInclusivo] = useState(false);
 
   const peiData = student?.pei_data || {};
   const serieAluno = student?.grade || "";
@@ -3696,17 +3720,28 @@ function AdaptarAtividade({
           <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Atividade Adaptada (DUA)</span>
-              <span className="flex gap-2">
+              <span className="flex gap-2 items-center">
+                <label className="flex items-center gap-1.5 text-xs text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-200 cursor-pointer hover:bg-indigo-100 transition-colors" title="Exporta com fonte OpenDyslexic, tamanho 14pt, espaçamento 1.5x e fundo creme (PDF)">
+                  <input
+                    type="checkbox"
+                    checked={formatoInclusivo}
+                    onChange={(e) => setFormatoInclusivo(e.target.checked)}
+                    className="accent-indigo-600"
+                  />
+                  ♿ Formato Inclusivo
+                </label>
                 <DocxDownloadButton
                   texto={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
                   titulo="Atividade Adaptada (DUA)"
                   filename={`Atividade_Adaptada_${new Date().toISOString().slice(0, 10)}.docx`}
                   mapaImagens={Object.keys(mapaImagensAdaptar).length > 0 ? mapaImagensAdaptar : undefined}
+                  formatoInclusivo={formatoInclusivo}
                 />
                 <PdfDownloadButton
                   text={`${resultado.analise}\n\n---\n\n${resultado.texto}`}
                   filename={`Atividade_${new Date().toISOString().slice(0, 10)}.pdf`}
                   title="Atividade Adaptada (DUA)"
+                  formatoInclusivo={formatoInclusivo}
                 />
               </span>
             </div>
