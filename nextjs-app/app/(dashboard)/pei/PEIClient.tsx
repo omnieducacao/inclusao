@@ -888,8 +888,15 @@ export function PEIClient({
                                 // Pegar o pei_data de qualquer uma das rotas
                                 const peiDataJson = data.pei_data;
                                 console.log("Tem pei_data?", !!peiDataJson);
+                                console.log("Tipo pei_data:", typeof peiDataJson);
+                                console.log("pei_data é array?", Array.isArray(peiDataJson));
+                                console.log("pei_data keys:", peiDataJson && typeof peiDataJson === 'object' ? Object.keys(peiDataJson).length : 'N/A');
+                                console.log("Resposta completa keys:", Object.keys(data));
+                                if (peiDataJson && typeof peiDataJson === 'object') {
+                                  console.log("pei_data primeiros campos:", Object.keys(peiDataJson).slice(0, 15));
+                                }
 
-                                if (peiDataJson && typeof peiDataJson === 'object' && !Array.isArray(peiDataJson)) {
+                                if (peiDataJson && typeof peiDataJson === 'object' && !Array.isArray(peiDataJson) && Object.keys(peiDataJson).length > 0) {
                                   const campos = Object.keys(peiDataJson);
                                   console.log("✅ JSON encontrado no Supabase com", campos.length, "campos");
                                   console.log("Primeiros campos:", campos.slice(0, 10));
