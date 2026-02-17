@@ -5,51 +5,44 @@
 export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" | "compact" }) {
   return (
     <div className={`flex flex-col ${variant === "full" ? "gap-4" : "gap-3"}`}>
-      {/* Linha principal: Omni Educação (esquerda) + OmniProf (direita) */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-        {/* Esquerda: Logo Omni Educação (imagem oficial) */}
-        <div className="flex items-center gap-2">
-          <img
-            src="/omni_horizontal.png"
-            alt="Omni Educação"
-            className="h-8 w-auto object-contain"
-            style={{ filter: 'var(--img-dark-invert, none)' }}
-          />
-          {variant === "full" && (
-            <span className="text-[10px] mx-1" style={{ color: 'var(--text-muted, #94a3b8)' }}>
-              — todos os direitos reservados
-            </span>
-          )}
-        </div>
+      {/* Logos lado a lado: Omni Educação + "Conheça também" + OmniProf */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+        {/* Omni Educação logo */}
+        <img
+          src="/omni_horizontal.png"
+          alt="Omni Educação"
+          className="h-8 w-auto object-contain"
+          style={{ filter: 'var(--img-dark-invert, none)' }}
+        />
 
-        {/* Direita: OmniProf */}
-        <a
-          href="https://omniprof.net"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 hover:scale-[1.03] group"
-          style={{
-            background: 'linear-gradient(135deg, rgba(30, 58, 95, 0.9), rgba(37, 99, 180, 0.9))',
-            boxShadow: '0 1px 4px rgba(37, 99, 180, 0.15)',
-          }}
-        >
-          <span className="text-white/80 text-[10px] font-medium">
+        {/* Separador + "Conheça também" + OmniProf logo */}
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:inline text-[10px] font-medium" style={{ color: 'var(--text-muted, #94a3b8)' }}>
             Conheça também
           </span>
-          <span className="text-xs font-extrabold tracking-tight">
-            <span style={{ color: '#93c5fd' }}>OMNI</span>
-            <span style={{ color: '#fca5a5' }}>PROF</span>
-          </span>
-          <svg className="w-3 h-3 text-white/60 group-hover:text-white/90 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
-        </a>
+          <a
+            href="https://omniprof.net"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 transition-all duration-200 hover:scale-[1.03] hover:opacity-80"
+          >
+            <img
+              src="/omniprof_logo_flat_horizontal.png"
+              alt="OmniProf"
+              className="h-7 w-auto object-contain"
+              style={{ filter: 'var(--img-dark-invert, none)' }}
+            />
+            <svg className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--text-muted, #94a3b8)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
       </div>
 
       {/* Copyright (apenas no variant full) */}
       {variant === "full" && (
         <p className="text-center text-[10px]" style={{ color: 'var(--text-muted, #94a3b8)' }}>
-          © {new Date().getFullYear()} Omni Soluções Educacionais
+          © {new Date().getFullYear()} Omni Soluções Educacionais — todos os direitos reservados.
         </p>
       )}
     </div>
