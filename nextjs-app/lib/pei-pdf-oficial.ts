@@ -19,6 +19,102 @@ const MARGIN_R = 20;
 const MARGIN_TOP = 20;
 const MARGIN_BOTTOM = 25;
 const CONTENT_W = PAGE_W - MARGIN_L - MARGIN_R;
+const LINE_H = 5.5; // espaçamento entre linhas
+
+// Títulos de seção conhecidos (o prompt instrui a IA a usar estes)
+const KNOWN_SECTIONS = [
+    "IDENTIFICACAO DO ESTUDANTE",
+    "IDENTIFICAÇÃO DO ESTUDANTE",
+    "DIAGNOSTICO E CONTEXTO CLINICO",
+    "DIAGNÓSTICO E CONTEXTO CLÍNICO",
+    "POTENCIALIDADES E INTERESSES",
+    "MAPEAMENTO DE BARREIRAS E NIVEIS DE SUPORTE",
+    "MAPEAMENTO DE BARREIRAS E NÍVEIS DE SUPORTE",
+    "PLANO DE ACAO PEDAGOGICO",
+    "PLANO DE AÇÃO PEDAGÓGICO",
+    "PLANO DE ACAO PEDAGÓGICO",
+    "ALINHAMENTO CURRICULAR",
+    "MONITORAMENTO E ACOMPANHAMENTO",
+    "CONSIDERACOES FINAIS E ENCAMINHAMENTOS",
+    "CONSIDERAÇÕES FINAIS E ENCAMINHAMENTOS",
+    "REDE DE APOIO",
+    "REDE DE APOIO E ORIENTACOES",
+    "REDE DE APOIO E ORIENTAÇÕES",
+    "HISTORICO ESCOLAR",
+    "HISTÓRICO ESCOLAR",
+    "DINAMICA FAMILIAR",
+    "DINÂMICA FAMILIAR",
+    "HABILIDADES BNCC",
+    "PLANEJAMENTO PEDAGOGICO",
+    "PLANEJAMENTO PEDAGÓGICO",
+];
+
+/**
+ * Normaliza string removendo acentos para comparação.
+ */
+function normalize(s: string): string {
+    return s
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase()
+        .trim();
+}
+
+/**
+ * Verifica se um texto é um título de seção conhecido.
+ * Retorna o título original (antes do ':') ou null.
+ */
+function extractSectionTitle(line: string): { title: string; rest: string } | null {
+    // Tentativa 1: linha começa com título conhecido seguido de ':'
+    const colonIdx = line.indexOf(":");
+    if (colonIdx > 5 && colonIdx < 80) {
+        const candidate = line.slice(0, colonIdx).trim();
+        const candidateNorm = normalize(candidate);
+        // Verificar se corresponde a algum título conhecido
+        for (const known of KNOWN_SECTIONS) {
+            if (candidateNorm === normalize(known) || candidateNorm.includes(normalize(known)) || normalize(known).includes(candidateNorm)) {
+                return {
+                    title: candidate,
+                    rest: line.slice(colonIdx + 1).trim(),
+                };
+            }
+        }
+        // Fallback: se o candidato é todo MAIÚSCULA, tem pelo menos 3 palavras, e cada palavra > 2 chars
+        const words = candidate.split(/\s+/).filter(w => w.length > 1);
+        const isAllUpper = candidate === candidate.toUpperCase();
+        if (isAllUpper && words.length >= 2 && candidate.length >= 15 && candidate.length < 70) {
+            return {
+                title: candidate,
+                rest: line.slice(colonIdx + 1).trim(),
+            };
+        }
+    }
+    return null;
+}
+
+/**
+ * Limpa caracteres fora de Latin-1 (jsPDF só suporta Latin-1 com Helvetica).
+ */
+function safe(s: string): string {
+    return s
+        .replace(/\u2018|\u2019|\u0060|\u00B4/g, "'")
+        .replace(/\u201C|\u201D/g, '"')
+        .replace(/\u2013/g, "-")
+        .replace(/\u2014/g, " - ")
+        .replace(/\u2026/g, "...")
+        .replace(/\u2022/g, "-")
+        .replace(/\u00A0/g, " ")
+        .replace(/\u200B|\u200C|\u200D|\uFEFF/g, "") // zero-width chars
+        // Mapear acentos comuns que podem estar fora do range
+        .replace(/[^\x00-\xFF\n]/g, (ch) => {
+            // Tentar normalizar para Latin-1
+            const nfd = ch.normalize("NFD");
+            const base = nfd.replace(/[\u0300-\u036f]/g, "");
+            return base || "";
+        })
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n");
+}
 
 /**
  * Gera PDF oficial a partir do texto reescrito pela IA.
@@ -31,20 +127,6 @@ export async function gerarPdfDocumentoOficial(
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     let y = MARGIN_TOP;
     let pageNum = 1;
-
-    // Limpar caracteres fora de Latin-1
-    const safe = (s: string) =>
-        s
-            .replace(/\u2018|\u2019/g, "'")
-            .replace(/\u201C|\u201D/g, '"')
-            .replace(/\u2013/g, "-")
-            .replace(/\u2014/g, "--")
-            .replace(/\u2026/g, "...")
-            .replace(/\u2022/g, "-")
-            .replace(/\u00A0/g, " ")
-            .replace(/[^\x00-\xFF\n]/g, "")
-            .replace(/\r\n/g, "\n")
-            .replace(/\r/g, "\n");
 
     // Header do documento
     const addDocHeader = () => {
@@ -72,7 +154,7 @@ export async function gerarPdfDocumentoOficial(
         doc.setFontSize(9);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(100, 116, 139);
-        doc.text("Documento Oficial — Gerado com auxilio de Inteligencia Artificial", MARGIN_L, 30);
+        doc.text("Documento Oficial - Gerado com auxilio de Inteligencia Artificial", MARGIN_L, 30);
 
         const dataEmissao = new Date().toLocaleDateString("pt-BR");
         doc.text(`Emitido em: ${dataEmissao}`, PAGE_W - MARGIN_R, 30, { align: "right" });
@@ -95,7 +177,7 @@ export async function gerarPdfDocumentoOficial(
         doc.setFontSize(7);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(178, 190, 210);
-        doc.text(`PEI — ${safe(nomeEstudante)}`, MARGIN_L, 7);
+        doc.text(`PEI - ${safe(nomeEstudante)}`, MARGIN_L, 7);
         doc.text(`Pagina ${pageNum}`, PAGE_W - MARGIN_R, 7, { align: "right" });
 
         doc.setDrawColor(226, 232, 240);
@@ -111,62 +193,69 @@ export async function gerarPdfDocumentoOficial(
         }
     };
 
+    // Renderizar título de seção
+    const renderSectionTitle = (title: string) => {
+        checkPageBreak(16);
+        y += 4;
+
+        // Faixa de fundo para título
+        doc.setFillColor(30, 58, 138); // blue-900
+        doc.roundedRect(MARGIN_L, y - 4.5, CONTENT_W, 9, 1.5, 1.5, "F");
+
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(255, 255, 255);
+        doc.text(safe(title), MARGIN_L + 3, y + 1.5);
+        doc.setTextColor(15, 23, 42);
+        y += 10;
+    };
+
+    // Renderizar parágrafo de texto
+    const renderParagraph = (text: string) => {
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(30, 41, 59); // slate-800
+
+        const safeText = safe(text);
+        const lines = doc.splitTextToSize(safeText, CONTENT_W);
+        for (const line of lines) {
+            checkPageBreak(LINE_H + 1);
+            doc.text(line, MARGIN_L, y);
+            y += LINE_H;
+        }
+        y += 3; // espaço entre parágrafos
+    };
+
+    // ==========================================
+    // RENDERIZAÇÃO PRINCIPAL
+    // ==========================================
+
     // Primeira página
     addDocHeader();
 
     // Processar o texto da IA
     const cleanText = safe(textoIA);
-    const paragraphs = cleanText.split(/\n\n+/);
+
+    // Dividir em parágrafos (linhas duplas)
+    const paragraphs = cleanText.split(/\n\n+/).filter((p) => p.trim().length > 0);
 
     for (const para of paragraphs) {
         const trimmed = para.trim();
-        if (!trimmed) continue;
+        if (!trimmed || trimmed.length < 3) continue;
 
-        // Detectar títulos de seção (em CAIXA ALTA seguido de : ou sozinho)
-        const matchTitulo = trimmed.match(/^([A-ZÀÁÂÃÉÊÍÓÔÕÚÇÜ\s,]{8,}):?\s*/);
-        const isSectionTitle = matchTitulo && matchTitulo[1].length < 80;
+        // Verificar se o parágrafo começa com um título de seção
+        const sectionMatch = extractSectionTitle(trimmed);
 
-        if (isSectionTitle) {
-            checkPageBreak(14);
-            y += 3;
-
-            // Faixa de fundo para título
-            doc.setFillColor(30, 58, 138); // blue-900
-            doc.roundedRect(MARGIN_L, y - 4, CONTENT_W, 9, 1.5, 1.5, "F");
-
-            doc.setFontSize(9);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(255, 255, 255);
-            doc.text(safe(matchTitulo[1].trim()), MARGIN_L + 3, y + 2);
-            doc.setTextColor(15, 23, 42);
-            y += 10;
-
-            // Texto após o título (na mesma linha original)
-            const restText = trimmed.slice(matchTitulo[0].length).trim();
-            if (restText) {
-                doc.setFontSize(11);
-                doc.setFont("helvetica", "normal");
-                const lines = doc.splitTextToSize(safe(restText), CONTENT_W);
-                for (const line of lines) {
-                    checkPageBreak(6);
-                    doc.text(line, MARGIN_L, y);
-                    y += 5.8;
-                }
-                y += 3;
+        if (sectionMatch) {
+            renderSectionTitle(sectionMatch.title);
+            if (sectionMatch.rest && sectionMatch.rest.length > 3) {
+                renderParagraph(sectionMatch.rest);
             }
         } else {
-            // Parágrafo normal
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(15, 23, 42);
-
-            const lines = doc.splitTextToSize(safe(trimmed), CONTENT_W);
-            for (const line of lines) {
-                checkPageBreak(6);
-                doc.text(line, MARGIN_L, y);
-                y += 5.8;
-            }
-            y += 3; // espaço entre parágrafos
+            // Pode ser um parágrafo com quebras simples (\n) dentro
+            // Juntar as linhas em texto corrido
+            const textoCorrido = trimmed.replace(/\n/g, " ").replace(/\s{2,}/g, " ");
+            renderParagraph(textoCorrido);
         }
     }
 
@@ -189,7 +278,7 @@ export async function gerarPdfDocumentoOficial(
             { align: "center" }
         );
         doc.text(
-            "Documento confidencial — Lei n. 13.146/2015 (LBI) e LGPD",
+            "Documento confidencial - Lei n. 13.146/2015 (LBI) e LGPD",
             PAGE_W / 2,
             297 - MARGIN_BOTTOM + 9,
             { align: "center" }

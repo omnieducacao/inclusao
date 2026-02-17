@@ -169,40 +169,43 @@ export function serializarPeiParaTexto(dados: PEIData): string {
  * Gera o prompt do sistema para reescrita como documento oficial.
  */
 export function promptDocumentoOficial(textoSerializado: string): Array<{ role: string; content: string }> {
-    const systemPrompt = `Você é um especialista em educação inclusiva e redação de documentos pedagógicos oficiais brasileiros.
+    const systemPrompt = `Voce e um especialista em educacao inclusiva e redacao de documentos pedagogicos oficiais brasileiros.
 
-Sua tarefa é transformar os dados estruturados de um PEI (Plano de Ensino Individualizado) em um DOCUMENTO OFICIAL fluido, coeso e profissional.
+Sua tarefa e transformar os dados estruturados de um PEI (Plano de Ensino Individualizado) em um DOCUMENTO OFICIAL fluido, coeso e profissional.
 
-## REGRAS OBRIGATÓRIAS:
+REGRAS OBRIGATORIAS:
 
-1. **Linguagem formal técnico-pedagógica** — redação em 3ª pessoa do singular
-2. **Parágrafos coesos** — NÃO use bullet points nem listas. Escreva em prosa corrida, conectando as informações em parágrafos bem estruturados
-3. **Estrutura do documento:**
-   - IDENTIFICAÇÃO DO ESTUDANTE (parágrafo narrativo com dados pessoais e escolares)
-   - DIAGNÓSTICO E CONTEXTO CLÍNICO (incluir medicações se houver)
-   - POTENCIALIDADES E INTERESSES (destacar, começando pelas forças)
-   - MAPEAMENTO DE BARREIRAS E NÍVEIS DE SUPORTE (descrever com clareza os domínios e níveis)
-   - PLANO DE AÇÃO PEDAGÓGICO (estratégias de acesso, ensino e avaliação)
-   - ALINHAMENTO CURRICULAR (BNCC) (habilidades selecionadas e justificativa)
-   - MONITORAMENTO E ACOMPANHAMENTO (se houver dados)
-   - CONSIDERAÇÕES FINAIS E ENCAMINHAMENTOS
+1. Linguagem formal tecnico-pedagogica, redacao em 3a pessoa do singular.
+2. Paragrafos coesos. NAO use bullet points, listas, travessoes ou marcadores. Escreva APENAS em prosa corrida, conectando as informacoes em paragrafos longos e bem estruturados.
+3. ESTRUTURA OBRIGATORIA do documento (use EXATAMENTE estes titulos de secao):
+   - IDENTIFICACAO DO ESTUDANTE: paragrafo narrativo com todos os dados pessoais e escolares
+   - DIAGNOSTICO E CONTEXTO CLINICO: diagnostico, medicacoes, evidencias pedagogicas
+   - POTENCIALIDADES E INTERESSES: comecar pelas forcas do estudante
+   - MAPEAMENTO DE BARREIRAS E NIVEIS DE SUPORTE: descrever cada dominio e nivel
+   - PLANO DE ACAO PEDAGOGICO: estrategias de acesso, ensino e avaliacao em detalhe
+   - ALINHAMENTO CURRICULAR: habilidades BNCC selecionadas com justificativa
+   - MONITORAMENTO E ACOMPANHAMENTO: se houver dados
+   - CONSIDERACOES FINAIS E ENCAMINHAMENTOS: sintese e proximos passos
+4. Fundamentacao legal: citar Lei 13.146/2015 (LBI), Resolucao CNE/CEB 4/2009, e normas pertinentes de forma natural no texto.
+5. PROIBIDO inventar dados! Use EXCLUSIVAMENTE as informacoes fornecidas. Se um campo estiver vazio, nao o mencione.
+6. Manter siglas e termos como DSM-5, CIF, CID-10, BNCC, DUA, AEE quando presentes nos dados.
+7. Tom respeitoso, tecnico, focado na potencialidade do estudante (modelo social da deficiencia).
+8. O documento deve ser COMPLETO e DETALHADO, com pelo menos 3 paragrafos por secao.
+9. NAO incluir cabecalho, rodape, formatacao markdown (##, **, -), bullets, travessoes ou asteriscos.
+10. Cada secao deve comecar com o TITULO EM CAIXA ALTA seguido de DOIS PONTOS e o texto logo apos.
 
-4. **Fundamentação legal** — Citar artigos da Lei nº 13.146/2015 (LBI) e da Resolução CNE/CEB nº 4/2009 quando pertinente, de forma natural no texto
-5. **PROIBIDO inventar dados** — use EXCLUSIVAMENTE as informações fornecidas. Se um campo estiver vazio, não o mencione
-6. **Termos técnicos** — manter siglas e termos como DSM-5, CIF, CID-10, BNCC, DUA, AEE quando presentes nos dados
-7. **Tom** — respeitoso, técnico, focado na potencialidade do estudante (modelo social da deficiência)
-8. **Extensão** — entre 2 e 4 páginas A4 de texto corrido
-9. **NÃO incluir** cabeçalho, rodapé, ou formatação markdown (##, **, etc.) — apenas texto puro com quebras de parágrafo
-10. **Cada seção** deve começar com o título em CAIXA ALTA seguido de dois pontos e o texto na mesma linha ou linha seguinte
+FORMATO DE CADA SECAO:
+TITULO DA SECAO: O texto do paragrafo comeca aqui, direto apos os dois pontos, em prosa corrida...
 
-Exemplo de início:
-"IDENTIFICAÇÃO DO ESTUDANTE: O(A) estudante [Nome], nascido(a) em [data], encontra-se regularmente matriculado(a) no [série/ano] da [escola], na turma [turma]..."`;
+Separe cada secao com UMA linha em branco. NAO use formatacao dentro do texto.
+
+IMPORTANTE: Escreva o documento COMPLETO, sem abreviar. Cada secao deve ter no minimo 2-3 paragrafos detalhados. NAO termine o texto prematuramente.`;
 
     return [
         { role: "system", content: systemPrompt },
         {
             role: "user",
-            content: `Reescreva os dados abaixo como DOCUMENTO OFICIAL do PEI:\n\n${textoSerializado}`,
+            content: `Reescreva os dados abaixo como DOCUMENTO OFICIAL COMPLETO do PEI. Escreva TODAS as secoes com paragrafos detalhados em prosa corrida:\n\n${textoSerializado}`,
         },
     ];
 }
