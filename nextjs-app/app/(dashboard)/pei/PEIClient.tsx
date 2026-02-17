@@ -890,29 +890,33 @@ export function PEIClient({
                                 console.log("Tem pei_data?", !!peiDataJson);
 
                                 if (peiDataJson && typeof peiDataJson === 'object' && !Array.isArray(peiDataJson)) {
-                                  // Usar a MESMA lógica que funciona para JSON local
-                                  // Colocar em jsonPending e usar aplicarJson()
                                   const campos = Object.keys(peiDataJson);
                                   console.log("✅ JSON encontrado no Supabase com", campos.length, "campos");
                                   console.log("Primeiros campos:", campos.slice(0, 10));
 
-                                  // Criar cópia profunda do JSON (mesmo que FileReader faz)
+                                  // Criar cópia profunda do JSON
                                   const jsonCopiado = JSON.parse(JSON.stringify(peiDataJson)) as PEIData;
 
-                                  // Marcar que veio do Supabase para preservar vínculo no jsonPending useEffect
-                                  cloudLoadIdRef.current = idToLoad;
-
-                                  // Colocar em jsonPending (mesmo que o upload de arquivo faz)
-                                  // O useEffect vai detectar e aplicar automaticamente
-                                  setJsonPending(jsonCopiado);
-                                  setJsonFileName(`PEI_${studentFromList.name}_do_Supabase.json`);
+                                  // *** CORREÇÃO: Aplicar diretamente em vez de usar jsonPending ***
+                                  // O fluxo jsonPending → useEffect → setTimeout criava race condition
+                                  // com o useEffect de fetch (que dispara ao mudar isLoadingRascunho)
+                                  skipNextFetchRef.current = true;
+                                  setPeiData(jsonCopiado);
+                                  setSelectedStudentId(idToLoad);
 
                                   // Limpar estados de seleção
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setIsLoadingRascunho(false);
+                                  setSaved(false);
+                                  setErroGlobal(null);
 
-                                  console.log("✅ JSON colocado em jsonPending (cloudLoadIdRef:", idToLoad, ")");
+                                  // Limpar parâmetro student da URL
+                                  const url = new URL(window.location.href);
+                                  url.searchParams.delete("student");
+                                  window.history.pushState({}, "", url.toString());
+
+                                  console.log("✅ PEI carregado diretamente com", campos.length, "campos. StudentId:", idToLoad);
                                 } else {
                                   // Estudante encontrado mas sem pei_data
                                   console.log("⚠️ Estudante encontrado mas sem pei_data no Supabase");
