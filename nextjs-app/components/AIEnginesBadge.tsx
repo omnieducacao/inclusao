@@ -21,20 +21,24 @@ const ENGINE_SHORT_NAMES: Record<EngineId, string> = {
   orange: "Orange",
 };
 
-export function AIEnginesBadge() {
-  const [availableEngines, setAvailableEngines] = useState<EngineId[]>([]);
+export function AIEnginesBadge({ engines }: { engines?: EngineId[] } = {}) {
+  const [availableEngines, setAvailableEngines] = useState<EngineId[]>(engines || []);
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
+    if (engines && engines.length > 0) return; // Already provided via props
     fetch("/api/ai-engines/available")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) return;
+        return res.json();
+      })
       .then((data) => {
-        if (data.available && Array.isArray(data.available)) {
+        if (data?.available && Array.isArray(data.available)) {
           setAvailableEngines(data.available);
         }
       })
       .catch(console.error);
-  }, []);
+  }, [engines]);
 
   if (availableEngines.length === 0) {
     return null;
@@ -96,7 +100,7 @@ export function AIEnginesBadge() {
               className="transition-transform duration-300"
             />
           ) : (
-            <span className="text-[13px]">🤖</span>
+            <span className="text-[13px]">✨</span>
           )}
         </div>
         {!isExpanded && (

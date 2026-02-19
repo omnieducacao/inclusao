@@ -63,16 +63,16 @@ async function loadNavIcons() {
 function getNavLottieMap(): Record<string, string> {
   return {
     "/": "system-solid-41-home-hover-pinch", // Home
-    "/estudantes": "wired-outline-529-boy-girl-children-hover-pinch", // Estudantes
-    "/pei": "wired-outline-86-compass-hover-pinch", // PEI
-    "/paee": "wired-outline-106-map-hover-pinch", // PAEE
-    "/hub": "wired-outline-489-rocket-space-hover-flying", // Hub
-    "/diario": "wired-outline-3140-book-open-hover-pinch", // Diário
-    "/monitoramento": "wired-outline-152-bar-chart-arrow-hover-growth", // Monitoramento
-    "/infos": "wired-outline-2167-books-course-assign-hover-pinch", // Central
-    "/config-escola": "wired-outline-486-school-hover-pinch", // Config Escola
-    "/gestao": "wired-outline-314-three-avatars-icon-calm-hover-nodding", // Gestão
-    "/pgi": "wired-outline-738-notebook-2-hover-pinch", // PGI
+    "/estudantes": "estudantes_simples", // Estudantes
+    "/pei": "pei_simples", // PEI
+    "/paee": "paee_simples", // PAEE
+    "/hub": "hub_simples", // Hub
+    "/diario": "diario_simples", // Diário
+    "/monitoramento": "dados_simples", // Monitoramento
+    "/infos": "central_inteligencia_simples", // Central
+    "/config-escola": "configuracao_escola_flat", // Config Escola (sem versão simples)
+    "/gestao": "gestao_usuario_simples", // Gestão
+    "/pgi": "pgi_simples", // PGI
   };
 }
 
@@ -228,8 +228,8 @@ function NavDropdown({ label, items, isActive, icon: Icon, pathname }: { label: 
       <button
         type="button"
         className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap flex-shrink-0 ${isActive
-            ? "text-white shadow-md"
-            : "hover:shadow-sm"
+          ? "text-white shadow-md"
+          : "hover:shadow-sm"
           }`}
         style={{
           color: isActive ? 'white' : 'var(--text-muted)',
@@ -580,6 +580,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               />
             </div>
           </Link>
+
 
           {/* 2️⃣ NAVEGAÇÃO - Centro, expande para ocupar espaço disponível */}
           {!hideMenu && (
