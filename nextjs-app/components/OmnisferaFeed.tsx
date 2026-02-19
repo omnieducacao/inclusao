@@ -59,7 +59,7 @@ function PostCarousel({ images }: { images: string[] }) {
             {/* Image */}
             <div
                 className="flex transition-transform duration-300 ease-out h-full"
-                style={{ transform: `translateX(-${current * 100}%)`, width: `${images.length * 100}%` }}
+                style={{ transform: `translateX(-${current * (100 / images.length)}%)`, width: `${images.length * 100}%` }}
             >
                 {images.map((url, i) => (
                     <div key={i} className="relative w-full h-full shrink-0" style={{ width: `${100 / images.length}%` }}>
