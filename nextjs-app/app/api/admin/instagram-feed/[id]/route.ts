@@ -8,8 +8,9 @@ import { getSupabase } from "@/lib/supabase";
  */
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     try {
         const session = await getSession();
         if (!session?.is_platform_admin) {
@@ -34,7 +35,7 @@ export async function PATCH(
         const { data, error } = await sb
             .from("omnisfera_feed")
             .update(updates)
-            .eq("id", params.id)
+            .eq("id", id)
             .select()
             .single();
 
@@ -52,8 +53,9 @@ export async function PATCH(
  */
 export async function DELETE(
     _req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     try {
         const session = await getSession();
         if (!session?.is_platform_admin) {
@@ -66,7 +68,7 @@ export async function DELETE(
         const { data: post } = await sb
             .from("omnisfera_feed")
             .select("images")
-            .eq("id", params.id)
+            .eq("id", id)
             .single();
 
         // Delete images from storage
@@ -85,7 +87,7 @@ export async function DELETE(
         const { error } = await sb
             .from("omnisfera_feed")
             .delete()
-            .eq("id", params.id);
+            .eq("id", id);
 
         if (error) throw error;
         return NextResponse.json({ ok: true });
