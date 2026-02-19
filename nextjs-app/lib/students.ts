@@ -1,5 +1,13 @@
 import { getSupabase } from "./supabase";
 import { logger } from "./logger";
+import {
+  encryptField,
+  decryptField,
+  encryptSensitivePeiFields,
+  decryptSensitivePeiFields,
+  encryptSensitivePaeeFields,
+  decryptSensitivePaeeFields,
+} from "./encryption";
 
 export type Student = {
   id: string;
@@ -24,7 +32,7 @@ export async function listStudents(workspaceId: string): Promise<Student[]> {
 
   const sb = getSupabase();
   logger.debug("listStudents: buscando estudantes", { workspaceId });
-  
+
   const { data, error } = await sb
     .from("students")
     .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, created_at")
@@ -32,20 +40,28 @@ export async function listStudents(workspaceId: string): Promise<Student[]> {
     .order("created_at", { ascending: false });
 
   if (error) {
-    logger.error("listStudents: erro ao buscar", { 
+    logger.error("listStudents: erro ao buscar", {
       workspaceId,
       errorMessage: error.message,
       errorCode: error.code
     });
     return [];
   }
-  
-  logger.debug("listStudents: encontrados", { 
+
+  logger.debug("listStudents: encontrados", {
     count: data?.length || 0,
     workspaceId
   });
-  
-  return (data || []) as Student[];
+
+  // LGPD: descriptografar campos sensíveis
+  const students = (data || []) as Student[];
+  return students.map((s) => {
+    try {
+      if (s.diagnosis) s.diagnosis = decryptField(s.diagnosis);
+      if (s.pei_data) s.pei_data = decryptSensitivePeiFields(s.pei_data);
+    } catch { /* backwards compatible: plaintext data passes through */ }
+    return s;
+  });
 }
 
 export async function getStudent(
@@ -59,13 +75,13 @@ export async function getStudent(
     }
 
     const sb = getSupabase();
-    
+
     logger.debug("getStudent: buscando", { workspaceId, studentId });
-    
+
     // Normalizar IDs (remover espaços e garantir formato correto)
     const normalizedWorkspaceId = workspaceId.trim();
     const normalizedStudentId = studentId.trim();
-    
+
     const { data, error } = await sb
       .from("students")
       .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, paee_data, daily_logs, created_at")
@@ -79,7 +95,7 @@ export async function getStudent(
       let errorDetails = "Sem detalhes";
       let errorHint = "Sem dica";
       let errorCode = "Sem código";
-      
+
       try {
         // Tentar extrair informações do erro de forma segura
         if (error && typeof error === 'object') {
@@ -93,9 +109,9 @@ export async function getStudent(
       } catch (e) {
         errorMessage = "Erro ao processar informações do erro";
       }
-      
+
       const errorInfo = {
-        workspaceId: normalizedWorkspaceId, 
+        workspaceId: normalizedWorkspaceId,
         studentId: normalizedStudentId,
         errorMessage,
         errorDetails,
@@ -104,28 +120,36 @@ export async function getStudent(
         errorType: typeof error,
         errorConstructor: error?.constructor?.name || "Unknown"
       };
-      
-      logger.error("getStudent: erro ao buscar", { 
+
+      logger.error("getStudent: erro ao buscar", {
         errorCode,
-        errorMessage 
+        errorMessage
       });
-      
+
       return null;
     }
-    
+
     if (!data) {
       logger.debug("getStudent: estudante não encontrado");
       return null;
     }
-    
+
     logger.debug("getStudent: encontrado", { studentId: data.id });
-    
-    return data as Student;
+
+    // LGPD: descriptografar campos sensíveis
+    const student = data as Student;
+    try {
+      if (student.diagnosis) student.diagnosis = decryptField(student.diagnosis);
+      if (student.pei_data) student.pei_data = decryptSensitivePeiFields(student.pei_data);
+      if (student.paee_data) student.paee_data = decryptSensitivePaeeFields(student.paee_data);
+    } catch { /* backwards compatible */ }
+
+    return student;
   } catch (err) {
     // Capturar qualquer erro inesperado que possa ocorrer
     let errorMessage = "Erro desconhecido";
     let errorStack: string | undefined = undefined;
-    
+
     try {
       if (err instanceof Error) {
         errorMessage = err.message || "Erro sem mensagem";
@@ -136,7 +160,7 @@ export async function getStudent(
     } catch (e) {
       errorMessage = "Erro ao processar exceção";
     }
-    
+
     const errorInfo = {
       workspaceId: workspaceId || "NULL",
       studentId: studentId || "NULL",
@@ -144,7 +168,7 @@ export async function getStudent(
       errorMessage,
       errorStack: errorStack?.substring(0, 200) // Limitar tamanho do stack trace
     };
-    
+
     logger.error("getStudent: erro inesperado", { errorMessage });
     return null;
   }
@@ -167,7 +191,10 @@ export async function updateStudent(
   if (updates.name !== undefined) payload.name = updates.name;
   if (updates.grade !== undefined) payload.grade = updates.grade;
   if (updates.class_group !== undefined) payload.class_group = updates.class_group;
-  if (updates.diagnosis !== undefined) payload.diagnosis = updates.diagnosis;
+  // LGPD: criptografar diagnóstico
+  if (updates.diagnosis !== undefined) {
+    payload.diagnosis = updates.diagnosis ? encryptField(updates.diagnosis) : updates.diagnosis;
+  }
 
   const { error } = await sb
     .from("students")
@@ -184,11 +211,14 @@ export async function updateStudentPeiData(
   studentId: string,
   peiData: Record<string, unknown>
 ): Promise<boolean> {
+  // LGPD: criptografar campos sensíveis do PEI
+  const encryptedPeiData = encryptSensitivePeiFields(peiData);
+
   const sb = getSupabase();
   const { error } = await sb
     .from("students")
     .update({
-      pei_data: peiData,
+      pei_data: encryptedPeiData,
       updated_at: new Date().toISOString(),
     })
     .eq("id", studentId)
@@ -218,7 +248,10 @@ export async function updateStudentPaeeCiclos(
   if (extra?.status_planejamento !== undefined) payload.status_planejamento = extra.status_planejamento;
   if (extra?.data_inicio_ciclo !== undefined) payload.data_inicio_ciclo = extra.data_inicio_ciclo;
   if (extra?.data_fim_ciclo !== undefined) payload.data_fim_ciclo = extra.data_fim_ciclo;
-  if (extra?.paee_data !== undefined) payload.paee_data = extra.paee_data;
+  // LGPD: criptografar campos sensíveis do PAEE
+  if (extra?.paee_data !== undefined) {
+    payload.paee_data = extra.paee_data ? encryptSensitivePaeeFields(extra.paee_data) : extra.paee_data;
+  }
 
   const { error } = await sb
     .from("students")
