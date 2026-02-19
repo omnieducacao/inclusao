@@ -13,6 +13,7 @@ import { QuickActions } from "@/components/QuickActions";
 import { SituationPanel } from "@/components/SituationPanel";
 import { OmnisferaFeed } from "@/components/OmnisferaFeed";
 import { OmniEducacaoSignature } from "@/components/Footer";
+import { SecurityAndAIPanel } from "@/components/SecurityAndAIPanel";
 
 export default async function RootPage() {
   const session = await getSession();
@@ -164,6 +165,9 @@ export default async function RootPage() {
                 />
               </Suspense>
             )}
+
+            {/* ── Security & AI Engines Panel ── */}
+            <SecurityAndAIPanel engines={["red", "blue", "green", "yellow", "orange"]} />
           </div>
 
           {/* ═════ RIGHT COLUMN: Quick Actions + Situation Panel ═════ */}
