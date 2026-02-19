@@ -82,7 +82,7 @@ function getLottieMaps() {
 
 type BadgeInfo = {
   text: string;
-  variant: "green" | "yellow" | "red";
+  variant: "green" | "yellow" | "red" | "gray";
 };
 
 type ModuleCard = {
@@ -269,6 +269,7 @@ function ModuleCardWithLottie({
             green: { bg: "linear-gradient(135deg, #10b981, #059669)", shadow: "0 2px 8px rgba(16,185,129,0.3)" },
             yellow: { bg: "linear-gradient(135deg, #f59e0b, #d97706)", shadow: "0 2px 8px rgba(245,158,11,0.3)" },
             red: { bg: "linear-gradient(135deg, #ef4444, #dc2626)", shadow: "0 2px 8px rgba(239,68,68,0.3)" },
+            gray: { bg: "linear-gradient(135deg, #94a3b8, #64748b)", shadow: "0 2px 8px rgba(100,116,139,0.25)" },
           };
           const s = badgeStyles[badgeInfo.variant] || badgeStyles.green;
           return (
@@ -345,6 +346,7 @@ function ModuleCardWithLottie({
             green: { bg: "linear-gradient(135deg, #10b981, #059669)", shadow: "0 2px 8px rgba(16,185,129,0.3)" },
             yellow: { bg: "linear-gradient(135deg, #f59e0b, #d97706)", shadow: "0 2px 8px rgba(245,158,11,0.3)" },
             red: { bg: "linear-gradient(135deg, #ef4444, #dc2626)", shadow: "0 2px 8px rgba(239,68,68,0.3)" },
+            gray: { bg: "linear-gradient(135deg, #94a3b8, #64748b)", shadow: "0 2px 8px rgba(100,116,139,0.25)" },
           };
           const s = badgeStyles[badgeInfo.variant] || badgeStyles.green;
           return (

@@ -41,7 +41,7 @@ export default async function RootPage() {
   }
 
   // ── Fetch KPIs for smart badges ──
-  type BadgeInfo = { text: string; variant: "green" | "yellow" | "red" };
+  type BadgeInfo = { text: string; variant: "green" | "yellow" | "red" | "gray" };
   let kpiBadges: Record<string, BadgeInfo> = {};
   try {
     if (sessionNonNull.workspace_id && !sessionNonNull.is_platform_admin) {
@@ -72,7 +72,7 @@ export default async function RootPage() {
       }
 
       if (diario7d === 0 && totalStudents > 0) {
-        kpiBadges["Diário de Bordo"] = { text: "0 esta semana", variant: "yellow" };
+        kpiBadges["Diário de Bordo"] = { text: "0 esta semana", variant: "gray" };
       } else if (diario7d > 0) {
         kpiBadges["Diário de Bordo"] = { text: `${diario7d} esta semana`, variant: "green" };
       }
