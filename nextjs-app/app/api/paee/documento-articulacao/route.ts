@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { chatCompletionText } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 export async function POST(req: Request) {
    const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -69,9 +70,10 @@ export async function POST(req: Request) {
     Formato: Documento formal mas acolhedor, com linguagem clara e objetiva.
     `;
 
-      const resultado = await chatCompletionText(engineId, [{ role: "user", content: prompt }], { temperature: 0.6 });
+      const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt }], studentName);
+      const resultado = await chatCompletionText(engineId, anonymized, { temperature: 0.6 });
 
-      return NextResponse.json({ documento: resultado });
+      return NextResponse.json({ documento: restore(resultado) });
    } catch (error) {
       console.error("Erro ao gerar documento de articulação:", error);
       return NextResponse.json(

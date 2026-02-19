@@ -4,10 +4,11 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, type EngineId } from "@/lib/ai-engines";
 import { gerarPromptMapaMentalImagem, gerarPromptMapaMentalHtml } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
+import { anonymizeText } from "@/lib/ai-anonymize";
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-  const { error: authError } = await requireAuth(); if (authError) return authError;
+    const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+    const { error: authError } = await requireAuth(); if (authError) return authError;
     const parsed = await parseBody(req, hubMapaMentalSchema);
     if (parsed.error) return parsed.error;
     const body = parsed.data;
@@ -38,6 +39,8 @@ export async function POST(req: Request) {
         }
 
         const prompt = gerarPromptMapaMentalImagem(params);
+        const studentName = estudante?.nome || null;
+        const { anonymized: anonPrompt } = anonymizeText(prompt, studentName);
 
         try {
             const models = ["gemini-2.5-flash-image", "gemini-3-pro-image-preview"];
@@ -50,7 +53,7 @@ export async function POST(req: Request) {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                            contents: [{ parts: [{ text: prompt }] }],
+                            contents: [{ parts: [{ text: anonPrompt }] }],
                         }),
                     });
 
@@ -94,6 +97,8 @@ export async function POST(req: Request) {
     // TIPO: HTML (Kimi / blue engine)
     if (tipo === "html") {
         const prompt = gerarPromptMapaMentalHtml(params);
+        const studentName = estudante?.nome || null;
+        const { anonymized: anonPrompt, restore } = anonymizeText(prompt, studentName);
 
         // Tentar blue (Kimi) primeiro, fallback para green (Claude), depois yellow (Gemini)
         const engines: EngineId[] = ["blue", "green", "yellow"];
@@ -101,14 +106,14 @@ export async function POST(req: Request) {
 
         for (const engine of engines) {
             try {
-                const html = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.5 });
+                const html = await chatCompletionText(engine, [{ role: "user", content: anonPrompt }], { temperature: 0.5 });
 
                 // Extrair apenas o HTML (pode ter texto antes/depois)
                 const htmlMatch = html.match(/<!DOCTYPE html>[\s\S]*<\/html>/i);
                 const cleanHtml = htmlMatch ? htmlMatch[0] : html;
 
                 if (cleanHtml.includes("<html") && cleanHtml.includes("</html>")) {
-                    return NextResponse.json({ html: cleanHtml });
+                    return NextResponse.json({ html: restore(cleanHtml) });
                 }
 
                 // Se não tem HTML válido, tentar próximo engine

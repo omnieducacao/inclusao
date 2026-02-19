@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -46,8 +47,9 @@ Retorne:
 Use linguagem simples e prática. NÃO inclua diagnóstico ou CID.`;
 
   try {
-    const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.7 });
-    return NextResponse.json({ texto: (texto || "").trim() });
+    const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt }], estudanteNome);
+    const textoRaw = await chatCompletionText(engine, anonymized, { temperature: 0.7 });
+    return NextResponse.json({ texto: restore(textoRaw || "").trim() });
   } catch (e) {
     console.error("Inclusão Brincar:", e);
     return NextResponse.json({ error: e instanceof Error ? e.message : "Erro." }, { status: 500 });

@@ -5,6 +5,7 @@ import mammoth from "mammoth";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 import { adaptarPromptProva } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -101,11 +102,13 @@ export async function POST(req: Request) {
   }
 
   try {
-    const fullText = await chatCompletionText(
+    const studentName = estudante?.nome || null;
+    const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt }], studentName);
+    const fullText = restore(await chatCompletionText(
       engine,
-      [{ role: "user", content: prompt }],
+      anonymized,
       { temperature: modoProfundo ? 0.7 : 0.4 }
-    );
+    ));
     let analise = "Análise indisponível.";
     let atividade = fullText;
 

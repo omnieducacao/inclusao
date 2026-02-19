@@ -5,6 +5,7 @@ import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 /**
  * POST /api/paee/relatorio-ciclo
@@ -12,7 +13,7 @@ import { getSupabase } from "@/lib/supabase";
  * with Diário de Bordo entries from the same period.
  */
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+    const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
     try {
         const session = await getSession();
         if (!session?.workspace_id) {
@@ -20,8 +21,8 @@ export async function POST(req: Request) {
         }
 
         const parsed = await parseBody(req, paeeRelatorioCicloSchema);
-    if (parsed.error) return parsed.error;
-    const body = parsed.data;
+        if (parsed.error) return parsed.error;
+        const body = parsed.data;
         const { studentId, ciclo, engine: engineParam } = body;
 
         if (!studentId || !ciclo) {
@@ -110,12 +111,14 @@ ${cicloInfo}
 REGISTROS DO DIÁRIO (${registros.length} sessões):
 ${diarioResumo}`;
 
-        const texto = await chatCompletionText(engine, [
+        const { anonymized, restore } = anonymizeMessages([
             { role: "system", content: system },
             { role: "user", content: user },
-        ], { temperature: 0.5 });
+        ], nomeEstudante);
 
-        return NextResponse.json({ texto: (texto || "").trim() });
+        const texto = await chatCompletionText(engine, anonymized, { temperature: 0.5 });
+
+        return NextResponse.json({ texto: restore(texto || "").trim() });
     } catch (err) {
         console.error("PAEE Relatório Ciclo:", err);
         return NextResponse.json(

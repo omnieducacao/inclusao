@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { chatCompletionText } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -48,9 +49,10 @@ export async function POST(req: Request) {
     - Estratégias de generalização para outros contextos
     `;
 
-    const resultado = await chatCompletionText(engineId, [{ role: "user", content: prompt }], { temperature: 0.7 });
+    const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt }], studentName);
+    const resultado = await chatCompletionText(engineId, anonymized, { temperature: 0.7 });
 
-    return NextResponse.json({ plano: resultado });
+    return NextResponse.json({ plano: restore(resultado) });
   } catch (error) {
     console.error("Erro ao gerar plano de habilidades:", error);
     return NextResponse.json(

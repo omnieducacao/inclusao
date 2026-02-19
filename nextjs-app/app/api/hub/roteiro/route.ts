@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 import { gerarPromptRoteiroAula } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -45,8 +46,10 @@ export async function POST(req: Request) {
   if (err) return NextResponse.json({ error: err }, { status: 500 });
 
   try {
-    const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.7 });
-    return NextResponse.json({ texto });
+    const studentName = aluno?.nome || null;
+    const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt }], studentName);
+    const textoRaw = await chatCompletionText(engine, anonymized, { temperature: 0.7 });
+    return NextResponse.json({ texto: restore(textoRaw) });
   } catch (e) {
     console.error("Hub roteiro:", e);
     return NextResponse.json(

@@ -5,6 +5,7 @@ import { serializarPeiParaTexto, promptDocumentoOficial } from "@/lib/pei-docume
 import { gerarPdfDocumentoOficial } from "@/lib/pei-pdf-oficial";
 import type { EngineId } from "@/lib/ai-engines";
 import { z } from "zod";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 // Schema próprio para este endpoint (aceita engine)
 const peiPdfOficialSchema = z.object({
@@ -31,12 +32,14 @@ export async function POST(req: Request) {
         // 1. Serializar dados do PEI
         const textoSerializado = serializarPeiParaTexto(peiData as Record<string, unknown>);
 
-        // 2. Chamar IA para reescrita como documento oficial
+        // 2. Chamar IA para reescrita como documento oficial (anonimizado)
         const messages = promptDocumentoOficial(textoSerializado);
-        const textoOficial = await chatCompletionText(engine as EngineId, messages, {
+        const nomeEstudante = ((peiData as Record<string, unknown>).nome || "Estudante").toString();
+        const { anonymized, restore } = anonymizeMessages(messages, nomeEstudante);
+        const textoOficial = restore(await chatCompletionText(engine as EngineId, anonymized, {
             temperature: 0.4,
             source: "pei-pdf-oficial",
-        });
+        }));
 
         if (!textoOficial || textoOficial.length < 100) {
             return NextResponse.json(
@@ -45,8 +48,7 @@ export async function POST(req: Request) {
             );
         }
 
-        // 3. Gerar PDF
-        const nomeEstudante = ((peiData as Record<string, unknown>).nome || "Estudante").toString();
+        // 3. Gerar PDF (nome real é usado para título do documento — uso interno)
         const pdfBytes = await gerarPdfDocumentoOficial(textoOficial, nomeEstudante);
         const buffer = Buffer.from(pdfBytes);
         const filename = `PEI_Oficial_${nomeEstudante.replace(/\s+/g, "_")}.pdf`;

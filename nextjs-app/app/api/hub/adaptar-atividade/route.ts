@@ -6,6 +6,7 @@ import { adaptarPromptAtividade } from "@/lib/hub-prompts";
 import { garantirTagImagem } from "@/lib/hub-utils";
 import { comprimirArquivoImagem } from "@/lib/image-compression";
 import { requireAuth } from "@/lib/permissions";
+import { anonymizeText } from "@/lib/ai-anonymize";
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
 const MAX_VISION_BYTES = 3 * 1024 * 1024; // 3MB (limite para APIs de visão)
@@ -117,6 +118,9 @@ export async function POST(req: Request) {
   });
 
   try {
+    // LGPD: anonimizar nome do estudante no prompt
+    const studentName = estudante?.nome || null;
+    const { anonymized: anonPrompt, restore } = anonymizeText(prompt, studentName);
     // Usar Gemini diretamente para suportar múltiplas imagens quando necessário
     const v = getVisionApiKey();
     if (!v) throw new Error(getVisionError() || "Chave de visão não configurada.");
@@ -129,9 +133,9 @@ export async function POST(req: Request) {
         const { GoogleGenerativeAI } = await import("@google/generative-ai");
         const genAI = new GoogleGenerativeAI(v.key);
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-        
+
         const contents = [
-          { text: prompt },
+          { text: anonPrompt },
           {
             inlineData: {
               data: imagemBase64,
@@ -146,7 +150,7 @@ export async function POST(req: Request) {
             },
           },
         ];
-        
+
         const result = await model.generateContent(contents);
         fullText = (result.response.text() || "").trim();
       } catch (geminiError) {
@@ -170,7 +174,7 @@ export async function POST(req: Request) {
                 {
                   role: "user",
                   content: [
-                    { type: "text", text: prompt },
+                    { type: "text", text: anonPrompt },
                     { type: "image_url", image_url: { url: `data:${mime};base64,${imagemBase64}` } },
                     { type: "text", text: "IMAGEM RECORTADA SEPARADAMENTE PELO PROFESSOR (use tag [[IMG_2]] para inserir no local apropriado):" },
                     { type: "image_url", image_url: { url: `data:${mime};base64,${imagemSeparadaBase64}` } },
@@ -191,9 +195,12 @@ export async function POST(req: Request) {
       }
     } else {
       // Usar visionAdapt padrão (uma imagem)
-      fullText = await visionAdapt(prompt, imagemBase64, mime);
+      fullText = await visionAdapt(anonPrompt, imagemBase64, mime);
     }
-    
+
+    // LGPD: restaurar nomes reais na resposta
+    fullText = restore(fullText);
+
     let analise = "Análise indisponível.";
     let atividade = fullText;
 

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 type CicloPayload = {
   config_ciclo?: {
@@ -133,12 +134,13 @@ ${contexto}`;
   }
 
   try {
+    const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt }], nome);
     const texto = await chatCompletionText(
       engine,
-      [{ role: "user", content: prompt }],
+      anonymized,
       { temperature: 0.7 }
     );
-    return NextResponse.json({ texto: (texto || "").trim() });
+    return NextResponse.json({ texto: restore(texto || "").trim() });
   } catch (err) {
     console.error("PAEE jornada gamificada:", err);
     return NextResponse.json(

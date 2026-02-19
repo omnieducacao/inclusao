@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 type RegistroResumo = {
     data_sessao?: string;
@@ -21,8 +22,8 @@ type RegistroResumo = {
 };
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-  const { error: authError } = await requireAuth(); if (authError) return authError;
+    const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+    const { error: authError } = await requireAuth(); if (authError) return authError;
     let registros: RegistroResumo[] = [];
     let engine: EngineId = "red";
     let nomeEstudante = "";
@@ -30,8 +31,8 @@ export async function POST(req: Request) {
 
     try {
         const parsed = await parseBody(req, diarioAnaliseSchema);
-    if (parsed.error) return parsed.error;
-    const body = parsed.data;
+        if (parsed.error) return parsed.error;
+        const body = parsed.data;
         registros = body.registros || [];
         nomeEstudante = body.nomeEstudante || "Estudante";
         diagnostico = body.diagnostico || "";
@@ -108,11 +109,12 @@ REGISTROS:
 ${resumo}`;
 
     try {
-        const texto = await chatCompletionText(engine, [
+        const { anonymized, restore } = anonymizeMessages([
             { role: "system", content: system },
             { role: "user", content: user },
-        ], { temperature: 0.5 });
-        return NextResponse.json({ texto: (texto || "").trim() });
+        ], nomeEstudante);
+        const texto = await chatCompletionText(engine, anonymized, { temperature: 0.5 });
+        return NextResponse.json({ texto: restore(texto || "").trim() });
     } catch (err) {
         console.error("Diário Análise IA:", err);
         return NextResponse.json(

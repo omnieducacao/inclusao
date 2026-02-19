@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { chatCompletionText } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -62,9 +63,10 @@ export async function POST(req: Request) {
     SAÍDA: Texto formatado de forma clara e legível, SEM tabelas Markdown.
     `;
 
-    const resultado = await chatCompletionText(engineId, [{ role: "user", content: prompt }], { temperature: 0.5 });
+    const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt }], studentName);
+    const resultado = await chatCompletionText(engineId, anonymized, { temperature: 0.5 });
 
-    return NextResponse.json({ diagnostico: resultado });
+    return NextResponse.json({ diagnostico: restore(resultado) });
   } catch (error) {
     console.error("Erro ao gerar diagnóstico de barreiras:", error);
     return NextResponse.json(

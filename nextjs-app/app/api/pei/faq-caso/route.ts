@@ -4,17 +4,18 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-  const { error: authError } = await requireAuth(); if (authError) return authError;
+    const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+    const { error: authError } = await requireAuth(); if (authError) return authError;
     let peiData: Record<string, unknown> = {};
     let engine: EngineId = "red";
 
     try {
         const parsed = await parseBody(req, peiDataEngineSchema);
-    if (parsed.error) return parsed.error;
-    const body = parsed.data;
+        if (parsed.error) return parsed.error;
+        const body = parsed.data;
         peiData = body.peiData || {};
         if (body.engine && ["red", "blue", "green", "yellow", "orange"].includes(body.engine)) {
             engine = body.engine as EngineId;
@@ -73,12 +74,13 @@ MEDICAÇÃO: ${medsTxt}
 PLANO PEDAGÓGICO:\n${iaSugestao || "em construção"}`;
 
     try {
-        const texto = await chatCompletionText(engine, [
+        const { anonymized, restore } = anonymizeMessages([
             { role: "system", content: system },
             { role: "user", content: user },
-        ], { temperature: 0.5 });
+        ], nome);
+        const texto = await chatCompletionText(engine, anonymized, { temperature: 0.5 });
 
-        const jsonMatch = texto.match(/\[[\s\S]*\]/);
+        const jsonMatch = restore(texto).match(/\[[\s\S]*\]/);
         if (!jsonMatch) {
             return NextResponse.json({ error: "IA não retornou JSON válido." }, { status: 500 });
         }

@@ -5,6 +5,7 @@ import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 /**
  * POST /api/monitoring/sugerir-rubricas
@@ -12,7 +13,7 @@ import { getSupabase } from "@/lib/supabase";
  * rubric scores for Monitoramento.
  */
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+    const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
     try {
         const session = await getSession();
         if (!session?.workspace_id) {
@@ -20,8 +21,8 @@ export async function POST(req: Request) {
         }
 
         const parsed = await parseBody(req, sugerirRubricasSchema);
-    if (parsed.error) return parsed.error;
-    const body = parsed.data;
+        if (parsed.error) return parsed.error;
+        const body = parsed.data;
         const { studentId, engine: engineParam } = body;
 
         if (!studentId) {
@@ -100,10 +101,12 @@ DIAGNÓSTICO: ${diagnostico || "em acompanhamento"}
 REGISTROS RECENTES (${registros.length}):
 ${diarioResumo}`;
 
-        const texto = await chatCompletionText(engine, [
+        const { anonymized, restore } = anonymizeMessages([
             { role: "system", content: system },
             { role: "user", content: user },
-        ], { temperature: 0.3 });
+        ], nomeEstudante);
+
+        const texto = await chatCompletionText(engine, anonymized, { temperature: 0.3 });
 
         // Parse JSON response
         try {

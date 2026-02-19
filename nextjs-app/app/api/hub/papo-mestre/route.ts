@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 import { gerarPromptPapoMestre } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -41,8 +42,9 @@ export async function POST(req: Request) {
   if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
 
   try {
-    const texto = await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.8 });
-    return NextResponse.json({ texto });
+    const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt }], nomeEstudante);
+    const textoRaw = await chatCompletionText(engine, anonymized, { temperature: 0.8 });
+    return NextResponse.json({ texto: restore(textoRaw) });
   } catch (err) {
     console.error("Hub papo-mestre:", err);
     return NextResponse.json(
