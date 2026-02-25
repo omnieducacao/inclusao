@@ -251,6 +251,123 @@ REGRAS:
 }`.trim()
 }
 
+// ── Template: Perfil de Funcionamento (V3 tipo 3) ────────────
+
+export function templatePerfilFuncionamento(params: {
+  nome: string
+  serie: string
+  diagnostico: string
+  dimensoes_avaliadas: Array<{
+    dimensao: string
+    nivel_observado: number
+    observacao: string
+  }>
+  habilidades_curriculares: Array<{
+    codigo_bncc: string
+    disciplina: string
+    nivel: number
+  }>
+}): string {
+  const dimsStr = params.dimensoes_avaliadas.map((d, i) =>
+    `${i + 1}. ${d.dimensao}: Nível ${d.nivel_observado}\n   Observação: "${d.observacao}"`
+  ).join('\n\n')
+
+  const habsStr = params.habilidades_curriculares.map(h =>
+    `- [${h.codigo_bncc}] ${h.disciplina}: Nível ${h.nivel}`
+  ).join('\n')
+
+  return `
+## TAREFA: GERAR PERFIL DE FUNCIONAMENTO DO ESTUDANTE
+
+REGRA FUNDAMENTAL: termos clínicos DESAPARECEM do output.
+O professor recebe comportamentos observáveis + ações práticas, NUNCA diagnósticos.
+Use linguagem acessível e direta.
+
+Estudante: ${params.nome}
+Série: ${params.serie}
+Perfil: ${params.diagnostico}
+
+DIMENSÕES COGNITIVO-FUNCIONAIS AVALIADAS:
+${dimsStr}
+
+HABILIDADES CURRICULARES (Camada A):
+${habsStr}
+
+## SCHEMA DE SAÍDA (JSON obrigatório):
+{
+  "resumo_geral": "string — 2-3 frases, linguagem acessível",
+  "pontos_fortes": ["string — o que o aluno FAZ bem"],
+  "areas_atencao": ["string — onde precisa de mais apoio"],
+  "dimensoes": [
+    {
+      "dimensao": "string",
+      "nivel": number,
+      "descricao_comportamental": "string — SEM termos clínicos",
+      "suporte_recomendado": "S1|S2|S3|S4"
+    }
+  ],
+  "habilidades_curriculares": [
+    {
+      "codigo_bncc": "string",
+      "disciplina": "string",
+      "nivel": number
+    }
+  ],
+  "recomendacao_prioridade": ["string — top 3 ações prioritárias"]
+}`.trim()
+}
+
+// ── Template: Estratégias Práticas (V3 tipo 4) ───────────────
+
+export function templateEstrategiasPraticas(params: {
+  nome: string
+  diagnostico: string
+  dimensoes_com_dificuldade: Array<{
+    dimensao: string
+    nivel: number
+    observacao: string
+  }>
+}): string {
+  const dimsStr = params.dimensoes_com_dificuldade.map((d, i) =>
+    `${i + 1}. ${d.dimensao} (Nível ${d.nivel}): "${d.observacao}"`
+  ).join('\n')
+
+  return `
+## TAREFA: GERAR ESTRATÉGIAS PRÁTICAS PARA O PROFESSOR
+
+PRINCÍPIO: dimensão cognitiva → comportamento observável → ação concreta.
+O professor NÃO precisa saber o nome da dimensão. Precisa saber o que FAZER AMANHÃ.
+NUNCA use termos clínicos no output.
+
+Estudante: ${params.nome}
+Perfil: ${params.diagnostico}
+
+DIFICULDADES OBSERVADAS:
+${dimsStr}
+
+Para CADA dificuldade, gere:
+1. O que o professor VÊ (comportamento observável)
+2. O que o professor FAZ (ação concreta, prática, imediata)
+3. Quando usar (situação específica)
+4. Exemplo prático
+
+## SCHEMA DE SAÍDA (JSON obrigatório):
+{
+  "estrategias": [
+    {
+      "comportamento_observado": "string",
+      "acao_concreta": "string",
+      "quando_usar": "string",
+      "exemplo_pratico": "string",
+      "prioridade": "essencial|recomendada|complementar"
+    }
+  ],
+  "rotina_diaria_sugerida": ["string — ações para a rotina do dia"],
+  "o_que_evitar": ["string — erros comuns que o professor deve evitar"],
+  "observacoes": "string | null"
+}`.trim()
+}
+
 // ── Build complete prompt ────────────────────────────────────
 
 export function buildPromptCompleto(

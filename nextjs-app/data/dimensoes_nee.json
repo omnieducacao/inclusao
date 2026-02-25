@@ -1,0 +1,410 @@
+[
+    {
+        "perfil": "TEA",
+        "nome_completo": "Transtorno do Espectro Autista",
+        "dimensoes": [
+            {
+                "id": "tea_teoria_mente",
+                "dimensao": "Teoria da Mente",
+                "o_que_o_professor_observa": "Não entende ironia, sarcasmo, intenção implícita",
+                "acao_pratica": "Sinalize sempre que estiver usando linguagem figurada",
+                "indicadores_observaveis": [
+                    "Interpreta literalmente figuras de linguagem",
+                    "Não percebe quando alguém está brincando",
+                    "Dificuldade em prever reações dos colegas",
+                    "Não entende piadas baseadas em duplo sentido"
+                ],
+                "perguntas_professor": [
+                    "O estudante entende quando você está usando sarcasmo ou brincadeira?",
+                    "Ele percebe quando um colega está triste ou zangado?",
+                    "Consegue explicar por que alguém agiu de determinada forma?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Não demonstra compreensão de intenção alheia mesmo com explicação",
+                    "1": "Identifica emoções básicas (feliz/triste) com apoio visual",
+                    "2": "Compreende intenções simples quando explicitamente apontadas",
+                    "3": "Infere intenções em situações estruturadas e familiares",
+                    "4": "Infere intenções e reage adequadamente em contextos variados"
+                }
+            },
+            {
+                "id": "tea_flexibilidade",
+                "dimensao": "Flexibilidade Cognitiva",
+                "o_que_o_professor_observa": "Dificuldade com mudanças de rotina ou de tarefa",
+                "acao_pratica": "Avise transições com 5 min de antecedência",
+                "indicadores_observaveis": [
+                    "Fica ansioso ou resistente quando a rotina muda",
+                    "Dificuldade em mudar de uma atividade para outra",
+                    "Insiste em fazer as coisas sempre da mesma forma",
+                    "Reagência a mudanças de lugar ou material"
+                ],
+                "perguntas_professor": [
+                    "Como o estudante reage quando há mudança na rotina?",
+                    "Ele consegue mudar de uma atividade para outra sem dificuldade?",
+                    "Insiste em usar sempre o mesmo material ou sentar no mesmo lugar?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Crises intensas com qualquer mudança",
+                    "1": "Aceita mudanças mínimas com mediação total",
+                    "2": "Aceita mudanças com aviso prévio e apoio direto",
+                    "3": "Lida com mudanças previsíveis com suporte mínimo",
+                    "4": "Adapta-se a mudanças inesperadas com autonomia"
+                }
+            },
+            {
+                "id": "tea_coerencia_central",
+                "dimensao": "Coerência Central",
+                "o_que_o_professor_observa": "Foca em detalhes, perde o contexto geral",
+                "acao_pratica": "Apresente o objetivo da aula antes de entrar nos detalhes",
+                "indicadores_observaveis": [
+                    "Prende-se a detalhes irrelevantes da tarefa",
+                    "Dificuldade em resumir ou identificar a ideia principal",
+                    "Excelente em detalhes mas perde a visão geral",
+                    "Não conecta partes de um texto ou atividade"
+                ],
+                "perguntas_professor": [
+                    "O estudante consegue identificar a ideia principal de um texto?",
+                    "Ele se prende a detalhes sem perceber o todo?",
+                    "Consegue resumir o que aprendeu na aula?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Foca exclusivamente em detalhes isolados",
+                    "1": "Identifica partes quando direcionado",
+                    "2": "Conecta 2-3 informações com apoio",
+                    "3": "Identifica ideia principal em contextos estruturados",
+                    "4": "Articula detalhes e visão geral de forma autônoma"
+                }
+            },
+            {
+                "id": "tea_perfil_sensorial",
+                "dimensao": "Perfil Sensorial",
+                "o_que_o_professor_observa": "Hiper/hipossensibilidade auditiva, tátil, visual",
+                "acao_pratica": "Evite ambientes com ruído alto sem aviso prévio",
+                "indicadores_observaveis": [
+                    "Tampa os ouvidos com barulhos que não incomodam outros",
+                    "Desconforto com certos tipos de toque ou textura",
+                    "Busca ou evita estímulos visuais intensos",
+                    "Dificuldade de concentração em ambientes ruidosos"
+                ],
+                "perguntas_professor": [
+                    "O estudante se incomoda com barulhos que não incomodam os colegas?",
+                    "Evita tocar em certos materiais?",
+                    "A iluminação da sala afeta seu comportamento?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Reações intensas que impedem a participação",
+                    "1": "Tolera ambiente controlado com mediação total",
+                    "2": "Participa com adaptações sensoriais diretas",
+                    "3": "Usa estratégias de autorregulação com apoio mínimo",
+                    "4": "Gerencia seu perfil sensorial com autonomia"
+                }
+            },
+            {
+                "id": "tea_funcao_executiva",
+                "dimensao": "Função Executiva",
+                "o_que_o_professor_observa": "Dificuldade em iniciar, planejar, sequenciar",
+                "acao_pratica": "Quebre tarefas em no máximo 3 etapas visuais",
+                "indicadores_observaveis": [
+                    "Não inicia a tarefa sem ser direcionado",
+                    "Perde-se na sequência de etapas",
+                    "Dificuldade em organizar materiais e tempo",
+                    "Não sabe priorizar o que fazer primeiro"
+                ],
+                "perguntas_professor": [
+                    "O estudante consegue iniciar uma tarefa sozinho?",
+                    "Ele segue uma sequência de passos sem se perder?",
+                    "Consegue organizar seus materiais para a aula?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Não inicia nem com apoio direto",
+                    "1": "Inicia com mediação total (passo a passo guiado)",
+                    "2": "Executa 2-3 etapas com checklist visual",
+                    "3": "Planeja tarefas curtas com suporte mínimo",
+                    "4": "Planeja e executa sequências longas com autonomia"
+                }
+            }
+        ]
+    },
+    {
+        "perfil": "DI",
+        "nome_completo": "Deficiência Intelectual",
+        "dimensoes": [
+            {
+                "id": "di_memoria_trabalho",
+                "dimensao": "Memória de Trabalho",
+                "o_que_o_professor_observa": "Esquece instruções anteriores ao executar",
+                "acao_pratica": "Dê no máximo 2 instruções por vez. Escreva no quadro",
+                "indicadores_observaveis": [
+                    "Esquece o que foi pedido antes de terminar",
+                    "Precisa que repita a instrução várias vezes",
+                    "Perde-se quando são dadas múltiplas instruções",
+                    "Não retém informação da aula anterior"
+                ],
+                "perguntas_professor": [
+                    "Quantas instruções o estudante consegue reter por vez?",
+                    "Ele lembra o que foi ensinado na aula anterior?",
+                    "Precisa que você repita as instruções com frequência?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Não retém nenhuma instrução",
+                    "1": "Retém 1 instrução simples com apoio concreto",
+                    "2": "Retém 2 instruções com apoio visual",
+                    "3": "Retém 3+ instruções em contexto estruturado",
+                    "4": "Retém instruções múltiplas com autonomia"
+                }
+            },
+            {
+                "id": "di_velocidade_processamento",
+                "dimensao": "Velocidade de Processamento",
+                "o_que_o_professor_observa": "Precisa de mais tempo que a turma",
+                "acao_pratica": "Amplie o tempo ou reduza a quantidade, nunca os dois juntos",
+                "indicadores_observaveis": [
+                    "Sempre o último a terminar as atividades",
+                    "Precisa de tempo extra para processar perguntas",
+                    "Ritmo de trabalho significativamente mais lento",
+                    "Desiste quando percebe que está ficando para trás"
+                ],
+                "perguntas_professor": [
+                    "O estudante precisa de quanto tempo extra em relação à turma?",
+                    "Ele desiste quando percebe que os colegas já terminaram?",
+                    "Qual adaptação funciona melhor: mais tempo ou menos atividades?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Não conclui mesmo com tempo triplicado",
+                    "1": "Conclui tarefas muito reduzidas com tempo extra",
+                    "2": "Conclui tarefas adaptadas com tempo moderado extra",
+                    "3": "Conclui tarefas padrão com pequeno tempo extra",
+                    "4": "Conclui no ritmo da turma ou próximo"
+                }
+            },
+            {
+                "id": "di_generalizacao",
+                "dimensao": "Generalização",
+                "o_que_o_professor_observa": "Não aplica o que aprendeu em contexto diferente",
+                "acao_pratica": "Pratique a mesma habilidade em 3 contextos distintos",
+                "indicadores_observaveis": [
+                    "Sabe fazer na sala mas não consegue em outro ambiente",
+                    "Não transfere habilidade de um material para outro",
+                    "Domina com um professor mas não com outro",
+                    "Precisa reaprender quando muda o contexto"
+                ],
+                "perguntas_professor": [
+                    "O estudante consegue usar o que aprendeu em situações novas?",
+                    "Ele aplica uma habilidade com diferentes materiais?",
+                    "Precisa reensinar quando muda o contexto da atividade?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Não transfere para nenhum contexto novo",
+                    "1": "Transfere com apoio direto para 1 contexto novo",
+                    "2": "Transfere para contextos muito similares",
+                    "3": "Transfere para contextos moderadamente diferentes",
+                    "4": "Generaliza para contextos novos com autonomia"
+                }
+            },
+            {
+                "id": "di_linguagem",
+                "dimensao": "Linguagem Receptiva vs. Expressiva",
+                "o_que_o_professor_observa": "Entende mais do que consegue comunicar",
+                "acao_pratica": "Ofereça múltiplas formas de resposta: oral, gesto, apontar",
+                "indicadores_observaveis": [
+                    "Entende comandos mas não verbaliza resposta",
+                    "Responde corretamente quando pode apontar",
+                    "Vocabulário expressivo limitado",
+                    "Gesticula para compensar falta de palavras"
+                ],
+                "perguntas_professor": [
+                    "O estudante entende mais do que consegue expressar?",
+                    "Quais formas de resposta ele usa além da fala?",
+                    "Ele responde melhor quando pode apontar ou mostrar?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Comunicação muito limitada em todos os canais",
+                    "1": "Comunica necessidades básicas com apoio",
+                    "2": "Expressa ideias simples com múltiplos canais",
+                    "3": "Comunica-se adequadamente com suporte mínimo",
+                    "4": "Comunicação funcional e autônoma"
+                }
+            }
+        ]
+    },
+    {
+        "perfil": "TA",
+        "nome_completo": "Transtornos de Aprendizagem",
+        "dimensoes": [
+            {
+                "id": "ta_rota_fonologica",
+                "dimensao": "Rota Fonológica (Dislexia)",
+                "o_que_o_professor_observa": "Dificuldade em decodificar palavras novas",
+                "acao_pratica": "Não avalie leitura quando o conteúdo-alvo for outro",
+                "indicadores_observaveis": [
+                    "Troca letras com sons semelhantes (p/b, t/d)",
+                    "Dificuldade com palavras desconhecidas",
+                    "Leitura lenta e silabada",
+                    "Escrita com muitas trocas fonológicas"
+                ],
+                "perguntas_professor": [
+                    "O estudante troca letras com sons parecidos?",
+                    "A leitura é fluente ou silabada?",
+                    "Ele tem mais dificuldade com palavras novas?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Não decodifica nem sílabas simples",
+                    "1": "Decodifica sílabas simples (CV) com apoio",
+                    "2": "Lê palavras regulares com apoio",
+                    "3": "Lê textos curtos com suporte mínimo",
+                    "4": "Leitura funcional com estratégias compensatórias"
+                }
+            },
+            {
+                "id": "ta_atencao_sustentada",
+                "dimensao": "Atenção Sustentada (TDAH)",
+                "o_que_o_professor_observa": "Desengaja após 5-8 minutos",
+                "acao_pratica": "Blocos de atividade máx. 7 min com pausa de 2 min",
+                "indicadores_observaveis": [
+                    "Perde o foco após poucos minutos",
+                    "Distrai-se com estímulos mínimos",
+                    "Não termina atividades sem redirecionamento",
+                    "Agitação motora (mexe-se, levanta)"
+                ],
+                "perguntas_professor": [
+                    "Quanto tempo o estudante mantém o foco em uma atividade?",
+                    "O que mais o distrai?",
+                    "Blocos curtos de atividade funcionam melhor?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Não mantém foco por mais de 1 minuto",
+                    "1": "Mantém foco por 3-5 min com mediação constante",
+                    "2": "Mantém foco por 7-10 min com lembretes",
+                    "3": "Mantém foco por 15+ min com suporte mínimo",
+                    "4": "Atenção sustentada funcional para a idade"
+                }
+            },
+            {
+                "id": "ta_memoria_verbal",
+                "dimensao": "Memória de Trabalho Verbal",
+                "o_que_o_professor_observa": "Perde o fio da explicação oral",
+                "acao_pratica": "Use suporte visual junto com a explicação oral sempre",
+                "indicadores_observaveis": [
+                    "Esquece o início da instrução antes de terminar de ouvir",
+                    "Precisa de suporte visual para acompanhar",
+                    "Dificuldade em acompanhar explicações longas",
+                    "Melhor desempenho com apoio escrito/visual"
+                ],
+                "perguntas_professor": [
+                    "O estudante acompanha explicações orais longas?",
+                    "Ele se sai melhor quando há apoio visual?",
+                    "Quantas instruções orais ele retém?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Não retém instrução oral",
+                    "1": "Retém 1 instrução oral com apoio visual",
+                    "2": "Acompanha explicação curta com apoio",
+                    "3": "Acompanha explicações moderadas com apoio mínimo",
+                    "4": "Processa informação oral adequadamente"
+                }
+            },
+            {
+                "id": "ta_senso_numerico",
+                "dimensao": "Senso Numérico (Discalculia)",
+                "o_que_o_professor_observa": "Dificuldade com magnitude e sequência numérica",
+                "acao_pratica": "Use linha numérica concreta antes de numerais abstratos",
+                "indicadores_observaveis": [
+                    "Não compara quantidades sem material concreto",
+                    "Dificuldade com sequência numérica",
+                    "Troca números ao escrever (21/12)",
+                    "Não relaciona numeral à quantidade"
+                ],
+                "perguntas_professor": [
+                    "O estudante compara quantidades sem material concreto?",
+                    "Ele consegue contar em sequência?",
+                    "Material manipulável ajuda na compreensão?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Não demonstra noção de quantidade",
+                    "1": "Identifica 'mais/menos' com material concreto",
+                    "2": "Conta e compara com apoio concreto",
+                    "3": "Opera com números em contexto estruturado",
+                    "4": "Senso numérico funcional para a série"
+                }
+            }
+        ]
+    },
+    {
+        "perfil": "AH",
+        "nome_completo": "Altas Habilidades / Superdotação",
+        "dimensoes": [
+            {
+                "id": "ah_area_alta",
+                "dimensao": "Área de Alta Habilidade",
+                "o_que_o_professor_observa": "Performance muito acima da turma em domínio específico",
+                "acao_pratica": "Ofereça aprofundamento, não repetição do que já domina",
+                "indicadores_observaveis": [
+                    "Domina conteúdos muito acima da série",
+                    "Questiona o professor com profundidade",
+                    "Tédio evidente com atividades do nível da turma",
+                    "Busca informação extra por conta própria"
+                ],
+                "perguntas_professor": [
+                    "Em qual área o estudante se destaca claramente?",
+                    "Ele se entedia com atividades do nível da turma?",
+                    "Busca aprofundamento por conta própria?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "N/A para AH — usar para áreas de lacuna",
+                    "1": "N/A para AH",
+                    "2": "Nível da turma + interesse acima da média",
+                    "3": "Acima da turma + busca aprofundamento",
+                    "4": "Muito acima da turma + produção original"
+                }
+            },
+            {
+                "id": "ah_dupla_excepcionalidade",
+                "dimensao": "Dupla Excepcionalidade",
+                "o_que_o_professor_observa": "AH em uma área + dificuldade inesperada em outra",
+                "acao_pratica": "Não assuma que AH = bom em tudo — mapeie as lacunas",
+                "indicadores_observaveis": [
+                    "Excelente em uma área mas com dificuldade real em outra",
+                    "Frustração desproporcional em áreas de dificuldade",
+                    "Pode mascarar dificuldade com estratégias compensatórias",
+                    "Desempenho irregular entre disciplinas"
+                ],
+                "perguntas_professor": [
+                    "O estudante tem dificuldade em alguma área específica?",
+                    "A dificuldade parece incompatível com sua capacidade geral?",
+                    "Ele compensa a dificuldade de alguma forma?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "Dificuldade severa na área de lacuna",
+                    "1": "Dificuldade moderada, começando a ser mapeada",
+                    "2": "Dificuldade identificada com estratégias iniciais",
+                    "3": "Dificuldade gerenciada com suporte",
+                    "4": "Lacuna superada ou compensada funcionalmente"
+                }
+            },
+            {
+                "id": "ah_estilo_aprendizagem",
+                "dimensao": "Estilo de Aprendizagem",
+                "o_que_o_professor_observa": "Aprende melhor por desafio, autonomia, conexões",
+                "acao_pratica": "Projetos abertos com grau de liberdade maior que a turma",
+                "indicadores_observaveis": [
+                    "Engaja-se com desafios complexos e abertos",
+                    "Desmotiva com tarefas repetitivas ou simples",
+                    "Faz conexões entre disciplinas espontaneamente",
+                    "Prefere autonomia no processo de aprendizagem"
+                ],
+                "perguntas_professor": [
+                    "O estudante se engaja mais com tarefas complexas?",
+                    "Ele faz conexões entre assuntos de disciplinas diferentes?",
+                    "Prefere trabalhar com autonomia ou com direcionamento?"
+                ],
+                "niveis_omnisfera": {
+                    "0": "N/A",
+                    "1": "N/A",
+                    "2": "Engaja com atividades desafiadoras quando oferecidas",
+                    "3": "Busca desafios e faz conexões com suporte mínimo",
+                    "4": "Auto-dirige aprendizagem com projetos complexos"
+                }
+            }
+        ]
+    }
+]

@@ -153,28 +153,33 @@ export async function POST(req: Request) {
     // Usar a primeira habilidade para o contexto principal
     const habilidadePrincipal = habilidades_bncc[0];
 
-    // Montar prompt
-    const contexto = buildContextoAluno(
-        aluno,
-        habilidadePrincipal,
-        nivelAluno,
-        observacao_professor || "Avaliação diagnóstica inicial",
-        [],
-        [],
-        plano_ensino_contexto,
-    );
+    // Montar prompt usando novo motor V3 (named params)
+    const contexto = buildContextoAluno({
+        nome: aluno.nome_primeiro,
+        serie: aluno.ano_matricula,
+        diagnostico: nee as string,
+        nivel_omnisfera_estimado: nivelAluno,
+        observacao_professor: observacao_professor || "Avaliação diagnóstica inicial",
+    });
 
-    const tarefa = templateQuestoesDiagnosticas(
-        habilidadePrincipal,
-        nivelAluno,
-        quantidade || 4,
-    );
+    const tarefa = templateQuestoesDiagnosticas({
+        habilidades: habilidades_bncc.map((h: HabilidadeBNCC) => ({
+            codigo: h.codigo,
+            disciplina: h.disciplina,
+            unidade_tematica: h.unidade_tematica,
+            objeto_conhecimento: h.objeto_conhecimento,
+            habilidade: h.habilidade,
+            nivel_cognitivo_saeb: h.nivel_cognitivo_saeb,
+        })),
+        quantidade: quantidade || 4,
+        tipo_questao: "Objetiva",
+        nivel_omnisfera_estimado: nivelAluno,
+        plano_ensino_contexto: plano_ensino_contexto || undefined,
+    });
 
     const { system, user } = buildPromptCompleto(
-        "questao_diagnostica",
         contexto,
         tarefa,
-        nee,
     );
 
     try {
