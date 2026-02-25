@@ -19,18 +19,24 @@ export async function GET() {
 
     // 1. Resolver member_id do professor logado
     let memberId = (session.member as Record<string, unknown> | undefined)?.id as string | undefined;
+    console.log("[plano-curso/meus-componentes] session.member:", JSON.stringify(session.member));
+    console.log("[plano-curso/meus-componentes] memberId from session.member:", memberId);
+    console.log("[plano-curso/meus-componentes] usuario_nome:", session.usuario_nome);
+    console.log("[plano-curso/meus-componentes] workspace_id:", session.workspace_id);
     if (!memberId) {
         const { data: m } = await sb
             .from("workspace_members")
-            .select("id")
+            .select("id, name")
             .eq("workspace_id", session.workspace_id)
             .eq("name", session.usuario_nome)
             .maybeSingle();
+        console.log("[plano-curso/meus-componentes] fallback member lookup:", JSON.stringify(m));
         memberId = m?.id || undefined;
     }
 
     const isMaster = !!(session.member as Record<string, boolean> | undefined)?.is_master ||
         session.is_platform_admin;
+    console.log("[plano-curso/meus-componentes] memberId:", memberId, "isMaster:", isMaster);
 
     // 2. Buscar teacher_assignments
     let assignmentsQuery = sb
@@ -42,9 +48,10 @@ export async function GET() {
         assignmentsQuery = assignmentsQuery.eq("workspace_member_id", memberId);
     }
 
-    const { data: assignments } = await assignmentsQuery;
+    const { data: assignments, error: assignErr } = await assignmentsQuery;
+    console.log("[plano-curso/meus-componentes] assignments count:", assignments?.length, "error:", assignErr?.message);
     if (!assignments?.length) {
-        return NextResponse.json({ componentes: [], is_master: isMaster });
+        return NextResponse.json({ componentes: [], is_master: isMaster, debug: { memberId, isMaster, assignErr: assignErr?.message } });
     }
 
     // 3. Buscar classes, grades e components
