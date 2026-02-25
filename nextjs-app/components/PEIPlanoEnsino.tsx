@@ -308,10 +308,10 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                                         }}>
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
-                                                    {p.bimestre || "Sem período"}
+                                                    {p.disciplina} — {p.bimestre || "Sem período"}
                                                 </div>
                                                 <div style={{ fontSize: 12, color: "var(--text-muted, #94a3b8)" }}>
-                                                    {blocos.length} bloco{blocos.length !== 1 ? "s" : ""} · {p.habilidades_bncc?.length || 0} hab. · {new Date(p.updated_at).toLocaleDateString("pt-BR")}
+                                                    {p.ano_serie} · {blocos.length} bloco{blocos.length !== 1 ? "s" : ""} · {p.habilidades_bncc?.length || 0} hab. · {new Date(p.updated_at).toLocaleDateString("pt-BR")}
                                                 </div>
                                             </div>
                                             {isLinked ? (
