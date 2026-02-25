@@ -5,6 +5,7 @@ import {
     Brain, Loader2, CheckCircle2, AlertTriangle,
     ChevronDown, ChevronUp, Sparkles, ClipboardCheck,
     ArrowLeft, Users, BookOpen, Target, Zap, FileText, Layers,
+    Grid3X3, BookMarked, ChevronRight,
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 
@@ -75,6 +76,9 @@ export default function AvaliacaoDiagnosticaClient() {
     const [alunos, setAlunos] = useState<Aluno[]>([]);
     const [professorName, setProfessorName] = useState("");
     const [error, setError] = useState("");
+
+    // Top-level tab: "estudantes" | "matriz" | "manual"
+    const [activeTab, setActiveTab] = useState<"estudantes" | "matriz" | "manual">("estudantes");
 
     // Navigation
     const [selectedAluno, setSelectedAluno] = useState<Aluno | null>(null);
@@ -774,106 +778,458 @@ export default function AvaliacaoDiagnosticaClient() {
                 </p>
             </div>
 
-            {/* Empty state */}
-            {alunos.length === 0 && (
-                <div style={{ ...cardS, textAlign: "center", padding: "40px 20px" }}>
-                    <Users size={48} style={{ margin: "0 auto 12px", color: "var(--text-muted)", opacity: 0.3 }} />
-                    <h3 style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
-                        Nenhum estudante encontrado
-                    </h3>
-                    <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>
-                        Estudantes em Fase 2 do PEI aparecerão aqui.
-                    </p>
-                </div>
-            )}
+            {/* ── Tab Bar ── */}
+            <div style={{
+                display: "flex", gap: 4, padding: 4, borderRadius: 12,
+                background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                marginBottom: 20,
+            }}>
+                {([
+                    { key: "estudantes" as const, label: "Estudantes", icon: <Users size={14} /> },
+                    { key: "matriz" as const, label: "Matriz de Referência", icon: <Grid3X3 size={14} /> },
+                    { key: "manual" as const, label: "Manual de Aplicação", icon: <BookMarked size={14} /> },
+                ]).map(tab => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        style={{
+                            flex: 1, padding: "10px 14px", borderRadius: 10,
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                            cursor: "pointer", fontSize: 13, fontWeight: 700,
+                            border: "none",
+                            background: activeTab === tab.key ? "linear-gradient(135deg, #2563eb, #3b82f6)" : "transparent",
+                            color: activeTab === tab.key ? "#fff" : "var(--text-muted, #94a3b8)",
+                            transition: "all .2s",
+                        }}
+                    >
+                        {tab.icon} {tab.label}
+                    </button>
+                ))}
+            </div>
 
-            {/* Student cards */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {alunos.map(aluno => {
-                    const totalDisc = aluno.disciplinas.length;
-                    const avaliadasCompletas = aluno.disciplinas.filter(d => d.avaliacao_status === "aplicada").length;
+            {/* ── Tab: Matriz de Referência ── */}
+            {activeTab === "matriz" && <MatrizReferenciaPanel />}
 
-                    return (
-                        <div key={aluno.id} style={cardS}>
-                            <div style={{ ...headerS, justifyContent: "space-between" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                    <div style={{
-                                        width: 36, height: 36, borderRadius: "50%", display: "flex",
-                                        alignItems: "center", justifyContent: "center",
-                                        background: "linear-gradient(135deg, #3b82f6, #6366f1)",
-                                        color: "#fff", fontSize: 12, fontWeight: 800,
-                                    }}>
-                                        {aluno.name.split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase()}
+            {/* ── Tab: Manual de Aplicação ── */}
+            {activeTab === "manual" && <ManualAplicacaoPanel />}
+
+            {/* ── Tab: Estudantes ── */}
+            {activeTab === "estudantes" && (
+                <>
+
+                    {/* Empty state */}
+                    {alunos.length === 0 && (
+                        <div style={{ ...cardS, textAlign: "center", padding: "40px 20px" }}>
+                            <Users size={48} style={{ margin: "0 auto 12px", color: "var(--text-muted)", opacity: 0.3 }} />
+                            <h3 style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
+                                Nenhum estudante encontrado
+                            </h3>
+                            <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>
+                                Estudantes em Fase 2 do PEI aparecerão aqui.
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Student cards */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        {alunos.map(aluno => {
+                            const totalDisc = aluno.disciplinas.length;
+                            const avaliadasCompletas = aluno.disciplinas.filter(d => d.avaliacao_status === "aplicada").length;
+
+                            return (
+                                <div key={aluno.id} style={cardS}>
+                                    <div style={{ ...headerS, justifyContent: "space-between" }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                            <div style={{
+                                                width: 36, height: 36, borderRadius: "50%", display: "flex",
+                                                alignItems: "center", justifyContent: "center",
+                                                background: "linear-gradient(135deg, #3b82f6, #6366f1)",
+                                                color: "#fff", fontSize: 12, fontWeight: 800,
+                                            }}>
+                                                {aluno.name.split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary, #e2e8f0)" }}>
+                                                    {aluno.name}
+                                                </div>
+                                                <div style={{ fontSize: 12, color: "var(--text-muted, #94a3b8)" }}>
+                                                    {aluno.grade} {aluno.class_group && `— ${aluno.class_group}`}
+                                                    {aluno.diagnostico && ` · ${aluno.diagnostico}`}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: "right" }}>
+                                            <span style={{
+                                                fontSize: 12, fontWeight: 700,
+                                                color: avaliadasCompletas === totalDisc && totalDisc > 0 ? "#10b981" : "var(--text-muted)",
+                                            }}>
+                                                {avaliadasCompletas}/{totalDisc}
+                                            </span>
+                                            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>avaliações</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary, #e2e8f0)" }}>
-                                            {aluno.name}
-                                        </div>
-                                        <div style={{ fontSize: 12, color: "var(--text-muted, #94a3b8)" }}>
-                                            {aluno.grade} {aluno.class_group && `— ${aluno.class_group}`}
-                                            {aluno.diagnostico && ` · ${aluno.diagnostico}`}
-                                        </div>
+
+                                    {/* Discipline buttons */}
+                                    <div style={{ ...bodyS, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                                        {aluno.disciplinas.map(disc => {
+                                            const applied = disc.avaliacao_status === "aplicada";
+                                            const hasAvaliacao = disc.has_avaliacao;
+
+                                            return (
+                                                <button
+                                                    key={disc.id}
+                                                    onClick={() => openAvaliacao(aluno, disc.disciplina)}
+                                                    style={{
+                                                        padding: "8px 14px", borderRadius: 10,
+                                                        display: "flex", alignItems: "center", gap: 6,
+                                                        cursor: "pointer", fontSize: 13, fontWeight: 600,
+                                                        border: applied
+                                                            ? "1.5px solid rgba(16,185,129,.3)"
+                                                            : hasAvaliacao
+                                                                ? "1.5px solid rgba(245,158,11,.3)"
+                                                                : "1px solid var(--border-default, rgba(148,163,184,.12))",
+                                                        background: applied
+                                                            ? "rgba(16,185,129,.06)"
+                                                            : hasAvaliacao
+                                                                ? "rgba(245,158,11,.06)"
+                                                                : "var(--bg-primary, rgba(2,6,23,.3))",
+                                                        color: applied
+                                                            ? "#10b981"
+                                                            : hasAvaliacao
+                                                                ? "#f59e0b"
+                                                                : "var(--text-secondary, #cbd5e1)",
+                                                        transition: "all .2s",
+                                                    }}
+                                                >
+                                                    {applied ? <CheckCircle2 size={14} /> : hasAvaliacao ? <Target size={14} /> : <Zap size={14} />}
+                                                    {disc.disciplina}
+                                                    {disc.nivel_omnisfera !== null && (
+                                                        <span style={{
+                                                            fontSize: 10, fontWeight: 800, padding: "1px 6px", borderRadius: 4,
+                                                            background: "rgba(99,102,241,.12)", color: "#818cf8",
+                                                        }}>N{disc.nivel_omnisfera}</span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
-                                <div style={{ textAlign: "right" }}>
-                                    <span style={{
-                                        fontSize: 12, fontWeight: 700,
-                                        color: avaliadasCompletas === totalDisc && totalDisc > 0 ? "#10b981" : "var(--text-muted)",
-                                    }}>
-                                        {avaliadasCompletas}/{totalDisc}
-                                    </span>
-                                    <div style={{ fontSize: 10, color: "var(--text-muted)" }}>avaliações</div>
+                            );
+                        })}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
+
+// ─── Matriz de Referência Panel ─────────────────────────────────────────────
+
+function MatrizReferenciaPanel() {
+    const [areas, setAreas] = useState<{ area: string; total: number; series: string[] }[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedArea, setSelectedArea] = useState<string | null>(null);
+    const [selectedSerie, setSelectedSerie] = useState<string | null>(null);
+    const [habilidades, setHabilidades] = useState<{
+        serie: string; ano: string; tema: string; objeto_conhecimento: string;
+        competencia: string; habilidade: string; descritor: string;
+    }[]>([]);
+    const [loadingHabs, setLoadingHabs] = useState(false);
+
+    useEffect(() => {
+        fetch("/api/avaliacao-diagnostica/matriz")
+            .then(r => r.json())
+            .then(d => setAreas(d.areas || []))
+            .catch(() => { })
+            .finally(() => setLoading(false));
+    }, []);
+
+    const selectSerie = async (area: string, serie: string) => {
+        setSelectedArea(area);
+        setSelectedSerie(serie);
+        setLoadingHabs(true);
+        try {
+            const res = await fetch(`/api/avaliacao-diagnostica/matriz?area=${encodeURIComponent(area)}&serie=${serie}`);
+            const data = await res.json();
+            setHabilidades(data.habilidades || []);
+        } catch { setHabilidades([]); }
+        finally { setLoadingHabs(false); }
+    };
+
+    const areaColors: Record<string, string> = {
+        "Matemática": "#3b82f6",
+        "Linguagens": "#8b5cf6",
+        "Ciências da Natureza": "#10b981",
+        "Ciências Humanas": "#f59e0b",
+    };
+
+    if (loading) return <div style={{ textAlign: "center", padding: 40 }}><Loader2 size={28} className="animate-spin" style={{ color: "#3b82f6", margin: "0 auto" }} /></div>;
+
+    if (selectedArea && selectedSerie) {
+        const color = areaColors[selectedArea] || "#3b82f6";
+        // Group by tema
+        const temas: Record<string, typeof habilidades> = {};
+        for (const h of habilidades) {
+            const t = h.tema || "Geral";
+            if (!temas[t]) temas[t] = [];
+            temas[t].push(h);
+        }
+
+        return (
+            <div>
+                <button onClick={() => { setSelectedArea(null); setSelectedSerie(null); setHabilidades([]); }} style={{
+                    display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8,
+                    border: "none", background: "rgba(99,102,241,.08)", color: "#818cf8", cursor: "pointer",
+                    fontSize: 13, fontWeight: 600, marginBottom: 14,
+                }}><ArrowLeft size={14} /> Voltar</button>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>
+                        {selectedArea} — {selectedSerie}
+                    </h3>
+                    <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{habilidades.length} habilidades</span>
+                </div>
+
+                {loadingHabs ? (
+                    <div style={{ textAlign: "center", padding: 30 }}><Loader2 size={24} className="animate-spin" style={{ color: "#3b82f6" }} /></div>
+                ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        {Object.entries(temas).map(([tema, items]) => (
+                            <div key={tema} style={{
+                                borderRadius: 14, overflow: "hidden",
+                                border: "1px solid var(--border-default, rgba(148,163,184,.12))",
+                                background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                            }}>
+                                <div style={{
+                                    padding: "10px 16px", fontWeight: 700, fontSize: 13, color,
+                                    borderBottom: "1px solid var(--border-default, rgba(148,163,184,.08))",
+                                    background: `${color}08`,
+                                }}>
+                                    {tema} <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>({items.length})</span>
+                                </div>
+                                <div style={{ display: "flex", flexDirection: "column" }}>
+                                    {items.map((h, i) => {
+                                        // Extract code from habilidade text
+                                        const codeMatch = h.habilidade.match(/^(EF\d+\w+\d+H?\d*|\(EF\d+\w+\d+\))/i);
+                                        const code = codeMatch ? codeMatch[1].replace(/[()]/g, '') : '';
+                                        return (
+                                            <div key={i} style={{
+                                                padding: "12px 16px",
+                                                borderBottom: i < items.length - 1 ? "1px solid var(--border-default, rgba(148,163,184,.06))" : "none",
+                                            }}>
+                                                <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+                                                    {code && <span style={{
+                                                        fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 4,
+                                                        background: `${color}12`, color, whiteSpace: "nowrap",
+                                                    }}>{code}</span>}
+                                                    {h.competencia && <span style={{
+                                                        fontSize: 10, color: "var(--text-muted)", overflow: "hidden",
+                                                        textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 300,
+                                                    }}>{h.competencia.slice(0, 60)}...</span>}
+                                                </div>
+                                                <p style={{ fontSize: 13, color: "var(--text-primary)", margin: "0 0 4px", lineHeight: 1.5 }}>
+                                                    {h.habilidade}
+                                                </p>
+                                                {h.descritor && (
+                                                    <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.4 }}>
+                                                        📝 {h.descritor}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    }
 
-                            {/* Discipline buttons */}
-                            <div style={{ ...bodyS, display: "flex", flexWrap: "wrap", gap: 8 }}>
-                                {aluno.disciplinas.map(disc => {
-                                    const applied = disc.avaliacao_status === "aplicada";
-                                    const hasAvaliacao = disc.has_avaliacao;
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 4px" }}>
+                Navegue pelas habilidades da matriz avaliativa por área do conhecimento e ano/série.
+            </p>
+            {areas.map(a => {
+                const color = areaColors[a.area] || "#3b82f6";
+                return (
+                    <div key={a.area} style={{
+                        borderRadius: 14, overflow: "hidden",
+                        border: `1.5px solid ${color}30`,
+                        background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                    }}>
+                        <div style={{
+                            display: "flex", alignItems: "center", justifyContent: "space-between",
+                            padding: "14px 18px",
+                            background: `${color}08`,
+                            borderBottom: "1px solid var(--border-default, rgba(148,163,184,.08))",
+                        }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                <div style={{ width: 10, height: 10, borderRadius: "50%", background: color }} />
+                                <span style={{ fontWeight: 800, fontSize: 15, color: "var(--text-primary)" }}>{a.area}</span>
+                            </div>
+                            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{a.total} habilidades</span>
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: "12px 18px" }}>
+                            {a.series.sort().map(s => (
+                                <button
+                                    key={s}
+                                    onClick={() => selectSerie(a.area, s)}
+                                    style={{
+                                        padding: "8px 16px", borderRadius: 10,
+                                        background: `${color}08`, border: `1px solid ${color}25`,
+                                        color, cursor: "pointer", fontSize: 13, fontWeight: 700,
+                                        display: "flex", alignItems: "center", gap: 4,
+                                        transition: "all .2s",
+                                    }}
+                                >
+                                    {s} <ChevronRight size={14} />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
 
-                                    return (
-                                        <button
-                                            key={disc.id}
-                                            onClick={() => openAvaliacao(aluno, disc.disciplina)}
-                                            style={{
-                                                padding: "8px 14px", borderRadius: 10,
-                                                display: "flex", alignItems: "center", gap: 6,
-                                                cursor: "pointer", fontSize: 13, fontWeight: 600,
-                                                border: applied
-                                                    ? "1.5px solid rgba(16,185,129,.3)"
-                                                    : hasAvaliacao
-                                                        ? "1.5px solid rgba(245,158,11,.3)"
-                                                        : "1px solid var(--border-default, rgba(148,163,184,.12))",
-                                                background: applied
-                                                    ? "rgba(16,185,129,.06)"
-                                                    : hasAvaliacao
-                                                        ? "rgba(245,158,11,.06)"
-                                                        : "var(--bg-primary, rgba(2,6,23,.3))",
-                                                color: applied
-                                                    ? "#10b981"
-                                                    : hasAvaliacao
-                                                        ? "#f59e0b"
-                                                        : "var(--text-secondary, #cbd5e1)",
-                                                transition: "all .2s",
-                                            }}
-                                        >
-                                            {applied ? <CheckCircle2 size={14} /> : hasAvaliacao ? <Target size={14} /> : <Zap size={14} />}
-                                            {disc.disciplina}
-                                            {disc.nivel_omnisfera !== null && (
-                                                <span style={{
-                                                    fontSize: 10, fontWeight: 800, padding: "1px 6px", borderRadius: 4,
-                                                    background: "rgba(99,102,241,.12)", color: "#818cf8",
-                                                }}>N{disc.nivel_omnisfera}</span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
+// ─── Manual de Aplicação Panel ──────────────────────────────────────────────
+
+function ManualAplicacaoPanel() {
+    const [manual, setManual] = useState<{ passo: number; titulo: string; instrucao: string }[]>([]);
+    const [escala, setEscala] = useState<{ nivel: number; label: string; codigo: string; descritor: string; observar: string; suporte: string }[]>([]);
+    const [adaptacoes, setAdaptacoes] = useState<Record<string, string>>({});
+    const [loading, setLoading] = useState(true);
+    const [expandedStep, setExpandedStep] = useState<number | null>(1);
+
+    useEffect(() => {
+        Promise.all([
+            fetch("/api/avaliacao-diagnostica/matriz?section=manual").then(r => r.json()),
+            fetch("/api/avaliacao-diagnostica/matriz?section=escala").then(r => r.json()),
+        ]).then(([manualData, escalaData]) => {
+            setManual(manualData.manual || []);
+            setEscala(escalaData.escala || []);
+            setAdaptacoes(escalaData.adaptacoes_nee || {});
+        }).catch(() => { }).finally(() => setLoading(false));
+    }, []);
+
+    const nivelColors = ["#ef4444", "#f59e0b", "#3b82f6", "#8b5cf6", "#10b981"];
+
+    if (loading) return <div style={{ textAlign: "center", padding: 40 }}><Loader2 size={28} className="animate-spin" style={{ color: "#3b82f6", margin: "0 auto" }} /></div>;
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Step-by-step manual */}
+            <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                    <BookMarked size={18} style={{ color: "#3b82f6" }} />
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>Passo a Passo</h3>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {manual.map(step => (
+                        <div key={step.passo} style={{
+                            borderRadius: 12, overflow: "hidden",
+                            border: expandedStep === step.passo
+                                ? "1.5px solid rgba(37,99,235,.3)"
+                                : "1px solid var(--border-default, rgba(148,163,184,.1))",
+                            background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                        }}>
+                            <button
+                                onClick={() => setExpandedStep(expandedStep === step.passo ? null : step.passo)}
+                                style={{
+                                    display: "flex", alignItems: "center", gap: 10,
+                                    width: "100%", padding: "12px 16px",
+                                    border: "none", cursor: "pointer",
+                                    background: expandedStep === step.passo ? "rgba(37,99,235,.05)" : "transparent",
+                                    justifyContent: "space-between",
+                                }}
+                            >
+                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                    <span style={{
+                                        width: 28, height: 28, borderRadius: "50%",
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        fontSize: 12, fontWeight: 800,
+                                        background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+                                        color: "#fff",
+                                    }}>{step.passo}</span>
+                                    <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>{step.titulo}</span>
+                                </div>
+                                {expandedStep === step.passo ? <ChevronUp size={16} style={{ color: "var(--text-muted)" }} /> : <ChevronDown size={16} style={{ color: "var(--text-muted)" }} />}
+                            </button>
+                            {expandedStep === step.passo && (
+                                <div style={{ padding: "0 16px 14px", fontSize: 13, lineHeight: 1.7, color: "var(--text-secondary)" }}>
+                                    {step.instrucao}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Escala de Proficiência Omnisfera */}
+            <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                    <Target size={18} style={{ color: "#8b5cf6" }} />
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>Escala de Proficiência Omnisfera</h3>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {escala.map(e => (
+                        <div key={e.nivel} style={{
+                            display: "flex", gap: 14, padding: "14px 16px", borderRadius: 12,
+                            border: `1.5px solid ${nivelColors[e.nivel]}30`,
+                            background: `${nivelColors[e.nivel]}06`,
+                        }}>
+                            <div style={{
+                                width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                background: `linear-gradient(135deg, ${nivelColors[e.nivel]}, ${nivelColors[e.nivel]}cc)`,
+                                color: "#fff", fontSize: 18, fontWeight: 800,
+                            }}>{e.nivel}</div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 700, fontSize: 14, color: nivelColors[e.nivel] }}>
+                                    {e.label} <span style={{ fontSize: 11, fontWeight: 500, color: "var(--text-muted)" }}>({e.codigo})</span>
+                                </div>
+                                <div style={{ fontSize: 13, color: "var(--text-primary)", marginTop: 2, lineHeight: 1.5 }}>
+                                    {e.descritor}
+                                </div>
+                                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
+                                    👁️ {e.observar}
+                                </div>
+                                <div style={{ fontSize: 11, color: nivelColors[e.nivel], marginTop: 4, fontWeight: 600 }}>
+                                    Suporte: {e.suporte}
+                                </div>
                             </div>
                         </div>
-                    );
-                })}
+                    ))}
+                </div>
             </div>
+
+            {/* Adaptações por perfil NEE */}
+            {Object.keys(adaptacoes).length > 0 && (
+                <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                        <Users size={18} style={{ color: "#10b981" }} />
+                        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>Adaptações por Perfil NEE</h3>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 10 }}>
+                        {Object.entries(adaptacoes).map(([perfil, desc]) => (
+                            <div key={perfil} style={{
+                                padding: "14px 16px", borderRadius: 12,
+                                border: "1px solid var(--border-default, rgba(148,163,184,.12))",
+                                background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                            }}>
+                                <div style={{ fontWeight: 700, fontSize: 14, color: "#10b981", marginBottom: 6 }}>{perfil}</div>
+                                <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{desc}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
