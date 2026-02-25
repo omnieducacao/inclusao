@@ -35,6 +35,7 @@ interface SequenciaBloco {
     objetivos: string[];
     objetivos_livre: string;
     metodologias: string[];
+    metodologia_livre: string;
     recursos: string[];
     avaliacoes: string[];
     avaliacao_livre: string;
@@ -98,7 +99,8 @@ function emptyBloco(): SequenciaBloco {
         id: uid(), habilidades_bncc: [], habilidades_descricoes: {},
         unidade_tematica: "", objeto_conhecimento: "",
         objetivos: [], objetivos_livre: "",
-        metodologias: [], recursos: [], avaliacoes: [], avaliacao_livre: "",
+        metodologias: [], metodologia_livre: "",
+        recursos: [], avaliacoes: [], avaliacao_livre: "",
     };
 }
 
@@ -275,6 +277,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                                 objetivos: typeof parsed.objetivos === "string" ? [parsed.objetivos] : [],
                                 objetivos_livre: typeof parsed.objetivos === "string" ? parsed.objetivos : "",
                                 metodologias: typeof parsed.metodologia === "string" ? [parsed.metodologia] : [],
+                                metodologia_livre: "",
                                 recursos: parsed.recursos || [],
                                 avaliacoes: typeof parsed.avaliacao === "string" ? [parsed.avaliacao] : [],
                                 avaliacao_livre: typeof parsed.avaliacao === "string" ? parsed.avaliacao : "",
@@ -377,8 +380,10 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                     objetivos: [...new Set([...prev.objetivos, ...(data.sugestao.objetivos || [])])],
                     objetivos_livre: data.sugestao.objetivos_texto || prev.objetivos_livre,
                     metodologias: [...new Set([...prev.metodologias, ...(data.sugestao.metodologias || [])])],
+                    metodologia_livre: data.sugestao.metodologia_texto || prev.metodologia_livre,
                     recursos: [...new Set([...prev.recursos, ...(data.sugestao.recursos || [])])],
                     avaliacoes: [...new Set([...prev.avaliacoes, ...(data.sugestao.avaliacoes || [])])],
+                    avaliacao_livre: data.sugestao.avaliacao_texto || prev.avaliacao_livre,
                 }));
             }
         } catch { /* silent */ }
@@ -550,8 +555,9 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                     </div></div>
 
                     {/* Methodology */}
-                    <div style={cardS}><div style={bodyS}>
+                    <div style={cardS}><div style={{ ...bodyS, display: "flex", flexDirection: "column", gap: 10 }}>
                         <TagSelector options={METODOLOGIAS} selected={form.metodologias} onToggle={v => toggleFormTag("metodologias", v)} label="Metodologia" color="#8b5cf6" />
+                        <textarea placeholder="Descreva como aplicar as metodologias neste contexto (a IA preenche automaticamente)..." value={form.metodologia_livre} onChange={e => setForm(f => ({ ...f, metodologia_livre: e.target.value }))} style={{ ...textareaS, minHeight: 60 }} />
                     </div></div>
 
                     {/* Resources */}
@@ -627,12 +633,43 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                                             <span style={{ fontSize: 10, fontWeight: 700, color: "#818cf8", background: "rgba(99,102,241,.1)", padding: "2px 6px", borderRadius: 4 }}>{bloco.habilidades_bncc.length} hab.</span>
                                         </button>
                                         {isExpanded && (
-                                            <div style={{ ...bodyS, fontSize: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-                                                {bloco.habilidades_bncc.length > 0 && <div><span style={{ fontWeight: 700, color: "#818cf8", fontSize: 11 }}>Habilidades BNCC:</span><div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>{bloco.habilidades_bncc.map(c => <span key={c} title={bloco.habilidades_descricoes[c] || ""} style={{ padding: "2px 8px", borderRadius: 10, fontSize: 11, fontWeight: 700, background: "rgba(99,102,241,.1)", color: "#818cf8" }}>{c}</span>)}</div></div>}
-                                                {(bloco.objetivos.length > 0 || bloco.objetivos_livre) && <div><span style={{ fontWeight: 700, color: "#a78bfa", fontSize: 11 }}>Objetivos:</span><p style={{ margin: "2px 0 0", color: "var(--text-secondary, #cbd5e1)", lineHeight: 1.4 }}>{[...bloco.objetivos, bloco.objetivos_livre].filter(Boolean).join("; ")}</p></div>}
-                                                {bloco.metodologias.length > 0 && <div><span style={{ fontWeight: 700, color: "#8b5cf6", fontSize: 11 }}>Metodologia:</span><p style={{ margin: "2px 0 0", color: "var(--text-secondary, #cbd5e1)" }}>{bloco.metodologias.join(", ")}</p></div>}
-                                                {bloco.recursos.length > 0 && <div><span style={{ fontWeight: 700, color: "#f59e0b", fontSize: 11 }}>Recursos:</span><div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 2 }}>{bloco.recursos.map(r => <span key={r} style={{ padding: "2px 8px", borderRadius: 10, fontSize: 11, background: "rgba(245,158,11,.08)", color: "#fbbf24" }}>{r}</span>)}</div></div>}
-                                                {(bloco.avaliacoes.length > 0 || bloco.avaliacao_livre) && <div><span style={{ fontWeight: 700, color: "#ec4899", fontSize: 11 }}>Avaliação:</span><p style={{ margin: "2px 0 0", color: "var(--text-secondary, #cbd5e1)" }}>{[...bloco.avaliacoes, bloco.avaliacao_livre].filter(Boolean).join("; ")}</p></div>}
+                                            <div style={{ ...bodyS, fontSize: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+                                                {/* BNCC Decomposition */}
+                                                {(bloco.unidade_tematica || bloco.objeto_conhecimento) && (
+                                                    <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.12)" }}>
+                                                        {bloco.unidade_tematica && (
+                                                            <div style={{ marginBottom: bloco.objeto_conhecimento ? 6 : 0 }}>
+                                                                <span style={{ fontSize: 10, fontWeight: 700, color: "#818cf8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Unidade Temática</span>
+                                                                <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 600, color: "var(--text-primary, #e2e8f0)" }}>{bloco.unidade_tematica}</p>
+                                                            </div>
+                                                        )}
+                                                        {bloco.objeto_conhecimento && (
+                                                            <div>
+                                                                <span style={{ fontSize: 10, fontWeight: 700, color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.05em" }}>Objeto do Conhecimento</span>
+                                                                <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 600, color: "var(--text-primary, #e2e8f0)" }}>{bloco.objeto_conhecimento}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {bloco.habilidades_bncc.length > 0 && (
+                                                    <div>
+                                                        <span style={{ fontWeight: 700, color: "#818cf8", fontSize: 11 }}>Habilidades BNCC ({bloco.habilidades_bncc.length}):</span>
+                                                        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 6 }}>
+                                                            {bloco.habilidades_bncc.map(c => (
+                                                                <div key={c} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "6px 10px", borderRadius: 8, background: "rgba(14,165,233,.05)", border: "1px solid rgba(14,165,233,.1)" }}>
+                                                                    <span style={{ fontSize: 11, fontWeight: 700, color: "#38bdf8", whiteSpace: "nowrap", marginTop: 1 }}>{c}</span>
+                                                                    {bloco.habilidades_descricoes[c] && (
+                                                                        <span style={{ fontSize: 12, color: "var(--text-secondary, #cbd5e1)", lineHeight: 1.4 }}>{bloco.habilidades_descricoes[c]}</span>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {(bloco.objetivos.length > 0 || bloco.objetivos_livre) && <div><span style={{ fontWeight: 700, color: "#a78bfa", fontSize: 11 }}>Objetivos:</span><p style={{ margin: "4px 0 0", color: "var(--text-secondary, #cbd5e1)", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{bloco.objetivos_livre || bloco.objetivos.join("; ")}</p></div>}
+                                                {bloco.metodologias.length > 0 && <div><span style={{ fontWeight: 700, color: "#8b5cf6", fontSize: 11 }}>Metodologia:</span>{bloco.metodologia_livre ? <p style={{ margin: "4px 0 0", color: "var(--text-secondary, #cbd5e1)", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{bloco.metodologia_livre}</p> : <p style={{ margin: "2px 0 0", color: "var(--text-secondary, #cbd5e1)" }}>{bloco.metodologias.join(", ")}</p>}</div>}
+                                                {bloco.recursos.length > 0 && <div><span style={{ fontWeight: 700, color: "#f59e0b", fontSize: 11 }}>Recursos:</span><div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>{bloco.recursos.map(r => <span key={r} style={{ padding: "2px 8px", borderRadius: 10, fontSize: 11, background: "rgba(245,158,11,.08)", color: "#fbbf24" }}>{r}</span>)}</div></div>}
+                                                {(bloco.avaliacoes.length > 0 || bloco.avaliacao_livre) && <div><span style={{ fontWeight: 700, color: "#ec4899", fontSize: 11 }}>Avaliação:</span>{bloco.avaliacao_livre ? <p style={{ margin: "4px 0 0", color: "var(--text-secondary, #cbd5e1)", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{bloco.avaliacao_livre}</p> : <p style={{ margin: "2px 0 0", color: "var(--text-secondary, #cbd5e1)" }}>{bloco.avaliacoes.join("; ")}</p>}</div>}
                                                 <div style={{ display: "flex", gap: 6, paddingTop: 6, borderTop: "1px solid var(--border-default, rgba(148,163,184,.08))" }}>
                                                     <button onClick={() => editBloco(index)} type="button" style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, border: "1px solid var(--border-default)", background: "transparent", color: "#818cf8", cursor: "pointer" }}><Edit3 size={12} /> Editar</button>
                                                     <button onClick={() => duplicateBloco(index)} type="button" style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, border: "1px solid var(--border-default)", background: "transparent", color: "#94a3b8", cursor: "pointer" }}><Copy size={12} /> Duplicar</button>
