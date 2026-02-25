@@ -53,12 +53,34 @@ const NIVEL_COLORS: Record<number, { bg: string; border: string; text: string }>
     4: { bg: "rgba(99,102,241,.08)", border: "rgba(99,102,241,.2)", text: "#818cf8" },
 };
 
-const BIMESTRES = [
-    { value: 1, label: "1º Bimestre" },
-    { value: 2, label: "2º Bimestre" },
-    { value: 3, label: "3º Bimestre" },
-    { value: 4, label: "4º Bimestre" },
-];
+type TipoPeriodo = "bimestral" | "trimestral" | "semestral";
+
+const PERIODOS: Record<TipoPeriodo, { label: string; periodos: { value: number; label: string }[] }> = {
+    bimestral: {
+        label: "Bimestral",
+        periodos: [
+            { value: 1, label: "1º Bimestre" },
+            { value: 2, label: "2º Bimestre" },
+            { value: 3, label: "3º Bimestre" },
+            { value: 4, label: "4º Bimestre" },
+        ],
+    },
+    trimestral: {
+        label: "Trimestral",
+        periodos: [
+            { value: 1, label: "1º Trimestre" },
+            { value: 2, label: "2º Trimestre" },
+            { value: 3, label: "3º Trimestre" },
+        ],
+    },
+    semestral: {
+        label: "Semestral",
+        periodos: [
+            { value: 1, label: "1º Semestre" },
+            { value: 2, label: "2º Semestre" },
+        ],
+    },
+};
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
 
@@ -71,7 +93,8 @@ export default function AvaliacaoProcessualClient() {
     // Navigation
     const [selectedAluno, setSelectedAluno] = useState<Aluno | null>(null);
     const [selectedDisc, setSelectedDisc] = useState<string | null>(null);
-    const [selectedBimestre, setSelectedBimestre] = useState(1);
+    const [tipoPeriodo, setTipoPeriodo] = useState<TipoPeriodo>("bimestral");
+    const [selectedPeriodo, setSelectedPeriodo] = useState(1);
 
     // Avaliação state
     const [habilidades, setHabilidades] = useState<HabilidadeAvaliada[]>([]);
@@ -99,10 +122,10 @@ export default function AvaliacaoProcessualClient() {
 
     // ─── Load existing processual for this bimestre ─────────────────────
 
-    const loadRegistro = useCallback(async (studentId: string, disciplina: string, bim: number) => {
+    const loadRegistro = useCallback(async (studentId: string, disciplina: string, periodo: number) => {
         try {
             const res = await fetch(
-                `/api/avaliacao-processual?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&bimestre=${bim}`
+                `/api/avaliacao-processual?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&bimestre=${periodo}`
             );
             const data = await res.json();
             const registros = data.registros || [];
@@ -172,11 +195,11 @@ export default function AvaliacaoProcessualClient() {
         setObservacaoGeral("");
         setSalvou(false);
 
-        // Load existing registro for current bimestre
-        loadRegistro(aluno.id, disciplina, selectedBimestre);
+        // Load existing registro for current periodo
+        loadRegistro(aluno.id, disciplina, selectedPeriodo);
         // Load habilidades
         loadHabilidades(aluno, disciplina);
-    }, [selectedBimestre, loadRegistro, loadHabilidades]);
+    }, [selectedPeriodo, loadRegistro, loadHabilidades]);
 
     const goBack = () => {
         setSelectedAluno(null);
@@ -218,7 +241,8 @@ export default function AvaliacaoProcessualClient() {
                 body: JSON.stringify({
                     studentId: selectedAluno.id,
                     disciplina: selectedDisc,
-                    bimestre: selectedBimestre,
+                    bimestre: selectedPeriodo,
+                    tipo_periodo: tipoPeriodo,
                     ano_letivo: new Date().getFullYear(),
                     habilidades: habilidades.map(h => ({
                         codigo_bncc: h.codigo_bncc,
@@ -306,31 +330,61 @@ export default function AvaliacaoProcessualClient() {
                     </p>
                 </div>
 
-                {/* Bimestre selector */}
+                {/* Tipo de período */}
+                <div style={{
+                    display: "flex", gap: 6, marginBottom: 10,
+                    padding: 4, borderRadius: 12,
+                    background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                }}>
+                    {(["bimestral", "trimestral", "semestral"] as TipoPeriodo[]).map(tipo => (
+                        <button
+                            key={tipo}
+                            onClick={() => {
+                                setTipoPeriodo(tipo);
+                                setSelectedPeriodo(1);
+                                loadRegistro(selectedAluno.id, selectedDisc, 1);
+                            }}
+                            style={{
+                                flex: 1, padding: "8px 10px", borderRadius: 10,
+                                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                                cursor: "pointer", fontSize: 12, fontWeight: 700,
+                                border: "none",
+                                background: tipoPeriodo === tipo ? "rgba(16,185,129,.12)" : "transparent",
+                                color: tipoPeriodo === tipo ? "#10b981" : "var(--text-muted, #94a3b8)",
+                                transition: "all .2s",
+                            }}
+                        >
+                            {PERIODOS[tipo].label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Período selector */}
                 <div style={{
                     display: "flex", gap: 6, marginBottom: 20,
                     padding: 4, borderRadius: 12,
                     background: "var(--bg-secondary, rgba(15,23,42,.4))",
                     border: "1px solid var(--border-default, rgba(148,163,184,.1))",
                 }}>
-                    {BIMESTRES.map(bim => (
+                    {PERIODOS[tipoPeriodo].periodos.map(p => (
                         <button
-                            key={bim.value}
+                            key={p.value}
                             onClick={() => {
-                                setSelectedBimestre(bim.value);
-                                loadRegistro(selectedAluno.id, selectedDisc, bim.value);
+                                setSelectedPeriodo(p.value);
+                                loadRegistro(selectedAluno.id, selectedDisc, p.value);
                             }}
                             style={{
                                 flex: 1, padding: "10px 12px", borderRadius: 10,
                                 display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                                 cursor: "pointer", fontSize: 13, fontWeight: 700,
                                 border: "none",
-                                background: selectedBimestre === bim.value ? "linear-gradient(135deg, #059669, #10b981)" : "transparent",
-                                color: selectedBimestre === bim.value ? "#fff" : "var(--text-muted, #94a3b8)",
+                                background: selectedPeriodo === p.value ? "linear-gradient(135deg, #059669, #10b981)" : "transparent",
+                                color: selectedPeriodo === p.value ? "#fff" : "var(--text-muted, #94a3b8)",
                                 transition: "all .2s",
                             }}
                         >
-                            <Calendar size={13} /> {bim.label}
+                            <Calendar size={13} /> {p.label}
                         </button>
                     ))}
                 </div>
@@ -355,8 +409,8 @@ export default function AvaliacaoProcessualClient() {
                         ...cardS, padding: 16, textAlign: "center",
                         background: "rgba(99,102,241,.04)",
                     }}>
-                        <div style={{ fontSize: 24, fontWeight: 800, color: "#818cf8" }}>{selectedBimestre}º</div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Bimestre</div>
+                        <div style={{ fontSize: 24, fontWeight: 800, color: "#818cf8" }}>{selectedPeriodo}º</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{PERIODOS[tipoPeriodo].label.slice(0, -1)}</div>
                     </div>
                 </div>
 
@@ -484,7 +538,7 @@ export default function AvaliacaoProcessualClient() {
                         <textarea
                             value={observacaoGeral}
                             onChange={(e) => setObservacaoGeral(e.target.value)}
-                            placeholder="Percepções gerais sobre o estudante neste bimestre..."
+                            placeholder={`Percepções gerais sobre o estudante neste ${PERIODOS[tipoPeriodo].label.toLowerCase().slice(0, -1)}...`}
                             rows={3}
                             style={{
                                 width: "100%", padding: "10px 12px", borderRadius: 8,
@@ -553,8 +607,8 @@ export default function AvaliacaoProcessualClient() {
                     </div>
                 </div>
                 <p style={{ margin: 0, fontSize: 13, opacity: 0.8, maxWidth: 600 }}>
-                    Registre a evolução bimestral de cada estudante na escala Omnisfera (0-4).
-                    Compare com a diagnóstica inicial e acompanhe o progresso ao longo do ano.
+                    Registre a evolução periódica de cada estudante na escala Omnisfera (0-4).
+                    Suporta avaliação bimestral, trimestral ou semestral.
                 </p>
             </div>
 
