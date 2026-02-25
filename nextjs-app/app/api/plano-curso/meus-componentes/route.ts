@@ -26,9 +26,9 @@ export async function GET() {
     if (!memberId) {
         const { data: m } = await sb
             .from("workspace_members")
-            .select("id, name")
+            .select("id, nome")
             .eq("workspace_id", session.workspace_id)
-            .eq("name", session.usuario_nome)
+            .eq("nome", session.usuario_nome)
             .maybeSingle();
         console.log("[plano-curso/meus-componentes] fallback member lookup:", JSON.stringify(m));
         memberId = m?.id || undefined;

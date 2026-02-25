@@ -32,7 +32,7 @@ export async function GET(req: Request) {
             .from("workspace_members")
             .select("id")
             .eq("workspace_id", session.workspace_id)
-            .eq("name", session.usuario_nome)
+            .eq("nome", session.usuario_nome)
             .maybeSingle();
         memberId = m?.id || undefined;
     }
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
             .from("workspace_members")
             .select("id")
             .eq("workspace_id", session.workspace_id)
-            .eq("name", session.usuario_nome)
+            .eq("nome", session.usuario_nome)
             .maybeSingle();
         memberId = m?.id || undefined;
     }
