@@ -1,19 +1,39 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
-import { criarPromptItensAvancado } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import {
+    buildContextoAluno,
+    templateQuestoesDiagnosticas,
+    buildPromptCompleto,
+    mapDiagnosticoToPerfilNEE,
+} from "@/lib/omnisfera-prompts";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-let cachedMatriz: Record<string, unknown> | null = null;
-function loadMatriz() {
-    if (!cachedMatriz) {
-        const raw = readFileSync(join(process.cwd(), "data", "matriz_diagnostica.json"), "utf-8");
-        cachedMatriz = JSON.parse(raw);
+// ── Cache BNCC completa ──────────────────────────────────────
+
+interface BnccHabilidade {
+    codigo: string;
+    segmento: string;
+    ano: string;
+    disciplina: string;
+    unidade_tematica: string;
+    objeto_conhecimento: string;
+    habilidade: string;
+    nivel_cognitivo_saeb: string;
+    prioridade_saeb: string;
+    instrumento_avaliativo: string;
+}
+
+let cachedBncc: BnccHabilidade[] | null = null;
+function loadBncc(): BnccHabilidade[] {
+    if (!cachedBncc) {
+        const raw = readFileSync(join(process.cwd(), "data", "bncc_completa.json"), "utf-8");
+        cachedBncc = JSON.parse(raw);
     }
-    return cachedMatriz!;
+    return cachedBncc!;
 }
 
 export async function POST(req: Request) {
@@ -31,10 +51,11 @@ export async function POST(req: Request) {
     const serie = (body.serie as string) || "";
     const habilidades_selecionadas = (body.habilidades_selecionadas as string[]) || [];
     const qtdQuestoes = (body.qtd_questoes as number) || 4;
-    const tipoQuestao = (body.tipo_questao as string) || "Objetiva";
+    const tipoQuestao = ((body.tipo_questao as string) || "Objetiva") as "Objetiva" | "Discursiva";
     const diagnostico_aluno = (body.diagnostico_aluno as string) || "";
     const nome_aluno = (body.nome_aluno as string) || "o estudante";
     const plano_ensino_contexto = (body.plano_ensino_contexto as string) || "";
+    const nivel_omnisfera_estimado = (body.nivel_omnisfera_estimado as number) ?? 1;
     const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine as string || "")
         ? (body.engine as EngineId)
         : "red";
@@ -43,93 +64,135 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Selecione uma disciplina ou habilidades." }, { status: 400 });
     }
 
-    // Enrich with matrix data
-    let matrizContext = "";
+    // ── Build habilidades from BNCC completa ──────────────────
+
+    const bncc = loadBncc();
+    let habsParaPrompt: Array<{
+        codigo: string;
+        disciplina: string;
+        unidade_tematica: string;
+        objeto_conhecimento: string;
+        habilidade: string;
+        nivel_cognitivo_saeb?: string;
+    }> = [];
+
     if (habilidades_selecionadas.length > 0) {
-        matrizContext = `\nHABILIDADES DA MATRIZ DE REFERÊNCIA SELECIONADAS:\n${habilidades_selecionadas.map(h => `- ${h}`).join("\n")}`;
+        // Match selected habilidades from the BNCC data
+        for (const sel of habilidades_selecionadas) {
+            const codeMatch = sel.match(/(EF\d+\w+\d+|EI\d+\w+\d+)/i);
+            if (codeMatch) {
+                const found = bncc.find(h => h.codigo === codeMatch[1]);
+                if (found) {
+                    habsParaPrompt.push({
+                        codigo: found.codigo,
+                        disciplina: found.disciplina,
+                        unidade_tematica: found.unidade_tematica,
+                        objeto_conhecimento: found.objeto_conhecimento,
+                        habilidade: found.habilidade,
+                        nivel_cognitivo_saeb: found.nivel_cognitivo_saeb,
+                    });
+                    continue;
+                }
+            }
+            // Fallback: use the raw string as habilidade
+            habsParaPrompt.push({
+                codigo: sel.slice(0, 20),
+                disciplina,
+                unidade_tematica: "",
+                objeto_conhecimento: "",
+                habilidade: sel,
+            });
+        }
+    } else {
+        // Auto-select from BNCC by discipline and grade
+        const gradeNum = serie.match(/\d+/)?.[0] || "6";
+        const filtered = bncc.filter(h => {
+            const discMatch = h.disciplina.toLowerCase().includes(disciplina.toLowerCase()) ||
+                disciplina.toLowerCase().includes(h.disciplina.toLowerCase());
+            const yearMatch = h.ano.includes(gradeNum);
+            return discMatch && yearMatch;
+        });
+
+        // Prioritize SAEB priority
+        const sorted = filtered.sort((a, b) => {
+            const order = { alta: 0, media: 1, baixa: 2 };
+            return (order[a.prioridade_saeb as keyof typeof order] ?? 2) -
+                (order[b.prioridade_saeb as keyof typeof order] ?? 2);
+        });
+
+        habsParaPrompt = sorted.slice(0, Math.min(qtdQuestoes + 2, 8)).map(h => ({
+            codigo: h.codigo,
+            disciplina: h.disciplina,
+            unidade_tematica: h.unidade_tematica,
+            objeto_conhecimento: h.objeto_conhecimento,
+            habilidade: h.habilidade,
+            nivel_cognitivo_saeb: h.nivel_cognitivo_saeb,
+        }));
     }
 
-    // Get protocol adaptations for the diagnostic
-    const matriz = loadMatriz();
-    const protocolo = matriz.protocolo as Record<string, unknown>;
-    const escala = protocolo.escala as { nivel: number; label: string; descritor: string }[];
-    const adaptacoes = protocolo.adaptacoes_nee as Record<string, string> || {};
-
-    let protocoloContext = "\nESCALA OMNISFERA (Níveis de Proficiência):";
-    for (const e of escala || []) {
-        protocoloContext += `\n- Nível ${e.nivel} (${e.label}): ${e.descritor}`;
+    if (habsParaPrompt.length === 0) {
+        // Fallback: generate generic habilidade
+        habsParaPrompt = [{
+            codigo: `EF_${disciplina.toUpperCase().slice(0, 3)}`,
+            disciplina,
+            unidade_tematica: "Diagnóstica Geral",
+            objeto_conhecimento: "Avaliação inicial",
+            habilidade: `Avaliar nível do estudante em ${disciplina}`,
+        }];
     }
 
-    if (diagnostico_aluno && adaptacoes[diagnostico_aluno]) {
-        protocoloContext += `\n\nADAPTAÇÕES PARA ${diagnostico_aluno.toUpperCase()}: ${adaptacoes[diagnostico_aluno]}`;
-    }
+    // ── Build 3-layer prompt ─────────────────────────────────
 
-    let planoContext = "";
-    if (plano_ensino_contexto) {
-        planoContext = `\n\nPLANO DE ENSINO VINCULADO:\n${typeof plano_ensino_contexto === "string" ? plano_ensino_contexto.slice(0, 1500) : JSON.stringify(plano_ensino_contexto).slice(0, 1500)}`;
-    }
-
-    // Build the prompt using the advanced item creation function
-    const prompt = criarPromptItensAvancado({
-        materia: disciplina || "conteúdo baseado nas habilidades selecionadas",
-        objeto: disciplina,
-        qtd: qtdQuestoes,
-        tipo_q: tipoQuestao as "Objetiva" | "Discursiva",
-        qtd_imgs: 0,
-        verbos_bloom: [],
-        habilidades_bncc: habilidades_selecionadas,
-        modo_profundo: false,
-        checklist_adaptacao: {},
-        hiperfoco: "Geral",
-        ia_sugestao: diagnostico_aluno ? `Estudante com ${diagnostico_aluno}` : "",
+    // Camada 2: Contexto do Aluno
+    const camada2 = buildContextoAluno({
+        nome: nome_aluno,
+        serie,
+        diagnostico: diagnostico_aluno,
+        nivel_omnisfera_estimado,
     });
 
-    const promptFinal = `${prompt}${matrizContext}${protocoloContext}${planoContext}
+    // Camada 3: Template da Tarefa
+    const camada3 = templateQuestoesDiagnosticas({
+        habilidades: habsParaPrompt,
+        quantidade: qtdQuestoes,
+        tipo_questao: tipoQuestao,
+        nivel_omnisfera_estimado,
+        plano_ensino_contexto: plano_ensino_contexto || undefined,
+    });
 
-CONTEXTO DIAGNÓSTICO ADICIONAL:
-- Esta avaliação é DIAGNÓSTICA — seu objetivo é IDENTIFICAR o nível Omnisfera (0-4) do estudante em ${disciplina}.
-- Crie questões com dificuldade PROGRESSIVA: comece com itens de nível 1 (emergente) e aumente até nível 4 (consolidado).
-- Para ${nome_aluno}, série ${serie}.
-- FORMATO OBRIGATÓRIO DE SAÍDA (JSON):
-Retorne APENAS um JSON válido com esta estrutura:
-{
-  "questoes": [
-    {
-      "id": "q1",
-      "enunciado": "texto do enunciado",
-      "alternativas": { "A": "...", "B": "...", "C": "...", "D": "..." },
-      "gabarito": "A",
-      "justificativa_pedagogica": "...",
-      "instrucao_aplicacao_professor": "...",
-      "nivel_bloom": "Lembrar|Compreender|Aplicar|Analisar",
-      "habilidade_bncc_ref": "código BNCC",
-      "nivel_omnisfera_alvo": 1
-    }
-  ]
-}
-Garanta que as questões cubram os 4 níveis Omnisfera progressivamente.`;
+    // Build complete prompt (system + user)
+    const { system, user } = buildPromptCompleto(camada2, camada3);
 
     const engineErr = getEngineError(engine);
     if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
 
     try {
         const { anonymized, restore } = anonymizeMessages(
-            [{ role: "user", content: promptFinal }],
+            [
+                { role: "system", content: system },
+                { role: "user", content: user },
+            ],
             nome_aluno !== "o estudante" ? nome_aluno : null
         );
-        const textoRaw = await chatCompletionText(engine, anonymized, { temperature: 0.5 });
+        const textoRaw = await chatCompletionText(engine, anonymized, {
+            temperature: 0.4,  // Lower for diagnostic precision (from CONTEXT.md)
+        });
         const texto = restore(textoRaw);
 
         // Try to parse JSON from the response
         let questoes = null;
         try {
-            // Try direct JSON parse
-            const jsonMatch = texto.match(/\{[\s\S]*"questoes"[\s\S]*\}/);
-            if (jsonMatch) {
-                questoes = JSON.parse(jsonMatch[0]);
-            }
+            // Try direct JSON parse first
+            const parsed = JSON.parse(texto);
+            if (parsed.questoes) questoes = parsed;
         } catch {
-            // Return raw text if JSON parse fails
+            // Try to extract JSON block
+            try {
+                const jsonMatch = texto.match(/\{[\s\S]*"questoes"[\s\S]*\}/);
+                if (jsonMatch) {
+                    questoes = JSON.parse(jsonMatch[0]);
+                }
+            } catch { /* give up on JSON parsing */ }
         }
 
         return NextResponse.json({ texto, questoes });
