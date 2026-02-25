@@ -200,19 +200,27 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
 
     // ─── BNCC filtrada pela disciplina ────────────────────────────────────────
 
-    const discBncc = useMemo(() => {
-        if (!bncc || !disciplina) return null;
+    const bnccDisciplinas = useMemo(() => {
+        if (!bncc || !bncc.disciplinas?.length) return null;
         const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
         const dNorm = normalize(disciplina);
-        // Tentar match: exato, parcial, ou sem acentos
-        const key = Object.keys(bncc.porDisciplina).find((d) => {
-            const bNorm = normalize(d);
-            return bNorm === dNorm ||
-                bNorm.includes(dNorm) || dNorm.includes(bNorm) ||
-                // Match para cases como "Matemática" vs "Matematica"
-                bNorm.replace(/\s+/g, "") === dNorm.replace(/\s+/g, "");
-        });
-        return key ? { name: key, data: bncc.porDisciplina[key] } : null;
+        const isGeral = dNorm === "geral" || !disciplina;
+
+        if (!isGeral) {
+            // Tentar match específico
+            const key = Object.keys(bncc.porDisciplina).find((d) => {
+                const bNorm = normalize(d);
+                return bNorm === dNorm ||
+                    bNorm.includes(dNorm) || dNorm.includes(bNorm) ||
+                    bNorm.replace(/\s+/g, "") === dNorm.replace(/\s+/g, "");
+            });
+            if (key) {
+                return [{ name: key, data: bncc.porDisciplina[key] }];
+            }
+        }
+
+        // "Geral" ou sem match → mostrar TODAS as disciplinas BNCC
+        return bncc.disciplinas.map((d) => ({ name: d, data: bncc.porDisciplina[d] }));
     }, [bncc, disciplina]);
 
     // ─── Handlers ─────────────────────────────────────────────────────────────
@@ -324,7 +332,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                             </h4>
                             <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
                                 {anoSerie}
-                                {discBncc && <> · BNCC integrada</>}
+                                {bnccDisciplinas && <> · BNCC integrada ({bnccDisciplinas.length} componente{bnccDisciplinas.length !== 1 ? "s" : ""})</>}
                             </p>
                         </div>
                     </div>
@@ -400,12 +408,12 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                     <Loader2 size={22} className="animate-spin" style={{ color: "#6366f1", margin: "0 auto" }} />
                     <p style={{ color: "var(--text-muted)", marginTop: 8, fontSize: 13 }}>Carregando BNCC...</p>
                 </div>
-            ) : discBncc ? (
+            ) : bnccDisciplinas ? (
                 <div style={cardStyle}>
                     <div style={sectionHeaderStyle}>
                         <GraduationCap size={18} style={{ color: "#818cf8" }} />
                         <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary, #e2e8f0)" }}>
-                            Habilidades BNCC — {discBncc.name}
+                            Habilidades BNCC {bnccDisciplinas.length === 1 ? `— ${bnccDisciplinas[0].name}` : ""}
                         </span>
                         <span style={{
                             marginLeft: "auto", fontSize: 11, fontWeight: 600,
@@ -415,125 +423,172 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                             {habCount} selecionada{habCount !== 1 ? "s" : ""}
                         </span>
                     </div>
-                    <div style={{ ...sectionBodyStyle, maxHeight: 420, overflowY: "auto" }}>
-                        {discBncc.data.unidades.map((unidade) => {
-                            const uKey = `u_${unidade}`;
-                            const isUExpanded = expandedUnidades.has(uKey);
-                            const unidadeData = discBncc.data.porUnidade[unidade];
+                    <div style={{ ...sectionBodyStyle, maxHeight: 500, overflowY: "auto" }}>
+                        {bnccDisciplinas.map((disc) => {
+                            const discKey = `disc_${disc.name}`;
+                            const isDiscExpanded = bnccDisciplinas.length === 1 || expandedUnidades.has(discKey);
+                            // Count selected for this discipline
+                            let discSelectedCount = 0;
+                            for (const u of disc.data.unidades) {
+                                for (const o of disc.data.porUnidade[u].objetos) {
+                                    for (const h of disc.data.porUnidade[u].porObjeto[o]) {
+                                        if (plano.habilidades_bncc.includes(h.codigo)) discSelectedCount++;
+                                    }
+                                }
+                            }
 
                             return (
-                                <div key={uKey} style={{ marginBottom: 6 }}>
-                                    <button
-                                        onClick={() => toggleExpand("unidades", uKey)}
-                                        style={{
-                                            width: "100%", display: "flex", alignItems: "center", gap: 8,
-                                            padding: "10px 12px", borderRadius: 8, border: "none",
-                                            background: isUExpanded ? "rgba(99,102,241,.08)" : "transparent",
-                                            cursor: "pointer", textAlign: "left", transition: "all .2s",
-                                        }}
-                                    >
-                                        {isUExpanded ? <ChevronDown size={14} style={{ color: "#818cf8" }} /> : <ChevronRight size={14} style={{ color: "var(--text-muted)" }} />}
-                                        <span style={{
-                                            fontSize: 13, fontWeight: 600,
-                                            color: isUExpanded ? "#a5b4fc" : "var(--text-secondary, #cbd5e1)",
-                                        }}>
-                                            {unidade}
-                                        </span>
-                                        {/* Count selected in this unidade */}
-                                        {(() => {
-                                            let count = 0;
-                                            for (const obj of unidadeData.objetos) {
-                                                for (const h of unidadeData.porObjeto[obj]) {
-                                                    if (plano.habilidades_bncc.includes(h.codigo)) count++;
-                                                }
-                                            }
-                                            return count > 0 ? (
+                                <div key={discKey} style={{ marginBottom: bnccDisciplinas.length > 1 ? 8 : 0 }}>
+                                    {/* Discipline header (only if multiple) */}
+                                    {bnccDisciplinas.length > 1 && (
+                                        <button
+                                            onClick={() => toggleExpand("unidades", discKey)}
+                                            style={{
+                                                width: "100%", display: "flex", alignItems: "center", gap: 8,
+                                                padding: "10px 12px", borderRadius: 10, border: "none",
+                                                background: isDiscExpanded ? "rgba(99,102,241,.06)" : "var(--bg-tertiary, rgba(15,23,42,.3))",
+                                                cursor: "pointer", textAlign: "left", transition: "all .2s",
+                                                marginBottom: isDiscExpanded ? 4 : 0,
+                                            }}
+                                        >
+                                            {isDiscExpanded ? <ChevronDown size={16} style={{ color: "#818cf8" }} /> : <ChevronRight size={16} style={{ color: "var(--text-muted)" }} />}
+                                            <span style={{
+                                                fontSize: 14, fontWeight: 700,
+                                                color: isDiscExpanded ? "#a5b4fc" : "var(--text-primary, #e2e8f0)",
+                                            }}>
+                                                {disc.name}
+                                            </span>
+                                            {discSelectedCount > 0 && (
                                                 <span style={{
                                                     marginLeft: "auto", fontSize: 10, fontWeight: 700,
                                                     color: "#10b981", background: "rgba(16,185,129,.1)",
-                                                    padding: "1px 6px", borderRadius: 4,
+                                                    padding: "2px 8px", borderRadius: 6,
                                                 }}>
-                                                    {count}
+                                                    {discSelectedCount} sel.
                                                 </span>
-                                            ) : null;
-                                        })()}
-                                    </button>
+                                            )}
+                                        </button>
+                                    )}
 
-                                    {isUExpanded && (
-                                        <div style={{ paddingLeft: 20 }}>
-                                            {unidadeData.objetos.map((objeto) => {
-                                                const oKey = `o_${unidade}_${objeto}`;
-                                                const isOExpanded = expandedObjetos.has(oKey);
-                                                const habs = unidadeData.porObjeto[objeto];
+                                    {/* Unidades temáticas */}
+                                    {isDiscExpanded && (
+                                        <div style={{ paddingLeft: bnccDisciplinas.length > 1 ? 12 : 0 }}>
+                                            {disc.data.unidades.map((unidade: string) => {
+                                                const uKey = `u_${disc.name}_${unidade}`;
+                                                const isUExpanded = expandedUnidades.has(uKey);
+                                                const unidadeData = disc.data.porUnidade[unidade];
 
                                                 return (
-                                                    <div key={oKey} style={{ marginBottom: 4 }}>
+                                                    <div key={uKey} style={{ marginBottom: 4 }}>
                                                         <button
-                                                            onClick={() => toggleExpand("objetos", oKey)}
+                                                            onClick={() => toggleExpand("unidades", uKey)}
                                                             style={{
-                                                                width: "100%", display: "flex", alignItems: "center", gap: 6,
-                                                                padding: "8px 10px", borderRadius: 6, border: "none",
-                                                                background: isOExpanded ? "rgba(16,185,129,.06)" : "transparent",
-                                                                cursor: "pointer", textAlign: "left", transition: "all .15s",
+                                                                width: "100%", display: "flex", alignItems: "center", gap: 8,
+                                                                padding: "8px 10px", borderRadius: 8, border: "none",
+                                                                background: isUExpanded ? "rgba(99,102,241,.08)" : "transparent",
+                                                                cursor: "pointer", textAlign: "left", transition: "all .2s",
                                                             }}
                                                         >
-                                                            {isOExpanded ? <ChevronDown size={12} style={{ color: "#10b981" }} /> : <ChevronRight size={12} style={{ color: "var(--text-muted)" }} />}
+                                                            {isUExpanded ? <ChevronDown size={14} style={{ color: "#818cf8" }} /> : <ChevronRight size={14} style={{ color: "var(--text-muted)" }} />}
                                                             <span style={{
-                                                                fontSize: 12, fontWeight: 500,
-                                                                color: "var(--text-secondary, #cbd5e1)",
+                                                                fontSize: 13, fontWeight: 600,
+                                                                color: isUExpanded ? "#a5b4fc" : "var(--text-secondary, #cbd5e1)",
                                                             }}>
-                                                                {objeto}
+                                                                {unidade}
                                                             </span>
-                                                            <span style={{
-                                                                marginLeft: "auto", fontSize: 10,
-                                                                color: "var(--text-muted, #64748b)",
-                                                            }}>
-                                                                {habs.length} hab.
-                                                            </span>
+                                                            {(() => {
+                                                                let count = 0;
+                                                                for (const obj of unidadeData.objetos) {
+                                                                    for (const h of unidadeData.porObjeto[obj]) {
+                                                                        if (plano.habilidades_bncc.includes(h.codigo)) count++;
+                                                                    }
+                                                                }
+                                                                return count > 0 ? (
+                                                                    <span style={{
+                                                                        marginLeft: "auto", fontSize: 10, fontWeight: 700,
+                                                                        color: "#10b981", background: "rgba(16,185,129,.1)",
+                                                                        padding: "1px 6px", borderRadius: 4,
+                                                                    }}>
+                                                                        {count}
+                                                                    </span>
+                                                                ) : null;
+                                                            })()}
                                                         </button>
 
-                                                        {isOExpanded && (
-                                                            <div style={{ paddingLeft: 16, paddingTop: 4, paddingBottom: 4 }}>
-                                                                {habs.map((h) => {
-                                                                    const selected = plano.habilidades_bncc.includes(h.codigo);
+                                                        {isUExpanded && (
+                                                            <div style={{ paddingLeft: 20 }}>
+                                                                {unidadeData.objetos.map((objeto: string) => {
+                                                                    const oKey = `o_${disc.name}_${unidade}_${objeto}`;
+                                                                    const isOExpanded = expandedObjetos.has(oKey);
+                                                                    const habs = unidadeData.porObjeto[objeto];
+
                                                                     return (
-                                                                        <label
-                                                                            key={h.codigo}
-                                                                            style={{
-                                                                                display: "flex", alignItems: "flex-start", gap: 8,
-                                                                                padding: "6px 10px", borderRadius: 8,
-                                                                                cursor: "pointer", transition: "all .15s",
-                                                                                background: selected ? "rgba(16,185,129,.08)" : "transparent",
-                                                                                border: selected ? "1px solid rgba(16,185,129,.2)" : "1px solid transparent",
-                                                                                marginBottom: 3,
-                                                                            }}
-                                                                        >
-                                                                            <input
-                                                                                type="checkbox"
-                                                                                checked={selected}
-                                                                                onChange={() => toggleHabilidade(h.codigo)}
+                                                                        <div key={oKey} style={{ marginBottom: 4 }}>
+                                                                            <button
+                                                                                onClick={() => toggleExpand("objetos", oKey)}
                                                                                 style={{
-                                                                                    marginTop: 3, accentColor: "#10b981",
-                                                                                    width: 16, height: 16, flexShrink: 0,
+                                                                                    width: "100%", display: "flex", alignItems: "center", gap: 6,
+                                                                                    padding: "8px 10px", borderRadius: 6, border: "none",
+                                                                                    background: isOExpanded ? "rgba(16,185,129,.06)" : "transparent",
+                                                                                    cursor: "pointer", textAlign: "left", transition: "all .15s",
                                                                                 }}
-                                                                            />
-                                                                            <div style={{ flex: 1 }}>
-                                                                                <span style={{
-                                                                                    fontSize: 11, fontWeight: 700,
-                                                                                    color: selected ? "#34d399" : "#818cf8",
-                                                                                    marginRight: 6,
-                                                                                }}>
-                                                                                    {h.codigo}
+                                                                            >
+                                                                                {isOExpanded ? <ChevronDown size={12} style={{ color: "#10b981" }} /> : <ChevronRight size={12} style={{ color: "var(--text-muted)" }} />}
+                                                                                <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-secondary, #cbd5e1)" }}>
+                                                                                    {objeto}
                                                                                 </span>
-                                                                                <span style={{
-                                                                                    fontSize: 12,
-                                                                                    color: "var(--text-secondary, #cbd5e1)",
-                                                                                    lineHeight: 1.4,
-                                                                                }}>
-                                                                                    {h.descricao}
+                                                                                <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-muted, #64748b)" }}>
+                                                                                    {habs.length} hab.
                                                                                 </span>
-                                                                            </div>
-                                                                        </label>
+                                                                            </button>
+
+                                                                            {isOExpanded && (
+                                                                                <div style={{ paddingLeft: 16, paddingTop: 4, paddingBottom: 4 }}>
+                                                                                    {habs.map((h: Habilidade) => {
+                                                                                        const selected = plano.habilidades_bncc.includes(h.codigo);
+                                                                                        return (
+                                                                                            <label
+                                                                                                key={h.codigo}
+                                                                                                style={{
+                                                                                                    display: "flex", alignItems: "flex-start", gap: 8,
+                                                                                                    padding: "6px 10px", borderRadius: 8,
+                                                                                                    cursor: "pointer", transition: "all .15s",
+                                                                                                    background: selected ? "rgba(16,185,129,.08)" : "transparent",
+                                                                                                    border: selected ? "1px solid rgba(16,185,129,.2)" : "1px solid transparent",
+                                                                                                    marginBottom: 3,
+                                                                                                }}
+                                                                                            >
+                                                                                                <input
+                                                                                                    type="checkbox"
+                                                                                                    checked={selected}
+                                                                                                    onChange={() => toggleHabilidade(h.codigo)}
+                                                                                                    style={{
+                                                                                                        marginTop: 3, accentColor: "#10b981",
+                                                                                                        width: 16, height: 16, flexShrink: 0,
+                                                                                                    }}
+                                                                                                />
+                                                                                                <div style={{ flex: 1 }}>
+                                                                                                    <span style={{
+                                                                                                        fontSize: 11, fontWeight: 700,
+                                                                                                        color: selected ? "#34d399" : "#818cf8",
+                                                                                                        marginRight: 6,
+                                                                                                    }}>
+                                                                                                        {h.codigo}
+                                                                                                    </span>
+                                                                                                    <span style={{
+                                                                                                        fontSize: 12,
+                                                                                                        color: "var(--text-secondary, #cbd5e1)",
+                                                                                                        lineHeight: 1.4,
+                                                                                                    }}>
+                                                                                                        {h.descricao}
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            </label>
+                                                                                        );
+                                                                                    })}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                     );
                                                                 })}
                                                             </div>
