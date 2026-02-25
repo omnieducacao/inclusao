@@ -44,6 +44,8 @@ export type PEIData = {
   bncc_ei_idade?: string;
   bncc_ei_campo?: string;
   bncc_ei_objetivos?: string[];
+  // ── Fase do PEI (multi-fase) ──
+  fase_pei?: 'fase_1' | 'fase_2' | 'consolidado';
   [key: string]: unknown;
 };
 

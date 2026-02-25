@@ -92,6 +92,7 @@ export default async function RootPage() {
   const row1Raw = [
     { href: "/estudantes", iconName: "UsersFour" as const, title: "Estudantes", desc: "Gestão completa de estudantes e acompanhamento.", color: "sky", permission: "can_estudantes", badge: kpiBadges["Estudantes"] },
     { href: "/pei", iconName: "Student" as const, title: "Estratégias & PEI", desc: "Plano Educacional Individual com IA e acompanhamento.", color: "blue", permission: "can_pei", badge: kpiBadges["Estratégias & PEI"] },
+    { href: "/pei-regente", iconName: "BookOpen" as const, title: "PEI - Professor", desc: "Plano de ensino, avaliação diagnóstica e PEI por disciplina.", color: "teal", permission: "can_pei" },
     { href: "/paee", iconName: "PuzzlePiece" as const, title: "Plano de Ação / PAEE", desc: "Atendimento Educacional Especializado e sala de recursos.", color: "violet", permission: "can_paee" },
     { href: "/hub", iconName: "RocketLaunch" as const, title: "Hub de Inclusão", desc: "Ferramentas de inteligência artificial para criar e adaptar.", color: "cyan", permission: "can_hub" },
   ];

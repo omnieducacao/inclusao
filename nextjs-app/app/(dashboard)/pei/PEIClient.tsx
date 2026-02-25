@@ -8,6 +8,10 @@ import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { PEIVersionHistory, createPEISnapshot } from "@/components/PEIVersionHistory";
 import { DiagnosticConditionalFields, LBIComplianceChecklist } from "@/components/PEIDiagnosticFields";
+import { PEIFase2Regentes } from "@/components/PEIFase2Regentes";
+import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
+import { PEIAvaliacaoDiagnostica } from "@/components/PEIAvaliacaoDiagnostica";
+import { PEIConsolidacao } from "@/components/PEIConsolidacao";
 
 // Helper para validar e parsear respostas JSON
 async function parseJsonResponse(res: Response, url?: string) {
@@ -73,6 +77,7 @@ import {
   BookOpen,
   CheckCircle,
   AlertTriangle,
+  Send,
 } from "lucide-react";
 
 type HabilidadeBncc = {
@@ -93,6 +98,8 @@ type TabId =
   | "monitoramento"
   | "bncc"
   | "consultoria"
+  | "regentes"
+  | "consolidacao"
   | "dashboard";
 
 const TABS: { id: TabId; label: string }[] = [
@@ -105,6 +112,8 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "monitoramento", label: "Monitoramento" },
   { id: "bncc", label: "BNCC" },
   { id: "consultoria", label: "Consultoria IA" },
+  { id: "regentes", label: "Regentes" },
+  { id: "consolidacao", label: "Consolidação" },
   { id: "dashboard", label: "Dashboard" },
 ];
 
@@ -2120,6 +2129,19 @@ export function PEIClient({
           </div>
         )}
 
+        {activeTab === "regentes" && (
+          <PEIFase2Regentes
+            studentId={currentStudentId}
+            studentName={peiData.nome || "Estudante"}
+          />
+        )}
+
+        {activeTab === "consolidacao" && (
+          <PEIConsolidacao
+            studentId={currentStudentId}
+          />
+        )}
+
         {activeTab === "dashboard" && (
           <DashboardTab
             peiData={peiData}
@@ -2568,6 +2590,15 @@ function DashboardTab({
           <p className="text-xs text-slate-500 mt-4">
             💡 Gere o Plano na aba <strong>Consultoria IA</strong> para incluir o planejamento pedagógico detalhado no documento.
           </p>
+        )}
+
+        {/* Enviar para Professores Regentes */}
+        {isEditing && currentStudentId && (
+          <EnviarParaProfessoresButton
+            studentId={currentStudentId}
+            studentName={String(peiData.nome || "Estudante")}
+            fasePei={(peiData as Record<string, unknown>).fase_pei as string}
+          />
         )}
       </div>
 
@@ -5020,3 +5051,132 @@ function BarreirasDominio({
     </div>
   );
 }
+
+// ==============================================================================
+// BOTÃO "ENVIAR PARA PROFESSORES REGENTES"
+// ==============================================================================
+function EnviarParaProfessoresButton({
+  studentId,
+  studentName,
+  fasePei,
+}: {
+  studentId: string;
+  studentName: string;
+  fasePei?: string;
+}) {
+  const [sending, setSending] = React.useState(false);
+  const [result, setResult] = React.useState<{ ok: boolean; count: number; error?: string } | null>(null);
+
+  const alreadySent = fasePei === "fase_2";
+
+  const handleEnviar = async () => {
+    setSending(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/pei/enviar-regentes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId, auto: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao enviar");
+      setResult({ ok: true, count: data.count || 0 });
+    } catch (err) {
+      setResult({ ok: false, count: 0, error: err instanceof Error ? err.message : "Erro desconhecido" });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="mt-6 rounded-xl border overflow-hidden" style={{
+      borderColor: alreadySent || result?.ok ? 'rgba(16,185,129,.3)' : 'rgba(99,102,241,.3)',
+      background: alreadySent || result?.ok ? 'rgba(16,185,129,.04)' : 'rgba(99,102,241,.04)',
+    }}>
+      <div className="p-5">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{
+            background: alreadySent || result?.ok
+              ? 'linear-gradient(135deg, #059669, #10b981)'
+              : 'linear-gradient(135deg, #4f46e5, #6366f1)',
+          }}>
+            <Users className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold" style={{ color: 'var(--text-primary, #1e293b)' }}>
+              {alreadySent || result?.ok ? "✅ Enviado para Professores Regentes" : "📤 Enviar para Professores Regentes"}
+            </h4>
+            <p className="text-xs" style={{ color: 'var(--text-muted, #64748b)' }}>
+              {alreadySent || result?.ok
+                ? `PEI de ${studentName} está na Fase 2. Professores podem acessar em PEI Regente.`
+                : `Compartilhe a Fase 1 com os professores vinculados à turma de ${studentName}.`}
+            </p>
+          </div>
+        </div>
+
+        {/* Erro */}
+        {result?.error && (
+          <div className="mb-3 p-3 rounded-lg text-xs flex items-center gap-2" style={{
+            background: 'rgba(239,68,68,.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,.2)',
+          }}>
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            {result.error}
+          </div>
+        )}
+
+        {/* Sucesso */}
+        {result?.ok && (
+          <div className="mb-3 p-3 rounded-lg text-xs flex items-center gap-2" style={{
+            background: 'rgba(16,185,129,.08)', color: '#10b981', border: '1px solid rgba(16,185,129,.2)',
+          }}>
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+            {result.count} disciplina{result.count !== 1 ? "s" : ""} enviada{result.count !== 1 ? "s" : ""} com sucesso!
+          </div>
+        )}
+
+        {/* Botões */}
+        <div className="flex items-center gap-3">
+          {!alreadySent && !result?.ok && (
+            <button
+              onClick={handleEnviar}
+              disabled={sending}
+              className="px-5 py-2.5 rounded-lg text-sm font-bold text-white flex items-center gap-2 transition-all"
+              style={{
+                background: 'linear-gradient(135deg, #059669, #10b981)',
+                cursor: sending ? 'wait' : 'pointer',
+                opacity: sending ? 0.7 : 1,
+              }}
+            >
+              {sending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Detectando professores...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  Enviar para Professores
+                </>
+              )}
+            </button>
+          )}
+
+          {(alreadySent || result?.ok) && (
+            <a
+              href="/pei-regente"
+              className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all"
+              style={{
+                background: 'rgba(16,185,129,.1)', color: '#059669',
+                border: '1px solid rgba(16,185,129,.3)',
+              }}
+            >
+              <BookOpen className="w-4 h-4" />
+              Abrir PEI Regente
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
