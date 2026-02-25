@@ -5,7 +5,7 @@ import {
     Brain, Loader2, CheckCircle2, AlertTriangle,
     ChevronDown, ChevronUp, Sparkles, ClipboardCheck,
     ArrowLeft, Users, BookOpen, Target, Zap, FileText, Layers, Activity,
-    Grid3X3, BookMarked, ChevronRight,
+    Grid3X3, BookMarked, ChevronRight, TrendingUp,
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 
@@ -1262,6 +1262,111 @@ export default function AvaliacaoDiagnosticaClient() {
                             </div>
                         )}
                     </div>
+                )}
+
+                {/* ─── Diagnóstica vs Processual Comparison ─────────── */}
+                {nivelIdentificado !== null && evolucaoProcessual.length > 0 && evolucaoProcessual[0]?.media_mais_recente !== null && (
+                    (() => {
+                        const diagLevel = nivelIdentificado;
+                        const procLevel = evolucaoProcessual[0].media_mais_recente ?? 0;
+                        const delta = procLevel - diagLevel;
+                        const diagPct = Math.max((diagLevel / 4) * 100, 5);
+                        const procPct = Math.max((procLevel / 4) * 100, 5);
+                        const diagColor = diagLevel >= 3 ? "#10b981" : diagLevel >= 2 ? "#3b82f6" : diagLevel >= 1 ? "#fbbf24" : "#f87171";
+                        const procColor = procLevel >= 3 ? "#10b981" : procLevel >= 2 ? "#3b82f6" : procLevel >= 1 ? "#fbbf24" : "#f87171";
+                        return (
+                            <div style={{
+                                ...cardS, marginBottom: 20,
+                                border: `1.5px solid ${delta > 0 ? "rgba(16,185,129,.2)" : delta < 0 ? "rgba(239,68,68,.15)" : "rgba(148,163,184,.12)"}`,
+                            }}>
+                                <div style={{
+                                    ...headerS,
+                                    background: delta > 0 ? "rgba(16,185,129,.03)" : delta < 0 ? "rgba(239,68,68,.03)" : "rgba(148,163,184,.03)",
+                                }}>
+                                    <TrendingUp size={16} style={{ color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8" }} />
+                                    <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>
+                                        Diagnóstica vs Processual
+                                    </span>
+                                    <span style={{
+                                        fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 6,
+                                        background: delta > 0 ? "rgba(16,185,129,.1)" : delta < 0 ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
+                                        color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8",
+                                    }}>
+                                        {delta > 0 ? `↗ +${delta.toFixed(1)}` : delta < 0 ? `↘ ${delta.toFixed(1)}` : "→ 0"}
+                                    </span>
+                                </div>
+                                <div style={bodyS}>
+                                    <div style={{ display: "flex", gap: 24, alignItems: "flex-end" }}>
+                                        {/* Diagnostic bar */}
+                                        <div style={{ flex: 1, textAlign: "center" }}>
+                                            <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>Diagnóstica Inicial</div>
+                                            <div style={{ fontSize: 28, fontWeight: 800, color: diagColor, lineHeight: 1 }}>{diagLevel}</div>
+                                            <div style={{
+                                                height: 8, borderRadius: 4, marginTop: 8,
+                                                background: "var(--bg-primary, rgba(148,163,184,.08))",
+                                                overflow: "hidden",
+                                            }}>
+                                                <div style={{
+                                                    width: `${diagPct}%`, height: "100%", borderRadius: 4,
+                                                    background: `linear-gradient(90deg, ${diagColor}88, ${diagColor})`,
+                                                    transition: "width .5s ease",
+                                                }} />
+                                            </div>
+                                            <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>
+                                                {ESCALA_OMNISFERA[diagLevel as 0 | 1 | 2 | 3 | 4]?.label || ""}
+                                            </div>
+                                        </div>
+
+                                        {/* Arrow */}
+                                        <div style={{
+                                            display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                                            padding: "0 8px",
+                                        }}>
+                                            <div style={{
+                                                fontSize: 20,
+                                                color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8",
+                                            }}>
+                                                {delta > 0 ? "▶" : delta < 0 ? "◀" : "▬"}
+                                            </div>
+                                        </div>
+
+                                        {/* Processual bar */}
+                                        <div style={{ flex: 1, textAlign: "center" }}>
+                                            <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>Processual Atual</div>
+                                            <div style={{ fontSize: 28, fontWeight: 800, color: procColor, lineHeight: 1 }}>{procLevel}</div>
+                                            <div style={{
+                                                height: 8, borderRadius: 4, marginTop: 8,
+                                                background: "var(--bg-primary, rgba(148,163,184,.08))",
+                                                overflow: "hidden",
+                                            }}>
+                                                <div style={{
+                                                    width: `${procPct}%`, height: "100%", borderRadius: 4,
+                                                    background: `linear-gradient(90deg, ${procColor}88, ${procColor})`,
+                                                    transition: "width .5s ease",
+                                                }} />
+                                            </div>
+                                            <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>
+                                                Média mais recente
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style={{
+                                        marginTop: 12, padding: "8px 12px", borderRadius: 8, fontSize: 12,
+                                        background: delta > 0 ? "rgba(16,185,129,.04)" : delta < 0 ? "rgba(239,68,68,.04)" : "rgba(148,163,184,.04)",
+                                        color: "var(--text-secondary)",
+                                    }}>
+                                        {delta > 0 ?
+                                            `O estudante evoluiu ${delta.toFixed(1)} pontos desde a avaliação diagnóstica inicial. Continue com as estratégias atuais.` :
+                                            delta < 0 ?
+                                                `O estudante apresentou queda de ${Math.abs(delta).toFixed(1)} pontos. Considere revisar o PEI e as estratégias de intervenção.` :
+                                                "O estudante mantém o mesmo nível da avaliação diagnóstica. Avalie se novas estratégias podem impulsionar a evolução."
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()
                 )}
 
                 {/* No processual data - show link */}
