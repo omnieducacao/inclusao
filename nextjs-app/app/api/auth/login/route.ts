@@ -49,16 +49,17 @@ export async function POST(req: Request) {
       found.role === "member"
         ? found.user
         : {
-            id: null,
-            can_estudantes: true,
-            can_pei: true,
-            can_paee: true,
-            can_hub: true,
-            can_diario: true,
-            can_avaliacao: true,
-            can_gestao: true,
-            link_type: "todos" as const,
-          };
+          id: null,
+          can_estudantes: true,
+          can_pei: true,
+          can_pei_professor: true,
+          can_paee: true,
+          can_hub: true,
+          can_diario: true,
+          can_avaliacao: true,
+          can_gestao: true,
+          link_type: "todos" as const,
+        };
 
     await createSession({
       workspace_id: found.workspace_id,
