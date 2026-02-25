@@ -109,9 +109,15 @@ export async function POST(req: Request) {
         const matchingClassIds = (classes || [])
             .filter(c => {
                 const gradeName = gradeMap.get(c.grade_id) || "";
-                // Match flexível: "7º Ano" vs "7" vs "7º"
-                const normalizeGrade = (s: string) => s.replace(/[ºª°\s]/g, "").toLowerCase();
-                const gradeMatch = normalizeGrade(gradeName).includes(normalizeGrade(studentGrade)) ||
+                // Match flexível: extrair parte numérica para comparar
+                // "7º Ano" → "7", "7m ano" → "7", "7 ano" → "7"
+                const extractNum = (s: string) => (s.match(/\d+/) || [""])[0];
+                const normalizeGrade = (s: string) => s.replace(/[ºª°m\s]/gi, "").toLowerCase();
+                const numA = extractNum(gradeName);
+                const numB = extractNum(studentGrade);
+                // Match por número extraído OU por string normalizada  
+                const gradeMatch = (numA && numB && numA === numB) ||
+                    normalizeGrade(gradeName).includes(normalizeGrade(studentGrade)) ||
                     normalizeGrade(studentGrade).includes(normalizeGrade(gradeName));
                 const classMatch = !studentClass || c.name?.toLowerCase().includes(studentClass.toLowerCase());
                 return gradeMatch && classMatch;
@@ -144,14 +150,14 @@ export async function POST(req: Request) {
 
         const { data: members } = await sb
             .from("workspace_members")
-            .select("id, name")
+            .select("id, nome")
             .in("id", memberIds);
 
         const { data: components } = componentIds.length > 0
             ? await sb.from("curricular_components").select("id, name").in("id", componentIds)
             : { data: [] };
 
-        const memberMap = new Map((members || []).map(m => [m.id, m.name]));
+        const memberMap = new Map((members || []).map(m => [m.id, m.nome]));
         const componentMap = new Map((components || []).map(c => [c.id, c.name]));
 
         // Criar registros: um por (professor, componente curricular)
