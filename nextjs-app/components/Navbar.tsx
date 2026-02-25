@@ -68,6 +68,7 @@ function getNavLottieMap(): Record<string, string> {
     "/pei": "pei_simples", // PEI
     "/pei-regente": "pei_simples", // PEI Regente (usa mesmo ícone)
     "/plano-curso": "pei_simples", // Plano de Curso
+    "/avaliacao-diagnostica": "pei_simples", // Avaliação Diagnóstica
     "/paee": "paee_simples", // PAEE
     "/hub": "hub_simples", // Hub
     "/diario": "diario_simples", // Diário
@@ -87,6 +88,7 @@ function getNavItems(icons: ReturnType<typeof loadNavIcons> extends Promise<infe
     { href: "/pei", label: "PEI", icon: icons.FileText, permission: "can_pei", group: "modules" },
     { href: "/pei-regente", label: "PEI - Professor", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
     { href: "/plano-curso", label: "Plano de Curso", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
+    { href: "/avaliacao-diagnostica", label: "Avaliação Diagnóstica", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
     { href: "/paee", label: "PAEE", icon: icons.PuzzlePiece, permission: "can_paee", group: "modules" },
     { href: "/hub", label: "Hub", icon: icons.RocketLaunch, permission: "can_hub", group: "modules" },
     { href: "/diario", label: "Diário", icon: icons.BookOpen, permission: "can_diario", group: "modules" },
@@ -117,6 +119,7 @@ const NAV_ROUTE_COLORS: Record<string, { from: string; to: string }> = {
   "/pei": { from: "#4285F4", to: "#3574D4" },         // PEI: azul
   "/pei-regente": { from: "#059669", to: "#10b981" },   // PEI Regente: emerald
   "/plano-curso": { from: "#0ea5e9", to: "#0284c7" },   // Plano de Curso: sky
+  "/avaliacao-diagnostica": { from: "#2563eb", to: "#1d4ed8" }, // Avaliação Diagnóstica: blue
   "/paee": { from: "#9334E6", to: "#7C2BC4" },        // PAEE: roxo
   "/hub": { from: "#34A853", to: "#2D8C47" },         // Hub: verde
   "/diario": { from: "#E8453C", to: "#C33B34" },      // Diário: vermelho

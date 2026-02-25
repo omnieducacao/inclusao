@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
     Brain, Loader2, CheckCircle2, AlertTriangle,
     ChevronDown, ChevronUp, Sparkles, ClipboardCheck,
-    ArrowLeft, Users, BookOpen, Target, Zap,
+    ArrowLeft, Users, BookOpen, Target, Zap, FileText, Layers,
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 
@@ -35,6 +35,24 @@ interface Questao {
     instrucao_aplicacao_professor: string;
     contexto_visual_sugerido?: string | null;
     adaptacao_nee_aplicada?: string;
+}
+
+interface PlanoVinculado {
+    id: string;
+    disciplina: string;
+    ano_serie: string;
+    bimestre: string;
+    conteudo: string | null;
+    habilidades_bncc: string[] | null;
+}
+
+interface BlocoPlano {
+    titulo: string;
+    habilidades_bncc?: string[];
+    objetivos?: string[];
+    objetivos_livre?: string;
+    metodologia?: string[];
+    avaliacao?: string[];
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
@@ -71,7 +89,12 @@ export default function AvaliacaoDiagnosticaClient() {
     const [expandedQ, setExpandedQ] = useState<string | null>(null);
     const [salvando, setSalvando] = useState(false);
     const [avalError, setAvalError] = useState("");
-    const [currentStep, setCurrentStep] = useState(0); // Step-by-step wizard
+    const [currentStep, setCurrentStep] = useState(0);
+
+    // Plano de ensino vinculado
+    const [planoVinculado, setPlanoVinculado] = useState<PlanoVinculado | null>(null);
+    const [blocosPlano, setBlocosPlano] = useState<BlocoPlano[]>([]);
+    const [showMatrix, setShowMatrix] = useState(false);
 
     // ─── Fetch students ─────────────────────────────────────────────────
 
@@ -122,7 +145,27 @@ export default function AvaliacaoDiagnosticaClient() {
         setExpandedQ(null);
         setAvalError("");
         setCurrentStep(0);
+        setPlanoVinculado(null);
+        setBlocosPlano([]);
+        setShowMatrix(false);
         loadExistingAvaliacao(aluno.id, disciplina);
+
+        // Fetch plano de ensino vinculado
+        const serieBase = aluno.grade?.replace(/\s*\(.*\)\s*$/, "").trim() || "";
+        fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}&serie=${encodeURIComponent(serieBase)}`)
+            .then(r => r.json())
+            .then(data => {
+                const planos = data.planos || [];
+                if (planos.length > 0) {
+                    const p = planos[0];
+                    setPlanoVinculado(p);
+                    try {
+                        const conteudo = typeof p.conteudo === "string" ? JSON.parse(p.conteudo) : p.conteudo;
+                        if (conteudo?.blocos) setBlocosPlano(conteudo.blocos);
+                    } catch { /* silent */ }
+                }
+            })
+            .catch(() => { });
     }, [loadExistingAvaliacao]);
 
     const goBack = () => {
@@ -133,6 +176,8 @@ export default function AvaliacaoDiagnosticaClient() {
         setNivelIdentificado(null);
         setAvaliacaoId(null);
         setCurrentStep(0);
+        setPlanoVinculado(null);
+        setBlocosPlano([]);
     };
 
     // ─── Generate avaliação ─────────────────────────────────────────────
@@ -162,6 +207,8 @@ export default function AvaliacaoDiagnosticaClient() {
                         prioridade_saeb: "alta",
                     }],
                     nivel_omnisfera_estimado: 1,
+                    plano_ensino_contexto: planoVinculado?.conteudo || undefined,
+                    plano_ensino_id: planoVinculado?.id || undefined,
                     quantidade: 4,
                 }),
             });
@@ -311,25 +358,135 @@ export default function AvaliacaoDiagnosticaClient() {
                     </div>
                 )}
 
-                {/* Step 0: Generate button */}
+                {/* Step 0: Plano de Ensino context + Generate button */}
                 {questoes.length === 0 && !gerando && nivelIdentificado === null && (
-                    <div style={{ ...cardS, textAlign: "center", padding: "40px 20px" }}>
-                        <Brain size={48} style={{ margin: "0 auto 16px", color: "var(--text-muted)", opacity: 0.3 }} />
-                        <h3 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>
-                            Gerar Avaliação Diagnóstica
-                        </h3>
-                        <p style={{ margin: "0 0 20px", fontSize: 13, color: "var(--text-muted)", maxWidth: 400, marginLeft: "auto", marginRight: "auto" }}>
-                            A IA irá gerar questões diagnósticas alinhadas à BNCC para avaliar o nível do estudante em {selectedDisc}.
-                        </p>
-                        <button onClick={gerarAvaliacao} style={{
-                            padding: "14px 28px", borderRadius: 12,
-                            background: "linear-gradient(135deg, #2563eb, #3b82f6)",
-                            color: "#fff", border: "none", cursor: "pointer",
-                            fontWeight: 700, fontSize: 15,
-                            display: "inline-flex", alignItems: "center", gap: 8,
-                        }}>
-                            <Sparkles size={20} /> Gerar com IA
-                        </button>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                        {/* Plano de Ensino vinculado */}
+                        {planoVinculado && (
+                            <div style={{
+                                ...cardS,
+                                border: "1.5px solid rgba(14,165,233,.3)",
+                            }}>
+                                <button
+                                    onClick={() => setShowMatrix(!showMatrix)}
+                                    style={{
+                                        ...headerS, width: "100%", cursor: "pointer",
+                                        justifyContent: "space-between", border: "none",
+                                        background: "rgba(14,165,233,.05)",
+                                    }}
+                                >
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                        <FileText size={16} style={{ color: "#0ea5e9" }} />
+                                        <span style={{ fontWeight: 700, fontSize: 14, color: "#0ea5e9" }}>
+                                            Plano de Ensino vinculado — {planoVinculado.disciplina}
+                                        </span>
+                                        <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 500 }}>
+                                            {planoVinculado.bimestre} · {planoVinculado.ano_serie}
+                                        </span>
+                                    </div>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                        <span style={{ fontSize: 11, color: "#0ea5e9", fontWeight: 600 }}>
+                                            {showMatrix ? "Ocultar" : "Ver"} Matriz
+                                        </span>
+                                        {showMatrix ? <ChevronUp size={14} style={{ color: "#0ea5e9" }} /> : <ChevronDown size={14} style={{ color: "#0ea5e9" }} />}
+                                    </div>
+                                </button>
+
+                                {showMatrix && (
+                                    <div style={bodyS}>
+                                        {/* BNCC Habilidades */}
+                                        {planoVinculado.habilidades_bncc && planoVinculado.habilidades_bncc.length > 0 && (
+                                            <div style={{ marginBottom: 14 }}>
+                                                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                                                    <Layers size={14} style={{ color: "#818cf8" }} />
+                                                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-secondary)" }}>Habilidades BNCC</span>
+                                                </div>
+                                                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                                    {planoVinculado.habilidades_bncc.map((h, i) => (
+                                                        <span key={i} style={{
+                                                            fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 6,
+                                                            background: "rgba(99,102,241,.08)", color: "#818cf8",
+                                                            border: "1px solid rgba(99,102,241,.15)",
+                                                        }}>{h}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Blocos do plano */}
+                                        {blocosPlano.length > 0 && (
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                                                {blocosPlano.map((bloco, i) => (
+                                                    <div key={i} style={{
+                                                        padding: "12px 14px", borderRadius: 10,
+                                                        background: "var(--bg-primary, rgba(2,6,23,.2))",
+                                                        border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                                                    }}>
+                                                        <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 6 }}>
+                                                            {bloco.titulo || `Bloco ${i + 1}`}
+                                                        </div>
+                                                        {bloco.habilidades_bncc && bloco.habilidades_bncc.length > 0 && (
+                                                            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 }}>
+                                                                {bloco.habilidades_bncc.map((h, j) => (
+                                                                    <span key={j} style={{
+                                                                        fontSize: 10, padding: "2px 6px", borderRadius: 4,
+                                                                        background: "rgba(139,92,246,.08)", color: "#a78bfa",
+                                                                    }}>{h}</span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        {bloco.objetivos_livre && (
+                                                            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "4px 0 0", lineHeight: 1.5 }}>
+                                                                {bloco.objetivos_livre.slice(0, 200)}{bloco.objetivos_livre.length > 200 ? "..." : ""}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <div style={{
+                                            marginTop: 12, padding: "8px 12px", borderRadius: 8, fontSize: 11,
+                                            background: "rgba(14,165,233,.04)", color: "#38bdf8",
+                                        }}>
+                                            ✨ A IA usará este plano como contexto para gerar questões diagnósticas mais alinhadas
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {!planoVinculado && (
+                            <div style={{
+                                padding: "12px 16px", borderRadius: 10,
+                                background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.15)",
+                                display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#fbbf24",
+                            }}>
+                                <FileText size={16} />
+                                Nenhum plano de ensino vinculado. A IA gerará questões genéricas para {selectedDisc}.
+                                <a href="/plano-curso" style={{ color: "#38bdf8", fontWeight: 600, textDecoration: "none", marginLeft: "auto" }}>Criar plano →</a>
+                            </div>
+                        )}
+
+                        {/* Generate button */}
+                        <div style={{ ...cardS, textAlign: "center", padding: "40px 20px" }}>
+                            <Brain size={48} style={{ margin: "0 auto 16px", color: "var(--text-muted)", opacity: 0.3 }} />
+                            <h3 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>
+                                Gerar Avaliação Diagnóstica
+                            </h3>
+                            <p style={{ margin: "0 0 20px", fontSize: 13, color: "var(--text-muted)", maxWidth: 400, marginLeft: "auto", marginRight: "auto" }}>
+                                A IA irá gerar questões diagnósticas alinhadas à BNCC{planoVinculado ? " e ao plano de ensino" : ""} para avaliar o nível do estudante em {selectedDisc}.
+                            </p>
+                            <button onClick={gerarAvaliacao} style={{
+                                padding: "14px 28px", borderRadius: 12,
+                                background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+                                color: "#fff", border: "none", cursor: "pointer",
+                                fontWeight: 700, fontSize: 15,
+                                display: "inline-flex", alignItems: "center", gap: 8,
+                            }}>
+                                <Sparkles size={20} /> Gerar com IA
+                            </button>
+                        </div>
                     </div>
                 )}
 
