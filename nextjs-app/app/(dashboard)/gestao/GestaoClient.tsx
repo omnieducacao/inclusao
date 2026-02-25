@@ -23,6 +23,7 @@ type WorkspaceMember = {
   cargo?: string | null;
   can_estudantes: boolean;
   can_pei: boolean;
+  can_pei_professor: boolean;
   can_paee: boolean;
   can_hub: boolean;
   can_diario: boolean;
@@ -37,6 +38,7 @@ type WorkspaceMaster = { workspace_id: string; email: string; nome: string } | n
 const PERM_LABELS: Record<string, string> = {
   can_estudantes: "Estudantes",
   can_pei: "PEI",
+  can_pei_professor: "PEI - Professor",
   can_paee: "PAEE",
   can_hub: "Hub",
   can_diario: "Diário",
@@ -324,6 +326,7 @@ function NovoUsuarioForm({
   const [perms, setPerms] = useState<Record<string, boolean>>({
     can_estudantes: false,
     can_pei: false,
+    can_pei_professor: false,
     can_paee: false,
     can_hub: false,
     can_diario: false,
@@ -355,7 +358,7 @@ function NovoUsuarioForm({
             label: c.label || c.id,
           })));
         }),
-      ]).catch(() => {});
+      ]).catch(() => { });
     } else if (linkType === "tutor") {
       fetch("/api/students")
         .then((r) => r.json())
@@ -367,7 +370,7 @@ function NovoUsuarioForm({
             class_group: s.class_group,
           })));
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [linkType]);
 
@@ -747,6 +750,7 @@ function EditarUsuarioForm({
   const [perms, setPerms] = useState({
     can_estudantes: member.can_estudantes,
     can_pei: member.can_pei,
+    can_pei_professor: member.can_pei_professor,
     can_paee: member.can_paee,
     can_hub: member.can_hub,
     can_diario: member.can_diario,
@@ -788,7 +792,7 @@ function EditarUsuarioForm({
             })));
           }
         }),
-      ]).catch(() => {});
+      ]).catch(() => { });
     } else if (linkType === "tutor") {
       Promise.all([
         fetch("/api/students").then((r) => r.json()).then((d) => {
@@ -805,7 +809,7 @@ function EditarUsuarioForm({
             setStudentIds(d.student_ids);
           }
         }),
-      ]).catch(() => {});
+      ]).catch(() => { });
     }
   }, [linkType, member.id]);
 

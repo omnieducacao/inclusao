@@ -15,6 +15,7 @@ import { useTheme } from "./ThemeProvider";
 type PermissionKey =
   | "can_estudantes"
   | "can_pei"
+  | "can_pei_professor"
   | "can_paee"
   | "can_hub"
   | "can_diario"
@@ -83,7 +84,7 @@ function getNavItems(icons: ReturnType<typeof loadNavIcons> extends Promise<infe
   return [
     { href: "/estudantes", label: "Estudantes", icon: icons.UsersFour, permission: "can_estudantes", group: "main" },
     { href: "/pei", label: "PEI", icon: icons.FileText, permission: "can_pei", group: "modules" },
-    { href: "/pei-regente", label: "PEI - Professor", icon: icons.BookOpen, permission: "can_pei", group: "modules" },
+    { href: "/pei-regente", label: "PEI - Professor", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
     { href: "/paee", label: "PAEE", icon: icons.PuzzlePiece, permission: "can_paee", group: "modules" },
     { href: "/hub", label: "Hub", icon: icons.RocketLaunch, permission: "can_hub", group: "modules" },
     { href: "/diario", label: "Diário", icon: icons.BookOpen, permission: "can_diario", group: "modules" },

@@ -10,6 +10,7 @@ export type WorkspaceMember = {
   cargo?: string | null;
   can_estudantes: boolean;
   can_pei: boolean;
+  can_pei_professor: boolean;
   can_paee: boolean;
   can_hub: boolean;
   can_diario: boolean;
@@ -37,6 +38,7 @@ export type CreateMemberInput = {
   cargo?: string;
   can_estudantes?: boolean;
   can_pei?: boolean;
+  can_pei_professor?: boolean;
   can_paee?: boolean;
   can_hub?: boolean;
   can_diario?: boolean;
@@ -67,7 +69,7 @@ export async function listMembers(workspaceId: string): Promise<WorkspaceMember[
   const { data, error } = await sb
     .from("workspace_members")
     .select(
-      "id,workspace_id,nome,email,telefone,cargo,can_estudantes,can_pei,can_paee,can_hub,can_diario,can_avaliacao,can_gestao,link_type,active,created_at,updated_at"
+      "id,workspace_id,nome,email,telefone,cargo,can_estudantes,can_pei,can_pei_professor,can_paee,can_hub,can_diario,can_avaliacao,can_gestao,link_type,active,created_at,updated_at"
     )
     .eq("workspace_id", workspaceId)
     .order("nome", { ascending: true });
@@ -146,6 +148,7 @@ export async function createMember(
     password_hash: ph,
     can_estudantes: input.can_estudantes ?? false,
     can_pei: input.can_pei ?? false,
+    can_pei_professor: input.can_pei_professor ?? false,
     can_paee: input.can_paee ?? false,
     can_hub: input.can_hub ?? false,
     can_diario: input.can_diario ?? false,
@@ -157,7 +160,7 @@ export async function createMember(
   const { data, error } = await sb
     .from("workspace_members")
     .insert(row)
-    .select("id,workspace_id,nome,email,telefone,cargo,can_estudantes,can_pei,can_paee,can_hub,can_diario,can_avaliacao,can_gestao,link_type,active,created_at,updated_at")
+    .select("id,workspace_id,nome,email,telefone,cargo,can_estudantes,can_pei,can_pei_professor,can_paee,can_hub,can_diario,can_avaliacao,can_gestao,link_type,active,created_at,updated_at")
     .single();
 
   if (error) {
@@ -207,6 +210,7 @@ export async function updateMember(
   if (input.cargo != null) updates.cargo = (input.cargo || "").trim() || null;
   if (input.can_estudantes != null) updates.can_estudantes = input.can_estudantes;
   if (input.can_pei != null) updates.can_pei = input.can_pei;
+  if (input.can_pei_professor != null) updates.can_pei_professor = input.can_pei_professor;
   if (input.can_paee != null) updates.can_paee = input.can_paee;
   if (input.can_hub != null) updates.can_hub = input.can_hub;
   if (input.can_diario != null) updates.can_diario = input.can_diario;
