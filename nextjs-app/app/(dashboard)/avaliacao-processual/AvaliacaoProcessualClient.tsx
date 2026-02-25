@@ -159,44 +159,37 @@ export default function AvaliacaoProcessualClient() {
         } catch { /* silent */ }
     }, []);
 
-    // ─── Load habilidades from plano genérico or matriz ──────────────────
+    // ─── Load habilidades: Plano de Curso → Matriz → BNCC ─────────────────
+
+    const [habSource, setHabSource] = useState<string>("");
 
     const loadHabilidades = useCallback(async (aluno: Aluno, disciplina: string) => {
         try {
-            // Try loading from BNCC matrix
             const gradeNum = aluno.grade?.match(/\d+/)?.[0] || "6";
             const res = await fetch(
-                `/api/avaliacao-diagnostica/matriz?section=bncc&disciplina=${encodeURIComponent(disciplina)}`
+                `/api/plano-curso/habilidades?disciplina=${encodeURIComponent(disciplina)}&serie=${encodeURIComponent(aluno.grade || `EF${gradeNum}`)}`
             );
             const data = await res.json();
-            const habs = (data.habilidades || []).slice(0, 10); // First 10 for the grade
 
-            const mapped: HabilidadeAvaliada[] = habs
-                .filter((h: Record<string, unknown>) => {
-                    const ano = h.ano as string || "";
-                    return ano.includes(gradeNum);
-                })
-                .slice(0, 8)
-                .map((h: Record<string, unknown>) => ({
-                    codigo_bncc: h.codigo as string || h.habilidade as string || "",
-                    descricao: h.habilidade as string || h.descritor as string || "",
-                    nivel_atual: 0 as NivelOmnisfera,
-                    nivel_anterior: null,
-                    observacao: "",
-                }));
-
-            if (mapped.length > 0) {
+            if (data.habilidades?.length) {
+                const mapped: HabilidadeAvaliada[] = data.habilidades.slice(0, 12).map(
+                    (h: { codigo_bncc: string; descricao: string }) => ({
+                        codigo_bncc: h.codigo_bncc || "",
+                        descricao: h.descricao || "",
+                        nivel_atual: 0 as NivelOmnisfera,
+                        nivel_anterior: null,
+                        observacao: "",
+                    })
+                );
                 setHabilidades(mapped);
+                setHabSource(data.source || "");
             } else {
-                // Fallback: generate placeholder habilidades
-                setHabilidades([
-                    { codigo_bncc: `EF${gradeNum}LP01`, descricao: `Habilidade de Leitura — ${disciplina}`, nivel_atual: 0, nivel_anterior: null, observacao: "" },
-                    { codigo_bncc: `EF${gradeNum}LP02`, descricao: `Habilidade de Escrita — ${disciplina}`, nivel_atual: 0, nivel_anterior: null, observacao: "" },
-                    { codigo_bncc: `EF${gradeNum}LP03`, descricao: `Habilidade de Interpretação — ${disciplina}`, nivel_atual: 0, nivel_anterior: null, observacao: "" },
-                ]);
+                setHabilidades([]);
+                setHabSource("none");
             }
         } catch {
             setHabilidades([]);
+            setHabSource("error");
         }
     }, []);
 
@@ -545,7 +538,11 @@ export default function AvaliacaoProcessualClient() {
                 <div style={{ ...cardS, marginBottom: 20 }}>
                     <div style={{ ...headerS, background: "rgba(16,185,129,.05)" }}>
                         <BookOpen size={16} style={{ color: "#10b981" }} />
-                        <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>Habilidades BNCC</span>
+                        <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>
+                            {habSource === "plano_curso_professor" ? "Habilidades do Plano de Curso" :
+                                habSource === "matriz_referencia" ? "Habilidades da Matriz de Referência" :
+                                    "Habilidades BNCC"}
+                        </span>
                         <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "auto" }}>
                             Avalie cada habilidade na escala 0-4
                         </span>

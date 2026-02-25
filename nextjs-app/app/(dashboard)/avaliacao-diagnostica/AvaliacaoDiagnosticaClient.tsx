@@ -84,6 +84,10 @@ export default function AvaliacaoDiagnosticaClient() {
     const [selectedAluno, setSelectedAluno] = useState<Aluno | null>(null);
     const [selectedDisc, setSelectedDisc] = useState<string | null>(null);
 
+    // NEE guidance from planos_genericos
+    const [neeAlert, setNeeAlert] = useState<string>("");
+    const [instrucaoDiag, setInstrucaoDiag] = useState<string>("");
+
     // Avaliação state
     const [gerando, setGerando] = useState(false);
     const [questoes, setQuestoes] = useState<Questao[]>([]);
@@ -147,6 +151,44 @@ export default function AvaliacaoDiagnosticaClient() {
     }, []);
 
     useEffect(() => { fetchAlunos(); }, [fetchAlunos]);
+
+    // ─── Load NEE guidance from planos_genericos ──────────────────────────
+    useEffect(() => {
+        if (!selectedAluno || !selectedDisc) {
+            setNeeAlert("");
+            setInstrucaoDiag("");
+            return;
+        }
+        const diag = selectedAluno.diagnostico || "";
+        const grade = selectedAluno.grade || "";
+        const disc = selectedDisc || "";
+
+        (async () => {
+            try {
+                const url = `/api/avaliacao-diagnostica/planos-genericos?disciplina=${encodeURIComponent(disc)}&ano=${encodeURIComponent(grade)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const planos = data.planos || [];
+                if (planos.length > 0) {
+                    const plano = planos[0];
+                    // Map diagnostico to NEE key
+                    const neeKey = diag.includes("TEA") ? "TEA"
+                        : diag.includes("DI") ? "DI"
+                            : diag.includes("TDAH") || diag.includes("TA") || diag.includes("dislexia") ? "TA"
+                                : diag.includes("AH") ? "AH" : "";
+                    const alert = neeKey && plano.alertas_por_perfil_nee?.[neeKey];
+                    setNeeAlert(alert || "");
+                    setInstrucaoDiag(plano.instrucao_uso_diagnostica || "");
+                } else {
+                    setNeeAlert("");
+                    setInstrucaoDiag("");
+                }
+            } catch {
+                setNeeAlert("");
+                setInstrucaoDiag("");
+            }
+        })();
+    }, [selectedAluno, selectedDisc]);
 
     // ─── Load existing avaliação ────────────────────────────────────────
 
@@ -502,6 +544,32 @@ export default function AvaliacaoDiagnosticaClient() {
                         {selectedAluno.diagnostico && ` · ${selectedAluno.diagnostico}`}
                     </p>
                 </div>
+
+                {/* NEE Alert from Planos Genéricos */}
+                {Boolean(neeAlert) && (
+                    <div style={{
+                        padding: "14px 18px", borderRadius: 12,
+                        background: "rgba(245,158,11,.08)", border: "1.5px solid rgba(245,158,11,.25)",
+                        marginBottom: 16, fontSize: 13, lineHeight: 1.6,
+                    }}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "#f59e0b", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                            ⚠️ Orientação para {selectedAluno?.diagnostico || "NEE"}
+                        </div>
+                        <div style={{ color: "var(--text-secondary)" }}>{neeAlert}</div>
+                    </div>
+                )}
+                {Boolean(instrucaoDiag) && (
+                    <div style={{
+                        padding: "14px 18px", borderRadius: 12,
+                        background: "rgba(59,130,246,.06)", border: "1.5px solid rgba(59,130,246,.2)",
+                        marginBottom: 16, fontSize: 13, lineHeight: 1.6,
+                    }}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "#3b82f6", marginBottom: 6 }}>
+                            📋 Instrução de Uso
+                        </div>
+                        <div style={{ color: "var(--text-secondary)" }}>{instrucaoDiag}</div>
+                    </div>
+                )}
 
                 {/* Level already identified */}
                 {nivelIdentificado !== null && (
