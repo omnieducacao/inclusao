@@ -2593,13 +2593,17 @@ function DashboardTab({
         )}
 
         {/* Enviar para Professores Regentes */}
-        {isEditing && currentStudentId && (
-          <EnviarParaProfessoresButton
-            studentId={currentStudentId}
-            studentName={String(peiData.nome || "Estudante")}
-            fasePei={(peiData as Record<string, unknown>).fase_pei as string}
-          />
-        )}
+        <EnviarParaProfessoresButton
+          studentId={currentStudentId}
+          studentName={String(peiData.nome || "Estudante")}
+          studentGrade={String(peiData.serie || "")}
+          studentClass={String(peiData.turma || "")}
+          fasePei={(peiData as Record<string, unknown>).fase_pei as string}
+          isEditing={isEditing}
+          onSave={onSave}
+          onUpdate={onUpdate}
+          saving={saving}
+        />
       </div>
 
       <hr className="my-6" />
@@ -5058,21 +5062,58 @@ function BarreirasDominio({
 function EnviarParaProfessoresButton({
   studentId,
   studentName,
+  studentGrade,
+  studentClass,
   fasePei,
+  isEditing,
+  onSave,
+  onUpdate,
+  saving,
 }: {
-  studentId: string;
+  studentId: string | null;
   studentName: string;
+  studentGrade: string;
+  studentClass: string;
   fasePei?: string;
+  isEditing: boolean;
+  onSave: () => void;
+  onUpdate: () => void;
+  saving: boolean;
 }) {
   const [sending, setSending] = React.useState(false);
   const [result, setResult] = React.useState<{ ok: boolean; count: number; error?: string } | null>(null);
+  const [matchingTeachers, setMatchingTeachers] = React.useState<Array<{ name: string; component: string }>>([]);
+  const [loadingTeachers, setLoadingTeachers] = React.useState(false);
 
   const alreadySent = fasePei === "fase_2";
+  const hasName = !!studentName && studentName !== "Estudante";
+  const needsSaveFirst = !isEditing || !studentId;
+
+  // Buscar professores que correspondem à série/turma do estudante
+  React.useEffect(() => {
+    if (!studentGrade || alreadySent) return;
+    setLoadingTeachers(true);
+    fetch(`/api/pei/enviar-regentes?preview=1&grade=${encodeURIComponent(studentGrade)}&classGroup=${encodeURIComponent(studentClass)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.teachers) setMatchingTeachers(data.teachers);
+      })
+      .catch(() => { })
+      .finally(() => setLoadingTeachers(false));
+  }, [studentGrade, studentClass, alreadySent]);
 
   const handleEnviar = async () => {
+    if (!studentId) return;
     setSending(true);
     setResult(null);
     try {
+      // Auto-salvar antes de enviar
+      if (isEditing) {
+        onUpdate();
+        // Aguardar um momento para o save processar
+        await new Promise(r => setTimeout(r, 1500));
+      }
+
       const res = await fetch("/api/pei/enviar-regentes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -5087,6 +5128,9 @@ function EnviarParaProfessoresButton({
       setSending(false);
     }
   };
+
+  // Se não tem nome preenchido, não mostra nada
+  if (!hasName) return null;
 
   return (
     <div className="mt-6 rounded-xl border overflow-hidden" style={{
@@ -5108,18 +5152,54 @@ function EnviarParaProfessoresButton({
             </h4>
             <p className="text-xs" style={{ color: 'var(--text-muted, #64748b)' }}>
               {alreadySent || result?.ok
-                ? `PEI de ${studentName} está na Fase 2. Professores podem acessar em PEI Regente.`
+                ? `PEI de ${studentName} está na Fase 2. Professores podem acessar em PEI - Professor.`
                 : `Compartilhe a Fase 1 com os professores vinculados à turma de ${studentName}.`}
             </p>
           </div>
         </div>
+
+        {/* Preview: professores encontrados para a turma */}
+        {!alreadySent && !result?.ok && matchingTeachers.length > 0 && (
+          <div className="mb-3 p-3 rounded-lg" style={{ background: 'rgba(99,102,241,.06)', border: '1px solid rgba(99,102,241,.15)' }}>
+            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--text-primary, #334155)' }}>
+              👩‍🏫 Professores encontrados para {studentGrade} {studentClass ? `- Turma ${studentClass}` : ""}:
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {matchingTeachers.map((t, i) => (
+                <span key={i} className="text-xs px-2 py-1 rounded-full" style={{
+                  background: 'rgba(99,102,241,.1)', color: '#4f46e5',
+                }}>
+                  {t.name} ({t.component})
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!alreadySent && !result?.ok && !loadingTeachers && matchingTeachers.length === 0 && studentGrade && (
+          <div className="mb-3 p-3 rounded-lg text-xs" style={{
+            background: 'rgba(245,158,11,.06)', color: '#d97706', border: '1px solid rgba(245,158,11,.2)',
+          }}>
+            ⚠️ Nenhum professor cadastrado para <strong>{studentGrade}</strong>. Cadastre professores com vínculo de turma em <strong>Gestão de Usuários</strong>.
+          </div>
+        )}
+
+        {/* Mensagem: precisa salvar antes */}
+        {needsSaveFirst && !alreadySent && (
+          <div className="mb-3 p-3 rounded-lg text-xs flex items-center gap-2" style={{
+            background: 'rgba(59,130,246,.06)', color: '#2563eb', border: '1px solid rgba(59,130,246,.2)',
+          }}>
+            <Info className="w-4 h-4 shrink-0" />
+            Salve o PEI primeiro (botão ☁️ acima) para poder enviar aos professores.
+          </div>
+        )}
 
         {/* Erro */}
         {result?.error && (
           <div className="mb-3 p-3 rounded-lg text-xs flex items-center gap-2" style={{
             background: 'rgba(239,68,68,.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,.2)',
           }}>
-            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <AlertTriangle className="w-4 h-4 shrink-0" />
             {result.error}
           </div>
         )}
@@ -5129,34 +5209,49 @@ function EnviarParaProfessoresButton({
           <div className="mb-3 p-3 rounded-lg text-xs flex items-center gap-2" style={{
             background: 'rgba(16,185,129,.08)', color: '#10b981', border: '1px solid rgba(16,185,129,.2)',
           }}>
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
             {result.count} disciplina{result.count !== 1 ? "s" : ""} enviada{result.count !== 1 ? "s" : ""} com sucesso!
           </div>
         )}
 
         {/* Botões */}
         <div className="flex items-center gap-3">
-          {!alreadySent && !result?.ok && (
+          {needsSaveFirst && !alreadySent && (
             <button
-              onClick={handleEnviar}
-              disabled={sending}
+              onClick={onSave}
+              disabled={saving}
               className="px-5 py-2.5 rounded-lg text-sm font-bold text-white flex items-center gap-2 transition-all"
               style={{
-                background: 'linear-gradient(135deg, #059669, #10b981)',
-                cursor: sending ? 'wait' : 'pointer',
+                background: 'linear-gradient(135deg, #7c3aed, #8b5cf6)',
+                cursor: saving ? 'wait' : 'pointer',
+                opacity: saving ? 0.7 : 1,
+              }}
+            >
+              {saving ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
+              ) : (
+                <><Download className="w-4 h-4" /> Salvar PEI primeiro</>
+              )}
+            </button>
+          )}
+
+          {!needsSaveFirst && !alreadySent && !result?.ok && (
+            <button
+              onClick={handleEnviar}
+              disabled={sending || matchingTeachers.length === 0}
+              className="px-5 py-2.5 rounded-lg text-sm font-bold text-white flex items-center gap-2 transition-all"
+              style={{
+                background: matchingTeachers.length > 0
+                  ? 'linear-gradient(135deg, #059669, #10b981)'
+                  : '#94a3b8',
+                cursor: sending || matchingTeachers.length === 0 ? 'not-allowed' : 'pointer',
                 opacity: sending ? 0.7 : 1,
               }}
             >
               {sending ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Detectando professores...
-                </>
+                <><Loader2 className="w-4 h-4 animate-spin" /> Salvando e enviando...</>
               ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  Enviar para Professores
-                </>
+                <><Send className="w-4 h-4" /> Enviar para {matchingTeachers.length} professor{matchingTeachers.length !== 1 ? "es" : ""}</>
               )}
             </button>
           )}
@@ -5171,7 +5266,7 @@ function EnviarParaProfessoresButton({
               }}
             >
               <BookOpen className="w-4 h-4" />
-              Abrir PEI Regente
+              Abrir PEI - Professor
             </a>
           )}
         </div>
@@ -5179,4 +5274,5 @@ function EnviarParaProfessoresButton({
     </div>
   );
 }
+
 

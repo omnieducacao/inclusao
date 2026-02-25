@@ -26,6 +26,82 @@ export async function GET(req: Request) {
     }
 
     const url = new URL(req.url);
+    const preview = url.searchParams.get("preview");
+
+    // Modo preview: retornar professores que correspondem à série/turma
+    if (preview === "1") {
+        const grade = url.searchParams.get("grade") || "";
+        const classGroup = url.searchParams.get("classGroup") || "";
+
+        if (!grade) {
+            return NextResponse.json({ teachers: [] });
+        }
+
+        const sb = getSupabase();
+
+        const { data: classes } = await sb
+            .from("classes")
+            .select("id, grade_id, name")
+            .eq("workspace_id", session.workspace_id);
+
+        const { data: grades } = await sb
+            .from("grades")
+            .select("id, name")
+            .eq("workspace_id", session.workspace_id);
+
+        const gradeMap = new Map((grades || []).map(g => [g.id, g.name]));
+        const matchingClassIds = (classes || [])
+            .filter(c => {
+                const gradeName = gradeMap.get(c.grade_id) || "";
+                const extractNum = (s: string) => (s.match(/\d+/) || [""])[0];
+                const normalizeGrade = (s: string) => s.replace(/[ºª°m\s]/gi, "").toLowerCase();
+                const numA = extractNum(gradeName);
+                const numB = extractNum(grade);
+                const gradeMatch = (numA && numB && numA === numB) ||
+                    normalizeGrade(gradeName).includes(normalizeGrade(grade)) ||
+                    normalizeGrade(grade).includes(normalizeGrade(gradeName));
+                const classMatch = !classGroup || c.name?.toLowerCase().includes(classGroup.toLowerCase());
+                return gradeMatch && classMatch;
+            })
+            .map(c => c.id);
+
+        if (matchingClassIds.length === 0) {
+            return NextResponse.json({ teachers: [] });
+        }
+
+        const { data: assignments } = await sb
+            .from("teacher_assignments")
+            .select("workspace_member_id, component_id")
+            .in("class_id", matchingClassIds);
+
+        if (!assignments?.length) {
+            return NextResponse.json({ teachers: [] });
+        }
+
+        const memberIds = [...new Set(assignments.map(a => a.workspace_member_id))];
+        const componentIds = [...new Set(assignments.map(a => a.component_id).filter(Boolean))];
+
+        const { data: members } = await sb
+            .from("workspace_members")
+            .select("id, nome")
+            .in("id", memberIds);
+
+        const { data: components } = componentIds.length > 0
+            ? await sb.from("curricular_components").select("id, name").in("id", componentIds)
+            : { data: [] };
+
+        const memberMap = new Map((members || []).map(m => [m.id, m.nome]));
+        const componentMap = new Map((components || []).map(c => [c.id, c.name]));
+
+        const teachers = assignments.map(a => ({
+            name: memberMap.get(a.workspace_member_id) || "Professor",
+            component: componentMap.get(a.component_id) || "Geral",
+        }));
+
+        return NextResponse.json({ teachers });
+    }
+
+    // Modo normal: listar disciplinas de um estudante
     const studentId = url.searchParams.get("studentId");
     if (!studentId) {
         return NextResponse.json({ error: "studentId obrigatório" }, { status: 400 });
