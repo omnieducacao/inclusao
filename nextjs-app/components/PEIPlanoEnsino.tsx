@@ -93,23 +93,29 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
     const vincularPlano = useCallback(async (plano: PlanoVinculado) => {
         setSaving(true); setError("");
         try {
+            // Ensure conteudo is a string (it may be a parsed object from jsonb)
+            const conteudoStr = plano.conteudo
+                ? (typeof plano.conteudo === "string" ? plano.conteudo : JSON.stringify(plano.conteudo))
+                : null;
+
             const res = await fetch("/api/pei/plano-ensino", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     id: planoVinculado?.id || undefined,
                     disciplina, ano_serie: anoSerie,
-                    conteudo: plano.conteudo,
+                    conteudo: conteudoStr,
                     habilidades_bncc: plano.habilidades_bncc,
                     bimestre: plano.bimestre,
                 }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
+            if (!res.ok) throw new Error(data.error || "Erro ao vincular plano");
             setPlanoVinculado({ ...plano, id: data.plano?.id || plano.id });
             setSaved(true);
             onPlanoSaved?.(data.plano?.id);
         } catch (err) {
+            console.error("vincularPlano error:", err);
             setError(err instanceof Error ? err.message : "Erro ao vincular plano");
         } finally { setSaving(false); }
     }, [disciplina, anoSerie, planoVinculado, onPlanoSaved]);

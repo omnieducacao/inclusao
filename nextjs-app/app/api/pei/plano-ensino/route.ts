@@ -94,7 +94,7 @@ export async function POST(req: Request) {
         id?: string;
         disciplina: string;
         ano_serie: string;
-        conteudo?: string;
+        conteudo?: unknown;
         arquivo_url?: string;
         habilidades_bncc?: string[];
         bimestre?: string;
@@ -110,20 +110,41 @@ export async function POST(req: Request) {
 
     const sb = getSupabase();
 
+    // Resolve professor_id from session
+    let professorId = (session.member as Record<string, unknown> | undefined)?.id as string | undefined;
+    if (!professorId) {
+        const { data: m } = await sb
+            .from("workspace_members")
+            .select("id")
+            .eq("workspace_id", session.workspace_id)
+            .eq("nome", session.usuario_nome)
+            .maybeSingle();
+        professorId = m?.id || undefined;
+    }
+
+    // Ensure conteudo is always a string (it may come as a parsed JSON object)
+    const conteudoStr = conteudo
+        ? (typeof conteudo === "string" ? conteudo : JSON.stringify(conteudo))
+        : null;
+
+    const record = {
+        workspace_id: session.workspace_id,
+        disciplina,
+        ano_serie,
+        conteudo: conteudoStr,
+        arquivo_url: arquivo_url || null,
+        habilidades_bncc: habilidades_bncc || [],
+        bimestre: bimestre || null,
+        professor_nome: professor_nome || session.usuario_nome,
+        professor_id: professorId || null,
+        updated_at: new Date().toISOString(),
+    };
+
     // Atualizar existente
     if (id) {
         const { data, error } = await sb
             .from("planos_ensino")
-            .update({
-                disciplina,
-                ano_serie,
-                conteudo: conteudo || null,
-                arquivo_url: arquivo_url || null,
-                habilidades_bncc: habilidades_bncc || [],
-                bimestre: bimestre || null,
-                professor_nome: professor_nome || session.usuario_nome,
-                updated_at: new Date().toISOString(),
-            })
+            .update(record)
             .eq("id", id)
             .eq("workspace_id", session.workspace_id)
             .select()
@@ -139,16 +160,7 @@ export async function POST(req: Request) {
     // Criar novo
     const { data, error } = await sb
         .from("planos_ensino")
-        .insert({
-            workspace_id: session.workspace_id,
-            disciplina,
-            ano_serie,
-            conteudo: conteudo || null,
-            arquivo_url: arquivo_url || null,
-            habilidades_bncc: habilidades_bncc || [],
-            bimestre: bimestre || null,
-            professor_nome: professor_nome || session.usuario_nome,
-        })
+        .insert(record)
         .select()
         .single();
 
