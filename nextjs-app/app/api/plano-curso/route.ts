@@ -58,9 +58,9 @@ export async function GET(req: Request) {
     if (componente) query = query.eq("disciplina", componente);
     if (serie) query = query.eq("ano_serie", serie);
 
-    // Only show own plans (unless master)
-    const isMaster = !!(session.member as Record<string, boolean> | undefined)?.is_master ||
-        session.is_platform_admin;
+    // Masters and PEI linking should see all workspace plans for the componente/serie
+    // Professors see only their own plans
+    const isMaster = session.user_role === "master" || session.is_platform_admin;
     if (!isMaster && memberId) {
         query = query.eq("professor_id", memberId);
     }
