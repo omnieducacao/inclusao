@@ -65,6 +65,7 @@ export async function PATCH(
     cargo: body.cargo,
     can_estudantes: body.can_estudantes,
     can_pei: body.can_pei,
+    can_pei_professor: body.can_pei_professor,
     can_paee: body.can_paee,
     can_hub: body.can_hub,
     can_diario: body.can_diario,
