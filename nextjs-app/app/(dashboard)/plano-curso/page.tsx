@@ -9,7 +9,7 @@ export default async function PlanoCursoPage() {
 
     return (
         <>
-            <Navbar />
+            <Navbar session={session} />
             <main className="page-wrapper">
                 <PlanoCursoClient />
             </main>
