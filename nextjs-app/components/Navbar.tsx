@@ -433,6 +433,25 @@ function ProfileDropdown({
 
           {/* Menu items */}
           <div className="py-1">
+            <a
+              href="/perfil"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all text-left block"
+              style={{
+                color: 'var(--text-primary)',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.backgroundColor = '';
+              }}
+            >
+              <svg className="w-[18px] h-[18px] flex-shrink-0" style={{ color: '#4285F4' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>Meu Perfil</span>
+            </a>
+            <div className="mx-3 my-1 border-t" style={{ borderColor: 'var(--border-default)' }} />
             <button
               onClick={onLogout}
               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all text-left"

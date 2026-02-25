@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Users,
   Settings,
@@ -13,6 +14,8 @@ import {
   Pause,
   Play,
   AlertTriangle,
+  Eye,
+  Loader2 as SimLoader,
 } from "lucide-react";
 
 type WorkspaceMember = {
@@ -688,7 +691,8 @@ function MemberCard({
           </div>
           <p className="text-xs text-slate-500 mt-1">Vínculo: {linkTxt}</p>
         </div>
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="flex gap-2 flex-shrink-0 flex-wrap">
+          <SimularButton memberId={member.id} memberName={member.nome} />
           <button
             type="button"
             onClick={() => setEditingId(member.id)}
@@ -1132,5 +1136,45 @@ function InactiveMemberCard({
         </div>
       </div>
     </div>
+  );
+}
+
+function SimularButton({ memberId, memberName }: { memberId: string; memberName: string }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function handleSimulate() {
+    if (!confirm(`Iniciar simulação como "${memberName}"? Você verá a plataforma como este membro.`)) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/simulate-member", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ member_id: memberId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        router.push("/");
+        router.refresh();
+      } else {
+        alert(data.error || "Erro ao simular.");
+      }
+    } catch {
+      alert("Erro de conexão.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleSimulate}
+      disabled={loading}
+      className="px-3 py-1.5 border border-purple-200 text-purple-600 rounded-lg text-sm hover:bg-purple-50 flex items-center gap-2 disabled:opacity-50"
+    >
+      {loading ? <SimLoader className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+      Simular
+    </button>
   );
 }

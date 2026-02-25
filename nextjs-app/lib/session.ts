@@ -12,9 +12,13 @@ export type SessionPayload = {
   member?: Record<string, unknown>;
   is_platform_admin?: boolean;
   terms_accepted?: boolean;
-  // Simulation mode fields
+  // Admin simulation mode (admin → school)
   simulating_workspace_id?: string;
   simulating_workspace_name?: string;
+  // Master simulation mode (master → member)
+  simulating_member_id?: string;
+  simulating_member_name?: string;
+  original_master_session?: string; // JSON backup
   exp: number;
 };
 

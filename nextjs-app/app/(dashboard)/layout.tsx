@@ -5,6 +5,7 @@ import { AIEnginesBadge } from "@/components/AIEnginesBadge";
 import { Footer } from "@/components/Footer";
 import { AILoadingWrapper } from "@/components/AILoadingWrapper";
 import { SimulationBanner } from "@/components/SimulationBanner";
+import { MemberSimulationBanner } from "@/components/MemberSimulationBanner";
 import { AnnouncementModal } from "@/components/AnnouncementModal";
 
 export default async function DashboardLayout({
@@ -26,6 +27,7 @@ export default async function DashboardLayout({
         }}
       >
         <SimulationBanner session={session} />
+        <MemberSimulationBanner session={session} />
         <Navbar session={session} />
         <main className="w-full px-6 py-6 flex-1">{children}</main>
         <div className="w-full px-6">
