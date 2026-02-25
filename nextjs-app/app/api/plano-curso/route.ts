@@ -26,15 +26,15 @@ export async function GET(req: Request) {
     const sb = getSupabase();
 
     // Resolve member_id
-    let memberId = session.member_id;
-    if (!memberId && session.user_id) {
+    let memberId = (session.member as Record<string, unknown> | undefined)?.id as string | undefined;
+    if (!memberId) {
         const { data: m } = await sb
             .from("workspace_members")
             .select("id")
             .eq("workspace_id", session.workspace_id)
-            .eq("user_id", session.user_id)
-            .single();
-        memberId = m?.id || null;
+            .eq("name", session.usuario_nome)
+            .maybeSingle();
+        memberId = m?.id || undefined;
     }
 
     // Fetch by ID
@@ -98,15 +98,15 @@ export async function POST(req: Request) {
     const sb = getSupabase();
 
     // Resolve member_id
-    let memberId = session.member_id;
-    if (!memberId && session.user_id) {
+    let memberId = (session.member as Record<string, unknown> | undefined)?.id as string | undefined;
+    if (!memberId) {
         const { data: m } = await sb
             .from("workspace_members")
             .select("id")
             .eq("workspace_id", session.workspace_id)
-            .eq("user_id", session.user_id)
-            .single();
-        memberId = m?.id || null;
+            .eq("name", session.usuario_nome)
+            .maybeSingle();
+        memberId = m?.id || undefined;
     }
 
     const record = {

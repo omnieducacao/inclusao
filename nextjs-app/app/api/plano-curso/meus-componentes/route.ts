@@ -18,15 +18,15 @@ export async function GET() {
     const sb = getSupabase();
 
     // 1. Resolver member_id do professor logado
-    let memberId = session.member_id;
-    if (!memberId && session.user_id) {
+    let memberId = (session.member as Record<string, unknown> | undefined)?.id as string | undefined;
+    if (!memberId) {
         const { data: m } = await sb
             .from("workspace_members")
             .select("id")
             .eq("workspace_id", session.workspace_id)
-            .eq("user_id", session.user_id)
-            .single();
-        memberId = m?.id || null;
+            .eq("name", session.usuario_nome)
+            .maybeSingle();
+        memberId = m?.id || undefined;
     }
 
     const isMaster = !!(session.member as Record<string, boolean> | undefined)?.is_master ||
