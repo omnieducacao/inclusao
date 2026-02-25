@@ -141,12 +141,53 @@ export function PEIClient({
   const [studentPendingName, setStudentPendingName] = useState<string>("");
   const [erroGlobal, setErroGlobal] = useState<string | null>(null);
   const [isLoadingRascunho, setIsLoadingRascunho] = useState(false);
+  const [schoolClasses, setSchoolClasses] = useState<Array<{ id: string; class_group: string; grade_id: string; grades?: { name?: string; label?: string } }>>([]);
+  const [schoolGrades, setSchoolGrades] = useState<Array<{ id: string; name: string; label?: string }>>([]);
   const { markDirty, markClean } = useUnsavedChanges();
 
   // Ref para preservar o ID do estudante ao carregar do Supabase (via jsonPending)
   const cloudLoadIdRef = useRef<string | null>(null);
   // Ref para impedir que o useEffect de fetch re-busque após um load manual (via jsonPending)
   const skipNextFetchRef = useRef(false);
+
+  // Fetch school classes and grades for turma dropdown
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/school/classes").then(r => r.json()).then(d => {
+        setSchoolClasses(d.classes || []);
+      }),
+      fetch("/api/school/grades").then(r => r.json()).then(d => {
+        setSchoolGrades(d.grades || []);
+      }),
+    ]).catch(() => { });
+  }, []);
+
+  // Compute available turmas for selected série
+  const availableTurmas = React.useMemo(() => {
+    const selectedSerie = peiData.serie || "";
+    if (!selectedSerie || schoolGrades.length === 0 || schoolClasses.length === 0) return [];
+    // Find matching grade IDs
+    const extractNum = (s: string) => (s.match(/\d+/) || [""])[0];
+    const normalizeGrade = (s: string) => s.replace(/[ºª°m\s]/gi, "").toLowerCase();
+    const numSerie = extractNum(selectedSerie);
+    const matchingGradeIds = schoolGrades
+      .filter(g => {
+        const numG = extractNum(g.name || g.label || "");
+        return (numG && numSerie && numG === numSerie) ||
+          normalizeGrade(g.name || g.label || "").includes(normalizeGrade(selectedSerie)) ||
+          normalizeGrade(selectedSerie).includes(normalizeGrade(g.name || g.label || ""));
+      })
+      .map(g => g.id);
+    // Filter classes by matching grades
+    const filtered = schoolClasses.filter(c => matchingGradeIds.includes(c.grade_id));
+    // Unique class_groups
+    const seen = new Set<string>();
+    return filtered.filter(c => {
+      if (seen.has(c.class_group)) return false;
+      seen.add(c.class_group);
+      return true;
+    });
+  }, [peiData.serie, schoolGrades, schoolClasses]);
 
   const currentStudentId = selectedStudentId;
 
@@ -1181,13 +1222,26 @@ export function PEIClient({
                 {/* Turma */}
                 <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
                   <label className="block text-sm font-semibold text-slate-700 mb-1">Turma</label>
-                  <input
-                    type="text"
-                    value={peiData.turma || ""}
-                    onChange={(e) => updateField("turma", e.target.value)}
-                    className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
-                    placeholder="Ex: A"
-                  />
+                  {availableTurmas.length > 0 ? (
+                    <select
+                      value={peiData.turma || ""}
+                      onChange={(e) => updateField("turma", e.target.value || undefined)}
+                      className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                    >
+                      <option value="">Selecione...</option>
+                      {availableTurmas.map((c) => (
+                        <option key={c.id} value={c.class_group}>{c.class_group}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={peiData.turma || ""}
+                      onChange={(e) => updateField("turma", e.target.value)}
+                      className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-400 focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                      placeholder={peiData.serie ? "Nenhuma turma cadastrada" : "Selecione a série primeiro"}
+                    />
+                  )}
                 </div>
                 {/* Matrícula / RA */}
                 <div className="col-span-1 sm:col-span-1 lg:col-span-1 xl:col-span-1">
