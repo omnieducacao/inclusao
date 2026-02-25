@@ -51,6 +51,7 @@ export async function POST(req: Request) {
         studentId,
         disciplina,
         bimestre,
+        tipo_periodo,
         ano_letivo,
         habilidades,       // Array<{ codigo_bncc, nivel_atual, nivel_anterior?, observacao }>
         observacao_geral,
@@ -82,6 +83,7 @@ export async function POST(req: Request) {
         professor_id: professorId,
         disciplina,
         bimestre: parseInt(bimestre),
+        tipo_periodo: tipo_periodo || "bimestral",
         ano_letivo: ano_letivo || new Date().getFullYear(),
         habilidades: habilidades || [],
         dimensoes_nee: dimensoes_nee || [],

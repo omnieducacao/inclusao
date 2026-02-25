@@ -55,6 +55,16 @@ export default async function RootPage() {
           .gte("criado_em", new Date(Date.now() - 7 * 86400000).toISOString()),
       ]);
 
+      // Try processual count (table may not exist yet)
+      let processualCount = 0;
+      try {
+        const processualRes = await sb.from("avaliacao_processual")
+          .select("id", { count: "exact", head: true })
+          .eq("workspace_id", wid)
+          .eq("ano_letivo", new Date().getFullYear());
+        processualCount = processualRes.count || 0;
+      } catch { /* table may not exist */ }
+
       const totalStudents = studentsRes.count || 0;
       const peiStudents = peiRes.data || [];
       const peiTotal = peiStudents.length;
@@ -83,6 +93,11 @@ export default async function RootPage() {
           variant: peiCoverage >= 80 ? "green" : peiCoverage >= 50 ? "yellow" : "red",
         };
       }
+
+      // Assessment badges
+      if (processualCount > 0) {
+        kpiBadges["Avaliação Processual"] = { text: `${processualCount} registros`, variant: "green" };
+      }
     }
   } catch (err) {
     console.error("[RootPage] KPI fetch error:", err);
@@ -95,6 +110,7 @@ export default async function RootPage() {
     { href: "/pei-regente", iconName: "BookOpen" as const, title: "PEI - Professor", desc: "Plano de ensino, avaliação diagnóstica e PEI por disciplina.", color: "teal", permission: "can_pei_professor" },
     { href: "/plano-curso", iconName: "BookOpen" as const, title: "Plano de Curso", desc: "Planejamento pedagógico por componente curricular e série.", color: "sky", permission: "can_pei_professor" },
     { href: "/avaliacao-diagnostica", iconName: "Brain" as const, title: "Avaliação Diagnóstica", desc: "Gere questões com IA, aplique e identifique o nível Omnisfera.", color: "blue", permission: "can_pei_professor" },
+    { href: "/avaliacao-processual", iconName: "ChartLineUp" as const, title: "Avaliação Processual", desc: "Acompanhe a evolução do estudante ao longo do ano letivo.", color: "green", permission: "can_pei_professor", badge: kpiBadges["Avaliação Processual"] },
     { href: "/paee", iconName: "PuzzlePiece" as const, title: "Plano de Ação / PAEE", desc: "Atendimento Educacional Especializado e sala de recursos.", color: "violet", permission: "can_paee" },
     { href: "/hub", iconName: "RocketLaunch" as const, title: "Hub de Inclusão", desc: "Ferramentas de inteligência artificial para criar e adaptar.", color: "cyan", permission: "can_hub" },
   ];
