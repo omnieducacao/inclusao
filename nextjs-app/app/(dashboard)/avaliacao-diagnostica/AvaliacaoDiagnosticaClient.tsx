@@ -860,6 +860,20 @@ export default function AvaliacaoDiagnosticaClient() {
                 </p>
             </div>
 
+            {/* Cross-link to Processual */}
+            <div style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "10px 16px", borderRadius: 10, marginBottom: 20,
+                background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.15)",
+            }}>
+                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                    📊 Já fez a diagnóstica? Registre a evolução bimestral.
+                </span>
+                <a href="/avaliacao-processual" style={{
+                    fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none",
+                }}>Ir para Processual →</a>
+            </div>
+
             {/* ── Tab Bar ── */}
             <div style={{
                 display: "flex", gap: 4, padding: 4, borderRadius: 12,
