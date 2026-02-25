@@ -106,6 +106,22 @@ export default function AvaliacaoDiagnosticaClient() {
     const [qtdQuestoes, setQtdQuestoes] = useState(4);
     const [tipoQuestao, setTipoQuestao] = useState<"Objetiva" | "Discursiva">("Objetiva");
 
+    // ─── Camada B: Cognitivo-Funcional ───────────────────────────────────
+    const [dimensoesNEE, setDimensoesNEE] = useState<Array<{
+        id: string; dimensao: string; o_que_o_professor_observa: string;
+        acao_pratica: string; indicadores_observaveis: string[];
+        perguntas_professor: string[];
+        niveis_omnisfera: Record<string, string>;
+    }>>([]);
+    const [dimensoesAvaliadas, setDimensoesAvaliadas] = useState<Record<string, { nivel: number; observacao: string }>>({});
+    const [showCamadaB, setShowCamadaB] = useState(false);
+
+    // ─── Outputs V3 ─────────────────────────────────────────────────────
+    const [perfilGerado, setPerfilGerado] = useState<Record<string, unknown> | null>(null);
+    const [estrategiasGeradas, setEstrategiasGeradas] = useState<Record<string, unknown> | null>(null);
+    const [gerandoPerfil, setGerandoPerfil] = useState(false);
+    const [gerandoEstrategias, setGerandoEstrategias] = useState(false);
+
     // ─── Fetch students ─────────────────────────────────────────────────
 
     const fetchAlunos = useCallback(async () => {
@@ -158,7 +174,38 @@ export default function AvaliacaoDiagnosticaClient() {
         setPlanoVinculado(null);
         setBlocosPlano([]);
         setShowMatrix(false);
+        setDimensoesNEE([]);
+        setDimensoesAvaliadas({});
+        setShowCamadaB(false);
+        setPerfilGerado(null);
+        setEstrategiasGeradas(null);
         loadExistingAvaliacao(aluno.id, disciplina);
+
+        // Load dimensões NEE for this student's profile
+        const mapDiag = (d: string) => {
+            const dl = (d || "").toLowerCase();
+            if (dl.includes("tea") || dl.includes("autis")) return "TEA";
+            if (dl.includes("deficiência intelectual") || dl === "di") return "DI";
+            if (dl.includes("altas hab") || dl.includes("superdota")) return "AH";
+            if (dl.includes("dislexia") || dl.includes("tdah") || dl.includes("discalculia") || dl.includes("transtorno")) return "TA";
+            return null;
+        };
+        const perfil = mapDiag(aluno.diagnostico);
+        if (perfil) {
+            fetch("/api/avaliacao-diagnostica/dimensoes-nee?perfil=" + perfil)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.dimensoes) setDimensoesNEE(data.dimensoes);
+                })
+                .catch(() => {
+                    // Fallback: load from static JSON
+                    import("@/data/dimensoes_nee.json").then(mod => {
+                        const all = mod.default || mod;
+                        const found = (all as Array<{ perfil: string; dimensoes: typeof dimensoesNEE }>).find(p => p.perfil === perfil);
+                        if (found) setDimensoesNEE(found.dimensoes);
+                    }).catch(() => { });
+                });
+        }
 
         // Fetch plano de ensino vinculado
         const serieBase = aluno.grade?.replace(/\s*\(.*\)\s*$/, "").trim() || "";
@@ -211,6 +258,70 @@ export default function AvaliacaoDiagnosticaClient() {
         setCurrentStep(0);
         setPlanoVinculado(null);
         setBlocosPlano([]);
+        setDimensoesNEE([]);
+        setDimensoesAvaliadas({});
+        setShowCamadaB(false);
+        setPerfilGerado(null);
+        setEstrategiasGeradas(null);
+    };
+
+    // ─── Generate Perfil de Funcionamento ────────────────────────────────
+
+    const gerarPerfil = async () => {
+        if (!selectedAluno) return;
+        setGerandoPerfil(true);
+        try {
+            const res = await fetch("/api/avaliacao-diagnostica/perfil-funcionamento", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    nome: selectedAluno.name,
+                    serie: selectedAluno.grade,
+                    diagnostico: selectedAluno.diagnostico || "SEM_NEE",
+                    dimensoes_avaliadas: Object.entries(dimensoesAvaliadas).map(([id, val]) => {
+                        const dim = dimensoesNEE.find(d => d.id === id);
+                        return { dimensao: dim?.dimensao || id, nivel_observado: val.nivel, observacao: val.observacao };
+                    }),
+                    habilidades_curriculares: [],
+                }),
+            });
+            const data = await res.json();
+            if (data.perfil) setPerfilGerado(data.perfil as Record<string, unknown>);
+        } catch (err) {
+            console.error("Erro ao gerar perfil:", err);
+        } finally { setGerandoPerfil(false); }
+    };
+
+    // ─── Generate Estratégias Práticas ───────────────────────────────────
+
+    const gerarEstrategias = async () => {
+        if (!selectedAluno) return;
+        setGerandoEstrategias(true);
+        try {
+            const dimsComDificuldade = Object.entries(dimensoesAvaliadas)
+                .filter(([, val]) => val.nivel <= 2)
+                .map(([id, val]) => {
+                    const dim = dimensoesNEE.find(d => d.id === id);
+                    return { dimensao: dim?.dimensao || id, nivel: val.nivel, observacao: val.observacao };
+                });
+
+            const res = await fetch("/api/avaliacao-diagnostica/estrategias-praticas", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    nome: selectedAluno.name,
+                    serie: selectedAluno.grade,
+                    diagnostico: selectedAluno.diagnostico || "SEM_NEE",
+                    dimensoes_com_dificuldade: dimsComDificuldade.length > 0 ? dimsComDificuldade : [
+                        { dimensao: "Geral", nivel: 1, observacao: "Avaliação inicial" },
+                    ],
+                }),
+            });
+            const data = await res.json();
+            if (data.estrategias) setEstrategiasGeradas(data.estrategias as Record<string, unknown>);
+        } catch (err) {
+            console.error("Erro ao gerar estratégias:", err);
+        } finally { setGerandoEstrategias(false); }
     };
 
     // ─── Generate avaliação ─────────────────────────────────────────────
@@ -815,7 +926,7 @@ export default function AvaliacaoDiagnosticaClient() {
                         {/* Regenerate button */}
                         {questoes.length > 0 && (
                             <button
-                                onClick={() => { setQuestoes([]); setRespostas({}); setNivelIdentificado(null); setAvaliacaoId(null); setCurrentStep(0); }}
+                                onClick={() => { setQuestoes([]); setRespostas({}); setNivelIdentificado(null); setAvaliacaoId(null); setCurrentStep(0); setDimensoesNEE([]); setDimensoesAvaliadas({}); setShowCamadaB(false); setPerfilGerado(null); setEstrategiasGeradas(null); }}
                                 style={{
                                     padding: "10px 18px", borderRadius: 10,
                                     background: "transparent", color: "var(--text-muted, #94a3b8)",
@@ -826,6 +937,221 @@ export default function AvaliacaoDiagnosticaClient() {
                                 Gerar nova avaliação
                             </button>
                         )}
+                    </div>
+                )}
+
+                {/* ─── CAMADA B: Cognitivo-Funcional ──────────────────── */}
+                {nivelIdentificado !== null && dimensoesNEE.length > 0 && (
+                    <div style={{ ...cardS, marginBottom: 20 }}>
+                        <button
+                            onClick={() => setShowCamadaB(!showCamadaB)}
+                            style={{
+                                ...headerS, width: "100%", cursor: "pointer",
+                                justifyContent: "space-between", border: "none",
+                                background: "rgba(168,85,247,.05)",
+                            }}
+                        >
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <Layers size={16} style={{ color: "#a855f7" }} />
+                                <span style={{ fontWeight: 700, fontSize: 14, color: "#a855f7" }}>
+                                    Camada B — Avaliação Cognitivo-Funcional
+                                </span>
+                                <span style={{
+                                    fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
+                                    background: "rgba(168,85,247,.1)", color: "#a855f7",
+                                }}>{dimensoesNEE.length} dimensões</span>
+                            </div>
+                            {showCamadaB ? <ChevronUp size={14} style={{ color: "#a855f7" }} /> : <ChevronDown size={14} style={{ color: "#a855f7" }} />}
+                        </button>
+                        {showCamadaB && (
+                            <div style={bodyS}>
+                                <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 0, marginBottom: 12 }}>
+                                    Avalie cada dimensão cognitivo-funcional com base na sua observação.
+                                    Específicas para o perfil <strong>{selectedAluno.diagnostico}</strong>.
+                                </p>
+                                {dimensoesNEE.map((dim) => {
+                                    const val = dimensoesAvaliadas[dim.id] || { nivel: -1, observacao: "" };
+                                    const nivelColors: Record<number, string> = { 0: "#f87171", 1: "#fbbf24", 2: "#60a5fa", 3: "#34d399", 4: "#818cf8" };
+                                    return (
+                                        <div key={dim.id} style={{
+                                            padding: "14px 16px", borderRadius: 12, marginBottom: 10,
+                                            background: val.nivel >= 0 ? "rgba(168,85,247,.03)" : "var(--bg-primary, rgba(2,6,23,.2))",
+                                            border: val.nivel >= 0 ? "1.5px solid rgba(168,85,247,.15)" : "1px solid var(--border-default, rgba(148,163,184,.1))",
+                                        }}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 3 }}>{dim.dimensao}</div>
+                                                    <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>👁️ {dim.o_que_o_professor_observa}</div>
+                                                    <div style={{ fontSize: 11, color: "#a855f7", marginTop: 3, fontWeight: 600 }}>💡 {dim.acao_pratica}</div>
+                                                </div>
+                                                <div style={{ display: "flex", gap: 3 }}>
+                                                    {[0, 1, 2, 3, 4].map(n => (
+                                                        <button key={n}
+                                                            onClick={() => setDimensoesAvaliadas(prev => ({
+                                                                ...prev, [dim.id]: { ...prev[dim.id], nivel: n, observacao: prev[dim.id]?.observacao || "" }
+                                                            }))}
+                                                            title={dim.niveis_omnisfera?.[String(n)] || ""}
+                                                            style={{
+                                                                width: 30, height: 30, borderRadius: 8,
+                                                                display: "flex", alignItems: "center", justifyContent: "center",
+                                                                cursor: "pointer", fontSize: 12, fontWeight: 800,
+                                                                border: val.nivel === n ? `2px solid ${nivelColors[n]}` : "1px solid var(--border-default, rgba(148,163,184,.12))",
+                                                                background: val.nivel === n ? `${nivelColors[n]}15` : "transparent",
+                                                                color: val.nivel === n ? nivelColors[n] : "var(--text-muted)",
+                                                                transition: "all .15s",
+                                                            }}
+                                                        >{n}</button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            {val.nivel >= 0 && (
+                                                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, fontStyle: "italic" }}>
+                                                    Nível {val.nivel}: {dim.niveis_omnisfera?.[String(val.nivel)] || ""}
+                                                </div>
+                                            )}
+                                            <textarea
+                                                placeholder={dim.perguntas_professor?.[0] || "Observação..."}
+                                                value={val.observacao}
+                                                onChange={(e) => setDimensoesAvaliadas(prev => ({
+                                                    ...prev, [dim.id]: { ...prev[dim.id], nivel: prev[dim.id]?.nivel ?? -1, observacao: e.target.value }
+                                                }))}
+                                                rows={1}
+                                                style={{
+                                                    width: "100%", padding: "6px 10px", borderRadius: 8, fontSize: 11,
+                                                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                                                    background: "var(--bg-primary, rgba(2,6,23,.2))",
+                                                    color: "var(--text-primary)", resize: "vertical", fontFamily: "inherit",
+                                                }}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* ─── Generate V3 Outputs ─────────────────────────────── */}
+                {nivelIdentificado !== null && (
+                    <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+                        <button onClick={gerarPerfil} disabled={gerandoPerfil} style={{
+                            flex: 1, padding: "14px 16px", borderRadius: 12,
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                            cursor: gerandoPerfil ? "not-allowed" : "pointer",
+                            fontSize: 13, fontWeight: 700, border: "none",
+                            background: gerandoPerfil ? "var(--bg-tertiary)" : "linear-gradient(135deg, #7c3aed, #a855f7)",
+                            color: "#fff", boxShadow: "0 4px 16px rgba(168,85,247,.2)",
+                        }}>
+                            {gerandoPerfil ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                            {gerandoPerfil ? "Gerando..." : "Gerar Perfil de Funcionamento"}
+                        </button>
+                        <button onClick={gerarEstrategias} disabled={gerandoEstrategias} style={{
+                            flex: 1, padding: "14px 16px", borderRadius: 12,
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                            cursor: gerandoEstrategias ? "not-allowed" : "pointer",
+                            fontSize: 13, fontWeight: 700, border: "none",
+                            background: gerandoEstrategias ? "var(--bg-tertiary)" : "linear-gradient(135deg, #059669, #10b981)",
+                            color: "#fff", boxShadow: "0 4px 16px rgba(16,185,129,.2)",
+                        }}>
+                            {gerandoEstrategias ? <Loader2 size={16} className="animate-spin" /> : <Target size={16} />}
+                            {gerandoEstrategias ? "Gerando..." : "Gerar Estratégias Práticas"}
+                        </button>
+                    </div>
+                )}
+
+                {/* ─── Perfil de Funcionamento Output ─────────────────── */}
+                {perfilGerado && (
+                    <div style={{ ...cardS, marginBottom: 20, border: "1.5px solid rgba(168,85,247,.2)" }}>
+                        <div style={{ ...headerS, background: "rgba(168,85,247,.05)" }}>
+                            <Sparkles size={16} style={{ color: "#a855f7" }} />
+                            <span style={{ fontWeight: 700, fontSize: 14, color: "#a855f7" }}>Perfil de Funcionamento</span>
+                        </div>
+                        <div style={bodyS}>
+                            {Boolean(perfilGerado.resumo_geral) && (
+                                <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5, marginTop: 0, marginBottom: 12 }}>
+                                    {String(perfilGerado.resumo_geral)}
+                                </p>
+                            )}
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                                {Array.isArray(perfilGerado.pontos_fortes) && (
+                                    <div style={{ padding: 12, borderRadius: 10, background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.12)" }}>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginBottom: 6 }}>✅ Pontos Fortes</div>
+                                        {(perfilGerado.pontos_fortes as string[]).map((p, i) => (
+                                            <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>• {p}</div>
+                                        ))}
+                                    </div>
+                                )}
+                                {Array.isArray(perfilGerado.areas_atencao) && (
+                                    <div style={{ padding: 12, borderRadius: 10, background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.12)" }}>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b", marginBottom: 6 }}>⚠️ Áreas de Atenção</div>
+                                        {(perfilGerado.areas_atencao as string[]).map((a, i) => (
+                                            <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>• {a}</div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            {Array.isArray(perfilGerado.recomendacao_prioridade) && (
+                                <div style={{ padding: 12, borderRadius: 10, background: "rgba(99,102,241,.05)", border: "1px solid rgba(99,102,241,.12)" }}>
+                                    <div style={{ fontSize: 11, fontWeight: 700, color: "#818cf8", marginBottom: 6 }}>🎯 Prioridades</div>
+                                    {(perfilGerado.recomendacao_prioridade as string[]).map((r, i) => (
+                                        <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>{i + 1}. {r}</div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* ─── Estratégias Práticas Output ────────────────────── */}
+                {estrategiasGeradas && (
+                    <div style={{ ...cardS, marginBottom: 20, border: "1.5px solid rgba(16,185,129,.2)" }}>
+                        <div style={{ ...headerS, background: "rgba(16,185,129,.05)" }}>
+                            <Target size={16} style={{ color: "#10b981" }} />
+                            <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>Estratégias Práticas</span>
+                        </div>
+                        <div style={bodyS}>
+                            {Array.isArray(estrategiasGeradas.estrategias) && (
+                                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+                                    {(estrategiasGeradas.estrategias as Array<Record<string, string>>).map((est, i) => (
+                                        <div key={i} style={{
+                                            padding: "12px 14px", borderRadius: 10,
+                                            background: est.prioridade === "essencial" ? "rgba(239,68,68,.04)" : "var(--bg-primary, rgba(2,6,23,.2))",
+                                            border: est.prioridade === "essencial" ? "1px solid rgba(239,68,68,.15)" : "1px solid var(--border-default, rgba(148,163,184,.1))",
+                                        }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                                                <span style={{
+                                                    fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, textTransform: "uppercase",
+                                                    background: est.prioridade === "essencial" ? "rgba(239,68,68,.1)" : est.prioridade === "recomendada" ? "rgba(245,158,11,.1)" : "rgba(148,163,184,.1)",
+                                                    color: est.prioridade === "essencial" ? "#f87171" : est.prioridade === "recomendada" ? "#fbbf24" : "#94a3b8",
+                                                }}>{est.prioridade || "sugerida"}</span>
+                                            </div>
+                                            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3 }}>
+                                                👁️ {est.comportamento_observado}
+                                            </div>
+                                            <div style={{ fontSize: 12, color: "#10b981", fontWeight: 600, marginBottom: 3 }}>
+                                                ✋ {est.acao_concreta}
+                                            </div>
+                                            {est.quando_usar && (
+                                                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>📍 {est.quando_usar}</div>
+                                            )}
+                                            {est.exemplo_pratico && (
+                                                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4, fontStyle: "italic" }}>
+                                                    💬 Exemplo: {est.exemplo_pratico}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {Array.isArray(estrategiasGeradas.o_que_evitar) && (
+                                <div style={{ padding: 12, borderRadius: 10, background: "rgba(239,68,68,.04)", border: "1px solid rgba(239,68,68,.12)" }}>
+                                    <div style={{ fontSize: 11, fontWeight: 700, color: "#f87171", marginBottom: 6 }}>🚫 O que evitar</div>
+                                    {(estrategiasGeradas.o_que_evitar as string[]).map((e, i) => (
+                                        <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>• {e}</div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
