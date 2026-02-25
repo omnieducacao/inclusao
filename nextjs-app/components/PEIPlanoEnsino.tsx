@@ -51,6 +51,9 @@ interface Props {
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const BIMESTRES = ["1º Bimestre", "2º Bimestre", "3º Bimestre", "4º Bimestre"];
+const TRIMESTRES = ["1º Trimestre", "2º Trimestre", "3º Trimestre"];
+
+type PeriodoTipo = "bimestre" | "trimestre";
 
 const RECURSOS_SUGESTOES = [
     "Livro Didático", "Quadro Branco", "Projetor / Slides",
@@ -111,6 +114,10 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
     const [bncc, setBncc] = useState<BnccEstrutura | null>(null);
     const [bnccLoading, setBnccLoading] = useState(false);
 
+    // Tipo de período
+    const [periodoTipo, setPeriodoTipo] = useState<PeriodoTipo>("bimestre");
+    const periodos = periodoTipo === "bimestre" ? BIMESTRES : TRIMESTRES;
+
     // Estado do plano
     const [plano, setPlano] = useState<PlanoData>({
         bimestre: BIMESTRES[0],
@@ -138,18 +145,18 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
     useEffect(() => {
         if (!anoSerie) return;
         setBnccLoading(true);
-        // Extrair número da série: "7º Ano (EFAF)" → "7"
-        const serieNum = (anoSerie.match(/\d+/) || [""])[0];
-        if (!serieNum) { setBnccLoading(false); return; }
-
-        fetch(`/api/bncc/ef?serie=${encodeURIComponent(serieNum + "º ano")}&estrutura=1`)
+        // Enviar anoSerie direto — a API lida com todos os formatos
+        // ex: "7º Ano (EFAF)", "7º Ano", "7", etc.
+        fetch(`/api/bncc/ef?serie=${encodeURIComponent(anoSerie)}&estrutura=1`)
             .then((r) => r.json())
             .then((data: BnccEstrutura) => {
                 if (data?.disciplinas?.length > 0) {
                     setBncc(data);
+                } else {
+                    console.warn("BNCC: nenhuma disciplina retornada para", anoSerie);
                 }
             })
-            .catch(() => { })
+            .catch((err) => { console.error("BNCC fetch error:", err); })
             .finally(() => setBnccLoading(false));
     }, [anoSerie]);
 
@@ -195,12 +202,16 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
 
     const discBncc = useMemo(() => {
         if (!bncc || !disciplina) return null;
-        // Tentar match exato ou parcial
-        const key = Object.keys(bncc.porDisciplina).find(
-            (d) => d.toLowerCase() === disciplina.toLowerCase() ||
-                d.toLowerCase().includes(disciplina.toLowerCase()) ||
-                disciplina.toLowerCase().includes(d.toLowerCase())
-        );
+        const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+        const dNorm = normalize(disciplina);
+        // Tentar match: exato, parcial, ou sem acentos
+        const key = Object.keys(bncc.porDisciplina).find((d) => {
+            const bNorm = normalize(d);
+            return bNorm === dNorm ||
+                bNorm.includes(dNorm) || dNorm.includes(bNorm) ||
+                // Match para cases como "Matemática" vs "Matematica"
+                bNorm.replace(/\s+/g, "") === dNorm.replace(/\s+/g, "");
+        });
         return key ? { name: key, data: bncc.porDisciplina[key] } : null;
     }, [bncc, disciplina]);
 
@@ -339,23 +350,48 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                 </div>
             </div>
 
-            {/* ── Bimestre ──────────────────────────────────────────────── */}
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {BIMESTRES.map((b) => (
-                    <button
-                        key={b}
-                        onClick={() => updateField("bimestre", b)}
-                        style={{
-                            padding: "8px 16px", borderRadius: 10, fontSize: 13, fontWeight: 600,
-                            border: plano.bimestre === b ? "1.5px solid #10b981" : "1px solid var(--border-default, rgba(148,163,184,.15))",
-                            background: plano.bimestre === b ? "rgba(16,185,129,.12)" : "transparent",
-                            color: plano.bimestre === b ? "#34d399" : "var(--text-muted, #94a3b8)",
-                            cursor: "pointer", transition: "all .2s",
-                        }}
-                    >
-                        {b}
-                    </button>
-                ))}
+            {/* ── Período (Bimestre / Trimestre) ─────────────────────── */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {/* Toggle tipo */}
+                <div style={{ display: "flex", gap: 4, padding: 3, borderRadius: 10, background: "var(--bg-tertiary, rgba(15,23,42,.4))", width: "fit-content" }}>
+                    {(["bimestre", "trimestre"] as const).map((tipo) => (
+                        <button
+                            key={tipo}
+                            onClick={() => {
+                                setPeriodoTipo(tipo);
+                                updateField("bimestre", tipo === "bimestre" ? BIMESTRES[0] : TRIMESTRES[0]);
+                            }}
+                            style={{
+                                padding: "6px 16px", borderRadius: 8, fontSize: 12, fontWeight: 700,
+                                border: "none",
+                                background: periodoTipo === tipo ? "rgba(16,185,129,.15)" : "transparent",
+                                color: periodoTipo === tipo ? "#34d399" : "var(--text-muted, #94a3b8)",
+                                cursor: "pointer", transition: "all .2s",
+                                textTransform: "capitalize",
+                            }}
+                        >
+                            {tipo}
+                        </button>
+                    ))}
+                </div>
+                {/* Períodos */}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {periodos.map((b) => (
+                        <button
+                            key={b}
+                            onClick={() => updateField("bimestre", b)}
+                            style={{
+                                padding: "8px 16px", borderRadius: 10, fontSize: 13, fontWeight: 600,
+                                border: plano.bimestre === b ? "1.5px solid #10b981" : "1px solid var(--border-default, rgba(148,163,184,.15))",
+                                background: plano.bimestre === b ? "rgba(16,185,129,.12)" : "transparent",
+                                color: plano.bimestre === b ? "#34d399" : "var(--text-muted, #94a3b8)",
+                                cursor: "pointer", transition: "all .2s",
+                            }}
+                        >
+                            {b}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* ── Seção BNCC ────────────────────────────────────────────── */}
