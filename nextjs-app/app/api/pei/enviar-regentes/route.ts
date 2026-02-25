@@ -109,11 +109,11 @@ export async function GET(req: Request) {
             .in("id", memberIds);
 
         const { data: components } = componentIds.length > 0
-            ? await sb.from("curricular_components").select("id, name").in("id", componentIds)
+            ? await sb.from("components").select("id, label").in("id", componentIds)
             : { data: [] };
 
         const memberMap = new Map((members || []).map(m => [m.id, m.nome]));
-        const componentMap = new Map((components || []).map(c => [c.id, c.name]));
+        const componentMap = new Map((components || []).map(c => [c.id, c.label]));
 
         const teachers = assignments.map(a => ({
             name: memberMap.get(a.workspace_member_id) || "Professor",
@@ -243,11 +243,11 @@ export async function POST(req: Request) {
             .in("id", memberIds);
 
         const { data: components } = componentIds.length > 0
-            ? await sb.from("curricular_components").select("id, name").in("id", componentIds)
+            ? await sb.from("components").select("id, label").in("id", componentIds)
             : { data: [] };
 
         const memberMap = new Map((members || []).map(m => [m.id, m.nome]));
-        const componentMap = new Map((components || []).map(c => [c.id, c.name]));
+        const componentMap = new Map((components || []).map(c => [c.id, c.label]));
 
         // Criar registros: um por (professor, componente curricular)
         for (const a of assignments) {
