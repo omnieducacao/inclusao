@@ -1,0 +1,992 @@
+[
+  {
+    "codigo": "EM13LP01",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Compreender e usar língua portuguesa, língua(s) indígena(s), língua(s) de imigração e/ou língua de sinais como recursos de integração cultural, para comunidade e construção de identidades.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP02",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Estabelecer relações entre as partes do texto, identificando substituições lexicais, referenciações e progressão temática que contribuem para a continuidade do texto e a construção de sua coerência.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP03",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Analisar relações de intertextualidade e interdiscursividade que permitam a explicitação de relações dialógicas, a identificação de índices de reforma ou manutenção do estado das coisas, de perspectivas e de vozes presentes nos textos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP04",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Compreender as condições de produção e circulação e os efeitos de sentido dos discursos presentes nos diversos campos da atividade humana, reconhecendo as restrições impostas pela estrutura composicional, estilo e tema.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP05",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Analisar, em textos argumentativos e propositivos, os movimentos argumentativos de sustentação, refutação e negociação e os recursos linguísticos utilizados (tempo e modo verbal, operadores argumentativos etc.).",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP06",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Analisar efeitos de sentido decorrentes de usos expressivos da linguagem, da escolha de determinadas palavras ou expressões e de recursos gráfico-editoriais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP07",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Produzir textos de diferentes gêneros, considerando sua adequação ao contexto produção e circulação — os enunciadores envolvidos, os objetivos, o gênero, o suporte, a linguagem, a estrutura composicional —, ao modo (escrito ou oral; imagem estática, em movimento etc.), à variedade linguística e/ou semiótica apropriada a esse contexto.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP08",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Criar textos em diferentes gêneros, combinando e articulando diferentes linguagens — verbal (oral ou escrita), corporal, visual, sonora, digital —, de acordo com as condições de produção, os objetivos e os campos de atuação social.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP09",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Organizar e conduzir discussões, debates e outras dinâmicas de grupos, demonstrando respeito pela fala e pelos turnos conversacionais, valorizando as diferentes contribuições e minimizando tensões.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP10",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Produzir e publicar notícias, fotodenúncias, fotorreportagens, reportagens, documentários, podcasts e vídeos jornalísticos de interesse social em diferentes mídias.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP11",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Participar de discussões sobre a adequação e pertinência de produções culturais e artísticas, avaliando qualidade estética, ética, política e social.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP12",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Selecionar e utilizar intencionalmente, com base em pesquisas em fontes confiáveis, informações sobre os temas em estudo.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP13",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Analisar textos de divulgação científica, identificando e compreendendo dados, argumentos, conclusões, metodologias, limites dos resultados e das conclusões.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP14",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Produzir e socializar textos do campo da divulgação científica — resenha, artigo de divulgação científica, podcasts e vídeos de divulgação científica etc.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP15",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Planejar e produzir, com base em pesquisas em fontes confiáveis, textos dissertativo-argumentativos e propostas de intervenção social.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP16",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Produzir textos do campo artístico-literário, tanto de forma autônoma quanto colaborativa.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP17",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Expressar posicionamentos de forma ética e responsável nas interações em redes sociais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13LP18",
+    "area_conhecimento": "Linguagens e suas Tecnologias",
+    "area_codigo": "LP",
+    "ano": "EM",
+    "habilidade": "Utilizar softwares de edição de textos, imagens, áudios, vídeos e apresentações para produzir e publicar textos multissemióticos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT101",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Interpretar situações econômicas, sociais e das Ciências da Natureza que envolvem a variação de grandezas, pela análise dos gráficos das funções representadas e das taxas de variação, com ou sem apoio de tecnologias digitais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT102",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Analisar tabelas, gráficos e amostras de pesquisas estatísticas apresentadas em relatórios divulgados por diferentes meios de comunicação, identificando informações relevantes.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT103",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Interpretar e compreender textos científicos ou divulgados nas mídias, que empregam unidades de medida de diferentes grandezas, para a tomada de decisões.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT104",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Interpretar taxas e índices de natureza socioeconômica (índice de desenvolvimento humano, taxas de inflação, entre outros), investigando os processos de cálculo dessas medidas e analisando criticamente os resultados.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT105",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Utilizar a noção de transformações isométricas (translação, reflexão, rotação e composições destas) e transformações homotéticas para construir figuras e analisar elementos da natureza e da realidade.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT201",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Propor ou participar de ações adequadas às demandas da região, preferencialmente a partir de uma visão global, que envolvam cálculos de perímetros e áreas de figuras planas.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT202",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Planejar e executar pesquisa amostral sobre questões relevantes, usando dados coletados diretamente ou em diferentes fontes, e comunicar os resultados por meio de relatório contendo gráficos e interpretação das medidas de tendência central e das medidas de dispersão.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT203",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Aplicar conceitos matemáticos no planejamento, na execução e na análise de ações envolvendo a utilização de aplicativos e softwares (análise e visualização de dados, simulações, jogos digitais, outros) como estratégia para resolver problemas em contextos diversos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT301",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Resolver e elaborar problemas com equações e sistemas de equações de 1º grau, de 2º grau e de equações e inequações, utilizando estratégias algébricas, gráficas e numéricas.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT302",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Construir modelos empregando as funções polinomiais de 1º ou 2º graus para resolver problemas em contextos diversos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT303",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Interpretar e comparar conjuntos de dados estatísticos por meio de diferentes representações gráficas.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT304",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Resolver e elaborar problemas cujos modelos sejam as funções exponenciais ou logarítmicas.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT305",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Resolver problemas que envolvem equações trigonométricas.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT401",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Aplicar as relações métricas, incluindo as leis dos senos e dos cossenos, para resolver e elaborar problemas que envolvem triângulos, utilizando, inclusive, recursos tecnológicos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT402",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Resolver problemas sobre perspectiva e projeções, para analisar representações bidimensionais de objetos tridimensionais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT403",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Utilizar conceitos iniciais de uma linguagem de programação na implementação de algoritmos escritos em linguagem corrente e/ou matemática.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT404",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Reconhecer grandezas variáveis e suas relações em problemas do cotidiano, das Ciências da Natureza, das Ciências Humanas, de outras Áreas do conhecimento e da própria Matemática.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "I",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT405",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Utilizar conceitos básicos de cálculo diferencial para a análise de variação de funções.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT501",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Investigar relações entre números expressos em tabelas para representá-los no plano cartesiano, identificando padrões e criando conjecturas para generalizar e expressar algebricamente.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT502",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Investigar relações entre sequências numéricas, representando-as de diversas formas e em contextos variados.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT503",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Investigar pontos de máximo ou de mínimo de funções quadráticas em contextos envolvendo superfície e volume ou outros, com ou sem apoio de tecnologias digitais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT504",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Investigar processos de variação do tipo linear, quadrático, exponencial e periódico e aplicar em outros campos de conhecimento.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT505",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Resolver e elaborar problemas que envolvam a análise e a descrição de características de distribuição de um conjunto de dados estatísticos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT601",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Resolver e elaborar problemas em contextos que envolvem fenômenos periódicos reais (ondas sonoras, fases da lua, movimentos periódicos etc.) e comparar suas representações com funções seno e cosseno, com ou sem uso de tecnologias digitais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT602",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Analisar características de funções definidas por mais de uma sentença (tabela ou gráfico), em contextos de Ciências da Natureza ou Ciências Humanas e Sociais Aplicadas.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT603",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Interpretar e resolver situações que envolvem combinatória e probabilidade, usando estratégias e resultados combinatórios para a resolução de problemas.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT604",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Investigar a variação de perímetro, área e volume de figuras bidimensionais e tridimensionais por meio de variação em suas dimensões.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13MAT605",
+    "area_conhecimento": "Matemática e suas Tecnologias",
+    "area_codigo": "MAT",
+    "ano": "EM",
+    "habilidade": "Resolver e elaborar problemas em diferentes contextos, envolvendo grandezas e medidas, e discutir os erros de medida.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "alta"
+  },
+  {
+    "codigo": "EM13CNT101",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Analisar e representar, com ou sem o uso de dispositivos e de aplicativos digitais específicos, as transformações e conservações em sistemas que envolvam quantidade de matéria, de energia e de movimento para realizar previsões sobre seus comportamentos em situações cotidianas e em processos produtivos que priorizem o desenvolvimento sustentável.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT102",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Realizar previsões, avaliar intervenções e/ou experimentos, elaborando representações que evidenciem as reações e os intercâmbios físicos e químicos entre os sistemas.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT103",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Utilizar o conhecimento sobre as radiações e suas origens para avaliar as potencialidades e os riscos de sua aplicação em equipamentos de uso cotidiano, na indústria, na medicina e na agricultura, discutindo-se criticamente os riscos do uso de determinadas tecnologias.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT104",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Avaliar os benefícios e os riscos à saúde e ao ambiente, considerando a composição, a toxicidade e a reatividade de diferentes materiais e produtos, como também os efeitos do uso prolongado de medicamentos e outras substâncias, e propor medidas preventivas individuais e coletivas.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT105",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Analisar o ciclo de vida de produtos tecnológicos e o descarte de resíduos sólidos e/ou perigosos, considerando princípios da economia circular, para fazer escolhas de consumo responsável.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT106",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Avaliar tecnologias e possíveis soluções para as demandas que envolvem a geração, o transporte, a distribuição e o consumo de energia elétrica, considerando a disponibilidade de recursos, a eficiência energética, a segurança e os impactos socioambientais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT201",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Analisar e discutir modelos, teorias e leis existentes em diferentes áreas das Ciências da Natureza (Física, Química e Biologia) para explicar fenômenos naturais, identificando suas limitações e o processo histórico de construção desses modelos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT202",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Analisar as diversas formas de manifestação da vida em seus diferentes níveis de organização (da composição molecular às interações com o meio), bem como as condições ambientais favoráveis e os fatores limitantes a elas, com ou sem o uso de dispositivos e aplicativos digitais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT203",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Avaliar e prever efeitos de intervenções nos ecossistemas, e seus impactos nos seres vivos e no corpo humano, com base nos mecanismos de manutenção da vida, nos ciclos da matéria e nas transformações e transferências de energia, utilizando representações e simulações sobre tais fatores.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT204",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Elaborar explicações, previsões e cálculos a respeito dos movimentos de objetos na Terra, no Sistema Solar e no Universo baseados na análise das interações gravitacionais, com ou sem o uso de dispositivos e aplicativos digitais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT205",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Interpretar resultados e propor previsões sobre atividades experimentais, fenômenos naturais e processos tecnológicos, com base no conhecimento das funções orgânicas e inorgânicas.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT206",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Discutir a importância da análise de sequências do DNA na elucidação de fenômenos biológicos e nas suas aplicações biotecnológicas, considerando aspectos éticos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT207",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Identificar, analisar e discutir vulnerabilidades vinculadas às vivências e aos desafios contemporâneos aos quais as juventudes estão expostas, considerando os aspectos físico, psicoemocional e social.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "I",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT301",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Construir questões, elaborar hipóteses, previsões e estimativas, empregar instrumentos de medição e representar e interpretar modelos explicativos, dados e/ou resultados experimentais para construir, avaliar e justificar conclusões no enfrentamento de situações-problema sob uma perspectiva científica.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT302",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Comunicar, para públicos variados, em diversos contextos, resultados de análises, pesquisas e/ou experimentos, elaborando e/ou interpretando textos, gráficos, tabelas, símbolos, códigos, sistemas de classificação e equações, por meio de diferentes linguagens e mídias.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT303",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Interpretar textos de divulgação científica que tratem de temáticas das áreas das Ciências da Natureza, disponíveis em diferentes mídias.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT304",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Analisar e debater situações controversas sobre a aplicação de conhecimentos da área de Ciências da Natureza (tais como tecnologias do DNA, alguns alimentos derivados de soja, células-tronco, agrotóxicos e fertilizantes químicos, produtos de limpeza, fármacos, entre outros).",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT305",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Investigar e discutir o uso indevido de conhecimentos das Ciências da Natureza na justificativa de processos de discriminação, segregação e privação de direitos individuais e coletivos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CNT306",
+    "area_conhecimento": "Ciências da Natureza e suas Tecnologias",
+    "area_codigo": "CNT",
+    "ano": "EM",
+    "habilidade": "Avaliar os riscos envolvidos em atividades cotidianas, aplicando conhecimentos das Ciências da Natureza, para justificar o uso de equipamentos e recursos, bem como comportamentos de segurança, visando à integridade física, individual e coletiva.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS101",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Identificar, analisar e comparar diferentes fontes e narrativas expressas em diversas linguagens, com vistas à compreensão de ideias filosóficas e de processos e eventos históricos, geográficos, políticos, econômicos, sociais, ambientais e culturais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "I",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS102",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Identificar, analisar e discutir as circunstâncias históricas, geográficas, políticas, econômicas, sociais, ambientais e culturais de matrizes conceituais (etnocentrismo, racismo, evolução, modernidade, colonialismo/imperialismo etc.).",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "I",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS103",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Elaborar hipóteses, selecionar evidências e compor argumentos relativos a processos políticos, econômicos, sociais, ambientais, culturais e epistemológicos, com base na sistematização de dados e informações de natureza qualitativa e quantitativa.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS104",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar objetos da cultura material e imaterial como suporte de conhecimentos, valores, crenças e práticas que singularizam diferentes sociedades inseridas no tempo e no espaço.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS105",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Identificar, contextualizar e criticar tipologias evolutivas (civilizatórias e progressistas), determinismos (histórico, biológico, geográfico) e preconceitos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "I",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS106",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Utilizar as linguagens cartográfica, gráfica e iconográfica e de diferentes gêneros textuais e as tecnologias digitais de informação e comunicação de forma crítica, significativa e reflexiva.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS201",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar e caracterizar as dinâmicas das populações, das mercadorias e do capital nos processos de migração, identificando conflitos e desigualdades socioespaciais resultantes e propondo ações para promover os Direitos Humanos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS202",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar e avaliar os impactos das tecnologias na estruturação e nas dinâmicas de grupos, povos e sociedades contemporâneos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS203",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar a transformação de conflitos pelos mecanismos de controle social e coerção, destacando o papel do Estado.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS204",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Comparar e avaliar os processos de ocupação do espaço e os múltiplos olhares sobre esses processos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS205",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar a produção de diferentes territorialidades em suas dimensões culturais, econômicas, ambientais, políticas e sociais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS206",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Compreender e aplicar o conceito de sustentabilidade à realidade local e global.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS301",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Problematizar hábitos e práticas individuais e coletivos de produção, reaproveitamento e descarte de resíduos em metrópoles, áreas urbanas e rurais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS302",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar e avaliar criticamente as relações entre a criação de políticas monetárias e o controle das taxas de inflação, identificando os efeitos no conjunto da sociedade.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS303",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Debater e avaliar o papel dos organismos internacionais no contexto mundial, com vistas à elaboração de uma visão crítica sobre seus limites e sua contribuição para a resolução de problemas globais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS304",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar os impactos e as alternativas contemporâneas frente à questão ambiental, considerando os diferentes sujeitos envolvidos e os aspectos econômicos, sociais e políticos a ela relacionados.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS305",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar e discutir o papel dos meios de comunicação na construção da cultura.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS306",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Contextualizar o surgimento e o desenvolvimento das ciências humanas, identificando a relação com questões concretas da época.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS401",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Identificar e analisar as relações entre sujeitos, grupos e classes sociais diante das transformações técnicas, tecnológicas e informacionais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "I",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS402",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar e comparar indicadores de emprego, trabalho e renda em diferentes espaços.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "II",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS403",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Caracterizar e analisar os impactos das revoluções tecnológicas na estruturação e nas dinâmicas de grupos sociais.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS404",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Identificar e discutir os múltiplos aspectos do trabalho em diferentes perspectivas e contextos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "I",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS501",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Compreender e analisar os fundamentos da ética em diferentes culturas, identificando processos que contribuem para a formação de sujeitos éticos que valorizem a liberdade, a cooperação, a autonomia, o empreendedorismo, a convivência democrática e a solidariedade.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS502",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar situações da vida cotidiana, identificando, e tomando posição diante de valores e práticas que reforçam ou transgridem preconceitos relativos ao pertencimento étnico-racial, à religiosidade, à faixa etária, ao gênero etc.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS503",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Identificar diversas formas de violência (física, simbólica, psicológica etc.), suas causas e efeitos, e discutir mecanismos para combatê-las.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "I",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS504",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Reconhecer os direitos civis, políticos e sociais expressos na Constituição de 1988 e relacioná-los à noção de cidadania e ao pacto da sociedade brasileira.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "I",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS505",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Compreender a dinâmica populacional e as relações entre população, espaço e organização social.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS506",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Compreender as transformações técnicas e tecnológicas e seu impacto nos processos de produção, no desenvolvimento do conhecimento e na vida social.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS601",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Identificar e analisar as demandas e os protagonismos políticos, sociais e culturais dos povos indígenas e das populações afrodescendentes, quilombolas e demais grupos étnico-raciais no Brasil contemporâneo.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "I",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS602",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Identificar e caracterizar as diversas formas de produção, circulação e consumo de bens, produtos e serviços, bem como seus diferentes impactos econômicos, culturais, socioambientais e geopolíticos.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "I",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS603",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar e avaliar criticamente os impactos econômicos e socioambientais de cadeias produtivas, identificando os processos que geram concentração de renda e desigualdade social.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS604",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Identificar e discutir os múltiplos aspectos da contemporaneidade e os desafios da gestão ambiental global.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "I",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS605",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar e discutir o papel da ciência, da tecnologia e da inovação no desenvolvimento econômico e sociocultural.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  },
+  {
+    "codigo": "EM13CHS606",
+    "area_conhecimento": "Ciências Humanas e Sociais Aplicadas",
+    "area_codigo": "CHS",
+    "ano": "EM",
+    "habilidade": "Analisar as características socioeconômicas da sociedade brasileira, com base na análise de documentos de diferentes fontes, e propor medidas para enfrentar os problemas identificados e construir uma sociedade mais próspera, justa e inclusiva.",
+    "segmento": "EM",
+    "nivel_cognitivo_saeb": "III",
+    "prioridade_saeb": "media"
+  }
+]
