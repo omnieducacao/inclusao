@@ -451,3 +451,77 @@ export interface PlanoGenerico {
     indicador_avaliativo: string
   }>
 }
+
+// ── V3: Avaliação Diagnóstica + Processual ──────────────────
+
+export type TipoPeriodo = 'bimestral' | 'trimestral' | 'semestral'
+
+export interface DimensaoNEE {
+  id: string
+  dimensao: string
+  o_que_o_professor_observa: string
+  acao_pratica: string
+  indicadores_observaveis: string[]
+  perguntas_professor: string[]
+  niveis_omnisfera: Record<string, string>
+}
+
+export interface CamadaCognitivoFuncional {
+  perfil: PerfilNEE
+  dimensoes: DimensaoNEE[]
+  avaliacoes: Record<string, { nivel: NivelOmnisfera; observacao: string }>
+}
+
+export interface PerfilFuncionamento {
+  resumo_geral: string
+  pontos_fortes: string[]
+  areas_atencao: string[]
+  recomendacao_prioridade: string[]
+  nivel_diagnosticado: NivelOmnisfera
+  camada_b_preenchida: boolean
+}
+
+export interface EstrategiaPratica {
+  comportamento_observado: string
+  acao_concreta: string
+  quando_usar: string
+  exemplo_pratico: string
+  prioridade: 'essencial' | 'recomendada' | 'complementar'
+}
+
+export interface OutputEstrategiasPraticas {
+  estrategias: EstrategiaPratica[]
+  o_que_evitar: string[]
+}
+
+export interface AvaliacaoProcessualRegistro {
+  id?: string
+  student_id: string
+  disciplina: string
+  bimestre: number
+  tipo_periodo: TipoPeriodo
+  ano_letivo: number
+  habilidades: {
+    codigo_bncc: string
+    descricao: string
+    nivel_atual: NivelOmnisfera
+    nivel_anterior: NivelOmnisfera | null
+    observacao: string
+  }[]
+  observacao_geral: string
+}
+
+export interface RegistroEvolucao {
+  disciplina: string
+  periodos: {
+    bimestre: number
+    media_nivel: number | null
+    tipo_periodo: TipoPeriodo
+    total_habilidades: number
+    data_registro: string
+    observacao_geral: string
+  }[]
+  tendencia: 'melhora' | 'estavel' | 'regressao' | 'sem_dados'
+  media_mais_recente: number | null
+}
+

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
     Activity, Loader2, AlertTriangle, ChevronDown, ChevronUp,
-    Users, ArrowLeft, Save, BarChart3, Calendar, BookOpen, TrendingUp,
+    Users, ArrowLeft, Save, BarChart3, Calendar, BookOpen, TrendingUp, Sparkles, FileText,
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 
@@ -111,6 +111,11 @@ export default function AvaliacaoProcessualClient() {
         media_mais_recente: number | null;
     }[]>([]);
     const [showEvolucao, setShowEvolucao] = useState(false);
+
+    // Report
+    const [relatorio, setRelatorio] = useState<Record<string, unknown> | null>(null);
+    const [gerandoRelatorio, setGerandoRelatorio] = useState(false);
+    const [showRelatorio, setShowRelatorio] = useState(false);
 
     // ─── Fetch students ──────────────────────────────────────────────────
 
@@ -223,6 +228,8 @@ export default function AvaliacaoProcessualClient() {
         setSalvou(false);
         setEvolucao([]);
         setShowEvolucao(false);
+        setRelatorio(null);
+        setShowRelatorio(false);
     };
 
     // Update nivel for a habilidade
@@ -277,6 +284,36 @@ export default function AvaliacaoProcessualClient() {
         } catch (err) {
             setError(err instanceof Error ? err.message : "Erro ao salvar");
         } finally { setSalvando(false); }
+    };
+
+    // ─── Generate report ──────────────────────────────────────────────
+
+    const gerarRelatorio = async () => {
+        if (!selectedAluno || !selectedDisc || evolucao.length === 0) return;
+        setGerandoRelatorio(true);
+        setShowRelatorio(true);
+        try {
+            const evo = evolucao.find(e => e.disciplina === selectedDisc) || evolucao[0];
+            const res = await fetch("/api/avaliacao-processual/gerar-relatorio", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    nome: selectedAluno.name,
+                    serie: selectedAluno.grade,
+                    diagnostico: selectedAluno.diagnostico,
+                    disciplina: selectedDisc,
+                    tipo_periodo: tipoPeriodo,
+                    periodos: evo.periodos.map(p => ({
+                        bimestre: p.bimestre,
+                        media_nivel: p.media_nivel,
+                    })),
+                }),
+            });
+            const data = await res.json();
+            if (data.relatorio) setRelatorio(data.relatorio);
+        } catch (err) {
+            console.error("Erro ao gerar relatório:", err);
+        } finally { setGerandoRelatorio(false); }
     };
 
     // ─── Loading ────────────────────────────────────────────────────────
@@ -668,7 +705,122 @@ export default function AvaliacaoProcessualClient() {
                         {salvando ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                         {salvando ? "Salvando..." : "Salvar Avaliação"}
                     </button>
+
+                    {/* Generate Report button */}
+                    {evolucao.length > 0 && evolucao[0]?.periodos?.length > 1 && (
+                        <button
+                            onClick={gerarRelatorio}
+                            disabled={gerandoRelatorio}
+                            style={{
+                                padding: "12px 24px", borderRadius: 10,
+                                display: "flex", alignItems: "center", gap: 8,
+                                cursor: gerandoRelatorio ? "not-allowed" : "pointer",
+                                fontSize: 14, fontWeight: 700,
+                                border: "none",
+                                background: gerandoRelatorio ? "var(--bg-tertiary)" : "linear-gradient(135deg, #7c3aed, #a855f7)",
+                                color: "#fff", transition: "all .2s",
+                                boxShadow: "0 4px 16px rgba(168,85,247,.2)",
+                            }}
+                        >
+                            {gerandoRelatorio ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+                            {gerandoRelatorio ? "Gerando..." : "Gerar Relatório IA"}
+                        </button>
+                    )}
                 </div>
+
+                {/* AI Report output */}
+                {relatorio && showRelatorio && (
+                    <div style={{ ...cardS, marginTop: 20, border: "1.5px solid rgba(168,85,247,.2)" }}>
+                        <button
+                            onClick={() => setShowRelatorio(!showRelatorio)}
+                            style={{
+                                ...headerS, width: "100%", cursor: "pointer",
+                                justifyContent: "space-between", border: "none",
+                                background: "rgba(168,85,247,.05)",
+                            }}
+                        >
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <Sparkles size={16} style={{ color: "#a855f7" }} />
+                                <span style={{ fontWeight: 700, fontSize: 14, color: "#a855f7" }}>
+                                    {String(relatorio.titulo || "Relatório de Evolução")}
+                                </span>
+                                {Boolean(relatorio.tendencia_geral) && (
+                                    <span style={{
+                                        fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
+                                        background: relatorio.tendencia_geral === "melhora" ? "rgba(16,185,129,.1)" : relatorio.tendencia_geral === "regressao" ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
+                                        color: relatorio.tendencia_geral === "melhora" ? "#10b981" : relatorio.tendencia_geral === "regressao" ? "#f87171" : "#94a3b8",
+                                    }}>
+                                        {relatorio.tendencia_geral === "melhora" ? "↗ Melhora" : relatorio.tendencia_geral === "regressao" ? "↘ Atenção" : "→ Estável"}
+                                    </span>
+                                )}
+                            </div>
+                            <ChevronUp size={14} style={{ color: "#a855f7" }} />
+                        </button>
+                        <div style={bodyS}>
+                            {Boolean(relatorio.periodo_analisado) && (
+                                <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8 }}>
+                                    Período: {String(relatorio.periodo_analisado)}
+                                </div>
+                            )}
+                            {Boolean(relatorio.resumo_evolucao) && (
+                                <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5, marginTop: 0, marginBottom: 14 }}>
+                                    {String(relatorio.resumo_evolucao)}
+                                </p>
+                            )}
+
+                            {/* Pontos de destaque */}
+                            {Array.isArray(relatorio.pontos_destaque) && (relatorio.pontos_destaque as Array<{ tipo: string; texto: string }>).length > 0 && (
+                                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
+                                    {(relatorio.pontos_destaque as Array<{ tipo: string; texto: string }>).map((p, i) => (
+                                        <div key={i} style={{
+                                            padding: "8px 12px", borderRadius: 8, fontSize: 12,
+                                            background: p.tipo === "positivo" ? "rgba(16,185,129,.05)" : "rgba(245,158,11,.05)",
+                                            border: `1px solid ${p.tipo === "positivo" ? "rgba(16,185,129,.12)" : "rgba(245,158,11,.12)"}`,
+                                            color: "var(--text-secondary)",
+                                        }}>
+                                            {p.tipo === "positivo" ? "✅" : "⚠️"} {p.texto}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Ações sugeridas */}
+                            {Array.isArray(relatorio.acoes_sugeridas) && (relatorio.acoes_sugeridas as Array<{ acao: string; justificativa: string; prioridade: string }>).length > 0 && (
+                                <div style={{ marginBottom: 14 }}>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: "#a855f7", marginBottom: 8 }}>🎯 Ações Sugeridas</div>
+                                    {(relatorio.acoes_sugeridas as Array<{ acao: string; justificativa: string; prioridade: string }>).map((a, i) => (
+                                        <div key={i} style={{
+                                            padding: "10px 14px", borderRadius: 10, marginBottom: 6,
+                                            background: "var(--bg-primary, rgba(2,6,23,.2))",
+                                            border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                                        }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                                                <span style={{
+                                                    fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 4, textTransform: "uppercase",
+                                                    background: a.prioridade === "alta" ? "rgba(239,68,68,.1)" : a.prioridade === "media" ? "rgba(245,158,11,.1)" : "rgba(148,163,184,.1)",
+                                                    color: a.prioridade === "alta" ? "#f87171" : a.prioridade === "media" ? "#fbbf24" : "#94a3b8",
+                                                }}>{a.prioridade}</span>
+                                            </div>
+                                            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>{a.acao}</div>
+                                            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{a.justificativa}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Nota para PEI */}
+                            {Boolean(relatorio.nota_para_pei) && (
+                                <div style={{
+                                    padding: "10px 14px", borderRadius: 10,
+                                    background: "rgba(59,130,246,.05)", border: "1px solid rgba(59,130,246,.12)",
+                                    fontSize: 12, color: "#60a5fa",
+                                }}>
+                                    📝 <strong>Nota para o PEI:</strong> {String(relatorio.nota_para_pei)}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
