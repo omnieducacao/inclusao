@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
     Activity, Loader2, AlertTriangle, ChevronDown, ChevronUp,
     Users, ArrowLeft, Save, BarChart3, Calendar, BookOpen, TrendingUp, Sparkles, FileText,
+    Printer,
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import { RubricaOmnisfera } from "@/components/RubricaOmnisfera";
@@ -117,6 +118,12 @@ export default function AvaliacaoProcessualClient() {
     const [relatorio, setRelatorio] = useState<Record<string, unknown> | null>(null);
     const [gerandoRelatorio, setGerandoRelatorio] = useState(false);
     const [showRelatorio, setShowRelatorio] = useState(false);
+
+    // Integrated report
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [relatorioIntegrado, setRelatorioIntegrado] = useState<Record<string, any> | null>(null);
+    const [gerandoIntegrado, setGerandoIntegrado] = useState(false);
+    const [showIntegrado, setShowIntegrado] = useState(false);
 
     // ─── Fetch students ──────────────────────────────────────────────────
 
@@ -730,6 +737,37 @@ export default function AvaliacaoProcessualClient() {
                             {gerandoRelatorio ? "Gerando..." : "Gerar Relatório IA"}
                         </button>
                     )}
+
+                    {/* Integrated Report button */}
+                    <button
+                        onClick={async () => {
+                            if (relatorioIntegrado) { setShowIntegrado(!showIntegrado); return; }
+                            if (!selectedAluno || !selectedDisc) return;
+                            setGerandoIntegrado(true);
+                            try {
+                                const res = await fetch(
+                                    `/api/avaliacao-processual/relatorio-integrado?student_id=${selectedAluno.id}&disciplina=${encodeURIComponent(selectedDisc)}`
+                                );
+                                const data = await res.json();
+                                setRelatorioIntegrado(data);
+                                setShowIntegrado(true);
+                            } catch { /* silent */ }
+                            setGerandoIntegrado(false);
+                        }}
+                        disabled={gerandoIntegrado}
+                        style={{
+                            padding: "12px 24px", borderRadius: 10,
+                            display: "flex", alignItems: "center", gap: 8,
+                            cursor: gerandoIntegrado ? "not-allowed" : "pointer",
+                            fontSize: 14, fontWeight: 700,
+                            border: "none",
+                            background: gerandoIntegrado ? "var(--bg-tertiary)" : "linear-gradient(135deg, #0ea5e9, #38bdf8)",
+                            color: "#fff", transition: "all .2s",
+                        }}
+                    >
+                        {gerandoIntegrado ? <Loader2 size={16} className="animate-spin" /> : <BarChart3 size={16} />}
+                        {gerandoIntegrado ? "Carregando..." : relatorioIntegrado ? (showIntegrado ? "Ocultar Integrado" : "Ver Integrado") : "Relatório Integrado"}
+                    </button>
                 </div>
 
                 {/* AI Report output */}
@@ -820,6 +858,170 @@ export default function AvaliacaoProcessualClient() {
                                     fontSize: 12, color: "#60a5fa",
                                 }}>
                                     📝 <strong>Nota para o PEI:</strong> {String(relatorio.nota_para_pei)}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Integrated Report Panel ──────────────────────────────── */}
+                {relatorioIntegrado && showIntegrado && (
+                    <div id="relatorio-integrado-print" style={{ ...cardS, marginTop: 20, border: "1.5px solid rgba(14,165,233,.2)" }}>
+                        <div style={{ ...headerS, background: "rgba(14,165,233,.05)", justifyContent: "space-between" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <BarChart3 size={16} style={{ color: "#0ea5e9" }} />
+                                <span style={{ fontWeight: 700, fontSize: 14, color: "#0ea5e9" }}>Relatório Integrado — Diagnóstica + Processual</span>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    const el = document.getElementById("relatorio-integrado-print");
+                                    if (!el) return;
+                                    const w = window.open("", "_blank");
+                                    if (!w) return;
+                                    w.document.write(`<html><head><title>Relatório Integrado</title><style>
+                                        body { font-family: 'Inter', system-ui, sans-serif; padding: 40px; color: #1e293b; }
+                                        h2 { color: #0ea5e9; margin: 0 0 16px; }
+                                        table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+                                        th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+                                        th { background: #f1f5f9; font-weight: 700; }
+                                        .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+                                        .melhora { background: #dcfce7; color: #15803d; }
+                                        .regressao { background: #fee2e2; color: #dc2626; }
+                                        .estavel { background: #f1f5f9; color: #64748b; }
+                                        .alert { padding: 10px 14px; border-radius: 8px; background: #fef3c7; border: 1px solid #fde68a; margin: 8px 0; font-size: 12px; }
+                                        @media print { body { padding: 20px; } }
+                                    </style></head><body>`);
+                                    w.document.write(`<h2>Relatório Integrado — ${selectedAluno?.name} · ${selectedDisc}</h2>`);
+                                    w.document.write(`<p style="color:#64748b;font-size:12px;">Gerado em ${new Date().toLocaleDateString("pt-BR")} · ${selectedAluno?.grade}</p>`);
+
+                                    // Baseline
+                                    const bl = relatorioIntegrado.diagnostico_baseline;
+                                    if (bl?.nivel_omnisfera != null) {
+                                        w.document.write(`<h3>📊 Linha de Base (Diagnóstica)</h3>`);
+                                        w.document.write(`<p>Nível Omnisfera identificado: <strong>${bl.nivel_omnisfera}</strong> — ${bl.status}</p>`);
+                                    }
+
+                                    // Evolution table
+                                    const evs = relatorioIntegrado.evolucao_por_habilidade || [];
+                                    if (evs.length > 0) {
+                                        w.document.write(`<h3>📈 Evolução por Habilidade</h3>`);
+                                        w.document.write(`<table><tr><th>Habilidade</th><th>Inicial</th><th>Atual</th><th>Δ</th><th>Tendência</th></tr>`);
+                                        for (const e of evs) {
+                                            const cls = e.tendencia === "melhora" ? "melhora" : e.tendencia === "regressao" ? "regressao" : "estavel";
+                                            w.document.write(`<tr><td>${e.codigo}<br/><small>${e.descricao.slice(0, 80)}</small></td><td>${e.nivel_inicial}</td><td>${e.nivel_atual}</td><td>${e.delta > 0 ? "+" : ""}${e.delta}</td><td><span class="badge ${cls}">${e.tendencia}</span></td></tr>`);
+                                        }
+                                        w.document.write(`</table>`);
+                                    }
+
+                                    // Alerts
+                                    const alerts = relatorioIntegrado.alertas_regressao || [];
+                                    if (alerts.length > 0) {
+                                        w.document.write(`<h3>⚠️ Alertas de Regressão</h3>`);
+                                        for (const a of alerts) {
+                                            w.document.write(`<div class="alert">⚠️ <strong>${a.codigo}</strong>: regrediu de ${a.de} para ${a.para} (${a.descricao_nivel})</div>`);
+                                        }
+                                    }
+
+                                    w.document.write(`</body></html>`);
+                                    w.document.close();
+                                    setTimeout(() => w.print(), 300);
+                                }}
+                                style={{
+                                    padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+                                    cursor: "pointer", border: "1px solid rgba(14,165,233,.3)",
+                                    background: "rgba(14,165,233,.08)", color: "#0ea5e9",
+                                    display: "flex", alignItems: "center", gap: 4,
+                                }}
+                            >
+                                <Printer size={12} /> Exportar PDF
+                            </button>
+                        </div>
+                        <div style={bodyS}>
+                            {/* Diagnóstica baseline */}
+                            {relatorioIntegrado.diagnostico_baseline?.nivel_omnisfera != null && (
+                                <div style={{
+                                    padding: "12px 16px", borderRadius: 10, marginBottom: 14,
+                                    background: "rgba(14,165,233,.05)", border: "1px solid rgba(14,165,233,.15)",
+                                    display: "flex", alignItems: "center", gap: 12,
+                                }}>
+                                    <div style={{
+                                        width: 40, height: 40, borderRadius: "50%", display: "flex",
+                                        alignItems: "center", justifyContent: "center",
+                                        background: "linear-gradient(135deg, #0284c7, #0ea5e9)",
+                                        color: "#fff", fontSize: 18, fontWeight: 800,
+                                    }}>{relatorioIntegrado.diagnostico_baseline.nivel_omnisfera}</div>
+                                    <div>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: "#0ea5e9" }}>
+                                            Linha de Base — Nível {relatorioIntegrado.diagnostico_baseline.nivel_omnisfera}
+                                        </div>
+                                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                            Via Diagnóstica · {relatorioIntegrado.diagnostico_baseline.status}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Overall trend */}
+                            <div style={{ display: "flex", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+                                <div style={{
+                                    flex: 1, minWidth: 120, padding: "10px 14px", borderRadius: 10,
+                                    background: relatorioIntegrado.tendencia_geral === "melhora" ? "rgba(16,185,129,.06)" : relatorioIntegrado.tendencia_geral === "regressao" ? "rgba(239,68,68,.06)" : "rgba(148,163,184,.06)",
+                                    border: `1px solid ${relatorioIntegrado.tendencia_geral === "melhora" ? "rgba(16,185,129,.2)" : relatorioIntegrado.tendencia_geral === "regressao" ? "rgba(239,68,68,.2)" : "rgba(148,163,184,.15)"}`,
+                                    textAlign: "center",
+                                }}>
+                                    <div style={{ fontSize: 22, fontWeight: 800, color: relatorioIntegrado.tendencia_geral === "melhora" ? "#10b981" : relatorioIntegrado.tendencia_geral === "regressao" ? "#ef4444" : "#94a3b8" }}>
+                                        {relatorioIntegrado.tendencia_geral === "melhora" ? "↗" : relatorioIntegrado.tendencia_geral === "regressao" ? "↘" : "→"}
+                                    </div>
+                                    <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>Tendência Geral</div>
+                                </div>
+                                <div style={{ flex: 1, minWidth: 120, padding: "10px 14px", borderRadius: 10, background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.15)", textAlign: "center" }}>
+                                    <div style={{ fontSize: 22, fontWeight: 800, color: "#6366f1" }}>{relatorioIntegrado.registros_processual || 0}</div>
+                                    <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>Registros</div>
+                                </div>
+                                <div style={{ flex: 1, minWidth: 120, padding: "10px 14px", borderRadius: 10, background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.15)", textAlign: "center" }}>
+                                    <div style={{ fontSize: 22, fontWeight: 800, color: "#f59e0b" }}>{(relatorioIntegrado.alertas_regressao || []).length}</div>
+                                    <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>Alertas</div>
+                                </div>
+                            </div>
+
+                            {/* Evolution per habilidade */}
+                            {(relatorioIntegrado.evolucao_por_habilidade || []).length > 0 && (
+                                <div style={{ marginBottom: 14 }}>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: "#0ea5e9", marginBottom: 8 }}>📈 Evolução por Habilidade</div>
+                                    {(relatorioIntegrado.evolucao_por_habilidade as Array<{ codigo: string; descricao: string; nivel_inicial: number; nivel_atual: number; delta: number; tendencia: string }>).map((e, i) => (
+                                        <div key={i} style={{
+                                            display: "flex", alignItems: "center", gap: 10, padding: "8px 12px",
+                                            borderRadius: 8, marginBottom: 4,
+                                            background: e.tendencia === "regressao" ? "rgba(239,68,68,.04)" : "transparent",
+                                            border: `1px solid ${e.tendencia === "regressao" ? "rgba(239,68,68,.12)" : "var(--border-default, rgba(148,163,184,.08))"}`,
+                                        }}>
+                                            <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: "rgba(99,102,241,.1)", color: "#818cf8", flexShrink: 0 }}>{e.codigo}</span>
+                                            <span style={{ flex: 1, fontSize: 12, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.descricao.slice(0, 60)}</span>
+                                            <span style={{ fontSize: 12, color: "var(--text-muted)", flexShrink: 0 }}>{e.nivel_inicial} → {e.nivel_atual}</span>
+                                            <span style={{
+                                                fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6, flexShrink: 0,
+                                                background: e.tendencia === "melhora" ? "rgba(16,185,129,.1)" : e.tendencia === "regressao" ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
+                                                color: e.tendencia === "melhora" ? "#10b981" : e.tendencia === "regressao" ? "#ef4444" : "#94a3b8",
+                                            }}>{e.delta > 0 ? `+${e.delta}` : e.delta}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Regression alerts */}
+                            {(relatorioIntegrado.alertas_regressao || []).length > 0 && (
+                                <div>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b", marginBottom: 8 }}>⚠️ Alertas de Regressão</div>
+                                    {(relatorioIntegrado.alertas_regressao as Array<{ codigo: string; descricao: string; de: number; para: number; descricao_nivel: string }>).map((a, i) => (
+                                        <div key={i} style={{
+                                            padding: "10px 14px", borderRadius: 10, marginBottom: 6,
+                                            background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.15)",
+                                            fontSize: 12, color: "var(--text-secondary)",
+                                        }}>
+                                            ⚠️ <strong>{a.codigo}</strong>: nível {a.de} → {a.para} ({a.descricao_nivel})
+                                            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{a.descricao.slice(0, 100)}</div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
