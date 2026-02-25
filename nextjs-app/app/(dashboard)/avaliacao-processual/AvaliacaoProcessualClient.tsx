@@ -103,6 +103,15 @@ export default function AvaliacaoProcessualClient() {
     const [salvou, setSalvou] = useState(false);
     const [expandedHab, setExpandedHab] = useState<string | null>(null);
 
+    // Evolution data
+    const [evolucao, setEvolucao] = useState<{
+        disciplina: string;
+        periodos: { bimestre: number; media_nivel: number | null }[];
+        tendencia: string;
+        media_mais_recente: number | null;
+    }[]>([]);
+    const [showEvolucao, setShowEvolucao] = useState(false);
+
     // ─── Fetch students ──────────────────────────────────────────────────
 
     const fetchAlunos = useCallback(async () => {
@@ -199,6 +208,11 @@ export default function AvaliacaoProcessualClient() {
         loadRegistro(aluno.id, disciplina, selectedPeriodo);
         // Load habilidades
         loadHabilidades(aluno, disciplina);
+        // Load evolution
+        fetch(`/api/avaliacao-processual/evolucao?studentId=${aluno.id}&disciplina=${encodeURIComponent(disciplina)}`)
+            .then(r => r.json())
+            .then(data => { if (data.evolucao) setEvolucao(data.evolucao); })
+            .catch(() => { });
     }, [selectedPeriodo, loadRegistro, loadHabilidades]);
 
     const goBack = () => {
@@ -207,6 +221,8 @@ export default function AvaliacaoProcessualClient() {
         setHabilidades([]);
         setObservacaoGeral("");
         setSalvou(false);
+        setEvolucao([]);
+        setShowEvolucao(false);
     };
 
     // Update nivel for a habilidade
@@ -413,6 +429,80 @@ export default function AvaliacaoProcessualClient() {
                         <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{PERIODOS[tipoPeriodo].label.slice(0, -1)}</div>
                     </div>
                 </div>
+
+                {/* Evolution chart */}
+                {evolucao.length > 0 && evolucao[0].periodos.length > 0 && (
+                    <div style={{ ...cardS, marginBottom: 20 }}>
+                        <button
+                            onClick={() => setShowEvolucao(!showEvolucao)}
+                            style={{
+                                ...headerS, width: "100%", cursor: "pointer",
+                                justifyContent: "space-between", border: "none",
+                                background: "rgba(99,102,241,.05)",
+                            }}
+                        >
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <TrendingUp size={16} style={{ color: "#818cf8" }} />
+                                <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>Evolução ao Longo do Tempo</span>
+                                {evolucao[0].tendencia && (
+                                    <span style={{
+                                        fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
+                                        background: evolucao[0].tendencia === "melhora" ? "rgba(16,185,129,.1)" : evolucao[0].tendencia === "regressao" ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
+                                        color: evolucao[0].tendencia === "melhora" ? "#10b981" : evolucao[0].tendencia === "regressao" ? "#f87171" : "#94a3b8",
+                                    }}>
+                                        {evolucao[0].tendencia === "melhora" ? "↗ Progresso" : evolucao[0].tendencia === "regressao" ? "↘ Atenção" : "→ Estável"}
+                                    </span>
+                                )}
+                            </div>
+                            {showEvolucao ? <ChevronUp size={14} style={{ color: "#818cf8" }} /> : <ChevronDown size={14} style={{ color: "#818cf8" }} />}
+                        </button>
+                        {showEvolucao && (
+                            <div style={bodyS}>
+                                {evolucao.map(evo => (
+                                    <div key={evo.disciplina} style={{ marginBottom: 16 }}>
+                                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 10 }}>
+                                            {evo.disciplina}
+                                        </div>
+                                        <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 100, padding: "0 4px" }}>
+                                            {evo.periodos.map((p, i) => {
+                                                const val = p.media_nivel ?? 0;
+                                                const height = Math.max((val / 4) * 80, 4);
+                                                const nc = val >= 3 ? "#10b981" : val >= 2 ? "#3b82f6" : val >= 1 ? "#fbbf24" : "#f87171";
+                                                return (
+                                                    <div key={p.bimestre} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                                                        <span style={{ fontSize: 11, fontWeight: 700, color: nc }}>{val}</span>
+                                                        <div style={{
+                                                            width: "100%", maxWidth: 40, height, borderRadius: 6,
+                                                            background: `linear-gradient(180deg, ${nc}, ${nc}88)`,
+                                                            transition: "height .3s ease",
+                                                        }} />
+                                                        <span style={{ fontSize: 9, color: "var(--text-muted)", textAlign: "center" }}>
+                                                            {p.bimestre}º
+                                                        </span>
+                                                        {i > 0 && evo.periodos[i - 1].media_nivel !== null && p.media_nivel !== null && (
+                                                            <span style={{
+                                                                fontSize: 8, fontWeight: 700,
+                                                                color: (p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "#10b981" : (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "#f87171" : "#94a3b8",
+                                                            }}>
+                                                                {(p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "▲" : (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "▼" : "="}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        {/* Scale reference */}
+                                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, padding: "0 4px" }}>
+                                            {[0, 1, 2, 3, 4].map(n => (
+                                                <span key={n} style={{ fontSize: 8, color: "var(--text-muted)", opacity: 0.5 }}>N{n}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Habilidades list */}
                 <div style={{ ...cardS, marginBottom: 20 }}>

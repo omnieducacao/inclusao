@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
     Brain, Loader2, CheckCircle2, AlertTriangle,
     ChevronDown, ChevronUp, Sparkles, ClipboardCheck,
-    ArrowLeft, Users, BookOpen, Target, Zap, FileText, Layers,
+    ArrowLeft, Users, BookOpen, Target, Zap, FileText, Layers, Activity,
     Grid3X3, BookMarked, ChevronRight,
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
@@ -122,6 +122,15 @@ export default function AvaliacaoDiagnosticaClient() {
     const [gerandoPerfil, setGerandoPerfil] = useState(false);
     const [gerandoEstrategias, setGerandoEstrategias] = useState(false);
 
+    // ─── Processual evolution feed ─────────────────────────────────────────
+    const [evolucaoProcessual, setEvolucaoProcessual] = useState<{
+        disciplina: string;
+        periodos: { bimestre: number; media_nivel: number | null }[];
+        tendencia: string;
+        media_mais_recente: number | null;
+    }[]>([]);
+    const [showProcessual, setShowProcessual] = useState(false);
+
     // ─── Fetch students ─────────────────────────────────────────────────
 
     const fetchAlunos = useCallback(async () => {
@@ -180,6 +189,12 @@ export default function AvaliacaoDiagnosticaClient() {
         setPerfilGerado(null);
         setEstrategiasGeradas(null);
         loadExistingAvaliacao(aluno.id, disciplina);
+
+        // Load processual evolution for this student+discipline
+        fetch(`/api/avaliacao-processual/evolucao?studentId=${aluno.id}&disciplina=${encodeURIComponent(disciplina)}`)
+            .then(r => r.json())
+            .then(data => { if (data.evolucao) setEvolucaoProcessual(data.evolucao); })
+            .catch(() => { });
 
         // Load dimensões NEE for this student's profile
         const mapDiag = (d: string) => {
@@ -263,6 +278,8 @@ export default function AvaliacaoDiagnosticaClient() {
         setShowCamadaB(false);
         setPerfilGerado(null);
         setEstrategiasGeradas(null);
+        setEvolucaoProcessual([]);
+        setShowProcessual(false);
     };
 
     // ─── Generate Perfil de Funcionamento ────────────────────────────────
@@ -1152,6 +1169,114 @@ export default function AvaliacaoDiagnosticaClient() {
                                 </div>
                             )}
                         </div>
+                    </div>
+                )}
+
+                {/* ─── Processual Data Feed ──────────────────────────── */}
+                {evolucaoProcessual.length > 0 && evolucaoProcessual[0]?.periodos?.length > 0 && (
+                    <div style={{ ...cardS, marginBottom: 20 }}>
+                        <button
+                            onClick={() => setShowProcessual(!showProcessual)}
+                            style={{
+                                ...headerS, width: "100%", cursor: "pointer",
+                                justifyContent: "space-between", border: "none",
+                                background: "rgba(16,185,129,.05)",
+                            }}
+                        >
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <Activity size={16} style={{ color: "#10b981" }} />
+                                <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>
+                                    Dados da Avaliação Processual
+                                </span>
+                                {evolucaoProcessual[0].tendencia && (
+                                    <span style={{
+                                        fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
+                                        background: evolucaoProcessual[0].tendencia === "melhora" ? "rgba(16,185,129,.1)" : evolucaoProcessual[0].tendencia === "regressao" ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
+                                        color: evolucaoProcessual[0].tendencia === "melhora" ? "#10b981" : evolucaoProcessual[0].tendencia === "regressao" ? "#f87171" : "#94a3b8",
+                                    }}>
+                                        {evolucaoProcessual[0].tendencia === "melhora" ? "↗ Progresso" : evolucaoProcessual[0].tendencia === "regressao" ? "↘ Atenção" : "→ Estável"}
+                                    </span>
+                                )}
+                                {evolucaoProcessual[0].media_mais_recente !== null && (
+                                    <span style={{
+                                        fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 6,
+                                        background: "rgba(16,185,129,.08)", color: "#10b981",
+                                    }}>Média: {evolucaoProcessual[0].media_mais_recente}</span>
+                                )}
+                            </div>
+                            {showProcessual ? <ChevronUp size={14} style={{ color: "#10b981" }} /> : <ChevronDown size={14} style={{ color: "#10b981" }} />}
+                        </button>
+                        {showProcessual && (
+                            <div style={bodyS}>
+                                <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 0, marginBottom: 12 }}>
+                                    Evolução registrada na Avaliação Processual — dados integrados automaticamente.
+                                </p>
+                                {evolucaoProcessual.map(evo => (
+                                    <div key={evo.disciplina} style={{ marginBottom: 16 }}>
+                                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 10 }}>
+                                            {evo.disciplina}
+                                        </div>
+                                        <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 90, padding: "0 4px" }}>
+                                            {evo.periodos.map((p, i) => {
+                                                const val = p.media_nivel ?? 0;
+                                                const height = Math.max((val / 4) * 70, 4);
+                                                const nc = val >= 3 ? "#10b981" : val >= 2 ? "#3b82f6" : val >= 1 ? "#fbbf24" : "#f87171";
+                                                return (
+                                                    <div key={p.bimestre} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                                                        <span style={{ fontSize: 11, fontWeight: 700, color: nc }}>{val}</span>
+                                                        <div style={{
+                                                            width: "100%", maxWidth: 36, height, borderRadius: 6,
+                                                            background: `linear-gradient(180deg, ${nc}, ${nc}88)`,
+                                                            transition: "height .3s ease",
+                                                        }} />
+                                                        <span style={{ fontSize: 9, color: "var(--text-muted)", textAlign: "center" }}>
+                                                            {p.bimestre}º
+                                                        </span>
+                                                        {i > 0 && evo.periodos[i - 1].media_nivel !== null && p.media_nivel !== null && (
+                                                            <span style={{
+                                                                fontSize: 8, fontWeight: 700,
+                                                                color: (p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "#10b981" : (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "#f87171" : "#94a3b8",
+                                                            }}>
+                                                                {(p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "▲" : (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "▼" : "="}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, padding: "0 4px" }}>
+                                            {[0, 1, 2, 3, 4].map(n => (
+                                                <span key={n} style={{ fontSize: 8, color: "var(--text-muted)", opacity: 0.5 }}>N{n}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                                <a href="/avaliacao-processual" style={{
+                                    display: "inline-flex", alignItems: "center", gap: 6,
+                                    fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none",
+                                    padding: "8px 14px", borderRadius: 8, background: "rgba(16,185,129,.06)",
+                                    border: "1px solid rgba(16,185,129,.15)",
+                                }}>
+                                    <Activity size={12} /> Ver Avaliação Processual completa →
+                                </a>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* No processual data - show link */}
+                {evolucaoProcessual.length === 0 && nivelIdentificado !== null && (
+                    <div style={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        padding: "10px 16px", borderRadius: 10, marginBottom: 20,
+                        background: "rgba(16,185,129,.04)", border: "1px solid rgba(16,185,129,.12)",
+                    }}>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                            📊 Acompanhe a evolução deste estudante ao longo do ano
+                        </span>
+                        <a href="/avaliacao-processual" style={{
+                            fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none",
+                        }}>Ir para Processual →</a>
                     </div>
                 )}
             </div>
