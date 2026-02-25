@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { RubricaOmnisfera } from "@/components/RubricaOmnisfera";
 import {
     Brain, Loader2, CheckCircle2, AlertTriangle,
     ChevronDown, ChevronUp, Sparkles, ClipboardCheck,
@@ -594,6 +595,15 @@ export default function AvaliacaoDiagnosticaClient() {
                                 ✓ Resultado vinculado ao PEI do estudante
                             </div>
                         </div>
+                    </div>
+                )}
+
+                {/* Rubrica reference — shows before assessment or after level is identified */}
+                {(nivelIdentificado !== null || (questoes.length === 0 && !gerando)) && (
+                    <div style={{ marginBottom: 20 }}>
+                        <RubricaOmnisfera
+                            nivelAtual={nivelIdentificado !== null ? nivelIdentificado as 0 | 1 | 2 | 3 | 4 : undefined}
+                        />
                     </div>
                 )}
 

@@ -6,6 +6,7 @@ import {
     Users, ArrowLeft, Save, BarChart3, Calendar, BookOpen, TrendingUp, Sparkles, FileText,
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
+import { RubricaOmnisfera } from "@/components/RubricaOmnisfera";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -621,7 +622,13 @@ export default function AvaliacaoProcessualClient() {
                                     {/* Expanded observation */}
                                     {expanded && (
                                         <div style={{ marginTop: 10 }}>
-                                            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>
+                                            {/* Rubrica guide */}
+                                            <RubricaOmnisfera
+                                                nivelAtual={hab.nivel_atual}
+                                                onSelect={(n) => setNivel(idx, n)}
+                                                compact
+                                            />
+                                            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, marginTop: 10 }}>
                                                 Observação do professor:
                                             </div>
                                             <textarea
