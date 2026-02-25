@@ -3,6 +3,34 @@ import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 
 /**
+ * Match flexível entre a série do estudante (ex: "7º Ano (EFAF)") e o
+ * label/code da grade no banco (ex: code="7ano", label="EF - Anos Finais (6º ao 9º): 7º Ano").
+ *
+ * Estratégia:
+ * 1. Extrair número do code da grade ("7ano" → 7)
+ * 2. Extrair número da série do estudante ("7º Ano (EFAF)" → 7)
+ * 3. Comparar os números
+ */
+function gradeMatches(gradeCode: string, gradeLabel: string, studentGrade: string): boolean {
+    if (!studentGrade) return false;
+    // Extrair número da série do estudante: "7º Ano (EFAF)" → "7"
+    const studentNum = (studentGrade.match(/\d+/) || [""])[0];
+    if (!studentNum) return false;
+    // Primeiro tentar pelo code que é mais confiável (ex: "7ano")
+    if (gradeCode) {
+        const codeNum = (gradeCode.match(/\d+/) || [""])[0];
+        if (codeNum && codeNum === studentNum) return true;
+    }
+    // Fallback: pelo label — pegar a parte após ':' se existir
+    if (gradeLabel) {
+        const afterColon = gradeLabel.includes(":") ? gradeLabel.split(":").pop() || "" : gradeLabel;
+        const labelNum = (afterColon.match(/\d+/) || [""])[0];
+        if (labelNum && labelNum === studentNum) return true;
+    }
+    return false;
+}
+
+/**
  * POST /api/pei/enviar-regentes
  * Marca o PEI como Fase 2 e cria registros de pei_disciplinas.
  *
@@ -41,27 +69,21 @@ export async function GET(req: Request) {
 
         const { data: classes } = await sb
             .from("classes")
-            .select("id, grade_id, name")
+            .select("id, grade_id, class_group")
             .eq("workspace_id", session.workspace_id);
 
         const { data: grades } = await sb
             .from("grades")
-            .select("id, name")
-            .eq("workspace_id", session.workspace_id);
+            .select("id, code, label");
 
-        const gradeMap = new Map((grades || []).map(g => [g.id, g.name]));
+        const gradeMap = new Map((grades || []).map(g => [g.id, { code: g.code || "", label: g.label || "" }]));
         const matchingClassIds = (classes || [])
             .filter(c => {
-                const gradeName = gradeMap.get(c.grade_id) || "";
-                const extractNum = (s: string) => (s.match(/\d+/) || [""])[0];
-                const normalizeGrade = (s: string) => s.replace(/[ºª°m\s]/gi, "").toLowerCase();
-                const numA = extractNum(gradeName);
-                const numB = extractNum(grade);
-                const gradeMatch = (numA && numB && numA === numB) ||
-                    normalizeGrade(gradeName).includes(normalizeGrade(grade)) ||
-                    normalizeGrade(grade).includes(normalizeGrade(gradeName));
-                const classMatch = !classGroup || c.name?.toLowerCase().includes(classGroup.toLowerCase());
-                return gradeMatch && classMatch;
+                const g = gradeMap.get(c.grade_id);
+                if (!g) return false;
+                const gMatch = gradeMatches(g.code, g.label, grade);
+                const classMatch = !classGroup || (c.class_group || "").toLowerCase().includes(classGroup.toLowerCase());
+                return gMatch && classMatch;
             })
             .map(c => c.id);
 
@@ -172,31 +194,22 @@ export async function POST(req: Request) {
         // Buscar classes que correspondem à turma do estudante
         const { data: classes } = await sb
             .from("classes")
-            .select("id, grade_id, name")
+            .select("id, grade_id, class_group")
             .eq("workspace_id", session.workspace_id);
 
         const { data: grades } = await sb
             .from("grades")
-            .select("id, name")
-            .eq("workspace_id", session.workspace_id);
+            .select("id, code, label");
 
         // Encontrar class_ids que correspondem ao estudante
-        const gradeMap = new Map((grades || []).map(g => [g.id, g.name]));
+        const gradeMap = new Map((grades || []).map(g => [g.id, { code: g.code || "", label: g.label || "" }]));
         const matchingClassIds = (classes || [])
             .filter(c => {
-                const gradeName = gradeMap.get(c.grade_id) || "";
-                // Match flexível: extrair parte numérica para comparar
-                // "7º Ano" → "7", "7m ano" → "7", "7 ano" → "7"
-                const extractNum = (s: string) => (s.match(/\d+/) || [""])[0];
-                const normalizeGrade = (s: string) => s.replace(/[ºª°m\s]/gi, "").toLowerCase();
-                const numA = extractNum(gradeName);
-                const numB = extractNum(studentGrade);
-                // Match por número extraído OU por string normalizada  
-                const gradeMatch = (numA && numB && numA === numB) ||
-                    normalizeGrade(gradeName).includes(normalizeGrade(studentGrade)) ||
-                    normalizeGrade(studentGrade).includes(normalizeGrade(gradeName));
-                const classMatch = !studentClass || c.name?.toLowerCase().includes(studentClass.toLowerCase());
-                return gradeMatch && classMatch;
+                const g = gradeMap.get(c.grade_id);
+                if (!g) return false;
+                const gMatch = gradeMatches(g.code, g.label, studentGrade);
+                const classMatch = !studentClass || (c.class_group || "").toLowerCase().includes(studentClass.toLowerCase());
+                return gMatch && classMatch;
             })
             .map(c => c.id);
 
