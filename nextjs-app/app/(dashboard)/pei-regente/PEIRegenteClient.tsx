@@ -4,10 +4,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
     BookOpen, Users, Loader2, AlertTriangle, ChevronRight,
     FileText, Brain, ClipboardCheck, CheckCircle2, ArrowLeft,
-    Sparkles, School,
+    Sparkles, School, ExternalLink,
 } from "lucide-react";
 import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
-import { PEIAvaliacaoDiagnostica } from "@/components/PEIAvaliacaoDiagnostica";
 import { ESCALA_OMNISFERA, FASE_STATUS_LABELS, type NivelOmnisfera, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -175,12 +174,11 @@ export function PEIRegenteClient() {
                     )}
 
                     {activeStep === "diagnostica" && (
-                        <PEIAvaliacaoDiagnostica
+                        <PEIAvaliacaoDiagnosticaLink
                             studentId={selectedAluno.id}
+                            studentName={selectedAluno.name}
                             disciplina={selectedDisc.disciplina}
-                            onAvaliacaoConcluida={() => {
-                                fetchData();
-                            }}
+                            onLinked={() => fetchData()}
                         />
                     )}
 
@@ -413,6 +411,142 @@ export function PEIRegenteClient() {
                     );
                 })}
             </div>
+        </div>
+    );
+}
+
+// ─── PEI Avaliação Diagnóstica Link ──────────────────────────────────────────
+
+function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLinked }: {
+    studentId: string; studentName: string; disciplina: string; onLinked?: () => void;
+}) {
+    const [loading, setLoading] = useState(true);
+    const [avaliacao, setAvaliacao] = useState<{ id: string; nivel: number | null; status: string; questoes: number; updated_at: string } | null>(null);
+
+    useEffect(() => {
+        if (!studentId || !disciplina) { setLoading(false); return; }
+        fetch(`/api/pei/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}`)
+            .then(r => r.json())
+            .then(data => {
+                const avs = data.avaliacoes || [];
+                if (avs.length > 0) {
+                    const av = avs[0];
+                    setAvaliacao({
+                        id: av.id,
+                        nivel: av.nivel_omnisfera_identificado,
+                        status: av.status || "pendente",
+                        questoes: av.questoes_geradas?.questoes?.length || 0,
+                        updated_at: av.updated_at || av.created_at,
+                    });
+                }
+            })
+            .catch(() => { })
+            .finally(() => setLoading(false));
+    }, [studentId, disciplina]);
+
+    if (loading) {
+        return (
+            <div style={{ padding: 40, textAlign: "center" }}>
+                <Loader2 size={28} className="animate-spin" style={{ color: "#3b82f6", margin: "0 auto" }} />
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Header */}
+            <div style={{
+                background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                borderRadius: 14, padding: "18px 22px", color: "#fff",
+            }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <Brain size={22} />
+                        <div>
+                            <h4 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Avaliação Diagnóstica — {disciplina}</h4>
+                            <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
+                                {studentName} · Vincule uma avaliação aplicada no módulo Avaliação Diagnóstica
+                            </p>
+                        </div>
+                    </div>
+                    {avaliacao?.status === "aplicada" && (
+                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "#bbf7d0" }}>
+                            <CheckCircle2 size={14} /> Aplicada
+                        </span>
+                    )}
+                </div>
+            </div>
+
+            {/* Resultado vinculado */}
+            {avaliacao?.status === "aplicada" && avaliacao.nivel !== null && (
+                <div style={{
+                    display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
+                    borderRadius: 14, background: "rgba(16,185,129,.08)", border: "1.5px solid rgba(16,185,129,.3)",
+                }}>
+                    <div style={{
+                        width: 48, height: 48, borderRadius: "50%", display: "flex", alignItems: "center",
+                        justifyContent: "center", background: "linear-gradient(135deg, #059669, #10b981)",
+                        color: "#fff", fontSize: 20, fontWeight: 800,
+                    }}>{avaliacao.nivel}</div>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700, fontSize: 15, color: "#10b981" }}>
+                            Nível Omnisfera: {avaliacao.nivel} — {ESCALA_OMNISFERA[avaliacao.nivel as NivelOmnisfera]?.label}
+                        </div>
+                        <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>
+                            {avaliacao.questoes} questões · {new Date(avaliacao.updated_at).toLocaleDateString("pt-BR")}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Status: gerada mas não aplicada */}
+            {avaliacao && avaliacao.status !== "aplicada" && (
+                <div style={{
+                    padding: "16px 20px", borderRadius: 14,
+                    background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.2)",
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                }}>
+                    <div>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: "#f59e0b" }}>Avaliação gerada, pendente de aplicação</div>
+                        <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>
+                            {avaliacao.questoes} questões · Aplique no módulo Avaliação Diagnóstica
+                        </div>
+                    </div>
+                    <a href="/avaliacao-diagnostica" style={{
+                        display: "flex", alignItems: "center", gap: 6,
+                        padding: "8px 16px", borderRadius: 10, fontSize: 13, fontWeight: 700,
+                        background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                        color: "#fff", textDecoration: "none",
+                    }}>
+                        <ExternalLink size={14} /> Aplicar
+                    </a>
+                </div>
+            )}
+
+            {/* Nenhuma avaliação */}
+            {!avaliacao && (
+                <div style={{
+                    textAlign: "center", padding: "32px 20px",
+                    borderRadius: 14, border: "1px solid var(--border-default, rgba(148,163,184,.15))",
+                    background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                }}>
+                    <Brain size={40} style={{ margin: "0 auto 12px", color: "var(--text-muted)", opacity: 0.3 }} />
+                    <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 4px" }}>
+                        Nenhuma avaliação diagnóstica encontrada
+                    </p>
+                    <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 16px" }}>
+                        Gere e aplique uma avaliação no módulo <strong>Avaliação Diagnóstica</strong> para {studentName} em {disciplina}.
+                    </p>
+                    <a href="/avaliacao-diagnostica" style={{
+                        display: "inline-flex", alignItems: "center", gap: 8,
+                        padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 700,
+                        background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+                        color: "#fff", textDecoration: "none",
+                    }}>
+                        <ExternalLink size={16} /> Ir para Avaliação Diagnóstica
+                    </a>
+                </div>
+            )}
         </div>
     );
 }
