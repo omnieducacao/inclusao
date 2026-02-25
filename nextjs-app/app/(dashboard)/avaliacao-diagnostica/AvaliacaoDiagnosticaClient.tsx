@@ -100,6 +100,12 @@ export default function AvaliacaoDiagnosticaClient() {
     const [blocosPlano, setBlocosPlano] = useState<BlocoPlano[]>([]);
     const [showMatrix, setShowMatrix] = useState(false);
 
+    // Matrix habilidades for item creation
+    const [matrizHabs, setMatrizHabs] = useState<{ habilidade: string; tema: string; descritor: string; competencia: string }[]>([]);
+    const [habsSelecionadas, setHabsSelecionadas] = useState<string[]>([]);
+    const [qtdQuestoes, setQtdQuestoes] = useState(4);
+    const [tipoQuestao, setTipoQuestao] = useState<"Objetiva" | "Discursiva">("Objetiva");
+
     // ─── Fetch students ─────────────────────────────────────────────────
 
     const fetchAlunos = useCallback(async () => {
@@ -170,6 +176,29 @@ export default function AvaliacaoDiagnosticaClient() {
                 }
             })
             .catch(() => { });
+
+        // Fetch matrix habilidades for the discipline
+        const discAreaMap: Record<string, string> = {
+            "Matemática": "Matemática",
+            "Língua Portuguesa": "Linguagens",
+            "Arte": "Linguagens",
+            "Educação Física": "Linguagens",
+            "Língua Inglesa": "Linguagens",
+            "Ciências": "Ciências da Natureza",
+            "Geografia": "Ciências Humanas",
+            "História": "Ciências Humanas",
+            "Ensino Religioso": "Ciências Humanas",
+        };
+        const area = discAreaMap[disciplina] || "Linguagens";
+        const gradeNum = aluno.grade?.match(/\d+/)?.[0] || "6";
+        const serieName = `EF${gradeNum}`;
+
+        fetch(`/api/avaliacao-diagnostica/matriz?area=${encodeURIComponent(area)}&serie=${serieName}`)
+            .then(r => r.json())
+            .then(data => {
+                setMatrizHabs(data.habilidades || []);
+            })
+            .catch(() => { });
     }, [loadExistingAvaliacao]);
 
     const goBack = () => {
@@ -193,36 +222,46 @@ export default function AvaliacaoDiagnosticaClient() {
         setQuestoes([]);
 
         try {
-            const res = await fetch("/api/pei/avaliacao-diagnostica", {
+            // Use the new criar-itens API with matrix habilidades
+            const res = await fetch("/api/avaliacao-diagnostica/criar-itens", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    studentId: selectedAluno.id,
                     disciplina: selectedDisc,
-                    habilidades_bncc: [{
-                        codigo: `EF_${selectedDisc.toUpperCase().slice(0, 3)}`,
-                        disciplina: selectedDisc,
-                        ano: selectedAluno.grade?.match(/\d+/)?.[0] || "6",
-                        segmento: "EF2",
-                        unidade_tematica: "Diagnóstica Geral",
-                        objeto_conhecimento: "Avaliação inicial",
-                        habilidade: `Avaliar nível do estudante em ${selectedDisc}`,
-                        nivel_cognitivo_saeb: "I",
-                        prioridade_saeb: "alta",
-                    }],
-                    nivel_omnisfera_estimado: 1,
-                    plano_ensino_contexto: planoVinculado?.conteudo || undefined,
-                    plano_ensino_id: planoVinculado?.id || undefined,
-                    quantidade: 4,
+                    serie: selectedAluno.grade || "",
+                    habilidades_selecionadas: habsSelecionadas.length > 0
+                        ? habsSelecionadas
+                        : matrizHabs.slice(0, 6).map(h => h.habilidade),
+                    qtd_questoes: qtdQuestoes,
+                    tipo_questao: tipoQuestao,
+                    diagnostico_aluno: selectedAluno.diagnostico || "",
+                    nome_aluno: selectedAluno.name,
+                    plano_ensino_contexto: planoVinculado?.conteudo || "",
+                    engine: "red",
                 }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
-            setAvaliacaoId(data.avaliacao?.id);
-            const qg = data.avaliacao?.questoes_geradas;
-            if (qg?.questoes) {
-                setQuestoes(qg.questoes);
-                setCurrentStep(1); // Move to first question
+
+            // Try parsed questoes first
+            if (data.questoes?.questoes) {
+                setQuestoes(data.questoes.questoes);
+                setCurrentStep(1);
+                // Save to database via existing API
+                try {
+                    const saveRes = await fetch("/api/pei/avaliacao-diagnostica", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            studentId: selectedAluno.id,
+                            disciplina: selectedDisc,
+                            questoes_geradas: data.questoes,
+                            habilidades_bncc: habsSelecionadas,
+                        }),
+                    });
+                    const saveData = await saveRes.json();
+                    if (saveData.avaliacao?.id) setAvaliacaoId(saveData.avaliacao.id);
+                } catch { /* save silently */ }
             } else {
                 setAvalError("Resposta da IA não está no formato esperado. Tente novamente.");
             }
@@ -362,7 +401,7 @@ export default function AvaliacaoDiagnosticaClient() {
                     </div>
                 )}
 
-                {/* Step 0: Plano de Ensino context + Generate button */}
+                {/* Step 0: Plano de Ensino context + Matrix picker + Generate button */}
                 {questoes.length === 0 && !gerando && nivelIdentificado === null && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                         {/* Plano de Ensino vinculado */}
@@ -384,112 +423,155 @@ export default function AvaliacaoDiagnosticaClient() {
                                         <span style={{ fontWeight: 700, fontSize: 14, color: "#0ea5e9" }}>
                                             Plano de Ensino vinculado — {planoVinculado.disciplina}
                                         </span>
-                                        <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 500 }}>
-                                            {planoVinculado.bimestre} · {planoVinculado.ano_serie}
-                                        </span>
                                     </div>
                                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                         <span style={{ fontSize: 11, color: "#0ea5e9", fontWeight: 600 }}>
-                                            {showMatrix ? "Ocultar" : "Ver"} Matriz
+                                            {showMatrix ? "Ocultar" : "Ver"} Plano
                                         </span>
                                         {showMatrix ? <ChevronUp size={14} style={{ color: "#0ea5e9" }} /> : <ChevronDown size={14} style={{ color: "#0ea5e9" }} />}
                                     </div>
                                 </button>
-
                                 {showMatrix && (
                                     <div style={bodyS}>
-                                        {/* BNCC Habilidades */}
                                         {planoVinculado.habilidades_bncc && planoVinculado.habilidades_bncc.length > 0 && (
-                                            <div style={{ marginBottom: 14 }}>
-                                                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                                                    <Layers size={14} style={{ color: "#818cf8" }} />
-                                                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-secondary)" }}>Habilidades BNCC</span>
-                                                </div>
-                                                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                                                    {planoVinculado.habilidades_bncc.map((h, i) => (
-                                                        <span key={i} style={{
-                                                            fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 6,
-                                                            background: "rgba(99,102,241,.08)", color: "#818cf8",
-                                                            border: "1px solid rgba(99,102,241,.15)",
-                                                        }}>{h}</span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Blocos do plano */}
-                                        {blocosPlano.length > 0 && (
-                                            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                                                {blocosPlano.map((bloco, i) => (
-                                                    <div key={i} style={{
-                                                        padding: "12px 14px", borderRadius: 10,
-                                                        background: "var(--bg-primary, rgba(2,6,23,.2))",
-                                                        border: "1px solid var(--border-default, rgba(148,163,184,.1))",
-                                                    }}>
-                                                        <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 6 }}>
-                                                            {bloco.titulo || `Bloco ${i + 1}`}
-                                                        </div>
-                                                        {bloco.habilidades_bncc && bloco.habilidades_bncc.length > 0 && (
-                                                            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 }}>
-                                                                {bloco.habilidades_bncc.map((h, j) => (
-                                                                    <span key={j} style={{
-                                                                        fontSize: 10, padding: "2px 6px", borderRadius: 4,
-                                                                        background: "rgba(139,92,246,.08)", color: "#a78bfa",
-                                                                    }}>{h}</span>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                        {bloco.objetivos_livre && (
-                                                            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "4px 0 0", lineHeight: 1.5 }}>
-                                                                {bloco.objetivos_livre.slice(0, 200)}{bloco.objetivos_livre.length > 200 ? "..." : ""}
-                                                            </p>
-                                                        )}
-                                                    </div>
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+                                                {planoVinculado.habilidades_bncc.map((h, i) => (
+                                                    <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 6, background: "rgba(99,102,241,.08)", color: "#818cf8", border: "1px solid rgba(99,102,241,.15)" }}>{h}</span>
                                                 ))}
                                             </div>
                                         )}
-
-                                        <div style={{
-                                            marginTop: 12, padding: "8px 12px", borderRadius: 8, fontSize: 11,
-                                            background: "rgba(14,165,233,.04)", color: "#38bdf8",
-                                        }}>
-                                            ✨ A IA usará este plano como contexto para gerar questões diagnósticas mais alinhadas
-                                        </div>
+                                        {blocosPlano.length > 0 && blocosPlano.map((bloco, i) => (
+                                            <div key={i} style={{ padding: "8px 12px", borderRadius: 8, background: "var(--bg-primary, rgba(2,6,23,.2))", border: "1px solid var(--border-default, rgba(148,163,184,.1))", marginBottom: 6 }}>
+                                                <div style={{ fontWeight: 700, fontSize: 12, color: "var(--text-primary)" }}>{bloco.titulo || `Bloco ${i + 1}`}</div>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>
                         )}
 
                         {!planoVinculado && (
-                            <div style={{
-                                padding: "12px 16px", borderRadius: 10,
-                                background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.15)",
-                                display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#fbbf24",
-                            }}>
-                                <FileText size={16} />
-                                Nenhum plano de ensino vinculado. A IA gerará questões genéricas para {selectedDisc}.
+                            <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.15)", display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#fbbf24" }}>
+                                <FileText size={16} /> Nenhum plano de ensino vinculado.
                                 <a href="/plano-curso" style={{ color: "#38bdf8", fontWeight: 600, textDecoration: "none", marginLeft: "auto" }}>Criar plano →</a>
                             </div>
                         )}
 
-                        {/* Generate button */}
-                        <div style={{ ...cardS, textAlign: "center", padding: "40px 20px" }}>
-                            <Brain size={48} style={{ margin: "0 auto 16px", color: "var(--text-muted)", opacity: 0.3 }} />
-                            <h3 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>
-                                Gerar Avaliação Diagnóstica
-                            </h3>
-                            <p style={{ margin: "0 0 20px", fontSize: 13, color: "var(--text-muted)", maxWidth: 400, marginLeft: "auto", marginRight: "auto" }}>
-                                A IA irá gerar questões diagnósticas alinhadas à BNCC{planoVinculado ? " e ao plano de ensino" : ""} para avaliar o nível do estudante em {selectedDisc}.
-                            </p>
-                            <button onClick={gerarAvaliacao} style={{
-                                padding: "14px 28px", borderRadius: 12,
-                                background: "linear-gradient(135deg, #2563eb, #3b82f6)",
-                                color: "#fff", border: "none", cursor: "pointer",
-                                fontWeight: 700, fontSize: 15,
-                                display: "inline-flex", alignItems: "center", gap: 8,
-                            }}>
-                                <Sparkles size={20} /> Gerar com IA
-                            </button>
+                        {/* Habilidades da Matriz de Referência */}
+                        {matrizHabs.length > 0 && (
+                            <div style={cardS}>
+                                <div style={{ ...headerS, background: "rgba(99,102,241,.05)" }}>
+                                    <Layers size={16} style={{ color: "#818cf8" }} />
+                                    <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>Habilidades da Matriz de Referência</span>
+                                    <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "auto" }}>
+                                        {habsSelecionadas.length} de {matrizHabs.length} selecionadas
+                                    </span>
+                                </div>
+                                <div style={{ ...bodyS, maxHeight: 260, overflowY: "auto" }}>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                        {matrizHabs.map((h, i) => {
+                                            const selected = habsSelecionadas.includes(h.habilidade);
+                                            const codeMatch = h.habilidade.match(/^(EF\d+\w+\d+H?\d*|\(EF\d+\w+\d+\))/i);
+                                            const code = codeMatch ? codeMatch[1].replace(/[()]/g, '') : '';
+                                            return (
+                                                <label key={i} style={{
+                                                    display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 10px",
+                                                    borderRadius: 8, cursor: "pointer",
+                                                    background: selected ? "rgba(99,102,241,.08)" : "transparent",
+                                                    border: selected ? "1px solid rgba(99,102,241,.2)" : "1px solid transparent",
+                                                    transition: "all .15s",
+                                                }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selected}
+                                                        onChange={() => {
+                                                            setHabsSelecionadas(prev =>
+                                                                selected
+                                                                    ? prev.filter(x => x !== h.habilidade)
+                                                                    : [...prev, h.habilidade]
+                                                            );
+                                                        }}
+                                                        style={{ marginTop: 2, accentColor: "#6366f1" }}
+                                                    />
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                                            {code && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: "rgba(99,102,241,.1)", color: "#818cf8" }}>{code}</span>}
+                                                            <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{h.tema}</span>
+                                                        </div>
+                                                        <div style={{ fontSize: 12, color: "var(--text-primary)", marginTop: 2, lineHeight: 1.4 }}>
+                                                            {h.habilidade.slice(0, 150)}{h.habilidade.length > 150 ? "..." : ""}
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                <div style={{ padding: "8px 16px", borderTop: "1px solid var(--border-default, rgba(148,163,184,.08))", display: "flex", gap: 8 }}>
+                                    <button onClick={() => setHabsSelecionadas(matrizHabs.map(h => h.habilidade))} style={{ fontSize: 11, color: "#818cf8", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>Selecionar todas</button>
+                                    <button onClick={() => setHabsSelecionadas([])} style={{ fontSize: 11, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>Limpar</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Configuração da Geração */}
+                        <div style={cardS}>
+                            <div style={{ ...headerS, background: "rgba(37,99,235,.05)" }}>
+                                <Sparkles size={16} style={{ color: "#3b82f6" }} />
+                                <span style={{ fontWeight: 700, fontSize: 14, color: "#3b82f6" }}>Configurar Avaliação</span>
+                            </div>
+                            <div style={{ ...bodyS, display: "flex", flexDirection: "column", gap: 14 }}>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                                    <div>
+                                        <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4, display: "block" }}>Quantidade de Questões</label>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                            <input
+                                                type="range"
+                                                min={2}
+                                                max={10}
+                                                value={qtdQuestoes}
+                                                onChange={e => setQtdQuestoes(Number(e.target.value))}
+                                                style={{ flex: 1, accentColor: "#3b82f6" }}
+                                            />
+                                            <span style={{ fontSize: 14, fontWeight: 800, color: "#3b82f6", minWidth: 20, textAlign: "center" }}>{qtdQuestoes}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4, display: "block" }}>Tipo de Questão</label>
+                                        <div style={{ display: "flex", gap: 6 }}>
+                                            {(["Objetiva", "Discursiva"] as const).map(t => (
+                                                <button
+                                                    key={t}
+                                                    onClick={() => setTipoQuestao(t)}
+                                                    style={{
+                                                        flex: 1, padding: "8px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700,
+                                                        border: tipoQuestao === t ? "1.5px solid #3b82f6" : "1px solid var(--border-default, rgba(148,163,184,.12))",
+                                                        background: tipoQuestao === t ? "rgba(59,130,246,.08)" : "transparent",
+                                                        color: tipoQuestao === t ? "#3b82f6" : "var(--text-muted)",
+                                                        cursor: "pointer",
+                                                    }}
+                                                >{t}</button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(37,99,235,.04)", fontSize: 12, color: "#60a5fa", lineHeight: 1.5 }}>
+                                    ✨ <strong>Modo Avançado (INEP/BNI):</strong> A IA gerará itens com texto-base obrigatório, distratores com diagnóstico de erro e dificuldade progressiva (níveis Omnisfera 0→4).
+                                    {habsSelecionadas.length > 0 && <> · {habsSelecionadas.length} habilidade(s) da matriz selecionada(s).</>}
+                                </div>
+
+                                <button onClick={gerarAvaliacao} style={{
+                                    padding: "14px 28px", borderRadius: 12,
+                                    background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+                                    color: "#fff", border: "none", cursor: "pointer",
+                                    fontWeight: 700, fontSize: 15,
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                    boxShadow: "0 4px 20px rgba(37,99,235,.3)",
+                                }}>
+                                    <Sparkles size={20} /> Gerar Avaliação Diagnóstica com IA
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
