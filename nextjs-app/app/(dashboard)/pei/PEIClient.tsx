@@ -145,6 +145,13 @@ export function PEIClient({
   const [schoolGrades, setSchoolGrades] = useState<Array<{ id: string; name: string; label?: string }>>([]);
   const { markDirty, markClean } = useUnsavedChanges();
 
+  // Adaptation bridge: Plano de Curso + Diagnóstica → PEI
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [adaptacaoSugestao, setAdaptacaoSugestao] = useState<Record<string, any> | null>(null);
+  const [gerandoAdaptacao, setGerandoAdaptacao] = useState(false);
+  const [adaptacaoMeta, setAdaptacaoMeta] = useState<{ plano_encontrado: boolean; nivel_diag: number | null } | null>(null);
+
+
   // Ref para preservar o ID do estudante ao carregar do Supabase (via jsonPending)
   const cloudLoadIdRef = useRef<string | null>(null);
   // Ref para impedir que o useEffect de fetch re-busque após um load manual (via jsonPending)
@@ -1965,6 +1972,136 @@ export function PEIClient({
             <div className="flex items-center gap-2 mb-4">
               <Puzzle className="w-5 h-5 text-sky-600" />
               <h3 className="text-lg font-semibold text-slate-800">Plano de Ação</h3>
+            </div>
+
+            {/* ── Bridge: Plano de Curso + Diagnóstica → PEI ────────────── */}
+            <div className="p-4 rounded-xl border-2 border-sky-200 bg-gradient-to-br from-sky-50/50 to-blue-50/30 space-y-4">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-sky-600" />
+                <h4 className="text-sm font-bold text-sky-800">Ponte Pedagógica: Plano de Curso + Diagnóstica → PEI</h4>
+              </div>
+              <p className="text-xs text-slate-600">
+                A IA cruza o <strong>Plano de Curso da turma</strong> com o <strong>nível do estudante</strong> (Diagnóstica) e suas barreiras/potencialidades para sugerir adaptações individualizadas.
+              </p>
+
+              {/* IA Button */}
+              <button
+                onClick={async () => {
+                  if (!currentStudentId) return;
+                  setGerandoAdaptacao(true);
+                  try {
+                    const barreiras = peiData.barreiras_selecionadas || {};
+                    const res = await fetch("/api/pei/adaptar-plano", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        student_id: currentStudentId,
+                        disciplina: (peiData.habilidades_bncc_validadas as string[] || [])[0]?.split(" ")?.[0] || "",
+                        serie: peiData.serie || "",
+                        barreiras,
+                        potencialidades: peiData.potencias || [],
+                        diagnostico: peiData.diagnostico || "",
+                        nome_aluno: peiData.nome || "o estudante",
+                      }),
+                    });
+                    const data = await res.json();
+                    if (data.sugestao) {
+                      setAdaptacaoSugestao(data.sugestao);
+                      setAdaptacaoMeta({
+                        plano_encontrado: data.plano_curso_encontrado || false,
+                        nivel_diag: data.diagnostica_nivel ?? null,
+                      });
+                    }
+                  } catch { /* silent */ }
+                  setGerandoAdaptacao(false);
+                }}
+                disabled={gerandoAdaptacao || !currentStudentId}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50"
+                style={{ background: gerandoAdaptacao ? "#94a3b8" : "linear-gradient(135deg, #0ea5e9, #3b82f6)" }}
+              >
+                {gerandoAdaptacao ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+                {gerandoAdaptacao ? "Gerando adaptações..." : "Sugerir Adaptações IA"}
+              </button>
+
+              {/* Result */}
+              {adaptacaoSugestao && (
+                <div className="space-y-3 pt-2">
+                  {/* Meta badges */}
+                  <div className="flex gap-2 flex-wrap">
+                    {adaptacaoMeta?.nivel_diag != null && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold bg-sky-100 text-sky-700">
+                        📊 Nível Diagnóstica: {adaptacaoMeta.nivel_diag}
+                      </span>
+                    )}
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${adaptacaoMeta?.plano_encontrado ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                      📚 Plano de Curso: {adaptacaoMeta?.plano_encontrado ? "✅ Encontrado" : "⚠️ Não encontrado"}
+                    </span>
+                  </div>
+
+                  {/* Resumo */}
+                  {adaptacaoSugestao.resumo_adaptacao && (
+                    <div className="p-3 rounded-lg bg-white border border-sky-200 text-sm text-slate-700">
+                      {String(adaptacaoSugestao.resumo_adaptacao)}
+                    </div>
+                  )}
+
+                  {/* Objetivos individualizados */}
+                  {adaptacaoSugestao.objetivos_individualizados && (
+                    <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                      <p className="text-xs font-bold text-blue-800 mb-1">🎯 Objetivos Individualizados</p>
+                      <p className="text-sm text-blue-700">{String(adaptacaoSugestao.objetivos_individualizados)}</p>
+                    </div>
+                  )}
+
+                  {/* Methodology */}
+                  {adaptacaoSugestao.metodologia_adaptada && (
+                    <div className="p-3 rounded-lg bg-purple-50 border border-purple-200">
+                      <p className="text-xs font-bold text-purple-800 mb-1">📐 Metodologia Adaptada</p>
+                      <p className="text-sm text-purple-700">{String(adaptacaoSugestao.metodologia_adaptada)}</p>
+                    </div>
+                  )}
+
+                  {/* Apply button */}
+                  <button
+                    onClick={() => {
+                      const s = adaptacaoSugestao;
+                      if (s.estrategias_acesso?.length) {
+                        const atual = peiData.estrategias_acesso || [];
+                        const novas = [...new Set([...atual, ...s.estrategias_acesso])];
+                        updateField("estrategias_acesso", novas);
+                      }
+                      if (s.estrategias_ensino?.length) {
+                        const atual = peiData.estrategias_ensino || [];
+                        const novas = [...new Set([...atual, ...s.estrategias_ensino])];
+                        updateField("estrategias_ensino", novas);
+                      }
+                      if (s.estrategias_avaliacao?.length) {
+                        const atual = peiData.estrategias_avaliacao || [];
+                        const novas = [...new Set([...atual, ...s.estrategias_avaliacao])];
+                        updateField("estrategias_avaliacao", novas);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-all"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Aplicar Estratégias Sugeridas nos campos abaixo
+                  </button>
+
+                  {/* Alerts */}
+                  {(adaptacaoSugestao.alertas || []).length > 0 && (
+                    <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                      <p className="text-xs font-bold text-amber-800 mb-1">⚠️ Alertas</p>
+                      {(adaptacaoSugestao.alertas as string[]).map((a: string, i: number) => (
+                        <p key={i} className="text-xs text-amber-700">• {a}</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
