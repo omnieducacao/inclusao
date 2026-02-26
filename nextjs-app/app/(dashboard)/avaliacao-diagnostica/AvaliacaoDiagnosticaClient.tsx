@@ -3,14 +3,29 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { RubricaOmnisfera } from "@/components/RubricaOmnisfera";
 import { ProvaImprimivel } from "@/components/ProvaImprimivel";
+import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { DocxDownloadButton } from "@/components/DocxDownloadButton";
+import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import {
     Brain, Loader2, CheckCircle2, AlertTriangle,
     ChevronDown, ChevronUp, Sparkles, ClipboardCheck,
     ArrowLeft, Users, BookOpen, Target, Zap, FileText, Layers, Activity,
     Grid3X3, BookMarked, ChevronRight, TrendingUp,
-    Trash2, RefreshCw, Printer, FileDown,
+    Trash2, RefreshCw, Printer, FileDown, Image,
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
+
+// Taxonomia de Bloom (reutilizada do Hub)
+const TAXONOMIA_BLOOM: Record<string, string[]> = {
+    "1. Lembrar": ["Citar", "Definir", "Identificar", "Listar", "Nomear", "Reconhecer", "Recordar"],
+    "2. Entender": ["Classificar", "Descrever", "Explicar", "Expressar", "Resumir", "Traduzir"],
+    "3. Aplicar": ["Aplicar", "Demonstrar", "Ilustrar", "Interpretar", "Operar", "Usar"],
+    "4. Analisar": ["Analisar", "Comparar", "Contrastar", "Diferenciar", "Distinguir", "Examinar"],
+    "5. Avaliar": ["Argumentar", "Avaliar", "Defender", "Julgar", "Selecionar", "Validar"],
+    "6. Criar": ["Compor", "Construir", "Criar", "Desenvolver", "Formular", "Propor"],
+};
+
+type ChecklistAdaptacao = Record<string, boolean>;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -114,6 +129,20 @@ export default function AvaliacaoDiagnosticaClient() {
     const [habsSelecionadas, setHabsSelecionadas] = useState<string[]>([]);
     const [qtdQuestoes, setQtdQuestoes] = useState(4);
     const [tipoQuestao, setTipoQuestao] = useState<"Objetiva" | "Discursiva">("Objetiva");
+
+    // Hub-style config (Bloom, images, checklist, assunto, formatted result)
+    const [assunto, setAssunto] = useState("");
+    const [usarBloom, setUsarBloom] = useState(false);
+    const [dominioBloomSel, setDominioBloomSel] = useState("");
+    const [verbosBloomSel, setVerbosBloomSel] = useState<Record<string, string[]>>({});
+    const [usarImagens, setUsarImagens] = useState(false);
+    const [qtdImagens, setQtdImagens] = useState(0);
+    const [checklist, setChecklist] = useState<ChecklistAdaptacao>({});
+    const [resultadoFormatado, setResultadoFormatado] = useState<string | null>(null);
+    const [mapaImagensResultado, setMapaImagensResultado] = useState<Record<number, string>>({});
+    const [formatoInclusivo, setFormatoInclusivo] = useState(false);
+    const [validadoFormatado, setValidadoFormatado] = useState(false);
+    const [gerandoFormatado, setGerandoFormatado] = useState(false);
 
     // ─── Camada B: Cognitivo-Funcional ───────────────────────────────────
     const [dimensoesNEE, setDimensoesNEE] = useState<Array<{
@@ -773,18 +802,275 @@ export default function AvaliacaoDiagnosticaClient() {
                                     {habsSelecionadas.length > 0 && <> · {habsSelecionadas.length} habilidade(s) da matriz selecionada(s).</>}
                                 </div>
 
-                                <button onClick={gerarAvaliacao} style={{
-                                    padding: "14px 28px", borderRadius: 12,
-                                    background: "linear-gradient(135deg, #2563eb, #3b82f6)",
-                                    color: "#fff", border: "none", cursor: "pointer",
-                                    fontWeight: 700, fontSize: 15,
-                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                                    boxShadow: "0 4px 20px rgba(37,99,235,.3)",
-                                }}>
-                                    <Sparkles size={20} /> Gerar Avaliação Diagnóstica com IA
-                                </button>
+                                {/* Assunto / tema */}
+                                <div>
+                                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4, display: "block" }}>
+                                        Assunto / Tema (opcional)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={assunto}
+                                        onChange={e => setAssunto(e.target.value)}
+                                        placeholder={habsSelecionadas.length > 0 ? "Opcional — BNCC já selecionada" : "Ex: Frações, Sistema Solar..."}
+                                        style={{
+                                            width: "100%", padding: "8px 12px", borderRadius: 8,
+                                            border: "1px solid var(--border-default, rgba(148,163,184,.15))",
+                                            background: "var(--bg-primary, rgba(2,6,23,.3))",
+                                            color: "var(--text-primary)", fontSize: 13,
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Imagens */}
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={usarImagens}
+                                            onChange={e => {
+                                                setUsarImagens(e.target.checked);
+                                                if (!e.target.checked) setQtdImagens(0);
+                                                else if (qtdImagens === 0) setQtdImagens(Math.floor(qtdQuestoes / 2));
+                                            }}
+                                            style={{ accentColor: "#3b82f6" }}
+                                        />
+                                        <Image size={14} style={{ color: "#3b82f6" }} />
+                                        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>Incluir Imagens</span>
+                                    </label>
+                                    {usarImagens && (
+                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                            <input
+                                                type="range" min={1} max={qtdQuestoes} value={qtdImagens}
+                                                onChange={e => setQtdImagens(Number(e.target.value))}
+                                                style={{ flex: 1, accentColor: "#3b82f6" }}
+                                            />
+                                            <span style={{ fontSize: 12, fontWeight: 700, color: "#3b82f6" }}>{qtdImagens}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Bloom + Checklist row */}
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                                    {/* Bloom */}
+                                    <details style={{ border: "1px solid var(--border-default, rgba(148,163,184,.12))", borderRadius: 10 }}>
+                                        <summary style={{ padding: "8px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>
+                                            🧠 Taxonomia de Bloom
+                                        </summary>
+                                        <div style={{ padding: "8px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
+                                            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                                                <input type="checkbox" checked={usarBloom} onChange={e => {
+                                                    setUsarBloom(e.target.checked);
+                                                    if (!e.target.checked) { setDominioBloomSel(""); setVerbosBloomSel({}); }
+                                                    else if (!dominioBloomSel) setDominioBloomSel(Object.keys(TAXONOMIA_BLOOM)[0]);
+                                                }} style={{ accentColor: "#6366f1" }} />
+                                                <span style={{ fontSize: 11, color: "var(--text-primary)" }}>Usar Bloom</span>
+                                            </label>
+                                            {usarBloom && (
+                                                <>
+                                                    <select value={dominioBloomSel} onChange={e => { setDominioBloomSel(e.target.value); if (!verbosBloomSel[e.target.value]) setVerbosBloomSel(p => ({ ...p, [e.target.value]: [] })); }}
+                                                        style={{ width: "100%", padding: "6px 8px", borderRadius: 6, fontSize: 11, border: "1px solid var(--border-default)", background: "var(--bg-primary)" }}>
+                                                        <option value="">Categoria</option>
+                                                        {Object.keys(TAXONOMIA_BLOOM).map(c => <option key={c} value={c}>{c}</option>)}
+                                                    </select>
+                                                    {dominioBloomSel && TAXONOMIA_BLOOM[dominioBloomSel] && (
+                                                        <select multiple value={verbosBloomSel[dominioBloomSel] || []} onChange={e => { const s = Array.from(e.target.selectedOptions, o => o.value); setVerbosBloomSel(p => ({ ...p, [dominioBloomSel]: s })); }}
+                                                            style={{ width: "100%", padding: "4px 6px", borderRadius: 6, fontSize: 10, minHeight: 80, border: "1px solid var(--border-default)", background: "var(--bg-primary)" }}>
+                                                            {TAXONOMIA_BLOOM[dominioBloomSel].map(v => <option key={v} value={v}>{v}</option>)}
+                                                        </select>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
+                                    </details>
+
+                                    {/* Checklist */}
+                                    <details style={{ border: "1px solid var(--border-default, rgba(148,163,184,.12))", borderRadius: 10 }}>
+                                        <summary style={{ padding: "8px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>
+                                            ♿ Checklist Adaptação
+                                        </summary>
+                                        <div style={{ padding: "8px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
+                                            {[
+                                                { k: "instrucoes_passo_a_passo", l: "Instruções passo a passo" },
+                                                { k: "paragrafos_curtos", l: "Parágrafos curtos" },
+                                                { k: "dicas_apoio", l: "Dicas de apoio" },
+                                                { k: "descricao_imagens", l: "Descrição de imagens" },
+                                                { k: "dividir_em_etapas", l: "Dividir em etapas" },
+                                            ].map(({ k, l }) => (
+                                                <label key={k} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--text-primary)", cursor: "pointer" }}>
+                                                    <input type="checkbox" checked={!!checklist[k]} onChange={e => setChecklist(c => ({ ...c, [k]: e.target.checked }))} style={{ accentColor: "#6366f1" }} />
+                                                    {l}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </details>
+                                </div>
+
+                                {/* Two generate buttons */}
+                                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                                    <button onClick={gerarAvaliacao} style={{
+                                        flex: 1, padding: "14px 20px", borderRadius: 12,
+                                        background: "linear-gradient(135deg, #2563eb, #3b82f6)",
+                                        color: "#fff", border: "none", cursor: "pointer",
+                                        fontWeight: 700, fontSize: 14,
+                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                        boxShadow: "0 4px 20px rgba(37,99,235,.3)",
+                                    }}>
+                                        <Sparkles size={18} /> Gerar Avaliação Interativa
+                                    </button>
+                                    <button onClick={async () => {
+                                        if (!selectedAluno || !selectedDisc) return;
+                                        setGerandoFormatado(true);
+                                        setResultadoFormatado(null);
+                                        setMapaImagensResultado({});
+                                        setValidadoFormatado(false);
+                                        try {
+                                            const verbosFinais = usarBloom ? Object.values(verbosBloomSel).flat() : [];
+                                            const res = await fetch("/api/hub/criar-itens", {
+                                                method: "POST",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({
+                                                    assunto: assunto.trim() || (habsSelecionadas.length > 0 ? habsSelecionadas[0] : selectedDisc),
+                                                    engine: "red",
+                                                    habilidades: habsSelecionadas.length > 0 ? habsSelecionadas : matrizHabs.slice(0, 4).map(h => h.habilidade),
+                                                    verbos_bloom: verbosFinais.length > 0 ? verbosFinais : undefined,
+                                                    qtd_questoes: qtdQuestoes,
+                                                    tipo_questao: tipoQuestao,
+                                                    qtd_imagens: usarImagens ? qtdImagens : 0,
+                                                    checklist_adaptacao: Object.keys(checklist).length > 0 ? checklist : undefined,
+                                                    estudante: {
+                                                        nome: selectedAluno.name,
+                                                        serie: selectedAluno.grade,
+                                                        hiperfoco: undefined,
+                                                        perfil: selectedAluno.diagnostico || undefined,
+                                                    },
+                                                }),
+                                            });
+                                            const data = await res.json();
+                                            if (!res.ok) throw new Error(data.error || "Erro");
+                                            let textoFinal = data.texto || "Atividade gerada.";
+                                            if (textoFinal.includes("---DIVISOR---")) {
+                                                const parts = textoFinal.split("---DIVISOR---");
+                                                const analise = parts[0]?.replace("[ANÁLISE PEDAGÓGICA]", "").trim();
+                                                const atividade = parts[1]?.replace("[ATIVIDADE]", "").trim() || textoFinal;
+                                                textoFinal = analise ? `## Análise Pedagógica\n\n${analise}\n\n---\n\n## Atividade\n\n${atividade}` : atividade;
+                                            }
+                                            // Process images
+                                            const mapa: Record<number, string> = {};
+                                            if (usarImagens && qtdImagens > 0) {
+                                                const genImgRegex = /\[\[GEN_IMG:\s*([^\]]+)\]\]/gi;
+                                                const termos: string[] = [];
+                                                let m: RegExpExecArray | null;
+                                                while ((m = genImgRegex.exec(textoFinal)) !== null) termos.push(m[1].trim());
+                                                for (let i = 0; i < termos.length && i < qtdImagens; i++) {
+                                                    try {
+                                                        const imgRes = await fetch("/api/hub/gerar-imagem", {
+                                                            method: "POST", headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({ prompt: termos[i], prioridade: "BANCO" }),
+                                                        });
+                                                        const imgData = await imgRes.json();
+                                                        if (imgRes.ok && imgData.image) {
+                                                            const imgStr = imgData.image as string;
+                                                            const base64 = imgStr.startsWith("data:image") ? imgStr.replace(/^data:image\/\w+;base64,/, "") : imgStr;
+                                                            if (base64?.length > 100) mapa[i + 1] = base64;
+                                                        }
+                                                    } catch { /* silent */ }
+                                                }
+                                                let idx = 0;
+                                                textoFinal = textoFinal.replace(/\[\[GEN_IMG:\s*[^\]]+\]\]/gi, () => { idx++; return `[[IMG_${idx}]]`; });
+                                            }
+                                            setMapaImagensResultado(mapa);
+                                            setResultadoFormatado(textoFinal);
+                                        } catch (err) {
+                                            setAvalError(err instanceof Error ? err.message : "Erro ao gerar prova formatada");
+                                        }
+                                        setGerandoFormatado(false);
+                                    }} disabled={gerandoFormatado} style={{
+                                        flex: 1, padding: "14px 20px", borderRadius: 12,
+                                        background: gerandoFormatado ? "#94a3b8" : "linear-gradient(135deg, #6366f1, #818cf8)",
+                                        color: "#fff", border: "none", cursor: "pointer",
+                                        fontWeight: 700, fontSize: 14,
+                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                        boxShadow: "0 4px 20px rgba(99,102,241,.3)",
+                                    }}>
+                                        {gerandoFormatado ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />}
+                                        {gerandoFormatado ? "Gerando..." : "Gerar Prova Formatada (DOCX/PDF)"}
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                )}
+
+                {/* Formatted result (Hub-style) */}
+                {resultadoFormatado && questoes.length === 0 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                        {!validadoFormatado && (
+                            <div style={{ display: "flex", gap: 8 }}>
+                                <button onClick={() => setValidadoFormatado(true)} style={{
+                                    padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer",
+                                    background: "linear-gradient(135deg, #059669, #10b981)", color: "#fff", fontSize: 13, fontWeight: 700,
+                                    display: "flex", alignItems: "center", gap: 6,
+                                }}>
+                                    <CheckCircle2 size={14} /> Validar Atividade
+                                </button>
+                                <button onClick={() => { setResultadoFormatado(null); setValidadoFormatado(false); }} style={{
+                                    padding: "8px 16px", borderRadius: 8, cursor: "pointer",
+                                    background: "transparent", color: "var(--text-muted)",
+                                    border: "1px solid var(--border-default, rgba(148,163,184,.15))", fontSize: 13,
+                                }}>
+                                    🗑️ Descartar
+                                </button>
+                            </div>
+                        )}
+                        {validadoFormatado && (
+                            <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(16,185,129,.08)", border: "1px solid rgba(16,185,129,.2)", color: "#10b981", fontSize: 13, fontWeight: 600 }}>
+                                ✅ ATIVIDADE VALIDADA E PRONTA PARA USO
+                            </div>
+                        )}
+                        <div style={{
+                            ...cardS, padding: 0,
+                            border: "2px solid rgba(99,102,241,.2)",
+                        }}>
+                            <div style={{
+                                ...headerS, background: "rgba(99,102,241,.05)",
+                                justifyContent: "space-between",
+                            }}>
+                                <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>Prova Gerada</span>
+                                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                    <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#818cf8", cursor: "pointer", background: "rgba(99,102,241,.08)", padding: "3px 8px", borderRadius: 6 }}>
+                                        <input type="checkbox" checked={formatoInclusivo} onChange={e => setFormatoInclusivo(e.target.checked)} style={{ accentColor: "#6366f1" }} />
+                                        ♿ Inclusivo
+                                    </label>
+                                    <DocxDownloadButton
+                                        texto={resultadoFormatado}
+                                        titulo="Avaliação Diagnóstica"
+                                        filename={`Avaliacao_${selectedDisc || ""}_${new Date().toISOString().slice(0, 10)}.docx`}
+                                        mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
+                                        formatoInclusivo={formatoInclusivo}
+                                    />
+                                    <PdfDownloadButton
+                                        text={resultadoFormatado}
+                                        filename={`Avaliacao_${selectedDisc || ""}_${new Date().toISOString().slice(0, 10)}.pdf`}
+                                        title="Avaliação Diagnóstica"
+                                        formatoInclusivo={formatoInclusivo}
+                                    />
+                                </div>
+                            </div>
+                            <div style={bodyS}>
+                                <FormattedTextDisplay
+                                    texto={resultadoFormatado}
+                                    mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
+                                />
+                            </div>
+                        </div>
+                        <button onClick={() => { setResultadoFormatado(null); setValidadoFormatado(false); }} style={{
+                            padding: "10px 18px", borderRadius: 10,
+                            background: "transparent", color: "var(--text-muted, #94a3b8)",
+                            border: "1px solid var(--border-default, rgba(148,163,184,.15))",
+                            cursor: "pointer", fontSize: 13, textAlign: "center",
+                        }}>
+                            Gerar nova prova
+                        </button>
                     </div>
                 )}
 
