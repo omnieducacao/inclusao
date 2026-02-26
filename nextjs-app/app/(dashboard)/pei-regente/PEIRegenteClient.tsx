@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
     BookOpen, Users, Loader2, AlertTriangle, ChevronRight,
     FileText, Brain, ClipboardCheck, CheckCircle2, ArrowLeft,
-    Sparkles, School, ExternalLink,
+    Sparkles, School, ExternalLink, Target,
 } from "lucide-react";
 import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
 import { ESCALA_OMNISFERA, FASE_STATUS_LABELS, type NivelOmnisfera, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
@@ -69,6 +69,12 @@ export function PEIRegenteClient() {
     const [selectedAluno, setSelectedAluno] = useState<Aluno | null>(null);
     const [selectedDisc, setSelectedDisc] = useState<AlunoDisc | null>(null);
     const [activeStep, setActiveStep] = useState<"plano" | "diagnostica" | "pei" | null>(null);
+
+    // Ponte Pedagógica state
+    const [gerandoAdaptacao, setGerandoAdaptacao] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [adaptacaoSugestao, setAdaptacaoSugestao] = useState<Record<string, any> | null>(null);
+    const [adaptacaoMeta, setAdaptacaoMeta] = useState<{ plano_encontrado: boolean; nivel_diag: number | null } | null>(null);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -183,18 +189,207 @@ export function PEIRegenteClient() {
                     )}
 
                     {activeStep === "pei" && (
-                        <div style={{ padding: 24, textAlign: "center", color: "var(--text-muted)" }}>
-                            <ClipboardCheck size={48} className="mx-auto mb-4" style={{ opacity: 0.4 }} />
-                            <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                                PEI por Disciplina — {selectedDisc.disciplina}
-                            </h3>
-                            <p className="text-sm">
-                                Elabore adaptações curriculares, metas SMART e estratégias específicas
-                                para este componente com base na avaliação diagnóstica realizada.
-                            </p>
-                            <p className="text-xs mt-4" style={{ color: 'var(--text-muted)' }}>
-                                (Formulário completo de PEI por disciplina será implementado na próxima iteração)
-                            </p>
+                        <div className="space-y-6">
+                            {/* Título */}
+                            <div className="flex items-center gap-2">
+                                <ClipboardCheck className="w-5 h-5" style={{ color: '#818cf8' }} />
+                                <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                    PEI por Disciplina — {selectedDisc.disciplina}
+                                </h3>
+                            </div>
+
+                            {/* ── Ponte Pedagógica: Plano de Curso + Diagnóstica → PEI ── */}
+                            <div className="p-5 rounded-xl space-y-4" style={{
+                                border: '2px solid rgba(14,165,233,.2)',
+                                background: 'linear-gradient(135deg, rgba(14,165,233,.04), rgba(59,130,246,.03))',
+                            }}>
+                                <div className="flex items-center gap-2">
+                                    <BookOpen className="w-4 h-4" style={{ color: '#0ea5e9' }} />
+                                    <h4 className="text-sm font-bold" style={{ color: '#0ea5e9' }}>
+                                        Ponte Pedagógica: Plano de Curso + Diagnóstica → PEI
+                                    </h4>
+                                </div>
+                                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                                    A IA cruza o <strong>Plano de Curso da turma</strong> com o <strong>nível do estudante</strong> (Diagnóstica)
+                                    e suas barreiras/potencialidades para sugerir adaptações individualizadas.
+                                </p>
+
+                                {/* IA Button */}
+                                <button
+                                    onClick={async () => {
+                                        if (!selectedAluno) return;
+                                        setGerandoAdaptacao(true);
+                                        try {
+                                            const res = await fetch("/api/pei/adaptar-plano", {
+                                                method: "POST",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({
+                                                    student_id: selectedAluno.id,
+                                                    disciplina: selectedDisc.disciplina,
+                                                    serie: selectedAluno.grade || "",
+                                                    barreiras: {},
+                                                    potencialidades: [],
+                                                    diagnostico: selectedAluno.diagnostico || "",
+                                                    nome_aluno: selectedAluno.name,
+                                                }),
+                                            });
+                                            const data = await res.json();
+                                            if (data.sugestao) {
+                                                setAdaptacaoSugestao(data.sugestao);
+                                                setAdaptacaoMeta({
+                                                    plano_encontrado: data.plano_curso_encontrado || false,
+                                                    nivel_diag: data.diagnostica_nivel ?? null,
+                                                });
+                                            }
+                                        } catch { /* silent */ }
+                                        setGerandoAdaptacao(false);
+                                    }}
+                                    disabled={gerandoAdaptacao}
+                                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50"
+                                    style={{ background: gerandoAdaptacao ? '#94a3b8' : 'linear-gradient(135deg, #0ea5e9, #3b82f6)' }}
+                                >
+                                    {gerandoAdaptacao ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Sparkles className="w-4 h-4" />
+                                    )}
+                                    {gerandoAdaptacao ? "Gerando adaptações..." : "Sugerir Adaptações com IA"}
+                                </button>
+
+                                {/* Result */}
+                                {adaptacaoSugestao && (
+                                    <div className="space-y-3 pt-2">
+                                        {/* Meta badges */}
+                                        <div className="flex gap-2 flex-wrap">
+                                            {adaptacaoMeta?.nivel_diag != null && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold"
+                                                    style={{ backgroundColor: 'rgba(14,165,233,.1)', color: '#0ea5e9' }}>
+                                                    📊 Nível Diagnóstica: {adaptacaoMeta.nivel_diag}
+                                                </span>
+                                            )}
+                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold"
+                                                style={{
+                                                    backgroundColor: adaptacaoMeta?.plano_encontrado ? 'rgba(16,185,129,.1)' : 'rgba(245,158,11,.1)',
+                                                    color: adaptacaoMeta?.plano_encontrado ? '#10b981' : '#f59e0b',
+                                                }}>
+                                                📚 Plano de Curso: {adaptacaoMeta?.plano_encontrado ? "✅ Encontrado" : "⚠️ Não encontrado"}
+                                            </span>
+                                        </div>
+
+                                        {/* Resumo */}
+                                        {adaptacaoSugestao.resumo_adaptacao && (
+                                            <div className="p-3 rounded-lg text-sm" style={{
+                                                backgroundColor: 'var(--bg-primary)',
+                                                border: '1px solid rgba(14,165,233,.15)',
+                                                color: 'var(--text-secondary)',
+                                            }}>
+                                                {String(adaptacaoSugestao.resumo_adaptacao)}
+                                            </div>
+                                        )}
+
+                                        {/* Objetivos individualizados */}
+                                        {adaptacaoSugestao.objetivos_individualizados && (
+                                            <div className="p-3 rounded-lg" style={{
+                                                backgroundColor: 'rgba(59,130,246,.05)',
+                                                border: '1px solid rgba(59,130,246,.15)',
+                                            }}>
+                                                <p className="text-xs font-bold mb-1" style={{ color: '#3b82f6' }}>
+                                                    <Target className="w-3 h-3 inline mr-1" />
+                                                    Objetivos Individualizados
+                                                </p>
+                                                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                                    {String(adaptacaoSugestao.objetivos_individualizados)}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Metodologia */}
+                                        {adaptacaoSugestao.metodologia_adaptada && (
+                                            <div className="p-3 rounded-lg" style={{
+                                                backgroundColor: 'rgba(168,85,247,.05)',
+                                                border: '1px solid rgba(168,85,247,.15)',
+                                            }}>
+                                                <p className="text-xs font-bold mb-1" style={{ color: '#a855f7' }}>📐 Metodologia Adaptada</p>
+                                                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                                    {String(adaptacaoSugestao.metodologia_adaptada)}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Estratégias cards */}
+                                        {(adaptacaoSugestao.estrategias_acesso?.length || adaptacaoSugestao.estrategias_ensino?.length || adaptacaoSugestao.estrategias_avaliacao?.length) && (
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                {adaptacaoSugestao.estrategias_acesso?.length > 0 && (
+                                                    <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(16,185,129,.05)', border: '1px solid rgba(16,185,129,.15)' }}>
+                                                        <p className="text-xs font-bold mb-1" style={{ color: '#10b981' }}>♿ Acesso</p>
+                                                        {(adaptacaoSugestao.estrategias_acesso as string[]).map((e: string, i: number) => (
+                                                            <p key={i} className="text-xs" style={{ color: 'var(--text-secondary)' }}>• {e}</p>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {adaptacaoSugestao.estrategias_ensino?.length > 0 && (
+                                                    <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(99,102,241,.05)', border: '1px solid rgba(99,102,241,.15)' }}>
+                                                        <p className="text-xs font-bold mb-1" style={{ color: '#6366f1' }}>📚 Ensino</p>
+                                                        {(adaptacaoSugestao.estrategias_ensino as string[]).map((e: string, i: number) => (
+                                                            <p key={i} className="text-xs" style={{ color: 'var(--text-secondary)' }}>• {e}</p>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {adaptacaoSugestao.estrategias_avaliacao?.length > 0 && (
+                                                    <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(245,158,11,.05)', border: '1px solid rgba(245,158,11,.15)' }}>
+                                                        <p className="text-xs font-bold mb-1" style={{ color: '#f59e0b' }}>📝 Avaliação</p>
+                                                        {(adaptacaoSugestao.estrategias_avaliacao as string[]).map((e: string, i: number) => (
+                                                            <p key={i} className="text-xs" style={{ color: 'var(--text-secondary)' }}>• {e}</p>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Link to full PEI */}
+                                        <a
+                                            href={`/pei?studentId=${selectedAluno.id}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all"
+                                            style={{ background: 'linear-gradient(135deg, #059669, #10b981)', display: 'inline-flex' }}
+                                        >
+                                            <ExternalLink className="w-4 h-4" />
+                                            Abrir PEI completo e aplicar estratégias
+                                        </a>
+
+                                        {/* Alerts */}
+                                        {(adaptacaoSugestao.alertas || []).length > 0 && (
+                                            <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(245,158,11,.05)', border: '1px solid rgba(245,158,11,.15)' }}>
+                                                <p className="text-xs font-bold mb-1" style={{ color: '#f59e0b' }}>⚠️ Alertas</p>
+                                                {(adaptacaoSugestao.alertas as string[]).map((a: string, i: number) => (
+                                                    <p key={i} className="text-xs" style={{ color: 'var(--text-muted)' }}>• {a}</p>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Info about full PEI */}
+                            <div className="p-4 rounded-lg text-center" style={{
+                                backgroundColor: 'var(--bg-tertiary)',
+                                border: '1px solid var(--border-default)',
+                            }}>
+                                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                                    As adaptações sugeridas acima podem ser aplicadas no <strong>PEI completo do estudante</strong>,
+                                    acessível pelo módulo PEI principal.
+                                </p>
+                                <a
+                                    href={`/pei?studentId=${selectedAluno.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold transition-colors"
+                                    style={{ color: '#818cf8' }}
+                                >
+                                    <ExternalLink size={12} /> Ir para PEI completo
+                                </a>
+                            </div>
                         </div>
                     )}
                 </div>
