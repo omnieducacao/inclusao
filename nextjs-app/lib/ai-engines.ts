@@ -77,7 +77,7 @@ export function getEngineError(engine: EngineId): string | null {
 export async function chatCompletionText(
   engine: EngineId,
   messages: Array<{ role: string; content: string }>,
-  options?: { temperature?: number; apiKey?: string; workspaceId?: string; source?: string; trackUsage?: boolean; useCache?: boolean }
+  options?: { temperature?: number; apiKey?: string; workspaceId?: string; source?: string; trackUsage?: boolean; useCache?: boolean; max_tokens?: number }
 ): Promise<string> {
   const temp = options?.temperature ?? 0.7;
   const apiKey = options?.apiKey || getApiKey(engine);
@@ -99,6 +99,7 @@ export async function chatCompletionText(
       model: "gpt-4o-mini",
       messages: messages as Parameters<typeof client.chat.completions.create>[0]["messages"],
       temperature: temp,
+      max_tokens: options?.max_tokens || 4096,
     });
     const result = (resp.choices[0]?.message?.content || "").trim();
     if (shouldTrack && result) {
@@ -119,6 +120,7 @@ export async function chatCompletionText(
       model,
       messages: messages as Parameters<typeof client.chat.completions.create>[0]["messages"],
       temperature: temp,
+      max_tokens: options?.max_tokens || 8192,
     });
     const result = (resp.choices[0]?.message?.content || "").trim();
     if (shouldTrack && result) {
@@ -165,7 +167,7 @@ export async function chatCompletionText(
     const model = getEnv("ANTHROPIC_MODEL") || "claude-sonnet-4-20250514";
     const resp = await client.messages.create({
       model,
-      max_tokens: 4096,
+      max_tokens: options?.max_tokens || 8192,
       system: system.length ? system.join("\n\n") : undefined,
       messages: [{ role: "user", content: userParts.join("\n\n") || "Responda." }],
       temperature: temp,

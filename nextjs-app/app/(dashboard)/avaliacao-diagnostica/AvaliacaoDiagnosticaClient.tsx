@@ -12,6 +12,14 @@ import {
     Grid3X3, BookMarked, ChevronRight, TrendingUp, Image,
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
+import type { EngineId } from "@/lib/ai-engines";
+
+const ENGINE_OPTIONS: { id: EngineId; label: string; color: string }[] = [
+    { id: "red", label: "OmniRed (DeepSeek)", color: "#ef4444" },
+    { id: "green", label: "OmniGreen (Claude)", color: "#10b981" },
+    { id: "blue", label: "OmniBlue (Kimi)", color: "#3b82f6" },
+    { id: "orange", label: "OmniOrange (GPT)", color: "#f59e0b" },
+];
 
 // Taxonomia de Bloom (reutilizada do Hub)
 const TAXONOMIA_BLOOM: Record<string, string[]> = {
@@ -122,6 +130,7 @@ export default function AvaliacaoDiagnosticaClient() {
     const [mapaImagensResultado, setMapaImagensResultado] = useState<Record<number, string>>({});
     const [formatoInclusivo, setFormatoInclusivo] = useState(false);
     const [validadoFormatado, setValidadoFormatado] = useState(false);
+    const [engineSel, setEngineSel] = useState<EngineId>("red");
 
     // ─── Gabarito de Respostas ────────────────────────────────────────────
     const [avaliacaoSalvaId, setAvaliacaoSalvaId] = useState<string | null>(null);
@@ -332,34 +341,15 @@ export default function AvaliacaoDiagnosticaClient() {
         if (!selectedAluno || !selectedDisc || !resultadoFormatado) return;
         setSalvandoAvaliacao(true);
         try {
-            const res = await fetch("/api/pei/avaliacao-diagnostica", {
+            const res = await fetch("/api/pei/avaliacao-diagnostica/salvar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     studentId: selectedAluno.id,
                     disciplina: selectedDisc,
-                    habilidades_bncc: (habsSelecionadas.length > 0 ? habsSelecionadas : matrizHabs.slice(0, 4).map(h => h.habilidade)).map(h => ({
-                        codigo: h,
-                        disciplina: selectedDisc,
-                        unidade_tematica: "",
-                        objeto_conhecimento: "",
-                        habilidade: h,
-                        nivel_cognitivo_saeb: "",
-                    })),
-                    nivel_omnisfera_estimado: nivelIdentificado || 1,
+                    questoes_geradas: resultadoFormatado,
+                    habilidades_bncc: habsSelecionadas.length > 0 ? habsSelecionadas : matrizHabs.slice(0, 4).map(h => h.habilidade),
                     plano_ensino_id: planoVinculado?.id || undefined,
-                    plano_ensino_contexto: resultadoFormatado,
-                    quantidade: qtdQuestoes,
-                    perfil_aluno: {
-                        id: selectedAluno.id,
-                        nome_primeiro: selectedAluno.name?.split(" ")[0] || "Estudante",
-                        ano_matricula: selectedAluno.grade || "6º Ano",
-                        ano_referencia_pei: selectedAluno.grade || "6º Ano",
-                        perfil_nee_primario: selectedAluno.diagnostico || "SEM_NEE",
-                        canal_comunicacao: "verbal",
-                        recursos_assistivos: [],
-                        suporte_atual: "S2",
-                    },
                 }),
             });
             const data = await res.json();
@@ -800,6 +790,26 @@ export default function AvaliacaoDiagnosticaClient() {
                                     {habsSelecionadas.length > 0 && <> · {habsSelecionadas.length} habilidade(s) da matriz selecionada(s).</>}
                                 </div>
 
+                                {/* Motor de IA */}
+                                <div>
+                                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4, display: "block" }}>Motor de IA</label>
+                                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                        {ENGINE_OPTIONS.map(eng => (
+                                            <button
+                                                key={eng.id}
+                                                onClick={() => setEngineSel(eng.id)}
+                                                style={{
+                                                    padding: "6px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700,
+                                                    border: engineSel === eng.id ? `2px solid ${eng.color}` : "1px solid var(--border-default, rgba(148,163,184,.12))",
+                                                    background: engineSel === eng.id ? `${eng.color}15` : "transparent",
+                                                    color: engineSel === eng.id ? eng.color : "var(--text-muted)",
+                                                    cursor: "pointer", transition: "all .15s",
+                                                }}
+                                            >{eng.label}</button>
+                                        ))}
+                                    </div>
+                                </div>
+
                                 {/* Assunto / tema */}
                                 <div>
                                     <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4, display: "block" }}>
@@ -916,7 +926,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                             headers: { "Content-Type": "application/json" },
                                             body: JSON.stringify({
                                                 assunto: assunto.trim() || (habsSelecionadas.length > 0 ? habsSelecionadas[0] : selectedDisc),
-                                                engine: "red",
+                                                engine: engineSel,
                                                 habilidades: habsSelecionadas.length > 0 ? habsSelecionadas : matrizHabs.slice(0, 4).map(h => h.habilidade),
                                                 verbos_bloom: verbosFinais.length > 0 ? verbosFinais : undefined,
                                                 qtd_questoes: qtdQuestoes,
