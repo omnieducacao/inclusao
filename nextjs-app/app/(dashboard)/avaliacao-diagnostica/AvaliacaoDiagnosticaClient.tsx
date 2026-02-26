@@ -267,9 +267,9 @@ export default function AvaliacaoDiagnosticaClient() {
                 });
         }
 
-        // Fetch plano de ensino vinculado
+        // Fetch plano de ensino do professor (criado no PEI Professor)
         const serieBase = aluno.grade?.replace(/\s*\(.*\)\s*$/, "").trim() || "";
-        fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}&serie=${encodeURIComponent(serieBase)}`)
+        fetch(`/api/pei/plano-ensino?disciplina=${encodeURIComponent(disciplina)}&ano_serie=${encodeURIComponent(serieBase)}`)
             .then(r => r.json())
             .then(data => {
                 const planos = data.planos || [];
@@ -284,23 +284,11 @@ export default function AvaliacaoDiagnosticaClient() {
             })
             .catch(() => { });
 
-        // Fetch matrix habilidades for the discipline
-        const discAreaMap: Record<string, string> = {
-            "Matemática": "Matemática",
-            "Língua Portuguesa": "Linguagens",
-            "Arte": "Linguagens",
-            "Educação Física": "Linguagens",
-            "Língua Inglesa": "Linguagens",
-            "Ciências": "Ciências da Natureza",
-            "Geografia": "Ciências Humanas",
-            "História": "Ciências Humanas",
-            "Ensino Religioso": "Ciências Humanas",
-        };
-        const area = discAreaMap[disciplina] || "Linguagens";
+        // Fetch matrix habilidades filtradas por componente curricular
         const gradeNum = aluno.grade?.match(/\d+/)?.[0] || "6";
         const serieName = `EF${gradeNum}`;
 
-        fetch(`/api/avaliacao-diagnostica/matriz?area=${encodeURIComponent(area)}&serie=${serieName}`)
+        fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}&serie=${serieName}`)
             .then(r => r.json())
             .then(data => {
                 setMatrizHabs(data.habilidades || []);
@@ -531,7 +519,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                         <FileText size={16} style={{ color: "#0ea5e9" }} />
                                         <span style={{ fontWeight: 700, fontSize: 14, color: "#0ea5e9" }}>
-                                            Plano de Ensino vinculado — {planoVinculado.disciplina}
+                                            Plano de Ensino do Professor — {planoVinculado.disciplina}
                                         </span>
                                     </div>
                                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
