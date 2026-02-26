@@ -26,7 +26,7 @@ export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnis
     const levels = [0, 1, 2, 3, 4] as NivelOmnisfera[];
 
     if (compact) {
-        // Compact: horizontal bar with levels
+        // Compact: horizontal level selector (no rubric content)
         return (
             <div style={{
                 display: "flex", gap: 6, flexWrap: "wrap",
@@ -40,8 +40,9 @@ export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnis
                         <button
                             key={n}
                             onClick={() => onSelect?.(n)}
+                            title={`${esc.label}: ${esc.descricao}`}
                             style={{
-                                flex: 1, minWidth: 80, padding: "8px 6px", borderRadius: 10,
+                                flex: 1, minWidth: 70, padding: "8px 6px", borderRadius: 10,
                                 border: selected ? `2px solid ${c.text}` : `1px solid ${c.border}`,
                                 background: selected ? c.bg : "transparent",
                                 cursor: onSelect ? "pointer" : "default",
@@ -60,9 +61,6 @@ export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnis
                                 {n}
                             </div>
                             <div style={{ fontSize: 10, fontWeight: 700, color: c.text }}>{esc.label}</div>
-                            <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 2, lineHeight: 1.3 }}>
-                                {esc.suporte_correspondente}
-                            </div>
                         </button>
                     );
                 })}

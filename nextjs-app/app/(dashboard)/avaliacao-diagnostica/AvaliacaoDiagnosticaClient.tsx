@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { RubricaOmnisfera } from "@/components/RubricaOmnisfera";
+import { ProvaImprimivel } from "@/components/ProvaImprimivel";
 import {
     Brain, Loader2, CheckCircle2, AlertTriangle,
     ChevronDown, ChevronUp, Sparkles, ClipboardCheck,
     ArrowLeft, Users, BookOpen, Target, Zap, FileText, Layers, Activity,
     Grid3X3, BookMarked, ChevronRight, TrendingUp,
+    Trash2, RefreshCw, Printer, FileDown,
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 
@@ -99,6 +101,8 @@ export default function AvaliacaoDiagnosticaClient() {
     const [salvando, setSalvando] = useState(false);
     const [avalError, setAvalError] = useState("");
     const [currentStep, setCurrentStep] = useState(0);
+    const [showProvaImprimivel, setShowProvaImprimivel] = useState(false);
+    const [showGabarito, setShowGabarito] = useState(false);
 
     // Plano de ensino vinculado
     const [planoVinculado, setPlanoVinculado] = useState<PlanoVinculado | null>(null);
@@ -897,6 +901,72 @@ export default function AvaliacaoDiagnosticaClient() {
                                         </div>
                                     </button>
 
+                                    {/* Per-question action buttons */}
+                                    {expandedQ === q.id && nivelIdentificado === null && (
+                                        <div style={{
+                                            display: "flex", gap: 6, padding: "6px 14px",
+                                            borderBottom: "1px solid var(--border-default, rgba(148,163,184,.08))",
+                                        }}>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setQuestoes(prev => prev.filter(qq => qq.id !== q.id));
+                                                    const newRespostas = { ...respostas };
+                                                    delete newRespostas[q.id];
+                                                    setRespostas(newRespostas);
+                                                }}
+                                                title="Apagar esta questão"
+                                                style={{
+                                                    padding: "4px 10px", borderRadius: 6, fontSize: 11,
+                                                    border: "1px solid rgba(239,68,68,.2)",
+                                                    background: "rgba(239,68,68,.05)", color: "#f87171",
+                                                    cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                                                }}
+                                            >
+                                                <Trash2 size={12} /> Apagar
+                                            </button>
+                                            <button
+                                                onClick={async (e) => {
+                                                    e.stopPropagation();
+                                                    // Regenerate single question
+                                                    try {
+                                                        const res = await fetch("/api/avaliacao-diagnostica/criar-itens", {
+                                                            method: "POST",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({
+                                                                disciplina: selectedDisc || "",
+                                                                serie: selectedAluno?.grade || "",
+                                                                habilidades: habsSelecionadas,
+                                                                qtd_questoes: 1,
+                                                                nivel_omnisfera_estimado: 1,
+                                                                diagnostico_aluno: selectedAluno?.diagnostico || "",
+                                                                nome_aluno: selectedAluno?.name || "",
+                                                                engine: "red",
+                                                            }),
+                                                        });
+                                                        const data = await res.json();
+                                                        if (data.questoes?.[0]) {
+                                                            const novaQ = data.questoes[0];
+                                                            setQuestoes(prev => prev.map(qq => qq.id === q.id ? novaQ : qq));
+                                                            const newRespostas = { ...respostas };
+                                                            delete newRespostas[q.id];
+                                                            setRespostas(newRespostas);
+                                                        }
+                                                    } catch { /* silent */ }
+                                                }}
+                                                title="Regenerar esta questão"
+                                                style={{
+                                                    padding: "4px 10px", borderRadius: 6, fontSize: 11,
+                                                    border: "1px solid rgba(99,102,241,.2)",
+                                                    background: "rgba(99,102,241,.05)", color: "#818cf8",
+                                                    cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                                                }}
+                                            >
+                                                <RefreshCw size={12} /> Regenerar
+                                            </button>
+                                        </div>
+                                    )}
+
                                     {/* Question content (expanded) */}
                                     {expandedQ === q.id && (
                                         <div style={bodyS}>
@@ -1018,6 +1088,60 @@ export default function AvaliacaoDiagnosticaClient() {
                                     <><ClipboardCheck size={20} /> Registrar respostas e calcular nível</>
                                 )}
                             </button>
+                        )}
+
+                        {/* Print / Export bar */}
+                        {questoes.length > 0 && (
+                            <div style={{
+                                ...cardS,
+                                border: "1.5px solid rgba(99,102,241,.2)",
+                                background: "rgba(99,102,241,.03)",
+                            }}>
+                                <div style={{ ...headerS, background: "rgba(99,102,241,.05)" }}>
+                                    <Printer size={16} style={{ color: "#818cf8" }} />
+                                    <span style={{ fontWeight: 700, fontSize: 13, color: "#818cf8" }}>Imprimir / Exportar Prova</span>
+                                </div>
+                                <div style={{ ...bodyS, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                                    <button
+                                        onClick={() => setShowProvaImprimivel(!showProvaImprimivel)}
+                                        style={{
+                                            padding: "8px 16px", borderRadius: 8, border: "none",
+                                            background: showProvaImprimivel ? "#4f46e5" : "linear-gradient(135deg, #6366f1, #818cf8)",
+                                            color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                                            display: "flex", alignItems: "center", gap: 6,
+                                        }}
+                                    >
+                                        <FileText size={14} />
+                                        {showProvaImprimivel ? "Fechar Preview" : "Preview da Prova"}
+                                    </button>
+                                    <label style={{
+                                        display: "flex", alignItems: "center", gap: 6,
+                                        fontSize: 12, color: "var(--text-secondary)", cursor: "pointer",
+                                    }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={showGabarito}
+                                            onChange={(e) => setShowGabarito(e.target.checked)}
+                                            style={{ width: 14, height: 14 }}
+                                        />
+                                        Incluir gabarito
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ProvaImprimivel */}
+                        {showProvaImprimivel && questoes.length > 0 && (
+                            <div style={{ ...cardS, padding: 0 }}>
+                                <ProvaImprimivel
+                                    questoes={questoes}
+                                    nomeAluno={selectedAluno?.name || ""}
+                                    serie={selectedAluno?.grade || ""}
+                                    disciplina={selectedDisc || ""}
+                                    respostas={respostas}
+                                    mostrarGabarito={showGabarito}
+                                />
+                            </div>
                         )}
 
                         {/* Regenerate button */}
