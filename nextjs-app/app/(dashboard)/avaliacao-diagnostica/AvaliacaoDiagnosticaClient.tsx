@@ -267,9 +267,13 @@ export default function AvaliacaoDiagnosticaClient() {
                 });
         }
 
-        // Fetch plano de ensino do professor (criado no PEI Professor)
-        const serieBase = aluno.grade?.replace(/\s*\(.*\)\s*$/, "").trim() || "";
-        fetch(`/api/pei/plano-ensino?disciplina=${encodeURIComponent(disciplina)}&ano_serie=${encodeURIComponent(serieBase)}`)
+        // Fetch plano de curso genérico do ANO ANTERIOR
+        // (se aluno está no 6º, a diagnóstica avalia o que deveria ter aprendido no 5º)
+        const gradeNum = parseInt(aluno.grade?.match(/\d+/)?.[0] || "6", 10);
+        const gradeAnterior = Math.max(gradeNum - 1, 1);
+        const serieAnterior = aluno.grade?.replace(/\d+/, String(gradeAnterior)).replace(/\s*\(.*\)\s*$/, "").trim() || `${gradeAnterior}º Ano`;
+
+        fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}&serie=${encodeURIComponent(serieAnterior)}`)
             .then(r => r.json())
             .then(data => {
                 const planos = data.planos || [];
@@ -284,11 +288,10 @@ export default function AvaliacaoDiagnosticaClient() {
             })
             .catch(() => { });
 
-        // Fetch matrix habilidades filtradas por componente curricular
-        const gradeNum = aluno.grade?.match(/\d+/)?.[0] || "6";
-        const serieName = `EF${gradeNum}`;
+        // Fetch matrix habilidades do ANO ANTERIOR, filtradas por componente curricular
+        const serieNameAnterior = `EF${gradeAnterior}`;
 
-        fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}&serie=${serieName}`)
+        fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}&serie=${serieNameAnterior}`)
             .then(r => r.json())
             .then(data => {
                 setMatrizHabs(data.habilidades || []);
@@ -519,7 +522,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                         <FileText size={16} style={{ color: "#0ea5e9" }} />
                                         <span style={{ fontWeight: 700, fontSize: 14, color: "#0ea5e9" }}>
-                                            Plano de Ensino do Professor — {planoVinculado.disciplina}
+                                            Plano de Curso (ano anterior) — {planoVinculado.disciplina}
                                         </span>
                                     </div>
                                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
