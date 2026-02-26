@@ -681,7 +681,7 @@ export default function AvaliacaoDiagnosticaClient() {
 
                         {!planoVinculado && (
                             <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.15)", display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#fbbf24" }}>
-                                <FileText size={16} /> Nenhum plano de ensino vinculado.
+                                <FileText size={16} /> Nenhum plano de curso genérico encontrado para esta disciplina/série.
                                 <a href="/plano-curso" style={{ color: "#38bdf8", fontWeight: 600, textDecoration: "none", marginLeft: "auto" }}>Criar plano →</a>
                             </div>
                         )}
