@@ -133,21 +133,33 @@ export async function GET(req: Request) {
         });
     }
 
-    // ── Default: Matrizes Avaliativas (393 habilidades + now also BNCC) ─
+    // ── Default: Matrizes Avaliativas — PRIORITY: Matriz Referência → BNCC ─
 
-    // Try BNCC completa first for area+serie queries
+    // Try Matriz de Referência (descritores) FIRST for area+serie queries
     if (area && serie) {
-        const bncc = loadBncc();
+        const matrizes = data.matrizes as Record<string, unknown[]> || {};
+        const areaData = matrizes[area] || [];
         const gradeNum = serie.match(/\d+/)?.[0];
+        const serieCode = gradeNum ? `EF${gradeNum}` : serie;
+        const filteredMatriz = (areaData as { serie: string }[]).filter(h => h.serie === serieCode || h.serie === serie);
 
-        // Map area names to discipline patterns
+        if (filteredMatriz.length > 0) {
+            return NextResponse.json({
+                habilidades: filteredMatriz,
+                area,
+                serie,
+                source: "matriz_referencia",
+            });
+        }
+
+        // Fallback to BNCC completa
+        const bncc = loadBncc();
         const areaToDisc: Record<string, string[]> = {
             "Matemática": ["Matemática"],
             "Linguagens": ["Língua Portuguesa", "Arte", "Educação Física", "Língua Inglesa"],
             "Ciências da Natureza": ["Ciências"],
             "Ciências Humanas": ["Geografia", "História"],
         };
-
         const disciplines = areaToDisc[area] || [area];
         const filtered = bncc.filter(h => {
             const discMatch = disciplines.some(d =>
@@ -171,15 +183,11 @@ export async function GET(req: Request) {
                 })),
                 area,
                 serie,
-                source: "bncc_completa",
+                source: "bncc_fallback",
             });
         }
 
-        // Fallback to old matrizes
-        const matrizes = data.matrizes as Record<string, unknown[]> || {};
-        const areaData = matrizes[area] || [];
-        const filteredOld = (areaData as { serie: string }[]).filter(h => h.serie === serie);
-        return NextResponse.json({ habilidades: filteredOld, area, serie, source: "matrizes_originais" });
+        return NextResponse.json({ habilidades: [], area, serie, source: "none" });
     }
 
     if (area) {

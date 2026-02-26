@@ -408,6 +408,8 @@ export default function AvaliacaoDiagnosticaClient() {
                     diagnostico_aluno: selectedAluno.diagnostico || "",
                     nome_aluno: selectedAluno.name,
                     plano_ensino_contexto: planoVinculado?.conteudo || "",
+                    alerta_nee: neeAlert || "",
+                    instrucao_uso_diagnostica: instrucaoDiag || "",
                     engine: "red",
                 }),
             });

@@ -55,6 +55,8 @@ export async function POST(req: Request) {
     const diagnostico_aluno = (body.diagnostico_aluno as string) || "";
     const nome_aluno = (body.nome_aluno as string) || "o estudante";
     const plano_ensino_contexto = (body.plano_ensino_contexto as string) || "";
+    const alerta_nee = (body.alerta_nee as string) || "";
+    const instrucao_uso_diagnostica = (body.instrucao_uso_diagnostica as string) || "";
     const nivel_omnisfera_estimado = (body.nivel_omnisfera_estimado as number) ?? 1;
     const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine as string || "")
         ? (body.engine as EngineId)
@@ -161,7 +163,15 @@ export async function POST(req: Request) {
     });
 
     // Build complete prompt (system + user)
-    const { system, user } = buildPromptCompleto(camada2, camada3);
+    let { system, user } = buildPromptCompleto(camada2, camada3);
+
+    // Enrich with NEE-specific guidance
+    if (alerta_nee) {
+        user += `\n\n--- ALERTA POR PERFIL NEE ---\n${alerta_nee}`;
+    }
+    if (instrucao_uso_diagnostica) {
+        user += `\n\n--- INSTRUÇÃO DE USO DIAGNÓSTICA ---\n${instrucao_uso_diagnostica}`;
+    }
 
     const engineErr = getEngineError(engine);
     if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });

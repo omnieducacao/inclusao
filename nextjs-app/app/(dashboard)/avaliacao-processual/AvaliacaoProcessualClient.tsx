@@ -542,6 +542,25 @@ export default function AvaliacaoProcessualClient() {
                     </div>
                 )}
 
+                {/* Diagnóstica baseline context */}
+                {relatorioIntegrado?.diagnostico_baseline?.nivel_omnisfera != null && (
+                    <div style={{
+                        display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
+                        borderRadius: 10, marginBottom: 12,
+                        background: "rgba(14,165,233,.05)", border: "1px solid rgba(14,165,233,.15)",
+                    }}>
+                        <div style={{
+                            width: 28, height: 28, borderRadius: "50%", display: "flex",
+                            alignItems: "center", justifyContent: "center",
+                            background: "linear-gradient(135deg, #0284c7, #0ea5e9)",
+                            color: "#fff", fontSize: 13, fontWeight: 800,
+                        }}>{relatorioIntegrado.diagnostico_baseline.nivel_omnisfera}</div>
+                        <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+                            Linha de base <strong>Diagnóstica</strong>: Nível {relatorioIntegrado.diagnostico_baseline.nivel_omnisfera}
+                        </div>
+                    </div>
+                )}
+
                 {/* Habilidades list */}
                 <div style={{ ...cardS, marginBottom: 20 }}>
                     <div style={{ ...headerS, background: "rgba(16,185,129,.05)" }}>
