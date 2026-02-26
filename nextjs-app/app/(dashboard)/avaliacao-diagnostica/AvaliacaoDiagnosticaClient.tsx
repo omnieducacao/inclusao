@@ -7,7 +7,7 @@ import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import {
     Brain, Loader2, CheckCircle2, AlertTriangle,
-    ChevronDown, ChevronUp, Sparkles,
+    ChevronDown, ChevronUp, Sparkles, Save, ClipboardList, BarChart3,
     ArrowLeft, Users, BookOpen, Target, Zap, FileText, Layers, Activity,
     Grid3X3, BookMarked, ChevronRight, TrendingUp, Image,
 } from "lucide-react";
@@ -122,6 +122,15 @@ export default function AvaliacaoDiagnosticaClient() {
     const [mapaImagensResultado, setMapaImagensResultado] = useState<Record<number, string>>({});
     const [formatoInclusivo, setFormatoInclusivo] = useState(false);
     const [validadoFormatado, setValidadoFormatado] = useState(false);
+
+    // ─── Gabarito de Respostas ────────────────────────────────────────────
+    const [avaliacaoSalvaId, setAvaliacaoSalvaId] = useState<string | null>(null);
+    const [salvandoAvaliacao, setSalvandoAvaliacao] = useState(false);
+    const [respostasAluno, setRespostasAluno] = useState<Record<string, string>>({});
+    const [showGabarito, setShowGabarito] = useState(false);
+    const [analisando, setAnalisando] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [analiseResultado, setAnaliseResultado] = useState<Record<string, any> | null>(null);
 
 
     // ─── Camada B: Cognitivo-Funcional ───────────────────────────────────
@@ -312,6 +321,135 @@ export default function AvaliacaoDiagnosticaClient() {
         setEstrategiasGeradas(null);
         setEvolucaoProcessual([]);
         setShowProcessual(false);
+        setAvaliacaoSalvaId(null);
+        setRespostasAluno({});
+        setShowGabarito(false);
+        setAnaliseResultado(null);
+    };
+
+    // ─── Salvar Avaliação no Supabase ────────────────────────────────────
+    const salvarAvaliacao = async () => {
+        if (!selectedAluno || !selectedDisc || !resultadoFormatado) return;
+        setSalvandoAvaliacao(true);
+        try {
+            const res = await fetch("/api/pei/avaliacao-diagnostica", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    studentId: selectedAluno.id,
+                    disciplina: selectedDisc,
+                    habilidades_bncc: (habsSelecionadas.length > 0 ? habsSelecionadas : matrizHabs.slice(0, 4).map(h => h.habilidade)).map(h => ({
+                        codigo: h,
+                        disciplina: selectedDisc,
+                        unidade_tematica: "",
+                        objeto_conhecimento: "",
+                        habilidade: h,
+                        nivel_cognitivo_saeb: "",
+                    })),
+                    nivel_omnisfera_estimado: nivelIdentificado || 1,
+                    plano_ensino_id: planoVinculado?.id || undefined,
+                    plano_ensino_contexto: resultadoFormatado,
+                    quantidade: qtdQuestoes,
+                    perfil_aluno: {
+                        id: selectedAluno.id,
+                        nome_primeiro: selectedAluno.name?.split(" ")[0] || "Estudante",
+                        ano_matricula: selectedAluno.grade || "6º Ano",
+                        ano_referencia_pei: selectedAluno.grade || "6º Ano",
+                        perfil_nee_primario: selectedAluno.diagnostico || "SEM_NEE",
+                        canal_comunicacao: "verbal",
+                        recursos_assistivos: [],
+                        suporte_atual: "S2",
+                    },
+                }),
+            });
+            const data = await res.json();
+            if (data.ok && data.avaliacao?.id) {
+                setAvaliacaoSalvaId(data.avaliacao.id);
+                setValidadoFormatado(true);
+            }
+        } catch { /* silent */ }
+        setSalvandoAvaliacao(false);
+    };
+
+    // ─── Analisar Respostas + Calcular Nível ─────────────────────────────
+    const analisarRespostas = async () => {
+        if (!avaliacaoSalvaId || Object.keys(respostasAluno).length === 0) return;
+        setAnalisando(true);
+        try {
+            // Parse questions from the formatted result to get gabarito
+            const questoes = extrairQuestoes(resultadoFormatado || "");
+            const totalQ = questoes.length;
+            let acertos = 0;
+            const distratoresAtivados: { questao: number; marcada: string; correta: string; habilidade: string }[] = [];
+            const habDominadas: string[] = [];
+            const habDesenvolvimento: string[] = [];
+
+            questoes.forEach((q, i) => {
+                const marcada = respostasAluno[`q${i + 1}`];
+                if (marcada === q.gabarito) {
+                    acertos++;
+                    if (q.habilidade && !habDominadas.includes(q.habilidade)) habDominadas.push(q.habilidade);
+                } else if (marcada) {
+                    distratoresAtivados.push({
+                        questao: i + 1,
+                        marcada,
+                        correta: q.gabarito,
+                        habilidade: q.habilidade || `Questão ${i + 1}`,
+                    });
+                    if (q.habilidade && !habDesenvolvimento.includes(q.habilidade)) habDesenvolvimento.push(q.habilidade);
+                }
+            });
+
+            const score = totalQ > 0 ? Math.round((acertos / totalQ) * 100) : 0;
+            // Map score to Omnisfera level (0-4)
+            const nivel = score >= 90 ? 4 : score >= 70 ? 3 : score >= 50 ? 2 : score >= 25 ? 1 : 0;
+
+            const analise = {
+                total: totalQ,
+                acertos,
+                score,
+                nivel,
+                distratores: distratoresAtivados,
+                hab_dominadas: habDominadas,
+                hab_desenvolvimento: habDesenvolvimento,
+            };
+
+            setAnaliseResultado(analise);
+            setNivelIdentificado(nivel);
+
+            // Persist to Supabase
+            await fetch("/api/pei/avaliacao-diagnostica", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: avaliacaoSalvaId,
+                    resultados: {
+                        respostas: respostasAluno,
+                        analise,
+                    },
+                    nivel_omnisfera_identificado: nivel,
+                    status: "aplicada",
+                }),
+            });
+        } catch { /* silent */ }
+        setAnalisando(false);
+    };
+
+    // ─── Helper: extrair questões do markdown ─────────────────────────────
+    const extrairQuestoes = (texto: string): { gabarito: string; habilidade: string }[] => {
+        const questoes: { gabarito: string; habilidade: string }[] = [];
+        // Match patterns like "Gabarito: A" or "**Gabarito:** A" or "Resposta correta: B"
+        const gabRegex = /(?:gabarito|resposta\s*correta)[:\s]*\**([A-D])\**/gi;
+        const habRegex = /(?:habilidade|BNCC)[:\s]*\**([^\n*]+)/gi;
+        const gabs: string[] = [];
+        const habs: string[] = [];
+        let m: RegExpExecArray | null;
+        while ((m = gabRegex.exec(texto)) !== null) gabs.push(m[1].toUpperCase());
+        while ((m = habRegex.exec(texto)) !== null) habs.push(m[1].trim());
+        for (let i = 0; i < gabs.length; i++) {
+            questoes.push({ gabarito: gabs[i], habilidade: habs[i] || "" });
+        }
+        return questoes;
     };
 
     // ─── Generate Perfil de Funcionamento ────────────────────────────────
@@ -853,12 +991,14 @@ export default function AvaliacaoDiagnosticaClient() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                         {!validadoFormatado && (
                             <div style={{ display: "flex", gap: 8 }}>
-                                <button onClick={() => setValidadoFormatado(true)} style={{
-                                    padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer",
-                                    background: "linear-gradient(135deg, #059669, #10b981)", color: "#fff", fontSize: 13, fontWeight: 700,
+                                <button onClick={salvarAvaliacao} disabled={salvandoAvaliacao} style={{
+                                    padding: "8px 16px", borderRadius: 8, border: "none", cursor: salvandoAvaliacao ? "wait" : "pointer",
+                                    background: salvandoAvaliacao ? "#94a3b8" : "linear-gradient(135deg, #059669, #10b981)",
+                                    color: "#fff", fontSize: 13, fontWeight: 700,
                                     display: "flex", alignItems: "center", gap: 6,
                                 }}>
-                                    <CheckCircle2 size={14} /> Validar Atividade
+                                    {salvandoAvaliacao ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                                    {salvandoAvaliacao ? "Salvando..." : "Validar e Salvar Avaliação"}
                                 </button>
                                 <button onClick={() => { setResultadoFormatado(null); setValidadoFormatado(false); }} style={{
                                     padding: "8px 16px", borderRadius: 8, cursor: "pointer",
@@ -870,10 +1010,200 @@ export default function AvaliacaoDiagnosticaClient() {
                             </div>
                         )}
                         {validadoFormatado && (
-                            <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(16,185,129,.08)", border: "1px solid rgba(16,185,129,.2)", color: "#10b981", fontSize: 13, fontWeight: 600 }}>
-                                ✅ ATIVIDADE VALIDADA E PRONTA PARA USO
+                            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(16,185,129,.08)", border: "1px solid rgba(16,185,129,.2)", color: "#10b981", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                                    <CheckCircle2 size={14} /> AVALIAÇÃO SALVA — Imprima, aplique e lance as respostas abaixo
+                                </div>
+                                {/* Toggle gabarito */}
+                                <button onClick={() => setShowGabarito(!showGabarito)} style={{
+                                    padding: "12px 18px", borderRadius: 10, border: "2px solid rgba(99,102,241,.2)",
+                                    background: showGabarito ? "rgba(99,102,241,.08)" : "transparent",
+                                    color: "#818cf8", fontSize: 14, fontWeight: 700, cursor: "pointer",
+                                    display: "flex", alignItems: "center", gap: 8,
+                                }}>
+                                    <ClipboardList size={16} />
+                                    {showGabarito ? "Ocultar Gabarito" : "📋 Lançar Respostas do Estudante"}
+                                </button>
                             </div>
                         )}
+
+                        {/* ── Gabarito de Respostas ──────────────────────────── */}
+                        {showGabarito && validadoFormatado && (() => {
+                            const questoes = extrairQuestoes(resultadoFormatado || "");
+                            const totalQ = questoes.length || qtdQuestoes;
+                            return (
+                                <div style={{
+                                    ...cardS,
+                                    border: "2px solid rgba(99,102,241,.2)",
+                                    background: "rgba(99,102,241,.02)",
+                                }}>
+                                    <div style={{ ...headerS, background: "rgba(99,102,241,.05)" }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                            <ClipboardList size={16} style={{ color: "#818cf8" }} />
+                                            <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>
+                                                Gabarito — Respostas do Estudante
+                                            </span>
+                                        </div>
+                                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                            {Object.keys(respostasAluno).length} de {totalQ} respondidas
+                                        </span>
+                                    </div>
+                                    <div style={{ ...bodyS, display: "flex", flexDirection: "column", gap: 10 }}>
+                                        {Array.from({ length: totalQ }, (_, i) => {
+                                            const qKey = `q${i + 1}`;
+                                            const marcada = respostasAluno[qKey];
+                                            const gabCorreto = questoes[i]?.gabarito;
+                                            const temAnalise = !!analiseResultado;
+                                            return (
+                                                <div key={i} style={{
+                                                    display: "flex", alignItems: "center", gap: 10,
+                                                    padding: "8px 12px", borderRadius: 8,
+                                                    background: temAnalise && marcada
+                                                        ? (marcada === gabCorreto ? "rgba(16,185,129,.06)" : "rgba(239,68,68,.06)")
+                                                        : "transparent",
+                                                    border: temAnalise && marcada
+                                                        ? `1px solid ${marcada === gabCorreto ? "rgba(16,185,129,.2)" : "rgba(239,68,68,.2)"}`
+                                                        : "1px solid var(--border-default, rgba(148,163,184,.1))",
+                                                }}>
+                                                    <span style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", minWidth: 32 }}>
+                                                        Q{i + 1}
+                                                    </span>
+                                                    {["A", "B", "C", "D"].map(alt => {
+                                                        const isSelected = marcada === alt;
+                                                        const isCorrect = temAnalise && alt === gabCorreto;
+                                                        const isWrong = temAnalise && isSelected && alt !== gabCorreto;
+                                                        return (
+                                                            <button
+                                                                key={alt}
+                                                                onClick={() => {
+                                                                    if (analiseResultado) return; // Locked after analysis
+                                                                    setRespostasAluno(prev => ({ ...prev, [qKey]: alt }));
+                                                                }}
+                                                                style={{
+                                                                    width: 36, height: 36, borderRadius: 8,
+                                                                    border: isSelected
+                                                                        ? `2px solid ${isWrong ? "#ef4444" : isCorrect ? "#10b981" : "#818cf8"}`
+                                                                        : isCorrect ? "2px solid #10b981" : "1px solid var(--border-default, rgba(148,163,184,.15))",
+                                                                    background: isSelected
+                                                                        ? (isWrong ? "rgba(239,68,68,.1)" : isCorrect ? "rgba(16,185,129,.1)" : "rgba(99,102,241,.1)")
+                                                                        : isCorrect ? "rgba(16,185,129,.06)" : "transparent",
+                                                                    color: isSelected
+                                                                        ? (isWrong ? "#ef4444" : isCorrect ? "#10b981" : "#818cf8")
+                                                                        : isCorrect ? "#10b981" : "var(--text-secondary, #94a3b8)",
+                                                                    fontWeight: 700, fontSize: 13,
+                                                                    cursor: analiseResultado ? "default" : "pointer",
+                                                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                                                    transition: "all .15s",
+                                                                }}
+                                                            >
+                                                                {alt}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                    {temAnalise && marcada && (
+                                                        <span style={{ fontSize: 12, marginLeft: 4 }}>
+                                                            {marcada === gabCorreto ? "✅" : `❌ (${gabCorreto})`}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+
+                                        {/* Actions */}
+                                        {!analiseResultado ? (
+                                            <button
+                                                onClick={analisarRespostas}
+                                                disabled={analisando || Object.keys(respostasAluno).length === 0}
+                                                style={{
+                                                    width: "100%", padding: "14px 20px", borderRadius: 10,
+                                                    background: analisando ? "#94a3b8" : "linear-gradient(135deg, #6366f1, #818cf8)",
+                                                    color: "#fff", border: "none", fontSize: 14, fontWeight: 700,
+                                                    cursor: analisando ? "wait" : "pointer",
+                                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                                    opacity: Object.keys(respostasAluno).length === 0 ? 0.5 : 1,
+                                                }}
+                                            >
+                                                {analisando ? <Loader2 size={16} className="animate-spin" /> : <BarChart3 size={16} />}
+                                                {analisando ? "Analisando..." : "Salvar e Analisar Respostas"}
+                                            </button>
+                                        ) : (
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+                                                {/* Score + Level */}
+                                                <div style={{
+                                                    display: "flex", gap: 12, flexWrap: "wrap",
+                                                }}>
+                                                    <div style={{
+                                                        flex: 1, minWidth: 120, padding: "14px 16px", borderRadius: 10,
+                                                        background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.15)",
+                                                        textAlign: "center",
+                                                    }}>
+                                                        <div style={{ fontSize: 28, fontWeight: 800, color: "#818cf8" }}>
+                                                            {analiseResultado.score}%
+                                                        </div>
+                                                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                                            {analiseResultado.acertos}/{analiseResultado.total} acertos
+                                                        </div>
+                                                    </div>
+                                                    <div style={{
+                                                        flex: 1, minWidth: 120, padding: "14px 16px", borderRadius: 10,
+                                                        background: `rgba(${analiseResultado.nivel >= 3 ? "16,185,129" : analiseResultado.nivel >= 2 ? "245,158,11" : "239,68,68"},.06)`,
+                                                        border: `1px solid rgba(${analiseResultado.nivel >= 3 ? "16,185,129" : analiseResultado.nivel >= 2 ? "245,158,11" : "239,68,68"},.15)`,
+                                                        textAlign: "center",
+                                                    }}>
+                                                        <div style={{
+                                                            fontSize: 28, fontWeight: 800,
+                                                            color: analiseResultado.nivel >= 3 ? "#10b981" : analiseResultado.nivel >= 2 ? "#f59e0b" : "#ef4444",
+                                                        }}>
+                                                            N{analiseResultado.nivel}
+                                                        </div>
+                                                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                                            {ESCALA_OMNISFERA[analiseResultado.nivel as NivelOmnisfera]?.label || ""}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Habilidades */}
+                                                {analiseResultado.hab_dominadas?.length > 0 && (
+                                                    <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.15)" }}>
+                                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981" }}>✅ Habilidades Dominadas</span>
+                                                        <div style={{ marginTop: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                                            {(analiseResultado.hab_dominadas as string[]).map((h: string, i: number) => (
+                                                                <span key={i} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,.1)", color: "#10b981", fontWeight: 600 }}>{h}</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {analiseResultado.hab_desenvolvimento?.length > 0 && (
+                                                    <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.15)" }}>
+                                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b" }}>🔄 Em Desenvolvimento</span>
+                                                        <div style={{ marginTop: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                                            {(analiseResultado.hab_desenvolvimento as string[]).map((h: string, i: number) => (
+                                                                <span key={i} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(245,158,11,.1)", color: "#f59e0b", fontWeight: 600 }}>{h}</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Distratores */}
+                                                {analiseResultado.distratores?.length > 0 && (
+                                                    <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(239,68,68,.04)", border: "1px solid rgba(239,68,68,.12)" }}>
+                                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#ef4444" }}>🔍 Análise de Distratores</span>
+                                                        <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 4 }}>
+                                                            {(analiseResultado.distratores as { questao: number; marcada: string; correta: string; habilidade: string }[]).map((d, i) => (
+                                                                <div key={i} style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                                                                    <strong>Q{d.questao}</strong>: marcou <strong style={{ color: "#ef4444" }}>{d.marcada}</strong>, correto era <strong style={{ color: "#10b981" }}>{d.correta}</strong>
+                                                                    {d.habilidade && <span style={{ color: "var(--text-muted)" }}> — {d.habilidade}</span>}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                         <div style={{
                             ...cardS, padding: 0,
                             border: "2px solid rgba(99,102,241,.2)",

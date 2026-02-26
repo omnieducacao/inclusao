@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     const sb = getSupabase();
 
-    // ── 1. Fetch Plano de Curso ──────────────────────────────────────────
+    // ── 1. Fetch Plano de Curso genérico (da turma) ────────────────────────
 
     let planoContexto = "";
     let habsPlano: string[] = [];
@@ -65,51 +65,98 @@ export async function POST(req: Request) {
             const plano = data[0];
             habsPlano = (plano.habilidades_bncc || []) as string[];
             const conteudo = plano.conteudo || "";
-            planoContexto = `Plano de Curso do professor (${plano.professor_nome || ""}):
+            planoContexto = `Plano de Ensino do Professor (${plano.professor_nome || ""}):
 Disciplina: ${plano.disciplina}, Série: ${plano.ano_serie}
 Habilidades BNCC selecionadas: ${habsPlano.join(", ")}
 ${conteudo ? `Conteúdo: ${typeof conteudo === "string" ? conteudo.slice(0, 800) : JSON.stringify(conteudo).slice(0, 800)}` : ""}`;
         }
     } catch { /* table may not exist */ }
 
-    // ── 2. Fetch Diagnóstica resultado ───────────────────────────────────
+    // ── 2. Fetch PEI Parte 1 (barreiras, potencialidades, perfil) ────────
+
+    let peiContexto = "";
+    try {
+        const { data: studentData } = await sb
+            .from("students")
+            .select("name, grade, diagnosis, pei_data")
+            .eq("id", student_id)
+            .eq("workspace_id", session.workspace_id)
+            .single();
+
+        if (studentData?.pei_data) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const pei = studentData.pei_data as Record<string, any>;
+            const peiBarreiras = pei.barreiras_selecionadas || barreiras;
+            const peiPotencias = pei.potencias || potencialidades;
+            const peiDiag = pei.diagnostico || diagnostico;
+
+            const barreirasStr = Object.entries(peiBarreiras)
+                .filter(([, v]) => (v as string[])?.length > 0)
+                .map(([dom, items]) => `  ${dom}: ${(items as string[]).join(", ")}`)
+                .join("\n");
+
+            peiContexto = `PEI PARTE 1 — Perfil do Estudante:
+- Diagnóstico clínico: ${peiDiag || "não informado"}
+- Potencialidades: ${Array.isArray(peiPotencias) && peiPotencias.length > 0 ? peiPotencias.join(", ") : "não informadas"}
+${barreirasStr ? `- Barreiras identificadas:\n${barreirasStr}` : ""}
+${pei.observacao_professor ? `- Observação do professor: ${pei.observacao_professor}` : ""}
+${pei.hipotese_diagnostica ? `- Hipótese diagnóstica: ${pei.hipotese_diagnostica}` : ""}`;
+        }
+    } catch { /* silent */ }
+
+    // ── 3. Fetch Diagnóstica resultado (com análise de distratores) ──────
 
     let nivelDiag: number | null = nivel_omnisfera ?? null;
     let diagContexto = "";
 
-    if (nivelDiag === null) {
-        try {
-            const { data: peis } = await sb
-                .from("peis")
-                .select("avaliacoes_diagnosticas")
-                .eq("workspace_id", session.workspace_id)
-                .eq("student_id", student_id)
-                .order("updated_at", { ascending: false })
-                .limit(1);
+    try {
+        const { data: avs } = await sb
+            .from("avaliacoes_diagnosticas")
+            .select("*")
+            .eq("student_id", student_id)
+            .eq("workspace_id", session.workspace_id)
+            .order("created_at", { ascending: false })
+            .limit(5);
 
-            if (peis?.[0]) {
-                const avs = (peis[0].avaliacoes_diagnosticas || []) as Array<{
-                    disciplina: string; nivel_omnisfera_identificado?: number; status?: string;
-                }>;
-                const match = avs.find(a =>
-                    a.disciplina?.toLowerCase().includes(disciplina.toLowerCase()) ||
-                    disciplina.toLowerCase().includes(a.disciplina?.toLowerCase() || "")
-                );
-                if (match?.nivel_omnisfera_identificado != null) {
+        if (avs?.length) {
+            const match = disciplina
+                ? avs.find(a => a.disciplina?.toLowerCase().includes(disciplina.toLowerCase()))
+                : avs[0];
+
+            if (match) {
+                if (match.nivel_omnisfera_identificado != null) {
                     nivelDiag = match.nivel_omnisfera_identificado;
                 }
-            }
-        } catch { /* silent */ }
-    }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const resultados = match.resultados as Record<string, any> | null;
+                const analise = resultados?.analise;
 
-    if (nivelDiag !== null) {
+                if (analise) {
+                    const distTexto = (analise.distratores || [])
+                        .map((d: { questao: number; marcada: string; correta: string; habilidade: string }) =>
+                            `Q${d.questao}: marcou ${d.marcada} (correto: ${d.correta}) — ${d.habilidade}`)
+                        .join("\n  ");
+
+                    diagContexto = `RESULTADO DA AVALIAÇÃO DIAGNÓSTICA (${match.disciplina}):
+- Score: ${analise.score}% (${analise.acertos}/${analise.total} acertos)
+- Nível Omnisfera: ${analise.nivel}
+- Habilidades dominadas: ${(analise.hab_dominadas || []).join(", ") || "nenhuma identificada"}
+- Habilidades em desenvolvimento: ${(analise.hab_desenvolvimento || []).join(", ") || "nenhuma"}
+${distTexto ? `- Análise de distratores (erros revelam barreiras cognitivas):\n  ${distTexto}` : ""}`;
+                }
+            }
+        }
+    } catch { /* silent */ }
+
+    // Fallback if no analysis but we have a level
+    if (!diagContexto && nivelDiag !== null) {
         const esc = ESCALA_OMNISFERA[nivelDiag as NivelOmnisfera];
         diagContexto = `Resultado da Diagnóstica: Nível Omnisfera ${nivelDiag} — ${esc?.label || ""} (${esc?.descricao || ""})
 Suporte correspondente: ${esc?.suporte_correspondente || ""}
 Instrumento recomendado: ${esc?.instrumento_recomendado || ""}`;
     }
 
-    // ── 3. Build PEI context ────────────────────────────────────────────
+    // ── 4. Build enriched context ───────────────────────────────────────
 
     const barreirasTexto = Object.entries(barreiras)
         .filter(([, v]) => v?.length > 0)
@@ -118,7 +165,7 @@ Instrumento recomendado: ${esc?.instrumento_recomendado || ""}`;
 
     const potTexto = potencialidades.length > 0 ? potencialidades.join(", ") : "não informadas";
 
-    // ── 4. Generate AI suggestions ──────────────────────────────────────
+    // ── 5. Generate AI suggestions (3 insumos) ──────────────────────────
 
     const prompt = `Você é um especialista em educação inclusiva brasileira.
 
@@ -126,22 +173,27 @@ CONTEXTO DO ESTUDANTE:
 - Nome: ${nome_aluno}
 - Série: ${serie}
 - Diagnóstico: ${diagnostico || "não informado"}
-${diagContexto ? `\n${diagContexto}` : ""}
 - Potencialidades: ${potTexto}
 ${barreirasTexto ? `- Barreiras identificadas:\n${barreirasTexto}` : ""}
 
-${planoContexto ? `\nPLANO DE CURSO DA TURMA:\n${planoContexto}` : ""}
+${peiContexto ? `\n${peiContexto}\n` : ""}
 
-COM BASE NO PLANO DE CURSO DA TURMA E NO NÍVEL DO ESTUDANTE, gere adaptações INDIVIDUALIZADAS para o PEI.
+${planoContexto ? `\nPLANO DE ENSINO DO PROFESSOR:\n${planoContexto}\n` : ""}
+
+${diagContexto ? `\n${diagContexto}\n` : ""}
+
+COM BASE NOS 3 INSUMOS ACIMA (Plano de Ensino + PEI Parte 1 + Diagnóstica), gere adaptações INDIVIDUALIZADAS para o PEI deste estudante.
+
+IMPORTANTE: Use a análise de distratores para identificar as barreiras cognitivas específicas e direcionar as estratégias.
 
 Responda APENAS em JSON válido:
 {
-  "resumo_adaptacao": "Parágrafo explicando POR QUE estas adaptações são necessárias para ESTE aluno",
+  "resumo_adaptacao": "Parágrafo explicando POR QUE estas adaptações são necessárias para ESTE aluno, incluindo referências ao resultado da diagnóstica",
   "estrategias_acesso": ["item1", "item2"],
   "estrategias_ensino": ["item1", "item2"],
   "estrategias_avaliacao": ["item1", "item2"],
   "objetivos_individualizados": "Parágrafo com os objetivos de aprendizagem adaptados para o nível do estudante",
-  "metodologia_adaptada": "Como adaptar as metodologias do plano de curso para este aluno",
+  "metodologia_adaptada": "Como adaptar as metodologias do plano de ensino para este aluno",
   "habilidades_prioritarias": ["hab1", "hab2"],
   "alertas": ["alerta1"]
 }
