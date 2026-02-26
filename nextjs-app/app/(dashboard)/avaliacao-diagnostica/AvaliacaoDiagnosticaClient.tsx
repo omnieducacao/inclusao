@@ -2,16 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { RubricaOmnisfera } from "@/components/RubricaOmnisfera";
-import { ProvaImprimivel } from "@/components/ProvaImprimivel";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import {
     Brain, Loader2, CheckCircle2, AlertTriangle,
-    ChevronDown, ChevronUp, Sparkles, ClipboardCheck,
+    ChevronDown, ChevronUp, Sparkles,
     ArrowLeft, Users, BookOpen, Target, Zap, FileText, Layers, Activity,
-    Grid3X3, BookMarked, ChevronRight, TrendingUp,
-    Trash2, RefreshCw, Printer, FileDown, Image,
+    Grid3X3, BookMarked, ChevronRight, TrendingUp, Image,
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 
@@ -45,16 +43,6 @@ interface Aluno {
     }[];
 }
 
-interface Questao {
-    id: string;
-    enunciado: string;
-    alternativas: { A: string; B: string; C: string; D: string };
-    gabarito: string;
-    justificativa_pedagogica: string;
-    instrucao_aplicacao_professor: string;
-    contexto_visual_sugerido?: string | null;
-    adaptacao_nee_aplicada?: string;
-}
 
 interface PlanoVinculado {
     id: string;
@@ -108,16 +96,8 @@ export default function AvaliacaoDiagnosticaClient() {
 
     // Avaliação state
     const [gerando, setGerando] = useState(false);
-    const [questoes, setQuestoes] = useState<Questao[]>([]);
-    const [avaliacaoId, setAvaliacaoId] = useState<string | null>(null);
-    const [respostas, setRespostas] = useState<Record<string, string>>({});
     const [nivelIdentificado, setNivelIdentificado] = useState<number | null>(null);
-    const [expandedQ, setExpandedQ] = useState<string | null>(null);
-    const [salvando, setSalvando] = useState(false);
     const [avalError, setAvalError] = useState("");
-    const [currentStep, setCurrentStep] = useState(0);
-    const [showProvaImprimivel, setShowProvaImprimivel] = useState(false);
-    const [showGabarito, setShowGabarito] = useState(false);
 
     // Plano de ensino vinculado
     const [planoVinculado, setPlanoVinculado] = useState<PlanoVinculado | null>(null);
@@ -142,7 +122,7 @@ export default function AvaliacaoDiagnosticaClient() {
     const [mapaImagensResultado, setMapaImagensResultado] = useState<Record<number, string>>({});
     const [formatoInclusivo, setFormatoInclusivo] = useState(false);
     const [validadoFormatado, setValidadoFormatado] = useState(false);
-    const [gerandoFormatado, setGerandoFormatado] = useState(false);
+
 
     // ─── Camada B: Cognitivo-Funcional ───────────────────────────────────
     const [dimensoesNEE, setDimensoesNEE] = useState<Array<{
@@ -233,12 +213,6 @@ export default function AvaliacaoDiagnosticaClient() {
             const avs = data.avaliacoes || [];
             if (avs.length > 0) {
                 const av = avs[0];
-                setAvaliacaoId(av.id);
-                const qg = av.questoes_geradas;
-                if (qg?.questoes) {
-                    setQuestoes(qg.questoes);
-                }
-                if (av.resultados) setRespostas(av.resultados as Record<string, string>);
                 if (av.nivel_omnisfera_identificado != null) setNivelIdentificado(av.nivel_omnisfera_identificado);
             }
         } catch { /* silent */ }
@@ -249,13 +223,8 @@ export default function AvaliacaoDiagnosticaClient() {
     const openAvaliacao = useCallback((aluno: Aluno, disciplina: string) => {
         setSelectedAluno(aluno);
         setSelectedDisc(disciplina);
-        setQuestoes([]);
-        setRespostas({});
         setNivelIdentificado(null);
-        setAvaliacaoId(null);
-        setExpandedQ(null);
         setAvalError("");
-        setCurrentStep(0);
         setPlanoVinculado(null);
         setBlocosPlano([]);
         setShowMatrix(false);
@@ -342,11 +311,7 @@ export default function AvaliacaoDiagnosticaClient() {
     const goBack = () => {
         setSelectedAluno(null);
         setSelectedDisc(null);
-        setQuestoes([]);
-        setRespostas({});
         setNivelIdentificado(null);
-        setAvaliacaoId(null);
-        setCurrentStep(0);
         setPlanoVinculado(null);
         setBlocosPlano([]);
         setDimensoesNEE([]);
@@ -419,100 +384,7 @@ export default function AvaliacaoDiagnosticaClient() {
 
     // ─── Generate avaliação ─────────────────────────────────────────────
 
-    const gerarAvaliacao = async () => {
-        if (!selectedAluno || !selectedDisc) return;
-        setGerando(true);
-        setAvalError("");
-        setQuestoes([]);
 
-        try {
-            // Use the new criar-itens API with matrix habilidades
-            const res = await fetch("/api/avaliacao-diagnostica/criar-itens", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    disciplina: selectedDisc,
-                    serie: selectedAluno.grade || "",
-                    habilidades_selecionadas: habsSelecionadas.length > 0
-                        ? habsSelecionadas
-                        : matrizHabs.slice(0, 6).map(h => h.habilidade),
-                    qtd_questoes: qtdQuestoes,
-                    tipo_questao: tipoQuestao,
-                    diagnostico_aluno: selectedAluno.diagnostico || "",
-                    nome_aluno: selectedAluno.name,
-                    plano_ensino_contexto: planoVinculado?.conteudo || "",
-                    alerta_nee: neeAlert || "",
-                    instrucao_uso_diagnostica: instrucaoDiag || "",
-                    engine: "red",
-                }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-
-            // Try parsed questoes first
-            if (data.questoes?.questoes) {
-                setQuestoes(data.questoes.questoes);
-                setCurrentStep(1);
-                // Save to database via existing API
-                try {
-                    const saveRes = await fetch("/api/pei/avaliacao-diagnostica", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            studentId: selectedAluno.id,
-                            disciplina: selectedDisc,
-                            questoes_geradas: data.questoes,
-                            habilidades_bncc: habsSelecionadas,
-                        }),
-                    });
-                    const saveData = await saveRes.json();
-                    if (saveData.avaliacao?.id) setAvaliacaoId(saveData.avaliacao.id);
-                } catch { /* save silently */ }
-            } else {
-                setAvalError("Resposta da IA não está no formato esperado. Tente novamente.");
-            }
-        } catch (err) {
-            setAvalError(err instanceof Error ? err.message : "Erro ao gerar avaliação");
-        } finally { setGerando(false); }
-    };
-
-    // ─── Save results ───────────────────────────────────────────────────
-
-    const salvarResultados = async () => {
-        if (!avaliacaoId) return;
-        setSalvando(true);
-
-        let acertos = 0;
-        for (const q of questoes) {
-            if (respostas[q.id] === q.gabarito) acertos++;
-        }
-        const percentual = questoes.length > 0 ? acertos / questoes.length : 0;
-        let nivel: NivelOmnisfera = 0;
-        if (percentual >= 0.9) nivel = 4;
-        else if (percentual >= 0.7) nivel = 3;
-        else if (percentual >= 0.5) nivel = 2;
-        else if (percentual >= 0.25) nivel = 1;
-        else nivel = 0;
-
-        try {
-            const res = await fetch("/api/pei/avaliacao-diagnostica", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: avaliacaoId,
-                    resultados: respostas,
-                    nivel_omnisfera_identificado: nivel,
-                    status: "aplicada",
-                }),
-            });
-            if (!res.ok) throw new Error("Erro ao salvar");
-            setNivelIdentificado(nivel);
-            setCurrentStep(questoes.length + 1); // Go to results step
-            fetchAlunos(); // Refresh list
-        } catch (err) {
-            setAvalError(err instanceof Error ? err.message : "Erro ao salvar resultados");
-        } finally { setSalvando(false); }
-    };
 
     // ─── Loading ────────────────────────────────────────────────────────
 
@@ -542,9 +414,6 @@ export default function AvaliacaoDiagnosticaClient() {
     // ─── Avaliação View (student selected) ──────────────────────────────
 
     if (selectedAluno && selectedDisc) {
-        const totalSteps = questoes.length + 2; // intro + questions + results
-        const allAnswered = questoes.length > 0 && Object.keys(respostas).length >= questoes.length;
-
         return (
             <div style={{ maxWidth: 900, margin: "0 auto" }}>
                 {/* Breadcrumb */}
@@ -633,8 +502,8 @@ export default function AvaliacaoDiagnosticaClient() {
                     </div>
                 )}
 
-                {/* Rubrica reference — shows before assessment or after level is identified */}
-                {(nivelIdentificado !== null || (questoes.length === 0 && !gerando)) && (
+                {/* Rubrica reference */}
+                {(nivelIdentificado !== null || !gerando) && (
                     <div style={{ marginBottom: 20 }}>
                         <RubricaOmnisfera
                             nivelAtual={nivelIdentificado !== null ? nivelIdentificado as 0 | 1 | 2 | 3 | 4 : undefined}
@@ -642,8 +511,8 @@ export default function AvaliacaoDiagnosticaClient() {
                     </div>
                 )}
 
-                {/* Step 0: Plano de Ensino context + Matrix picker + Generate button */}
-                {questoes.length === 0 && !gerando && nivelIdentificado === null && (
+                {/* Step 0: Config + Generate */}
+                {!resultadoFormatado && !gerando && nivelIdentificado === null && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                         {/* Plano de Ensino vinculado */}
                         {planoVinculado && (
@@ -905,104 +774,91 @@ export default function AvaliacaoDiagnosticaClient() {
                                     </details>
                                 </div>
 
-                                {/* Two generate buttons */}
-                                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                                    <button onClick={gerarAvaliacao} style={{
-                                        flex: 1, padding: "14px 20px", borderRadius: 12,
-                                        background: "linear-gradient(135deg, #2563eb, #3b82f6)",
-                                        color: "#fff", border: "none", cursor: "pointer",
-                                        fontWeight: 700, fontSize: 14,
-                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                                        boxShadow: "0 4px 20px rgba(37,99,235,.3)",
-                                    }}>
-                                        <Sparkles size={18} /> Gerar Avaliação Interativa
-                                    </button>
-                                    <button onClick={async () => {
-                                        if (!selectedAluno || !selectedDisc) return;
-                                        setGerandoFormatado(true);
-                                        setResultadoFormatado(null);
-                                        setMapaImagensResultado({});
-                                        setValidadoFormatado(false);
-                                        try {
-                                            const verbosFinais = usarBloom ? Object.values(verbosBloomSel).flat() : [];
-                                            const res = await fetch("/api/hub/criar-itens", {
-                                                method: "POST",
-                                                headers: { "Content-Type": "application/json" },
-                                                body: JSON.stringify({
-                                                    assunto: assunto.trim() || (habsSelecionadas.length > 0 ? habsSelecionadas[0] : selectedDisc),
-                                                    engine: "red",
-                                                    habilidades: habsSelecionadas.length > 0 ? habsSelecionadas : matrizHabs.slice(0, 4).map(h => h.habilidade),
-                                                    verbos_bloom: verbosFinais.length > 0 ? verbosFinais : undefined,
-                                                    qtd_questoes: qtdQuestoes,
-                                                    tipo_questao: tipoQuestao,
-                                                    qtd_imagens: usarImagens ? qtdImagens : 0,
-                                                    checklist_adaptacao: Object.keys(checklist).length > 0 ? checklist : undefined,
-                                                    estudante: {
-                                                        nome: selectedAluno.name,
-                                                        serie: selectedAluno.grade,
-                                                        hiperfoco: undefined,
-                                                        perfil: selectedAluno.diagnostico || undefined,
-                                                    },
-                                                }),
-                                            });
-                                            const data = await res.json();
-                                            if (!res.ok) throw new Error(data.error || "Erro");
-                                            let textoFinal = data.texto || "Atividade gerada.";
-                                            if (textoFinal.includes("---DIVISOR---")) {
-                                                const parts = textoFinal.split("---DIVISOR---");
-                                                const analise = parts[0]?.replace("[ANÁLISE PEDAGÓGICA]", "").trim();
-                                                const atividade = parts[1]?.replace("[ATIVIDADE]", "").trim() || textoFinal;
-                                                textoFinal = analise ? `## Análise Pedagógica\n\n${analise}\n\n---\n\n## Atividade\n\n${atividade}` : atividade;
-                                            }
-                                            // Process images
-                                            const mapa: Record<number, string> = {};
-                                            if (usarImagens && qtdImagens > 0) {
-                                                const genImgRegex = /\[\[GEN_IMG:\s*([^\]]+)\]\]/gi;
-                                                const termos: string[] = [];
-                                                let m: RegExpExecArray | null;
-                                                while ((m = genImgRegex.exec(textoFinal)) !== null) termos.push(m[1].trim());
-                                                for (let i = 0; i < termos.length && i < qtdImagens; i++) {
-                                                    try {
-                                                        const imgRes = await fetch("/api/hub/gerar-imagem", {
-                                                            method: "POST", headers: { "Content-Type": "application/json" },
-                                                            body: JSON.stringify({ prompt: termos[i], prioridade: "BANCO" }),
-                                                        });
-                                                        const imgData = await imgRes.json();
-                                                        if (imgRes.ok && imgData.image) {
-                                                            const imgStr = imgData.image as string;
-                                                            const base64 = imgStr.startsWith("data:image") ? imgStr.replace(/^data:image\/\w+;base64,/, "") : imgStr;
-                                                            if (base64?.length > 100) mapa[i + 1] = base64;
-                                                        }
-                                                    } catch { /* silent */ }
-                                                }
-                                                let idx = 0;
-                                                textoFinal = textoFinal.replace(/\[\[GEN_IMG:\s*[^\]]+\]\]/gi, () => { idx++; return `[[IMG_${idx}]]`; });
-                                            }
-                                            setMapaImagensResultado(mapa);
-                                            setResultadoFormatado(textoFinal);
-                                        } catch (err) {
-                                            setAvalError(err instanceof Error ? err.message : "Erro ao gerar prova formatada");
+                                <button onClick={async () => {
+                                    if (!selectedAluno || !selectedDisc) return;
+                                    setGerando(true);
+                                    setResultadoFormatado(null);
+                                    setMapaImagensResultado({});
+                                    setValidadoFormatado(false);
+                                    try {
+                                        const verbosFinais = usarBloom ? Object.values(verbosBloomSel).flat() : [];
+                                        const res = await fetch("/api/hub/criar-itens", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({
+                                                assunto: assunto.trim() || (habsSelecionadas.length > 0 ? habsSelecionadas[0] : selectedDisc),
+                                                engine: "red",
+                                                habilidades: habsSelecionadas.length > 0 ? habsSelecionadas : matrizHabs.slice(0, 4).map(h => h.habilidade),
+                                                verbos_bloom: verbosFinais.length > 0 ? verbosFinais : undefined,
+                                                qtd_questoes: qtdQuestoes,
+                                                tipo_questao: tipoQuestao,
+                                                qtd_imagens: usarImagens ? qtdImagens : 0,
+                                                checklist_adaptacao: Object.keys(checklist).length > 0 ? checklist : undefined,
+                                                estudante: {
+                                                    nome: selectedAluno.name,
+                                                    serie: selectedAluno.grade,
+                                                    hiperfoco: undefined,
+                                                    perfil: selectedAluno.diagnostico || undefined,
+                                                },
+                                            }),
+                                        });
+                                        const data = await res.json();
+                                        if (!res.ok) throw new Error(data.error || "Erro");
+                                        let textoFinal = data.texto || "Atividade gerada.";
+                                        if (textoFinal.includes("---DIVISOR---")) {
+                                            const parts = textoFinal.split("---DIVISOR---");
+                                            const analise = parts[0]?.replace("[ANÁLISE PEDAGÓGICA]", "").trim();
+                                            const atividade = parts[1]?.replace("[ATIVIDADE]", "").trim() || textoFinal;
+                                            textoFinal = analise ? `## Análise Pedagógica\n\n${analise}\n\n---\n\n## Atividade\n\n${atividade}` : atividade;
                                         }
-                                        setGerandoFormatado(false);
-                                    }} disabled={gerandoFormatado} style={{
-                                        flex: 1, padding: "14px 20px", borderRadius: 12,
-                                        background: gerandoFormatado ? "#94a3b8" : "linear-gradient(135deg, #6366f1, #818cf8)",
-                                        color: "#fff", border: "none", cursor: "pointer",
-                                        fontWeight: 700, fontSize: 14,
-                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                                        boxShadow: "0 4px 20px rgba(99,102,241,.3)",
-                                    }}>
-                                        {gerandoFormatado ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />}
-                                        {gerandoFormatado ? "Gerando..." : "Gerar Prova Formatada (DOCX/PDF)"}
-                                    </button>
-                                </div>
+                                        // Process images
+                                        const mapa: Record<number, string> = {};
+                                        if (usarImagens && qtdImagens > 0) {
+                                            const genImgRegex = /\[\[GEN_IMG:\s*([^\]]+)\]\]/gi;
+                                            const termos: string[] = [];
+                                            let m: RegExpExecArray | null;
+                                            while ((m = genImgRegex.exec(textoFinal)) !== null) termos.push(m[1].trim());
+                                            for (let i = 0; i < termos.length && i < qtdImagens; i++) {
+                                                try {
+                                                    const imgRes = await fetch("/api/hub/gerar-imagem", {
+                                                        method: "POST", headers: { "Content-Type": "application/json" },
+                                                        body: JSON.stringify({ prompt: termos[i], prioridade: "BANCO" }),
+                                                    });
+                                                    const imgData = await imgRes.json();
+                                                    if (imgRes.ok && imgData.image) {
+                                                        const imgStr = imgData.image as string;
+                                                        const base64 = imgStr.startsWith("data:image") ? imgStr.replace(/^data:image\/\w+;base64,/, "") : imgStr;
+                                                        if (base64?.length > 100) mapa[i + 1] = base64;
+                                                    }
+                                                } catch { /* silent */ }
+                                            }
+                                            let idx = 0;
+                                            textoFinal = textoFinal.replace(/\[\[GEN_IMG:\s*[^\]]+\]\]/gi, () => { idx++; return `[[IMG_${idx}]]`; });
+                                        }
+                                        setMapaImagensResultado(mapa);
+                                        setResultadoFormatado(textoFinal);
+                                    } catch (err) {
+                                        setAvalError(err instanceof Error ? err.message : "Erro ao gerar");
+                                    }
+                                    setGerando(false);
+                                }} disabled={gerando} style={{
+                                    width: "100%", padding: "16px 24px", borderRadius: 12,
+                                    background: gerando ? "#94a3b8" : "linear-gradient(135deg, #6366f1, #818cf8)",
+                                    color: "#fff", border: "none", cursor: gerando ? "wait" : "pointer",
+                                    fontWeight: 700, fontSize: 15,
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                                    boxShadow: "0 4px 20px rgba(99,102,241,.3)",
+                                }}>
+                                    {gerando ? <Loader2 size={20} className="animate-spin" /> : <Sparkles size={20} />}
+                                    {gerando ? "Gerando itens com IA..." : "Gerar Itens com IA"}
+                                </button>
                             </div>
                         </div>
                     </div>
                 )}
 
                 {/* Formatted result (Hub-style) */}
-                {resultadoFormatado && questoes.length === 0 && (
+                {resultadoFormatado && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                         {!validadoFormatado && (
                             <div style={{ display: "flex", gap: 8 }}>
@@ -1074,22 +930,6 @@ export default function AvaliacaoDiagnosticaClient() {
                     </div>
                 )}
 
-                {/* Generating state */}
-                {gerando && (
-                    <div style={{
-                        padding: 50, textAlign: "center",
-                        ...cardS, border: "1.5px solid rgba(37,99,235,.3)",
-                    }}>
-                        <Loader2 size={36} className="animate-spin" style={{ color: "#3b82f6", margin: "0 auto 14px" }} />
-                        <p style={{ color: "#94a3b8", fontSize: 15, fontWeight: 600 }}>
-                            Gerando questões diagnósticas com IA...
-                        </p>
-                        <p style={{ color: "#64748b", fontSize: 12, marginTop: 6 }}>
-                            Isso pode levar até 30 segundos
-                        </p>
-                    </div>
-                )}
-
                 {avalError && (
                     <div style={{
                         display: "flex", alignItems: "center", gap: 8,
@@ -1101,780 +941,449 @@ export default function AvaliacaoDiagnosticaClient() {
                     </div>
                 )}
 
-                {/* Progress bar */}
-                {questoes.length > 0 && nivelIdentificado === null && (
-                    <div style={{ marginBottom: 20 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>
-                                {Object.keys(respostas).length} de {questoes.length} respondidas
-                            </span>
-                            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                                {Math.round((Object.keys(respostas).length / questoes.length) * 100)}%
-                            </span>
-                        </div>
-                        <div style={{
-                            height: 6, borderRadius: 3,
-                            background: "var(--bg-tertiary, rgba(15,23,42,.5))",
-                        }}>
-                            <div style={{
-                                height: "100%", borderRadius: 3,
-                                background: "linear-gradient(90deg, #3b82f6, #6366f1)",
-                                width: `${(Object.keys(respostas).length / questoes.length) * 100}%`,
-                                transition: "width .3s ease",
-                            }} />
-                        </div>
-                    </div>
-                )}
 
-                {/* Questions */}
-                {questoes.length > 0 && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                        {questoes.map((q, idx) => {
-                            const respondida = !!respostas[q.id];
-                            const correta = respostas[q.id] === q.gabarito;
-                            const showResult = respondida && nivelIdentificado !== null;
-
-                            return (
-                                <div key={q.id} style={{
-                                    ...cardS,
-                                    border: respondida
-                                        ? showResult
-                                            ? `1.5px solid ${correta ? "rgba(16,185,129,.4)" : "rgba(239,68,68,.4)"}`
-                                            : "1.5px solid rgba(99,102,241,.3)"
-                                        : "1px solid var(--border-default, rgba(148,163,184,.15))",
-                                }}>
-                                    {/* Question header */}
-                                    <button
-                                        onClick={() => setExpandedQ(expandedQ === q.id ? null : q.id)}
-                                        style={{
-                                            ...headerS, width: "100%", cursor: "pointer",
-                                            justifyContent: "space-between", border: "none",
-                                            background: showResult && correta
-                                                ? "rgba(16,185,129,.05)"
-                                                : showResult && !correta
-                                                    ? "rgba(239,68,68,.05)"
-                                                    : "var(--bg-tertiary, rgba(15,23,42,.3))",
-                                        }}
-                                    >
-                                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                            <span style={{
-                                                width: 28, height: 28, borderRadius: "50%",
-                                                display: "flex", alignItems: "center", justifyContent: "center",
-                                                fontSize: 12, fontWeight: 800,
-                                                background: respondida
-                                                    ? showResult && correta ? "rgba(16,185,129,.15)" : showResult ? "rgba(239,68,68,.15)" : "rgba(99,102,241,.15)"
-                                                    : "rgba(148,163,184,.1)",
-                                                color: respondida
-                                                    ? showResult && correta ? "#10b981" : showResult ? "#f87171" : "#818cf8"
-                                                    : "var(--text-muted)",
-                                            }}>{idx + 1}</span>
-                                            <span style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary, #e2e8f0)" }}>
-                                                Questão {idx + 1}
-                                                {respondida && showResult && (
-                                                    <span style={{ marginLeft: 8, fontSize: 12, color: correta ? "#10b981" : "#f87171" }}>
-                                                        {correta ? "✓ Correta" : "✗ Incorreta"}
-                                                    </span>
+                {/* ─── CAMADA B: Cognitivo-Funcional ──────────────────── */}
+                {
+                    nivelIdentificado !== null && dimensoesNEE.length > 0 && (
+                        <div style={{ ...cardS, marginBottom: 20 }}>
+                            <button
+                                onClick={() => setShowCamadaB(!showCamadaB)}
+                                style={{
+                                    ...headerS, width: "100%", cursor: "pointer",
+                                    justifyContent: "space-between", border: "none",
+                                    background: "rgba(168,85,247,.05)",
+                                }}
+                            >
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <Layers size={16} style={{ color: "#a855f7" }} />
+                                    <span style={{ fontWeight: 700, fontSize: 14, color: "#a855f7" }}>
+                                        Camada B — Avaliação Cognitivo-Funcional
+                                    </span>
+                                    <span style={{
+                                        fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
+                                        background: "rgba(168,85,247,.1)", color: "#a855f7",
+                                    }}>{dimensoesNEE.length} dimensões</span>
+                                </div>
+                                {showCamadaB ? <ChevronUp size={14} style={{ color: "#a855f7" }} /> : <ChevronDown size={14} style={{ color: "#a855f7" }} />}
+                            </button>
+                            {showCamadaB && (
+                                <div style={bodyS}>
+                                    <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 0, marginBottom: 12 }}>
+                                        Avalie cada dimensão cognitivo-funcional com base na sua observação.
+                                        Específicas para o perfil <strong>{selectedAluno.diagnostico}</strong>.
+                                    </p>
+                                    {dimensoesNEE.map((dim) => {
+                                        const val = dimensoesAvaliadas[dim.id] || { nivel: -1, observacao: "" };
+                                        const nivelColors: Record<number, string> = { 0: "#f87171", 1: "#fbbf24", 2: "#60a5fa", 3: "#34d399", 4: "#818cf8" };
+                                        return (
+                                            <div key={dim.id} style={{
+                                                padding: "14px 16px", borderRadius: 12, marginBottom: 10,
+                                                background: val.nivel >= 0 ? "rgba(168,85,247,.03)" : "var(--bg-primary, rgba(2,6,23,.2))",
+                                                border: val.nivel >= 0 ? "1.5px solid rgba(168,85,247,.15)" : "1px solid var(--border-default, rgba(148,163,184,.1))",
+                                            }}>
+                                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 3 }}>{dim.dimensao}</div>
+                                                        <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>👁️ {dim.o_que_o_professor_observa}</div>
+                                                        <div style={{ fontSize: 11, color: "#a855f7", marginTop: 3, fontWeight: 600 }}>💡 {dim.acao_pratica}</div>
+                                                    </div>
+                                                    <div style={{ display: "flex", gap: 3 }}>
+                                                        {[0, 1, 2, 3, 4].map(n => (
+                                                            <button key={n}
+                                                                onClick={() => setDimensoesAvaliadas(prev => ({
+                                                                    ...prev, [dim.id]: { ...prev[dim.id], nivel: n, observacao: prev[dim.id]?.observacao || "" }
+                                                                }))}
+                                                                title={dim.niveis_omnisfera?.[String(n)] || ""}
+                                                                style={{
+                                                                    width: 30, height: 30, borderRadius: 8,
+                                                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                                                    cursor: "pointer", fontSize: 12, fontWeight: 800,
+                                                                    border: val.nivel === n ? `2px solid ${nivelColors[n]}` : "1px solid var(--border-default, rgba(148,163,184,.12))",
+                                                                    background: val.nivel === n ? `${nivelColors[n]}15` : "transparent",
+                                                                    color: val.nivel === n ? nivelColors[n] : "var(--text-muted)",
+                                                                    transition: "all .15s",
+                                                                }}
+                                                            >{n}</button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                {val.nivel >= 0 && (
+                                                    <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, fontStyle: "italic" }}>
+                                                        Nível {val.nivel}: {dim.niveis_omnisfera?.[String(val.nivel)] || ""}
+                                                    </div>
                                                 )}
-                                            </span>
-                                        </div>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                            {respondida && !showResult && (
-                                                <span style={{ fontSize: 11, fontWeight: 600, color: "#818cf8", background: "rgba(99,102,241,.1)", padding: "2px 8px", borderRadius: 4 }}>
-                                                    Respondida
-                                                </span>
-                                            )}
-                                            {expandedQ === q.id ? <ChevronUp size={16} style={{ color: "var(--text-muted)" }} /> : <ChevronDown size={16} style={{ color: "var(--text-muted)" }} />}
-                                        </div>
-                                    </button>
+                                                <textarea
+                                                    placeholder={dim.perguntas_professor?.[0] || "Observação..."}
+                                                    value={val.observacao}
+                                                    onChange={(e) => setDimensoesAvaliadas(prev => ({
+                                                        ...prev, [dim.id]: { ...prev[dim.id], nivel: prev[dim.id]?.nivel ?? -1, observacao: e.target.value }
+                                                    }))}
+                                                    rows={1}
+                                                    style={{
+                                                        width: "100%", padding: "6px 10px", borderRadius: 8, fontSize: 11,
+                                                        border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                                                        background: "var(--bg-primary, rgba(2,6,23,.2))",
+                                                        color: "var(--text-primary)", resize: "vertical", fontFamily: "inherit",
+                                                    }}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    )
+                }
 
-                                    {/* Per-question action buttons */}
-                                    {expandedQ === q.id && nivelIdentificado === null && (
-                                        <div style={{
-                                            display: "flex", gap: 6, padding: "6px 14px",
-                                            borderBottom: "1px solid var(--border-default, rgba(148,163,184,.08))",
-                                        }}>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setQuestoes(prev => prev.filter(qq => qq.id !== q.id));
-                                                    const newRespostas = { ...respostas };
-                                                    delete newRespostas[q.id];
-                                                    setRespostas(newRespostas);
-                                                }}
-                                                title="Apagar esta questão"
-                                                style={{
-                                                    padding: "4px 10px", borderRadius: 6, fontSize: 11,
-                                                    border: "1px solid rgba(239,68,68,.2)",
-                                                    background: "rgba(239,68,68,.05)", color: "#f87171",
-                                                    cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
-                                                }}
-                                            >
-                                                <Trash2 size={12} /> Apagar
-                                            </button>
-                                            <button
-                                                onClick={async (e) => {
-                                                    e.stopPropagation();
-                                                    // Regenerate single question
-                                                    try {
-                                                        const res = await fetch("/api/avaliacao-diagnostica/criar-itens", {
-                                                            method: "POST",
-                                                            headers: { "Content-Type": "application/json" },
-                                                            body: JSON.stringify({
-                                                                disciplina: selectedDisc || "",
-                                                                serie: selectedAluno?.grade || "",
-                                                                habilidades: habsSelecionadas,
-                                                                qtd_questoes: 1,
-                                                                nivel_omnisfera_estimado: 1,
-                                                                diagnostico_aluno: selectedAluno?.diagnostico || "",
-                                                                nome_aluno: selectedAluno?.name || "",
-                                                                engine: "red",
-                                                            }),
-                                                        });
-                                                        const data = await res.json();
-                                                        if (data.questoes?.[0]) {
-                                                            const novaQ = data.questoes[0];
-                                                            setQuestoes(prev => prev.map(qq => qq.id === q.id ? novaQ : qq));
-                                                            const newRespostas = { ...respostas };
-                                                            delete newRespostas[q.id];
-                                                            setRespostas(newRespostas);
-                                                        }
-                                                    } catch { /* silent */ }
-                                                }}
-                                                title="Regenerar esta questão"
-                                                style={{
-                                                    padding: "4px 10px", borderRadius: 6, fontSize: 11,
-                                                    border: "1px solid rgba(99,102,241,.2)",
-                                                    background: "rgba(99,102,241,.05)", color: "#818cf8",
-                                                    cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
-                                                }}
-                                            >
-                                                <RefreshCw size={12} /> Regenerar
-                                            </button>
+                {/* ─── Generate V3 Outputs ─────────────────────────────── */}
+                {
+                    nivelIdentificado !== null && (
+                        <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+                            <button onClick={gerarPerfil} disabled={gerandoPerfil} style={{
+                                flex: 1, padding: "14px 16px", borderRadius: 12,
+                                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                cursor: gerandoPerfil ? "not-allowed" : "pointer",
+                                fontSize: 13, fontWeight: 700, border: "none",
+                                background: gerandoPerfil ? "var(--bg-tertiary)" : "linear-gradient(135deg, #7c3aed, #a855f7)",
+                                color: "#fff", boxShadow: "0 4px 16px rgba(168,85,247,.2)",
+                            }}>
+                                {gerandoPerfil ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                {gerandoPerfil ? "Gerando..." : "Gerar Perfil de Funcionamento"}
+                            </button>
+                            <button onClick={gerarEstrategias} disabled={gerandoEstrategias} style={{
+                                flex: 1, padding: "14px 16px", borderRadius: 12,
+                                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                cursor: gerandoEstrategias ? "not-allowed" : "pointer",
+                                fontSize: 13, fontWeight: 700, border: "none",
+                                background: gerandoEstrategias ? "var(--bg-tertiary)" : "linear-gradient(135deg, #059669, #10b981)",
+                                color: "#fff", boxShadow: "0 4px 16px rgba(16,185,129,.2)",
+                            }}>
+                                {gerandoEstrategias ? <Loader2 size={16} className="animate-spin" /> : <Target size={16} />}
+                                {gerandoEstrategias ? "Gerando..." : "Gerar Estratégias Práticas"}
+                            </button>
+                        </div>
+                    )
+                }
+
+                {/* ─── Perfil de Funcionamento Output ─────────────────── */}
+                {
+                    perfilGerado && (
+                        <div style={{ ...cardS, marginBottom: 20, border: "1.5px solid rgba(168,85,247,.2)" }}>
+                            <div style={{ ...headerS, background: "rgba(168,85,247,.05)" }}>
+                                <Sparkles size={16} style={{ color: "#a855f7" }} />
+                                <span style={{ fontWeight: 700, fontSize: 14, color: "#a855f7" }}>Perfil de Funcionamento</span>
+                            </div>
+                            <div style={bodyS}>
+                                {Boolean(perfilGerado.resumo_geral) && (
+                                    <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5, marginTop: 0, marginBottom: 12 }}>
+                                        {String(perfilGerado.resumo_geral)}
+                                    </p>
+                                )}
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                                    {Array.isArray(perfilGerado.pontos_fortes) && (
+                                        <div style={{ padding: 12, borderRadius: 10, background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.12)" }}>
+                                            <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginBottom: 6 }}>✅ Pontos Fortes</div>
+                                            {(perfilGerado.pontos_fortes as string[]).map((p, i) => (
+                                                <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>• {p}</div>
+                                            ))}
                                         </div>
                                     )}
+                                    {Array.isArray(perfilGerado.areas_atencao) && (
+                                        <div style={{ padding: 12, borderRadius: 10, background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.12)" }}>
+                                            <div style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b", marginBottom: 6 }}>⚠️ Áreas de Atenção</div>
+                                            {(perfilGerado.areas_atencao as string[]).map((a, i) => (
+                                                <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>• {a}</div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                {Array.isArray(perfilGerado.recomendacao_prioridade) && (
+                                    <div style={{ padding: 12, borderRadius: 10, background: "rgba(99,102,241,.05)", border: "1px solid rgba(99,102,241,.12)" }}>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: "#818cf8", marginBottom: 6 }}>🎯 Prioridades</div>
+                                        {(perfilGerado.recomendacao_prioridade as string[]).map((r, i) => (
+                                            <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>{i + 1}. {r}</div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )
+                }
 
-                                    {/* Question content (expanded) */}
-                                    {expandedQ === q.id && (
-                                        <div style={bodyS}>
-                                            {/* Instruction for professor */}
-                                            {q.instrucao_aplicacao_professor && (
-                                                <div style={{
-                                                    padding: "10px 14px", borderRadius: 10, fontSize: 12,
-                                                    background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.15)",
-                                                    color: "#fbbf24", marginBottom: 14, lineHeight: 1.5,
-                                                }}>
-                                                    <strong>📋 Instrução para o professor:</strong> {q.instrucao_aplicacao_professor}
-                                                </div>
-                                            )}
-
-                                            {/* Visual context suggestion */}
-                                            {q.contexto_visual_sugerido && (
-                                                <div style={{
-                                                    padding: "8px 12px", borderRadius: 8, fontSize: 12,
-                                                    background: "rgba(14,165,233,.06)", border: "1px solid rgba(14,165,233,.12)",
-                                                    color: "#38bdf8", marginBottom: 12,
-                                                }}>
-                                                    🖼️ <strong>Contexto visual sugerido:</strong> {q.contexto_visual_sugerido}
-                                                </div>
-                                            )}
-
-                                            {/* NEE adaptation */}
-                                            {q.adaptacao_nee_aplicada && (
-                                                <div style={{
-                                                    padding: "8px 12px", borderRadius: 8, fontSize: 12,
-                                                    background: "rgba(139,92,246,.06)", border: "1px solid rgba(139,92,246,.12)",
-                                                    color: "#a78bfa", marginBottom: 12,
-                                                }}>
-                                                    ♿ <strong>Adaptação NEE:</strong> {q.adaptacao_nee_aplicada}
-                                                </div>
-                                            )}
-
-                                            {/* Enunciado */}
-                                            <p style={{
-                                                fontSize: 15, lineHeight: 1.7, color: "var(--text-primary, #e2e8f0)",
-                                                marginBottom: 16, fontWeight: 500,
+                {/* ─── Estratégias Práticas Output ────────────────────── */}
+                {
+                    estrategiasGeradas && (
+                        <div style={{ ...cardS, marginBottom: 20, border: "1.5px solid rgba(16,185,129,.2)" }}>
+                            <div style={{ ...headerS, background: "rgba(16,185,129,.05)" }}>
+                                <Target size={16} style={{ color: "#10b981" }} />
+                                <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>Estratégias Práticas</span>
+                            </div>
+                            <div style={bodyS}>
+                                {Array.isArray(estrategiasGeradas.estrategias) && (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+                                        {(estrategiasGeradas.estrategias as Array<Record<string, string>>).map((est, i) => (
+                                            <div key={i} style={{
+                                                padding: "12px 14px", borderRadius: 10,
+                                                background: est.prioridade === "essencial" ? "rgba(239,68,68,.04)" : "var(--bg-primary, rgba(2,6,23,.2))",
+                                                border: est.prioridade === "essencial" ? "1px solid rgba(239,68,68,.15)" : "1px solid var(--border-default, rgba(148,163,184,.1))",
                                             }}>
-                                                {q.enunciado}
-                                            </p>
+                                                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                                                    <span style={{
+                                                        fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, textTransform: "uppercase",
+                                                        background: est.prioridade === "essencial" ? "rgba(239,68,68,.1)" : est.prioridade === "recomendada" ? "rgba(245,158,11,.1)" : "rgba(148,163,184,.1)",
+                                                        color: est.prioridade === "essencial" ? "#f87171" : est.prioridade === "recomendada" ? "#fbbf24" : "#94a3b8",
+                                                    }}>{est.prioridade || "sugerida"}</span>
+                                                </div>
+                                                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3 }}>
+                                                    👁️ {est.comportamento_observado}
+                                                </div>
+                                                <div style={{ fontSize: 12, color: "#10b981", fontWeight: 600, marginBottom: 3 }}>
+                                                    ✋ {est.acao_concreta}
+                                                </div>
+                                                {est.quando_usar && (
+                                                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>📍 {est.quando_usar}</div>
+                                                )}
+                                                {est.exemplo_pratico && (
+                                                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4, fontStyle: "italic" }}>
+                                                        💬 Exemplo: {est.exemplo_pratico}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                {Array.isArray(estrategiasGeradas.o_que_evitar) && (
+                                    <div style={{ padding: 12, borderRadius: 10, background: "rgba(239,68,68,.04)", border: "1px solid rgba(239,68,68,.12)" }}>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: "#f87171", marginBottom: 6 }}>🚫 O que evitar</div>
+                                        {(estrategiasGeradas.o_que_evitar as string[]).map((e, i) => (
+                                            <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>• {e}</div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )
+                }
 
-                                            {/* Alternatives */}
-                                            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-                                                {(["A", "B", "C", "D"] as const).map((letra) => {
-                                                    const selected = respostas[q.id] === letra;
-                                                    const isCorrect = letra === q.gabarito;
-
-                                                    let bg = "var(--bg-primary, rgba(2,6,23,.3))";
-                                                    let borderColor = "var(--border-default, rgba(148,163,184,.12))";
-                                                    let textColor = "var(--text-primary, #e2e8f0)";
-                                                    if (selected) { bg = "rgba(99,102,241,.12)"; borderColor = "#6366f1"; textColor = "#c7d2fe"; }
-                                                    if (showResult && isCorrect) { bg = "rgba(16,185,129,.08)"; borderColor = "#10b981"; textColor = "#a7f3d0"; }
-                                                    if (showResult && selected && !isCorrect) { bg = "rgba(239,68,68,.08)"; borderColor = "#f87171"; textColor = "#fecaca"; }
-
+                {/* ─── Processual Data Feed ──────────────────────────── */}
+                {
+                    evolucaoProcessual.length > 0 && evolucaoProcessual[0]?.periodos?.length > 0 && (
+                        <div style={{ ...cardS, marginBottom: 20 }}>
+                            <button
+                                onClick={() => setShowProcessual(!showProcessual)}
+                                style={{
+                                    ...headerS, width: "100%", cursor: "pointer",
+                                    justifyContent: "space-between", border: "none",
+                                    background: "rgba(16,185,129,.05)",
+                                }}
+                            >
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <Activity size={16} style={{ color: "#10b981" }} />
+                                    <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>
+                                        Dados da Avaliação Processual
+                                    </span>
+                                    {evolucaoProcessual[0].tendencia && (
+                                        <span style={{
+                                            fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
+                                            background: evolucaoProcessual[0].tendencia === "melhora" ? "rgba(16,185,129,.1)" : evolucaoProcessual[0].tendencia === "regressao" ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
+                                            color: evolucaoProcessual[0].tendencia === "melhora" ? "#10b981" : evolucaoProcessual[0].tendencia === "regressao" ? "#f87171" : "#94a3b8",
+                                        }}>
+                                            {evolucaoProcessual[0].tendencia === "melhora" ? "↗ Progresso" : evolucaoProcessual[0].tendencia === "regressao" ? "↘ Atenção" : "→ Estável"}
+                                        </span>
+                                    )}
+                                    {evolucaoProcessual[0].media_mais_recente !== null && (
+                                        <span style={{
+                                            fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 6,
+                                            background: "rgba(16,185,129,.08)", color: "#10b981",
+                                        }}>Média: {evolucaoProcessual[0].media_mais_recente}</span>
+                                    )}
+                                </div>
+                                {showProcessual ? <ChevronUp size={14} style={{ color: "#10b981" }} /> : <ChevronDown size={14} style={{ color: "#10b981" }} />}
+                            </button>
+                            {showProcessual && (
+                                <div style={bodyS}>
+                                    <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 0, marginBottom: 12 }}>
+                                        Evolução registrada na Avaliação Processual — dados integrados automaticamente.
+                                    </p>
+                                    {evolucaoProcessual.map(evo => (
+                                        <div key={evo.disciplina} style={{ marginBottom: 16 }}>
+                                            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 10 }}>
+                                                {evo.disciplina}
+                                            </div>
+                                            <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 90, padding: "0 4px" }}>
+                                                {evo.periodos.map((p, i) => {
+                                                    const val = p.media_nivel ?? 0;
+                                                    const height = Math.max((val / 4) * 70, 4);
+                                                    const nc = val >= 3 ? "#10b981" : val >= 2 ? "#3b82f6" : val >= 1 ? "#fbbf24" : "#f87171";
                                                     return (
-                                                        <button
-                                                            key={letra}
-                                                            onClick={() => {
-                                                                if (nivelIdentificado !== null) return;
-                                                                setRespostas({ ...respostas, [q.id]: letra });
-                                                            }}
-                                                            style={{
-                                                                padding: "12px 16px", borderRadius: 10, textAlign: "left",
-                                                                background: bg, border: `1.5px solid ${borderColor}`,
-                                                                color: textColor, cursor: nivelIdentificado !== null ? "default" : "pointer",
-                                                                fontSize: 14, transition: "all .2s", display: "flex", alignItems: "center", gap: 10,
-                                                            }}
-                                                        >
-                                                            <span style={{
-                                                                width: 26, height: 26, borderRadius: "50%",
-                                                                display: "flex", alignItems: "center", justifyContent: "center",
-                                                                fontSize: 12, fontWeight: 800,
-                                                                background: selected ? "rgba(99,102,241,.2)" : "rgba(148,163,184,.08)",
-                                                                color: selected ? "#818cf8" : "var(--text-muted)",
-                                                                flexShrink: 0,
-                                                            }}>{letra}</span>
-                                                            {q.alternativas[letra]}
-                                                        </button>
+                                                        <div key={p.bimestre} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                                                            <span style={{ fontSize: 11, fontWeight: 700, color: nc }}>{val}</span>
+                                                            <div style={{
+                                                                width: "100%", maxWidth: 36, height, borderRadius: 6,
+                                                                background: `linear-gradient(180deg, ${nc}, ${nc}88)`,
+                                                                transition: "height .3s ease",
+                                                            }} />
+                                                            <span style={{ fontSize: 9, color: "var(--text-muted)", textAlign: "center" }}>
+                                                                {p.bimestre}º
+                                                            </span>
+                                                            {i > 0 && evo.periodos[i - 1].media_nivel !== null && p.media_nivel !== null && (
+                                                                <span style={{
+                                                                    fontSize: 8, fontWeight: 700,
+                                                                    color: (p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "#10b981" : (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "#f87171" : "#94a3b8",
+                                                                }}>
+                                                                    {(p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "▲" : (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "▼" : "="}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     );
                                                 })}
                                             </div>
-
-                                            {/* Pedagogical justification */}
-                                            {showResult && q.justificativa_pedagogica && (
-                                                <div style={{
-                                                    padding: "12px 16px", borderRadius: 10, fontSize: 13,
-                                                    background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.12)",
-                                                    color: "#a5b4fc", lineHeight: 1.6,
-                                                }}>
-                                                    <strong>💡 Justificativa pedagógica:</strong> {q.justificativa_pedagogica}
-                                                </div>
-                                            )}
+                                            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, padding: "0 4px" }}>
+                                                {[0, 1, 2, 3, 4].map(n => (
+                                                    <span key={n} style={{ fontSize: 8, color: "var(--text-muted)", opacity: 0.5 }}>N{n}</span>
+                                                ))}
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-
-                        {/* Save results button */}
-                        {nivelIdentificado === null && allAnswered && (
-                            <button
-                                onClick={salvarResultados}
-                                disabled={salvando}
-                                style={{
-                                    padding: "16px 24px", borderRadius: 14,
-                                    background: "linear-gradient(135deg, #059669, #10b981)",
-                                    color: "#fff", border: "none", cursor: "pointer",
-                                    fontWeight: 700, fontSize: 16,
-                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                                    boxShadow: "0 4px 20px rgba(16,185,129,.3)",
-                                }}
-                            >
-                                {salvando ? (
-                                    <><Loader2 size={20} className="animate-spin" /> Calculando nível Omnisfera...</>
-                                ) : (
-                                    <><ClipboardCheck size={20} /> Registrar respostas e calcular nível</>
-                                )}
-                            </button>
-                        )}
-
-                        {/* Print / Export bar */}
-                        {questoes.length > 0 && (
-                            <div style={{
-                                ...cardS,
-                                border: "1.5px solid rgba(99,102,241,.2)",
-                                background: "rgba(99,102,241,.03)",
-                            }}>
-                                <div style={{ ...headerS, background: "rgba(99,102,241,.05)" }}>
-                                    <Printer size={16} style={{ color: "#818cf8" }} />
-                                    <span style={{ fontWeight: 700, fontSize: 13, color: "#818cf8" }}>Imprimir / Exportar Prova</span>
-                                </div>
-                                <div style={{ ...bodyS, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                                    <button
-                                        onClick={() => setShowProvaImprimivel(!showProvaImprimivel)}
-                                        style={{
-                                            padding: "8px 16px", borderRadius: 8, border: "none",
-                                            background: showProvaImprimivel ? "#4f46e5" : "linear-gradient(135deg, #6366f1, #818cf8)",
-                                            color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
-                                            display: "flex", alignItems: "center", gap: 6,
-                                        }}
-                                    >
-                                        <FileText size={14} />
-                                        {showProvaImprimivel ? "Fechar Preview" : "Preview da Prova"}
-                                    </button>
-                                    <label style={{
-                                        display: "flex", alignItems: "center", gap: 6,
-                                        fontSize: 12, color: "var(--text-secondary)", cursor: "pointer",
+                                    ))}
+                                    <a href="/avaliacao-processual" style={{
+                                        display: "inline-flex", alignItems: "center", gap: 6,
+                                        fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none",
+                                        padding: "8px 14px", borderRadius: 8, background: "rgba(16,185,129,.06)",
+                                        border: "1px solid rgba(16,185,129,.15)",
                                     }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={showGabarito}
-                                            onChange={(e) => setShowGabarito(e.target.checked)}
-                                            style={{ width: 14, height: 14 }}
-                                        />
-                                        Incluir gabarito
-                                    </label>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ProvaImprimivel */}
-                        {showProvaImprimivel && questoes.length > 0 && (
-                            <div style={{ ...cardS, padding: 0 }}>
-                                <ProvaImprimivel
-                                    questoes={questoes}
-                                    nomeAluno={selectedAluno?.name || ""}
-                                    serie={selectedAluno?.grade || ""}
-                                    disciplina={selectedDisc || ""}
-                                    respostas={respostas}
-                                    mostrarGabarito={showGabarito}
-                                />
-                            </div>
-                        )}
-
-                        {/* Regenerate button */}
-                        {questoes.length > 0 && (
-                            <button
-                                onClick={() => { setQuestoes([]); setRespostas({}); setNivelIdentificado(null); setAvaliacaoId(null); setCurrentStep(0); setDimensoesNEE([]); setDimensoesAvaliadas({}); setShowCamadaB(false); setPerfilGerado(null); setEstrategiasGeradas(null); }}
-                                style={{
-                                    padding: "10px 18px", borderRadius: 10,
-                                    background: "transparent", color: "var(--text-muted, #94a3b8)",
-                                    border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                                    cursor: "pointer", fontSize: 13, textAlign: "center",
-                                }}
-                            >
-                                Gerar nova avaliação
-                            </button>
-                        )}
-                    </div>
-                )}
-
-                {/* ─── CAMADA B: Cognitivo-Funcional ──────────────────── */}
-                {nivelIdentificado !== null && dimensoesNEE.length > 0 && (
-                    <div style={{ ...cardS, marginBottom: 20 }}>
-                        <button
-                            onClick={() => setShowCamadaB(!showCamadaB)}
-                            style={{
-                                ...headerS, width: "100%", cursor: "pointer",
-                                justifyContent: "space-between", border: "none",
-                                background: "rgba(168,85,247,.05)",
-                            }}
-                        >
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <Layers size={16} style={{ color: "#a855f7" }} />
-                                <span style={{ fontWeight: 700, fontSize: 14, color: "#a855f7" }}>
-                                    Camada B — Avaliação Cognitivo-Funcional
-                                </span>
-                                <span style={{
-                                    fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
-                                    background: "rgba(168,85,247,.1)", color: "#a855f7",
-                                }}>{dimensoesNEE.length} dimensões</span>
-                            </div>
-                            {showCamadaB ? <ChevronUp size={14} style={{ color: "#a855f7" }} /> : <ChevronDown size={14} style={{ color: "#a855f7" }} />}
-                        </button>
-                        {showCamadaB && (
-                            <div style={bodyS}>
-                                <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 0, marginBottom: 12 }}>
-                                    Avalie cada dimensão cognitivo-funcional com base na sua observação.
-                                    Específicas para o perfil <strong>{selectedAluno.diagnostico}</strong>.
-                                </p>
-                                {dimensoesNEE.map((dim) => {
-                                    const val = dimensoesAvaliadas[dim.id] || { nivel: -1, observacao: "" };
-                                    const nivelColors: Record<number, string> = { 0: "#f87171", 1: "#fbbf24", 2: "#60a5fa", 3: "#34d399", 4: "#818cf8" };
-                                    return (
-                                        <div key={dim.id} style={{
-                                            padding: "14px 16px", borderRadius: 12, marginBottom: 10,
-                                            background: val.nivel >= 0 ? "rgba(168,85,247,.03)" : "var(--bg-primary, rgba(2,6,23,.2))",
-                                            border: val.nivel >= 0 ? "1.5px solid rgba(168,85,247,.15)" : "1px solid var(--border-default, rgba(148,163,184,.1))",
-                                        }}>
-                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
-                                                <div style={{ flex: 1 }}>
-                                                    <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 3 }}>{dim.dimensao}</div>
-                                                    <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>👁️ {dim.o_que_o_professor_observa}</div>
-                                                    <div style={{ fontSize: 11, color: "#a855f7", marginTop: 3, fontWeight: 600 }}>💡 {dim.acao_pratica}</div>
-                                                </div>
-                                                <div style={{ display: "flex", gap: 3 }}>
-                                                    {[0, 1, 2, 3, 4].map(n => (
-                                                        <button key={n}
-                                                            onClick={() => setDimensoesAvaliadas(prev => ({
-                                                                ...prev, [dim.id]: { ...prev[dim.id], nivel: n, observacao: prev[dim.id]?.observacao || "" }
-                                                            }))}
-                                                            title={dim.niveis_omnisfera?.[String(n)] || ""}
-                                                            style={{
-                                                                width: 30, height: 30, borderRadius: 8,
-                                                                display: "flex", alignItems: "center", justifyContent: "center",
-                                                                cursor: "pointer", fontSize: 12, fontWeight: 800,
-                                                                border: val.nivel === n ? `2px solid ${nivelColors[n]}` : "1px solid var(--border-default, rgba(148,163,184,.12))",
-                                                                background: val.nivel === n ? `${nivelColors[n]}15` : "transparent",
-                                                                color: val.nivel === n ? nivelColors[n] : "var(--text-muted)",
-                                                                transition: "all .15s",
-                                                            }}
-                                                        >{n}</button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            {val.nivel >= 0 && (
-                                                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, fontStyle: "italic" }}>
-                                                    Nível {val.nivel}: {dim.niveis_omnisfera?.[String(val.nivel)] || ""}
-                                                </div>
-                                            )}
-                                            <textarea
-                                                placeholder={dim.perguntas_professor?.[0] || "Observação..."}
-                                                value={val.observacao}
-                                                onChange={(e) => setDimensoesAvaliadas(prev => ({
-                                                    ...prev, [dim.id]: { ...prev[dim.id], nivel: prev[dim.id]?.nivel ?? -1, observacao: e.target.value }
-                                                }))}
-                                                rows={1}
-                                                style={{
-                                                    width: "100%", padding: "6px 10px", borderRadius: 8, fontSize: 11,
-                                                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
-                                                    background: "var(--bg-primary, rgba(2,6,23,.2))",
-                                                    color: "var(--text-primary)", resize: "vertical", fontFamily: "inherit",
-                                                }}
-                                            />
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* ─── Generate V3 Outputs ─────────────────────────────── */}
-                {nivelIdentificado !== null && (
-                    <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
-                        <button onClick={gerarPerfil} disabled={gerandoPerfil} style={{
-                            flex: 1, padding: "14px 16px", borderRadius: 12,
-                            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                            cursor: gerandoPerfil ? "not-allowed" : "pointer",
-                            fontSize: 13, fontWeight: 700, border: "none",
-                            background: gerandoPerfil ? "var(--bg-tertiary)" : "linear-gradient(135deg, #7c3aed, #a855f7)",
-                            color: "#fff", boxShadow: "0 4px 16px rgba(168,85,247,.2)",
-                        }}>
-                            {gerandoPerfil ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                            {gerandoPerfil ? "Gerando..." : "Gerar Perfil de Funcionamento"}
-                        </button>
-                        <button onClick={gerarEstrategias} disabled={gerandoEstrategias} style={{
-                            flex: 1, padding: "14px 16px", borderRadius: 12,
-                            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                            cursor: gerandoEstrategias ? "not-allowed" : "pointer",
-                            fontSize: 13, fontWeight: 700, border: "none",
-                            background: gerandoEstrategias ? "var(--bg-tertiary)" : "linear-gradient(135deg, #059669, #10b981)",
-                            color: "#fff", boxShadow: "0 4px 16px rgba(16,185,129,.2)",
-                        }}>
-                            {gerandoEstrategias ? <Loader2 size={16} className="animate-spin" /> : <Target size={16} />}
-                            {gerandoEstrategias ? "Gerando..." : "Gerar Estratégias Práticas"}
-                        </button>
-                    </div>
-                )}
-
-                {/* ─── Perfil de Funcionamento Output ─────────────────── */}
-                {perfilGerado && (
-                    <div style={{ ...cardS, marginBottom: 20, border: "1.5px solid rgba(168,85,247,.2)" }}>
-                        <div style={{ ...headerS, background: "rgba(168,85,247,.05)" }}>
-                            <Sparkles size={16} style={{ color: "#a855f7" }} />
-                            <span style={{ fontWeight: 700, fontSize: 14, color: "#a855f7" }}>Perfil de Funcionamento</span>
-                        </div>
-                        <div style={bodyS}>
-                            {Boolean(perfilGerado.resumo_geral) && (
-                                <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5, marginTop: 0, marginBottom: 12 }}>
-                                    {String(perfilGerado.resumo_geral)}
-                                </p>
-                            )}
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-                                {Array.isArray(perfilGerado.pontos_fortes) && (
-                                    <div style={{ padding: 12, borderRadius: 10, background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.12)" }}>
-                                        <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginBottom: 6 }}>✅ Pontos Fortes</div>
-                                        {(perfilGerado.pontos_fortes as string[]).map((p, i) => (
-                                            <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>• {p}</div>
-                                        ))}
-                                    </div>
-                                )}
-                                {Array.isArray(perfilGerado.areas_atencao) && (
-                                    <div style={{ padding: 12, borderRadius: 10, background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.12)" }}>
-                                        <div style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b", marginBottom: 6 }}>⚠️ Áreas de Atenção</div>
-                                        {(perfilGerado.areas_atencao as string[]).map((a, i) => (
-                                            <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>• {a}</div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            {Array.isArray(perfilGerado.recomendacao_prioridade) && (
-                                <div style={{ padding: 12, borderRadius: 10, background: "rgba(99,102,241,.05)", border: "1px solid rgba(99,102,241,.12)" }}>
-                                    <div style={{ fontSize: 11, fontWeight: 700, color: "#818cf8", marginBottom: 6 }}>🎯 Prioridades</div>
-                                    {(perfilGerado.recomendacao_prioridade as string[]).map((r, i) => (
-                                        <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>{i + 1}. {r}</div>
-                                    ))}
+                                        <Activity size={12} /> Ver Avaliação Processual completa →
+                                    </a>
                                 </div>
                             )}
                         </div>
-                    </div>
-                )}
-
-                {/* ─── Estratégias Práticas Output ────────────────────── */}
-                {estrategiasGeradas && (
-                    <div style={{ ...cardS, marginBottom: 20, border: "1.5px solid rgba(16,185,129,.2)" }}>
-                        <div style={{ ...headerS, background: "rgba(16,185,129,.05)" }}>
-                            <Target size={16} style={{ color: "#10b981" }} />
-                            <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>Estratégias Práticas</span>
-                        </div>
-                        <div style={bodyS}>
-                            {Array.isArray(estrategiasGeradas.estrategias) && (
-                                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
-                                    {(estrategiasGeradas.estrategias as Array<Record<string, string>>).map((est, i) => (
-                                        <div key={i} style={{
-                                            padding: "12px 14px", borderRadius: 10,
-                                            background: est.prioridade === "essencial" ? "rgba(239,68,68,.04)" : "var(--bg-primary, rgba(2,6,23,.2))",
-                                            border: est.prioridade === "essencial" ? "1px solid rgba(239,68,68,.15)" : "1px solid var(--border-default, rgba(148,163,184,.1))",
-                                        }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                                                <span style={{
-                                                    fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, textTransform: "uppercase",
-                                                    background: est.prioridade === "essencial" ? "rgba(239,68,68,.1)" : est.prioridade === "recomendada" ? "rgba(245,158,11,.1)" : "rgba(148,163,184,.1)",
-                                                    color: est.prioridade === "essencial" ? "#f87171" : est.prioridade === "recomendada" ? "#fbbf24" : "#94a3b8",
-                                                }}>{est.prioridade || "sugerida"}</span>
-                                            </div>
-                                            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3 }}>
-                                                👁️ {est.comportamento_observado}
-                                            </div>
-                                            <div style={{ fontSize: 12, color: "#10b981", fontWeight: 600, marginBottom: 3 }}>
-                                                ✋ {est.acao_concreta}
-                                            </div>
-                                            {est.quando_usar && (
-                                                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>📍 {est.quando_usar}</div>
-                                            )}
-                                            {est.exemplo_pratico && (
-                                                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4, fontStyle: "italic" }}>
-                                                    💬 Exemplo: {est.exemplo_pratico}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            {Array.isArray(estrategiasGeradas.o_que_evitar) && (
-                                <div style={{ padding: 12, borderRadius: 10, background: "rgba(239,68,68,.04)", border: "1px solid rgba(239,68,68,.12)" }}>
-                                    <div style={{ fontSize: 11, fontWeight: 700, color: "#f87171", marginBottom: 6 }}>🚫 O que evitar</div>
-                                    {(estrategiasGeradas.o_que_evitar as string[]).map((e, i) => (
-                                        <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>• {e}</div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* ─── Processual Data Feed ──────────────────────────── */}
-                {evolucaoProcessual.length > 0 && evolucaoProcessual[0]?.periodos?.length > 0 && (
-                    <div style={{ ...cardS, marginBottom: 20 }}>
-                        <button
-                            onClick={() => setShowProcessual(!showProcessual)}
-                            style={{
-                                ...headerS, width: "100%", cursor: "pointer",
-                                justifyContent: "space-between", border: "none",
-                                background: "rgba(16,185,129,.05)",
-                            }}
-                        >
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <Activity size={16} style={{ color: "#10b981" }} />
-                                <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>
-                                    Dados da Avaliação Processual
-                                </span>
-                                {evolucaoProcessual[0].tendencia && (
-                                    <span style={{
-                                        fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
-                                        background: evolucaoProcessual[0].tendencia === "melhora" ? "rgba(16,185,129,.1)" : evolucaoProcessual[0].tendencia === "regressao" ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
-                                        color: evolucaoProcessual[0].tendencia === "melhora" ? "#10b981" : evolucaoProcessual[0].tendencia === "regressao" ? "#f87171" : "#94a3b8",
-                                    }}>
-                                        {evolucaoProcessual[0].tendencia === "melhora" ? "↗ Progresso" : evolucaoProcessual[0].tendencia === "regressao" ? "↘ Atenção" : "→ Estável"}
-                                    </span>
-                                )}
-                                {evolucaoProcessual[0].media_mais_recente !== null && (
-                                    <span style={{
-                                        fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 6,
-                                        background: "rgba(16,185,129,.08)", color: "#10b981",
-                                    }}>Média: {evolucaoProcessual[0].media_mais_recente}</span>
-                                )}
-                            </div>
-                            {showProcessual ? <ChevronUp size={14} style={{ color: "#10b981" }} /> : <ChevronDown size={14} style={{ color: "#10b981" }} />}
-                        </button>
-                        {showProcessual && (
-                            <div style={bodyS}>
-                                <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 0, marginBottom: 12 }}>
-                                    Evolução registrada na Avaliação Processual — dados integrados automaticamente.
-                                </p>
-                                {evolucaoProcessual.map(evo => (
-                                    <div key={evo.disciplina} style={{ marginBottom: 16 }}>
-                                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 10 }}>
-                                            {evo.disciplina}
-                                        </div>
-                                        <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 90, padding: "0 4px" }}>
-                                            {evo.periodos.map((p, i) => {
-                                                const val = p.media_nivel ?? 0;
-                                                const height = Math.max((val / 4) * 70, 4);
-                                                const nc = val >= 3 ? "#10b981" : val >= 2 ? "#3b82f6" : val >= 1 ? "#fbbf24" : "#f87171";
-                                                return (
-                                                    <div key={p.bimestre} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                                                        <span style={{ fontSize: 11, fontWeight: 700, color: nc }}>{val}</span>
-                                                        <div style={{
-                                                            width: "100%", maxWidth: 36, height, borderRadius: 6,
-                                                            background: `linear-gradient(180deg, ${nc}, ${nc}88)`,
-                                                            transition: "height .3s ease",
-                                                        }} />
-                                                        <span style={{ fontSize: 9, color: "var(--text-muted)", textAlign: "center" }}>
-                                                            {p.bimestre}º
-                                                        </span>
-                                                        {i > 0 && evo.periodos[i - 1].media_nivel !== null && p.media_nivel !== null && (
-                                                            <span style={{
-                                                                fontSize: 8, fontWeight: 700,
-                                                                color: (p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "#10b981" : (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "#f87171" : "#94a3b8",
-                                                            }}>
-                                                                {(p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "▲" : (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "▼" : "="}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, padding: "0 4px" }}>
-                                            {[0, 1, 2, 3, 4].map(n => (
-                                                <span key={n} style={{ fontSize: 8, color: "var(--text-muted)", opacity: 0.5 }}>N{n}</span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                                <a href="/avaliacao-processual" style={{
-                                    display: "inline-flex", alignItems: "center", gap: 6,
-                                    fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none",
-                                    padding: "8px 14px", borderRadius: 8, background: "rgba(16,185,129,.06)",
-                                    border: "1px solid rgba(16,185,129,.15)",
-                                }}>
-                                    <Activity size={12} /> Ver Avaliação Processual completa →
-                                </a>
-                            </div>
-                        )}
-                    </div>
-                )}
+                    )
+                }
 
                 {/* ─── Diagnóstica vs Processual Comparison ─────────── */}
-                {nivelIdentificado !== null && evolucaoProcessual.length > 0 && evolucaoProcessual[0]?.media_mais_recente !== null && (
-                    (() => {
-                        const diagLevel = nivelIdentificado;
-                        const procLevel = evolucaoProcessual[0].media_mais_recente ?? 0;
-                        const delta = procLevel - diagLevel;
-                        const diagPct = Math.max((diagLevel / 4) * 100, 5);
-                        const procPct = Math.max((procLevel / 4) * 100, 5);
-                        const diagColor = diagLevel >= 3 ? "#10b981" : diagLevel >= 2 ? "#3b82f6" : diagLevel >= 1 ? "#fbbf24" : "#f87171";
-                        const procColor = procLevel >= 3 ? "#10b981" : procLevel >= 2 ? "#3b82f6" : procLevel >= 1 ? "#fbbf24" : "#f87171";
-                        return (
-                            <div style={{
-                                ...cardS, marginBottom: 20,
-                                border: `1.5px solid ${delta > 0 ? "rgba(16,185,129,.2)" : delta < 0 ? "rgba(239,68,68,.15)" : "rgba(148,163,184,.12)"}`,
-                            }}>
+                {
+                    nivelIdentificado !== null && evolucaoProcessual.length > 0 && evolucaoProcessual[0]?.media_mais_recente !== null && (
+                        (() => {
+                            const diagLevel = nivelIdentificado;
+                            const procLevel = evolucaoProcessual[0].media_mais_recente ?? 0;
+                            const delta = procLevel - diagLevel;
+                            const diagPct = Math.max((diagLevel / 4) * 100, 5);
+                            const procPct = Math.max((procLevel / 4) * 100, 5);
+                            const diagColor = diagLevel >= 3 ? "#10b981" : diagLevel >= 2 ? "#3b82f6" : diagLevel >= 1 ? "#fbbf24" : "#f87171";
+                            const procColor = procLevel >= 3 ? "#10b981" : procLevel >= 2 ? "#3b82f6" : procLevel >= 1 ? "#fbbf24" : "#f87171";
+                            return (
                                 <div style={{
-                                    ...headerS,
-                                    background: delta > 0 ? "rgba(16,185,129,.03)" : delta < 0 ? "rgba(239,68,68,.03)" : "rgba(148,163,184,.03)",
+                                    ...cardS, marginBottom: 20,
+                                    border: `1.5px solid ${delta > 0 ? "rgba(16,185,129,.2)" : delta < 0 ? "rgba(239,68,68,.15)" : "rgba(148,163,184,.12)"}`,
                                 }}>
-                                    <TrendingUp size={16} style={{ color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8" }} />
-                                    <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>
-                                        Diagnóstica vs Processual
-                                    </span>
-                                    <span style={{
-                                        fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 6,
-                                        background: delta > 0 ? "rgba(16,185,129,.1)" : delta < 0 ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
-                                        color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8",
-                                    }}>
-                                        {delta > 0 ? `↗ +${delta.toFixed(1)}` : delta < 0 ? `↘ ${delta.toFixed(1)}` : "→ 0"}
-                                    </span>
-                                </div>
-                                <div style={bodyS}>
-                                    <div style={{ display: "flex", gap: 24, alignItems: "flex-end" }}>
-                                        {/* Diagnostic bar */}
-                                        <div style={{ flex: 1, textAlign: "center" }}>
-                                            <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>Diagnóstica Inicial</div>
-                                            <div style={{ fontSize: 28, fontWeight: 800, color: diagColor, lineHeight: 1 }}>{diagLevel}</div>
-                                            <div style={{
-                                                height: 8, borderRadius: 4, marginTop: 8,
-                                                background: "var(--bg-primary, rgba(148,163,184,.08))",
-                                                overflow: "hidden",
-                                            }}>
-                                                <div style={{
-                                                    width: `${diagPct}%`, height: "100%", borderRadius: 4,
-                                                    background: `linear-gradient(90deg, ${diagColor}88, ${diagColor})`,
-                                                    transition: "width .5s ease",
-                                                }} />
-                                            </div>
-                                            <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>
-                                                {ESCALA_OMNISFERA[diagLevel as 0 | 1 | 2 | 3 | 4]?.label || ""}
-                                            </div>
-                                        </div>
-
-                                        {/* Arrow */}
-                                        <div style={{
-                                            display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-                                            padding: "0 8px",
-                                        }}>
-                                            <div style={{
-                                                fontSize: 20,
-                                                color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8",
-                                            }}>
-                                                {delta > 0 ? "▶" : delta < 0 ? "◀" : "▬"}
-                                            </div>
-                                        </div>
-
-                                        {/* Processual bar */}
-                                        <div style={{ flex: 1, textAlign: "center" }}>
-                                            <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>Processual Atual</div>
-                                            <div style={{ fontSize: 28, fontWeight: 800, color: procColor, lineHeight: 1 }}>{procLevel}</div>
-                                            <div style={{
-                                                height: 8, borderRadius: 4, marginTop: 8,
-                                                background: "var(--bg-primary, rgba(148,163,184,.08))",
-                                                overflow: "hidden",
-                                            }}>
-                                                <div style={{
-                                                    width: `${procPct}%`, height: "100%", borderRadius: 4,
-                                                    background: `linear-gradient(90deg, ${procColor}88, ${procColor})`,
-                                                    transition: "width .5s ease",
-                                                }} />
-                                            </div>
-                                            <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>
-                                                Média mais recente
-                                            </div>
-                                        </div>
-                                    </div>
-
                                     <div style={{
-                                        marginTop: 12, padding: "8px 12px", borderRadius: 8, fontSize: 12,
-                                        background: delta > 0 ? "rgba(16,185,129,.04)" : delta < 0 ? "rgba(239,68,68,.04)" : "rgba(148,163,184,.04)",
-                                        color: "var(--text-secondary)",
+                                        ...headerS,
+                                        background: delta > 0 ? "rgba(16,185,129,.03)" : delta < 0 ? "rgba(239,68,68,.03)" : "rgba(148,163,184,.03)",
                                     }}>
-                                        {delta > 0 ?
-                                            `O estudante evoluiu ${delta.toFixed(1)} pontos desde a avaliação diagnóstica inicial. Continue com as estratégias atuais.` :
-                                            delta < 0 ?
-                                                `O estudante apresentou queda de ${Math.abs(delta).toFixed(1)} pontos. Considere revisar o PEI e as estratégias de intervenção.` :
-                                                "O estudante mantém o mesmo nível da avaliação diagnóstica. Avalie se novas estratégias podem impulsionar a evolução."
-                                        }
+                                        <TrendingUp size={16} style={{ color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8" }} />
+                                        <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>
+                                            Diagnóstica vs Processual
+                                        </span>
+                                        <span style={{
+                                            fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 6,
+                                            background: delta > 0 ? "rgba(16,185,129,.1)" : delta < 0 ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
+                                            color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8",
+                                        }}>
+                                            {delta > 0 ? `↗ +${delta.toFixed(1)}` : delta < 0 ? `↘ ${delta.toFixed(1)}` : "→ 0"}
+                                        </span>
+                                    </div>
+                                    <div style={bodyS}>
+                                        <div style={{ display: "flex", gap: 24, alignItems: "flex-end" }}>
+                                            {/* Diagnostic bar */}
+                                            <div style={{ flex: 1, textAlign: "center" }}>
+                                                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>Diagnóstica Inicial</div>
+                                                <div style={{ fontSize: 28, fontWeight: 800, color: diagColor, lineHeight: 1 }}>{diagLevel}</div>
+                                                <div style={{
+                                                    height: 8, borderRadius: 4, marginTop: 8,
+                                                    background: "var(--bg-primary, rgba(148,163,184,.08))",
+                                                    overflow: "hidden",
+                                                }}>
+                                                    <div style={{
+                                                        width: `${diagPct}%`, height: "100%", borderRadius: 4,
+                                                        background: `linear-gradient(90deg, ${diagColor}88, ${diagColor})`,
+                                                        transition: "width .5s ease",
+                                                    }} />
+                                                </div>
+                                                <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>
+                                                    {ESCALA_OMNISFERA[diagLevel as 0 | 1 | 2 | 3 | 4]?.label || ""}
+                                                </div>
+                                            </div>
+
+                                            {/* Arrow */}
+                                            <div style={{
+                                                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                                                padding: "0 8px",
+                                            }}>
+                                                <div style={{
+                                                    fontSize: 20,
+                                                    color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8",
+                                                }}>
+                                                    {delta > 0 ? "▶" : delta < 0 ? "◀" : "▬"}
+                                                </div>
+                                            </div>
+
+                                            {/* Processual bar */}
+                                            <div style={{ flex: 1, textAlign: "center" }}>
+                                                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>Processual Atual</div>
+                                                <div style={{ fontSize: 28, fontWeight: 800, color: procColor, lineHeight: 1 }}>{procLevel}</div>
+                                                <div style={{
+                                                    height: 8, borderRadius: 4, marginTop: 8,
+                                                    background: "var(--bg-primary, rgba(148,163,184,.08))",
+                                                    overflow: "hidden",
+                                                }}>
+                                                    <div style={{
+                                                        width: `${procPct}%`, height: "100%", borderRadius: 4,
+                                                        background: `linear-gradient(90deg, ${procColor}88, ${procColor})`,
+                                                        transition: "width .5s ease",
+                                                    }} />
+                                                </div>
+                                                <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>
+                                                    Média mais recente
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div style={{
+                                            marginTop: 12, padding: "8px 12px", borderRadius: 8, fontSize: 12,
+                                            background: delta > 0 ? "rgba(16,185,129,.04)" : delta < 0 ? "rgba(239,68,68,.04)" : "rgba(148,163,184,.04)",
+                                            color: "var(--text-secondary)",
+                                        }}>
+                                            {delta > 0 ?
+                                                `O estudante evoluiu ${delta.toFixed(1)} pontos desde a avaliação diagnóstica inicial. Continue com as estratégias atuais.` :
+                                                delta < 0 ?
+                                                    `O estudante apresentou queda de ${Math.abs(delta).toFixed(1)} pontos. Considere revisar o PEI e as estratégias de intervenção.` :
+                                                    "O estudante mantém o mesmo nível da avaliação diagnóstica. Avalie se novas estratégias podem impulsionar a evolução."
+                                            }
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })()
-                )}
+                            );
+                        })()
+                    )
+                }
 
                 {/* No processual data - show link */}
-                {evolucaoProcessual.length === 0 && nivelIdentificado !== null && (
-                    <div style={{
-                        display: "flex", alignItems: "center", justifyContent: "space-between",
-                        padding: "10px 16px", borderRadius: 10, marginBottom: 20,
-                        background: "rgba(16,185,129,.04)", border: "1px solid rgba(16,185,129,.12)",
-                    }}>
-                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                            📊 Acompanhe a evolução deste estudante ao longo do ano
-                        </span>
-                        <a href="/avaliacao-processual" style={{
-                            fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none",
-                        }}>Ir para Processual →</a>
-                    </div>
-                )}
-            </div>
+                {
+                    evolucaoProcessual.length === 0 && nivelIdentificado !== null && (
+                        <div style={{
+                            display: "flex", alignItems: "center", justifyContent: "space-between",
+                            padding: "10px 16px", borderRadius: 10, marginBottom: 20,
+                            background: "rgba(16,185,129,.04)", border: "1px solid rgba(16,185,129,.12)",
+                        }}>
+                            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                                📊 Acompanhe a evolução deste estudante ao longo do ano
+                            </span>
+                            <a href="/avaliacao-processual" style={{
+                                fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none",
+                            }}>Ir para Processual →</a>
+                        </div>
+                    )
+                }
+            </div >
         );
     }
 
