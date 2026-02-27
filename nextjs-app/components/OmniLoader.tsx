@@ -25,6 +25,7 @@ const DEFAULT_MESSAGES = [
 
 const MODULE_MESSAGES: Record<string, string[]> = {
     diagnostica: [
+        "Criando questões...",
         "Analisando habilidades selecionadas...",
         "Calibrando questões ao nível Omnisfera...",
         "Gerando itens com distratores pedagógicos...",
@@ -54,6 +55,17 @@ const MODULE_MESSAGES: Record<string, string[]> = {
         "Criando atividade personalizada...",
         "Adaptando ao perfil do estudante...",
         "Gerando materiais pedagógicos...",
+    ],
+    hub_questoes: [
+        "Criando questões...",
+        "Selecionando habilidades BNCC...",
+        "Gerando itens e distratores...",
+        "Adaptando ao perfil do estudante...",
+    ],
+    plano_curso: [
+        "Analisando habilidades BNCC...",
+        "Gerando objetivos e metodologias...",
+        "Sugerindo recursos e avaliações...",
     ],
     paee: [
         "Montando plano de atendimento...",

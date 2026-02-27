@@ -6,6 +6,7 @@ import {
     Sparkles, GraduationCap, ChevronDown, ChevronRight,
     Trash2, Edit3, Copy,
 } from "lucide-react";
+import { OmniLoader } from "@/components/OmniLoader";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -427,6 +428,9 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Overlay: ícone Omnisfera + motor trabalhando ao gerar sugestão IA */}
+            {iaLoading && <OmniLoader engine="red" variant="overlay" module="plano_curso" />}
+
             {/* Header */}
             <div style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)", borderRadius: 14, padding: "18px 22px", color: "#fff" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>

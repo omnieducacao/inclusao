@@ -383,8 +383,8 @@ export default function AvaliacaoProcessualClient() {
     if (loading) {
         return (
             <div style={{ padding: 60, textAlign: "center" }}>
-                <Loader2 size={32} className="animate-spin" style={{ color: "#10b981", margin: "0 auto 12px" }} />
-                <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Carregando estudantes...</p>
+                <OmniLoader engine="green" variant="card" />
+                <p style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 16 }}>Carregando estudantes...</p>
             </div>
         );
     }
@@ -412,6 +412,15 @@ export default function AvaliacaoProcessualClient() {
 
         return (
             <div style={{ maxWidth: 900, margin: "0 auto" }}>
+                {/* Overlay: ícone girando + motor trabalhando (igual Hub / Diagnóstica) */}
+                {(salvando || gerandoRelatorio || gerandoIntegrado) && (
+                    <OmniLoader
+                        engine={salvando ? "green" : "red"}
+                        variant="overlay"
+                        module="processual"
+                    />
+                )}
+
                 {/* Breadcrumb */}
                 <div style={{
                     display: "flex", alignItems: "center", gap: 10, marginBottom: 20,

@@ -798,6 +798,9 @@ function CriarDoZero({
             className="w-full"
           />
           <div className="text-center text-sm text-slate-600 mt-1">{qtdImagens} imagem(ns)</div>
+          {usarImagens && qtdImagens > 0 && (
+            <p className="text-xs text-slate-500 mt-1">Primeiro usa o banco de imagens (Unsplash); se não houver resultado, a IA gera.</p>
+          )}
         </div>
       </div>
 
@@ -911,7 +914,7 @@ function CriarDoZero({
       >
         {loading ? <><OmniLoader engine={engine} size={16} /> Gerando…</> : "Gerar atividade"}
       </button>
-      {loading && <OmniLoader engine={engine} variant="overlay" module="hub" />}
+      {loading && <OmniLoader engine={engine} variant="overlay" module={eiMode ? "hub" : "hub_questoes"} />}
       {erro && <div className="text-red-600 text-sm">{erro}</div>}
       {resultado && (
         <div className="space-y-4">

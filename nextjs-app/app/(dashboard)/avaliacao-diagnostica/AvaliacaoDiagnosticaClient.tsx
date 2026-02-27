@@ -567,8 +567,8 @@ export default function AvaliacaoDiagnosticaClient() {
     if (loading) {
         return (
             <div style={{ padding: 60, textAlign: "center" }}>
-                <Loader2 size={32} className="animate-spin" style={{ color: "#3b82f6", margin: "0 auto 12px" }} />
-                <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Carregando estudantes...</p>
+                <OmniLoader engine="blue" variant="card" />
+                <p style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 16 }}>Carregando estudantes...</p>
             </div>
         );
     }
@@ -592,6 +592,15 @@ export default function AvaliacaoDiagnosticaClient() {
     if (selectedAluno && selectedDisc) {
         return (
             <div style={{ maxWidth: 900, margin: "0 auto" }}>
+                {/* Overlay Omnisfera: ícone girando + motor (gerar itens, salvar, perfil, estratégias) */}
+                {(gerando || salvandoAvaliacao || gerandoPerfil || gerandoEstrategias) && (
+                    <OmniLoader
+                        engine={salvandoAvaliacao ? "green" : "red"}
+                        variant="overlay"
+                        module="diagnostica"
+                    />
+                )}
+
                 {/* Breadcrumb */}
                 <div style={{
                     display: "flex", alignItems: "center", gap: 10, marginBottom: 20,
@@ -990,6 +999,11 @@ export default function AvaliacaoDiagnosticaClient() {
                                         </div>
                                     )}
                                 </div>
+                                {usarImagens && (
+                                    <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>
+                                        As imagens usam primeiro o <strong>banco de imagens</strong> (Unsplash). Se não houver resultado, a IA gera a figura. Elas são inseridas após o enunciado de cada questão e devem fazer sentido com o que se pergunta (ex.: gráfico, mapa, figura). Tags vagas são ignoradas.
+                                    </p>
+                                )}
 
                                 {/* Bloom + Checklist row */}
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -1099,29 +1113,39 @@ export default function AvaliacaoDiagnosticaClient() {
                                             const atividade = parts[1]?.replace("[ATIVIDADE]", "").trim() || textoFinal;
                                             textoFinal = analise ? `## Análise Pedagógica\n\n${analise}\n\n---\n\n## Atividade\n\n${atividade}` : atividade;
                                         }
-                                        // Process images
+                                        // Process images: só gerar quando o termo for concreto (evita "contexto", "ilustração" etc.)
                                         const mapa: Record<number, string> = {};
                                         if (usarImagens && qtdImagens > 0) {
                                             const genImgRegex = /\[\[GEN_IMG:\s*([^\]]+)\]\]/gi;
                                             const termos: string[] = [];
-                                            let m: RegExpExecArray | null;
-                                            while ((m = genImgRegex.exec(textoFinal)) !== null) termos.push(m[1].trim());
-                                            for (let i = 0; i < termos.length && i < qtdImagens; i++) {
+                                            let mm: RegExpExecArray | null;
+                                            while ((mm = genImgRegex.exec(textoFinal)) !== null) termos.push(mm[1].trim());
+                                            const termoVago = (t: string) => {
+                                                const v = t.toLowerCase().trim();
+                                                return v.length < 15 || /contexto|ilustração|ilustração do|cenário|motivador|texto base|situação estímulo|imagem do texto/i.test(v);
+                                            };
+                                            let imgCount = 0;
+                                            const substituicoes = termos.map((t) => termoVago(t) ? "" : `[[IMG_${++imgCount}]]`);
+                                            let replaceIdx = 0;
+                                            textoFinal = textoFinal.replace(/\[\[GEN_IMG:\s*[^\]]+\]\]/gi, () => substituicoes[replaceIdx++] ?? "");
+                                            let imgNum = 0;
+                                            for (let i = 0; i < termos.length; i++) {
+                                                if (termoVago(termos[i]!)) continue;
+                                                imgNum++;
+                                                const termo = termos[i]!;
                                                 try {
                                                     const imgRes = await fetch("/api/hub/gerar-imagem", {
                                                         method: "POST", headers: { "Content-Type": "application/json" },
-                                                        body: JSON.stringify({ prompt: termos[i], prioridade: "BANCO" }),
+                                                        body: JSON.stringify({ prompt: termo, prioridade: "BANCO" }),
                                                     });
                                                     const imgData = await imgRes.json();
                                                     if (imgRes.ok && imgData.image) {
                                                         const imgStr = imgData.image as string;
                                                         const base64 = imgStr.startsWith("data:image") ? imgStr.replace(/^data:image\/\w+;base64,/, "") : imgStr;
-                                                        if (base64?.length > 100) mapa[i + 1] = base64;
+                                                        if (base64?.length > 100) mapa[imgNum] = base64;
                                                     }
                                                 } catch { /* silent */ }
                                             }
-                                            let idx = 0;
-                                            textoFinal = textoFinal.replace(/\[\[GEN_IMG:\s*[^\]]+\]\]/gi, () => { idx++; return `[[IMG_${idx}]]`; });
                                         }
                                         setMapaImagensResultado(mapa);
                                         setResultadoFormatado(textoFinal);
@@ -1142,8 +1166,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                 </button>
                             </div>
 
-                            {/* OmniLoader Overlay during generation */}
-                            {gerando && <OmniLoader engine={engineSel} variant="overlay" module="diagnostica" />}
+                            {/* Overlay já exibido no topo da view quando gerando/salvando/perfil/estratégias */}
                         </div>
                     </div>
                 )}

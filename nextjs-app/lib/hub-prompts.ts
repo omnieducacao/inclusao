@@ -36,7 +36,7 @@ export function criarPromptProfissional(params: CriarAtividadeParams): string {
   // Instrução de imagens
   const instrucao_img =
     qtd_imgs > 0
-      ? `Incluir imagens em ${qtd_imgs} questões (use [[GEN_IMG: termo]]). REGRA DE POSIÇÃO: A tag da imagem ([[GEN_IMG: termo]]) DEVE vir logo APÓS o enunciado e ANTES das alternativas.`
+      ? `Incluir imagens em até ${qtd_imgs} questão(ões) (use [[GEN_IMG: termo]]). REGRA DE POSIÇÃO: A tag [[GEN_IMG: termo]] DEVE vir logo APÓS o enunciado e ANTES das alternativas. NUNCA coloque no texto-base/contexto. O "termo" deve ser descrição concreta e específica da figura (ex: "gráfico de barras com dados X"), nunca "contexto" ou "ilustração". Só use imagem quando fizer sentido para responder a questão.`
       : "Sem imagens.";
 
   // Instrução de Bloom
@@ -929,7 +929,16 @@ export function criarPromptItensAvancado(params: CriarAtividadeParams): string {
   // ── Instrução de imagens ──
   const instrucao_img =
     qtd_imgs > 0
-      ? `Incluir imagens em ${qtd_imgs} questões (use [[GEN_IMG: termo]]). REGRA DE POSIÇÃO: A tag da imagem ([[GEN_IMG: termo]]) DEVE vir logo APÓS o enunciado e ANTES das alternativas.`
+      ? `Incluir imagens em até ${qtd_imgs} questão(ões) (use [[GEN_IMG: termo]]).
+
+REGRA DE POSIÇÃO (OBRIGATÓRIA):
+- A tag [[GEN_IMG: termo]] DEVE vir APENAS logo APÓS o ENUNCIADO (comando da questão) e ANTES das alternativas.
+- NUNCA coloque [[GEN_IMG]] dentro do texto-base, situação-estímulo ou contexto introdutório. A imagem NÃO é parte do "contexto" — ela ilustra diretamente o que a questão pede.
+
+REGRA DE SENTIDO (OBRIGATÓRIA):
+- O "termo" dentro de [[GEN_IMG: termo]] deve ser uma descrição CONCRETA e ESPECÍFICA do que a figura deve mostrar, diretamente ligada à tarefa da questão (ex: "gráfico de barras com vendas trimestrais", "mapa do Brasil com regiões destacadas", "célula animal com organelas visíveis").
+- NUNCA use termos vagos como "contexto", "ilustração do texto", "imagem motivadora", "cenário" ou "contexto da questão" — isso gera imagens genéricas que atrapalham.
+- Só inclua [[GEN_IMG]] em questões em que a imagem seja NECESSÁRIA ou ajude de fato a responder (ex: questão sobre gráfico, mapa, figura científica). Se a questão não se beneficiar de imagem, NÃO insira tag.`
       : "Sem imagens.";
 
   // ── Instrução de Bloom ──
@@ -1028,6 +1037,10 @@ FORMATO: ITEM OBJETIVO (MÚLTIPLA ESCOLHA) — REGRAS RIGOROSAS:
    - Exatamente 5 alternativas com paralelismo sintático e tamanho similar (formato trapezoidal).
    - Gabarito único e indiscutível.
    - Os DISTRATORES devem refletir ERROS REAIS de raciocínio, NÃO absurdos óbvios.
+
+3a. IMAGEM (se aplicável):
+   - Se a questão tiver imagem, use [[GEN_IMG: descrição concreta]] APENAS após o ENUNCIADO e antes das alternativas.
+   - NUNCA coloque a tag no texto-base. O "termo" deve ser a descrição específica do que a figura mostra (ex: "gráfico de linha com temperatura por mês"), nunca "contexto" ou "ilustração".
 
 4. PROIBIÇÕES ABSOLUTAS:
    - NUNCA use termos absolutos: "sempre", "nunca", "todo", "apenas", "somente".
