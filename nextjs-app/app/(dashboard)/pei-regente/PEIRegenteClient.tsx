@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
 import { OnboardingPanel, OnboardingResetButton } from "@/components/OnboardingPanel";
+import { OmniLoader } from "@/components/OmniLoader";
 import { ESCALA_OMNISFERA, FASE_STATUS_LABELS, type NivelOmnisfera, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -254,13 +255,14 @@ export function PEIRegenteClient() {
                                     className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50"
                                     style={{ background: gerandoAdaptacao ? '#94a3b8' : 'linear-gradient(135deg, #0ea5e9, #3b82f6)' }}
                                 >
-                                    {gerandoAdaptacao ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        <Sparkles className="w-4 h-4" />
+                                    {gerandoAdaptacao ? <OmniLoader engine="red" size={14} /> : (
+                                        <>
+                                            <Sparkles size={14} />
+                                        </>
                                     )}
                                     {gerandoAdaptacao ? "Gerando adaptações..." : "Sugerir Adaptações com IA"}
                                 </button>
+                                {gerandoAdaptacao && <OmniLoader engine="red" variant="overlay" module="pei_regente" />}
 
                                 {/* Result */}
                                 {adaptacaoSugestao && (

@@ -23,6 +23,7 @@ import { Map, AlertTriangle, Target, Puzzle, Users, Search } from "lucide-react"
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { ResumoAnexosEstudante } from "@/components/ResumoAnexosEstudante";
+import { OmniLoader } from "@/components/OmniLoader";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -1707,7 +1708,7 @@ function MapearBarreirasTab({
           >
             {loading ? (
               <>
-                <span className="animate-spin">⏳</span>
+                <OmniLoader engine={engine} size={16} />
                 Analisando barreiras...
               </>
             ) : (
@@ -1785,7 +1786,7 @@ function MapearBarreirasTab({
             >
               {loading ? (
                 <>
-                  <span className="animate-spin">⏳</span>
+                  <OmniLoader engine={engine} size={16} />
                   Regerando...
                 </>
               ) : (
@@ -2062,7 +2063,7 @@ function PlanoHabilidadesTab({
           >
             {loading ? (
               <>
-                <span className="animate-spin">⏳</span>
+                <OmniLoader engine={engine} size={16} />
                 Elaborando plano de intervenção...
               </>
             ) : (
@@ -2374,7 +2375,7 @@ function TecAssistivaTab({
           >
             {loading ? (
               <>
-                <span className="animate-spin">⏳</span>
+                <OmniLoader engine={engine} size={16} />
                 Buscando tecnologias assistivas...
               </>
             ) : (
@@ -2695,7 +2696,7 @@ function ArticulacaoTab({
           >
             {loading ? (
               <>
-                <span className="animate-spin">⏳</span>
+                <OmniLoader engine={engine} size={16} />
                 Gerando documento...
               </>
             ) : (

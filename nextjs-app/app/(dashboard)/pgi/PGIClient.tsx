@@ -10,6 +10,7 @@ import {
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { EngineSelector } from "@/components/EngineSelector";
 import { Plus, User, Trash2, Save, MapPin, Calendar, Sparkles, Loader2 } from "lucide-react";
+import { OmniLoader } from "@/components/OmniLoader";
 import type { EngineId } from "@/lib/ai-engines";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 
@@ -381,7 +382,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
           >
             {gerandoAcoes ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <OmniLoader engine={engine} size={16} />
                 Gerando ações...
               </>
             ) : (
@@ -391,6 +392,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
               </>
             )}
           </button>
+          {gerandoAcoes && <OmniLoader engine={engine} variant="overlay" module="hub" />}
         </div>
       )}
 

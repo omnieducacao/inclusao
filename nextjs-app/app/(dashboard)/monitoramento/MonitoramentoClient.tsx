@@ -6,6 +6,7 @@ import Link from "next/link";
 import { StudentSelector } from "@/components/StudentSelector";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { CheckCircle2, Info, AlertTriangle, Save, Sparkles, Loader2 } from "lucide-react";
+import { OmniLoader } from "@/components/OmniLoader";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 
 type Student = { id: string; name: string };
@@ -398,7 +399,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 transition-all shadow-sm"
                 title="Analisa registros do Diário para sugerir pontuações"
               >
-                {sugLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                {sugLoading ? <OmniLoader engine="red" size={14} /> : <Sparkles className="w-3.5 h-3.5" />}
                 Sugerir com IA
               </button>
             </div>

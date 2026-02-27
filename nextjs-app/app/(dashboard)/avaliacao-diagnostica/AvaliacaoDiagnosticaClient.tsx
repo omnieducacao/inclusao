@@ -12,6 +12,7 @@ import {
     Grid3X3, BookMarked, ChevronRight, TrendingUp, Image, Trash2,
 } from "lucide-react";
 import { OnboardingPanel } from "@/components/OnboardingPanel";
+import { OmniLoader } from "@/components/OmniLoader";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import type { EngineId } from "@/lib/ai-engines";
 
@@ -134,7 +135,7 @@ export default function AvaliacaoDiagnosticaClient() {
     // Matrix habilidades for item creation
     const [matrizHabs, setMatrizHabs] = useState<{ habilidade: string; tema: string; descritor: string; competencia: string }[]>([]);
     const [habsSelecionadas, setHabsSelecionadas] = useState<string[]>([]);
-    const [qtdQuestoes, setQtdQuestoes] = useState(4);
+    const [qtdQuestoes, setQtdQuestoes] = useState(12);
     const [tipoQuestao, setTipoQuestao] = useState<"Objetiva" | "Discursiva">("Objetiva");
 
     // Hub-style config (Bloom, images, checklist, assunto, formatted result)
@@ -809,18 +810,37 @@ export default function AvaliacaoDiagnosticaClient() {
                                                 max={20}
                                                 value={qtdQuestoes}
                                                 onChange={e => setQtdQuestoes(Number(e.target.value))}
-                                                style={{ flex: 1, accentColor: qtdQuestoes < 8 ? "#f59e0b" : "#3b82f6" }}
+                                                style={{ flex: 1, accentColor: qtdQuestoes < 8 ? "#ef4444" : qtdQuestoes < 10 ? "#f59e0b" : qtdQuestoes <= 15 ? "#10b981" : "#3b82f6" }}
                                             />
-                                            <span style={{ fontSize: 14, fontWeight: 800, color: qtdQuestoes < 8 ? "#f59e0b" : "#3b82f6", minWidth: 20, textAlign: "center" }}>{qtdQuestoes}</span>
+                                            <span style={{ fontSize: 14, fontWeight: 800, color: qtdQuestoes < 8 ? "#ef4444" : qtdQuestoes < 10 ? "#f59e0b" : qtdQuestoes <= 15 ? "#10b981" : "#3b82f6", minWidth: 20, textAlign: "center" }}>{qtdQuestoes}</span>
                                         </div>
                                         {qtdQuestoes < 8 && (
+                                            <div style={{
+                                                display: "flex", alignItems: "center", gap: 6,
+                                                marginTop: 6, padding: "6px 10px", borderRadius: 6,
+                                                background: "rgba(239,68,68,.06)", border: "1px solid rgba(239,68,68,.15)",
+                                                fontSize: 10, color: "#ef4444", fontWeight: 600,
+                                            }}>
+                                                <AlertTriangle size={12} /> Quantidade insuficiente — mínimo de 8 questões para confiabilidade diagnóstica
+                                            </div>
+                                        )}
+                                        {qtdQuestoes >= 8 && qtdQuestoes < 10 && (
                                             <div style={{
                                                 display: "flex", alignItems: "center", gap: 6,
                                                 marginTop: 6, padding: "6px 10px", borderRadius: 6,
                                                 background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.15)",
                                                 fontSize: 10, color: "#f59e0b", fontWeight: 600,
                                             }}>
-                                                <AlertTriangle size={12} /> Mínimo de 8 questões recomendado para confiabilidade diagnóstica
+                                                <AlertTriangle size={12} /> Recomendado mínimo de 10 questões para maior precisão
+                                            </div>
+                                        )}
+                                        {qtdQuestoes >= 10 && qtdQuestoes <= 15 && (
+                                            <div style={{
+                                                marginTop: 6, padding: "6px 10px", borderRadius: 6,
+                                                background: "rgba(16,185,129,.04)", border: "1px solid rgba(16,185,129,.12)",
+                                                fontSize: 10, color: "#10b981", fontWeight: 600,
+                                            }}>
+                                                ✅ Quantidade ideal para diagnóstica confiável
                                             </div>
                                         )}
                                         {qtdQuestoes >= 8 && (
@@ -1066,10 +1086,13 @@ export default function AvaliacaoDiagnosticaClient() {
                                     display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                                     boxShadow: "0 4px 20px rgba(99,102,241,.3)",
                                 }}>
-                                    {gerando ? <Loader2 size={20} className="animate-spin" /> : <Sparkles size={20} />}
+                                    {gerando ? <OmniLoader engine={engineSel} size={20} /> : <Sparkles size={20} />}
                                     {gerando ? "Gerando itens com IA..." : "Gerar Itens com IA"}
                                 </button>
                             </div>
+
+                            {/* OmniLoader Overlay during generation */}
+                            {gerando && <OmniLoader engine={engineSel} variant="overlay" module="diagnostica" />}
                         </div>
                     </div>
                 )}
@@ -1211,7 +1234,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                                     opacity: Object.keys(respostasAluno).length === 0 ? 0.5 : 1,
                                                 }}
                                             >
-                                                {analisando ? <Loader2 size={16} className="animate-spin" /> : <BarChart3 size={16} />}
+                                                {analisando ? <OmniLoader engine="red" size={16} /> : <BarChart3 size={16} />}
                                                 {analisando ? "Analisando..." : "Salvar e Analisar Respostas"}
                                             </button>
                                         ) : (
@@ -1456,7 +1479,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                 background: gerandoPerfil ? "var(--bg-tertiary)" : "linear-gradient(135deg, #7c3aed, #a855f7)",
                                 color: "#fff", boxShadow: "0 4px 16px rgba(168,85,247,.2)",
                             }}>
-                                {gerandoPerfil ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                {gerandoPerfil ? <OmniLoader engine="red" size={16} /> : <Sparkles size={16} />}
                                 {gerandoPerfil ? "Gerando..." : "Gerar Perfil de Funcionamento"}
                             </button>
                             <button onClick={gerarEstrategias} disabled={gerandoEstrategias} style={{
@@ -1467,7 +1490,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                 background: gerandoEstrategias ? "var(--bg-tertiary)" : "linear-gradient(135deg, #059669, #10b981)",
                                 color: "#fff", boxShadow: "0 4px 16px rgba(16,185,129,.2)",
                             }}>
-                                {gerandoEstrategias ? <Loader2 size={16} className="animate-spin" /> : <Target size={16} />}
+                                {gerandoEstrategias ? <OmniLoader engine="red" size={16} /> : <Target size={16} />}
                                 {gerandoEstrategias ? "Gerando..." : "Gerar Estratégias Práticas"}
                             </button>
                         </div>

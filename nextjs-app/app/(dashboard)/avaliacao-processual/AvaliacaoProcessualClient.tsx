@@ -9,6 +9,7 @@ import {
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import { RubricaOmnisfera } from "@/components/RubricaOmnisfera";
 import { OnboardingPanel } from "@/components/OnboardingPanel";
+import { OmniLoader } from "@/components/OmniLoader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -809,7 +810,7 @@ export default function AvaliacaoProcessualClient() {
                             opacity: habilidades.length === 0 ? 0.5 : 1,
                         }}
                     >
-                        {salvando ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                        {salvando ? <OmniLoader engine="green" size={16} /> : <Save size={16} />}
                         {salvando ? "Salvando..." : "Salvar Avaliação"}
                     </button>
 
@@ -829,7 +830,7 @@ export default function AvaliacaoProcessualClient() {
                                 boxShadow: "0 4px 16px rgba(168,85,247,.2)",
                             }}
                         >
-                            {gerandoRelatorio ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+                            {gerandoRelatorio ? <OmniLoader engine="red" size={16} /> : <FileText size={16} />}
                             {gerandoRelatorio ? "Gerando..." : "Gerar Relatório IA"}
                         </button>
                     )}
@@ -861,7 +862,7 @@ export default function AvaliacaoProcessualClient() {
                             color: "#fff", transition: "all .2s",
                         }}
                     >
-                        {gerandoIntegrado ? <Loader2 size={16} className="animate-spin" /> : <BarChart3 size={16} />}
+                        {gerandoIntegrado ? <OmniLoader engine="red" size={16} /> : <BarChart3 size={16} />}
                         {gerandoIntegrado ? "Carregando..." : relatorioIntegrado ? (showIntegrado ? "Ocultar Integrado" : "Ver Integrado") : "Relatório Integrado"}
                     </button>
                 </div>

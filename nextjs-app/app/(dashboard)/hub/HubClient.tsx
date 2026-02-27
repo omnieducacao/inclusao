@@ -14,6 +14,7 @@ import { getColorClasses } from "@/lib/colors";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { LottieIcon } from "@/components/LottieIcon";
+import { OmniLoader } from "@/components/OmniLoader";
 import {
   FileText,
   Image as ImageIcon,
@@ -908,8 +909,9 @@ function CriarDoZero({
         disabled={loading}
         className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50"
       >
-        {loading ? "Gerando…" : "Gerar atividade"}
+        {loading ? <><OmniLoader engine={engine} size={16} /> Gerando…</> : "Gerar atividade"}
       </button>
+      {loading && <OmniLoader engine={engine} variant="overlay" module="hub" />}
       {erro && <div className="text-red-600 text-sm">{erro}</div>}
       {resultado && (
         <div className="space-y-4">

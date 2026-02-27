@@ -80,6 +80,7 @@ import {
   Send,
 } from "lucide-react";
 import { OnboardingPanel, OnboardingResetButton } from "@/components/OnboardingPanel";
+import { OmniLoader } from "@/components/OmniLoader";
 import { Users as UsersIcon, FileText as FileTextIcon, Sparkles as SparklesIcon, Send as SendIcon, Brain, ClipboardList as ClipboardListIcon } from "lucide-react";
 
 type HabilidadeBncc = {
@@ -3078,7 +3079,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
               {mapaLoading ? "Gerando..." : "Perfil completo como mapa interativo"}
             </p>
           </div>
-          {mapaLoading && <Loader2 className="w-4 h-4 animate-spin text-violet-500 ml-auto" />}
+          {mapaLoading && <OmniLoader engine="yellow" size={16} />}
         </button>
 
         {/* Card: Resumo Família */}
@@ -3096,7 +3097,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
               {resumoLoading ? "Preparando..." : "Linguagem sem jargão para reunião"}
             </p>
           </div>
-          {resumoLoading && <Loader2 className="w-4 h-4 animate-spin text-emerald-500 ml-auto" />}
+          {resumoLoading && <OmniLoader engine="green" size={16} />}
         </button>
 
         {/* Card: FAQ */}
@@ -3114,7 +3115,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
               {faqLoading ? "Gerando..." : "Perguntas frequentes com respostas práticas"}
             </p>
           </div>
-          {faqLoading && <Loader2 className="w-4 h-4 animate-spin text-amber-500 ml-auto" />}
+          {faqLoading && <OmniLoader engine="blue" size={16} />}
         </button>
       </div>
 
