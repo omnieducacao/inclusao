@@ -37,9 +37,9 @@ export async function GET() {
     if (!memberIdResolved) {
         const { data: memberData } = await sb
             .from("workspace_members")
-            .select("id, name")
+            .select("id, nome")
             .eq("workspace_id", session.workspace_id)
-            .eq("name", session.usuario_nome)
+            .eq("nome", session.usuario_nome)
             .maybeSingle();
 
         if (memberData) {
@@ -113,14 +113,8 @@ export async function GET() {
     // Combinar todos os IDs
     const allStudentIds = [...studentIds, ...(extraStudents || []).map(s => s.id)];
 
-    // 6. Buscar planos de ensino existentes
-    const { data: planos } = allStudentIds.length > 0
-        ? await sb
-            .from("planos_ensino")
-            .select("id, disciplina, student_id")
-            .in("student_id", allStudentIds)
-            .eq("workspace_id", session.workspace_id)
-        : { data: [] };
+    // 6. has_plano vem de pei_disciplinas.plano_ensino_id (não de planos_ensino por estudante)
+    // planos_ensino não tem student_id; o vínculo é pei_disciplinas.plano_ensino_id → planos_ensino.id
 
     // 7. Buscar avaliações diagnósticas existentes
     const { data: avaliacoes } = allStudentIds.length > 0
@@ -135,10 +129,6 @@ export async function GET() {
     const studentsMap = new Map((students || []).map(s => [s.id, s]));
     (extraStudents || []).forEach(s => studentsMap.set(s.id, s));
 
-    const planosMap = new Map<string, boolean>();
-    (planos || []).forEach(p => {
-        planosMap.set(`${p.student_id}:${p.disciplina}`, true);
-    });
     const avaliacoesMap = new Map<string, { nivel: number | null; status: string }>();
     (avaliacoes || []).forEach(a => {
         avaliacoesMap.set(`${a.student_id}:${a.disciplina}`, {
@@ -187,13 +177,14 @@ export async function GET() {
 
         const key = `${d.student_id}:${d.disciplina}`;
         const avData = avaliacoesMap.get(key);
+        const hasPlano = !!d.plano_ensino_id;
 
         alunosMap.get(d.student_id)!.disciplinas.push({
             id: d.id,
             disciplina: d.disciplina,
             professor_regente_nome: d.professor_regente_nome,
             fase_status: d.fase_status || "plano_ensino",
-            has_plano: planosMap.has(key),
+            has_plano: hasPlano,
             has_avaliacao: !!avData,
             nivel_omnisfera: avData?.nivel || null,
             avaliacao_status: avData?.status || "pendente",
@@ -223,7 +214,7 @@ export async function GET() {
             }>,
         };
 
-        // Criar entradas virtuais para cada disciplina do professor
+        // Criar entradas virtuais para cada disciplina do professor (alunos extras não têm pei_disciplinas; has_plano = false)
         for (const disc of profDisciplinas) {
             const key = `${s.id}:${disc}`;
             const avData = avaliacoesMap.get(key);
@@ -232,7 +223,7 @@ export async function GET() {
                 disciplina: disc,
                 professor_regente_nome: session.usuario_nome || "Professor",
                 fase_status: "diagnostica",
-                has_plano: planosMap.has(key),
+                has_plano: false,
                 has_avaliacao: !!avData,
                 nivel_omnisfera: avData?.nivel || null,
                 avaliacao_status: avData?.status || "pendente",

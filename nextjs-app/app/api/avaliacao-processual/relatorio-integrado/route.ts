@@ -27,7 +27,8 @@ export async function GET(req: Request) {
 
     const sb = getSupabase();
 
-    // ── 1. Diagnóstica baseline from PEI ────────────────────────────────
+    // ── 1. Diagnóstica baseline from avaliacoes_diagnosticas ─────────────
+    // (Não existe tabela "peis"; o baseline vem das avaliações diagnósticas do estudante.)
 
     let diagnosticoBaseline: {
         nivel_omnisfera: number | null;
@@ -37,38 +38,36 @@ export async function GET(req: Request) {
     } | null = null;
 
     try {
-        // PEIs store the diagnostic avaliacao data
-        const { data: peis } = await sb
-            .from("peis")
-            .select("avaliacoes_diagnosticas, updated_at")
+        const { data: avs } = await sb
+            .from("avaliacoes_diagnosticas")
+            .select("id, disciplina, nivel_omnisfera_identificado, status, updated_at")
             .eq("workspace_id", session.workspace_id)
             .eq("student_id", studentId)
             .order("updated_at", { ascending: false });
 
-        if (peis?.length) {
-            for (const pei of peis) {
-                const avs = (pei.avaliacoes_diagnosticas || []) as Array<{
-                    disciplina: string;
-                    nivel_omnisfera_identificado?: number;
-                    status?: string;
-                    updated_at?: string;
-                }>;
-                const match = avs.find(a =>
-                    a.disciplina?.toLowerCase().includes(disciplina.toLowerCase()) ||
-                    disciplina.toLowerCase().includes(a.disciplina?.toLowerCase() || "")
-                );
-                if (match) {
-                    diagnosticoBaseline = {
-                        nivel_omnisfera: match.nivel_omnisfera_identificado ?? null,
-                        disciplina: match.disciplina,
-                        data: match.updated_at || pei.updated_at,
-                        status: match.status || "pendente",
-                    };
-                    break;
-                }
+        if (avs?.length && disciplina) {
+            const match = avs.find(a =>
+                a.disciplina?.toLowerCase().includes(disciplina.toLowerCase()) ||
+                disciplina.toLowerCase().includes(a.disciplina?.toLowerCase() || "")
+            );
+            if (match) {
+                diagnosticoBaseline = {
+                    nivel_omnisfera: match.nivel_omnisfera_identificado ?? null,
+                    disciplina: match.disciplina,
+                    data: match.updated_at || null,
+                    status: match.status || "pendente",
+                };
             }
+        } else if (avs?.length && !disciplina) {
+            const m = avs[0];
+            diagnosticoBaseline = {
+                nivel_omnisfera: m.nivel_omnisfera_identificado ?? null,
+                disciplina: m.disciplina || "",
+                data: m.updated_at || null,
+                status: m.status || "pendente",
+            };
         }
-    } catch { /* peis table may not exist */ }
+    } catch { /* table may not exist */ }
 
     // ── 2. Processual evolution ──────────────────────────────────────────
 
@@ -101,8 +100,8 @@ export async function GET(req: Request) {
 
         if (data?.length) {
             registros = data.map(r => ({
-                periodo: r.periodo || "",
-                tipo_periodo: r.tipo_periodo || "bimestre",
+                periodo: `Bimestre ${r.bimestre}`,
+                tipo_periodo: r.tipo_periodo || "bimestral",
                 habilidades: (r.habilidades || []) as Array<{
                     codigo_bncc: string;
                     descricao: string;

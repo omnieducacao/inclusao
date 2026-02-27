@@ -44,7 +44,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const professorId = (session as Record<string, unknown>).member_id as string || session.workspace_id;
+    const memberId = (session.member as Record<string, unknown> | undefined)?.id as string | undefined;
+    const professorId = memberId || session.workspace_id;
 
     const body = await req.json();
     const {
@@ -116,21 +117,7 @@ export async function POST(req: Request) {
         if (error.message.includes("relation") || error.code === "42P01") {
             return NextResponse.json({
                 error: "Tabela avaliacao_processual ainda não criada",
-                sql_sugerido: `CREATE TABLE avaliacao_processual (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    workspace_id UUID NOT NULL REFERENCES workspaces(id),
-    student_id UUID NOT NULL REFERENCES students(id),
-    professor_id UUID NOT NULL,
-    disciplina TEXT NOT NULL,
-    bimestre INTEGER NOT NULL CHECK (bimestre BETWEEN 1 AND 4),
-    ano_letivo INTEGER NOT NULL DEFAULT EXTRACT(YEAR FROM NOW()),
-    habilidades JSONB DEFAULT '[]',
-    dimensoes_nee JSONB DEFAULT '[]',
-    observacao_geral TEXT DEFAULT '',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(workspace_id, student_id, disciplina, bimestre, ano_letivo)
-);`,
+                sql_sugerido: `-- Ver nextjs-app/supabase/migrations/avaliacao_processual.sql`,
             }, { status: 500 });
         }
         return NextResponse.json({ error: error.message }, { status: 500 });
