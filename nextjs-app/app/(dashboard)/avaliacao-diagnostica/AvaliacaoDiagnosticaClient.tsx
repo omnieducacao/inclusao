@@ -745,9 +745,17 @@ export default function AvaliacaoDiagnosticaClient() {
                         )}
 
                         {!planoVinculado && (
-                            <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.15)", display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#fbbf24" }}>
-                                <FileText size={16} /> Nenhum plano de curso encontrado para {selectedDisc} ({selectedAluno?.grade}).
-                                <a href="/plano-curso" style={{ color: "#38bdf8", fontWeight: 600, textDecoration: "none", marginLeft: "auto" }}>Criar plano →</a>
+                            <div style={{ padding: "12px 16px", borderRadius: 10, background: momentoDiagnostica === "inicio_ano" ? "rgba(99,102,241,.06)" : "rgba(245,158,11,.05)", border: momentoDiagnostica === "inicio_ano" ? "1px solid rgba(99,102,241,.15)" : "1px solid rgba(245,158,11,.15)", display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: momentoDiagnostica === "inicio_ano" ? "#818cf8" : "#fbbf24" }}>
+                                {momentoDiagnostica === "inicio_ano" ? (
+                                    <>
+                                        <Layers size={16} /> No início do ano a avaliação usa a <strong>matriz de referência</strong> (habilidades do ano anterior). As habilidades aparecem abaixo.
+                                    </>
+                                ) : (
+                                    <>
+                                        <FileText size={16} /> Nenhum plano de curso encontrado para {selectedDisc} ({selectedAluno?.grade}).
+                                        <a href="/plano-curso" style={{ color: "#38bdf8", fontWeight: 600, textDecoration: "none", marginLeft: "auto" }}>Criar plano →</a>
+                                    </>
+                                )}
                             </div>
                         )}
 
