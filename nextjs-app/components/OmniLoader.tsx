@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useId } from "react";
+import React, { useState, useEffect } from "react";
 import type { EngineId } from "@/lib/ai-engines";
 
 // ─── Engine Metadata ──────────────────────────────────────────────────────────
@@ -62,10 +62,10 @@ const MODULE_MESSAGES: Record<string, string[]> = {
     ],
 };
 
-// ─── Global CSS injection (once) ──────────────────────────────────────────────
+// ─── Global CSS injection (once, client-only) ────────────────────────────────
 
 let stylesInjected = false;
-function injectGlobalStyles() {
+function ensureStyles() {
     if (stylesInjected || typeof document === "undefined") return;
     stylesInjected = true;
     const style = document.createElement("style");
@@ -78,7 +78,42 @@ function injectGlobalStyles() {
     document.head.appendChild(style);
 }
 
-// ─── Variants ─────────────────────────────────────────────────────────────────
+// ─── Spinner SVG (pure, no hooks) ─────────────────────────────────────────────
+
+function OmniSpinner({ color, size }: { color: string; size: number }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 40 40"
+            fill="none"
+            style={{ animation: "omniSpin 1.2s linear infinite", flexShrink: 0 }}
+        >
+            <circle cx="20" cy="20" r="17" stroke={`${color}25`} strokeWidth="3" />
+            <circle
+                cx="20" cy="20" r="17"
+                stroke={color}
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeDasharray="80 26.7"
+            />
+            <circle
+                cx="20" cy="20" r="3"
+                fill={color}
+                style={{ animation: "omniPulse 1.5s ease-in-out infinite" }}
+            />
+            <g style={{ animation: "omniOrbit 2s linear infinite", transformOrigin: "20px 20px" }}>
+                <circle cx="20" cy="5" r="2" fill={color} opacity="0.6" />
+            </g>
+        </svg>
+    );
+}
+
+// ─── OmniLoader: Main export ──────────────────────────────────────────────────
+// IMPORTANT: The "inline" variant renders NO hooks — just a pure SVG spinner.
+// This is critical because inline loaders are often conditionally swapped with
+// other elements like <Icon />. If we used hooks here, React would throw
+// "Rendered more hooks than during the previous render" (#310).
 
 interface OmniLoaderProps {
     engine?: EngineId | string;
@@ -96,23 +131,11 @@ export function OmniLoader({
     size = 16,
 }: OmniLoaderProps) {
     const meta = ENGINE_META[engine] || ENGINE_META.red;
-    const [msgIndex, setMsgIndex] = useState(0);
-    const messages = message ? [message] : (moduleName && MODULE_MESSAGES[moduleName]) || DEFAULT_MESSAGES;
 
-    useEffect(() => {
-        injectGlobalStyles();
-    }, []);
-
-    useEffect(() => {
-        if (variant === "inline" || message) return;
-        const interval = setInterval(() => {
-            setMsgIndex(prev => (prev + 1) % messages.length);
-        }, 3000);
-        return () => clearInterval(interval);
-    }, [variant, message, messages.length]);
-
-    // ── Inline: small spinner for buttons ──
+    // ── Inline: PURE render, zero hooks ──
     if (variant === "inline") {
+        // Inject styles lazily on first render (safe — runs during paint)
+        if (typeof document !== "undefined") ensureStyles();
         return (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <OmniSpinner color={meta.color} size={size} />
@@ -121,7 +144,43 @@ export function OmniLoader({
         );
     }
 
-    // ── Card: inside a section ──
+    // ── Card & Overlay use hooks (always rendered unconditionally) ──
+    return <OmniLoaderWithMessages engine={engine} moduleName={moduleName} message={message} variant={variant} size={size} meta={meta} />;
+}
+
+// ─── Card & Overlay (with hooks for message rotation) ─────────────────────────
+
+function OmniLoaderWithMessages({
+    engine,
+    moduleName,
+    message,
+    variant,
+    size,
+    meta,
+}: {
+    engine: string;
+    moduleName?: string;
+    message?: string;
+    variant: "card" | "overlay";
+    size: number;
+    meta: { label: string; color: string; glow: string };
+}) {
+    const [msgIndex, setMsgIndex] = useState(0);
+    const messages = message ? [message] : (moduleName && MODULE_MESSAGES[moduleName]) || DEFAULT_MESSAGES;
+
+    useEffect(() => {
+        ensureStyles();
+    }, []);
+
+    useEffect(() => {
+        if (message) return;
+        const interval = setInterval(() => {
+            setMsgIndex(prev => (prev + 1) % messages.length);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, [message, messages.length]);
+
+    // ── Card ──
     if (variant === "card") {
         return (
             <div style={{
@@ -151,7 +210,7 @@ export function OmniLoader({
         );
     }
 
-    // ── Overlay: full-section overlay ──
+    // ── Overlay ──
     return (
         <div style={{
             position: "fixed", inset: 0, zIndex: 9999,
@@ -205,40 +264,5 @@ export function OmniLoader({
                 </div>
             </div>
         </div>
-    );
-}
-
-// ─── Spinner SVG (pure inline animation) ──────────────────────────────────────
-
-function OmniSpinner({ color, size }: { color: string; size: number }) {
-    return (
-        <svg
-            width={size}
-            height={size}
-            viewBox="0 0 40 40"
-            fill="none"
-            style={{ animation: "omniSpin 1.2s linear infinite" }}
-        >
-            {/* Outer ring */}
-            <circle cx="20" cy="20" r="17" stroke={`${color}25`} strokeWidth="3" />
-            {/* Animated arc */}
-            <circle
-                cx="20" cy="20" r="17"
-                stroke={color}
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeDasharray="80 26.7"
-            />
-            {/* Center dot */}
-            <circle
-                cx="20" cy="20" r="3"
-                fill={color}
-                style={{ animation: "omniPulse 1.5s ease-in-out infinite" }}
-            />
-            {/* Orbiting dot */}
-            <g style={{ animation: "omniOrbit 2s linear infinite", transformOrigin: "20px 20px" }}>
-                <circle cx="20" cy="5" r="2" fill={color} opacity="0.6" />
-            </g>
-        </svg>
     );
 }
