@@ -282,6 +282,43 @@ export default function AvaliacaoDiagnosticaClient() {
         setBlocosPlano([]);
         setShowMatrix(false);
         setDimensoesNEE([]);
+
+        // Só carrega plano do professor quando momento = "decorrer do ano". Em "início do ano" usa só matriz genérica.
+        if (momentoDiagnostica === "decorrer_ano") {
+            const gradeNum = parseInt(aluno.grade?.match(/\d+/)?.[0] || "6", 10);
+            const gradeAnterior = Math.max(gradeNum - 1, 1);
+            const serieAnterior = aluno.grade?.replace(/\d+/, String(gradeAnterior)).replace(/\s*\(.*\)\s*$/, "").trim() || `${gradeAnterior}º Ano`;
+            const serieAtual = aluno.grade?.replace(/\s*\(.*\)\s*$/, "").trim() || `${gradeNum}º Ano`;
+            const carregarPlano = async () => {
+                try {
+                    const res1 = await fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}&serie=${encodeURIComponent(serieAnterior)}`);
+                    const d1 = await res1.json();
+                    if (d1.planos?.length > 0) return d1.planos[0];
+                } catch { /* silent */ }
+                try {
+                    const res2 = await fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}&serie=${encodeURIComponent(serieAtual)}`);
+                    const d2 = await res2.json();
+                    if (d2.planos?.length > 0) return d2.planos[0];
+                } catch { /* silent */ }
+                try {
+                    const res3 = await fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}`);
+                    const d3 = await res3.json();
+                    if (d3.planos?.length > 0) return d3.planos[0];
+                } catch { /* silent */ }
+                return null;
+            };
+            carregarPlano().then(p => {
+                if (p) {
+                    setPlanoVinculado(p);
+                    try {
+                        const conteudo = typeof p.conteudo === "string" ? JSON.parse(p.conteudo) : p.conteudo;
+                        if (conteudo?.blocos) setBlocosPlano(conteudo.blocos);
+                    } catch { /* silent */ }
+                }
+            });
+        }
+
+        // Fetch matrix habilidades do ANO ANTERIOR (sempre — matriz genérica Omnisfera)
         setDimensoesAvaliadas({});
         setShowCamadaB(false);
         setPerfilGerado(null);
@@ -320,46 +357,9 @@ export default function AvaliacaoDiagnosticaClient() {
                 });
         }
 
-        // Fetch plano de curso genérico do ANO ANTERIOR
-        // (se aluno está no 6º, a diagnóstica avalia o que deveria ter aprendido no 5º)
-        // Fallback: tenta ano atual, depois sem filtro de série
+        // Fetch matrix habilidades do ANO ANTERIOR, filtradas por componente curricular
         const gradeNum = parseInt(aluno.grade?.match(/\d+/)?.[0] || "6", 10);
         const gradeAnterior = Math.max(gradeNum - 1, 1);
-        const serieAnterior = aluno.grade?.replace(/\d+/, String(gradeAnterior)).replace(/\s*\(.*\)\s*$/, "").trim() || `${gradeAnterior}º Ano`;
-        const serieAtual = aluno.grade?.replace(/\s*\(.*\)\s*$/, "").trim() || `${gradeNum}º Ano`;
-
-        const carregarPlano = async () => {
-            // 1. Tentar ano anterior
-            try {
-                const res1 = await fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}&serie=${encodeURIComponent(serieAnterior)}`);
-                const d1 = await res1.json();
-                if (d1.planos?.length > 0) return d1.planos[0];
-            } catch { /* silent */ }
-            // 2. Tentar ano atual
-            try {
-                const res2 = await fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}&serie=${encodeURIComponent(serieAtual)}`);
-                const d2 = await res2.json();
-                if (d2.planos?.length > 0) return d2.planos[0];
-            } catch { /* silent */ }
-            // 3. Fallback: qualquer plano da disciplina
-            try {
-                const res3 = await fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}`);
-                const d3 = await res3.json();
-                if (d3.planos?.length > 0) return d3.planos[0];
-            } catch { /* silent */ }
-            return null;
-        };
-        carregarPlano().then(p => {
-            if (p) {
-                setPlanoVinculado(p);
-                try {
-                    const conteudo = typeof p.conteudo === "string" ? JSON.parse(p.conteudo) : p.conteudo;
-                    if (conteudo?.blocos) setBlocosPlano(conteudo.blocos);
-                } catch { /* silent */ }
-            }
-        });
-
-        // Fetch matrix habilidades do ANO ANTERIOR, filtradas por componente curricular
         const serieNameAnterior = `EF${gradeAnterior}`;
 
         fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}&serie=${serieNameAnterior}`)
@@ -368,7 +368,7 @@ export default function AvaliacaoDiagnosticaClient() {
                 setMatrizHabs(data.habilidades || []);
             })
             .catch(() => { });
-    }, [loadExistingAvaliacao]);
+    }, [loadExistingAvaliacao, momentoDiagnostica]);
 
     const goBack = () => {
         setSelectedAluno(null);
