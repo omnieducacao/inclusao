@@ -57,13 +57,14 @@ export async function GET(req: Request) {
 
     // Filter by componente — skip if "Geral" (PEI sends "Geral" for general discipline)
     if (componente && componente !== "Geral") {
-        query = query.eq("disciplina", componente);
+        query = query.ilike("disciplina", componente);
     }
 
     // Filter by serie — strip parenthetical suffixes like "(EFAF)", "(EICC)" for flexible matching
+    // Also handle ° vs º variations
     if (serie) {
         const serieBase = serie.replace(/\s*\(.*\)\s*$/, "").trim();
-        query = query.ilike("ano_serie", `${serieBase}%`);
+        query = query.ilike("ano_serie", `%${serieBase}%`);
     }
 
     // Masters and PEI linking should see all workspace plans for the componente/serie

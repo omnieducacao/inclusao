@@ -319,24 +319,42 @@ export default function AvaliacaoDiagnosticaClient() {
 
         // Fetch plano de curso genérico do ANO ANTERIOR
         // (se aluno está no 6º, a diagnóstica avalia o que deveria ter aprendido no 5º)
+        // Fallback: tenta ano atual, depois sem filtro de série
         const gradeNum = parseInt(aluno.grade?.match(/\d+/)?.[0] || "6", 10);
         const gradeAnterior = Math.max(gradeNum - 1, 1);
         const serieAnterior = aluno.grade?.replace(/\d+/, String(gradeAnterior)).replace(/\s*\(.*\)\s*$/, "").trim() || `${gradeAnterior}º Ano`;
+        const serieAtual = aluno.grade?.replace(/\s*\(.*\)\s*$/, "").trim() || `${gradeNum}º Ano`;
 
-        fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}&serie=${encodeURIComponent(serieAnterior)}`)
-            .then(r => r.json())
-            .then(data => {
-                const planos = data.planos || [];
-                if (planos.length > 0) {
-                    const p = planos[0];
-                    setPlanoVinculado(p);
-                    try {
-                        const conteudo = typeof p.conteudo === "string" ? JSON.parse(p.conteudo) : p.conteudo;
-                        if (conteudo?.blocos) setBlocosPlano(conteudo.blocos);
-                    } catch { /* silent */ }
-                }
-            })
-            .catch(() => { });
+        const carregarPlano = async () => {
+            // 1. Tentar ano anterior
+            try {
+                const res1 = await fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}&serie=${encodeURIComponent(serieAnterior)}`);
+                const d1 = await res1.json();
+                if (d1.planos?.length > 0) return d1.planos[0];
+            } catch { /* silent */ }
+            // 2. Tentar ano atual
+            try {
+                const res2 = await fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}&serie=${encodeURIComponent(serieAtual)}`);
+                const d2 = await res2.json();
+                if (d2.planos?.length > 0) return d2.planos[0];
+            } catch { /* silent */ }
+            // 3. Fallback: qualquer plano da disciplina
+            try {
+                const res3 = await fetch(`/api/plano-curso?componente=${encodeURIComponent(disciplina)}`);
+                const d3 = await res3.json();
+                if (d3.planos?.length > 0) return d3.planos[0];
+            } catch { /* silent */ }
+            return null;
+        };
+        carregarPlano().then(p => {
+            if (p) {
+                setPlanoVinculado(p);
+                try {
+                    const conteudo = typeof p.conteudo === "string" ? JSON.parse(p.conteudo) : p.conteudo;
+                    if (conteudo?.blocos) setBlocosPlano(conteudo.blocos);
+                } catch { /* silent */ }
+            }
+        });
 
         // Fetch matrix habilidades do ANO ANTERIOR, filtradas por componente curricular
         const serieNameAnterior = `EF${gradeAnterior}`;
@@ -682,10 +700,18 @@ export default function AvaliacaoDiagnosticaClient() {
                                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                         <FileText size={16} style={{ color: "#0ea5e9" }} />
                                         <span style={{ fontWeight: 700, fontSize: 14, color: "#0ea5e9" }}>
-                                            Plano de Curso (ano anterior) — {planoVinculado.disciplina}
+                                            Plano de Curso — {planoVinculado.disciplina}
+                                            {planoVinculado.ano_serie && <span style={{ fontWeight: 400, fontSize: 12, marginLeft: 6, opacity: .7 }}>({planoVinculado.ano_serie})</span>}
                                         </span>
                                     </div>
                                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                        <a
+                                            href={`/plano-curso?id=${planoVinculado.id}`}
+                                            onClick={e => e.stopPropagation()}
+                                            style={{ fontSize: 11, color: "#38bdf8", fontWeight: 600, textDecoration: "none", padding: "4px 10px", borderRadius: 6, background: "rgba(56,189,248,.08)", border: "1px solid rgba(56,189,248,.15)" }}
+                                        >
+                                            ✏️ Editar Plano
+                                        </a>
                                         <span style={{ fontSize: 11, color: "#0ea5e9", fontWeight: 600 }}>
                                             {showMatrix ? "Ocultar" : "Ver"} Plano
                                         </span>
@@ -713,7 +739,7 @@ export default function AvaliacaoDiagnosticaClient() {
 
                         {!planoVinculado && (
                             <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.15)", display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#fbbf24" }}>
-                                <FileText size={16} /> Nenhum plano de curso genérico encontrado para esta disciplina/série.
+                                <FileText size={16} /> Nenhum plano de curso encontrado para {selectedDisc} ({selectedAluno?.grade}).
                                 <a href="/plano-curso" style={{ color: "#38bdf8", fontWeight: 600, textDecoration: "none", marginLeft: "auto" }}>Criar plano →</a>
                             </div>
                         )}
