@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { decryptField } from "@/lib/encryption";
 
 /**
  * GET /api/pei-regente/meus-alunos
@@ -133,10 +134,10 @@ export async function GET() {
             const peiData = (student.pei_data || {}) as Record<string, unknown>;
             alunosMap.set(d.student_id, {
                 id: student.id,
-                name: student.name,
+                name: decryptField(student.name || ""),
                 grade: student.grade || "",
                 class_group: student.class_group || "",
-                diagnostico: student.diagnosis || "",
+                diagnostico: decryptField(student.diagnosis || ""),
                 fase_pei: (peiData.fase_pei as string) || "fase_1",
                 disciplinas: [],
             });

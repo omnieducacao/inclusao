@@ -143,10 +143,15 @@ export const criarAtividadeSchema = z.object({
     }).optional(),
     verbos_bloom: z.array(z.string()).optional(),
     qtd_questoes: z.number().int().min(1).max(20).optional(),
+    distribuicao_cognitiva: z.object({
+        facil: z.number().optional(),
+        medio: z.number().optional(),
+        dificil: z.number().optional(),
+    }).optional(),
     tipo_questao: z.enum(["Objetiva", "Discursiva"]).optional(),
     qtd_imagens: z.number().int().min(0).max(5).optional(),
     checklist_adaptacao: z.record(z.string(), z.boolean()).optional(),
-});
+}).passthrough();
 
 export const planoAulaSchema = z.object({
     assunto: z.string().optional().default(""),
