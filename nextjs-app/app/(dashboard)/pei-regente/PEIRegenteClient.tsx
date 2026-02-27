@@ -287,19 +287,46 @@ export function PEIRegenteClient() {
                                             </div>
                                         )}
 
-                                        {/* Objetivos individualizados */}
+                                        {/* Objetivos individualizados + Rubrica */}
                                         {adaptacaoSugestao.objetivos_individualizados && (
                                             <div className="p-3 rounded-lg" style={{
                                                 backgroundColor: 'rgba(59,130,246,.05)',
                                                 border: '1px solid rgba(59,130,246,.15)',
                                             }}>
-                                                <p className="text-xs font-bold mb-1" style={{ color: '#3b82f6' }}>
-                                                    <Target className="w-3 h-3 inline mr-1" />
-                                                    Objetivos Individualizados
-                                                </p>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <p className="text-xs font-bold" style={{ color: '#3b82f6' }}>
+                                                        <Target className="w-3 h-3 inline mr-1" />
+                                                        Objetivos Individualizados
+                                                    </p>
+                                                    {adaptacaoMeta?.nivel_diag != null && (
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold"
+                                                            style={{
+                                                                background: adaptacaoMeta.nivel_diag >= 3 ? 'rgba(16,185,129,.12)'
+                                                                    : adaptacaoMeta.nivel_diag >= 2 ? 'rgba(59,130,246,.12)'
+                                                                        : 'rgba(245,158,11,.12)',
+                                                                color: adaptacaoMeta.nivel_diag >= 3 ? '#10b981'
+                                                                    : adaptacaoMeta.nivel_diag >= 2 ? '#3b82f6'
+                                                                        : '#f59e0b',
+                                                            }}>
+                                                            N{adaptacaoMeta.nivel_diag} — {ESCALA_OMNISFERA[adaptacaoMeta.nivel_diag as NivelOmnisfera]?.label || ''}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                                                     {String(adaptacaoSugestao.objetivos_individualizados)}
                                                 </p>
+                                            </div>
+                                        )}
+
+                                        {/* Habilidades prioritárias */}
+                                        {(adaptacaoSugestao.habilidades_prioritarias || []).length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {(adaptacaoSugestao.habilidades_prioritarias as string[]).map((h: string, i: number) => (
+                                                    <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold"
+                                                        style={{ backgroundColor: 'rgba(99,102,241,.08)', color: '#818cf8', border: '1px solid rgba(99,102,241,.15)' }}>
+                                                        🎯 {h}
+                                                    </span>
+                                                ))}
                                             </div>
                                         )}
 
@@ -346,17 +373,42 @@ export function PEIRegenteClient() {
                                             </div>
                                         )}
 
-                                        {/* Link to full PEI */}
-                                        <a
-                                            href={`/pei?studentId=${selectedAluno.id}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all"
-                                            style={{ background: 'linear-gradient(135deg, #059669, #10b981)', display: 'inline-flex' }}
-                                        >
-                                            <ExternalLink className="w-4 h-4" />
-                                            Abrir PEI completo e aplicar estratégias
-                                        </a>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <a
+                                                href={`/pei?studentId=${selectedAluno.id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all"
+                                                style={{ background: 'linear-gradient(135deg, #059669, #10b981)', display: 'inline-flex' }}
+                                            >
+                                                <ExternalLink className="w-4 h-4" />
+                                                Abrir PEI completo e aplicar estratégias
+                                            </a>
+
+                                            {/* Auto-save version */}
+                                            <button
+                                                onClick={async () => {
+                                                    try {
+                                                        await fetch('/api/pei/versions', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({
+                                                                studentId: selectedAluno.id,
+                                                                label: `Adaptação ${selectedDisc.disciplina} — ${new Date().toLocaleDateString('pt-BR')}`,
+                                                            }),
+                                                        });
+                                                    } catch { /* silent */ }
+                                                }}
+                                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
+                                                style={{
+                                                    backgroundColor: 'rgba(99,102,241,.08)',
+                                                    color: '#818cf8',
+                                                    border: '1px solid rgba(99,102,241,.15)',
+                                                }}
+                                            >
+                                                📸 Salvar Versão PEI
+                                            </button>
+                                        </div>
 
                                         {/* Alerts */}
                                         {(adaptacaoSugestao.alertas || []).length > 0 && (

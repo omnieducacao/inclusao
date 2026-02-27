@@ -171,6 +171,9 @@ export default function AvaliacaoProcessualClient() {
 
     const [habSource, setHabSource] = useState<string>("");
 
+    // Diagnostic baseline state
+    const [diagBaseline, setDiagBaseline] = useState<{ nivel: number; score: number; disciplina: string } | null>(null);
+
     const loadHabilidades = useCallback(async (aluno: Aluno, disciplina: string) => {
         try {
             const gradeNum = aluno.grade?.match(/\d+/)?.[0] || "6";
@@ -180,7 +183,7 @@ export default function AvaliacaoProcessualClient() {
             const data = await res.json();
 
             if (data.habilidades?.length) {
-                const mapped: HabilidadeAvaliada[] = data.habilidades.slice(0, 12).map(
+                let mapped: HabilidadeAvaliada[] = data.habilidades.slice(0, 12).map(
                     (h: { codigo_bncc: string; descricao: string }) => ({
                         codigo_bncc: h.codigo_bncc || "",
                         descricao: h.descricao || "",
@@ -189,6 +192,54 @@ export default function AvaliacaoProcessualClient() {
                         observacao: "",
                     })
                 );
+
+                // ─── Fetch diagnostic baseline to pre-populate nivel_anterior ────
+                try {
+                    const diagRes = await fetch(
+                        `/api/pei/avaliacao-diagnostica?studentId=${aluno.id}&disciplina=${encodeURIComponent(disciplina)}`
+                    );
+                    const diagData = await diagRes.json();
+                    const avaliacoes = diagData.avaliacoes || [];
+                    // Find the most recent analyzed assessment
+                    const aplicada = avaliacoes.find((a: { status: string }) => a.status === "aplicada");
+                    if (aplicada) {
+                        const analise = aplicada.resultados?.analise;
+                        if (analise) {
+                            const globalNivel = analise.nivel ?? aplicada.nivel_omnisfera_identificado ?? null;
+                            if (globalNivel !== null) {
+                                setDiagBaseline({
+                                    nivel: globalNivel,
+                                    score: analise.score ?? 0,
+                                    disciplina: aplicada.disciplina,
+                                });
+                            }
+
+                            // Map hab_dominadas/hab_desenvolvimento to BNCC codes
+                            const habDomSet: Set<string> = new Set((analise.hab_dominadas || []).map((h: string) => h.trim().toUpperCase()));
+                            const habDevSet: Set<string> = new Set((analise.hab_desenvolvimento || []).map((h: string) => h.trim().toUpperCase()));
+
+                            mapped = mapped.map(h => {
+                                const code = h.codigo_bncc.trim().toUpperCase();
+                                // Exact match or prefix match (EF06MA01 matches EF06MA01H)
+                                const isDominada = habDomSet.has(code) || [...habDomSet].some((d: string) => code.startsWith(d) || d.startsWith(code));
+                                const isDesenvolvimento = habDevSet.has(code) || [...habDevSet].some((d: string) => code.startsWith(d) || d.startsWith(code));
+
+                                let nivel_anterior: NivelOmnisfera | null = null;
+                                if (isDominada) {
+                                    nivel_anterior = (globalNivel !== null && globalNivel >= 3 ? globalNivel : 3) as NivelOmnisfera;
+                                } else if (isDesenvolvimento) {
+                                    nivel_anterior = (globalNivel !== null && globalNivel <= 1 ? globalNivel : 1) as NivelOmnisfera;
+                                } else if (globalNivel !== null) {
+                                    // For skills not explicitly categorized, use global level as baseline
+                                    nivel_anterior = globalNivel as NivelOmnisfera;
+                                }
+
+                                return { ...h, nivel_anterior };
+                            });
+                        }
+                    }
+                } catch { /* diagnostic fetch failed, proceed without baseline */ }
+
                 setHabilidades(mapped);
                 setHabSource(data.source || "");
             } else {
@@ -231,6 +282,7 @@ export default function AvaliacaoProcessualClient() {
         setShowEvolucao(false);
         setRelatorio(null);
         setShowRelatorio(false);
+        setDiagBaseline(null);
     };
 
     // Update nivel for a habilidade
@@ -444,14 +496,32 @@ export default function AvaliacaoProcessualClient() {
                 </div>
 
                 {/* Summary card */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
+                <div style={{ display: "grid", gridTemplateColumns: diagBaseline ? "1fr 1fr 1fr 1fr" : "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
                     <div style={{
                         ...cardS, padding: 16, textAlign: "center",
                         background: "rgba(16,185,129,.04)",
                     }}>
                         <div style={{ fontSize: 24, fontWeight: 800, color: "#10b981" }}>{mediaHabs}</div>
                         <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Média Omnisfera</div>
+                        {diagBaseline && (
+                            <div style={{
+                                fontSize: 10, fontWeight: 700, marginTop: 4,
+                                color: mediaHabs > diagBaseline.nivel ? "#10b981" : mediaHabs < diagBaseline.nivel ? "#ef4444" : "#94a3b8",
+                            }}>
+                                {mediaHabs > diagBaseline.nivel ? "↗️ Progresso" : mediaHabs < diagBaseline.nivel ? "↘️ Atenção" : "→ Estável"}
+                            </div>
+                        )}
                     </div>
+                    {diagBaseline && (
+                        <div style={{
+                            ...cardS, padding: 16, textAlign: "center",
+                            background: "rgba(14,165,233,.04)",
+                        }}>
+                            <div style={{ fontSize: 24, fontWeight: 800, color: "#0ea5e9" }}>N{diagBaseline.nivel}</div>
+                            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Baseline Diag.</div>
+                            <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 2 }}>{diagBaseline.score}% score</div>
+                        </div>
+                    )}
                     <div style={{
                         ...cardS, padding: 16, textAlign: "center",
                         background: "rgba(59,130,246,.04)",
@@ -543,7 +613,7 @@ export default function AvaliacaoProcessualClient() {
                 )}
 
                 {/* Diagnóstica baseline context */}
-                {relatorioIntegrado?.diagnostico_baseline?.nivel_omnisfera != null && (
+                {diagBaseline && (
                     <div style={{
                         display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
                         borderRadius: 10, marginBottom: 12,
@@ -554,9 +624,15 @@ export default function AvaliacaoProcessualClient() {
                             alignItems: "center", justifyContent: "center",
                             background: "linear-gradient(135deg, #0284c7, #0ea5e9)",
                             color: "#fff", fontSize: 13, fontWeight: 800,
-                        }}>{relatorioIntegrado.diagnostico_baseline.nivel_omnisfera}</div>
+                        }}>{diagBaseline.nivel}</div>
                         <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                            Linha de base <strong>Diagnóstica</strong>: Nível {relatorioIntegrado.diagnostico_baseline.nivel_omnisfera}
+                            Linha de base <strong>Diagnóstica</strong> ({diagBaseline.disciplina}): Nível {diagBaseline.nivel} · {diagBaseline.score}% score
+                        </div>
+                        <div style={{
+                            marginLeft: "auto", fontSize: 10, fontWeight: 700,
+                            color: mediaHabs > diagBaseline.nivel ? "#10b981" : mediaHabs < diagBaseline.nivel ? "#ef4444" : "#94a3b8",
+                        }}>
+                            {mediaHabs > diagBaseline.nivel ? "↗️ Progrediu" : mediaHabs < diagBaseline.nivel ? "↘️ Regrediu" : "→ Mesma faixa"}
                         </div>
                     </div>
                 )}
