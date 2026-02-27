@@ -6,8 +6,12 @@ import { decryptField } from "@/lib/encryption";
 /**
  * GET /api/pei-regente/meus-alunos
  *
- * Retorna os estudantes em Fase 2 vinculados ao professor logado,
+ * Retorna os estudantes vinculados ao professor logado,
  * com status de cada disciplina atribuída.
+ * 
+ * Inclui TAMBÉM estudantes com PEI gerado que estão nas mesmas turmas
+ * (grade + class_group) dos alunos já vinculados, garantindo que todo
+ * estudante com PEI apareça na Diagnóstica do professor.
  *
  * Response: {
  *   professor: { id, name, components },
@@ -43,7 +47,7 @@ export async function GET() {
         }
     }
 
-    // Para master: retornar TODOS os estudantes em fase_2 com seus pei_disciplinas
+    // Para master: retornar TODOS os estudantes com pei_disciplinas
     const isMaster = session.user_role === "master" || !memberIdResolved;
 
     // 2. Buscar pei_disciplinas do professor (ou todos se master)
@@ -63,37 +67,74 @@ export async function GET() {
         return NextResponse.json({ error: discError.message }, { status: 500 });
     }
 
-    if (!disciplinas?.length) {
-        return NextResponse.json({
-            professor: { id: memberIdResolved, name: session.usuario_nome, is_master: isMaster },
-            alunos: [],
-        });
+    // 3. Buscar dados dos estudantes vinculados via pei_disciplinas
+    const studentIds = [...new Set((disciplinas || []).map(d => d.student_id))];
+    const { data: students } = studentIds.length > 0
+        ? await sb
+            .from("students")
+            .select("id, name, grade, class_group, diagnosis, pei_data")
+            .in("id", studentIds)
+            .eq("workspace_id", session.workspace_id)
+        : { data: [] };
+
+    // 4. Coletar turmas (grade+class_group) desses alunos e disciplinas do professor
+    const classGroups = new Set<string>();
+    const profDisciplinas = new Set<string>();
+    (students || []).forEach(s => {
+        if (s.grade && s.class_group) classGroups.add(`${s.grade}|${s.class_group}`);
+    });
+    (disciplinas || []).forEach(d => profDisciplinas.add(d.disciplina));
+
+    // 5. Buscar TODOS os estudantes com PEI das mesmas turmas (que o professor NÃO tem em pei_disciplinas)
+    let extraStudents: typeof students = [];
+    if (classGroups.size > 0) {
+        // Buscar todos estudantes do workspace com pei_data
+        const { data: allStudents } = await sb
+            .from("students")
+            .select("id, name, grade, class_group, diagnosis, pei_data")
+            .eq("workspace_id", session.workspace_id)
+            .not("pei_data", "is", null);
+
+        if (allStudents) {
+            const existingIds = new Set(studentIds);
+            extraStudents = allStudents.filter(s => {
+                if (existingIds.has(s.id)) return false; // já incluído
+                if (!s.grade || !s.class_group) return false;
+                const key = `${s.grade}|${s.class_group}`;
+                if (!classGroups.has(key)) return false;
+                // Verificar se tem PEI gerado (fase_pei diferente de fase_1 ou tem dados PEI)
+                const peiData = (s.pei_data || {}) as Record<string, unknown>;
+                const fasePei = peiData.fase_pei as string || "fase_1";
+                return fasePei !== "fase_1" || Object.keys(peiData).length > 2;
+            });
+        }
     }
 
-    // 3. Buscar dados dos estudantes
-    const studentIds = [...new Set(disciplinas.map(d => d.student_id))];
-    const { data: students } = await sb
-        .from("students")
-        .select("id, name, grade, class_group, diagnosis, pei_data")
-        .in("id", studentIds)
-        .eq("workspace_id", session.workspace_id);
+    // Combinar todos os IDs
+    const allStudentIds = [...studentIds, ...(extraStudents || []).map(s => s.id)];
 
-    // 4. Buscar planos de ensino existentes
-    const { data: planos } = await sb
-        .from("planos_ensino")
-        .select("id, disciplina, student_id")
-        .in("student_id", studentIds)
-        .eq("workspace_id", session.workspace_id);
+    // 6. Buscar planos de ensino existentes
+    const { data: planos } = allStudentIds.length > 0
+        ? await sb
+            .from("planos_ensino")
+            .select("id, disciplina, student_id")
+            .in("student_id", allStudentIds)
+            .eq("workspace_id", session.workspace_id)
+        : { data: [] };
 
-    // 5. Buscar avaliações diagnósticas existentes
-    const { data: avaliacoes } = await sb
-        .from("avaliacoes_diagnosticas")
-        .select("id, disciplina, student_id, nivel_omnisfera_identificado, status")
-        .in("student_id", studentIds)
-        .eq("workspace_id", session.workspace_id);
+    // 7. Buscar avaliações diagnósticas existentes
+    const { data: avaliacoes } = allStudentIds.length > 0
+        ? await sb
+            .from("avaliacoes_diagnosticas")
+            .select("id, disciplina, student_id, nivel_omnisfera_identificado, status")
+            .in("student_id", allStudentIds)
+            .eq("workspace_id", session.workspace_id)
+        : { data: [] };
 
-    // 6. Montar resposta agrupada por aluno
+    // 8. Montar resposta agrupada por aluno
     const studentsMap = new Map((students || []).map(s => [s.id, s]));
+    (extraStudents || []).forEach(s => studentsMap.set(s.id, s));
+
     const planosMap = new Map<string, boolean>();
     (planos || []).forEach(p => {
         planosMap.set(`${p.student_id}:${p.disciplina}`, true);
@@ -126,7 +167,8 @@ export async function GET() {
         }>;
     }>();
 
-    for (const d of disciplinas) {
+    // Adicionar alunos com pei_disciplinas (lógica existente)
+    for (const d of (disciplinas || [])) {
         const student = studentsMap.get(d.student_id);
         if (!student) continue;
 
@@ -156,6 +198,50 @@ export async function GET() {
             nivel_omnisfera: avData?.nivel || null,
             avaliacao_status: avData?.status || "pendente",
         });
+    }
+
+    // Adicionar alunos extras com PEI (das mesmas turmas) com disciplinas virtuais
+    for (const s of (extraStudents || [])) {
+        if (alunosMap.has(s.id)) continue;
+        const peiData = (s.pei_data || {}) as Record<string, unknown>;
+        const entry = {
+            id: s.id,
+            name: decryptField(s.name || ""),
+            grade: s.grade || "",
+            class_group: s.class_group || "",
+            diagnostico: decryptField(s.diagnosis || ""),
+            fase_pei: (peiData.fase_pei as string) || "fase_1",
+            disciplinas: [] as Array<{
+                id: string;
+                disciplina: string;
+                professor_regente_nome: string;
+                fase_status: string;
+                has_plano: boolean;
+                has_avaliacao: boolean;
+                nivel_omnisfera: number | null;
+                avaliacao_status: string;
+            }>,
+        };
+
+        // Criar entradas virtuais para cada disciplina do professor
+        for (const disc of profDisciplinas) {
+            const key = `${s.id}:${disc}`;
+            const avData = avaliacoesMap.get(key);
+            entry.disciplinas.push({
+                id: `virtual_${s.id}_${disc}`,
+                disciplina: disc,
+                professor_regente_nome: session.usuario_nome || "Professor",
+                fase_status: "diagnostica",
+                has_plano: planosMap.has(key),
+                has_avaliacao: !!avData,
+                nivel_omnisfera: avData?.nivel || null,
+                avaliacao_status: avData?.status || "pendente",
+            });
+        }
+
+        if (entry.disciplinas.length > 0) {
+            alunosMap.set(s.id, entry);
+        }
     }
 
     return NextResponse.json({
