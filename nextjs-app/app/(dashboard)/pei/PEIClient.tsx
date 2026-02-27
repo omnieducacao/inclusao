@@ -79,6 +79,8 @@ import {
   AlertTriangle,
   Send,
 } from "lucide-react";
+import { OnboardingPanel, OnboardingResetButton } from "@/components/OnboardingPanel";
+import { Users as UsersIcon, FileText as FileTextIcon, Sparkles as SparklesIcon, Send as SendIcon, Brain, ClipboardList as ClipboardListIcon } from "lucide-react";
 
 type HabilidadeBncc = {
   disciplina: string;
@@ -144,6 +146,12 @@ export function PEIClient({
   const [schoolClasses, setSchoolClasses] = useState<Array<{ id: string; class_group: string; grade_id: string; grades?: { name?: string; label?: string } }>>([]);
   const [schoolGrades, setSchoolGrades] = useState<Array<{ id: string; name: string; label?: string }>>([]);
   const { markDirty, markClean } = useUnsavedChanges();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Check onboarding on mount
+  useEffect(() => {
+    if (!localStorage.getItem('onboarding_pei')) setShowOnboarding(true);
+  }, []);
 
 
 
@@ -640,6 +648,25 @@ export function PEIClient({
 
   return (
     <div className="rounded-2xl shadow-lg overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+      {/* Onboarding Panel */}
+      {showOnboarding && (
+        <div className="px-6 pt-6">
+          <OnboardingPanel
+            moduleKey="pei"
+            moduleTitle="Bem-vindo ao PEI"
+            moduleSubtitle="Siga os passos para construir o Plano Educacional Individualizado"
+            accentColor="#6366f1"
+            accentColorLight="#818cf8"
+            steps={[
+              { icon: <User size={22} />, title: "Estudante", description: "Selecione e preencha dados iniciais, diagnóstico e contexto" },
+              { icon: <Puzzle size={22} />, title: "Mapeamento", description: "Barreiras, potencialidades e hiperfoco do estudante" },
+              { icon: <Sparkles size={22} />, title: "Consultoria IA", description: "A IA analisa e gera o PEI técnico para validação" },
+              { icon: <Send size={22} />, title: "Enviar", description: "Envie para os professores regentes adaptarem" },
+            ]}
+            onStart={() => setShowOnboarding(false)}
+          />
+        </div>
+      )}
       {/* Barra de Progresso Global */}
       <div className="px-6 pt-4 pb-2" style={{ backgroundColor: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-default)' }}>
         <div className="flex items-center justify-between mb-2">

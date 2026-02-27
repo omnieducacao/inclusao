@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import { RubricaOmnisfera } from "@/components/RubricaOmnisfera";
+import { OnboardingPanel } from "@/components/OnboardingPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1128,8 +1129,28 @@ export default function AvaliacaoProcessualClient() {
 
     // ─── Student List ───────────────────────────────────────────────────
 
+    const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboarding_processual'));
+
     return (
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
+            {/* Onboarding Panel */}
+            {showOnboarding && (
+                <OnboardingPanel
+                    moduleKey="processual"
+                    moduleTitle="Bem-vindo à Avaliação Processual"
+                    moduleSubtitle="Acompanhe a evolução do estudante ao longo dos períodos"
+                    accentColor="#059669"
+                    accentColorLight="#10b981"
+                    steps={[
+                        { icon: <Users size={22} />, title: "Selecionar", description: "Estudante + disciplina + período" },
+                        { icon: <Activity size={22} />, title: "Avaliar", description: "Nível 0-4 em cada habilidade BNCC" },
+                        { icon: <Save size={22} />, title: "Salvar", description: "Registrar avaliação do período" },
+                        { icon: <TrendingUp size={22} />, title: "Evolução", description: "Ver gráfico e relatório IA" },
+                    ]}
+                    onStart={() => setShowOnboarding(false)}
+                />
+            )}
+
             {/* Page header */}
             <div style={{
                 background: "linear-gradient(135deg, #047857 0%, #059669 50%, #10b981 100%)",

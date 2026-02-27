@@ -7,6 +7,7 @@ import {
     Sparkles, School, ExternalLink, Target,
 } from "lucide-react";
 import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
+import { OnboardingPanel, OnboardingResetButton } from "@/components/OnboardingPanel";
 import { ESCALA_OMNISFERA, FASE_STATUS_LABELS, type NivelOmnisfera, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -69,6 +70,11 @@ export function PEIRegenteClient() {
     const [selectedAluno, setSelectedAluno] = useState<Aluno | null>(null);
     const [selectedDisc, setSelectedDisc] = useState<AlunoDisc | null>(null);
     const [activeStep, setActiveStep] = useState<"plano" | "diagnostica" | "pei" | null>(null);
+    const [showOnboarding, setShowOnboarding] = useState(false);
+
+    useEffect(() => {
+        if (!localStorage.getItem('onboarding_pei_regente')) setShowOnboarding(true);
+    }, []);
 
     // Ponte Pedagógica state
     const [gerandoAdaptacao, setGerandoAdaptacao] = useState(false);
@@ -560,6 +566,25 @@ export function PEIRegenteClient() {
 
     return (
         <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+            {/* Onboarding Panel */}
+            {showOnboarding && (
+                <div style={{ padding: '24px 24px 0' }}>
+                    <OnboardingPanel
+                        moduleKey="pei_regente"
+                        moduleTitle="Bem-vindo ao PEI do Professor"
+                        moduleSubtitle="Acompanhe e adapte o PEI para suas disciplinas"
+                        accentColor="#10b981"
+                        accentColorLight="#34d399"
+                        steps={[
+                            { icon: <Users size={22} />, title: "Seus Estudantes", description: "Veja os alunos em Fase 2 do PEI" },
+                            { icon: <FileText size={22} />, title: "Plano de Ensino", description: "Vincule o plano da sua turma" },
+                            { icon: <Brain size={22} />, title: "Diagnóstica", description: "Verifique o nível do estudante" },
+                            { icon: <ClipboardCheck size={22} />, title: "PEI Disciplina", description: "Gere adaptações com a Ponte Pedagógica" },
+                        ]}
+                        onStart={() => setShowOnboarding(false)}
+                    />
+                </div>
+            )}
             {/* Header com info do professor */}
             <div className="px-6 py-4" style={{ borderBottom: '1px solid var(--border-default)', backgroundColor: 'var(--bg-tertiary)' }}>
                 <div className="flex items-center justify-between">

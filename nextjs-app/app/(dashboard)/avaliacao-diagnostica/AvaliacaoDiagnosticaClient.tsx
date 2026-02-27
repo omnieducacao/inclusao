@@ -11,6 +11,7 @@ import {
     ArrowLeft, Users, BookOpen, Target, Zap, FileText, Layers, Activity,
     Grid3X3, BookMarked, ChevronRight, TrendingUp, Image, Trash2,
 } from "lucide-react";
+import { OnboardingPanel } from "@/components/OnboardingPanel";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import type { EngineId } from "@/lib/ai-engines";
 
@@ -104,9 +105,13 @@ export default function AvaliacaoDiagnosticaClient() {
     const [professorName, setProfessorName] = useState("");
     const [error, setError] = useState("");
 
-    // Top-level tab: "estudantes" | "matriz" | "manual" | "gabarito"
     const [activeTab, setActiveTab] = useState<"estudantes" | "matriz" | "manual" | "gabarito">("estudantes");
     const [pendingCount, setPendingCount] = useState(0);
+    const [showOnboarding, setShowOnboarding] = useState(false);
+
+    useEffect(() => {
+        if (!localStorage.getItem('onboarding_diagnostica')) setShowOnboarding(true);
+    }, []);
 
     // Navigation
     const [selectedAluno, setSelectedAluno] = useState<Aluno | null>(null);
@@ -1795,6 +1800,24 @@ export default function AvaliacaoDiagnosticaClient() {
 
     return (
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
+            {/* Onboarding Panel */}
+            {showOnboarding && (
+                <OnboardingPanel
+                    moduleKey="diagnostica"
+                    moduleTitle="Bem-vindo à Avaliação Diagnóstica"
+                    moduleSubtitle="Identifique o nível de cada estudante com questões adaptadas por IA"
+                    accentColor="#2563eb"
+                    accentColorLight="#3b82f6"
+                    steps={[
+                        { icon: <Users size={22} />, title: "Selecionar", description: "Estudante + disciplina + habilidades" },
+                        { icon: <Sparkles size={22} />, title: "Gerar", description: "Questões adaptadas via IA" },
+                        { icon: <ClipboardList size={22} />, title: "Aplicar", description: "Registrar respostas no gabarito" },
+                        { icon: <BarChart3 size={22} />, title: "Relatório", description: "Ver análise e nível Omnisfera" },
+                    ]}
+                    onStart={() => setShowOnboarding(false)}
+                />
+            )}
+
             {/* Page header */}
             <div style={{
                 background: "linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%)",

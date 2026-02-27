@@ -3,9 +3,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
     BookOpen, Loader2, Plus, ChevronLeft, CheckCircle2,
-    GraduationCap, FileText, AlertTriangle,
+    GraduationCap, FileText, AlertTriangle, ListChecks, Save,
 } from "lucide-react";
 import { PlanoCursoEditor } from "@/components/PlanoCursoEditor";
+import { OnboardingPanel } from "@/components/OnboardingPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,6 +61,11 @@ export default function PlanoCursoClient() {
     const [isMaster, setIsMaster] = useState(false);
     const [professorName, setProfessorName] = useState("");
     const [selectedCombo, setSelectedCombo] = useState<ComboItem | null>(null);
+    const [showOnboarding, setShowOnboarding] = useState(false);
+
+    useEffect(() => {
+        if (!localStorage.getItem('onboarding_plano_curso')) setShowOnboarding(true);
+    }, []);
 
     // ─── Fetch data ─────────────────────────────────────────────────────────
 
@@ -143,6 +149,24 @@ export default function PlanoCursoClient() {
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Onboarding Panel */}
+            {showOnboarding && (
+                <OnboardingPanel
+                    moduleKey="plano_curso"
+                    moduleTitle="Bem-vindo ao Plano de Curso"
+                    moduleSubtitle="Organize seu planejamento por componente e série"
+                    accentColor="#0ea5e9"
+                    accentColorLight="#38bdf8"
+                    steps={[
+                        { icon: <GraduationCap size={22} />, title: "Componente", description: "Selecione disciplina e série" },
+                        { icon: <ListChecks size={22} />, title: "Habilidades BNCC", description: "Escolha as habilidades do ano letivo" },
+                        { icon: <FileText size={22} />, title: "Conteúdo", description: "Descreva objetivos e metodologia" },
+                        { icon: <Save size={22} />, title: "Salvar", description: "Salve e disponibilize para o PEI" },
+                    ]}
+                    onStart={() => setShowOnboarding(false)}
+                />
+            )}
+
             {/* Header */}
             <div style={{
                 background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
