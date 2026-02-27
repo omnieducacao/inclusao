@@ -31,6 +31,19 @@ const TAXONOMIA_BLOOM: Record<string, string[]> = {
     "6. Criar": ["Compor", "Construir", "Criar", "Desenvolver", "Formular", "Propor"],
 };
 
+// Mapear domínio cognitivo SAEB → domínios Bloom correspondentes
+const SAEB_TO_BLOOM: Record<string, string[]> = {
+    "I": ["1. Lembrar", "2. Entender"],
+    "II": ["3. Aplicar", "4. Analisar"],
+    "III": ["5. Avaliar", "6. Criar"],
+};
+
+/** Extrai o nível SAEB (I, II, III) do campo competencia */
+function extractSaebLevel(competencia: string): string | null {
+    const m = competencia.match(/^(I{1,3})\s*[–\-—]/i);
+    return m ? m[1].toUpperCase() : null;
+}
+
 type ChecklistAdaptacao = Record<string, boolean>;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -714,11 +727,27 @@ export default function AvaliacaoDiagnosticaClient() {
                                                         type="checkbox"
                                                         checked={selected}
                                                         onChange={() => {
-                                                            setHabsSelecionadas(prev =>
-                                                                selected
-                                                                    ? prev.filter(x => x !== h.habilidade)
-                                                                    : [...prev, h.habilidade]
-                                                            );
+                                                            const newSelected = selected
+                                                                ? habsSelecionadas.filter(x => x !== h.habilidade)
+                                                                : [...habsSelecionadas, h.habilidade];
+                                                            setHabsSelecionadas(newSelected);
+
+                                                            // Auto-ativar Bloom com base no domínio cognitivo SAEB
+                                                            if (!selected && h.competencia) {
+                                                                const saebLevel = extractSaebLevel(h.competencia);
+                                                                if (saebLevel) {
+                                                                    const bloomDomains = SAEB_TO_BLOOM[saebLevel];
+                                                                    if (bloomDomains?.length) {
+                                                                        setUsarBloom(true);
+                                                                        setDominioBloomSel(bloomDomains[0]);
+                                                                        const newVerbos: Record<string, string[]> = {};
+                                                                        for (const dom of bloomDomains) {
+                                                                            newVerbos[dom] = (TAXONOMIA_BLOOM[dom] || []).slice(0, 3);
+                                                                        }
+                                                                        setVerbosBloomSel(prev => ({ ...prev, ...newVerbos }));
+                                                                    }
+                                                                }
+                                                            }
                                                         }}
                                                         style={{ marginTop: 2, accentColor: "#6366f1" }}
                                                     />
@@ -728,8 +757,10 @@ export default function AvaliacaoDiagnosticaClient() {
                                                             <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{h.tema}</span>
                                                         </div>
                                                         <div style={{ fontSize: 12, color: "var(--text-primary)", marginTop: 2, lineHeight: 1.4 }}>
-                                                            {h.habilidade.slice(0, 150)}{h.habilidade.length > 150 ? "..." : ""}
+                                                            {h.competencia && <span style={{ fontSize: 10, fontWeight: 600, color: "#a855f7", display: "block", marginBottom: 2 }}>{h.competencia}</span>}
+                                                            {h.habilidade}
                                                         </div>
+                                                        {h.descritor && <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>📝 {h.descritor}</div>}
                                                     </div>
                                                 </label>
                                             );
@@ -927,7 +958,12 @@ export default function AvaliacaoDiagnosticaClient() {
                                             body: JSON.stringify({
                                                 assunto: assunto.trim() || (habsSelecionadas.length > 0 ? habsSelecionadas[0] : selectedDisc),
                                                 engine: engineSel,
-                                                habilidades: habsSelecionadas.length > 0 ? habsSelecionadas : matrizHabs.slice(0, 4).map(h => h.habilidade),
+                                                habilidades: habsSelecionadas.length > 0
+                                                    ? matrizHabs.filter(h => habsSelecionadas.includes(h.habilidade)).map(h => {
+                                                        const codeMatch = h.habilidade.match(/^(EF\d+\w+\d+H?\d*|\(EF\d+\w+\d+\))/i);
+                                                        return `[${codeMatch ? codeMatch[1].replace(/[()]/g, '') : ''}] ${h.competencia ? `(${h.competencia}) ` : ''}${h.habilidade}${h.descritor ? ` | ${h.descritor}` : ''}`;
+                                                    })
+                                                    : matrizHabs.slice(0, 4).map(h => h.habilidade),
                                                 verbos_bloom: verbosFinais.length > 0 ? verbosFinais : undefined,
                                                 qtd_questoes: qtdQuestoes,
                                                 tipo_questao: tipoQuestao,
