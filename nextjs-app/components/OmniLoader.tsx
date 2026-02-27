@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useId } from "react";
 import type { EngineId } from "@/lib/ai-engines";
 
 // ─── Engine Metadata ──────────────────────────────────────────────────────────
@@ -62,31 +62,46 @@ const MODULE_MESSAGES: Record<string, string[]> = {
     ],
 };
 
+// ─── Global CSS injection (once) ──────────────────────────────────────────────
+
+let stylesInjected = false;
+function injectGlobalStyles() {
+    if (stylesInjected || typeof document === "undefined") return;
+    stylesInjected = true;
+    const style = document.createElement("style");
+    style.textContent = `
+        @keyframes omniSpin { to { transform: rotate(360deg); } }
+        @keyframes omniPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes omniOrbit { to { transform: rotate(360deg); } }
+        @keyframes omniFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    `;
+    document.head.appendChild(style);
+}
+
 // ─── Variants ─────────────────────────────────────────────────────────────────
 
 interface OmniLoaderProps {
-    /** Which AI engine is processing */
     engine?: EngineId | string;
-    /** Module context for messages */
     module?: string;
-    /** Custom message (overrides rotating) */
     message?: string;
-    /** Variant: inline (button), overlay (fullscreen), card (section) */
     variant?: "inline" | "overlay" | "card";
-    /** Size for inline variant */
     size?: number;
 }
 
 export function OmniLoader({
     engine = "red",
-    module,
+    module: moduleName,
     message,
     variant = "inline",
     size = 16,
 }: OmniLoaderProps) {
     const meta = ENGINE_META[engine] || ENGINE_META.red;
     const [msgIndex, setMsgIndex] = useState(0);
-    const messages = message ? [message] : (module && MODULE_MESSAGES[module]) || DEFAULT_MESSAGES;
+    const messages = message ? [message] : (moduleName && MODULE_MESSAGES[moduleName]) || DEFAULT_MESSAGES;
+
+    useEffect(() => {
+        injectGlobalStyles();
+    }, []);
 
     useEffect(() => {
         if (variant === "inline" || message) return;
@@ -170,7 +185,7 @@ export function OmniLoader({
                         key={msgIndex}
                         style={{
                             fontSize: 13, color: "var(--text-muted, #94a3b8)",
-                            animation: "omniloaderFadeIn .4s ease",
+                            animation: "omniFadeIn .4s ease",
                             minHeight: 20,
                         }}
                     >
@@ -189,28 +204,11 @@ export function OmniLoader({
                     ))}
                 </div>
             </div>
-
-            <style>{`
-                @keyframes omniloaderFadeIn {
-                    from { opacity: 0; transform: translateY(4px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                @keyframes omniSpin {
-                    to { transform: rotate(360deg); }
-                }
-                @keyframes omniPulse {
-                    0%, 100% { transform: scale(1); opacity: 1; }
-                    50% { transform: scale(1.15); opacity: 0.7; }
-                }
-                @keyframes omniOrbit {
-                    to { transform: rotate(360deg); }
-                }
-            `}</style>
         </div>
     );
 }
 
-// ─── Spinner SVG ──────────────────────────────────────────────────────────────
+// ─── Spinner SVG (pure inline animation) ──────────────────────────────────────
 
 function OmniSpinner({ color, size }: { color: string; size: number }) {
     return (
@@ -241,11 +239,6 @@ function OmniSpinner({ color, size }: { color: string; size: number }) {
             <g style={{ animation: "omniOrbit 2s linear infinite", transformOrigin: "20px 20px" }}>
                 <circle cx="20" cy="5" r="2" fill={color} opacity="0.6" />
             </g>
-            <style>{`
-                @keyframes omniSpin { to { transform: rotate(360deg); } }
-                @keyframes omniPulse { 0%,100% { r: 3; opacity: 1; } 50% { r: 4; opacity: 0.6; } }
-                @keyframes omniOrbit { to { transform: rotate(360deg); } }
-            `}</style>
         </svg>
     );
 }
