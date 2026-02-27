@@ -61,6 +61,19 @@ export async function GET(req: Request) {
         return NextResponse.json({ avaliacao: data });
     }
 
+    // all=true: return all assessments for the workspace (used by Gabarito tab)
+    const all = url.searchParams.get("all");
+    if (all === "true") {
+        const { data, error } = await sb
+            .from("avaliacoes_diagnosticas")
+            .select("*")
+            .eq("workspace_id", session.workspace_id)
+            .order("created_at", { ascending: false })
+            .limit(50);
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ avaliacoes: data || [] });
+    }
+
     if (!studentId) {
         return NextResponse.json({ error: "studentId obrigatório" }, { status: 400 });
     }

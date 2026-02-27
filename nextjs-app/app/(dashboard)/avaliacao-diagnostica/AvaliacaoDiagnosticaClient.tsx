@@ -104,8 +104,8 @@ export default function AvaliacaoDiagnosticaClient() {
     const [professorName, setProfessorName] = useState("");
     const [error, setError] = useState("");
 
-    // Top-level tab: "estudantes" | "matriz" | "manual"
-    const [activeTab, setActiveTab] = useState<"estudantes" | "matriz" | "manual">("estudantes");
+    // Top-level tab: "estudantes" | "matriz" | "manual" | "gabarito"
+    const [activeTab, setActiveTab] = useState<"estudantes" | "matriz" | "manual" | "gabarito">("estudantes");
 
     // Navigation
     const [selectedAluno, setSelectedAluno] = useState<Aluno | null>(null);
@@ -1805,6 +1805,7 @@ export default function AvaliacaoDiagnosticaClient() {
             }}>
                 {([
                     { key: "estudantes" as const, label: "Estudantes", icon: <Users size={14} /> },
+                    { key: "gabarito" as const, label: "Respostas", icon: <ClipboardList size={14} /> },
                     { key: "matriz" as const, label: "Matriz de Referência", icon: <Grid3X3 size={14} /> },
                     { key: "manual" as const, label: "Manual de Aplicação", icon: <BookMarked size={14} /> },
                 ]).map(tab => (
@@ -1831,6 +1832,9 @@ export default function AvaliacaoDiagnosticaClient() {
 
             {/* ── Tab: Manual de Aplicação ── */}
             {activeTab === "manual" && <ManualAplicacaoPanel />}
+
+            {/* ── Tab: Gabarito / Respostas ── */}
+            {activeTab === "gabarito" && <GabaritoRespostasPanel alunos={alunos} />}
 
             {/* ── Tab: Estudantes ── */}
             {activeTab === "estudantes" && (
@@ -1938,6 +1942,295 @@ export default function AvaliacaoDiagnosticaClient() {
                     </div>
                 </>
             )}
+        </div>
+    );
+}
+
+// ─── Gabarito / Respostas Panel ─────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
+    const [avaliacoes, setAvaliacoes] = useState<Array<{
+        id: string; student_id: string; disciplina: string; status: string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        questoes_geradas: any; resultados: any; nivel_omnisfera_identificado: number | null;
+        created_at: string;
+    }>>([]);
+    const [loading, setLoading] = useState(true);
+    const [activeAval, setActiveAval] = useState<string | null>(null);
+    const [respostas, setRespostas] = useState<Record<number, string>>({});
+    const [analisando, setAnalisando] = useState(false);
+
+    // Fetch all saved assessments
+    useEffect(() => {
+        setLoading(true);
+        fetch("/api/pei/avaliacao-diagnostica?all=true")
+            .then(r => r.json())
+            .then(data => {
+                setAvaliacoes(data.avaliacoes || []);
+            })
+            .catch(() => { })
+            .finally(() => setLoading(false));
+    }, []);
+
+    const getAluno = (studentId: string) => alunos.find(a => a.id === studentId);
+
+    // Parse questions from the saved text
+    const extrairQuestoesTexto = (texto: string): { gabarito: string; habilidade: string }[] => {
+        const questoes: { gabarito: string; habilidade: string }[] = [];
+        const gabRegex = /(?:gabarito|resposta\s*correta)[:\s]*\**([A-D])\**/gi;
+        const habRegex = /(?:habilidade|BNCC)[:\s]*\**([A-Za-z0-9]+)\**/gi;
+        const gabs = [...texto.matchAll(gabRegex)].map(m => m[1].toUpperCase());
+        const habs = [...texto.matchAll(habRegex)].map(m => m[1]);
+        for (let i = 0; i < gabs.length; i++) {
+            questoes.push({ gabarito: gabs[i], habilidade: habs[i] || "" });
+        }
+        return questoes;
+    };
+
+    const analisarRespostas = async (avalId: string, texto: string) => {
+        setAnalisando(true);
+        const questoes = extrairQuestoesTexto(texto);
+        let acertos = 0;
+        const distratores: { questao: number; marcada: string; correta: string; habilidade: string }[] = [];
+        const habsOk: string[] = [];
+        const habsFail: string[] = [];
+
+        questoes.forEach((q, i) => {
+            const marcada = respostas[i];
+            if (!marcada) return;
+            if (marcada === q.gabarito) {
+                acertos++;
+                if (q.habilidade && !habsOk.includes(q.habilidade)) habsOk.push(q.habilidade);
+            } else {
+                distratores.push({ questao: i + 1, marcada, correta: q.gabarito, habilidade: q.habilidade });
+                if (q.habilidade && !habsFail.includes(q.habilidade)) habsFail.push(q.habilidade);
+            }
+        });
+
+        const total = questoes.length;
+        const pct = total > 0 ? Math.round((acertos / total) * 100) : 0;
+        const nivel = pct >= 80 ? 4 : pct >= 60 ? 3 : pct >= 40 ? 2 : pct >= 20 ? 1 : 0;
+
+        const analise = { score: pct, acertos, total, nivel, hab_dominadas: habsOk, hab_desenvolvimento: habsFail, distratores };
+
+        try {
+            await fetch("/api/pei/avaliacao-diagnostica", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: avalId,
+                    resultados: { respostas, analise },
+                    nivel_omnisfera_identificado: nivel,
+                    status: "aplicada",
+                }),
+            });
+            // Update local state
+            setAvaliacoes(prev => prev.map(a =>
+                a.id === avalId
+                    ? { ...a, resultados: { respostas, analise }, nivel_omnisfera_identificado: nivel, status: "aplicada" }
+                    : a
+            ));
+        } catch { /* silent */ }
+        setAnalisando(false);
+        setActiveAval(null);
+        setRespostas({});
+    };
+
+    if (loading) {
+        return (
+            <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
+                <Loader2 size={28} className="animate-spin" style={{ margin: "0 auto 8px" }} />
+                Carregando avaliações...
+            </div>
+        );
+    }
+
+    if (avaliacoes.length === 0) {
+        return (
+            <div style={{ textAlign: "center", padding: 40 }}>
+                <ClipboardList size={48} style={{ margin: "0 auto 12px", color: "var(--text-muted)", opacity: 0.3 }} />
+                <h3 style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
+                    Nenhuma avaliação salva
+                </h3>
+                <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>
+                    Gere e valide uma avaliação na aba &quot;Estudantes&quot; para poder lançar respostas aqui.
+                </p>
+            </div>
+        );
+    }
+
+    // Active assessment for answer input
+    const avalAtiva = avaliacoes.find(a => a.id === activeAval);
+    if (avalAtiva) {
+        const texto = typeof avalAtiva.questoes_geradas === "string" ? avalAtiva.questoes_geradas : JSON.stringify(avalAtiva.questoes_geradas || "");
+        const questoes = extrairQuestoesTexto(texto);
+        const aluno = getAluno(avalAtiva.student_id);
+        const respondidas = Object.keys(respostas).length;
+
+        return (
+            <div>
+                <button onClick={() => { setActiveAval(null); setRespostas({}); }} style={{
+                    background: "none", border: "none", cursor: "pointer", color: "#3b82f6",
+                    fontSize: 13, fontWeight: 600, marginBottom: 16, display: "flex", alignItems: "center", gap: 4,
+                }}>← Voltar às avaliações</button>
+
+                <div style={{
+                    background: "linear-gradient(135deg, #6366f1, #818cf8)", borderRadius: 14,
+                    padding: "16px 20px", color: "#fff", marginBottom: 20,
+                }}>
+                    <div style={{ fontSize: 16, fontWeight: 700 }}>📋 Gabarito — {avalAtiva.disciplina}</div>
+                    <div style={{ fontSize: 13, opacity: 0.9 }}>
+                        {aluno?.name || "Estudante"} · {respondidas} de {questoes.length} respondidas
+                    </div>
+                </div>
+
+                {questoes.length === 0 ? (
+                    <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                        Não foi possível extrair questões desta avaliação. Verifique se o formato está correto.
+                    </div>
+                ) : (
+                    <>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 10, marginBottom: 16 }}>
+                            {questoes.map((q, i) => {
+                                const gabCorreto = q.gabarito;
+                                const marcada = respostas[i];
+                                const respondida = !!marcada;
+                                return (
+                                    <div key={i} style={{
+                                        padding: "12px 14px", borderRadius: 10,
+                                        background: respondida
+                                            ? marcada === gabCorreto ? "rgba(16,185,129,.06)" : "rgba(239,68,68,.06)"
+                                            : "var(--bg-secondary, rgba(15,23,42,.3))",
+                                        border: `1px solid ${respondida ? (marcada === gabCorreto ? "rgba(16,185,129,.2)" : "rgba(239,68,68,.2)") : "var(--border-default, rgba(148,163,184,.1))"}`,
+                                    }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                                            <span style={{ fontWeight: 800, fontSize: 13, color: "#818cf8" }}>Q{i + 1}</span>
+                                            {q.habilidade && <span style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, background: "rgba(99,102,241,.1)", color: "#818cf8" }}>{q.habilidade}</span>}
+                                            {respondida && (
+                                                <span style={{ marginLeft: "auto", fontSize: 12 }}>
+                                                    {marcada === gabCorreto ? "✅" : "❌"}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div style={{ display: "flex", gap: 6 }}>
+                                            {["A", "B", "C", "D"].map(letra => {
+                                                const isSelected = marcada === letra;
+                                                const isCorrect = letra === gabCorreto;
+                                                const showCorrect = respondida && isCorrect && !isSelected;
+                                                return (
+                                                    <button
+                                                        key={letra}
+                                                        onClick={() => setRespostas(prev => ({ ...prev, [i]: letra }))}
+                                                        style={{
+                                                            flex: 1, padding: "8px 4px", borderRadius: 8, fontSize: 13, fontWeight: 700,
+                                                            cursor: "pointer", transition: "all .15s",
+                                                            border: isSelected
+                                                                ? `2px solid ${isCorrect ? "#10b981" : "#ef4444"}`
+                                                                : showCorrect ? "2px solid rgba(16,185,129,.4)" : "1px solid var(--border-default, rgba(148,163,184,.12))",
+                                                            background: isSelected
+                                                                ? isCorrect ? "rgba(16,185,129,.15)" : "rgba(239,68,68,.15)"
+                                                                : showCorrect ? "rgba(16,185,129,.08)" : "transparent",
+                                                            color: isSelected
+                                                                ? isCorrect ? "#10b981" : "#ef4444"
+                                                                : showCorrect ? "#10b981" : "var(--text-muted)",
+                                                        }}
+                                                    >{letra}</button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <button
+                            onClick={() => analisarRespostas(avalAtiva.id, texto)}
+                            disabled={analisando || respondidas === 0}
+                            style={{
+                                width: "100%", padding: "14px 20px", borderRadius: 12, border: "none",
+                                cursor: analisando || respondidas === 0 ? "not-allowed" : "pointer",
+                                background: analisando || respondidas === 0 ? "#64748b" : "linear-gradient(135deg, #059669, #10b981)",
+                                color: "#fff", fontWeight: 700, fontSize: 14,
+                                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                            }}
+                        >
+                            {analisando ? <Loader2 size={16} className="animate-spin" /> : <BarChart3 size={16} />}
+                            {analisando ? "Analisando..." : `Salvar e Analisar (${respondidas}/${questoes.length})`}
+                        </button>
+                    </>
+                )}
+            </div>
+        );
+    }
+
+    // List of all assessments
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {avaliacoes.map(av => {
+                const aluno = getAluno(av.student_id);
+                const analise = av.resultados?.analise;
+                const isAplicada = av.status === "aplicada";
+                return (
+                    <div key={av.id} style={{
+                        padding: "14px 18px", borderRadius: 12,
+                        background: "var(--bg-secondary, rgba(15,23,42,.3))",
+                        border: `1px solid ${isAplicada ? "rgba(16,185,129,.2)" : "var(--border-default, rgba(148,163,184,.1))"}`,
+                        cursor: "pointer", transition: "all .15s",
+                    }}
+                        onClick={() => {
+                            if (!isAplicada) {
+                                setActiveAval(av.id);
+                                setRespostas({});
+                            }
+                        }}
+                    >
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <div style={{
+                                width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                                background: isAplicada ? "rgba(16,185,129,.1)" : "rgba(99,102,241,.1)",
+                                color: isAplicada ? "#10b981" : "#818cf8", fontWeight: 700, fontSize: 14,
+                            }}>
+                                {isAplicada ? "✅" : "📝"}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>
+                                    {aluno?.name || "Estudante"} · {av.disciplina}
+                                </div>
+                                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                    {new Date(av.created_at).toLocaleDateString("pt-BR")} ·{" "}
+                                    {isAplicada ? `${analise?.score ?? 0}% — Nível ${analise?.nivel ?? "?"}` : "Aguardando respostas"}
+                                </div>
+                            </div>
+                            <span style={{
+                                padding: "3px 10px", borderRadius: 6, fontSize: 10, fontWeight: 700,
+                                background: isAplicada ? "rgba(16,185,129,.1)" : "rgba(245,158,11,.1)",
+                                color: isAplicada ? "#10b981" : "#f59e0b",
+                            }}>
+                                {isAplicada ? "Analisada" : "Pendente"}
+                            </span>
+                        </div>
+
+                        {/* Show analysis summary if available */}
+                        {isAplicada && analise && (
+                            <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                                <div style={{ padding: "6px 10px", borderRadius: 8, background: "rgba(16,185,129,.06)", textAlign: "center" }}>
+                                    <div style={{ fontSize: 18, fontWeight: 800, color: "#10b981" }}>{analise.score}%</div>
+                                    <div style={{ fontSize: 9, color: "var(--text-muted)" }}>Score</div>
+                                </div>
+                                <div style={{ padding: "6px 10px", borderRadius: 8, background: "rgba(99,102,241,.06)", textAlign: "center" }}>
+                                    <div style={{ fontSize: 18, fontWeight: 800, color: "#818cf8" }}>N{analise.nivel}</div>
+                                    <div style={{ fontSize: 9, color: "var(--text-muted)" }}>Nível</div>
+                                </div>
+                                <div style={{ padding: "6px 10px", borderRadius: 8, background: "rgba(239,68,68,.06)", textAlign: "center" }}>
+                                    <div style={{ fontSize: 18, fontWeight: 800, color: "#ef4444" }}>{analise.distratores?.length || 0}</div>
+                                    <div style={{ fontSize: 9, color: "var(--text-muted)" }}>Erros</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
         </div>
     );
 }
