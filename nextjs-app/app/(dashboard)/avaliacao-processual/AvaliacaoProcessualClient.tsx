@@ -127,6 +127,8 @@ export default function AvaliacaoProcessualClient() {
     const [gerandoIntegrado, setGerandoIntegrado] = useState(false);
     const [showIntegrado, setShowIntegrado] = useState(false);
 
+    const [showOnboarding, setShowOnboarding] = useState(false);
+
     // ─── Fetch students ──────────────────────────────────────────────────
 
     const fetchAlunos = useCallback(async () => {
@@ -143,6 +145,11 @@ export default function AvaliacaoProcessualClient() {
     }, []);
 
     useEffect(() => { fetchAlunos(); }, [fetchAlunos]);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        if (!localStorage.getItem("onboarding_processual")) setShowOnboarding(true);
+    }, []);
 
     // ─── Load existing processual for this bimestre ─────────────────────
 
@@ -1129,8 +1136,6 @@ export default function AvaliacaoProcessualClient() {
     }
 
     // ─── Student List ───────────────────────────────────────────────────
-
-    const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboarding_processual'));
 
     return (
         <div style={{ maxWidth: 900, margin: "0 auto" }}>

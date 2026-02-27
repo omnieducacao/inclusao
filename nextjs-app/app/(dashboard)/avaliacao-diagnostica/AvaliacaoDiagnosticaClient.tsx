@@ -9,7 +9,7 @@ import {
     Brain, Loader2, CheckCircle2, AlertTriangle,
     ChevronDown, ChevronUp, Sparkles, Save, ClipboardList, BarChart3,
     ArrowLeft, Users, BookOpen, Target, Zap, FileText, Layers, Activity,
-    Grid3X3, BookMarked, ChevronRight, TrendingUp, Image, Trash2,
+    Grid3X3, BookMarked, ChevronRight, TrendingUp, Image, Trash2, Calendar,
 } from "lucide-react";
 import { OnboardingPanel } from "@/components/OnboardingPanel";
 import { OmniLoader } from "@/components/OmniLoader";
@@ -131,6 +131,9 @@ export default function AvaliacaoDiagnosticaClient() {
     const [planoVinculado, setPlanoVinculado] = useState<PlanoVinculado | null>(null);
     const [blocosPlano, setBlocosPlano] = useState<BlocoPlano[]>([]);
     const [showMatrix, setShowMatrix] = useState(false);
+
+    // Momento da avaliação: início do ano (matriz ano anterior) ou decorrer do ano (plano do professor)
+    const [momentoDiagnostica, setMomentoDiagnostica] = useState<"inicio_ano" | "decorrer_ano">("inicio_ano");
 
     // Matrix habilidades for item creation
     const [matrizHabs, setMatrizHabs] = useState<{ habilidade: string; tema: string; descritor: string; competencia: string }[]>([]);
@@ -391,6 +394,10 @@ export default function AvaliacaoDiagnosticaClient() {
         if (!selectedAluno || !selectedDisc || !resultadoFormatado) return;
         setSalvandoAvaliacao(true);
         try {
+            const usarPlanoProfessor = momentoDiagnostica === "decorrer_ano" && planoVinculado;
+            const habilidadesParaSalvar = usarPlanoProfessor && planoVinculado?.habilidades_bncc?.length
+                ? planoVinculado.habilidades_bncc
+                : (habsSelecionadas.length > 0 ? habsSelecionadas : matrizHabs.slice(0, 4).map(h => h.habilidade));
             const res = await fetch("/api/pei/avaliacao-diagnostica/salvar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -398,8 +405,8 @@ export default function AvaliacaoDiagnosticaClient() {
                     studentId: selectedAluno.id,
                     disciplina: selectedDisc,
                     questoes_geradas: resultadoFormatado,
-                    habilidades_bncc: habsSelecionadas.length > 0 ? habsSelecionadas : matrizHabs.slice(0, 4).map(h => h.habilidade),
-                    plano_ensino_id: planoVinculado?.id || undefined,
+                    habilidades_bncc: habilidadesParaSalvar,
+                    plano_ensino_id: usarPlanoProfessor ? planoVinculado?.id : undefined,
                 }),
             });
             const data = await res.json();
@@ -755,6 +762,11 @@ export default function AvaliacaoDiagnosticaClient() {
                                     </span>
                                 </div>
                                 <div style={{ ...bodyS, maxHeight: 260, overflowY: "auto" }}>
+                                    {momentoDiagnostica === "decorrer_ano" && planoVinculado?.habilidades_bncc?.length ? (
+                                        <p style={{ fontSize: 11, color: "#0ea5e9", margin: "0 0 10px 0", padding: "6px 10px", borderRadius: 6, background: "rgba(14,165,233,.08)", border: "1px solid rgba(14,165,233,.15)" }}>
+                                            No decorrer do ano com plano vinculado: a geração usará as habilidades do plano de ensino. Abaixo, matriz do ano anterior para referência.
+                                        </p>
+                                    ) : null}
                                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                                         {matrizHabs.map((h, i) => {
                                             const selected = habsSelecionadas.includes(h.habilidade);
@@ -1035,18 +1047,23 @@ export default function AvaliacaoDiagnosticaClient() {
                                     setValidadoFormatado(false);
                                     try {
                                         const verbosFinais = usarBloom ? Object.values(verbosBloomSel).flat() : [];
+                                        // No decorrer do ano com plano do professor: usar habilidades do plano; senão matriz (ano anterior)
+                                        const usarPlanoProfessor = momentoDiagnostica === "decorrer_ano" && planoVinculado?.habilidades_bncc && planoVinculado.habilidades_bncc.length > 0;
+                                        const habilidadesParaGerar = usarPlanoProfessor
+                                            ? planoVinculado!.habilidades_bncc!
+                                            : (habsSelecionadas.length > 0
+                                                ? matrizHabs.filter(h => habsSelecionadas.includes(h.habilidade)).map(h => {
+                                                    const codeMatch = h.habilidade.match(/^(EF\d+\w+\d+H?\d*|\(EF\d+\w+\d+\))/i);
+                                                    return `[${codeMatch ? codeMatch[1].replace(/[()]/g, '') : ''}] ${h.competencia ? `(${h.competencia}) ` : ''}${h.habilidade}${h.descritor ? ` | ${h.descritor}` : ''}`;
+                                                })
+                                                : matrizHabs.slice(0, 4).map(h => h.habilidade));
                                         const res = await fetch("/api/hub/criar-itens", {
                                             method: "POST",
                                             headers: { "Content-Type": "application/json" },
                                             body: JSON.stringify({
-                                                assunto: assunto.trim() || (habsSelecionadas.length > 0 ? habsSelecionadas[0] : selectedDisc),
+                                                assunto: assunto.trim() || (habilidadesParaGerar.length > 0 ? (typeof habilidadesParaGerar[0] === "string" ? habilidadesParaGerar[0] : selectedDisc) : selectedDisc),
                                                 engine: engineSel,
-                                                habilidades: habsSelecionadas.length > 0
-                                                    ? matrizHabs.filter(h => habsSelecionadas.includes(h.habilidade)).map(h => {
-                                                        const codeMatch = h.habilidade.match(/^(EF\d+\w+\d+H?\d*|\(EF\d+\w+\d+\))/i);
-                                                        return `[${codeMatch ? codeMatch[1].replace(/[()]/g, '') : ''}] ${h.competencia ? `(${h.competencia}) ` : ''}${h.habilidade}${h.descritor ? ` | ${h.descritor}` : ''}`;
-                                                    })
-                                                    : matrizHabs.slice(0, 4).map(h => h.habilidade),
+                                                habilidades: habilidadesParaGerar,
                                                 verbos_bloom: verbosFinais.length > 0 ? verbosFinais : undefined,
                                                 qtd_questoes: qtdQuestoes,
                                                 distribuicao_cognitiva: qtdQuestoes >= 8 ? {
@@ -2017,6 +2034,44 @@ export default function AvaliacaoDiagnosticaClient() {
             {/* ── Tab: Estudantes ── */}
             {activeTab === "estudantes" && (
                 <>
+                    {/* Seletor de momento — início do fluxo */}
+                    <div style={{ ...cardS, border: "1px solid rgba(99,102,241,.2)", marginBottom: 16 }}>
+                        <div style={{ ...headerS, background: "rgba(99,102,241,.04)" }}>
+                            <Calendar size={16} style={{ color: "#818cf8" }} />
+                            <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>Momento da avaliação</span>
+                        </div>
+                        <div style={{ ...bodyS, display: "flex", flexDirection: "column", gap: 10 }}>
+                            <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>
+                                A avaliação diagnóstica verifica habilidades do <strong>ano anterior</strong>. No início do ano use a matriz de referência; no decorrer do ano você pode usar o plano de ensino que criou.
+                            </p>
+                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                <label style={{
+                                    flex: 1, minWidth: 200, padding: "12px 14px", borderRadius: 10, cursor: "pointer",
+                                    border: momentoDiagnostica === "inicio_ano" ? "2px solid #818cf8" : "1px solid var(--border-default)",
+                                    background: momentoDiagnostica === "inicio_ano" ? "rgba(99,102,241,.1)" : "transparent",
+                                    display: "flex", alignItems: "flex-start", gap: 8,
+                                }}>
+                                    <input type="radio" name="momento" checked={momentoDiagnostica === "inicio_ano"} onChange={() => setMomentoDiagnostica("inicio_ano")} style={{ marginTop: 2, accentColor: "#818cf8" }} />
+                                    <div>
+                                        <span style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)" }}>Início do ano letivo</span>
+                                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Matriz de referência Omnisfera (habilidades do ano anterior)</div>
+                                    </div>
+                                </label>
+                                <label style={{
+                                    flex: 1, minWidth: 200, padding: "12px 14px", borderRadius: 10, cursor: "pointer",
+                                    border: momentoDiagnostica === "decorrer_ano" ? "2px solid #0ea5e9" : "1px solid var(--border-default)",
+                                    background: momentoDiagnostica === "decorrer_ano" ? "rgba(14,165,233,.1)" : "transparent",
+                                    display: "flex", alignItems: "flex-start", gap: 8,
+                                }}>
+                                    <input type="radio" name="momento" checked={momentoDiagnostica === "decorrer_ano"} onChange={() => setMomentoDiagnostica("decorrer_ano")} style={{ marginTop: 2, accentColor: "#0ea5e9" }} />
+                                    <div>
+                                        <span style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)" }}>No decorrer do ano letivo</span>
+                                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Usar plano de ensino do professor (se houver)</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Empty state */}
                     {alunos.length === 0 && (
