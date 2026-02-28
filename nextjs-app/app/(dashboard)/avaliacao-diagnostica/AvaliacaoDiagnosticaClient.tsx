@@ -180,6 +180,7 @@ export default function AvaliacaoDiagnosticaClient() {
     const [estrategiasGeradas, setEstrategiasGeradas] = useState<Record<string, unknown> | null>(null);
     const [gerandoPerfil, setGerandoPerfil] = useState(false);
     const [gerandoEstrategias, setGerandoEstrategias] = useState(false);
+    const [perfilError, setPerfilError] = useState<string | null>(null);
 
     // ─── Processual evolution feed ─────────────────────────────────────────
     const [evolucaoProcessual, setEvolucaoProcessual] = useState<{
@@ -381,6 +382,7 @@ export default function AvaliacaoDiagnosticaClient() {
         setShowCamadaB(false);
         setPerfilGerado(null);
         setEstrategiasGeradas(null);
+        setPerfilError(null);
         setEvolucaoProcessual([]);
         setShowProcessual(false);
         setAvaliacaoSalvaId(null);
@@ -504,7 +506,14 @@ export default function AvaliacaoDiagnosticaClient() {
     const gerarPerfil = async () => {
         if (!selectedAluno) return;
         setGerandoPerfil(true);
+        setPerfilError(null);
         try {
+            const dims = Object.entries(dimensoesAvaliadas)
+                .filter(([, v]) => v.nivel >= 0)
+                .map(([id, val]) => {
+                    const dim = dimensoesNEE.find(d => d.id === id);
+                    return { dimensao: dim?.dimensao || id, nivel_observado: val.nivel, observacao: val.observacao || "" };
+                });
             const res = await fetch("/api/avaliacao-diagnostica/perfil-funcionamento", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -512,17 +521,19 @@ export default function AvaliacaoDiagnosticaClient() {
                     nome: selectedAluno.name,
                     serie: selectedAluno.grade,
                     diagnostico: selectedAluno.diagnostico || "SEM_NEE",
-                    dimensoes_avaliadas: Object.entries(dimensoesAvaliadas).map(([id, val]) => {
-                        const dim = dimensoesNEE.find(d => d.id === id);
-                        return { dimensao: dim?.dimensao || id, nivel_observado: val.nivel, observacao: val.observacao };
-                    }),
+                    dimensoes_avaliadas: dims,
                     habilidades_curriculares: [],
                 }),
             });
             const data = await res.json();
-            if (data.perfil) setPerfilGerado(data.perfil as Record<string, unknown>);
+            if (data.perfil) {
+                setPerfilGerado(data.perfil as Record<string, unknown>);
+            } else if (data.error) {
+                setPerfilError(data.error);
+            }
         } catch (err) {
             console.error("Erro ao gerar perfil:", err);
+            setPerfilError(err instanceof Error ? err.message : "Erro ao gerar perfil");
         } finally { setGerandoPerfil(false); }
     };
 
@@ -1570,6 +1581,13 @@ export default function AvaliacaoDiagnosticaClient() {
                         </div>
                     )
                 }
+
+                {/* ─── Erro ao gerar perfil ─────────────────────────────── */}
+                {perfilError && (
+                    <div style={{ padding: 12, marginBottom: 16, borderRadius: 10, background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", color: "#f87171", fontSize: 13 }}>
+                        <strong>Erro:</strong> {perfilError}
+                    </div>
+                )}
 
                 {/* ─── Perfil de Funcionamento Output ─────────────────── */}
                 {

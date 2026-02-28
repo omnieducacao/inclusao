@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
-import { chatCompletionText } from "@/lib/ai-engines";
+import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
 import {
     buildContextoAluno,
     buildPromptCompleto,
@@ -27,10 +27,11 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Campos obrigatórios: nome, serie, diagnostico" }, { status: 400 });
     }
 
-    if (!dimensoes_avaliadas?.length && !habilidades_curriculares?.length) {
-        return NextResponse.json({
-            error: "Forneça dimensoes_avaliadas ou habilidades_curriculares",
-        }, { status: 400 });
+    // Fallback: se nenhum dado, usar dimensão geral com nível inferido do diagnóstico
+    let dims = dimensoes_avaliadas || [];
+    const habs = habilidades_curriculares || [];
+    if (dims.length === 0 && habs.length === 0) {
+        dims = [{ dimensao: "Geral", nivel_observado: 2, observacao: "Avaliação inicial — use os dados da diagnóstica para inferir o perfil." }];
     }
 
     // LGPD: only first name
@@ -47,11 +48,17 @@ export async function POST(req: Request) {
         nome: nomePrimeiro,
         serie,
         diagnostico,
-        dimensoes_avaliadas: dimensoes_avaliadas || [],
-        habilidades_curriculares: habilidades_curriculares || [],
+        dimensoes_avaliadas: dims,
+        habilidades_curriculares: habs,
     });
 
     const { system, user } = buildPromptCompleto(camada2, camada3);
+
+    const wsId = session?.simulating_workspace_id || session?.workspace_id;
+    const engineErr = await getEngineErrorWithWorkspace(engine as EngineId, wsId);
+    if (engineErr) {
+        return NextResponse.json({ error: engineErr }, { status: 500 });
+    }
 
     try {
         const messages = [
