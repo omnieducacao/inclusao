@@ -679,30 +679,30 @@ export default function AvaliacaoProcessualClient() {
                                     background: colors.bg,
                                     transition: "all .2s",
                                 }}>
-                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                                                 <span style={{
-                                                    fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
-                                                    background: "rgba(99,102,241,.1)", color: "#818cf8",
+                                                    fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4,
+                                                    background: "rgba(99,102,241,.1)", color: "#818cf8", flexShrink: 0,
                                                 }}>{hab.codigo_bncc}</span>
                                                 {hab.nivel_anterior !== null && hab.nivel_anterior !== hab.nivel_atual && (
                                                     <span style={{
                                                         fontSize: 10, fontWeight: 600, display: "flex", alignItems: "center", gap: 2,
-                                                        color: hab.nivel_atual > hab.nivel_anterior ? "#10b981" : "#f87171",
+                                                        color: hab.nivel_atual > hab.nivel_anterior ? "#10b981" : "#f87171", flexShrink: 0,
                                                     }}>
                                                         <TrendingUp size={10} />
                                                         {hab.nivel_anterior} → {hab.nivel_atual}
                                                     </span>
                                                 )}
                                             </div>
-                                            <div style={{ fontSize: 12, color: "var(--text-secondary, #cbd5e1)", lineHeight: 1.4 }}>
-                                                {hab.descricao.slice(0, 120)}{hab.descricao.length > 120 ? "..." : ""}
+                                            <div style={{ fontSize: 13, color: "var(--text-primary, #e2e8f0)", lineHeight: 1.5 }}>
+                                                {hab.descricao}
                                             </div>
                                         </div>
 
                                         {/* Nivel buttons */}
-                                        <div style={{ display: "flex", gap: 4 }}>
+                                        <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                                             {([0, 1, 2, 3, 4] as NivelOmnisfera[]).map(n => {
                                                 const nc = NIVEL_COLORS[n];
                                                 const selected = hab.nivel_atual === n;
@@ -732,7 +732,7 @@ export default function AvaliacaoProcessualClient() {
                                             style={{
                                                 display: "flex", alignItems: "center", padding: 4,
                                                 border: "none", background: "transparent",
-                                                color: "var(--text-muted)", cursor: "pointer",
+                                                color: "var(--text-muted)", cursor: "pointer", flexShrink: 0,
                                             }}
                                         >
                                             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}

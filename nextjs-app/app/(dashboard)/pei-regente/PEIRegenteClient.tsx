@@ -393,6 +393,17 @@ export function PEIRegenteClient() {
                                                 Abrir PEI completo e aplicar estratégias
                                             </a>
 
+                                            {/* Finalizar PEI desta disciplina e enviar para consolidar */}
+                                            {selectedDisc.id && !String(selectedDisc.id).startsWith("virtual_") && (
+                                                <FinalizarPeiDisciplinaButton
+                                                    studentId={selectedAluno.id}
+                                                    disciplina={selectedDisc.disciplina}
+                                                    peiDisciplinaId={selectedDisc.id}
+                                                    adaptacaoSugestao={adaptacaoSugestao}
+                                                    onFinalizado={() => { fetchData(); setAdaptacaoSugestao(null); }}
+                                                />
+                                            )}
+
                                             {/* Auto-save version */}
                                             <button
                                                 onClick={async () => {
@@ -685,6 +696,100 @@ export function PEIRegenteClient() {
                     );
                 })}
             </div>
+        </div>
+    );
+}
+
+// ─── Finalizar PEI Disciplina e enviar para consolidar ─────────────────────
+
+function FinalizarPeiDisciplinaButton({
+    studentId,
+    disciplina,
+    peiDisciplinaId,
+    adaptacaoSugestao,
+    onFinalizado,
+}: {
+    studentId: string;
+    disciplina: string;
+    peiDisciplinaId: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    adaptacaoSugestao: Record<string, any> | null;
+    onFinalizado?: () => void;
+}) {
+    const [finalizando, setFinalizando] = useState(false);
+    const [finalizado, setFinalizado] = useState(false);
+    const [erro, setErro] = useState("");
+
+    const handleFinalizar = async () => {
+        if (!adaptacaoSugestao) return;
+        setFinalizando(true);
+        setErro("");
+        try {
+            const resPost = await fetch("/api/pei/disciplina", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    studentId,
+                    disciplina,
+                    pei_disciplina_data: adaptacaoSugestao,
+                }),
+            });
+            if (!resPost.ok) {
+                const d = await resPost.json().catch(() => ({}));
+                throw new Error(d.error || "Erro ao salvar PEI da disciplina");
+            }
+            const resPatch = await fetch("/api/pei/disciplina", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: peiDisciplinaId, fase_status: "concluido" }),
+            });
+            if (!resPatch.ok) {
+                const d = await resPatch.json().catch(() => ({}));
+                throw new Error(d.error || "Erro ao marcar como concluído");
+            }
+            setFinalizado(true);
+            onFinalizado?.();
+        } catch (e) {
+            setErro(e instanceof Error ? e.message : "Erro ao finalizar");
+        } finally {
+            setFinalizando(false);
+        }
+    };
+
+    if (finalizado) {
+        return (
+            <a
+                href={`/pei?student=${studentId}&tab=consolidacao`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all"
+                style={{ background: "linear-gradient(135deg, #7c3aed, #8b5cf6)", display: "inline-flex" }}
+            >
+                <ExternalLink className="w-4 h-4" />
+                Enviar para PEI geral e consolidar
+            </a>
+        );
+    }
+
+    return (
+        <div className="flex flex-col gap-1">
+            <button
+                type="button"
+                onClick={handleFinalizar}
+                disabled={finalizando || !adaptacaoSugestao}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50"
+                style={{
+                    background: finalizando ? "#94a3b8" : "linear-gradient(135deg, #059669, #10b981)",
+                    display: "inline-flex",
+                }}
+            >
+                {finalizando ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                {finalizando ? "Finalizando..." : "Finalizar e salvar PEI desta disciplina"}
+            </button>
+            {erro && <span className="text-xs text-red-400">{erro}</span>}
+            <span className="text-[10px] text-slate-500">
+                Depois, use &quot;Enviar para PEI geral e consolidar&quot; para o AEE consolidar no documento oficial.
+            </span>
         </div>
     );
 }

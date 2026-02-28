@@ -154,7 +154,13 @@ export function PEIClient({
     if (!localStorage.getItem('onboarding_pei')) setShowOnboarding(true);
   }, []);
 
-
+  // Abrir aba da URL (ex: ?student=xxx&tab=consolidacao) para fluxo "Enviar para PEI geral e consolidar"
+  const tabFromUrl = searchParams?.get("tab");
+  useEffect(() => {
+    if (!tabFromUrl || !selectedStudentId) return;
+    const validTabs: TabId[] = ["inicio", "estudante", "evidencias", "rede", "mapeamento", "plano", "monitoramento", "bncc", "consultoria", "regentes", "consolidacao", "dashboard"];
+    if (validTabs.includes(tabFromUrl as TabId)) setActiveTab(tabFromUrl as TabId);
+  }, [tabFromUrl, selectedStudentId]);
 
 
   // Ref para preservar o ID do estudante ao carregar do Supabase (via jsonPending)
