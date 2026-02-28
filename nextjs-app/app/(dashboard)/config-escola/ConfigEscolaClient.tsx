@@ -25,6 +25,10 @@ export function ConfigEscolaClient() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [confirmDelClass, setConfirmDelClass] = useState<string | null>(null);
+  const [familyModuleEnabled, setFamilyModuleEnabled] = useState(false);
+  const [familyModuleSaving, setFamilyModuleSaving] = useState(false);
+  const [allowAvaliacaoFase1, setAllowAvaliacaoFase1] = useState(false);
+  const [allowAvaliacaoFase1Saving, setAllowAvaliacaoFase1Saving] = useState(false);
 
   const loadYears = useCallback(async () => {
     const res = await fetch("/api/school/years");
@@ -47,12 +51,21 @@ export function ConfigEscolaClient() {
     setClasses(data.classes ?? []);
   }, [years]);
 
+  const loadWorkspaceConfig = useCallback(async () => {
+    const res = await fetch("/api/workspace/config");
+    if (!res.ok) return;
+    const data = await res.json();
+    setFamilyModuleEnabled(Boolean(data.family_module_enabled));
+    setAllowAvaliacaoFase1(Boolean(data.allow_avaliacao_fase_1));
+  }, []);
+
   useEffect(() => {
     async function init() {
       setLoading(true);
       try {
         await loadYears();
         await loadGrades();
+        await loadWorkspaceConfig();
       } catch {
         setMessage({ type: "err", text: "Erro ao carregar dados." });
       } finally {
@@ -60,7 +73,7 @@ export function ConfigEscolaClient() {
       }
     }
     init();
-  }, [loadYears, loadGrades]);
+  }, [loadYears, loadGrades, loadWorkspaceConfig]);
 
   useEffect(() => {
     if (years.length > 0) loadClasses();
@@ -216,6 +229,85 @@ export function ConfigEscolaClient() {
             </div>
           </>
         )}
+      </section>
+
+      {/* 4. Módulos */}
+      <section>
+        <h3 className="text-lg font-semibold text-slate-800 mb-3">4. Módulos opcionais</h3>
+        <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1px solid rgba(226,232,240,0.6)" }}>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={familyModuleEnabled}
+              disabled={familyModuleSaving}
+              onChange={async (e) => {
+                const val = e.target.checked;
+                setFamilyModuleSaving(true);
+                try {
+                  const res = await fetch("/api/workspace/config", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ family_module_enabled: val }),
+                  });
+                  if (!res.ok) {
+                    const d = await res.json();
+                    setMessage({ type: "err", text: d.error || "Erro ao salvar." });
+                    return;
+                  }
+                  setFamilyModuleEnabled(val);
+                  setMessage({ type: "ok", text: val ? "Módulo Família habilitado." : "Módulo Família desabilitado." });
+                } catch {
+                  setMessage({ type: "err", text: "Erro ao salvar." });
+                } finally {
+                  setFamilyModuleSaving(false);
+                }
+              }}
+              className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+            />
+            <div>
+              <span className="font-medium text-slate-800">Módulo Família</span>
+              <p className="text-sm text-slate-500 mt-0.5">
+                Permite que responsáveis façam login e acompanhem PEI, evolução e PAEE dos estudantes vinculados.
+              </p>
+            </div>
+          </label>
+          <label className="flex items-center gap-3 cursor-pointer mt-4 pt-4 border-t border-slate-200">
+            <input
+              type="checkbox"
+              checked={allowAvaliacaoFase1}
+              disabled={allowAvaliacaoFase1Saving}
+              onChange={async (e) => {
+                const val = e.target.checked;
+                setAllowAvaliacaoFase1Saving(true);
+                try {
+                  const res = await fetch("/api/workspace/config", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ allow_avaliacao_fase_1: val }),
+                  });
+                  if (!res.ok) {
+                    const d = await res.json();
+                    setMessage({ type: "err", text: d.error || "Erro ao salvar." });
+                    return;
+                  }
+                  setAllowAvaliacaoFase1(val);
+                  setMessage({ type: "ok", text: val ? "Avaliação em Fase 1 habilitada." : "Avaliação em Fase 1 desabilitada." });
+                } catch {
+                  setMessage({ type: "err", text: "Erro ao salvar." });
+                } finally {
+                  setAllowAvaliacaoFase1Saving(false);
+                }
+              }}
+              className="rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+            />
+            <div>
+              <span className="font-medium text-slate-800">Avaliação antes do envio aos regentes</span>
+              <p className="text-sm text-slate-500 mt-0.5">
+                Permite que professores vejam e avaliem estudantes em PEI Fase 1 (antes do envio aos regentes).
+              </p>
+            </div>
+          </label>
+        </div>
       </section>
     </div>
   );

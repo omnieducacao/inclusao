@@ -17,6 +17,12 @@ export type PEIData = {
   rede_apoio?: string[];
   orientacoes_especialistas?: string;
   orientacoes_por_profissional?: Record<string, string>;
+  /** Acompanhante de cuidados (cuidador/mediador em sala) */
+  acompanhante_nome?: string;
+  acompanhante_carga_horaria?: string;
+  orientacoes_acompanhante?: string;
+  /** Tecnologias assistivas utilizadas (CAA, leitor de tela, prancha, etc.) */
+  tecnologias_assistivas?: string[];
   checklist_evidencias?: Record<string, boolean>;
   nivel_alfabetizacao?: string;
   barreiras_selecionadas?: Record<string, string[]>;
@@ -101,6 +107,23 @@ export const LISTA_PROFISSIONAIS = [
   "Psicólogo Clínico", "Neuropsicólogo", "Fonoaudiólogo", "Terapeuta Ocupacional",
   "Neuropediatra", "Psiquiatra Infantil", "Psicopedagogo Clínico", "Professor de Apoio (Mediador)",
   "Acompanhante Terapêutico (AT)", "Musicoterapeuta", "Equoterapeuta", "Oftalmologista",
+];
+
+// --- TECNOLOGIAS ASSISTIVAS ---
+export const LISTA_TECNOLOGIAS_ASSISTIVAS = [
+  "CAA (Comunicação Alternativa/Aumentativa)",
+  "Prancha de comunicação",
+  "Leitor de tela",
+  "Ampliador de tela",
+  "Teclado adaptado",
+  "Mouse adaptado",
+  "Suporte de livros",
+  "Reglete e punção (Braille)",
+  "Soroban",
+  "Calculadora falante",
+  "Gravador de áudio",
+  "Software de predição de texto",
+  "Outro (especificar em observações)",
 ];
 
 // --- COMPOSIÇÃO FAMILIAR ---

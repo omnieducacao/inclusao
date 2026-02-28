@@ -1,14 +1,14 @@
 import { parseBody, hubMapaMentalSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
-import { chatCompletionText, type EngineId } from "@/lib/ai-engines";
+import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
 import { gerarPromptMapaMentalImagem, gerarPromptMapaMentalHtml } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeText } from "@/lib/ai-anonymize";
 
 export async function POST(req: Request) {
     const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-    const { error: authError } = await requireAuth(); if (authError) return authError;
+    const { session, error: authError } = await requireAuth(); if (authError) return authError;
     const parsed = await parseBody(req, hubMapaMentalSchema);
     if (parsed.error) return parsed.error;
     const body = parsed.data;
@@ -103,8 +103,14 @@ export async function POST(req: Request) {
         // Tentar blue (Kimi) primeiro, fallback para green (Claude), depois yellow (Gemini)
         const engines: EngineId[] = ["blue", "green", "yellow"];
         let lastError: Error | null = null;
+        const wsId = session?.simulating_workspace_id || session?.workspace_id;
 
         for (const engine of engines) {
+            const planErr = await getEngineErrorWithWorkspace(engine, wsId);
+            if (planErr) {
+                lastError = new Error(planErr);
+                continue;
+            }
             try {
                 const html = await chatCompletionText(engine, [{ role: "user", content: anonPrompt }], { temperature: 0.5 });
 

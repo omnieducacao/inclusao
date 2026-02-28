@@ -17,6 +17,9 @@ export default async function DashboardLayout({
   if (!session) {
     redirect("/login");
   }
+  if (session.user_role === "family") {
+    redirect("/familia");
+  }
 
   return (
     <AILoadingWrapper>

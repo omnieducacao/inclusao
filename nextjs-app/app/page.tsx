@@ -43,6 +43,7 @@ export default async function RootPage() {
   // ── Fetch KPIs for smart badges ──
   type BadgeInfo = { text: string; variant: "green" | "yellow" | "red" | "gray" };
   let kpiBadges: Record<string, BadgeInfo> = {};
+  let familyModuleEnabled = false;
   try {
     if (sessionNonNull.workspace_id && !sessionNonNull.is_platform_admin) {
       const sb = getSupabase();
@@ -94,6 +95,13 @@ export default async function RootPage() {
         };
       }
 
+      // Family module badge
+      const wsData = await sb.from("workspaces").select("family_module_enabled").eq("id", wid).maybeSingle();
+      familyModuleEnabled = Boolean((wsData.data as { family_module_enabled?: boolean } | null)?.family_module_enabled);
+      if (familyModuleEnabled) {
+        kpiBadges["Família"] = { text: "Ativo", variant: "green" };
+      }
+
       // Assessment badges
       if (processualCount > 0) {
         kpiBadges["Avaliação Processual"] = { text: `${processualCount} registros`, variant: "green" };
@@ -120,6 +128,9 @@ export default async function RootPage() {
   const row2Raw = [
     { href: "/diario", iconName: "BookOpen" as const, title: "Diário de Bordo", desc: "Registro de observações, evidências e intervenções.", color: "rose", permission: "can_diario", badge: kpiBadges["Diário de Bordo"] },
     { href: "/monitoramento", iconName: "ChartLineUp" as const, title: "Evolução & Dados", desc: "Indicadores e relatórios de progresso dos estudantes.", color: "slate", permission: "can_avaliacao", badge: kpiBadges["Evolução & Dados"] },
+    ...(familyModuleEnabled && canAccessModule("can_estudantes")
+      ? [{ href: "/estudantes", iconName: "Users" as const, title: "Família", desc: "Cadastrar responsáveis e vincular a estudantes para acesso à plataforma.", color: "amber", permission: "can_estudantes" as const, badge: kpiBadges["Família"] }]
+      : []),
     { href: "/pgi", iconName: "ClipboardText" as const, title: "PGI", desc: "Plano de Gestão Inclusiva da escola.", color: "presentation", permission: "can_gestao" },
     { href: "/infos", iconName: "BookBookmark" as const, title: "Central de Inteligência", desc: "Fundamentos pedagógicos, legislação e ferramentas.", color: "table" },
   ];

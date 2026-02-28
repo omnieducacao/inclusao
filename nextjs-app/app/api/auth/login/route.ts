@@ -5,6 +5,7 @@ import {
   findUserByEmail,
   verifyWorkspaceMaster,
   verifyMemberPassword,
+  verifyFamilyPassword,
 } from "@/lib/auth";
 import { createSession } from "@/lib/session";
 
@@ -30,6 +31,12 @@ export async function POST(req: Request) {
         email,
         password
       );
+    } else if (found.role === "family") {
+      ok = await verifyFamilyPassword(
+        found.workspace_id,
+        email,
+        password
+      );
     } else {
       ok = await verifyMemberPassword(
         found.workspace_id,
@@ -48,33 +55,37 @@ export async function POST(req: Request) {
     const member =
       found.role === "member"
         ? found.user
-        : {
-          id: null,
-          can_estudantes: true,
-          can_pei: true,
-          can_pei_professor: true,
-          can_paee: true,
-          can_hub: true,
-          can_diario: true,
-          can_avaliacao: true,
-          can_gestao: true,
-          link_type: "todos" as const,
-        };
+        : found.role === "family"
+          ? undefined
+          : {
+            id: null,
+            can_estudantes: true,
+            can_pei: true,
+            can_pei_professor: true,
+            can_paee: true,
+            can_hub: true,
+            can_diario: true,
+            can_avaliacao: true,
+            can_gestao: true,
+            link_type: "todos" as const,
+          };
 
     await createSession({
       workspace_id: found.workspace_id,
       workspace_name: found.workspace_name,
       usuario_nome: (found.user.nome as string) || email,
       user_role: found.role,
-      member: member as Record<string, unknown>,
+      member: member as Record<string, unknown> | undefined,
+      family_responsible_id: found.role === "family" ? (found.user.id as string) : undefined,
       is_platform_admin: false,
-      terms_accepted: found.role === "master" ? true : (found.user.terms_accepted as boolean | undefined) || false,
+      terms_accepted: found.role === "master" ? true : found.role === "family" ? (found.user.terms_accepted as boolean | undefined) ?? true : (found.user.terms_accepted as boolean | undefined) || false,
     });
 
     return NextResponse.json({
       ok: true,
       workspace_name: found.workspace_name,
       usuario_nome: found.user.nome,
+      redirect: found.role === "family" ? "/familia" : undefined,
     });
   } catch (err) {
     console.error("Login error:", err);

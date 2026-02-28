@@ -360,14 +360,37 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
   const rede = (dados.rede_apoio || []).filter(Boolean) as string[];
   const orientacoes = limparTexto(dados.orientacoes_especialistas);
   const orientacoesPorProf = dados.orientacoes_por_profissional || {};
+  const acompanhanteNome = limparTexto(dados.acompanhante_nome);
+  const acompanhanteCarga = limparTexto(dados.acompanhante_carga_horaria);
+  const orientacoesAcomp = limparTexto(dados.orientacoes_acompanhante);
+  const tecnologias = (dados.tecnologias_assistivas || []).filter(Boolean) as string[];
+  const temAcompanhante = acompanhanteNome || acompanhanteCarga || orientacoesAcomp;
+  const temTecnologias = tecnologias.length > 0;
 
-  if (rede.length || orientacoes || Object.keys(orientacoesPorProf).length) {
+  if (rede.length || orientacoes || Object.keys(orientacoesPorProf).length || temAcompanhante || temTecnologias) {
     addSpacer(6);
     addSectionTitle("4. REDE DE APOIO E ORIENTACOES");
 
     if (rede.length) {
       addSubtitle("Profissionais da Rede");
       rede.forEach((r) => addBulletItem(r, "dot"));
+      addSpacer(3);
+    }
+
+    if (temAcompanhante) {
+      addSubtitle("Acompanhante de Cuidados");
+      if (acompanhanteNome) addLine("Nome:", acompanhanteNome);
+      if (acompanhanteCarga) addLine("Carga Horaria:", acompanhanteCarga);
+      if (orientacoesAcomp) {
+        addSubtitle("Orientacoes ao Acompanhante");
+        addMultiline(orientacoesAcomp);
+      }
+      addSpacer(3);
+    }
+
+    if (temTecnologias) {
+      addSubtitle("Tecnologias Assistivas");
+      tecnologias.forEach((t) => addBulletItem(t, "check"));
       addSpacer(3);
     }
 

@@ -98,8 +98,8 @@ describe("anonymize", () => {
         it("trata nomes com acentos corretamente", () => {
             const prompt = "José Antônio tem dislexia. José precisa de apoio.";
             const result = anonymizePrompt(prompt, "José Antônio");
-            expect(result).toBe("[ESTUDANTE] tem dislexia. José precisa de apoio.");
-            // Nota: "José" tem 4 caracteres, então deve ser substituído
+            // Nome completo e primeiro nome (>3 chars) são substituídos
+            expect(result).toBe("[ESTUDANTE] tem dislexia. [ESTUDANTE] precisa de apoio.");
         });
 
         it("trata nomes compostos", () => {

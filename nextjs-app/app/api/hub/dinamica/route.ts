@@ -1,14 +1,14 @@
 import { parseBody, hubDinamicaSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
-import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
 import { gerarPromptDinamicaInclusiva } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-  const { error: authError } = await requireAuth(); if (authError) return authError;
+  const { session, error: authError } = await requireAuth(); if (authError) return authError;
   const parsed = await parseBody(req, hubDinamicaSchema);
   if (parsed.error) return parsed.error;
   const body = parsed.data;
@@ -46,7 +46,8 @@ export async function POST(req: Request) {
     feedback_anterior: "",
   });
 
-  const err = getEngineError(engine);
+  const wsId = session?.simulating_workspace_id || session?.workspace_id;
+  const err = await getEngineErrorWithWorkspace(engine, wsId);
   if (err) return NextResponse.json({ error: err }, { status: 500 });
 
   try {

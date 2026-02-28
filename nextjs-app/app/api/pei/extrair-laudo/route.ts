@@ -1,6 +1,6 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
-import { chatCompletionText, visionAdapt, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { chatCompletionText, visionAdapt, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
 
 const IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -29,7 +29,7 @@ const PROMPT_EXTRAIR = `Analise este laudo médico/escolar. Extraia: 1) Diagnós
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-  const { error: authError } = await requireAuth(); if (authError) return authError;
+  const { session, error: authError } = await requireAuth(); if (authError) return authError;
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -95,7 +95,8 @@ export async function POST(req: Request) {
         }
       }
 
-      const engineErr = getEngineError(engine);
+      const wsId = session?.simulating_workspace_id || session?.workspace_id;
+      const engineErr = await getEngineErrorWithWorkspace(engine, wsId);
       if (engineErr) {
         return NextResponse.json({ error: engineErr }, { status: 500 });
       }

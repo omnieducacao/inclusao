@@ -2,9 +2,11 @@
  * Multi-engine AI: OmniRed, OmniBlue, OmniGreen, OmniYellow, OmniOrange.
  * Compatível com omni_utils.chat_completion_multi_engine do Streamlit.
  * Inclui cache LRU com TTL para reduzir custos.
+ * OmniGreen (Claude) restrito a plan = 'robusto' (5.2.1).
  */
 
 import { aiCache } from "./ai-cache";
+import { getSupabase } from "./supabase";
 
 export type EngineId = "red" | "blue" | "green" | "yellow" | "orange";
 
@@ -71,6 +73,30 @@ export function getEngineError(engine: EngineId): string | null {
   const key = getApiKey(engine);
   if (key) return null;
   return `Configure a chave para ${ENGINE_NAMES[engine]}. Ver .env.local.example.`;
+}
+
+/**
+ * Verifica engine + plano do workspace (OmniGreen só para plan = 'robusto').
+ * Usar nas rotas API que têm session.workspace_id.
+ */
+export async function getEngineErrorWithWorkspace(
+  engine: EngineId,
+  workspaceId?: string | null
+): Promise<string | null> {
+  const baseErr = getEngineError(engine);
+  if (baseErr) return baseErr;
+  if (engine === "green" && workspaceId) {
+    try {
+      const sb = getSupabase();
+      const { data } = await sb.from("workspaces").select("plan").eq("id", workspaceId).maybeSingle();
+      if (data && data.plan !== "robusto") {
+        return "OmniGreen (Claude) está disponível apenas para o plano Robusto. Entre em contato com o administrador para migrar de plano.";
+      }
+    } catch {
+      // Falha ao consultar — permitir (evitar bloquear por erro de DB)
+    }
+  }
+  return null;
 }
 
 /** Chat completion para motores de texto (red, blue, orange). */

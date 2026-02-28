@@ -15,10 +15,14 @@ export async function GET() {
 
         const sb = getSupabase();
         const workspaceId = session.workspace_id;
-        const userEmail = session.usuario_nome; // Used as identifier
+        // Family: use family_responsible_id; members/masters: use usuario_nome (identifier)
+        const userIdentifier =
+            session.user_role === "family" && session.family_responsible_id
+                ? `family_${session.family_responsible_id}`
+                : session.usuario_nome;
 
         // Platform admins don't have workspace context
-        if (session.is_platform_admin || !workspaceId || !userEmail) {
+        if (session.is_platform_admin || !workspaceId || !userIdentifier) {
             return NextResponse.json({ announcements: [] });
         }
 
@@ -55,7 +59,7 @@ export async function GET() {
             .from("announcement_views")
             .select("announcement_id")
             .eq("workspace_id", workspaceId)
-            .eq("user_email", userEmail);
+            .eq("user_email", userIdentifier);
 
         const viewedIds = new Set(viewedData?.map((v) => v.announcement_id) || []);
 

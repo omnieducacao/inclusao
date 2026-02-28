@@ -19,7 +19,7 @@ import {
   FREQUENCIAS,
 } from "@/lib/paee";
 import { LISTAS_BARREIRAS, NIVEIS_SUPORTE } from "@/lib/pei";
-import { Map, AlertTriangle, Target, Puzzle, Users, Search } from "lucide-react";
+import { Map, AlertTriangle, Target, Puzzle, Users, Search, FileText, ExternalLink } from "lucide-react";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { ResumoAnexosEstudante } from "@/components/ResumoAnexosEstudante";
@@ -285,7 +285,19 @@ function PAEEClientInner({ students, studentId, student }: Props) {
 
   return (
     <div className="space-y-6">
-      <StudentSelector students={students} currentId={currentId} />
+      <div className="flex flex-wrap items-center gap-3">
+        <StudentSelector students={students} currentId={currentId} />
+        {currentId && (
+          <a
+            href={`/pei?student=${currentId}`}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-sky-600 hover:text-sky-700 hover:bg-sky-50 rounded-lg border border-sky-200 transition-colors"
+          >
+            <FileText className="w-4 h-4" />
+            Ver PEI
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        )}
+      </div>
 
       {/* Painel PEI Retrátil */}
       {student && (

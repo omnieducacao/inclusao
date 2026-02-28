@@ -2,14 +2,15 @@ import { parseBody, hubAdaptarProvaSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import mammoth from "mammoth";
-import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
 import { adaptarPromptProva } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { saveHubGeneratedContent } from "@/lib/hub-tracking";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-  const { error: authError } = await requireAuth(); if (authError) return authError;
+  const { session, error: authError } = await requireAuth(); if (authError) return authError;
   let texto = "";
   let materia = "Geral";
   let tema = "Geral";
@@ -96,10 +97,9 @@ export async function POST(req: Request) {
     objeto_conhecimento: objetoConhecimento,
   });
 
-  const engineErr = getEngineError(engine);
-  if (engineErr) {
-    return NextResponse.json({ error: engineErr }, { status: 500 });
-  }
+  const wsId = session?.simulating_workspace_id || session?.workspace_id;
+  const engineErr = await getEngineErrorWithWorkspace(engine, wsId);
+  if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
 
   try {
     const studentName = estudante?.nome || null;
@@ -116,6 +116,19 @@ export async function POST(req: Request) {
       const parts = fullText.split("---DIVISOR---");
       analise = parts[0].replace("[ANÁLISE PEDAGÓGICA]", "").trim();
       atividade = parts[1].replace("[ATIVIDADE]", "").trim();
+    }
+
+    const wsId = session?.simulating_workspace_id || session?.workspace_id;
+    if (wsId) {
+      saveHubGeneratedContent({
+        workspaceId: wsId,
+        memberId: (session?.member as { id?: string } | undefined)?.id,
+        studentId: null,
+        contentType: "adaptar_prova",
+        description: estudante.nome ? `Prova adaptada para ${estudante.nome}` : `Prova adaptada: ${materia}`,
+        engine,
+        metadata: { materia, tipo },
+      }).catch(() => {});
     }
 
     return NextResponse.json({ analise, texto: atividade });

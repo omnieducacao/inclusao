@@ -1,0 +1,82 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Users, FileText, ChartLineUp, Loader2 } from "lucide-react";
+
+type Estudante = {
+  id: string;
+  name: string;
+  grade: string | null;
+  class_group: string | null;
+};
+
+export default function FamiliaDashboardPage() {
+  const [estudantes, setEstudantes] = useState<Estudante[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/familia/meus-estudantes")
+      .then((r) => r.json())
+      .then((data) => {
+        setEstudantes(data.estudantes || []);
+      })
+      .catch(() => setEstudantes([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-800">Meus Estudantes</h1>
+        <p className="text-slate-600 mt-1">
+          Acompanhe o PEI e a evolução dos estudantes vinculados a você.
+        </p>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-16 gap-2 text-slate-500">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          Carregando...
+        </div>
+      ) : estudantes.length === 0 ? (
+        <div className="rounded-2xl bg-white p-8 text-center border border-slate-200 shadow-sm">
+          <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+          <p className="text-slate-600 font-medium">Nenhum estudante vinculado</p>
+          <p className="text-sm text-slate-500 mt-4">
+            Entre em contato com a escola para cadastrar o vínculo e acessar o acompanhamento.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {estudantes.map((e) => (
+            <Link
+              key={e.id}
+              href={`/familia/estudante/${e.id}`}
+              className="block p-6 rounded-2xl bg-white border border-slate-200 hover:border-emerald-400 hover:shadow-md transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-lg font-bold text-emerald-700">
+                    {e.name?.[0]?.toUpperCase() || "?"}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-slate-800 truncate">{e.name}</h3>
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    {e.grade || "—"} {e.class_group ? `• ${e.class_group}` : ""}
+                  </p>
+                  <div className="flex items-center gap-2 mt-3 text-slate-600">
+                    <FileText className="w-4 h-4" />
+                    <span className="text-s-xs">Ver PEI e evolução</span>
+                    <ChartLineUp className="w-4 h-4 ml-auto" />
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

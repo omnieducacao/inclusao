@@ -1,7 +1,8 @@
 /**
- * Rodapé com assinatura Omni Educação + link OmniProf
+ * Rodapé com assinatura Omni Educação + link OmniProf + Política de Privacidade
  * Reutilizado no dashboard, home e login.
  */
+import Link from "next/link";
 export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" | "compact" }) {
   return (
     <div className={`flex flex-col ${variant === "full" ? "gap-4" : "gap-3"}`}>
@@ -39,11 +40,15 @@ export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" |
         </div>
       </div>
 
-      {/* Copyright (apenas no variant full) */}
+      {/* Copyright + links (apenas no variant full) */}
       {variant === "full" && (
-        <p className="text-center text-[10px]" style={{ color: 'var(--text-muted, #94a3b8)' }}>
-          © {new Date().getFullYear()} Omni Soluções Educacionais — todos os direitos reservados.
-        </p>
+        <div className="flex flex-col items-center gap-1">
+          <div className="flex items-center gap-3 text-[10px]" style={{ color: 'var(--text-muted, #94a3b8)' }}>
+            <Link href="/privacidade" className="hover:underline">Política de Privacidade</Link>
+            <span>·</span>
+            <span>© {new Date().getFullYear()} Omni Soluções Educacionais</span>
+          </div>
+        </div>
       )}
     </div>
   );

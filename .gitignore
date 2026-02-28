@@ -3,3 +3,7 @@ omniprof_repo
 BACKUP_*/
 *.md
 .env
+
+# Playwright
+playwright-report/
+test-results/

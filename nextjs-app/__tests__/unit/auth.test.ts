@@ -13,21 +13,22 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-    findUserByEmail,
-    verifyPassword,
-    verifyWorkspaceMaster,
-    verifyMemberPassword,
-    verifyPlatformAdmin,
-    type UserRole,
-} from "@/lib/auth";
 
-// Mock Supabase
-const mockMaybeSingle = vi.fn();
-const mockSingle = vi.fn();
-const mockEq = vi.fn(() => ({ maybeSingle: mockMaybeSingle, single: mockSingle }));
-const mockSelect = vi.fn(() => ({ eq: mockEq }));
-const mockFrom = vi.fn(() => ({ select: mockSelect }));
+// vi.hoisted para variáveis usadas em mocks (hoisted)
+const { mockMaybeSingle, mockSingle, mockEq, mockFrom, mockCompareSync } = vi.hoisted(() => {
+  const mockMaybeSingle = vi.fn();
+  const mockSingle = vi.fn();
+  let mockEqRef: ReturnType<typeof vi.fn>;
+  mockEqRef = vi.fn(() => ({
+    eq: mockEqRef,
+    maybeSingle: mockMaybeSingle,
+    single: mockSingle,
+  }));
+  const mockSelect = vi.fn(() => ({ eq: mockEqRef }));
+  const mockFrom = vi.fn((table: string) => ({ select: mockSelect }));
+  const mockCompareSync = vi.fn();
+  return { mockMaybeSingle, mockSingle, mockEq: mockEqRef, mockFrom, mockCompareSync };
+});
 
 vi.mock("@/lib/supabase", () => ({
     getSupabase: vi.fn(() => ({
@@ -35,13 +36,20 @@ vi.mock("@/lib/supabase", () => ({
     })),
 }));
 
-// Mock bcrypt
-const mockCompareSync = vi.fn();
 vi.mock("bcryptjs", () => ({
     default: {
         compareSync: mockCompareSync,
     },
 }));
+
+import {
+    findUserByEmail,
+    verifyPassword,
+    verifyWorkspaceMaster,
+    verifyMemberPassword,
+    verifyFamilyPassword,
+    verifyPlatformAdmin,
+} from "@/lib/auth";
 
 describe("auth", () => {
     beforeEach(() => {
@@ -60,8 +68,10 @@ describe("auth", () => {
         });
 
         it("normaliza email para lowercase", async () => {
-            mockMaybeSingle.mockResolvedValueOnce({ data: null });
-            mockMaybeSingle.mockResolvedValueOnce({ data: null });
+            mockMaybeSingle
+                .mockResolvedValueOnce({ data: null })
+                .mockResolvedValueOnce({ data: null })
+                .mockResolvedValue({ data: null }); // fallback para chamadas extras
 
             await findUserByEmail("TEST@EXAMPLE.COM");
 
@@ -76,11 +86,9 @@ describe("auth", () => {
                 password_hash: "$2a$10$hash",
                 nome: "Master Teste",
             };
-            const workspaceData = { name: "Escola Teste" };
 
-            mockMaybeSingle
-                .mockResolvedValueOnce({ data: masterData }) // workspace_masters
-                .mockResolvedValueOnce({ data: workspaceData }); // workspaces
+            mockMaybeSingle.mockResolvedValueOnce({ data: masterData }); // workspace_masters
+            mockSingle.mockResolvedValueOnce({ data: { name: "Escola Teste" } }); // getWorkspaceName
 
             const result = await findUserByEmail("master@escola.com");
 
@@ -100,12 +108,11 @@ describe("auth", () => {
                 can_pei: true,
                 active: true,
             };
-            const workspaceData = { name: "Escola Segunda" };
 
             mockMaybeSingle
-                .mockResolvedValueOnce({ data: null }) // workspace_masters - não encontrado
-                .mockResolvedValueOnce({ data: memberData }) // workspace_members
-                .mockResolvedValueOnce({ data: workspaceData }); // workspaces
+                .mockResolvedValueOnce({ data: null }) // workspace_masters
+                .mockResolvedValueOnce({ data: memberData }); // workspace_members
+            mockSingle.mockResolvedValueOnce({ data: { name: "Escola Segunda" } }); // getWorkspaceName
 
             const result = await findUserByEmail("prof@escola.com");
 
@@ -117,7 +124,8 @@ describe("auth", () => {
         it("não retorna member inativo", async () => {
             mockMaybeSingle
                 .mockResolvedValueOnce({ data: null }) // workspace_masters
-                .mockResolvedValueOnce({ data: null }); // workspace_members (inativo não retorna)
+                .mockResolvedValueOnce({ data: null }) // workspace_members (inativo não retorna)
+                .mockResolvedValue({ data: null });
 
             const result = await findUserByEmail("inativo@escola.com");
 
@@ -127,16 +135,84 @@ describe("auth", () => {
         it("retorna null quando usuário não existe", async () => {
             mockMaybeSingle
                 .mockResolvedValueOnce({ data: null })
-                .mockResolvedValueOnce({ data: null });
+                .mockResolvedValueOnce({ data: null })
+                .mockResolvedValue({ data: null });
 
             const result = await findUserByEmail("naoexiste@escola.com");
 
             expect(result).toBeNull();
         });
 
+        it("retorna dados do family quando encontrado e módulo habilitado", async () => {
+            const familyData = {
+                id: "fam-123",
+                workspace_id: "ws-789",
+                nome: "Maria Responsável",
+                email: "maria@familia.com",
+                password_hash: "$2a$10$hash",
+            };
+
+            mockMaybeSingle
+                .mockResolvedValueOnce({ data: null }) // workspace_masters
+                .mockResolvedValueOnce({ data: null }) // workspace_members
+                .mockResolvedValueOnce({ data: familyData }); // family_responsibles
+            mockSingle
+                .mockResolvedValueOnce({ data: { family_module_enabled: true }, error: null }) // workspaces check
+                .mockResolvedValueOnce({ data: { name: "Escola Família" }, error: null }); // getWorkspaceName
+
+            const result = await findUserByEmail("maria@familia.com");
+
+            expect(result).not.toBeNull();
+            expect(result?.role).toBe("family");
+            expect(result?.workspace_id).toBe("ws-789");
+            expect(result?.user).toEqual({ id: "fam-123", nome: "Maria Responsável", email: "maria@familia.com" });
+        });
+
+        it("não retorna family quando módulo desabilitado", async () => {
+            const familyData = {
+                id: "fam-123",
+                workspace_id: "ws-789",
+                nome: "Maria",
+                email: "maria@familia.com",
+                password_hash: "$2a$10$hash",
+            };
+
+            mockMaybeSingle
+                .mockResolvedValueOnce({ data: null })
+                .mockResolvedValueOnce({ data: null })
+                .mockResolvedValueOnce({ data: familyData });
+            mockSingle.mockResolvedValueOnce({ data: { family_module_enabled: false }, error: null });
+
+            const result = await findUserByEmail("maria@familia.com");
+
+            expect(result).toBeNull();
+        });
+
+        it("não retorna family quando sem password_hash", async () => {
+            const familyData = {
+                id: "fam-123",
+                workspace_id: "ws-789",
+                nome: "Maria",
+                email: "maria@familia.com",
+                password_hash: null,
+            };
+
+            mockMaybeSingle
+                .mockResolvedValueOnce({ data: null })
+                .mockResolvedValueOnce({ data: null })
+                .mockResolvedValueOnce({ data: familyData });
+            mockSingle.mockResolvedValueOnce({ data: { family_module_enabled: true }, error: null });
+
+            const result = await findUserByEmail("maria@familia.com");
+
+            expect(result).toBeNull();
+        });
+
         it("faz trim no email antes de buscar", async () => {
-            mockMaybeSingle.mockResolvedValueOnce({ data: null });
-            mockMaybeSingle.mockResolvedValueOnce({ data: null });
+            mockMaybeSingle
+                .mockResolvedValueOnce({ data: null })
+                .mockResolvedValueOnce({ data: null })
+                .mockResolvedValue({ data: null });
 
             await findUserByEmail("  test@example.com  ");
 
@@ -267,6 +343,53 @@ describe("auth", () => {
             await verifyMemberPassword("ws-123", "test@test.com", "senha");
 
             // Verifica se o filtro active=true foi aplicado
+            expect(mockEq).toHaveBeenCalledWith("active", true);
+        });
+    });
+
+    describe("verifyFamilyPassword", () => {
+        it("retorna false quando responsável não existe", async () => {
+            mockMaybeSingle.mockResolvedValue({ data: null });
+
+            const result = await verifyFamilyPassword("ws-123", "familia@test.com", "senha");
+            expect(result).toBe(false);
+        });
+
+        it("retorna false quando responsável não tem password_hash", async () => {
+            mockMaybeSingle.mockResolvedValue({
+                data: { password_hash: null },
+            });
+
+            const result = await verifyFamilyPassword("ws-123", "familia@test.com", "senha");
+            expect(result).toBe(false);
+        });
+
+        it("retorna true para senha correta", async () => {
+            mockMaybeSingle.mockResolvedValue({
+                data: { password_hash: "$2a$10$hash" },
+            });
+            mockCompareSync.mockReturnValue(true);
+
+            const result = await verifyFamilyPassword("ws-123", "mae@familia.com", "senha123");
+            expect(result).toBe(true);
+        });
+
+        it("retorna false para senha incorreta", async () => {
+            mockMaybeSingle.mockResolvedValue({
+                data: { password_hash: "$2a$10$hash" },
+            });
+            mockCompareSync.mockReturnValue(false);
+
+            const result = await verifyFamilyPassword("ws-123", "mae@familia.com", "senhaerrada");
+            expect(result).toBe(false);
+        });
+
+        it("verifica active=true e normaliza email", async () => {
+            mockMaybeSingle.mockResolvedValue({ data: null });
+
+            await verifyFamilyPassword("ws-123", "  MAE@FAMILIA.COM  ", "senha");
+
+            expect(mockEq).toHaveBeenCalledWith("email", "mae@familia.com");
             expect(mockEq).toHaveBeenCalledWith("active", true);
         });
     });

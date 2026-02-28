@@ -1751,7 +1751,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                             </div>
                                         </div>
                                     ))}
-                                    <a href="/avaliacao-processual" style={{
+                                    <a href={`/avaliacao-processual${selectedAluno ? `?student=${selectedAluno.id}` : ""}`} style={{
                                         display: "inline-flex", alignItems: "center", gap: 6,
                                         fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none",
                                         padding: "8px 14px", borderRadius: 8, background: "rgba(16,185,129,.06)",
@@ -1883,7 +1883,7 @@ export default function AvaliacaoDiagnosticaClient() {
                             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
                                 📊 Acompanhe a evolução deste estudante ao longo do ano
                             </span>
-                            <a href="/avaliacao-processual" style={{
+                            <a href={`/avaliacao-processual${selectedAluno ? `?student=${selectedAluno.id}` : ""}`} style={{
                                 fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none",
                             }}>Ir para Processual →</a>
                         </div>
@@ -2619,7 +2619,7 @@ function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                     background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.15)",
                 }}>
                     <span style={{ fontSize: 12, color: "var(--text-muted)" }}>📊 Acompanhe a evolução ao longo do ano</span>
-                    <a href="/avaliacao-processual" style={{ fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none" }}>Ir para Processual →</a>
+                    <a href={`/avaliacao-processual${avalReport?.student_id ? `?student=${avalReport.student_id}` : ""}`} style={{ fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none" }}>Ir para Processual →</a>
                 </div>
             </div>
         );

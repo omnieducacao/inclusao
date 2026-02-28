@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { getSession } from "@/lib/session";
+import { getSupabase } from "@/lib/supabase";
 import { listStudents } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
 import { EstudantesClient } from "./EstudantesClient";
@@ -8,6 +9,13 @@ export default async function EstudantesPage() {
   const session = await getSession();
   const workspaceId = session?.workspace_id;
   const students = workspaceId ? await listStudents(workspaceId) : [];
+
+  let familyModuleEnabled = false;
+  if (workspaceId) {
+    const sb = getSupabase();
+    const { data } = await sb.from("workspaces").select("family_module_enabled").eq("id", workspaceId).maybeSingle();
+    familyModuleEnabled = Boolean((data as { family_module_enabled?: boolean } | null)?.family_module_enabled);
+  }
 
   return (
     <div className="space-y-6">
@@ -29,6 +37,7 @@ export default async function EstudantesPage() {
             pei_data: s.pei_data,
             paee_ciclos: s.paee_ciclos,
           }))}
+          familyModuleEnabled={familyModuleEnabled}
         />
       </Suspense>
     </div>

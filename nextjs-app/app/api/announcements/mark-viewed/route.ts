@@ -14,8 +14,11 @@ export async function POST(request: Request) {
         }
 
         const workspaceId = session.workspace_id;
-        const userEmail = session.usuario_nome;
-        if (!workspaceId || !userEmail) {
+        const userIdentifier =
+            session.user_role === "family" && session.family_responsible_id
+                ? `family_${session.family_responsible_id}`
+                : session.usuario_nome;
+        if (!workspaceId || !userIdentifier) {
             return NextResponse.json({ error: "Sessão inválida" }, { status: 400 });
         }
 
@@ -33,7 +36,7 @@ export async function POST(request: Request) {
             .from("announcement_views")
             .upsert({
                 workspace_id: workspaceId,
-                user_email: userEmail,
+                user_email: userIdentifier,
                 announcement_id: announcementId,
                 shown_as_modal: shownAsModal || false,
                 viewed_at: new Date().toISOString(),

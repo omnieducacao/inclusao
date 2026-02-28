@@ -4,7 +4,7 @@ import { jwtVerify } from "jose";
 import { getSecret } from "@/lib/jwt-secret";
 
 
-const PUBLIC_PATHS = ["/login", "/api/auth/login", "/api/auth/admin-login"];
+const PUBLIC_PATHS = ["/login", "/privacidade", "/api/auth/login", "/api/auth/admin-login"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

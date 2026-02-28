@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { StudentSelector } from "@/components/StudentSelector";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
-import { CheckCircle2, Info, AlertTriangle, Save, Sparkles, Loader2 } from "lucide-react";
+import { CheckCircle2, Info, AlertTriangle, Save, Sparkles, Loader2, ChartLineUp, TrendingUp, ExternalLink } from "lucide-react";
 import { OmniLoader } from "@/components/OmniLoader";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 
@@ -77,6 +77,37 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [sugLoading, setSugLoading] = useState(false);
+
+  // Evolução da Avaliação Processual (escala 0–4 Omnisfera)
+  type EvolucaoProcessual = {
+    evolucao: Array<{
+      disciplina: string;
+      periodos: Array<{ bimestre: number; media_nivel: number | null }>;
+      tendencia: "melhora" | "estavel" | "regressao" | "sem_dados";
+      media_mais_recente: number | null;
+    }>;
+    resumo: { total_registros: number; media_geral: number | null; tendencia: string; disciplinas: string[] };
+  };
+  const [evolucaoProcessual, setEvolucaoProcessual] = useState<EvolucaoProcessual | null>(null);
+  const [evolucaoProcessualLoading, setEvolucaoProcessualLoading] = useState(false);
+
+  useEffect(() => {
+    if (!currentId) {
+      setEvolucaoProcessual(null);
+      return;
+    }
+    setEvolucaoProcessualLoading(true);
+    fetch(`/api/avaliacao-processual/evolucao?studentId=${encodeURIComponent(currentId)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setEvolucaoProcessual({
+          evolucao: data.evolucao || [],
+          resumo: data.resumo || { total_registros: 0, media_geral: null, tendencia: "sem_dados", disciplinas: [] },
+        });
+      })
+      .catch(() => setEvolucaoProcessual(null))
+      .finally(() => setEvolucaoProcessualLoading(false));
+  }, [currentId]);
 
   const sugerirRubricas = async () => {
     if (!currentId) return;
@@ -358,6 +389,61 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
               </div>
             </div>
 
+            {/* Card Avaliação Processual — evolução por disciplina (escala 0–4 Omnisfera) */}
+            <div className="p-6 rounded-2xl bg-white min-h-[120px] mt-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(16,185,129,0.25)' }}>
+              <h4 className="font-medium text-emerald-700 mb-2 flex items-center gap-2">
+                <ChartLineUp className="w-4 h-4" />
+                Avaliação Processual
+              </h4>
+              <p className="text-xs text-slate-500 mb-3">
+                Registro bimestral por habilidade na escala 0–4 (Omnisfera). Para registrar, use o módulo Avaliação Processual.
+              </p>
+              {evolucaoProcessualLoading ? (
+                <div className="flex items-center gap-2 text-slate-500 text-sm">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Carregando evolução...
+                </div>
+              ) : evolucaoProcessual && evolucaoProcessual.resumo.total_registros > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {evolucaoProcessual.evolucao.map((e) => (
+                      <div
+                        key={e.disciplina}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm"
+                      >
+                        <span className="font-medium text-slate-800">{e.disciplina}</span>
+                        <span className="text-slate-500">
+                          {e.periodos.length} bim.{e.media_mais_recente != null ? ` · Média recente: ${e.media_mais_recente}` : ""}
+                        </span>
+                        {e.tendencia === "melhora" && <TrendingUp className="w-4 h-4 text-emerald-600" title="Tendência: melhora" />}
+                        {e.tendencia === "regressao" && <TrendingUp className="w-4 h-4 text-red-500 rotate-180" title="Tendência: atenção" />}
+                      </div>
+                    ))}
+                  </div>
+                  <Link
+                    href={`/avaliacao-processual?student=${currentId}`}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Abrir Avaliação Processual
+                  </Link>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-600 mb-2">
+                  Nenhum registro de Avaliação Processual neste ano. Registre no módulo Avaliação Processual.
+                </p>
+              )}
+              {!evolucaoProcessualLoading && (!evolucaoProcessual || evolucaoProcessual.resumo.total_registros === 0) && (
+                <Link
+                  href={`/avaliacao-processual?student=${currentId}`}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Abrir Avaliação Processual
+                </Link>
+              )}
+            </div>
+
             <p className="mt-4 text-sm text-slate-500">
               <span className="flex items-center gap-1">
                 <Info className="w-4 h-4" />
@@ -385,6 +471,12 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
               className="px-4 py-2 border border-slate-200 rounded-lg text-sm hover:bg-slate-50"
             >
               Ver Diário
+            </Link>
+            <Link
+              href={`/avaliacao-processual?student=${student.id}`}
+              className="px-4 py-2 border border-slate-200 rounded-lg text-sm hover:bg-slate-50"
+            >
+              Avaliação Processual
             </Link>
           </div>
 

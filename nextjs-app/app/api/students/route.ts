@@ -54,6 +54,7 @@ export async function POST(req: Request) {
         class_group: class_group || null,
         diagnosis: diagnosis || null,
         pei_data: pei_data || null,
+        privacy_consent_at: new Date().toISOString(),
       })
       .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, created_at")
       .single();
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json({ student: data });
+    return NextResponse.json({ student: data }, { status: 201 });
   } catch (err) {
     console.error("POST /api/students:", err);
     return NextResponse.json(

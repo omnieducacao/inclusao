@@ -21,7 +21,7 @@ export type Member = {
 export type FindUserResult = {
   workspace_id: string;
   workspace_name: string;
-  role: "master" | "member";
+  role: "master" | "member" | "family";
   user: Record<string, unknown>;
 };
 
@@ -76,6 +76,31 @@ export async function findUserByEmail(email: string): Promise<FindUserResult | n
     };
   }
 
+  // Family: só busca se o workspace tiver módulo família habilitado
+  const { data: family } = await sb
+    .from("family_responsibles")
+    .select("id, workspace_id, nome, email, password_hash")
+    .eq("email", emailVal)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (family) {
+    const { data: ws } = await sb
+      .from("workspaces")
+      .select("family_module_enabled")
+      .eq("id", family.workspace_id)
+      .single();
+    if (ws?.family_module_enabled && family.password_hash) {
+      const wsName = await getWorkspaceName(family.workspace_id);
+      return {
+        workspace_id: family.workspace_id,
+        workspace_name: wsName,
+        role: "family",
+        user: { id: family.id, nome: family.nome, email: family.email },
+      };
+    }
+  }
+
   return null;
 }
 
@@ -120,6 +145,24 @@ export async function verifyMemberPassword(
     .maybeSingle();
 
   // Security fix: do NOT allow login if member has no password set
+  if (!data?.password_hash) return false;
+  return verifyPassword(password, data.password_hash);
+}
+
+export async function verifyFamilyPassword(
+  workspaceId: string,
+  email: string,
+  password: string
+): Promise<boolean> {
+  const sb = getSupabase();
+  const { data } = await sb
+    .from("family_responsibles")
+    .select("password_hash")
+    .eq("workspace_id", workspaceId)
+    .eq("email", (email || "").trim().toLowerCase())
+    .eq("active", true)
+    .maybeSingle();
+
   if (!data?.password_hash) return false;
   return verifyPassword(password, data.password_hash);
 }

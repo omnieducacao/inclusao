@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ClipboardList, FileText, Map, Trash2, ChevronDown, ChevronUp, X, AlertTriangle, Edit2, Save, XCircle } from "lucide-react";
+import { ResponsaveisSection } from "@/components/ResponsaveisSection";
 
 type Student = {
   id: string;
@@ -17,9 +18,10 @@ type Student = {
 
 type Props = {
   students: Student[];
+  familyModuleEnabled?: boolean;
 };
 
-export function EstudantesClient({ students }: Props) {
+export function EstudantesClient({ students, familyModuleEnabled = false }: Props) {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -514,6 +516,15 @@ export function EstudantesClient({ students }: Props) {
                             <p className="text-sm font-semibold text-slate-700 mb-1">Contexto (equipe):</p>
                             <p className="text-sm text-slate-600">{s.diagnosis}</p>
                           </div>
+                        )}
+
+                        {/* Responsáveis (Módulo Família) */}
+                        {familyModuleEnabled && (
+                          <ResponsaveisSection
+                            studentId={s.id}
+                            studentName={s.name || "—"}
+                            onRefresh={() => router.refresh()}
+                          />
                         )}
 
                         {/* O que está anexado */}

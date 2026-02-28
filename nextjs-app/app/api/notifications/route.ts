@@ -24,11 +24,13 @@ export async function GET() {
 
         const sb = getSupabase();
         const workspaceId = session.workspace_id;
-        const userEmail = session.usuario_nome;
+        const userIdentifier =
+            session.user_role === "family" && session.family_responsible_id
+                ? `family_${session.family_responsible_id}`
+                : session.usuario_nome;
         const notifications: { id: string; type: string; title: string; description: string; severity: "info" | "warning" | "alert"; studentId?: string; studentName?: string }[] = [];
 
-        // If no user email, return empty (shouldn't happen for logged-in user)
-        if (!userEmail) {
+        if (!userIdentifier) {
             return NextResponse.json({ notifications: [], total: 0 });
         }
 
@@ -72,7 +74,37 @@ export async function GET() {
             }
         }
 
-        // 2. PEI not updated recently (> 60 days)
+        // 2. PAEE ativo sem PEI atualizado (planejamento_ativo preenchido mas PEI em rascunho ou desatualizado)
+        const { data: studentsWithPaee } = await sb
+            .from("students")
+            .select("id, name, planejamento_ativo, pei_data, updated_at")
+            .eq("workspace_id", workspaceId)
+            .not("planejamento_ativo", "is", null);
+
+        if (studentsWithPaee) {
+            const twoMonthsAgo = new Date();
+            twoMonthsAgo.setDate(twoMonthsAgo.getDate() - 60);
+            for (const s of studentsWithPaee.slice(0, 10)) {
+                const peiData = (s.pei_data || {}) as Record<string, unknown>;
+                const statusPei = peiData.status_validacao_pei as string | undefined;
+                const updatedAt = s.updated_at ? new Date(s.updated_at) : null;
+                const peiDesatualizado = updatedAt && updatedAt < twoMonthsAgo;
+                const peiRascunho = statusPei === "rascunho" || !statusPei;
+                if (peiRascunho || peiDesatualizado) {
+                    notifications.push({
+                        id: `paee-pei-${s.id}`,
+                        type: "paee",
+                        title: "PAEE ativo sem PEI atualizado",
+                        description: `${s.name} tem PAEE ativo. ${peiRascunho ? "PEI em rascunho." : "PEI não revisado há mais de 60 dias."}`,
+                        severity: "warning",
+                        studentId: s.id,
+                        studentName: s.name,
+                    });
+                }
+            }
+        }
+
+        // 3. PEI not updated recently (> 60 days)
         if (students) {
             const twoMonthsAgo = new Date();
             twoMonthsAgo.setDate(twoMonthsAgo.getDate() - 60);
@@ -102,7 +134,7 @@ export async function GET() {
             }
         }
 
-        // 3. Announcements (já visualizados como modal, então aparecem aqui como notificações)
+        // 4. Announcements (já visualizados como modal, então aparecem aqui como notificações)
         const { data: configData } = await sb
             .from("platform_config")
             .select("value")
@@ -119,7 +151,7 @@ export async function GET() {
                     .from("announcement_views")
                     .select("announcement_id, shown_as_modal, dismissed")
                     .eq("workspace_id", workspaceId)
-                    .eq("user_email", userEmail);
+                    .eq("user_email", userIdentifier);
 
                 const viewedMap = new Map<string, { shown_as_modal: boolean; dismissed: boolean }>();
                 viewedData?.forEach((v) => {

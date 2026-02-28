@@ -8,8 +8,9 @@ export type SessionPayload = {
   workspace_id: string | null;
   workspace_name: string;
   usuario_nome: string;
-  user_role: "master" | "member" | "platform_admin";
+  user_role: "master" | "member" | "platform_admin" | "family";
   member?: Record<string, unknown>;
+  family_responsible_id?: string;
   is_platform_admin?: boolean;
   terms_accepted?: boolean;
   // Admin simulation mode (admin → school)

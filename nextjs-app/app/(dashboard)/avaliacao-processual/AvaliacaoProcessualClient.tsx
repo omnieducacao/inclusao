@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import {
     Activity, Loader2, AlertTriangle, ChevronDown, ChevronUp,
     Users, ArrowLeft, Save, BarChart3, Calendar, BookOpen, TrendingUp, Sparkles, FileText,
@@ -89,6 +90,7 @@ const PERIODOS: Record<TipoPeriodo, { label: string; periodos: { value: number; 
 // ─── Componente Principal ─────────────────────────────────────────────────────
 
 export default function AvaliacaoProcessualClient() {
+    const searchParams = useSearchParams();
     const [loading, setLoading] = useState(true);
     const [alunos, setAlunos] = useState<Aluno[]>([]);
     const [professorName, setProfessorName] = useState("");
@@ -145,6 +147,14 @@ export default function AvaliacaoProcessualClient() {
     }, []);
 
     useEffect(() => { fetchAlunos(); }, [fetchAlunos]);
+
+    // Pré-selecionar estudante quando a URL tiver ?student=xxx (ex.: vindo do Monitoramento ou PEI)
+    const studentIdFromUrl = searchParams?.get("student") || null;
+    useEffect(() => {
+        if (!studentIdFromUrl || alunos.length === 0) return;
+        const found = alunos.find((a) => a.id === studentIdFromUrl);
+        if (found) setSelectedAluno(found);
+    }, [studentIdFromUrl, alunos]);
 
     useEffect(() => {
         if (typeof window === "undefined") return;

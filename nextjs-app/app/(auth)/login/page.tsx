@@ -62,7 +62,7 @@ function LoginForm() {
         setError(data.error || "Erro ao fazer login.");
         return;
       }
-      router.push(redirect);
+      router.push(data.redirect || redirect);
       router.refresh();
     } catch {
       setError("Erro de conexão. Tente novamente.");
@@ -311,17 +311,24 @@ function LoginForm() {
                 </form>
               )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  setAdminMode(!adminMode);
-                  setError("");
-                  setAdminError("");
-                }}
-                className="w-full mt-5 text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors duration-200"
-              >
-                {adminMode ? "← Voltar ao login escolar" : "Sou administrador da plataforma"}
-              </button>
+              <div className="mt-5 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdminMode(!adminMode);
+                    setError("");
+                    setAdminError("");
+                  }}
+                  className="w-full text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors duration-200"
+                >
+                  {adminMode ? "← Voltar ao login escolar" : "Sou administrador da plataforma"}
+                </button>
+                {!adminMode && (
+                  <p className="text-xs text-slate-400 text-center">
+                    Responsável? Use o mesmo e-mail e senha enviados pela escola.
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Footer — Omni Educação + OmniProf */}

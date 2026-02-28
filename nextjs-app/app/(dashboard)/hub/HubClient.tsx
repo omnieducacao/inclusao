@@ -9,6 +9,7 @@ import { ImageCropper } from "@/components/ImageCropper";
 import { detectarNivelEnsino } from "@/lib/pei";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
+import { SalvarNoPlanoButton } from "@/components/SalvarNoPlanoButton";
 // pptx-export removido — substituído por Mapa Mental
 import { getColorClasses } from "@/lib/colors";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
@@ -965,6 +966,7 @@ function CriarDoZero({
                   formatoInclusivo={formatoInclusivo}
                 />
                 <PdfDownloadButton text={resultado} filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Atividade Criada" formatoInclusivo={formatoInclusivo} />
+                <SalvarNoPlanoButton conteudo={resultado} tipo="Atividade" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
               </span>
             </div>
             <FormattedTextDisplay texto={resultado} mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined} />
@@ -1201,6 +1203,7 @@ function PapoDeMestre({
               <span className="flex gap-2">
                 <DocxDownloadButton texto={resultado} titulo="Papo de Mestre" filename={`Papo_Mestre_${new Date().toISOString().slice(0, 10)}.docx`} />
                 <PdfDownloadButton text={resultado} filename={`Papo_Mestre_${new Date().toISOString().slice(0, 10)}.pdf`} title="Papo de Mestre" />
+                <SalvarNoPlanoButton conteudo={resultado} tipo="Papo de Mestre" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
               </span>
             </div>
             <FormattedTextDisplay texto={resultado} />
@@ -1559,6 +1562,7 @@ function PlanoAulaDua({
                     <>
                       <DocxDownloadButton texto={resultado} titulo="Plano de Aula DUA" filename={`Plano_Aula_${dataStr}.docx`} />
                       <PdfDownloadButton text={resultado} filename={`Plano_Aula_${dataStr}.pdf`} title="Plano de Aula DUA" />
+                      <SalvarNoPlanoButton conteudo={resultado} tipo="Plano de Aula DUA" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
                     </>
                   );
                 })()}
@@ -1783,6 +1787,7 @@ function RotinaAvdTool({
               <span className="flex gap-2">
                 <DocxDownloadButton texto={resultado} titulo="Rotina e AVD" filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.docx`} />
                 <PdfDownloadButton text={resultado} filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.pdf`} title="Rotina e AVD" />
+                <SalvarNoPlanoButton conteudo={resultado} tipo="Rotina e AVD" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
               </span>
             </div>
             <FormattedTextDisplay texto={resultado} />
@@ -1910,6 +1915,7 @@ function InclusaoBrincarTool({
               <span className="flex gap-2">
                 <DocxDownloadButton texto={resultado} titulo="Inclusão no Brincar" filename={`Inclusao_Brincar_${new Date().toISOString().slice(0, 10)}.docx`} />
                 <PdfDownloadButton text={resultado} filename={`Inclusao_Brincar_${new Date().toISOString().slice(0, 10)}.pdf`} title="Inclusão no Brincar" />
+                <SalvarNoPlanoButton conteudo={resultado} tipo="Inclusão no Brincar" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
               </span>
             </div>
             <FormattedTextDisplay texto={resultado} />
@@ -2413,6 +2419,7 @@ function AdaptarProva({
                   title="Prova Adaptada (DUA)"
                   formatoInclusivo={formatoInclusivo}
                 />
+                <SalvarNoPlanoButton conteudo={`${resultado.analise}\n\n---\n\n${textoComImagensParaDocx}`} tipo="Prova Adaptada" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
               </span>
             </div>
             <FormattedTextDisplay texto={textoComImagensParaDocx} mapaImagens={Object.keys(mapaImagensParaDocx).length > 0 ? mapaImagensParaDocx : undefined} />
@@ -2668,6 +2675,7 @@ function RoteiroIndividual({
               <span className="flex gap-2">
                 <DocxDownloadButton texto={resultado} titulo="Roteiro de Aula" filename={`Roteiro_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`} />
                 <PdfDownloadButton text={resultado} filename={`Roteiro_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Roteiro de Aula" />
+                <SalvarNoPlanoButton conteudo={resultado} tipo="Roteiro" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
               </span>
             </div>
             <FormattedTextDisplay texto={resultado} />
@@ -2923,6 +2931,7 @@ function DinamicaInclusiva({
             <span className="flex gap-2">
               <DocxDownloadButton texto={resultado} titulo="Dinâmica Inclusiva" filename={`Dinamica_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`} />
               <PdfDownloadButton text={resultado} filename={`Dinamica_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Dinâmica Inclusiva" />
+              <SalvarNoPlanoButton conteudo={resultado} tipo="Dinâmica Inclusiva" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
             </span>
           </div>
           <FormattedTextDisplay texto={resultado} />
@@ -3748,6 +3757,7 @@ function AdaptarAtividade({
                   title="Atividade Adaptada (DUA)"
                   formatoInclusivo={formatoInclusivo}
                 />
+                <SalvarNoPlanoButton conteudo={`${resultado.analise}\n\n---\n\n${resultado.texto}`} tipo="Atividade Adaptada" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
               </span>
             </div>
             <FormattedTextDisplay texto={resultado.texto} mapaImagens={mapaImagensAdaptar} />

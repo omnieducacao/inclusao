@@ -73,7 +73,7 @@ function getNavLottieMap(): Record<string, string> {
     "/paee": "paee_simples", // PAEE
     "/hub": "hub_simples", // Hub
     "/diario": "diario_simples", // Diário
-    "/monitoramento": "dados_simples", // Monitoramento
+    "/monitoramento": "dados_simples", // Evolução & Dados
     "/infos": "central_inteligencia_simples", // Central
     "/config-escola": "configuracao_escola_flat", // Config Escola (sem versão simples)
     "/gestao": "gestao_usuario_simples", // Gestão
@@ -94,7 +94,7 @@ function getNavItems(icons: ReturnType<typeof loadNavIcons> extends Promise<infe
     { href: "/paee", label: "PAEE", icon: icons.PuzzlePiece, permission: "can_paee", group: "modules" },
     { href: "/hub", label: "Hub", icon: icons.RocketLaunch, permission: "can_hub", group: "modules" },
     { href: "/diario", label: "Diário", icon: icons.BookOpen, permission: "can_diario", group: "modules" },
-    { href: "/monitoramento", label: "Monitoramento", icon: icons.ChartLineUp, permission: "can_avaliacao", group: "modules" },
+    { href: "/monitoramento", label: "Evolução & Dados", icon: icons.ChartLineUp, permission: "can_avaliacao", group: "modules" },
     { href: "/pgi", label: "PGI", icon: icons.ClipboardText, permission: "can_gestao", group: "admin" },
     { href: "/infos", label: "Central", icon: icons.BookBookmark, group: "modules" },
     { href: "/config-escola", label: "Config", icon: icons.Gear, permission: "can_gestao", group: "admin" },
@@ -126,7 +126,7 @@ const NAV_ROUTE_COLORS: Record<string, { from: string; to: string }> = {
   "/paee": { from: "#9334E6", to: "#7C2BC4" },        // PAEE: roxo
   "/hub": { from: "#34A853", to: "#2D8C47" },         // Hub: verde
   "/diario": { from: "#E8453C", to: "#C33B34" },      // Diário: vermelho
-  "/monitoramento": { from: "#34A853", to: "#2D8C47" }, // Monitoramento: verde
+  "/monitoramento": { from: "#34A853", to: "#2D8C47" }, // Evolução & Dados: verde
   "/infos": { from: "#9334E6", to: "#6366f1" },       // Central: violeta
   "/config-escola": { from: "#F9AB00", to: "#D49300" }, // Config: âmbar
   "/gestao": { from: "#4285F4", to: "#3574D4" },      // Gestão: azul

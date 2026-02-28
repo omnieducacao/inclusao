@@ -1,14 +1,15 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { parseBody, criarAtividadeSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
-import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
 import { criarPromptItensAvancado } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { saveHubGeneratedContent } from "@/lib/hub-tracking";
 
 export async function POST(req: Request) {
     const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-    const { error: authError } = await requireAuth(); if (authError) return authError;
+    const { session, error: authError } = await requireAuth(); if (authError) return authError;
     const parsed = await parseBody(req, criarAtividadeSchema);
     if (parsed.error) return parsed.error;
     const body = parsed.data;
@@ -61,14 +62,28 @@ export async function POST(req: Request) {
         ? `${prompt}\n\n${ctxEstudante}`
         : prompt;
 
-    const engineErr = getEngineError(engine);
+    const wsId = session?.simulating_workspace_id || session?.workspace_id;
+    const engineErr = await getEngineErrorWithWorkspace(engine, wsId);
     if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
 
     try {
         const studentName = estudante?.nome || null;
         const { anonymized, restore } = anonymizeMessages([{ role: "user", content: promptCompleto }], studentName);
         const textoRaw = await chatCompletionText(engine, anonymized, { temperature: 0.6 });
-        return NextResponse.json({ texto: restore(textoRaw) });
+        const texto = restore(textoRaw);
+        const wsId = session?.simulating_workspace_id || session?.workspace_id;
+        if (wsId) {
+            saveHubGeneratedContent({
+                workspaceId: wsId,
+                memberId: (session?.member as { id?: string } | undefined)?.id,
+                studentId: null,
+                contentType: "criar_itens",
+                description: estudante.nome ? `Questões para ${estudante.nome}${estudante.serie ? `, ${estudante.serie}` : ""}` : `Questões: ${assunto || "BNCC"}`,
+                engine,
+                metadata: { assunto, qtd_questoes: qtdQuestoes, tipo_questao: tipoQuestao },
+            }).catch(() => {});
+        }
+        return NextResponse.json({ texto });
     } catch (err) {
         console.error("Hub criar-itens:", err);
         return NextResponse.json(

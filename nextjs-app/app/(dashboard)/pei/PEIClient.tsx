@@ -37,6 +37,7 @@ import {
   LISTA_POTENCIAS,
   LISTA_PROFISSIONAIS,
   LISTA_FAMILIA,
+  LISTA_TECNOLOGIAS_ASSISTIVAS,
   EVIDENCIAS_PEDAGOGICO,
   EVIDENCIAS_COGNITIVO,
   EVIDENCIAS_COMPORTAMENTAL,
@@ -78,10 +79,52 @@ import {
   CheckCircle,
   AlertTriangle,
   Send,
+  ChartLineUp,
+  TrendingUp,
+  ExternalLink,
 } from "lucide-react";
 import { OnboardingPanel, OnboardingResetButton } from "@/components/OnboardingPanel";
 import { OmniLoader } from "@/components/OmniLoader";
 import { Users as UsersIcon, FileText as FileTextIcon, Sparkles as SparklesIcon, Send as SendIcon, Brain, ClipboardList as ClipboardListIcon } from "lucide-react";
+
+function TransicaoAnoButton({ studentId, studentName }: { studentId: string; studentName?: string }) {
+  const [loading, setLoading] = useState(false);
+  const ano = new Date().getFullYear();
+  async function handleClick() {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/pei/relatorio-transicao?studentId=${encodeURIComponent(studentId)}&ano=${ano}`);
+      if (!res.ok) {
+        const d = await res.json();
+        alert(d.error || "Erro ao gerar relatório.");
+        return;
+      }
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Transicao_${(studentName || "Estudante").toString().replace(/\s+/g, "_")}_${ano}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Erro ao gerar relatório. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className="flex items-center gap-2 text-sm font-medium text-amber-600 hover:text-amber-700 disabled:opacity-60"
+    >
+      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCw className="w-4 h-4" />}
+      Relatório Transição {ano}
+    </button>
+  );
+}
 
 type HabilidadeBncc = {
   disciplina: string;
@@ -137,6 +180,7 @@ export function PEIClient({
   const [peiData, setPeiData] = useState<PEIData>(initialPeiData as PEIData);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [privacyConsentAccepted, setPrivacyConsentAccepted] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(studentId || searchParams?.get("student") || null);
   const [jsonPending, setJsonPending] = useState<PEIData | null>(null);
   const [jsonFileName, setJsonFileName] = useState<string>("");
@@ -357,6 +401,7 @@ export function PEIClient({
           class_group: peiData.turma || null,
           diagnosis: peiData.diagnostico || null,
           pei_data: peiData,
+          privacy_consent: true,
         }),
       });
 
@@ -1131,6 +1176,20 @@ export function PEIClient({
                   )}
                 </div>
 
+                {/* Links rápidos PEI ↔ PAEE + Transição de ano */}
+                {selectedStudentId && (
+                  <div className="rounded-lg border border-slate-200/60 p-3 bg-white mb-3 space-y-2">
+                    <a
+                      href={`/paee?student=${selectedStudentId}`}
+                      className="inline-flex items-center gap-2 text-sm font-medium text-violet-600 hover:text-violet-700"
+                    >
+                      <Puzzle className="w-4 h-4" />
+                      Ver PAEE
+                    </a>
+                    <TransicaoAnoButton studentId={selectedStudentId} studentName={peiData.nome as string} />
+                  </div>
+                )}
+
                 {/* Sincronização Cloud */}
                 <div className="rounded-lg border border-slate-200/60 p-4 bg-white">
                   <h4 className="text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-2">
@@ -1165,9 +1224,24 @@ export function PEIClient({
                       <p className="text-[10px] text-slate-600 mb-2 leading-relaxed">
                         <strong>Cria um novo estudante</strong> no Supabase com todos os dados do PEI preenchidos.
                       </p>
+                      <label className="flex items-start gap-2 mb-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={privacyConsentAccepted}
+                          onChange={(e) => setPrivacyConsentAccepted(e.target.checked)}
+                          className="mt-0.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                        />
+                        <span className="text-[10px] text-slate-600">
+                          Li e aceito a{" "}
+                          <Link href="/privacidade" target="_blank" className="text-sky-600 hover:underline">
+                            Política de Privacidade
+                          </Link>{" "}
+                          para o cadastro deste estudante (LGPD).
+                        </span>
+                      </label>
                       <button
                         onClick={handleSave}
-                        disabled={saving || !peiData.nome}
+                        disabled={saving || !peiData.nome || !privacyConsentAccepted}
                         className="w-full px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 disabled:opacity-60 mb-2"
                       >
                         {saving ? "Criando estudante…" : "🔗 Criar Novo Estudante"}
@@ -1603,6 +1677,80 @@ export function PEIClient({
                 )}
               </div>
               <p className="text-xs text-slate-500 mt-1">Ao selecionar um profissional, um campo de observação individual aparece abaixo.</p>
+            </div>
+
+            <hr />
+
+            {/* Acompanhante/Cuidador */}
+            <div className="p-4 rounded-lg border border-slate-200/60 bg-amber-50/30">
+              <h4 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <Users className="w-4 h-4 text-amber-600" />
+                Acompanhante de cuidados
+              </h4>
+              <p className="text-xs text-slate-600 mb-3">Quando houver acompanhante/cuidador em sala (mediador, cuidador, etc.).</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Nome</label>
+                  <input
+                    type="text"
+                    value={peiData.acompanhante_nome || ""}
+                    onChange={(e) => updateField("acompanhante_nome", e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                    placeholder="Ex.: Maria Silva"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Carga horária</label>
+                  <input
+                    type="text"
+                    value={peiData.acompanhante_carga_horaria || ""}
+                    onChange={(e) => updateField("acompanhante_carga_horaria", e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                    placeholder="Ex.: 4h/dia, 2x por semana"
+                  />
+                </div>
+              </div>
+              <div className="mt-3">
+                <label className="block text-xs font-medium text-slate-600 mb-1">Orientações específicas</label>
+                <textarea
+                  value={peiData.orientacoes_acompanhante || ""}
+                  onChange={(e) => updateField("orientacoes_acompanhante", e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                  placeholder="Orientações para o acompanhante (ex.: como mediar, sinais de alerta, procedimentos)"
+                />
+              </div>
+            </div>
+
+            <hr />
+
+            {/* Tecnologias assistivas */}
+            <div className="p-4 rounded-lg border border-slate-200/60 bg-emerald-50/30">
+              <h4 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <Puzzle className="w-4 h-4 text-emerald-600" />
+                Tecnologias assistivas
+              </h4>
+              <p className="text-xs text-slate-600 mb-3">Recursos utilizados pelo estudante (CAA, leitor de tela, etc.).</p>
+              <div className="flex flex-wrap gap-2">
+                {LISTA_TECNOLOGIAS_ASSISTIVAS.map((ta) => {
+                  const lista = peiData.tecnologias_assistivas || [];
+                  const checked = lista.includes(ta);
+                  return (
+                    <label key={ta} className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-emerald-50/50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          const nova = checked ? lista.filter((x) => x !== ta) : [...lista, ta];
+                          updateField("tecnologias_assistivas", nova);
+                        }}
+                        className="rounded border-slate-300 text-emerald-600"
+                      />
+                      <span className="text-sm text-slate-700">{ta}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
 
             <hr />
@@ -2285,6 +2433,36 @@ function DashboardTab({
 }) {
   const [showLbiChecklist, setShowLbiChecklist] = React.useState(false);
 
+  // Evolução na escala Omnisfera (Avaliação Processual)
+  type EvolucaoProcessual = {
+    evolucao: Array<{
+      disciplina: string;
+      periodos: Array<{ bimestre: number; media_nivel: number | null }>;
+      tendencia: "melhora" | "estavel" | "regressao" | "sem_dados";
+      media_mais_recente: number | null;
+    }>;
+    resumo: { total_registros: number; media_geral: number | null; tendencia: string; disciplinas: string[] };
+  };
+  const [evolucaoProcessual, setEvolucaoProcessual] = React.useState<EvolucaoProcessual | null>(null);
+  const [evolucaoProcessualLoading, setEvolucaoProcessualLoading] = React.useState(false);
+  React.useEffect(() => {
+    if (!currentStudentId) {
+      setEvolucaoProcessual(null);
+      return;
+    }
+    setEvolucaoProcessualLoading(true);
+    fetch(`/api/avaliacao-processual/evolucao?studentId=${encodeURIComponent(currentStudentId)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setEvolucaoProcessual({
+          evolucao: data.evolucao || [],
+          resumo: data.resumo || { total_registros: 0, media_geral: null, tendencia: "sem_dados", disciplinas: [] },
+        });
+      })
+      .catch(() => setEvolucaoProcessual(null))
+      .finally(() => setEvolucaoProcessualLoading(false));
+  }, [currentStudentId]);
+
   if (!peiData.nome) {
     return (
       <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
@@ -2778,6 +2956,61 @@ function DashboardTab({
           </div>
         </div>
       )}
+
+      {/* Evolução na escala Omnisfera (Avaliação Processual) */}
+      <div className="p-4 rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white">
+        <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
+          <ChartLineUp className="w-5 h-5 text-emerald-600" />
+          Evolução na escala Omnisfera
+        </h4>
+        <p className="text-xs text-slate-600 mb-3">
+          Registros bimestrais por disciplina (escala 0–4). Para registrar ou editar, use o módulo Avaliação Processual.
+        </p>
+        {!currentStudentId ? (
+          <p className="text-sm text-slate-500">Selecione um estudante para ver a evolução.</p>
+        ) : evolucaoProcessualLoading ? (
+          <div className="flex items-center gap-2 text-slate-500 text-sm">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Carregando evolução...
+          </div>
+        ) : evolucaoProcessual && evolucaoProcessual.resumo.total_registros > 0 ? (
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {evolucaoProcessual.evolucao.map((e) => (
+                <div
+                  key={e.disciplina}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm shadow-sm"
+                >
+                  <span className="font-medium text-slate-800">{e.disciplina}</span>
+                  <span className="text-slate-500">
+                    {e.periodos.length} bim.{e.media_mais_recente != null ? ` · Média: ${e.media_mais_recente}` : ""}
+                  </span>
+                  {e.tendencia === "melhora" && <TrendingUp className="w-4 h-4 text-emerald-600" title="Tendência: melhora" />}
+                  {e.tendencia === "regressao" && <TrendingUp className="w-4 h-4 text-red-500 rotate-180" title="Tendência: atenção" />}
+                </div>
+              ))}
+            </div>
+            <Link
+              href={`/avaliacao-processual?student=${currentStudentId}`}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Abrir Avaliação Processual
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-sm text-slate-600">Nenhum registro de Avaliação Processual para este estudante.</p>
+            <Link
+              href={currentStudentId ? `/avaliacao-processual?student=${currentStudentId}` : "/avaliacao-processual"}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Abrir Avaliação Processual
+            </Link>
+          </div>
+        )}
+      </div>
 
       {/* Cards Principais — 2x2 Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

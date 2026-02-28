@@ -1,21 +1,22 @@
 import { parseBody, hubInclusaoBrincarSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
-import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
+import { chatCompletionText, getEngineErrorWithWorkspace } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-  const { error: authError } = await requireAuth(); if (authError) return authError;
+  const { session, error: authError } = await requireAuth(); if (authError) return authError;
   const parsed = await parseBody(req, hubInclusaoBrincarSchema);
   if (parsed.error) return parsed.error;
   const body = parsed.data;
   const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
     ? (body.engine as EngineId)
     : "red";
-  const err = getEngineError(engine);
+  const wsId = session?.simulating_workspace_id || session?.workspace_id;
+  const err = await getEngineErrorWithWorkspace(engine, wsId);
   if (err) return NextResponse.json({ error: err }, { status: 500 });
 
   const tema = body.tema || "";

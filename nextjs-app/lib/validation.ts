@@ -89,6 +89,7 @@ export const createStudentSchema = z.object({
     class_group: optStr,
     diagnosis: optStr,
     pei_data: z.record(z.string(), z.unknown()).optional().nullable(),
+    privacy_consent: z.literal(true, { message: "É necessário aceitar a Política de Privacidade para cadastrar o estudante." }),
 });
 
 export const updateStudentSchema = z.object({

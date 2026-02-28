@@ -7,13 +7,14 @@ import { garantirTagImagem } from "@/lib/hub-utils";
 import { comprimirArquivoImagem } from "@/lib/image-compression";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeText } from "@/lib/ai-anonymize";
+import { saveHubGeneratedContent } from "@/lib/hub-tracking";
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
 const MAX_VISION_BYTES = 3 * 1024 * 1024; // 3MB (limite para APIs de visão)
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-  const { error: authError } = await requireAuth(); if (authError) return authError;
+  const { session, error: authError } = await requireAuth(); if (authError) return authError;
   const err = getVisionError();
   if (err) {
     return NextResponse.json({ error: err }, { status: 500 });
@@ -213,6 +214,19 @@ export async function POST(req: Request) {
     // Aplicar garantir_tag_imagem se houver imagem separada (Passo 2)
     if (temImagemSeparada) {
       atividade = garantirTagImagem(atividade, "IMG_2");
+    }
+
+    const wsId = session?.simulating_workspace_id || session?.workspace_id;
+    if (wsId) {
+      saveHubGeneratedContent({
+        workspaceId: wsId,
+        memberId: (session?.member as { id?: string } | undefined)?.id,
+        studentId: null,
+        contentType: "adaptar_atividade",
+        description: estudante.nome ? `Atividade adaptada para ${estudante.nome}` : `Atividade adaptada: ${materia}`,
+        engine,
+        metadata: { materia, tipo },
+      }).catch(() => {});
     }
 
     return NextResponse.json({ analise, texto: atividade });

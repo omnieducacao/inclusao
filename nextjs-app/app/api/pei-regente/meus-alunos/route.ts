@@ -29,6 +29,14 @@ export async function GET() {
 
     const sb = getSupabase();
 
+    // 0. Verificar se workspace permite avaliação de estudantes em Fase 1
+    const { data: wsData } = await sb
+        .from("workspaces")
+        .select("allow_avaliacao_fase_1")
+        .eq("id", session.workspace_id)
+        .maybeSingle();
+    const allowAvaliacaoFase1 = Boolean((wsData as { allow_avaliacao_fase_1?: boolean } | null)?.allow_avaliacao_fase_1);
+
     // 1. Identificar o membro logado
     const memberId = (session as Record<string, unknown>).member_id as string | undefined;
     let memberIdResolved = memberId;
@@ -85,7 +93,26 @@ export async function GET() {
     });
     (disciplinas || []).forEach(d => profDisciplinas.add(d.disciplina));
 
-    // 5. Buscar TODOS os estudantes com PEI das mesmas turmas (que o professor NÃO tem em pei_disciplinas)
+    // 5. Buscar turmas do professor via teacher_assignments (quando classGroups vazio)
+    if (classGroups.size === 0 && memberIdResolved && allowAvaliacaoFase1) {
+        const { data: assignments } = await sb
+            .from("teacher_assignments")
+            .select("class_id")
+            .eq("workspace_member_id", memberIdResolved);
+        if (assignments?.length) {
+            const classIds = [...new Set(assignments.map((a: { class_id: string }) => a.class_id))];
+            const { data: classes } = await sb
+                .from("classes")
+                .select("class_group, grades(code, label)")
+                .in("id", classIds);
+            (classes || []).forEach((c: { class_group?: string; grades?: { code?: string; label?: string } | null }) => {
+                const label = c.grades && typeof c.grades === "object" ? (c.grades.label || c.grades.code || "") : "";
+                if (label && c.class_group) classGroups.add(`${label}|${c.class_group}`);
+            });
+        }
+    }
+
+    // 6. Buscar TODOS os estudantes com PEI das mesmas turmas (que o professor NÃO tem em pei_disciplinas)
     let extraStudents: typeof students = [];
     if (classGroups.size > 0) {
         // Buscar todos estudantes do workspace com pei_data
@@ -102,10 +129,10 @@ export async function GET() {
                 if (!s.grade || !s.class_group) return false;
                 const key = `${s.grade}|${s.class_group}`;
                 if (!classGroups.has(key)) return false;
-                // Verificar se tem PEI gerado (fase_pei diferente de fase_1 ou tem dados PEI)
+                // Incluir fase_1 quando allow_avaliacao_fase_1; senão só fase_2 ou PEI com dados
                 const peiData = (s.pei_data || {}) as Record<string, unknown>;
                 const fasePei = peiData.fase_pei as string || "fase_1";
-                return fasePei !== "fase_1" || Object.keys(peiData).length > 2;
+                return allowAvaliacaoFase1 || (fasePei !== "fase_1" || Object.keys(peiData).length > 2);
             });
         }
     }
