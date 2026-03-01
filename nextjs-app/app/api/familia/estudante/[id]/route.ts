@@ -119,7 +119,7 @@ export async function GET(
       nome: peiData.nome,
       serie: peiData.serie,
       turma: peiData.turma,
-      ia_sugestao: typeof peiData.ia_sugestao === "string" ? peiData.ia_sugestao.substring(0, 500) : null,
+      ia_sugestao: typeof peiData.ia_sugestao === "string" ? peiData.ia_sugestao : null,
     },
     paee_resumo: paeeAtivo
       ? {

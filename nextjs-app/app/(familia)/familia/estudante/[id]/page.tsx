@@ -138,7 +138,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
             Resumo do PEI
           </h3>
           {pei_resumo?.ia_sugestao ? (
-            <p className="text-sm text-slate-600 line-clamp-6">{pei_resumo.ia_sugestao}</p>
+            <div className="text-sm text-slate-600 whitespace-pre-wrap max-h-[600px] overflow-y-auto">{pei_resumo.ia_sugestao}</div>
           ) : (
             <p className="text-sm text-slate-500">PEI em elaboração ou sem resumo disponível.</p>
           )}
