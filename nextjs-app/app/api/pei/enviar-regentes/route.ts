@@ -258,7 +258,7 @@ export async function POST(req: Request) {
                 workspace_id: session.workspace_id,
                 disciplina: componentName,
                 professor_regente_nome: memberName,
-                professor_regente_id: a.workspace_member_id,
+                professor_regente_id: null,
                 fase_status: "plano_ensino",
                 pei_disciplina_data: {},
             });
