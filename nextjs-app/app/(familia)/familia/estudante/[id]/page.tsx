@@ -15,6 +15,7 @@ type EstudanteData = {
 export default function FamiliaEstudantePage({ params }: { params: Promise<{ id: string }> }) {
   const [data, setData] = useState<EstudanteData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [studentId, setStudentId] = useState<string | null>(null);
   const [cienciaLoading, setCienciaLoading] = useState(false);
 
@@ -24,18 +25,52 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
 
   useEffect(() => {
     if (!studentId) return;
+    setLoading(true);
+    setError(null);
     fetch(`/api/familia/estudante/${studentId}`)
-      .then((r) => (r.ok ? r.json() : null))
+      .then(async (r) => {
+        if (!r.ok) {
+          const body = await r.json().catch(() => ({}));
+          throw new Error(body.error || `Erro ${r.status}`);
+        }
+        return r.json();
+      })
       .then(setData)
-      .catch(() => setData(null))
+      .catch((err) => {
+        setData(null);
+        setError(err.message || "Erro ao carregar dados do estudante.");
+      })
       .finally(() => setLoading(false));
   }, [studentId]);
 
-  if (loading || !data) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center py-16 gap-2 text-slate-500">
         <Loader2 className="w-6 h-6 animate-spin" />
         Carregando...
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="rounded-2xl bg-white p-8 text-center border border-slate-200 shadow-sm">
+        <p className="text-red-600 font-medium">{error || "Não foi possível carregar os dados do estudante."}</p>
+        <p className="text-sm text-slate-500 mt-2">Verifique se o estudante está vinculado à sua conta.</p>
+        <div className="mt-4 flex gap-3 justify-center">
+          <button
+            onClick={() => studentId && window.location.reload()}
+            className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700"
+          >
+            Tentar novamente
+          </button>
+          <Link
+            href="/familia"
+            className="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50"
+          >
+            Voltar
+          </Link>
+        </div>
       </div>
     );
   }
