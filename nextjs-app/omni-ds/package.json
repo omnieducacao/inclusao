@@ -1,0 +1,61 @@
+{
+    "name": "@omni/ds",
+    "version": "0.1.0",
+    "description": "Omni Design System — tokens, componentes e temas para Omniverso e Omnisfera",
+    "type": "module",
+    "main": "dist/omni-ds.cjs.js",
+    "module": "dist/omni-ds.es.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/omni-ds.es.js",
+            "require": "./dist/omni-ds.cjs.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./src/*": "./src/*"
+    },
+    "files": [
+        "dist",
+        "src/icons/lottie"
+    ],
+    "sideEffects": [
+        "*.css"
+    ],
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview",
+        "lint": "eslint src"
+    },
+    "peerDependencies": {
+        "lottie-react": ">=2",
+        "react": ">=18",
+        "react-dom": ">=18"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4",
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.2",
+        "@testing-library/user-event": "^14.6.1",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@vitejs/plugin-react": "^4",
+        "class-variance-authority": "^0.7",
+        "clsx": "^2",
+        "globals": "^17.4.0",
+        "jsdom": "^28.1.0",
+        "lottie-react": "^2.4.1",
+        "lucide-react": "^0.460",
+        "react": "^19",
+        "react-dom": "^19",
+        "tailwind-merge": "^3",
+        "tailwindcss": "^4",
+        "typescript": "^5",
+        "vite": "^6",
+        "vite-plugin-dts": "^4",
+        "vitest": "^4.0.18"
+    },
+    "dependencies": {
+        "@lordicon/react": "^1.11.0"
+    }
+}

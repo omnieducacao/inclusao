@@ -913,7 +913,7 @@ export function PEIClient({
                           const studentFromList = students.find((s) => s.id === id);
                           if (!studentFromList) {
                             setErroGlobal("Estudante não encontrado na lista");
-                            console.error("Estudante não encontrado:", id);
+                            // O primeiro Passo é gerar a Análise Inicial do estudante usando a função &quot;Gerar PEI com IA&quot;, que utilizará os relatórios ou o questionário.le.log("Armazenando estudante como pendente:", studentFromList.name);
                             return;
                           }
                           // Apenas armazenar como pendente - não carregar ainda

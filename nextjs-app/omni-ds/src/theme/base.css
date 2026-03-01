@@ -1,0 +1,238 @@
+@import 'tailwindcss';
+
+/* Tell Tailwind v4 where to find utility classes */
+@source "../components/**/*.tsx";
+@source "../**/*.ts";
+
+/* ═══════════════════════════════════════════════════
+   Omni DS — Base Theme
+   ═══════════════════════════════════════════════════ */
+
+:root {
+  --omni-font-primary: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  /* Semantic Colors */
+  --omni-bg-primary: #f7f8fa;
+  --omni-bg-secondary: #ffffff;
+  --omni-bg-tertiary: #f1f5f9;
+  --omni-bg-hover: #f8fafc;
+  --omni-bg-gradient-from: #f8fafc;
+  --omni-bg-gradient-via: rgba(239, 246, 255, 0.15);
+  --omni-bg-gradient-to: rgba(240, 249, 255, 0.10);
+
+  --omni-text-primary: #0f172a;
+  --omni-text-secondary: #475569;
+  --omni-text-muted: #94a3b8;
+  --omni-text-inverse: #ffffff;
+
+  --omni-border-default: rgba(226, 232, 240, 0.6);
+  --omni-border-strong: rgba(203, 213, 225, 0.8);
+  --omni-border-subtle: rgba(241, 245, 249, 0.8);
+
+  /* Surfaces */
+  --omni-surface-0: #f7f8fa;
+  --omni-surface-1: #ffffff;
+  --omni-surface-2: rgba(255, 255, 255, 0.72);
+  --omni-surface-3: rgba(255, 255, 255, 0.5);
+
+  /* Glass */
+  --omni-glass-bg: rgba(255, 255, 255, 0.72);
+  --omni-glass-bg-strong: rgba(255, 255, 255, 0.85);
+
+  /* Shadows Premium — Multi-layer system (ambient + umbra + penumbra) */
+  --omni-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
+  --omni-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 8px rgba(15, 23, 42, 0.03), 0 8px 16px rgba(15, 23, 42, 0.02);
+  --omni-shadow-md: 0 2px 4px rgba(15, 23, 42, 0.04), 0 8px 16px rgba(15, 23, 42, 0.04), 0 16px 32px rgba(15, 23, 42, 0.03);
+  --omni-shadow-lg: 0 4px 8px rgba(15, 23, 42, 0.04), 0 16px 32px rgba(15, 23, 42, 0.05), 0 24px 64px rgba(15, 23, 42, 0.04);
+  --omni-shadow-xl: 0 8px 16px rgba(15, 23, 42, 0.05), 0 24px 48px rgba(15, 23, 42, 0.06), 0 48px 96px rgba(15, 23, 42, 0.05);
+  --omni-shadow-2xl: 0 12px 24px rgba(15, 23, 42, 0.06), 0 32px 64px rgba(15, 23, 42, 0.08), 0 64px 120px rgba(15, 23, 42, 0.06);
+  --omni-shadow-inner: inset 0 2px 4px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(0, 0, 0, 0.02);
+  --omni-shadow-ring: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  --omni-shadow-elevated: 0 4px 6px rgba(15, 23, 42, 0.03), 0 12px 30px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.02);
+
+  /* Module Glows */
+  --omni-glow-blue: 0 0 24px rgba(59, 130, 246, 0.25);
+  --omni-glow-violet: 0 0 24px rgba(139, 92, 246, 0.25);
+  --omni-glow-rose: 0 0 24px rgba(244, 63, 94, 0.25);
+  --omni-glow-cyan: 0 0 24px rgba(6, 182, 212, 0.25);
+  --omni-glow-emerald: 0 0 24px rgba(16, 185, 129, 0.25);
+  --omni-glow-amber: 0 0 24px rgba(245, 158, 11, 0.25);
+  --omni-glow-sky: 0 0 24px rgba(56, 189, 248, 0.25);
+  --omni-glow-indigo: 0 0 24px rgba(99, 102, 241, 0.25);
+
+  /* Radius */
+  --omni-radius-sm: 8px;
+  --omni-radius-md: 12px;
+  --omni-radius-lg: 16px;
+  --omni-radius-xl: 24px;
+
+  /* Transitions */
+  --omni-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --omni-transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --omni-transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Scrollbar */
+  --omni-scrollbar-thumb: #cbd5e1;
+  --omni-scrollbar-thumb-hover: #94a3b8;
+
+  /* Feedback / Status Colors */
+  --omni-success: #10b981;
+  --omni-success-soft: #ecfdf5;
+  --omni-success-text: #059669;
+  --omni-warning: #f59e0b;
+  --omni-warning-soft: #fffbeb;
+  --omni-warning-text: #d97706;
+  --omni-error: #ef4444;
+  --omni-error-soft: #fef2f2;
+  --omni-error-text: #dc2626;
+  --omni-info: #3b82f6;
+  --omni-info-soft: #eff6ff;
+  --omni-info-text: #2563eb;
+
+  /* Brand Identity */
+  --omni-primary: #6366f1;
+  --omni-primary-soft: #eef2ff;
+  --omni-primary-text: #4f46e5;
+
+  --omni-noise-opacity: 0.025;
+}
+
+/* ─── Dark Theme ─── */
+[data-theme="dark"] {
+  --omni-bg-primary: #0c0e14;
+  --omni-bg-secondary: #151821;
+  --omni-bg-tertiary: #1c2030;
+  --omni-bg-hover: #1e2235;
+  --omni-bg-gradient-from: #0c0e14;
+  --omni-bg-gradient-via: rgba(30, 58, 95, 0.15);
+  --omni-bg-gradient-to: rgba(20, 50, 80, 0.10);
+
+  --omni-text-primary: #e2e8f0;
+  --omni-text-secondary: #94a3b8;
+  --omni-text-muted: #64748b;
+  --omni-text-inverse: #0f172a;
+
+  --omni-border-default: rgba(51, 65, 85, 0.5);
+  --omni-border-strong: rgba(71, 85, 105, 0.6);
+  --omni-border-subtle: rgba(30, 41, 59, 0.8);
+
+  --omni-surface-0: #0c0e14;
+  --omni-surface-1: #151821;
+  --omni-surface-2: rgba(21, 24, 33, 0.85);
+  --omni-surface-3: rgba(21, 24, 33, 0.6);
+
+  --omni-glass-bg: rgba(21, 24, 33, 0.75);
+  --omni-glass-bg-strong: rgba(21, 24, 33, 0.9);
+
+  --omni-shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --omni-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.3), 0 8px 28px rgba(0, 0, 0, 0.15);
+  --omni-shadow-md: 0 2px 6px rgba(0, 0, 0, 0.25), 0 8px 20px rgba(0, 0, 0, 0.3), 0 16px 44px rgba(0, 0, 0, 0.15);
+  --omni-shadow-lg: 0 4px 10px rgba(0, 0, 0, 0.25), 0 12px 32px rgba(0, 0, 0, 0.3), 0 28px 72px rgba(0, 0, 0, 0.2);
+  --omni-shadow-xl: 0 8px 20px rgba(0, 0, 0, 0.3), 0 20px 48px rgba(0, 0, 0, 0.35), 0 40px 96px rgba(0, 0, 0, 0.2);
+  --omni-shadow-2xl: 0 12px 28px rgba(0, 0, 0, 0.35), 0 28px 64px rgba(0, 0, 0, 0.4), 0 56px 120px rgba(0, 0, 0, 0.25);
+  --omni-shadow-inner: inset 0 2px 6px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  --omni-shadow-ring: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  --omni-shadow-elevated: 0 6px 10px rgba(0, 0, 0, 0.25), 0 16px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);
+
+  --omni-glow-blue: 0 0 24px rgba(59, 130, 246, 0.35);
+  --omni-glow-violet: 0 0 24px rgba(139, 92, 246, 0.35);
+  --omni-glow-rose: 0 0 24px rgba(244, 63, 94, 0.35);
+  --omni-glow-cyan: 0 0 24px rgba(6, 182, 212, 0.35);
+  --omni-glow-emerald: 0 0 24px rgba(16, 185, 129, 0.35);
+  --omni-glow-amber: 0 0 24px rgba(245, 158, 11, 0.35);
+  --omni-glow-sky: 0 0 24px rgba(56, 189, 248, 0.35);
+  --omni-glow-indigo: 0 0 24px rgba(99, 102, 241, 0.35);
+
+  --omni-scrollbar-thumb: #334155;
+  --omni-scrollbar-thumb-hover: #475569;
+
+  /* Feedback / Status Colors (dark) */
+  --omni-success: #34d399;
+  --omni-success-soft: rgba(16, 185, 129, 0.15);
+  --omni-success-text: #6ee7b7;
+  --omni-warning: #fbbf24;
+  --omni-warning-soft: rgba(245, 158, 11, 0.15);
+  --omni-warning-text: #fcd34d;
+  --omni-error: #f87171;
+  --omni-error-soft: rgba(239, 68, 68, 0.15);
+  --omni-error-text: #fca5a5;
+  --omni-info: #60a5fa;
+  --omni-info-soft: rgba(59, 130, 246, 0.15);
+  --omni-info-text: #93bbfd;
+
+  /* Brand Identity (dark) */
+  --omni-primary: #818cf8;
+  --omni-primary-soft: rgba(99, 102, 241, 0.15);
+  --omni-primary-text: #a5b4fc;
+
+  --omni-noise-opacity: 0.015;
+}
+
+/* ─── High Contrast ─── */
+[data-theme="high-contrast"] {
+  --omni-text-primary: #000000;
+  --omni-text-secondary: #1a1a1a;
+  --omni-text-muted: #333333;
+  --omni-bg-primary: #ffffff;
+  --omni-bg-secondary: #f5f5f5;
+  --omni-border-default: #000000;
+  --omni-border-strong: #000000;
+}
+
+/* ─── Utilities Premium ─── */
+@layer utilities {
+  .active-scale {
+    @apply active:scale-[0.97] transition-transform duration-100 ease-out;
+  }
+}
+
+/* ─── Base Resets ─── */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Typography ─── */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--omni-font-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--omni-scrollbar-thumb);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--omni-scrollbar-thumb-hover);
+}
+
+/* ─── Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

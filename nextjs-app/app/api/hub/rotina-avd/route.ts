@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   const estudanteNome = body.estudante?.nome || "criança";
   const perfilEstudante = body.estudante?.ia_sugestao || "";
 
-  let prompt = `Especialista em Educação Infantil e ROTINA & PREVISIBILIDADE.
+  const prompt = `Especialista em Educação Infantil e ROTINA & PREVISIBILIDADE.
 A rotina organiza o pensamento da criança. Analise esta rotina e sugira adaptações sensoriais e visuais.
 
 ROTINA DA TURMA:

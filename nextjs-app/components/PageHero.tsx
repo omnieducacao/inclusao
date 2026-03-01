@@ -60,7 +60,8 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
 
   // Garantir que só renderiza Lottie no cliente
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Se não montado ainda OU não deve usar Lottie, mostrar placeholder
@@ -107,10 +108,8 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
         >
           <LottieIcon
             animation={lottieAnimation}
-            size={56}
-            loop={isHovered}
-            autoplay={isHovered}
-            className="transition-all duration-300"
+            size={48}
+            className="flex-shrink-0"
           />
         </div>
         <div className="flex-1">

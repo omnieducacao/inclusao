@@ -2294,6 +2294,7 @@ function InstagramFeedTab() {
                 <div className="grid grid-cols-4 gap-2 mb-3">
                   {previews.map((preview, i) => (
                     <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={preview} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
                       <button
                         type="button"

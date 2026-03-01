@@ -318,8 +318,7 @@ function NavDropdown({ label, items, isActive, icon: Icon, pathname }: { label: 
                     <LottieIcon
                       animation={lottieAnimation}
                       size={18}
-                      loop={false}
-                      autoplay={false}
+                      state={isCurrentPage ? "hover" : "initial"}
                       className={isCurrentPage ? "opacity-100" : "opacity-60 grayscale"}
                     />
                   </div>
@@ -495,8 +494,9 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   const { isDark } = useTheme();
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
     loadNavIcons().then(setNavIcons);
+    return () => clearTimeout(timer);
   }, []);
 
   async function handleLogout() {
@@ -532,6 +532,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               </div>
               <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-[1.5px] border-white animate-pulse-soft" />
             </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={isDark ? "/omni_texto_branco.png" : "/omni_texto.png"} alt="Omnisfera" className="h-8 object-contain" style={{ width: 'auto', maxHeight: '32px' }} />
           </Link>
           {!hideMenu && (

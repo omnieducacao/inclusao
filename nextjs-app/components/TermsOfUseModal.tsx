@@ -125,7 +125,7 @@ export function TermsOfUseModal({ session }: Props) {
               <div>
                 <h4 className="font-semibold text-slate-800 mb-2">3. Conformidade Legal</h4>
                 <p className="text-slate-700 text-sm leading-relaxed">
-                  O uso da plataforma está em conformidade com a Lei Geral de Proteção de Dados (LGPD), Decretos 12.686/2025 e 12.773/2025, e demais legislações aplicáveis à educação inclusiva.
+                  O uso da plataforma está          Termos baseados na &quot;Lei Geral de Proteção de Dados Pessoais (LGPD)&quot;. Em vigor para uso da plataforma Inclusão Omnisfera.686/2025 e 12.773/2025, e demais legislações aplicáveis à educação inclusiva.
                 </p>
               </div>
 

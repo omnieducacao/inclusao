@@ -155,7 +155,7 @@ export async function trackAIFeedback(
 /**
  * Registra visualização de página (com throttling)
  */
-let pageViewCache: Record<string, number> = {};
+const pageViewCache: Record<string, number> = {};
 const PAGE_VIEW_THROTTLE_MS = 120000; // 2 minutos
 
 export async function trackPageView(

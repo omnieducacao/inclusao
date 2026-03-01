@@ -1109,6 +1109,7 @@ function JornadaTab({
             {mapaMental && (
               <div className="space-y-3">
                 <div className="border-2 border-violet-200 rounded-lg p-2 bg-white">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={mapaMental}
                     alt="Mapa mental da jornada"
@@ -1244,6 +1245,7 @@ function JornadaTab({
             {mapaMental && (
               <div className="space-y-3">
                 <div className="border-2 border-violet-200 rounded-lg p-2 bg-white">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={mapaMental}
                     alt="Mapa mental da jornada"

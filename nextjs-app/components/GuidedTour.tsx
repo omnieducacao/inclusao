@@ -16,7 +16,8 @@ export function GuidedTour({ onComplete }: { onComplete?: () => void }) {
     useEffect(() => {
         const seen = localStorage.getItem(STORAGE_KEY);
         if (!seen) {
-            setVisible(true);
+            const timer = setTimeout(() => setVisible(true), 0);
+            return () => clearTimeout(timer);
         }
     }, []);
 
@@ -96,10 +97,10 @@ export function GuidedTour({ onComplete }: { onComplete?: () => void }) {
                                 type="button"
                                 onClick={() => setCurrentStep(i)}
                                 className={`w-2 h-2 rounded-full transition-all duration-300 ${i === currentStep
-                                        ? "bg-blue-500 w-5"
-                                        : i < currentStep
-                                            ? "bg-blue-300"
-                                            : "bg-slate-200"
+                                    ? "bg-blue-500 w-5"
+                                    : i < currentStep
+                                        ? "bg-blue-300"
+                                        : "bg-slate-200"
                                     }`}
                             />
                         ))}
@@ -112,8 +113,8 @@ export function GuidedTour({ onComplete }: { onComplete?: () => void }) {
                             onClick={prev}
                             disabled={currentStep === 0}
                             className={`px-4 py-2.5 text-sm font-semibold rounded-xl transition-all ${currentStep === 0
-                                    ? "text-slate-300 cursor-not-allowed"
-                                    : "text-slate-600 hover:bg-slate-100"
+                                ? "text-slate-300 cursor-not-allowed"
+                                : "text-slate-600 hover:bg-slate-100"
                                 }`}
                         >
                             ← Anterior

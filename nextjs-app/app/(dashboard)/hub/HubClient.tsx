@@ -484,7 +484,7 @@ function CriarDoZero({
         textoFinal = analise ? `## Análise Pedagógica\n\n${analise}\n\n---\n\n## Atividade\n\n${atividade}` : atividade;
       }
 
-      let mapa: Record<number, string> = {};
+      const mapa: Record<number, string> = {};
       if (usarImagens && qtdImagens > 0) {
         const genImgRegex = /\[\[GEN_IMG:\s*([^\]]+)\]\]/gi;
         const termos: string[] = [];
@@ -575,7 +575,7 @@ function CriarDoZero({
 
               if (imgRes.ok && imgData.image) {
                 const imgStr = imgData.image as string;
-                let base64 = imgStr.startsWith("data:image")
+                const base64 = imgStr.startsWith("data:image")
                   ? imgStr.replace(/^data:image\/\w+;base64,/, "")
                   : imgStr;
 
@@ -2284,6 +2284,7 @@ function AdaptarProva({
           <div className="p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
             {docxExtraido.imagens.map((img, i) => (
               <div key={i} className="flex flex-col gap-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`data:${img.contentType};base64,${img.base64}`} alt="" className="max-w-[80px] max-h-[80px] object-contain border rounded" />
                 <label className="text-xs text-slate-600">
                   Pertence à questão:
@@ -3043,6 +3044,7 @@ function IlustracaoSection({ hiperfoco }: { hiperfoco: string }) {
       </button>
       {imagem && (
         <div className="space-y-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={imagem} alt="Ilustração" className="max-w-full rounded-lg border" />
           {validado && (
             <div className="p-2 bg-emerald-50 border border-emerald-200 rounded text-emerald-800 text-sm font-medium">

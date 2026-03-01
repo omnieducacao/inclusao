@@ -51,7 +51,10 @@ const TYPE_COLORS: Record<string, string> = { pei: "#4285F4", diario: "#E8453C",
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
     const [display, setDisplay] = useState(0);
     useEffect(() => {
-        if (value === 0) { setDisplay(0); return; }
+        if (value === 0) {
+            const timer = setTimeout(() => setDisplay(0), 0);
+            return () => clearTimeout(timer);
+        }
         const steps = 20;
         const increment = value / steps;
         let current = 0;

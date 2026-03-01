@@ -1,5 +1,7 @@
 @import 'tailwindcss';
-
+@source "@omni/ds";
+@import "@omni/ds/src/theme/base.css";
+@import "@omni/ds/src/theme/animations.css";
 /* ═══════════════════════════════════════════════════
    Omnisfera — Premium Design System
    ═══════════════════════════════════════════════════ */

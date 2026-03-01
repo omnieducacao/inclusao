@@ -49,13 +49,41 @@ export function PEIConsolidacao({ studentId, onExportar }: Props) {
     const [error, setError] = useState("");
 
     useEffect(() => {
+        let mounted = true;
         if (!studentId) return;
-        setLoading(true);
-        fetch(`/api/pei/consolidar?studentId=${studentId}`)
-            .then((r) => r.json())
-            .then((d) => setData(d))
-            .catch(() => setError("Erro ao carregar consolidação"))
-            .finally(() => setLoading(false));
+
+        const fetchConsolidacao = async () => {
+            try {
+                const res = await fetch(`/api/pei/consolidar?studentId=${studentId}`);
+                if (!res.ok) {
+                    throw new Error("Erro ao carregar consolidação");
+                }
+                const d = await res.json();
+                if (mounted) {
+                    setData(d);
+                }
+            } catch (err) {
+                if (mounted) {
+                    setError((err as Error).message || "Erro ao carregar consolidação");
+                }
+            } finally {
+                if (mounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        const timer = setTimeout(() => {
+            if (mounted) {
+                setLoading(true);
+                fetchConsolidacao();
+            }
+        }, 0);
+
+        return () => {
+            mounted = false;
+            clearTimeout(timer);
+        };
     }, [studentId]);
 
     if (!studentId) {

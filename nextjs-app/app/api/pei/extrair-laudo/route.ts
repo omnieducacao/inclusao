@@ -10,7 +10,7 @@ const PDF_TYPES = ["application/pdf"];
  * Extrai texto do PDF usando pdf-parse.
  */
 async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise<string> {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+   
   const pdfParseModule = await import("pdf-parse");
   const pdfParse = pdfParseModule.default || pdfParseModule;
 
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const engineRaw = formData.get("engine");
-    let engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(String(engineRaw || ""))
+    const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(String(engineRaw || ""))
       ? (engineRaw as EngineId)
       : "orange";
 

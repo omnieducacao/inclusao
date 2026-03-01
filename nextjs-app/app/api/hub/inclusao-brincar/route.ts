@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   const hiperfoco = body.estudante?.hiperfoco || "";
   const perfilEstudante = body.estudante?.ia_sugestao || "";
 
-  let prompt = `Especialista em Educação Infantil e MEDIAÇÃO SOCIAL.
+  const prompt = `Especialista em Educação Infantil e MEDIAÇÃO SOCIAL.
 Se a criança brinca isolada, o objetivo não é forçar a interação, mas criar pontes através do interesse dela.
 A IA criará uma brincadeira onde ela é protagonista.
 

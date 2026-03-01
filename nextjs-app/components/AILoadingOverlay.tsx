@@ -74,17 +74,21 @@ export function AILoadingOverlay() {
     // Rotate phrases every 4 seconds
     useEffect(() => {
         if (!state.isLoading) return;
-        setPhraseIndex(0);
+        const initTimer = setTimeout(() => setPhraseIndex(0), 0);
         const interval = setInterval(() => {
             setPhraseIndex((prev) => (prev + 1) % phrases.length);
         }, 4000);
-        return () => clearInterval(interval);
+        return () => {
+            clearTimeout(initTimer);
+            clearInterval(interval);
+        };
     }, [state.isLoading, state.module, phrases.length]);
 
     // Smooth enter/exit
     useEffect(() => {
         if (state.isLoading) {
-            setVisible(true);
+            const timer = setTimeout(() => setVisible(true), 0);
+            return () => clearTimeout(timer);
         } else {
             const timer = setTimeout(() => setVisible(false), 300);
             return () => clearTimeout(timer);

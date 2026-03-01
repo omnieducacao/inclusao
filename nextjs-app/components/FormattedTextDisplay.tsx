@@ -69,6 +69,7 @@ export function FormattedTextDisplay({ texto, titulo, className = "", mapaImagen
         if (imgBase64) {
           partes.push(
             <div key={`img-${num}`} className="my-4 flex justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`data:image/png;base64,${imgBase64}`}
                 alt={`Imagem ${num}`}

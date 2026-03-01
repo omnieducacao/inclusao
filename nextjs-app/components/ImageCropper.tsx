@@ -105,6 +105,7 @@ export function ImageCropper({ src, onCropComplete, aspect, caption }: Props) {
           aspect={aspect}
           className="max-h-[400px]"
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             ref={imgRef}
             src={src}

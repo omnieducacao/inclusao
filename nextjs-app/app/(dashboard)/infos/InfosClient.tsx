@@ -353,7 +353,7 @@ export default function InfosClient() {
                   </summary>
                   <div className="mt-3 text-sm text-slate-600 space-y-2">
                     <blockquote className="border-l-4 border-sky-500 pl-4 italic text-slate-700">
-                      "Temos direito à igualdade, quando a diferença nos inferioriza, e direito à diferença, quando a igualdade nos descaracteriza."
+                      &quot;Temos direito à igualdade, quando a diferença nos inferioriza, e direito à diferença, quando a igualdade nos descaracteriza.&quot;
                       <br />
                       <strong>Boaventura de Souza Santos</strong>
                     </blockquote>
@@ -372,7 +372,7 @@ export default function InfosClient() {
                   </summary>
                   <div className="mt-3 text-sm text-slate-600 space-y-2">
                     <p>
-                      Conforme a <strong>Lei Brasileira de Inclusão (Lei nº 13.146/2015)</strong>, o capacitismo é <em>"toda forma de distinção, restrição ou exclusão, por ação ou omissão, que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício dos direitos e das liberdades fundamentais de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas"</em>.
+                      Conforme a <strong>Lei Brasileira de Inclusão (Lei nº 13.146/2015)</strong>, o capacitismo é <em>&quot;toda forma de distinção, restrição ou exclusão, por ação ou omissão, que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício dos direitos e das liberdades fundamentais de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas&quot;</em>.
                     </p>
                     <p>
                       O termo vem do inglês <em>ableism</em> (able + ism). As consequências podem ser <strong>físicas</strong> (barreiras estruturais em ambientes) ou <strong>simbólicas</strong> (metáforas, gestos e sons que reforçam estigmas).

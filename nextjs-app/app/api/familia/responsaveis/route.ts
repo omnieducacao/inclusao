@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
   const sb = getSupabase();
 
-  let query = sb
+  const query = sb
     .from("family_responsibles")
     .select("id, nome, email, telefone, parentesco, active, created_at")
     .eq("workspace_id", session.workspace_id)

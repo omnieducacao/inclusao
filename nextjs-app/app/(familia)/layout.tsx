@@ -28,10 +28,13 @@ export default async function FamiliaLayout({
       <header className="sticky top-0 z-50 border-b border-slate-200/50 bg-white/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
           <Link href="/familia" className="flex items-center gap-2">
-            <img
-              src="/omni_texto.png"
-              alt="Omnisfera"
-              className="h-8 object-contain"
+            <Image
+              src="/omni_icone.png"
+              alt="Logo Omnisfera"
+              width={32}
+              height={32}
+              className="w-8 h-8 drop-shadow-sm"
+              unoptimized
               style={{ width: "auto", maxHeight: "32px", filter: "var(--img-dark-invert, none)" }}
             />
             <span className="text-sm font-medium text-slate-600 hidden sm:inline">Acesso Família</span>

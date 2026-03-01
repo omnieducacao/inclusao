@@ -35,8 +35,11 @@ export function OnboardingPanel({
     useEffect(() => {
         const done = localStorage.getItem(storageKey);
         if (!done) {
-            setDismissed(false);
-            requestAnimationFrame(() => setFadeIn(true));
+            const timer = setTimeout(() => {
+                setDismissed(false);
+                requestAnimationFrame(() => setFadeIn(true));
+            }, 0);
+            return () => clearTimeout(timer);
         }
     }, [storageKey]);
 

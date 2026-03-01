@@ -3,18 +3,23 @@
  * Reutilizado no dashboard, home e login.
  */
 import Link from "next/link";
+import Image from "next/image";
 export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" | "compact" }) {
   return (
     <div className={`flex flex-col ${variant === "full" ? "gap-4" : "gap-3"}`}>
       {/* Logos lado a lado: Omni Educação + "Conheça também" + OmniProf */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
         {/* Omni Educação logo */}
-        <img
-          src="/omni_horizontal.png"
-          alt="Omni Educação"
-          className="h-8 w-auto object-contain"
-          style={{ filter: 'var(--img-dark-invert, none)' }}
-        />
+        <div className="flex-shrink-0 relative">
+          <Image
+            src="/omni_icone.png"
+            alt="Omnisfera Icon"
+            width={16}
+            height={16}
+            className="w-4 h-4 object-contain"
+            style={{ filter: 'var(--img-dark-invert, none)' }}
+          />
+        </div>
 
         {/* Separador + "Conheça também" + OmniProf logo */}
         <div className="flex items-center gap-3">

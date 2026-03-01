@@ -24,17 +24,19 @@ function StudentSelectorInner({
   useEffect(() => {
     try {
       const urlStudentId = searchParams?.get("student") || "";
-      setSelected(currentId || urlStudentId || "");
-    } catch (error) {
-      // Fallback se searchParams não estiver disponível
-      setSelected(currentId || "");
+      const timer = setTimeout(() => setSelected(currentId || urlStudentId || ""), 0);
+      return () => clearTimeout(timer);
+    } catch (e) {
+      // Fallback
+      const timer = setTimeout(() => setSelected(currentId || ""), 0);
+      return () => clearTimeout(timer);
     }
   }, [currentId, searchParams]);
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const id = e.target.value;
     setSelected(id);
-    
+
     if (onChange) {
       // Se há onChange customizado, usa ele (não atualiza URL)
       onChange(id || null);
@@ -85,7 +87,7 @@ export function StudentSelector({
 }) {
   return (
     <Suspense fallback={
-      <select 
+      <select
         disabled
         className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 min-w-[200px]"
       >

@@ -42,7 +42,7 @@ export default async function RootPage() {
 
   // ── Fetch KPIs for smart badges ──
   type BadgeInfo = { text: string; variant: "green" | "yellow" | "red" | "gray" };
-  let kpiBadges: Record<string, BadgeInfo> = {};
+  const kpiBadges: Record<string, BadgeInfo> = {};
   let familyModuleEnabled = false;
   try {
     if (sessionNonNull.workspace_id && !sessionNonNull.is_platform_admin) {

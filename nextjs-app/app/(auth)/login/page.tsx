@@ -173,9 +173,11 @@ function LoginForm() {
             </div>
 
             {/* Wordmark — large and proportional */}
-            <img
+            <Image
               src="/omni_texto.png"
               alt="Omnisfera"
+              width={300}
+              height={86}
               className="h-[86px] object-contain -mt-4"
               style={{ width: "auto", maxHeight: "86px", filter: 'var(--img-dark-invert, none)' }}
             />

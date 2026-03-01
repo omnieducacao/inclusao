@@ -30,7 +30,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
         if (stored === "light" || stored === "dark") {
-            setTheme(stored);
+            const timer = setTimeout(() => setTheme(stored), 0);
+            return () => clearTimeout(timer);
         } else {
             // Detect system preference
             const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;

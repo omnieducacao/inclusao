@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import type { Icon } from "phosphor-react";
 import { getColorClasses, colorPalette, colorPaletteDark } from "@/lib/colors";
-import { LottieIcon } from "./LottieIcon";
+import { LottieIcon } from "@omni/ds";
+import { ModuleCard } from "@omni/ds";
+import { useRouter } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
 
 // Import dinâmico dos ícones Phosphor para evitar problemas de SSR
@@ -138,11 +140,12 @@ export function ModuleCardsLottie({
   const isDark = theme === 'dark';
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
     loadIcons().then((map) => {
       setLoadedIconMap(map);
       setIconsLoaded(true);
     });
+    return () => clearTimeout(timer);
   }, []);
 
   const TitleIcon = loadedIconMap[titleIconName];
@@ -238,10 +241,12 @@ function ModuleCardWithLottie({
   const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const router = useRouter();
 
   // Garantir que só renderiza no cliente
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Animação de entrada escalonada (apenas no cliente)
@@ -313,109 +318,59 @@ function ModuleCardWithLottie({
   const lottieSize = compact ? 32 : 72;
 
   return (
-    <Link
-      href={href}
-      className={`group relative block rounded-2xl overflow-hidden transition-all duration-300 ease-out aspect-square
-        hover:-translate-y-1.5 hover:scale-[1.02] shadow-premium hover:shadow-premium-xl
-        border border-(--border-default) hover:border-black/5
-        backdrop-blur-md backdrop-saturate-[1.5]
-        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-      style={{ backgroundColor: colors.bg }}
+    <div
+      className={`group relative block transition-all duration-300 ease-out stagger-item ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Luz interna (Inner highlight) sutil */}
-      <div className="absolute inset-0 rounded-2xl pointer-events-none shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_0_0_1px_rgba(255,255,255,0.15)] group-hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)] transition-all duration-300" />
-
-      {/* Top accent bar — expands on hover */}
-      <div
-        className="w-full transition-all duration-300 ease-out h-[3px] group-hover:h-[4px]"
-        style={{ background: `linear-gradient(to right, ${colors.icon}, ${colors.text})` }}
+      <ModuleCard
+        moduleKey={(href.replace("/", "") as any) || "pei"}
+        title={title}
+        description={desc}
+        badge={typeof badge === "string" ? badge : badge?.text}
+        onClick={() => router.push(href)}
+        className={`w-full h-full cursor-pointer ${compact ? 'min-h-[120px]' : 'min-h-[150px]'}`}
+        iconElement={
+          <div className={`transition-all duration-300 ease-out mb-2`}>
+            {shouldShowLottie && lottieAnimation ? (
+              <div
+                className={`rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1 shadow-sm group-hover:shadow-md border border-white/20`}
+                style={{
+                  width: `${iconSize}px`,
+                  height: `${iconSize}px`,
+                  background: `linear-gradient(135deg, ${colors.icon}20, ${colors.icon}09)`,
+                  boxShadow: isHovered ? `0 8px 20px ${colors.icon}25` : undefined,
+                }}
+              >
+                <LottieIcon
+                  animation={lottieAnimation}
+                  size={lottieSize}
+                  state={isHovered ? "hover" : undefined}
+                  autoplay={isHovered}
+                  className="transition-all duration-300"
+                />
+              </div>
+            ) : (
+              <div
+                className={`rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1 shadow-sm group-hover:shadow-md border border-white/20`}
+                style={{
+                  width: `${iconSize}px`,
+                  height: `${iconSize}px`,
+                  background: `linear-gradient(135deg, ${colors.icon}20, ${colors.icon}09)`,
+                  boxShadow: isHovered ? `0 8px 20px ${colors.icon}25` : undefined,
+                }}
+              >
+                <Icon
+                  className="transition-all duration-300 group-hover:scale-105"
+                  style={{ color: colors.icon, width: `${lottieSize}px`, height: `${lottieSize}px` }}
+                  weight="duotone"
+                />
+              </div>
+            )}
+          </div>
+        }
       />
-      {/* Brilho do Top accent bar (Glow) */}
-      <div
-        className="w-full h-[4px] absolute top-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{ boxShadow: `0 2px 12px ${colors.icon}60` }}
-      />
-
-      <div className="flex flex-col items-center justify-center text-center h-full p-5 relative z-10">
-        {badge && (() => {
-          const badgeInfo: BadgeInfo = typeof badge === "string"
-            ? { text: badge, variant: "green" }
-            : badge;
-          const badgeStyles: Record<string, { bg: string; shadow: string }> = {
-            green: { bg: "linear-gradient(135deg, #10b981, #059669)", shadow: "0 2px 8px rgba(16,185,129,0.3)" },
-            yellow: { bg: "linear-gradient(135deg, #f59e0b, #d97706)", shadow: "0 2px 8px rgba(245,158,11,0.3)" },
-            red: { bg: "linear-gradient(135deg, #ef4444, #dc2626)", shadow: "0 2px 8px rgba(239,68,68,0.3)" },
-            gray: { bg: "linear-gradient(135deg, #94a3b8, #64748b)", shadow: "0 2px 8px rgba(100,116,139,0.25)" },
-          };
-          const s = badgeStyles[badgeInfo.variant] || badgeStyles.green;
-          return (
-            <span
-              className="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold text-white rounded-full z-10"
-              style={{ background: s.bg, boxShadow: s.shadow }}
-            >
-              {badgeInfo.text}
-            </span>
-          );
-        })()}
-
-        {/* Icon */}
-        <div className={`transition-all duration-300 ease-out mb-4 mt-2 ${isVisible ? 'scale-100 opacity-100' : 'scale-75 opacity-0'}`}>
-          {shouldShowLottie && lottieAnimation ? (
-            <div
-              className={`rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1 shadow-sm group-hover:shadow-md border border-white/30 p-1`}
-              style={{
-                width: `${iconSize}px`,
-                height: `${iconSize}px`,
-                background: `linear-gradient(135deg, ${colors.icon}15, ${colors.icon}08)`,
-                boxShadow: isHovered ? `0 8px 20px ${colors.icon}25` : undefined,
-              }}
-            >
-              <LottieIcon
-                animation={lottieAnimation}
-                size={lottieSize}
-                loop={isHovered}
-                autoplay={isHovered}
-                className="transition-all duration-300"
-              />
-            </div>
-          ) : (
-            <div
-              className={`rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1 shadow-sm group-hover:shadow-md border border-white/30 p-1`}
-              style={{
-                width: `${iconSize}px`,
-                height: `${iconSize}px`,
-                background: `linear-gradient(135deg, ${colors.icon}15, ${colors.icon}08)`,
-                boxShadow: isHovered ? `0 8px 20px ${colors.icon}25` : undefined,
-              }}
-            >
-              <Icon
-                className="transition-all duration-300 group-hover:scale-105"
-                style={{ color: colors.icon, width: `${lottieSize}px`, height: `${lottieSize}px` }}
-                weight="duotone"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Text */}
-        <div className="min-w-0 w-full">
-          <span className={`font-bold block ${compact ? 'text-[13px]' : 'text-[15px]'} transition-colors leading-tight`} style={{ color: colors.text }}>
-            {title}
-          </span>
-          <p className={`${compact ? 'text-[11px] mt-1 line-clamp-2' : 'text-[12px] mt-1.5 line-clamp-2'} leading-snug`} style={{ color: 'var(--text-secondary)' }}>{desc}</p>
-        </div>
-
-        {/* Hover arrow indicator */}
-        <span
-          className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 text-xs font-bold group-hover:translate-x-0.5"
-          style={{ color: colors.icon }}
-        >
-          →
-        </span>
-      </div>
-    </Link>
+    </div>
   );
 }
 
@@ -448,12 +403,13 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
   const lottieAnimation = lottieMaps.colored.BookBookmark; // Agora aponta para livros (mesmo de PGI)
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
     if (typeof window !== "undefined") {
       loadIcons().then((map) => {
         setClipboardTextIcon(map.ClipboardText || null);
       });
     }
+    return () => clearTimeout(timer);
   }, []);
 
   if (!isMounted || !ClipboardTextIcon) {
@@ -508,7 +464,7 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
                 <LottieIcon
                   animation={lottieAnimation}
                   size={36}
-                  loop={isHovered}
+                  state={isHovered ? "hover" : undefined}
                   autoplay={isHovered}
                   className="transition-all duration-300"
                 />

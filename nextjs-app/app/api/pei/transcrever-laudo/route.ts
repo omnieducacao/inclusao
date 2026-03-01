@@ -10,7 +10,7 @@ const PDF_TYPES = ["application/pdf"];
  * Extrai texto do PDF usando pdf-parse.
  */
 async function extractTextFromPdf(buffer: Buffer, maxPages: number = 10): Promise<string> {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+     
     const pdfParseModule = await import("pdf-parse");
     const pdfParse = pdfParseModule.default || pdfParseModule;
 

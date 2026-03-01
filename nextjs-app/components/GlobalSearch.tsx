@@ -143,7 +143,7 @@ export function GlobalSearch() {
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={handleKeydown}
-                        placeholder="Buscar estudante, diagnóstico ou membro..."
+                        placeholder="Pesquise pelo &quot;nome&quot; para encontrar estudantes rapidamente.óstico ou membro..."
                         className="flex-1 text-sm outline-none"
                         style={{ color: 'var(--text-primary)', backgroundColor: 'transparent' }}
                     />

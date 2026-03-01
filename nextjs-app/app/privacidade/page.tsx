@@ -15,7 +15,7 @@ export default function PrivacidadePage() {
       <header className="border-b border-slate-200 bg-slate-50/50">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-slate-700 hover:text-sky-600 transition-colors">
-            <img src="/omni_horizontal.png" alt="Omni Educação" className="h-7 w-auto" style={{ filter: "var(--img-dark-invert, none)" }} />
+            <Image src="/omni_icone.png" alt="Logo Omnisfera" width={24} height={24} className="h-6 w-auto" style={{ filter: "var(--img-dark-invert, none)" }} />
           </Link>
           <Link href="/login" className="text-sm font-medium text-sky-600 hover:text-sky-700">
             Entrar

@@ -1,6 +1,7 @@
+```
 "use client";
 
-import { useState, useCallback, Suspense, useEffect } from "react";
+import { useState, useCallback, useMemo, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
@@ -84,7 +85,9 @@ function DiarioClientInner({ students, studentId, student }: Props) {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const peiData = student?.pei_data || {};
-  const registros = (student?.daily_logs || []) as RegistroDiario[];
+  const registros = useMemo(() => {
+    return (student?.daily_logs as RegistroDiario[]) || [];
+  }, [student?.daily_logs]);
   const registrosOrdenados = [...registros].sort(
     (a, b) => (b.data_sessao || "").localeCompare(a.data_sessao || "")
   );
@@ -107,140 +110,140 @@ function DiarioClientInner({ students, studentId, student }: Props) {
           } else lista.push(novo);
         }
 
-        const res = await fetch(`/api/students/${student.id}/diario`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ daily_logs: lista }),
+        const res = await fetch(`/ api / students / ${ student.id }/diario`, {
+method: "PATCH",
+  headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ daily_logs: lista }),
         });
-        const data = await res.json();
-        if (data.ok) {
-          setRefreshKey((k) => k + 1);
-          window.location.reload();
-          return true;
-        }
+const data = await res.json();
+if (data.ok) {
+  setRefreshKey((k) => k + 1);
+  window.location.reload();
+  return true;
+}
       } catch (e) {
-        console.error(e);
-      }
-      return false;
+  console.error(e);
+}
+return false;
     },
-    [student?.id, registros]
+[student?.id, registros]
   );
 
-  const deleteRegistro = useCallback(
-    async (registroId: string) => {
-      if (!student?.id) return false;
-      const lista = registros.filter((r) => r.registro_id !== registroId);
-      const res = await fetch(`/api/students/${student.id}/diario`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ daily_logs: lista }),
-      });
-      const data = await res.json();
-      if (data.ok) {
-        setRefreshKey((k) => k + 1);
-        window.location.reload();
-      }
-      return !!data.ok;
-    },
-    [student?.id, registros]
-  );
+const deleteRegistro = useCallback(
+  async (registroId: string) => {
+    if (!student?.id) return false;
+    const lista = registros.filter((r) => r.registro_id !== registroId);
+    const res = await fetch(`/api/students/${student.id}/diario`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ daily_logs: lista }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      setRefreshKey((k) => k + 1);
+      window.location.reload();
+    }
+    return !!data.ok;
+  },
+  [student?.id, registros]
+);
 
-  if (!currentId) {
-    return (
-      <div className="space-y-4">
-        <StudentSelector students={students} currentId={currentId} placeholder="Selecione o estudante" />
-        <div className="bg-amber-50 text-amber-800 p-4 rounded-lg">
-          Selecione um estudante para registrar atendimentos.
-        </div>
-      </div>
-    );
-  }
-
-  if (!student && studentId) {
-    return (
-      <div className="space-y-4">
-        <StudentSelector students={students} currentId={currentId} />
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <p className="text-amber-800 font-medium">Estudante não encontrado</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!student) {
-    return (
-      <div className="space-y-4">
-        <StudentSelector students={students} currentId={currentId} />
-        <div className="text-slate-500 text-center py-8">
-          Selecione um estudante para visualizar o diário.
-        </div>
-      </div>
-    );
-  }
-
+if (!currentId) {
   return (
-    <div className="space-y-6">
-      <StudentSelector students={students} currentId={currentId} />
-
-      {student && (
-        <PEISummaryPanel peiData={peiData} studentName={student.name} />
-      )}
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-2xl min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg, boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
-        <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase">Estudante</div>
-          <div className="font-bold text-slate-800">{student.name}</div>
-        </div>
-        <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase">Série</div>
-          <div className="font-bold text-slate-800">{student.grade || "—"}</div>
-        </div>
-        <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase">Registros</div>
-          <div className="font-bold text-slate-800">{registros.length}</div>
-        </div>
+    <div className="space-y-4">
+      <StudentSelector students={students} currentId={currentId} placeholder="Selecione o estudante" />
+      <div className="bg-amber-50 text-amber-800 p-4 rounded-lg">
+        Selecione um estudante para registrar atendimentos.
       </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 mb-6">
-        {[
-          { id: "filtros" as TabId, label: "🔍 Filtros & Estatísticas", icon: Filter },
-          { id: "novo" as TabId, label: "➕ Novo Registro", icon: Plus },
-          { id: "lista" as TabId, label: "📋 Lista de Registros", icon: List },
-          { id: "relatorios" as TabId, label: "📊 Relatórios", icon: BarChart3 },
-          { id: "configuracoes" as TabId, label: "⚙️ Configurações", icon: Settings },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${activeTab === tab.id
-              ? "border-rose-600 text-rose-600"
-              : "border-transparent text-slate-600 hover:text-slate-900"
-              }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === "filtros" && (
-        <FiltrosTab students={students} registros={registrosOrdenados} />
-      )}
-      {activeTab === "novo" && (
-        <NovoRegistroTab studentId={student.id} onSave={saveRegistro} />
-      )}
-      {activeTab === "lista" && (
-        <ListaTab registros={registrosOrdenados} onDelete={deleteRegistro} />
-      )}
-      {activeTab === "relatorios" && (
-        <RelatoriosTab registros={registrosOrdenados} student={student} />
-      )}
-      {activeTab === "configuracoes" && (
-        <ConfiguracoesTab />
-      )}
     </div>
   );
+}
+
+if (!student && studentId) {
+  return (
+    <div className="space-y-4">
+      <StudentSelector students={students} currentId={currentId} />
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <p className="text-amber-800 font-medium">Estudante não encontrado</p>
+      </div>
+    </div>
+  );
+}
+
+if (!student) {
+  return (
+    <div className="space-y-4">
+      <StudentSelector students={students} currentId={currentId} />
+      <div className="text-slate-500 text-center py-8">
+        Selecione um estudante para visualizar o diário.
+      </div>
+    </div>
+  );
+}
+
+return (
+  <div className="space-y-6">
+    <StudentSelector students={students} currentId={currentId} />
+
+    {student && (
+      <PEISummaryPanel peiData={peiData} studentName={student.name} />
+    )}
+
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-2xl min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg, boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+      <div>
+        <div className="text-xs font-semibold text-slate-500 uppercase">Estudante</div>
+        <div className="font-bold text-slate-800">{student.name}</div>
+      </div>
+      <div>
+        <div className="text-xs font-semibold text-slate-500 uppercase">Série</div>
+        <div className="font-bold text-slate-800">{student.grade || "—"}</div>
+      </div>
+      <div>
+        <div className="text-xs font-semibold text-slate-500 uppercase">Registros</div>
+        <div className="font-bold text-slate-800">{registros.length}</div>
+      </div>
+    </div>
+
+    {/* Tabs */}
+    <div className="flex gap-2 border-b border-slate-200 mb-6">
+      {[
+        { id: "filtros" as TabId, label: "🔍 Filtros & Estatísticas", icon: Filter },
+        { id: "novo" as TabId, label: "➕ Novo Registro", icon: Plus },
+        { id: "lista" as TabId, label: "📋 Lista de Registros", icon: List },
+        { id: "relatorios" as TabId, label: "📊 Relatórios", icon: BarChart3 },
+        { id: "configuracoes" as TabId, label: "⚙️ Configurações", icon: Settings },
+      ].map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => setActiveTab(tab.id)}
+          className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${activeTab === tab.id
+            ? "border-rose-600 text-rose-600"
+            : "border-transparent text-slate-600 hover:text-slate-900"
+            }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+
+    {/* Tab Content */}
+    {activeTab === "filtros" && (
+      <FiltrosTab students={students} registros={registrosOrdenados} />
+    )}
+    {activeTab === "novo" && (
+      <NovoRegistroTab studentId={student.id} onSave={saveRegistro} />
+    )}
+    {activeTab === "lista" && (
+      <ListaTab registros={registrosOrdenados} onDelete={deleteRegistro} />
+    )}
+    {activeTab === "relatorios" && (
+      <RelatoriosTab registros={registrosOrdenados} student={student} />
+    )}
+    {activeTab === "configuracoes" && (
+      <ConfiguracoesTab />
+    )}
+  </div>
+);
 }
 
 // Aba: Filtros & Estatísticas

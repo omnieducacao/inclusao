@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Ignore internal design system artifacts
+    "omni-ds/**",
   ]),
 ]);
 
