@@ -18,7 +18,7 @@ type Workspace = {
   created_at?: string;
 };
 
-type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "avisos" | "termo" | "bugs" | "instagram";
+type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "avisos" | "termo" | "bugs" | "instagram" | "aparencia";
 
 const SEGMENT_OPTIONS: Record<string, string> = {
   EI: "Educação Infantil",
@@ -162,6 +162,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
           { id: "termo" as TabId, label: "📜 Termo" },
           { id: "bugs" as TabId, label: "🐛 Bugs" },
           { id: "instagram" as TabId, label: "📸 Feed" },
+          { id: "aparencia" as TabId, label: "🎨 Aparência" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -205,6 +206,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
       {activeTab === "termo" && <TermoTab />}
       {activeTab === "bugs" && <BugsTab />}
       {activeTab === "instagram" && <InstagramFeedTab />}
+      {activeTab === "aparencia" && <AparenciaTab />}
     </div>
 
   );
@@ -2395,6 +2397,274 @@ function InstagramFeedTab() {
                       </button>
                     </div>
                   </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Tab: Aparência — Customização de Cor e Ícone dos Cards da Home
+   ═══════════════════════════════════════════════════════════════ */
+
+const HOME_MODULES = [
+  { key: "estudantes", title: "Estudantes", defaultColor: "sky", defaultIcon: "estudantes_flat" },
+  { key: "pei", title: "Estratégias & PEI", defaultColor: "blue", defaultIcon: "pei_flat" },
+  { key: "pei-professor", title: "PEI - Professor", defaultColor: "teal", defaultIcon: "pei_flat" },
+  { key: "plano-curso", title: "Plano de Curso", defaultColor: "sky", defaultIcon: "central_inteligencia_flat" },
+  { key: "avaliacao-diagnostica", title: "Avaliação Diagnóstica", defaultColor: "blue", defaultIcon: "avaliacao_diagnostica_flat" },
+  { key: "avaliacao-processual", title: "Avaliação Processual", defaultColor: "green", defaultIcon: "dados_flat" },
+  { key: "paee", title: "Plano de Ação / PAEE", defaultColor: "violet", defaultIcon: "paee_flat" },
+  { key: "hub", title: "Hub de Inclusão", defaultColor: "cyan", defaultIcon: "hub_flat" },
+  { key: "diario", title: "Diário de Bordo", defaultColor: "rose", defaultIcon: "Diario_flat" },
+  { key: "monitoramento", title: "Evolução & Dados", defaultColor: "slate", defaultIcon: "dados_flat" },
+  { key: "pgi", title: "PGI", defaultColor: "presentation", defaultIcon: "pgi_flat" },
+  { key: "gestao", title: "Gestão de Usuários", defaultColor: "test", defaultIcon: "gestão_usuario_flat" },
+  { key: "config-escola", title: "Configuração Escola", defaultColor: "reports", defaultIcon: "configuracao_escola_flat" },
+];
+
+const COLOR_OPTIONS = [
+  { key: "sky", label: "Azul Índigo", hex: "#4F5BD5" },
+  { key: "blue", label: "Azul Vivo", hex: "#4285F4" },
+  { key: "teal", label: "Teal", hex: "#34A853" },
+  { key: "green", label: "Verde", hex: "#2E7D32" },
+  { key: "cyan", label: "Ciano", hex: "#34A853" },
+  { key: "violet", label: "Roxo", hex: "#9334E6" },
+  { key: "rose", label: "Rosa", hex: "#E8453C" },
+  { key: "amber", label: "Âmbar", hex: "#F57F17" },
+  { key: "slate", label: "Cinza", hex: "#F9AB00" },
+  { key: "presentation", label: "Verde Lima", hex: "#7CB342" },
+  { key: "table", label: "Azul Google", hex: "#1A73E8" },
+  { key: "test", label: "Azul PEI", hex: "#4285F4" },
+  { key: "reports", label: "Amarelo", hex: "#F9AB00" },
+];
+
+type CardCustomization = Record<string, { color?: string; icon?: string }>;
+
+function AparenciaTab() {
+  const [customizations, setCustomizations] = useState<CardCustomization>({});
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [flatIcons, setFlatIcons] = useState<string[]>([]);
+  const [editingModule, setEditingModule] = useState<string | null>(null);
+  const [iconSearch, setIconSearch] = useState("");
+
+  // Load saved customizations and available flat icons
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/admin/platform-config?key=card_customizations")
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.value) {
+            try {
+              setCustomizations(JSON.parse(d.value));
+            } catch { /* ignore parse errors */ }
+          }
+        })
+        .catch(() => { }),
+      fetch("/api/admin/flat-icons")
+        .then((r) => r.json())
+        .then((d) => setFlatIcons(d.icons || []))
+        .catch(() => {
+          // Fallback: use known icons
+          setFlatIcons([]);
+        }),
+    ]).finally(() => setLoading(false));
+  }, []);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/platform-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key: "card_customizations",
+          value: JSON.stringify(customizations),
+        }),
+      });
+      if (res.ok) {
+        alert("✅ Customizações de aparência salvas! Os cards serão atualizados ao recarregar a home.");
+      } else {
+        alert("Erro ao salvar.");
+      }
+    } catch {
+      alert("Erro de conexão.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function updateModule(moduleKey: string, field: "color" | "icon", value: string) {
+    setCustomizations((prev) => ({
+      ...prev,
+      [moduleKey]: {
+        ...prev[moduleKey],
+        [field]: value,
+      },
+    }));
+  }
+
+  function resetModule(moduleKey: string) {
+    setCustomizations((prev) => {
+      const next = { ...prev };
+      delete next[moduleKey];
+      return next;
+    });
+  }
+
+  const filteredIcons = flatIcons.filter((ic) =>
+    iconSearch ? ic.toLowerCase().includes(iconSearch.toLowerCase()) : true
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">🎨 Aparência dos Cards da Home</h3>
+            <p className="text-slate-600 text-sm mt-1">
+              Personalize a cor e o ícone de cada módulo na página inicial.
+            </p>
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Salvar alterações
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {HOME_MODULES.map((mod) => {
+              const custom = customizations[mod.key] || {};
+              const currentColor = custom.color || mod.defaultColor;
+              const currentIcon = custom.icon || mod.defaultIcon;
+              const isEditing = editingModule === mod.key;
+              const colorInfo = COLOR_OPTIONS.find((c) => c.key === currentColor);
+
+              return (
+                <div
+                  key={mod.key}
+                  className={`border rounded-xl p-4 transition-all ${isEditing ? "border-blue-300 bg-blue-50/30" : "border-slate-200 hover:border-slate-300"
+                    }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {/* Color preview */}
+                      <div
+                        className="w-8 h-8 rounded-lg border border-white shadow"
+                        style={{ backgroundColor: colorInfo?.hex || "#4285F4" }}
+                      />
+                      <div>
+                        <h4 className="font-semibold text-slate-800">{mod.title}</h4>
+                        <p className="text-xs text-slate-500">
+                          Cor: {colorInfo?.label || currentColor} · Ícone: {currentIcon}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setEditingModule(isEditing ? null : mod.key)}
+                        className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1"
+                      >
+                        {isEditing ? <X className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
+                        {isEditing ? "Fechar" : "Editar"}
+                      </button>
+                      {custom.color || custom.icon ? (
+                        <button
+                          onClick={() => resetModule(mod.key)}
+                          className="px-3 py-1.5 text-sm border border-amber-200 text-amber-600 rounded-lg hover:bg-amber-50"
+                        >
+                          Resetar
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {isEditing && (
+                    <div className="mt-4 space-y-4">
+                      {/* Color picker */}
+                      <div>
+                        <p className="text-sm font-semibold text-slate-700 mb-2">Cor do card</p>
+                        <div className="flex flex-wrap gap-2">
+                          {COLOR_OPTIONS.map((color) => (
+                            <button
+                              key={color.key}
+                              onClick={() => updateModule(mod.key, "color", color.key)}
+                              className={`w-10 h-10 rounded-lg border-2 transition-all flex items-center justify-center ${currentColor === color.key
+                                  ? "border-blue-500 scale-110 shadow-lg"
+                                  : "border-transparent hover:border-slate-300"
+                                }`}
+                              style={{ backgroundColor: color.hex }}
+                              title={color.label}
+                            >
+                              {currentColor === color.key && (
+                                <span className="text-white text-xs font-bold">✓</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Icon picker */}
+                      <div>
+                        <p className="text-sm font-semibold text-slate-700 mb-2">Ícone Lottie</p>
+                        <input
+                          type="text"
+                          placeholder="Buscar ícone..."
+                          value={iconSearch}
+                          onChange={(e) => setIconSearch(e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-3"
+                        />
+                        <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2 max-h-[280px] overflow-y-auto p-1">
+                          {filteredIcons.map((iconName) => {
+                            const isSelected = currentIcon === `flat/${iconName}`;
+                            return (
+                              <button
+                                key={iconName}
+                                onClick={() => updateModule(mod.key, "icon", `flat/${iconName}`)}
+                                className={`aspect-square rounded-lg border-2 p-1 transition-all hover:scale-105 flex items-center justify-center ${isSelected
+                                    ? "border-blue-500 bg-blue-50 shadow-md"
+                                    : "border-slate-200 hover:border-slate-300 bg-white"
+                                  }`}
+                                title={iconName.replace(/wired-flat-\d+-/, "").replace(/-hover.*/, "").replace(/-/g, " ")}
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={`/lottie/flat/${iconName}.json`}
+                                  alt=""
+                                  className="w-8 h-8 opacity-0"
+                                  onError={() => { }}
+                                />
+                                <span className="text-[9px] text-slate-500 absolute bottom-0 truncate w-full text-center px-0.5">
+                                  {iconName.replace(/wired-flat-\d+-/, "").replace(/-hover.*/, "").substring(0, 10)}
+                                </span>
+                              </button>
+                            );
+                          })}
+                          {filteredIcons.length === 0 && (
+                            <p className="col-span-full text-sm text-slate-500 text-center py-4">
+                              {flatIcons.length === 0
+                                ? "Nenhum ícone flat encontrado. Crie a API /api/admin/flat-icons."
+                                : "Nenhum ícone encontrado para a busca."}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

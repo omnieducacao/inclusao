@@ -111,6 +111,38 @@ export default async function RootPage() {
     console.error("[RootPage] KPI fetch error:", err);
   }
 
+  // ── Load card customizations from admin panel ──
+  type CardCustomization = Record<string, { color?: string; icon?: string }>;
+  let cardCustomizations: CardCustomization = {};
+  try {
+    if (!sessionNonNull.is_platform_admin || sessionNonNull.workspace_id) {
+      const sb = getSupabase();
+      const { data: configRow } = await sb
+        .from("platform_config")
+        .select("value")
+        .eq("key", "card_customizations")
+        .maybeSingle();
+      if (configRow?.value) {
+        cardCustomizations = JSON.parse(configRow.value as string);
+      }
+    }
+  } catch (err) {
+    console.error("[RootPage] card_customizations load error:", err);
+  }
+
+  // Helper to apply customization overrides to a module card
+  function applyCustomization<T extends { href: string; color: string; iconName: string }>(card: T): T & { lottieOverride?: string } {
+    // Extract module key from href (e.g., "/estudantes" -> "estudantes")
+    const key = card.href.replace(/^\//, "");
+    const custom = cardCustomizations[key];
+    if (!custom) return card;
+    return {
+      ...card,
+      color: custom.color || card.color,
+      lottieOverride: custom.icon || undefined,
+    };
+  }
+
   // ── Row 1: Módulos Principais ──
   const row1Raw = [
     { href: "/estudantes", iconName: "UsersFour" as const, title: "Estudantes", desc: "Gestão completa de estudantes e acompanhamento.", color: "sky", permission: "can_estudantes", badge: kpiBadges["Estudantes"] },
@@ -122,7 +154,7 @@ export default async function RootPage() {
     { href: "/paee", iconName: "PuzzlePiece" as const, title: "Plano de Ação / PAEE", desc: "Atendimento Educacional Especializado e sala de recursos.", color: "violet", permission: "can_paee" },
     { href: "/hub", iconName: "RocketLaunch" as const, title: "Hub de Inclusão", desc: "Ferramentas de inteligência artificial para criar e adaptar.", color: "cyan", permission: "can_hub" },
   ];
-  const row1 = row1Raw.filter((m) => canAccessModule(m.permission));
+  const row1 = row1Raw.filter((m) => canAccessModule(m.permission)).map(applyCustomization);
 
   // ── Row 2: Acompanhamento + Referência ──
   const row2Raw = [
@@ -134,7 +166,7 @@ export default async function RootPage() {
     { href: "/pgi", iconName: "ClipboardText" as const, title: "PGI", desc: "Plano de Gestão Inclusiva da escola.", color: "presentation", permission: "can_gestao" },
     { href: "/infos", iconName: "BookBookmark" as const, title: "Central de Inteligência", desc: "Fundamentos pedagógicos, legislação e ferramentas.", color: "table" },
   ];
-  const row2 = row2Raw.filter((m) => !m.permission || canAccessModule(m.permission));
+  const row2 = row2Raw.filter((m) => !m.permission || canAccessModule(m.permission)).map(applyCustomization);
 
   // ── Row 3: Gestão e Configuração ──
   const row3Raw: Array<{ href: string; iconName: string; title: string; desc: string; color: string; permission?: string }> = [
@@ -144,7 +176,7 @@ export default async function RootPage() {
   const row3Base = sessionNonNull.is_platform_admin
     ? [...row3Raw, { href: "/admin", iconName: "Gear", title: "Admin Plataforma", desc: "Gerenciamento completo da plataforma", color: "reports" }]
     : row3Raw;
-  const row3 = row3Base.filter((m) => !m.permission || canAccessModule(m.permission));
+  const row3 = row3Base.filter((m) => !m.permission || canAccessModule(m.permission)).map(applyCustomization);
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom right, var(--bg-primary), var(--bg-gradient-via), var(--bg-gradient-to))' }}>

@@ -33,6 +33,8 @@ async function loadIcons() {
       Sparkle: phosphor.Sparkle,
       UsersThree: phosphor.UsersThree,
       Student: phosphor.Student,
+      Brain: phosphor.Brain,
+      Users: phosphor.Users,
     };
     return iconMap;
   } catch (err) {
@@ -56,6 +58,8 @@ function getLottieMaps() {
     ClipboardText: "pgi_flat", // PGI 📄
     Gear: "configuracao_escola_flat", // Admin ⚙️
     BookBookmark: "central_inteligencia_flat", // Central Inteligência 📚
+    Brain: "avaliacao_diagnostica_flat", // Avaliação Diagnóstica 🧠
+    Users: "estudantes_flat", // Família 👨‍👩‍👧
   };
 
   // Mapeamento de ícones Phosphor para Lottie OUTLINE COLORIDOS (minimalistas coloridas) - para usar como estáticos na home
@@ -71,6 +75,8 @@ function getLottieMaps() {
     ClipboardText: "pgi_flat", // PGI 📄
     Gear: "configuracao_escola_flat", // Admin ⚙️
     BookBookmark: "central_inteligencia_flat", // Central Inteligência 📚
+    Brain: "avaliacao_diagnostica_flat", // Avaliação Diagnóstica 🧠
+    Users: "estudantes_flat", // Família 👨‍👩‍👧
   };
 
   return {
@@ -93,6 +99,7 @@ type ModuleCard = {
   color: string;
   badge?: string | BadgeInfo;
   useLottie?: boolean; // Flag para ativar Lottie no hover
+  lottieOverride?: string; // Override de animação Lottie via admin
 };
 
 type ModuleCardsProps = {
@@ -178,7 +185,7 @@ export function ModuleCardsLottie({
           if (!Icon) return null;
           const colors = getColorClasses(m.color, isDark);
           const lottieMaps = getLottieMaps();
-          const lottieAnimation = lottieMaps.default[m.iconName];
+          const lottieAnimation = m.lottieOverride || lottieMaps.default[m.iconName];
           const shouldUseLottie = (m.useLottie ?? useLottieOnHover) || useLottieByDefault;
 
           return (

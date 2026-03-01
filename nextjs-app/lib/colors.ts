@@ -9,6 +9,8 @@ export const colorPalette: Record<string, { bg: string; icon: string; text: stri
   infographic: { bg: "#F0F4C3", icon: "#673AB7", text: "#5A2FA0" },
   presentation: { bg: "#F1F5E9", icon: "#7CB342", text: "#6A9A38" },
   table: { bg: "#E4F2FD", icon: "#1A73E8", text: "#1567C8" },
+  green: { bg: "#E8F5E9", icon: "#2E7D32", text: "#256629" },
+  amber: { bg: "#FFF8E1", icon: "#F57F17", text: "#E65100" },
 };
 
 // Paleta dark mode — fundos escuros com matiz sutil do accent
@@ -22,6 +24,8 @@ export const colorPaletteDark: Record<string, { bg: string; icon: string; text: 
   infographic: { bg: "rgba(103, 58, 183, 0.10)", icon: "#9B6FD0", text: "#B48FDE" },
   presentation: { bg: "rgba(124, 179, 66, 0.10)", icon: "#9AC960", text: "#AED87A" },
   table: { bg: "rgba(26, 115, 232, 0.10)", icon: "#4D9BF0", text: "#70B0F5" },
+  green: { bg: "rgba(46, 125, 50, 0.10)", icon: "#4CAF50", text: "#66BB6A" },
+  amber: { bg: "rgba(245, 127, 23, 0.10)", icon: "#FFB74D", text: "#FFCC80" },
 };
 
 // Mapeamento de cores para módulos
@@ -36,6 +40,8 @@ export const moduleColors: Record<string, string> = {
   test: "test",
   presentation: "presentation",
   table: "table",
+  green: "green",
+  amber: "amber",
 };
 
 export function getColorClasses(colorKey: string, isDark?: boolean) {

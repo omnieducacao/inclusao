@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Eye,
   Loader2 as SimLoader,
+  Heart,
 } from "lucide-react";
 
 type WorkspaceMember = {
@@ -34,6 +35,16 @@ type WorkspaceMember = {
   can_gestao: boolean;
   link_type: "todos" | "turma" | "tutor";
   active: boolean;
+};
+
+type FamilyResponsavel = {
+  id: string;
+  nome: string;
+  email: string;
+  telefone?: string | null;
+  parentesco?: string | null;
+  active: boolean;
+  created_at: string;
 };
 
 type WorkspaceMaster = { workspace_id: string; email: string; nome: string } | null;
@@ -57,6 +68,7 @@ const LINK_OPTIONS: { value: "todos" | "turma" | "tutor"; label: string }[] = [
 
 export function GestaoClient() {
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
+  const [familyResponsaveis, setFamilyResponsaveis] = useState<FamilyResponsavel[]>([]);
   const [master, setMaster] = useState<WorkspaceMaster>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -67,17 +79,21 @@ export function GestaoClient() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [membersRes, masterRes] = await Promise.all([
+      const [membersRes, masterRes, familyRes] = await Promise.all([
         fetch("/api/members"),
         fetch("/api/members?master=1"),
+        fetch("/api/familia/responsaveis"),
       ]);
       const membersData = await membersRes.json();
       const masterData = await masterRes.json();
+      const familyData = await familyRes.json();
       setMembers(membersData.members ?? []);
       setMaster(masterData.master ?? null);
+      setFamilyResponsaveis(familyData.responsaveis ?? []);
     } catch {
       setMembers([]);
       setMaster(null);
+      setFamilyResponsaveis([]);
     } finally {
       setLoading(false);
     }
@@ -89,6 +105,8 @@ export function GestaoClient() {
 
   const activeMembers = members.filter((m) => m.active);
   const inactiveMembers = members.filter((m) => !m.active);
+  const activeFamily = familyResponsaveis.filter((f) => f.active !== false);
+  const inactiveFamily = familyResponsaveis.filter((f) => f.active === false);
 
   return (
     <div className="space-y-6">
@@ -123,7 +141,7 @@ export function GestaoClient() {
         </button>
         {showForm && (
           <div className="border-t border-slate-100 p-4 bg-slate-50">
-            <NovoUsuarioForm
+            <NovoUsuarioUnificado
               onSuccess={() => {
                 loadData();
                 setShowForm(false);
@@ -183,8 +201,34 @@ export function GestaoClient() {
         )}
       </div>
 
+      {/* Responsáveis / Família */}
+      <div>
+        <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
+          <Heart className="w-5 h-5 text-amber-600" />
+          Responsáveis / Família
+        </h3>
+        {loading ? (
+          <p className="text-slate-500">Carregando…</p>
+        ) : activeFamily.length === 0 ? (
+          <p className="text-sm text-slate-500 italic p-4 bg-slate-50 rounded-lg">
+            Nenhum responsável cadastrado. Use o formulário acima e selecione "Família" para criar.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {activeFamily.map((f) => (
+              <FamilyCard
+                key={f.id}
+                responsavel={f}
+                onAction={loadData}
+                onError={(err) => setMessage({ type: "err", text: err })}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Usuários desativados */}
-      {inactiveMembers.length > 0 && (
+      {(inactiveMembers.length > 0 || inactiveFamily.length > 0) && (
         <div>
           <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
             <Trash2 className="w-5 h-5" />
@@ -201,6 +245,16 @@ export function GestaoClient() {
                 onAction={loadData}
                 onError={(err) => setMessage({ type: "err", text: err })}
               />
+            ))}
+            {inactiveFamily.map((f) => (
+              <div key={f.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50">
+                <div className="flex justify-between items-center">
+                  <p className="text-slate-700">
+                    <Heart className="w-4 h-4 inline mr-1 text-amber-500" />
+                    {f.nome} — {f.email} (inativo · família)
+                  </p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -691,7 +745,7 @@ function MemberCard({
           </div>
           <p className="text-xs text-slate-500 mt-1">Vínculo: {linkTxt}</p>
         </div>
-        <div className="flex gap-2 flex-shrink-0 flex-wrap">
+        <div className="flex gap-2 shrink-0 flex-wrap">
           <SimularButton memberId={member.id} memberName={member.nome} />
           <button
             type="button"
@@ -1172,6 +1226,306 @@ function SimularButton({ memberId, memberName }: { memberId: string; memberName:
       onClick={handleSimulate}
       disabled={loading}
       className="px-3 py-1.5 border border-purple-200 text-purple-600 rounded-lg text-sm hover:bg-purple-50 flex items-center gap-2 disabled:opacity-50"
+    >
+      {loading ? <SimLoader className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+      Simular
+    </button>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   NovoUsuarioUnificado — Seletor de tipo (Membro / Família)
+   ═══════════════════════════════════════════════════ */
+function NovoUsuarioUnificado({
+  onSuccess,
+  onError,
+}: {
+  onSuccess: () => void;
+  onError: (err: string) => void;
+}) {
+  const [tipo, setTipo] = useState<"membro" | "familia">("membro");
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setTipo("membro")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tipo === "membro"
+            ? "bg-sky-600 text-white"
+            : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+            }`}
+        >
+          <User className="w-4 h-4 inline mr-1.5" />
+          Membro / Professor
+        </button>
+        <button
+          type="button"
+          onClick={() => setTipo("familia")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tipo === "familia"
+            ? "bg-amber-600 text-white"
+            : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+            }`}
+        >
+          <Heart className="w-4 h-4 inline mr-1.5" />
+          Família / Responsável
+        </button>
+      </div>
+
+      {tipo === "membro" ? (
+        <NovoUsuarioForm onSuccess={onSuccess} onError={onError} />
+      ) : (
+        <NovoFamiliaForm onSuccess={onSuccess} onError={onError} />
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   NovoFamiliaForm — Cria responsável com vínculo a estudantes
+   ═══════════════════════════════════════════════════ */
+function NovoFamiliaForm({
+  onSuccess,
+  onError,
+}: {
+  onSuccess: () => void;
+  onError: (err: string) => void;
+}) {
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [parentesco, setParentesco] = useState("");
+  const [studentIds, setStudentIds] = useState<string[]>([]);
+  const [students, setStudents] = useState<Array<{ id: string; name: string; grade?: string; class_group?: string }>>([]);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/students")
+      .then((r) => r.json())
+      .then((d) => {
+        setStudents(
+          (d.students || []).map((s: Record<string, unknown>) => ({
+            id: s.id as string,
+            name: s.name as string,
+            grade: s.grade as string | undefined,
+            class_group: s.class_group as string | undefined,
+          }))
+        );
+      })
+      .catch(() => { });
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nome.trim() || !email.trim() || !senha.trim()) {
+      onError("Nome, e-mail e senha são obrigatórios.");
+      return;
+    }
+    if (senha.length < 4) {
+      onError("Senha deve ter no mínimo 4 caracteres.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/familia/responsaveis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome: nome.trim(),
+          email: email.trim().toLowerCase(),
+          senha,
+          telefone: telefone.trim() || undefined,
+          parentesco: parentesco.trim() || undefined,
+          studentIds: studentIds.length > 0 ? studentIds : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        onError(data.error || "Erro ao cadastrar responsável.");
+        return;
+      }
+      onSuccess();
+    } catch {
+      onError("Erro de conexão. Tente novamente.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <input
+            type="text"
+            placeholder="Nome completo *"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          />
+          <input
+            type="email"
+            placeholder="Email *"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          />
+          <input
+            type="password"
+            placeholder="Senha * (mín. 4 caracteres)"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          />
+          <input
+            type="text"
+            placeholder="Telefone"
+            value={telefone}
+            onChange={(e) => setTelefone(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          />
+          <input
+            type="text"
+            placeholder="Parentesco (Mãe, Pai, Avó, Tutor...)"
+            value={parentesco}
+            onChange={(e) => setParentesco(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-slate-700 mb-2">Vincular a estudante(s)</p>
+          <select
+            multiple
+            value={studentIds}
+            onChange={(e) => {
+              const selected = Array.from(e.target.selectedOptions, (opt) => opt.value);
+              setStudentIds(selected);
+            }}
+            size={Math.min(students.length || 1, 8)}
+            className="w-full px-2 py-1.5 border border-slate-200 rounded text-sm"
+          >
+            {students.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} ({s.grade || "—"} - {s.class_group || "—"})
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-slate-500 mt-1">
+            {studentIds.length > 0
+              ? `${studentIds.length} estudante(s) selecionado(s)`
+              : "Selecione os estudantes (segure Ctrl/Cmd para múltiplos)"}
+          </p>
+          {students.length === 0 && (
+            <p className="text-xs text-amber-600 mt-1">
+              Cadastre estudantes primeiro no módulo PEI ou Estudantes.
+            </p>
+          )}
+
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-xs text-amber-800">
+              <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
+              O responsável poderá acessar a área <strong>Família</strong> usando este e-mail e senha.
+              Envie as credenciais por canal seguro.
+            </p>
+          </div>
+        </div>
+      </div>
+      <button
+        type="submit"
+        disabled={saving}
+        className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm hover:bg-amber-700 disabled:opacity-60"
+      >
+        {saving ? "Cadastrando…" : "Cadastrar responsável"}
+      </button>
+    </form>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   FamilyCard — Card de responsável na lista
+   ═══════════════════════════════════════════════════ */
+function FamilyCard({
+  responsavel,
+  onAction,
+  onError,
+}: {
+  responsavel: FamilyResponsavel;
+  onAction: () => void;
+  onError: (err: string) => void;
+}) {
+  return (
+    <div
+      className="p-6 rounded-2xl bg-white min-h-[120px]"
+      style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1px solid rgba(226,232,240,0.6)" }}
+    >
+      <div className="flex justify-between items-start gap-4">
+        <div>
+          <h4 className="font-medium text-slate-800 flex items-center gap-2">
+            <Heart className="w-5 h-5 text-amber-600" />
+            {responsavel.nome}
+            <span className="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-normal">
+              Família
+            </span>
+          </h4>
+          <p className="text-sm text-slate-600 mt-0.5">
+            {responsavel.email}
+            {responsavel.telefone && ` · Tel: ${responsavel.telefone}`}
+          </p>
+          {responsavel.parentesco && (
+            <p className="text-xs text-slate-500 mt-1">Parentesco: {responsavel.parentesco}</p>
+          )}
+        </div>
+        <div className="flex gap-2 shrink-0 flex-wrap">
+          <SimularFamilyButton responsavelId={responsavel.id} responsavelName={responsavel.nome} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   SimularFamilyButton — Simula acesso como família
+   ═══════════════════════════════════════════════════ */
+function SimularFamilyButton({
+  responsavelId,
+  responsavelName,
+}: {
+  responsavelId: string;
+  responsavelName: string;
+}) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function handleSimulate() {
+    if (!confirm(`Iniciar simulação como "${responsavelName}"? Você verá a plataforma como este responsável (área Família).`)) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/simulate-family", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ family_responsible_id: responsavelId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        router.push("/familia");
+        router.refresh();
+      } else {
+        alert(data.error || "Erro ao simular.");
+      }
+    } catch {
+      alert("Erro de conexão.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleSimulate}
+      disabled={loading}
+      className="px-3 py-1.5 border border-amber-200 text-amber-600 rounded-lg text-sm hover:bg-amber-50 flex items-center gap-2 disabled:opacity-50"
     >
       {loading ? <SimLoader className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
       Simular
