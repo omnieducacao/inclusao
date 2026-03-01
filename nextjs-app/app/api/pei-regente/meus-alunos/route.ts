@@ -105,8 +105,10 @@ export async function GET() {
                 .from("classes")
                 .select("class_group, grades(code, label)")
                 .in("id", classIds);
-            (classes || []).forEach((c: { class_group?: string; grades?: { code?: string; label?: string } | null }) => {
-                const label = c.grades && typeof c.grades === "object" ? (c.grades.label || c.grades.code || "") : "";
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (classes || []).forEach((c: any) => {
+                const g = Array.isArray(c.grades) ? c.grades[0] : c.grades;
+                const label = g && typeof g === "object" ? (g.label || g.code || "") : "";
                 if (label && c.class_group) classGroups.add(`${label}|${c.class_group}`);
             });
         }

@@ -34,6 +34,7 @@ vi.mock("@/lib/ai-engines", () => ({
         Promise.resolve("Atividade gerada com sucesso para teste.")
     ),
     getEngineError: vi.fn(() => null),
+    getEngineErrorWithWorkspace: vi.fn(() => Promise.resolve(null)),
 }));
 
 import { POST } from "@/app/api/hub/criar-atividade/route";

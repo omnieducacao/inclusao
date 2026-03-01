@@ -53,6 +53,8 @@ async function loadNavIcons() {
       SignOut: phosphor.SignOut,
       Sparkle: phosphor.Sparkle,
       BookBookmark: phosphor.BookBookmark,
+      Exam: phosphor.Exam,
+      Brain: phosphor.Brain,
     };
   } catch (err) {
     console.warn("[Navbar] Failed to load phosphor-react:", err);
@@ -66,10 +68,10 @@ function getNavLottieMap(): Record<string, string> {
     "/": "system-solid-41-home-hover-pinch", // Home
     "/estudantes": "estudantes_simples", // Estudantes
     "/pei": "pei_simples", // PEI
-    "/pei-regente": "pei_simples", // PEI Regente (usa mesmo ícone)
-    "/plano-curso": "pei_simples", // Plano de Curso
-    "/avaliacao-diagnostica": "pei_simples", // Avaliação Diagnóstica
-    "/avaliacao-processual": "pei_simples", // Avaliação Processual
+    "/pei-regente": "pei_simples", // PEI Regente
+    "/plano-curso": "central_inteligencia_simples", // Plano de Curso
+    "/avaliacao-diagnostica": "hub_simples", // Avaliação Diagnóstica
+    "/avaliacao-processual": "dados_simples", // Avaliação Processual
     "/paee": "paee_simples", // PAEE
     "/hub": "hub_simples", // Hub
     "/diario": "diario_simples", // Diário
@@ -88,8 +90,8 @@ function getNavItems(icons: ReturnType<typeof loadNavIcons> extends Promise<infe
     { href: "/estudantes", label: "Estudantes", icon: icons.UsersFour, permission: "can_estudantes", group: "main" },
     { href: "/pei", label: "PEI", icon: icons.FileText, permission: "can_pei", group: "modules" },
     { href: "/pei-regente", label: "PEI - Professor", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
-    { href: "/plano-curso", label: "Plano de Curso", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
-    { href: "/avaliacao-diagnostica", label: "Avaliação Diagnóstica", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
+    { href: "/plano-curso", label: "Plano de Curso", icon: icons.BookBookmark, permission: "can_pei_professor", group: "modules" },
+    { href: "/avaliacao-diagnostica", label: "Avaliação Diagnóstica", icon: icons.Exam, permission: "can_pei_professor", group: "modules" },
     { href: "/avaliacao-processual", label: "Avaliação Processual", icon: icons.ChartLineUp, permission: "can_pei_professor", group: "modules" },
     { href: "/paee", label: "PAEE", icon: icons.PuzzlePiece, permission: "can_paee", group: "modules" },
     { href: "/hub", label: "Hub", icon: icons.RocketLaunch, permission: "can_hub", group: "modules" },

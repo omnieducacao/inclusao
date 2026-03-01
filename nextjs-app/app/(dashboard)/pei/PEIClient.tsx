@@ -79,7 +79,7 @@ import {
   CheckCircle,
   AlertTriangle,
   Send,
-  ChartLineUp,
+
   TrendingUp,
   ExternalLink,
 } from "lucide-react";
@@ -2960,7 +2960,7 @@ function DashboardTab({
       {/* Evolução na escala Omnisfera (Avaliação Processual) */}
       <div className="p-4 rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white">
         <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
-          <ChartLineUp className="w-5 h-5 text-emerald-600" />
+          <TrendingUp className="w-5 h-5 text-emerald-600" />
           Evolução na escala Omnisfera
         </h4>
         <p className="text-xs text-slate-600 mb-3">
@@ -2985,8 +2985,8 @@ function DashboardTab({
                   <span className="text-slate-500">
                     {e.periodos.length} bim.{e.media_mais_recente != null ? ` · Média: ${e.media_mais_recente}` : ""}
                   </span>
-                  {e.tendencia === "melhora" && <TrendingUp className="w-4 h-4 text-emerald-600" title="Tendência: melhora" />}
-                  {e.tendencia === "regressao" && <TrendingUp className="w-4 h-4 text-red-500 rotate-180" title="Tendência: atenção" />}
+                  {e.tendencia === "melhora" && <span title="Tendência: melhora"><TrendingUp className="w-4 h-4 text-emerald-600" /></span>}
+                  {e.tendencia === "regressao" && <span title="Tendência: atenção"><TrendingUp className="w-4 h-4 text-red-500 rotate-180" /></span>}
                 </div>
               ))}
             </div>

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { StudentSelector } from "@/components/StudentSelector";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
-import { CheckCircle2, Info, AlertTriangle, Save, Sparkles, Loader2, ChartLineUp, TrendingUp, ExternalLink } from "lucide-react";
+import { CheckCircle2, Info, AlertTriangle, Save, Sparkles, Loader2, TrendingUp, ExternalLink } from "lucide-react";
 import { OmniLoader } from "@/components/OmniLoader";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 
@@ -392,7 +392,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
             {/* Card Avaliação Processual — evolução por disciplina (escala 0–4 Omnisfera) */}
             <div className="p-6 rounded-2xl bg-white min-h-[120px] mt-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(16,185,129,0.25)' }}>
               <h4 className="font-medium text-emerald-700 mb-2 flex items-center gap-2">
-                <ChartLineUp className="w-4 h-4" />
+                <TrendingUp className="w-4 h-4" />
                 Avaliação Processual
               </h4>
               <p className="text-xs text-slate-500 mb-3">
@@ -415,8 +415,8 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
                         <span className="text-slate-500">
                           {e.periodos.length} bim.{e.media_mais_recente != null ? ` · Média recente: ${e.media_mais_recente}` : ""}
                         </span>
-                        {e.tendencia === "melhora" && <TrendingUp className="w-4 h-4 text-emerald-600" title="Tendência: melhora" />}
-                        {e.tendencia === "regressao" && <TrendingUp className="w-4 h-4 text-red-500 rotate-180" title="Tendência: atenção" />}
+                        {e.tendencia === "melhora" && <span title="Tendência: melhora"><TrendingUp className="w-4 h-4 text-emerald-600" /></span>}
+                        {e.tendencia === "regressao" && <span title="Tendência: atenção"><TrendingUp className="w-4 h-4 text-red-500 rotate-180" /></span>}
                       </div>
                     ))}
                   </div>

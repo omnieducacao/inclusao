@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, FileText, ChartLineUp, Loader2, CheckCircle2, PenLine } from "lucide-react";
+import { ArrowLeft, FileText, TrendingUp, Loader2, CheckCircle2, PenLine } from "lucide-react";
 
 type EstudanteData = {
   estudante: { id: string; name: string; grade: string | null; class_group: string | null };
@@ -56,9 +56,9 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
         setData((prev) =>
           prev
             ? {
-                ...prev,
-                ciencia_pei: { acknowledged: true, acknowledged_at: new Date().toISOString() },
-              }
+              ...prev,
+              ciencia_pei: { acknowledged: true, acknowledged_at: new Date().toISOString() },
+            }
             : prev
         );
       } else if (!res.ok) {
@@ -146,7 +146,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
         {/* Evolução Processual */}
         <div className="p-6 rounded-2xl bg-white border border-slate-200">
           <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
-            <ChartLineUp className="w-5 h-5 text-emerald-600" />
+            <TrendingUp className="w-5 h-5 text-emerald-600" />
             Evolução (escala 0–4)
           </h3>
           {evolucao?.evolucao?.length > 0 ? (

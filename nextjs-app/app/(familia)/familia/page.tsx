@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Users, FileText, ChartLineUp, Loader2 } from "lucide-react";
+import { Users, FileText, TrendingUp, Loader2 } from "lucide-react";
 
 type Estudante = {
   id: string;
@@ -69,7 +69,7 @@ export default function FamiliaDashboardPage() {
                   <div className="flex items-center gap-2 mt-3 text-slate-600">
                     <FileText className="w-4 h-4" />
                     <span className="text-s-xs">Ver PEI e evolução</span>
-                    <ChartLineUp className="w-4 h-4 ml-auto" />
+                    <TrendingUp className="w-4 h-4 ml-auto" />
                   </div>
                 </div>
               </div>

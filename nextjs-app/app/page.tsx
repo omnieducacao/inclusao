@@ -116,7 +116,7 @@ export default async function RootPage() {
     { href: "/estudantes", iconName: "UsersFour" as const, title: "Estudantes", desc: "Gestão completa de estudantes e acompanhamento.", color: "sky", permission: "can_estudantes", badge: kpiBadges["Estudantes"] },
     { href: "/pei", iconName: "Student" as const, title: "Estratégias & PEI", desc: "Plano Educacional Individual com IA e acompanhamento.", color: "blue", permission: "can_pei", badge: kpiBadges["Estratégias & PEI"] },
     { href: "/pei-regente", iconName: "BookOpen" as const, title: "PEI - Professor", desc: "Plano de ensino, avaliação diagnóstica e PEI por disciplina.", color: "teal", permission: "can_pei_professor" },
-    { href: "/plano-curso", iconName: "BookOpen" as const, title: "Plano de Curso", desc: "Planejamento pedagógico por componente curricular e série.", color: "sky", permission: "can_pei_professor" },
+    { href: "/plano-curso", iconName: "BookBookmark" as const, title: "Plano de Curso", desc: "Planejamento pedagógico por componente curricular e série.", color: "sky", permission: "can_pei_professor" },
     { href: "/avaliacao-diagnostica", iconName: "Brain" as const, title: "Avaliação Diagnóstica", desc: "Gere questões com IA, aplique e identifique o nível Omnisfera.", color: "blue", permission: "can_pei_professor" },
     { href: "/avaliacao-processual", iconName: "ChartLineUp" as const, title: "Avaliação Processual", desc: "Acompanhe a evolução do estudante ao longo do ano letivo.", color: "green", permission: "can_pei_professor", badge: kpiBadges["Avaliação Processual"] },
     { href: "/paee", iconName: "PuzzlePiece" as const, title: "Plano de Ação / PAEE", desc: "Atendimento Educacional Especializado e sala de recursos.", color: "violet", permission: "can_paee" },
