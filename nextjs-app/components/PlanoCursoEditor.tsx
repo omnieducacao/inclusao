@@ -105,33 +105,14 @@ function emptyBloco(): SequenciaBloco {
     };
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+// ─── Styles CSS -> Tailwind ─────────────────────────────────────────────────────────────
 
-const cardS: React.CSSProperties = {
-    borderRadius: 14, border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-    backgroundColor: "var(--bg-secondary, rgba(15,23,42,.4))", overflow: "hidden",
-};
-const headerS: React.CSSProperties = {
-    display: "flex", alignItems: "center", gap: 8, padding: "12px 16px",
-    borderBottom: "1px solid var(--border-default, rgba(148,163,184,.1))",
-    backgroundColor: "var(--bg-tertiary, rgba(15,23,42,.3))",
-};
-const bodyS: React.CSSProperties = { padding: 16 };
-const labelS: React.CSSProperties = {
-    fontSize: 13, fontWeight: 600, color: "var(--text-secondary, #cbd5e1)", marginBottom: 6, display: "block",
-};
-const selectS: React.CSSProperties = {
-    width: "100%", padding: "10px 12px", borderRadius: 10,
-    background: "var(--bg-primary, rgba(2,6,23,.5))", color: "var(--text-primary, #e2e8f0)",
-    border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-    fontSize: 14, cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif",
-};
-const textareaS: React.CSSProperties = {
-    width: "100%", minHeight: 60, padding: 10, borderRadius: 10,
-    background: "var(--bg-primary, rgba(2,6,23,.5))", color: "var(--text-primary, #e2e8f0)",
-    border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-    fontSize: 13, lineHeight: 1.5, resize: "vertical", fontFamily: "'Plus Jakarta Sans', sans-serif",
-};
+const cardC = "rounded-2xl border border-(--border-default) bg-white dark:bg-slate-900/40 overflow-hidden shadow-sm";
+const headerC = "flex items-center gap-2 px-5 py-3.5 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50 dark:bg-slate-800/30";
+const bodyC = "p-5";
+const labelC = "text-[13px] font-bold text-slate-600 dark:text-slate-400 mb-2 block";
+const selectC = "w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all text-sm cursor-pointer font-sans shadow-sm";
+const textareaC = "w-full min-h-[60px] p-3.5 rounded-xl bg-white dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all text-[13px] leading-relaxed resize-y font-sans shadow-sm";
 
 // ─── Tag Selector ─────────────────────────────────────────────────────────────
 
@@ -140,7 +121,7 @@ function TagSelector({ options, selected, onToggle, label, color = "#6366f1" }: 
 }) {
     return (
         <div>
-            <label style={labelS}>{label}</label>
+            <label className={labelC}>{label}</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {options.map(o => {
                     const active = selected.includes(o);
@@ -165,7 +146,7 @@ function BloomObjectives({ selected, onToggle }: { selected: string[]; onToggle:
     const [expandedCat, setExpandedCat] = useState<string | null>(null);
     return (
         <div>
-            <label style={labelS}>Objetivos de Aprendizagem (Taxonomia de Bloom)</label>
+            <label className={labelC}>Objetivos de Aprendizagem (Taxonomia de Bloom)</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 4 }}>
                 {Object.keys(OBJETIVOS_BLOOM).map(cat => (
                     <button key={cat} onClick={() => setExpandedCat(expandedCat === cat ? null : cat)} type="button" style={{
@@ -451,28 +432,34 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
             {iaLoading && <OmniLoader engine="red" variant="overlay" module="plano_curso" />}
 
             {/* Header */}
-            <div style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)", borderRadius: 14, padding: "18px 22px", color: "#fff" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <BookOpen size={22} />
+            <div className="bg-[linear-gradient(135deg,#0ea5e9_0%,#0284c7_100%)] rounded-2xl p-5 text-white shadow-premium relative overflow-hidden">
+                {/* Efeito de brilho sutíl no header */}
+                <div className="absolute inset-0 bg-white/5 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-size-[250%_250%,100%_100%] animate-aurora pointer-events-none" />
+
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm shadow-inner">
+                            <BookOpen size={24} className="text-white drop-shadow-md" />
+                        </div>
                         <div>
-                            <h4 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Plano de Curso — {componente}</h4>
-                            <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
+                            <h4 className="m-0 text-lg font-bold tracking-tight text-white drop-shadow-sm">Plano de Curso — {componente}</h4>
+                            <p className="m-0 text-sm font-medium text-sky-100">
                                 {serie}{bncc && <> · BNCC integrada ({bnccDisciplinas.length} comp.)</>}
                                 {plano.blocos.length > 0 && <> · {plano.blocos.length} bloco{plano.blocos.length !== 1 ? "s" : ""}</>}
                             </p>
                         </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        {saved && <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "#bae6fd" }}><CheckCircle2 size={14} /> Salvo</span>}
-                        {totalHabs > 0 && <span style={{ background: "rgba(255,255,255,.2)", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>{totalHabs} hab.</span>}
+                    <div className="flex items-center gap-3">
+                        {saved && <span className="flex items-center gap-1.5 text-xs font-bold text-sky-100 bg-black/20 px-2.5 py-1 rounded-full"><CheckCircle2 size={14} /> Salvo</span>}
+                        {totalHabs > 0 && <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold shadow-inner">{totalHabs} hab.</span>}
                         {planoId && (
-                            <button onClick={deletarPlano} disabled={deleting} type="button" style={{
-                                display: "flex", alignItems: "center", gap: 4, padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700,
-                                border: "1px solid rgba(239,68,68,.4)", background: "rgba(239,68,68,.15)", color: "#fca5a5",
-                                cursor: deleting ? "not-allowed" : "pointer", transition: "all .2s",
-                            }}>
-                                {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />} Apagar
+                            <button
+                                onClick={deletarPlano}
+                                disabled={deleting}
+                                type="button"
+                                className={`btn-premium btn-premium-danger px-3 py-1.5 text-xs rounded-lg ${deleting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            >
+                                {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={13} strokeWidth={2.5} />} Apagar
                             </button>
                         )}
                     </div>
@@ -480,26 +467,31 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
             </div>
 
             {/* Período toggle */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                <div style={{ display: "flex", gap: 3, padding: 3, borderRadius: 10, background: "var(--bg-tertiary, rgba(15,23,42,.4))" }}>
+            <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/50">
                     {(["bimestre", "trimestre"] as const).map(tipo => (
-                        <button key={tipo} onClick={() => { setPeriodoTipo(tipo); setPlano(p => ({ ...p, bimestre: tipo === "bimestre" ? BIMESTRES[0] : TRIMESTRES[0] })); }} type="button" style={{
-                            padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, border: "none",
-                            background: periodoTipo === tipo ? "rgba(14,165,233,.15)" : "transparent",
-                            color: periodoTipo === tipo ? "#38bdf8" : "var(--text-muted, #94a3b8)",
-                            cursor: "pointer", transition: "all .2s", textTransform: "capitalize",
-                        }}>{tipo}</button>
+                        <button
+                            key={tipo}
+                            onClick={() => { setPeriodoTipo(tipo); setPlano(p => ({ ...p, bimestre: tipo === "bimestre" ? BIMESTRES[0] : TRIMESTRES[0] })); }}
+                            type="button"
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${periodoTipo === tipo ? 'bg-white dark:bg-slate-700 text-sky-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
+                        >
+                            {tipo}
+                        </button>
                     ))}
                 </div>
-                {periodos.map(b => (
-                    <button key={b} onClick={() => setPlano(p => ({ ...p, bimestre: b }))} type="button" style={{
-                        padding: "6px 14px", borderRadius: 10, fontSize: 13, fontWeight: 600,
-                        border: plano.bimestre === b ? "1.5px solid #0ea5e9" : "1px solid var(--border-default, rgba(148,163,184,.15))",
-                        background: plano.bimestre === b ? "rgba(14,165,233,.12)" : "transparent",
-                        color: plano.bimestre === b ? "#38bdf8" : "var(--text-muted, #94a3b8)",
-                        cursor: "pointer", transition: "all .2s",
-                    }}>{b}</button>
-                ))}
+                <div className="flex gap-2 flex-wrap">
+                    {periodos.map(b => (
+                        <button
+                            key={b}
+                            onClick={() => setPlano(p => ({ ...p, bimestre: b }))}
+                            type="button"
+                            className={`px-3.5 py-1.5 rounded-xl text-[13px] font-bold transition-all border active:scale-95 ${plano.bimestre === b ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 shadow-sm' : 'border-slate-200 dark:border-slate-700/50 text-slate-500 hover:border-slate-300 dark:hover:border-slate-600'}`}
+                        >
+                            {b}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Split Layout */}
@@ -508,27 +500,27 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                     {/* BNCC */}
                     {bnccLoading ? (
-                        <div style={{ ...cardS, padding: 24, textAlign: "center" }}>
-                            <Loader2 size={20} className="animate-spin" style={{ color: "#6366f1", margin: "0 auto" }} />
+                        <div className={`${cardC} p-6 text-center`}>
+                            <Loader2 size={20} className="animate-spin text-indigo-500 mx-auto" />
                         </div>
                     ) : bncc ? (
-                        <div style={cardS}>
-                            <div style={headerS}>
-                                <GraduationCap size={16} style={{ color: "#818cf8" }} />
-                                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary, #e2e8f0)" }}>BNCC — Selecione Habilidades</span>
+                        <div className={cardC}>
+                            <div className={headerC}>
+                                <GraduationCap size={16} className="text-indigo-400" />
+                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">BNCC — Selecione Habilidades</span>
                             </div>
-                            <div style={{ ...bodyS, display: "flex", flexDirection: "column", gap: 10 }}>
+                            <div className={`${bodyC} flex flex-col gap-2.5`}>
                                 <div>
-                                    <label style={labelS}>Componente Curricular</label>
-                                    <select value={componenteSel} onChange={e => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} style={selectS}>
+                                    <label className={labelC}>Componente Curricular</label>
+                                    <select value={componenteSel} onChange={e => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className={selectC}>
                                         <option value="">— Selecione —</option>
                                         {bnccDisciplinas.map(d => <option key={d} value={d}>{d}</option>)}
                                     </select>
                                 </div>
                                 {componenteSel && discData && (
                                     <div>
-                                        <label style={labelS}>Unidade Temática</label>
-                                        <select value={unidadeSel} onChange={e => { setUnidadeSel(e.target.value); setObjetoSel(""); }} style={selectS}>
+                                        <label className={labelC}>Unidade Temática</label>
+                                        <select value={unidadeSel} onChange={e => { setUnidadeSel(e.target.value); setObjetoSel(""); }} className={selectC}>
                                             <option value="">— Selecione —</option>
                                             {discData.unidades.map(u => <option key={u} value={u}>{u}</option>)}
                                         </select>
@@ -536,8 +528,8 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                                 )}
                                 {unidadeSel && unidadeData && (
                                     <div>
-                                        <label style={labelS}>Objeto do Conhecimento</label>
-                                        <select value={objetoSel} onChange={e => setObjetoSel(e.target.value)} style={selectS}>
+                                        <label className={labelC}>Objeto do Conhecimento</label>
+                                        <select value={objetoSel} onChange={e => setObjetoSel(e.target.value)} className={selectC}>
                                             <option value="">— Selecione —</option>
                                             {unidadeData.objetos.map(o => <option key={o} value={o}>{o}</option>)}
                                         </select>
@@ -545,7 +537,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                                 )}
                                 {objetoSel && habsDoObjeto && habsDoObjeto.length > 0 && (
                                     <div>
-                                        <label style={labelS}>Habilidades ({habsDoObjeto.length})</label>
+                                        <label className={labelC}>Habilidades ({habsDoObjeto.length})</label>
                                         <div style={{ maxHeight: 200, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
                                             {habsDoObjeto.map(h => {
                                                 const sel = form.habilidades_bncc.includes(h.codigo);
@@ -581,61 +573,47 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                     ) : null}
 
                     {/* Objectives */}
-                    <div style={cardS}><div style={{ ...bodyS, display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div className={cardC}><div className={`${bodyC} flex flex-col gap-3`}>
                         <BloomObjectives selected={form.objetivos} onToggle={v => toggleFormTag("objetivos", v)} />
-                        <textarea placeholder="Ou escreva objetivos livres..." value={form.objetivos_livre} onChange={e => setForm(f => ({ ...f, objetivos_livre: e.target.value }))} style={{ ...textareaS, minHeight: 50 }} />
+                        <textarea placeholder="Ou escreva objetivos livres..." value={form.objetivos_livre} onChange={e => setForm(f => ({ ...f, objetivos_livre: e.target.value }))} className={`${textareaC} min-h-[50px]`} />
                     </div></div>
 
                     {/* Methodology */}
-                    <div style={cardS}><div style={{ ...bodyS, display: "flex", flexDirection: "column", gap: 10 }}>
+                    <div className={cardC}><div className={`${bodyC} flex flex-col gap-2.5`}>
                         <TagSelector options={METODOLOGIAS} selected={form.metodologias} onToggle={v => toggleFormTag("metodologias", v)} label="Metodologia" color="#8b5cf6" />
-                        <textarea placeholder="Descreva como aplicar as metodologias neste contexto (a IA preenche automaticamente)..." value={form.metodologia_livre} onChange={e => setForm(f => ({ ...f, metodologia_livre: e.target.value }))} style={{ ...textareaS, minHeight: 60 }} />
+                        <textarea placeholder="Descreva como aplicar as metodologias neste contexto (a IA preenche automaticamente)..." value={form.metodologia_livre} onChange={e => setForm(f => ({ ...f, metodologia_livre: e.target.value }))} className={`${textareaC} min-h-[60px]`} />
                     </div></div>
 
                     {/* Resources */}
-                    <div style={cardS}><div style={bodyS}>
+                    <div className={cardC}><div className={bodyC}>
                         <TagSelector options={RECURSOS} selected={form.recursos} onToggle={v => toggleFormTag("recursos", v)} label="Recursos Didáticos" color="#f59e0b" />
                     </div></div>
 
                     {/* Evaluation */}
-                    <div style={cardS}><div style={{ ...bodyS, display: "flex", flexDirection: "column", gap: 10 }}>
+                    <div className={cardC}><div className={`${bodyC} flex flex-col gap-2.5`}>
                         <TagSelector options={AVALIACOES} selected={form.avaliacoes} onToggle={v => toggleFormTag("avaliacoes", v)} label="Avaliação" color="#ec4899" />
-                        <textarea placeholder="Detalhes adicionais..." value={form.avaliacao_livre} onChange={e => setForm(f => ({ ...f, avaliacao_livre: e.target.value }))} style={{ ...textareaS, minHeight: 40 }} />
+                        <textarea placeholder="Detalhes adicionais..." value={form.avaliacao_livre} onChange={e => setForm(f => ({ ...f, avaliacao_livre: e.target.value }))} className={`${textareaC} min-h-[40px]`} />
                     </div></div>
 
                     {/* Action buttons */}
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        <button onClick={gerarSugestaoIA} disabled={iaLoading || form.habilidades_bncc.length === 0} type="button" style={{
-                            display: "flex", alignItems: "center", gap: 6, padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 700,
-                            border: "1.5px solid #8b5cf6", background: "rgba(139,92,246,.1)", color: "#a78bfa",
-                            cursor: form.habilidades_bncc.length === 0 ? "not-allowed" : "pointer",
-                            opacity: form.habilidades_bncc.length === 0 ? 0.5 : 1, transition: "all .2s",
-                        }}>
+                    <div className="flex gap-2 flex-wrap mt-4">
+                        <button onClick={gerarSugestaoIA} disabled={iaLoading || form.habilidades_bncc.length === 0} type="button" className={`btn-premium px-4 py-2.5 rounded-xl text-[13px] border-[1.5px] border-purple-500/50 hover:border-purple-500 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 ${(form.habilidades_bncc.length === 0 || iaLoading) ? 'opacity-50 cursor-not-allowed active:scale-100' : ''}`}>
                             {iaLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Sugestão IA
                         </button>
-                        <button onClick={addBloco} disabled={!canAddBloco} type="button" style={{
-                            display: "flex", alignItems: "center", gap: 6, flex: 1, padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 700,
-                            border: "none", background: canAddBloco ? "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)" : "rgba(148,163,184,.15)",
-                            color: canAddBloco ? "#fff" : "var(--text-muted, #64748b)",
-                            cursor: canAddBloco ? "pointer" : "not-allowed", justifyContent: "center", transition: "all .2s",
-                        }}>
-                            <Plus size={16} /> {editingIndex !== null ? "Salvar Bloco" : "Adicionar Bloco"}
+                        <button onClick={addBloco} disabled={!canAddBloco} type="button" className={`btn-premium flex-1 px-4 py-2.5 rounded-xl text-[13px] hover:shadow-premium-lg ${canAddBloco ? 'btn-premium-primary bg-linear-to-br from-sky-500 to-sky-700 border-none' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 cursor-not-allowed opacity-70 border border-slate-300 dark:border-slate-700 active:scale-100'}`}>
+                            <Plus size={16} strokeWidth={2.5} /> {editingIndex !== null ? "Salvar Bloco" : "Adicionar Bloco"}
                         </button>
                         {editingIndex !== null && (
-                            <button onClick={() => { setForm(emptyBloco()); setEditingIndex(null); }} type="button" style={{
-                                padding: "10px 14px", borderRadius: 10, fontSize: 13, fontWeight: 600,
-                                border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                                background: "transparent", color: "var(--text-muted, #94a3b8)", cursor: "pointer",
-                            }}>Cancelar</button>
+                            <button onClick={() => { setForm(emptyBloco()); setEditingIndex(null); }} type="button" className="btn-premium btn-premium-secondary px-4 py-2.5 rounded-xl text-[13px] hover:shadow-sm">Cancelar</button>
                         )}
                     </div>
                 </div>
 
                 {/* RIGHT: Blocks */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <div style={headerS}>
-                        <BookOpen size={16} style={{ color: "#0ea5e9" }} />
-                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary, #e2e8f0)" }}>Sequência Didática — {plano.bimestre}</span>
+                    <div className={headerC}>
+                        <BookOpen size={16} className="text-sky-500" />
+                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Sequência Didática — {plano.bimestre}</span>
                         <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "#0ea5e9", background: "rgba(14,165,233,.1)", padding: "2px 8px", borderRadius: 6 }}>
                             {plano.blocos.length} bloco{plano.blocos.length !== 1 ? "s" : ""}
                         </span>
@@ -652,7 +630,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                             {plano.blocos.map((bloco, index) => {
                                 const isExpanded = expandedBloco === bloco.id;
                                 return (
-                                    <div key={bloco.id} style={{ ...cardS, border: editingIndex === index ? "1.5px solid #8b5cf6" : "1px solid var(--border-default, rgba(148,163,184,.15))" }}>
+                                    <div key={bloco.id} className={`rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-slate-900/40 transition-all ${editingIndex === index ? "border-2 border-purple-500 ring-2 ring-purple-500/20" : "border border-(--border-default)"}`}>
                                         <button onClick={() => setExpandedBloco(isExpanded ? null : bloco.id)} type="button" style={{
                                             width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", border: "none",
                                             background: "var(--bg-tertiary, rgba(15,23,42,.3))", cursor: "pointer", textAlign: "left",
@@ -665,7 +643,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                                             <span style={{ fontSize: 10, fontWeight: 700, color: "#818cf8", background: "rgba(99,102,241,.1)", padding: "2px 6px", borderRadius: 4 }}>{bloco.habilidades_bncc.length} hab.</span>
                                         </button>
                                         {isExpanded && (
-                                            <div style={{ ...bodyS, fontSize: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+                                            <div className={`${bodyC} text-xs flex flex-col gap-2.5`}>
                                                 {/* BNCC Decomposition */}
                                                 {(bloco.unidade_tematica || bloco.objeto_conhecimento) && (
                                                     <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.12)" }}>
@@ -712,11 +690,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                                     </div>
                                 );
                             })}
-                            <button onClick={salvar} disabled={saving || plano.blocos.length === 0} type="button" style={{
-                                display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "14px 20px", borderRadius: 12, fontSize: 14, fontWeight: 700,
-                                border: "none", background: saving ? "rgba(148,163,184,.15)" : "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-                                color: "#fff", cursor: saving ? "not-allowed" : "pointer", transition: "all .2s",
-                            }}>
+                            <button onClick={salvar} disabled={saving || plano.blocos.length === 0} type="button" className={`btn-premium w-full mt-4 py-3.5 rounded-xl text-[15px] hover:shadow-premium-lg transition-all ${(saving || plano.blocos.length === 0) ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 cursor-not-allowed opacity-70 border border-slate-300 dark:border-slate-700 active:scale-100' : 'btn-premium-primary bg-linear-to-br from-sky-500 to-sky-700 border-none'}`}>
                                 {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                                 {saving ? "Salvando..." : `Salvar Plano (${plano.blocos.length} bloco${plano.blocos.length !== 1 ? "s" : ""})`}
                             </button>

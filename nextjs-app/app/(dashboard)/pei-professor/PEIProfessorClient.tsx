@@ -209,7 +209,7 @@ export default function PEIProfessorClient() {
         return (
             <div className="space-y-6">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-6 text-white">
+                <div className="bg-linear-to-r from-violet-600 to-indigo-600 rounded-2xl p-6 text-white">
                     <div className="flex items-center gap-3 mb-2">
                         <BookOpen className="w-7 h-7" />
                         <h1 className="text-xl font-bold">PEI Professor</h1>
@@ -291,7 +291,7 @@ export default function PEIProfessorClient() {
     return (
         <div className="space-y-4">
             {/* Header */}
-            <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-5 text-white">
+            <div className="bg-linear-to-r from-violet-600 to-indigo-600 rounded-2xl p-5 text-white">
                 <button
                     onClick={() => { setSelectedStudent(null); setSelectedDisc(null); }}
                     className="inline-flex items-center gap-1.5 text-sm opacity-80 hover:opacity-100 mb-2"

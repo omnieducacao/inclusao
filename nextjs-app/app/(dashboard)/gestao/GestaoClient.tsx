@@ -184,7 +184,7 @@ export function GestaoClient() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 stagger-children">
             {activeMembers.map((m) => (
               <MemberCard
                 key={m.id}
@@ -214,7 +214,7 @@ export function GestaoClient() {
             Nenhum responsável cadastrado. Use o formulário acima e selecione "Família" para criar.
           </p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 stagger-children">
             {activeFamily.map((f) => (
               <FamilyCard
                 key={f.id}
@@ -235,7 +235,7 @@ export function GestaoClient() {
             Usuários desativados
           </h3>
           <p className="text-xs text-slate-500 mb-2">Excluir libera o email para novo cadastro.</p>
-          <div className="space-y-2">
+          <div className="space-y-2 stagger-children">
             {inactiveMembers.map((m) => (
               <InactiveMemberCard
                 key={m.id}

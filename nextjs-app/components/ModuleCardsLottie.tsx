@@ -315,36 +315,30 @@ function ModuleCardWithLottie({
   return (
     <Link
       href={href}
-      className={`group relative block rounded-2xl overflow-hidden transition-all duration-500 aspect-square ${isVisible
-        ? 'opacity-100 translate-y-0'
-        : 'opacity-0 translate-y-4'
-        }`}
-      style={{
-        backgroundColor: colors.bg,
-        backdropFilter: 'blur(8px) saturate(150%)',
-        WebkitBackdropFilter: 'blur(8px) saturate(150%)',
-        boxShadow: isHovered
-          ? `0 20px 40px rgba(0,0,0,0.10), 0 8px 16px rgba(0,0,0,0.06), 0 0 24px ${colors.icon}18, inset 0 1px 0 rgba(255,255,255,0.8), inset 0 0 0 1px rgba(255,255,255,0.15)`
-          : '0 4px 12px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.8), inset 0 0 0 1px rgba(255,255,255,0.1)',
-        border: isHovered
-          ? `1px solid ${colors.icon}50`
-          : '1px solid var(--border-default)',
-        transform: isHovered ? 'translateY(-6px) scale(1.03)' : 'translateY(0) scale(1)',
-      }}
+      className={`group relative block rounded-2xl overflow-hidden transition-all duration-300 ease-out aspect-square
+        hover:-translate-y-1.5 hover:scale-[1.02] shadow-premium hover:shadow-premium-xl
+        border border-(--border-default) hover:border-black/5
+        backdrop-blur-md backdrop-saturate-[1.5]
+        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      style={{ backgroundColor: colors.bg }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Luz interna (Inner highlight) sutil */}
+      <div className="absolute inset-0 rounded-2xl pointer-events-none shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_0_0_1px_rgba(255,255,255,0.15)] group-hover:shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)] transition-all duration-300" />
+
       {/* Top accent bar — expands on hover */}
       <div
-        className="w-full transition-all duration-500"
-        style={{
-          height: isHovered ? '4px' : '3px',
-          background: `linear-gradient(to right, ${colors.icon}, ${colors.text})`,
-          boxShadow: isHovered ? `0 2px 12px ${colors.icon}40` : 'none',
-        }}
+        className="w-full transition-all duration-300 ease-out h-[3px] group-hover:h-[4px]"
+        style={{ background: `linear-gradient(to right, ${colors.icon}, ${colors.text})` }}
+      />
+      {/* Brilho do Top accent bar (Glow) */}
+      <div
+        className="w-full h-[4px] absolute top-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{ boxShadow: `0 2px 12px ${colors.icon}60` }}
       />
 
-      <div className="flex flex-col items-center justify-center text-center h-full p-4">
+      <div className="flex flex-col items-center justify-center text-center h-full p-5 relative z-10">
         {badge && (() => {
           const badgeInfo: BadgeInfo = typeof badge === "string"
             ? { text: badge, variant: "green" }
@@ -367,17 +361,15 @@ function ModuleCardWithLottie({
         })()}
 
         {/* Icon */}
-        <div className={`transition-all duration-500 mb-3 ${isVisible ? 'scale-100 opacity-100' : 'scale-75 opacity-0'}`}>
+        <div className={`transition-all duration-300 ease-out mb-4 mt-2 ${isVisible ? 'scale-100 opacity-100' : 'scale-75 opacity-0'}`}>
           {shouldShowLottie && lottieAnimation ? (
             <div
-              className="rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+              className={`rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1 shadow-sm group-hover:shadow-md border border-white/30 p-1`}
               style={{
                 width: `${iconSize}px`,
                 height: `${iconSize}px`,
-                padding: '3px',
-                background: `linear-gradient(135deg, ${colors.icon}18, ${colors.icon}08)`,
-                boxShadow: isHovered ? `0 4px 16px ${colors.icon}20` : '0 4px 12px rgba(0,0,0,0.06)',
-                border: '1px solid rgba(255,255,255,0.3)',
+                background: `linear-gradient(135deg, ${colors.icon}15, ${colors.icon}08)`,
+                boxShadow: isHovered ? `0 8px 20px ${colors.icon}25` : undefined,
               }}
             >
               <LottieIcon
@@ -390,18 +382,16 @@ function ModuleCardWithLottie({
             </div>
           ) : (
             <div
-              className="rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+              className={`rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1 shadow-sm group-hover:shadow-md border border-white/30 p-1`}
               style={{
                 width: `${iconSize}px`,
                 height: `${iconSize}px`,
-                padding: '3px',
-                background: `linear-gradient(135deg, ${colors.icon}18, ${colors.icon}08)`,
-                boxShadow: isHovered ? `0 4px 16px ${colors.icon}20` : '0 4px 12px rgba(0,0,0,0.06)',
-                border: '1px solid rgba(255,255,255,0.3)',
+                background: `linear-gradient(135deg, ${colors.icon}15, ${colors.icon}08)`,
+                boxShadow: isHovered ? `0 8px 20px ${colors.icon}25` : undefined,
               }}
             >
               <Icon
-                className="transition-all duration-300"
+                className="transition-all duration-300 group-hover:scale-105"
                 style={{ color: colors.icon, width: `${lottieSize}px`, height: `${lottieSize}px` }}
                 weight="duotone"
               />
@@ -488,23 +478,27 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
       </h2>
       <Link
         href={href}
-        className="group relative block rounded-2xl overflow-hidden transition-all duration-300"
-        style={{
-          backgroundColor: isDark ? colorPaletteDark.table.bg : colorPalette.table.bg,
-          boxShadow: isHovered
-            ? '0 8px 32px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.06)'
-            : '0 4px 12px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)',
-          border: '1px solid var(--border-default)',
-          transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
-        }}
+        className="group relative block rounded-2xl overflow-hidden transition-all duration-300 ease-out
+          hover:-translate-y-1 hover:shadow-premium-lg shadow-premium
+          border border-(--border-default) hover:border-purple-500/30"
+        style={{ backgroundColor: isDark ? colorPaletteDark.table.bg : colorPalette.table.bg }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Top accent bar */}
-        <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${isDark ? colorPaletteDark.table.icon : colorPalette.table.icon}, #a855f7)` }} />
+        <div
+          className="h-[3px] group-hover:h-[4px] w-full transition-all duration-300 ease-out"
+          style={{ background: `linear-gradient(to right, ${isDark ? colorPaletteDark.table.icon : colorPalette.table.icon}, #a855f7)` }}
+        />
 
-        <div className="p-5">
-          <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${isDark ? colorPaletteDark.table.icon : colorPalette.table.icon}15, transparent, ${isDark ? colorPaletteDark.table.icon : colorPalette.table.icon}15)` }} />
+        {/* Glow no topo */}
+        <div
+          className="w-full h-[4px] absolute top-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{ boxShadow: `0 2px 12px #a855f750` }}
+        />
+
+        <div className="p-5 relative z-10">
+          <div className="absolute inset-0 bg-linear-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${isDark ? colorPaletteDark.table.icon : colorPalette.table.icon}15, transparent, ${isDark ? colorPaletteDark.table.icon : colorPalette.table.icon}15)` }} />
           <div className="relative flex items-start gap-4">
             {lottieAnimation ? (
               <div

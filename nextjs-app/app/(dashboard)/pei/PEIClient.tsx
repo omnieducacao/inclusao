@@ -375,7 +375,7 @@ export function PEIClient({
             }}
           >
             {/* Efeito de brilho animado */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
           </div>
         </div>
       </div>
@@ -734,14 +734,14 @@ export function PEIClient({
       {/* Mensagem de Erro Global */}
       {erroGlobal && (
         <div className="mx-6 mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg flex items-start gap-3">
-          <AlertTriangle className="flex-shrink-0 w-5 h-5 text-red-600 mt-0.5" />
+          <AlertTriangle className="shrink-0 w-5 h-5 text-red-600 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-red-800 font-semibold text-sm">Erro ao processar</p>
-            <p className="text-red-700 text-sm mt-1 break-words">{erroGlobal}</p>
+            <p className="text-red-700 text-sm mt-1 wrap-break-word">{erroGlobal}</p>
           </div>
           <button
             onClick={() => setErroGlobal(null)}
-            className="flex-shrink-0 text-red-600 hover:text-red-800 transition-colors p-1 rounded hover:bg-red-100"
+            className="shrink-0 text-red-600 hover:text-red-800 transition-colors p-1 rounded hover:bg-red-100"
             aria-label="Fechar erro"
           >
             <XCircle className="w-4 h-4" />
@@ -759,14 +759,14 @@ export function PEIClient({
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
-              className={`group relative px-3 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-[13px] font-semibold whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 sm:gap-2 rounded-xl transition-all duration-200 ${isActive
+              className={`group relative px-3 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-[13px] font-semibold whitespace-nowrap shrink-0 flex items-center gap-1.5 sm:gap-2 rounded-xl transition-all duration-200 ${isActive
                 ? "shadow-sm"
                 : ""
                 }`}
               style={isActive ? { backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' } : { color: 'var(--text-muted)' }}
             >
               {/* Indicador de Status */}
-              <div className={`w-2 h-2 rounded-full transition-all duration-200 flex-shrink-0 ${status === "complete"
+              <div className={`w-2 h-2 rounded-full transition-all duration-200 shrink-0 ${status === "complete"
                 ? "bg-emerald-500 shadow-sm shadow-emerald-500/50"
                 : status === "in-progress"
                   ? "bg-amber-500 shadow-sm shadow-amber-500/50"
@@ -1277,7 +1277,7 @@ export function PEIClient({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {/* Nome Completo - ocupa mais espaço */}
                 <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-2">
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-2">
+                  <label className="flex text-sm font-semibold text-slate-700 mb-1.5 items-center gap-2">
                     Nome Completo
                     {peiData.nome && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
                   </label>
@@ -1494,7 +1494,7 @@ export function PEIClient({
             <div>
               <h4 className="text-base font-semibold text-slate-800 mb-3">Contexto Clínico</h4>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1 flex items-center gap-1.5">Diagnóstico <HelpTooltip fieldId="pei-diagnostico" /></label>
+                <label className="flex text-sm font-semibold text-slate-700 mb-1 items-center gap-1.5">Diagnóstico <HelpTooltip fieldId="pei-diagnostico" /></label>
                 <input
                   type="text"
                   value={peiData.diagnostico || ""}
@@ -1938,7 +1938,7 @@ export function PEIClient({
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1.5">Hiperfoco (se houver) <HelpTooltip fieldId="pei-hiperfoco" /></label>
+                  <label className="flex text-sm font-medium text-slate-700 mb-1 items-center gap-1.5">Hiperfoco (se houver) <HelpTooltip fieldId="pei-hiperfoco" /></label>
                   <input
                     type="text"
                     value={peiData.hiperfoco || ""}
@@ -2059,7 +2059,7 @@ export function PEIClient({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   {peiData.hiperfoco ? (
-                    <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-300 shadow-sm">
+                    <div className="p-4 rounded-lg bg-linear-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-300 shadow-sm">
                       <p className="text-sm font-semibold text-emerald-900">
                         <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
                         <strong>Hiperfoco:</strong> {peiData.hiperfoco}
@@ -2073,7 +2073,7 @@ export function PEIClient({
                     </div>
                   )}
                   {(Array.isArray(peiData.potencias) ? peiData.potencias : []).length > 0 ? (
-                    <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-300 shadow-sm">
+                    <div className="p-4 rounded-lg bg-linear-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-300 shadow-sm">
                       <p className="text-sm font-semibold text-emerald-900 mb-1">
                         <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
                         <strong>Potencialidades:</strong>
@@ -2108,7 +2108,7 @@ export function PEIClient({
                       );
                     }
                     return (
-                      <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-amber-300 shadow-sm">
+                      <div className="p-4 rounded-lg bg-linear-to-br from-amber-50 to-amber-100/50 border-2 border-amber-300 shadow-sm">
                         <p className="text-sm font-semibold text-amber-900 mb-3 flex items-center gap-2">
                           <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
                           <strong>Barreiras selecionadas:</strong> {totalBar}
@@ -2960,7 +2960,7 @@ function DashboardTab({
       )}
 
       {/* Evolução na escala Omnisfera (Avaliação Processual) */}
-      <div className="p-4 rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white">
+      <div className="p-4 rounded-xl border border-emerald-200 bg-linear-to-br from-emerald-50/80 to-white">
         <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-emerald-600" />
           Evolução na escala Omnisfera
@@ -3310,7 +3310,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
           type="button"
           onClick={gerarMapa}
           disabled={mapaLoading}
-          className="group rounded-xl border-2 border-dashed border-violet-200 hover:border-violet-400 bg-gradient-to-r from-violet-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60"
+          className="group rounded-xl border-2 border-dashed border-violet-200 hover:border-violet-400 bg-linear-to-r from-violet-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60"
           style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px", height: "70px" }}
         >
           <div className="text-2xl">🧠</div>
@@ -3328,7 +3328,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
           type="button"
           onClick={gerarResumo}
           disabled={resumoLoading}
-          className="group rounded-xl border-2 border-dashed border-emerald-200 hover:border-emerald-400 bg-gradient-to-r from-emerald-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60"
+          className="group rounded-xl border-2 border-dashed border-emerald-200 hover:border-emerald-400 bg-linear-to-r from-emerald-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60"
           style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px", height: "70px" }}
         >
           <div className="text-2xl">👨‍👩‍👧</div>
@@ -3346,7 +3346,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
           type="button"
           onClick={gerarFaq}
           disabled={faqLoading}
-          className="group rounded-xl border-2 border-dashed border-amber-200 hover:border-amber-400 bg-gradient-to-r from-amber-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60"
+          className="group rounded-xl border-2 border-dashed border-amber-200 hover:border-amber-400 bg-linear-to-r from-amber-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60"
           style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px", height: "70px" }}
         >
           <div className="text-2xl">❓</div>
@@ -3367,7 +3367,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
 
       {/* ====== RESULTADO: MAPA MENTAL ====== */}
       {mapaData && (
-        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-violet-50 to-slate-50 border border-violet-200">
+        <div className="mb-6 p-6 rounded-2xl bg-linear-to-br from-violet-50 to-slate-50 border border-violet-200">
           <h5 className="font-bold text-violet-800 text-lg mb-6 text-center">🧠 {mapaData.centro}</h5>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {mapaData.ramos.map((ramo, i) => (
@@ -3383,7 +3383,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
                 <ul className="space-y-1.5">
                   {ramo.filhos.map((filho, j) => (
                     <li key={j} className="text-xs text-slate-700 flex items-start gap-1.5">
-                      <span className="mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: ramo.cor }} />
+                      <span className="mt-1 w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: ramo.cor }} />
                       {filho}
                     </li>
                   ))}
@@ -3396,7 +3396,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
 
       {/* ====== RESULTADO: RESUMO FAMÍLIA ====== */}
       {resumoTexto && (
-        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-emerald-50 to-slate-50 border border-emerald-200">
+        <div className="mb-6 p-6 rounded-2xl bg-linear-to-br from-emerald-50 to-slate-50 border border-emerald-200">
           <div className="flex justify-between items-center mb-4">
             <h5 className="font-bold text-emerald-800 text-lg">👨‍👩‍👧 Resumo para Família</h5>
             <div className="flex gap-2">
@@ -3445,7 +3445,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
 
       {/* ====== RESULTADO: FAQ ====== */}
       {faqData && (
-        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-amber-50 to-slate-50 border border-amber-200">
+        <div className="mb-6 p-6 rounded-2xl bg-linear-to-br from-amber-50 to-slate-50 border border-amber-200">
           <div className="flex justify-between items-center mb-4">
             <h5 className="font-bold text-amber-800 text-lg">❓ FAQ do Caso — {peiData.nome}</h5>
             <div className="flex gap-2">
@@ -3508,7 +3508,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
                   className="w-full px-4 py-3 text-left flex justify-between items-center hover:bg-amber-50 transition-colors"
                 >
                   <span className="text-sm font-medium text-slate-800">{item.pergunta}</span>
-                  <span className="text-slate-400 text-lg ml-2 flex-shrink-0">{faqOpen === i ? "−" : "+"}</span>
+                  <span className="text-slate-400 text-lg ml-2 shrink-0">{faqOpen === i ? "−" : "+"}</span>
                 </button>
                 {faqOpen === i && (
                   <div className="px-4 pb-3 text-sm text-slate-600 leading-relaxed border-t border-amber-100 pt-3">
