@@ -150,3 +150,52 @@ export async function POST(req: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true, plano: data });
 }
+
+export async function DELETE(req: Request) {
+    const session = await getSession();
+    if (!session?.workspace_id) {
+        return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
+    if (!id) {
+        return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
+    }
+
+    const sb = getSupabase();
+
+    // Resolve member ID
+    let memberId = (session.simulating_member_id as string) || (session.member?.id as string | undefined) || "";
+    if (!memberId && session.usuario_nome) {
+        const { data: m } = await sb
+            .from("workspace_members")
+            .select("id")
+            .eq("workspace_id", session.workspace_id)
+            .eq("nome", session.usuario_nome)
+            .maybeSingle();
+        memberId = m?.id || "";
+    }
+
+    const isMaster = session.user_role === "master" || session.is_platform_admin;
+
+    // Build delete query
+    let query = sb
+        .from("planos_ensino")
+        .delete()
+        .eq("id", id)
+        .eq("workspace_id", session.workspace_id);
+
+    // Non-masters can only delete their own plans
+    if (!isMaster && memberId) {
+        query = query.eq("professor_id", memberId);
+    }
+
+    const { error } = await query;
+    if (error) {
+        console.error("DELETE /api/plano-curso:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+}

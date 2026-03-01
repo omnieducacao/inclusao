@@ -9,13 +9,27 @@ import { getSupabase } from "@/lib/supabase";
  */
 export async function GET() {
     const session = await getSession();
-    if (!session?.workspace_id || !session.member?.id) {
+    if (!session?.workspace_id) {
         return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const memberId = session.member.id as string;
     const workspaceId = session.workspace_id;
     const sb = getSupabase();
+
+    // Resolve member ID: simulation > session.member > fallback by name
+    let memberId = (session.simulating_member_id as string) || (session.member?.id as string) || "";
+    if (!memberId && session.usuario_nome) {
+        const { data: m } = await sb
+            .from("workspace_members")
+            .select("id")
+            .eq("workspace_id", workspaceId)
+            .eq("nome", session.usuario_nome)
+            .maybeSingle();
+        memberId = m?.id || "";
+    }
+    if (!memberId) {
+        return NextResponse.json({ error: "Membro não identificado" }, { status: 401 });
+    }
 
     // 1. Buscar assignments do professor
     const { data: assignments, error: assignErr } = await sb

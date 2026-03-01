@@ -224,6 +224,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState("");
     const [iaLoading, setIaLoading] = useState(false);
     const [expandedBloco, setExpandedBloco] = useState<string | null>(null);
@@ -391,6 +392,24 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
         finally { setIaLoading(false); }
     }, [form.habilidades_bncc, form.habilidades_descricoes, componenteSel, unidadeSel, objetoSel, serie]);
 
+    // ─── Delete ──────────────────────────────────────────────────────────
+
+    const deletarPlano = async () => {
+        if (!planoId) return;
+        if (!confirm("Tem certeza que deseja apagar este plano de ensino? Esta ação não pode ser desfeita.")) return;
+        setDeleting(true); setError("");
+        try {
+            const res = await fetch(`/api/plano-curso?id=${planoId}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            setPlanoId(null);
+            setPlano({ bimestre: BIMESTRES[0], blocos: [] });
+            setSaved(false);
+            onSaved?.();
+        } catch (err) { setError(err instanceof Error ? err.message : "Erro ao apagar"); }
+        finally { setDeleting(false); }
+    };
+
     // ─── Save ───────────────────────────────────────────────────────────
 
     const salvar = async () => {
@@ -447,6 +466,15 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         {saved && <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "#bae6fd" }}><CheckCircle2 size={14} /> Salvo</span>}
                         {totalHabs > 0 && <span style={{ background: "rgba(255,255,255,.2)", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>{totalHabs} hab.</span>}
+                        {planoId && (
+                            <button onClick={deletarPlano} disabled={deleting} type="button" style={{
+                                display: "flex", alignItems: "center", gap: 4, padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700,
+                                border: "1px solid rgba(239,68,68,.4)", background: "rgba(239,68,68,.15)", color: "#fca5a5",
+                                cursor: deleting ? "not-allowed" : "pointer", transition: "all .2s",
+                            }}>
+                                {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />} Apagar
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
