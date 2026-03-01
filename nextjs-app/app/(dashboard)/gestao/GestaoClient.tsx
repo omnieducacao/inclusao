@@ -1304,8 +1304,10 @@ function NovoFamiliaForm({
     fetch("/api/students")
       .then((r) => r.json())
       .then((d) => {
+        // API returns array directly OR { students: [...] }
+        const list = Array.isArray(d) ? d : (d.students || []);
         setStudents(
-          (d.students || []).map((s: Record<string, unknown>) => ({
+          list.map((s: Record<string, unknown>) => ({
             id: s.id as string,
             name: s.name as string,
             grade: s.grade as string | undefined,
