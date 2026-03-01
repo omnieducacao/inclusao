@@ -25,61 +25,85 @@ export async function GET(
 
   const sb = getSupabase();
 
-  const { data: link } = await sb
+  // Verificar vínculo
+  const { data: link, error: linkError } = await sb
     .from("family_student_links")
     .select("id")
     .eq("family_responsible_id", familyId)
     .eq("student_id", studentId)
     .maybeSingle();
 
+  if (linkError) {
+    console.error("[familia/estudante] link query error:", linkError.message);
+    return NextResponse.json({ error: "Erro ao verificar vínculo" }, { status: 500 });
+  }
+
   if (!link) {
     return NextResponse.json({ error: "Estudante não vinculado" }, { status: 403 });
   }
 
+  // Buscar dados do estudante — usar colunas seguras (mesmas de listStudents)
   const { data: student, error: studentError } = await sb
     .from("students")
-    .select("id, name, grade, class_group, pei_data, paee_data, paee_ciclos, planejamento_ativo")
+    .select("id, name, grade, class_group, pei_data, paee_ciclos, planejamento_ativo")
     .eq("id", studentId)
     .eq("workspace_id", session.workspace_id)
-    .single();
+    .maybeSingle();
 
-  if (studentError || !student) {
+  if (studentError) {
+    console.error("[familia/estudante] student query error:", studentError.message);
+    return NextResponse.json({ error: "Erro ao buscar estudante" }, { status: 500 });
+  }
+
+  if (!student) {
     return NextResponse.json({ error: "Estudante não encontrado" }, { status: 404 });
   }
 
   const peiData = (student.pei_data || {}) as Record<string, unknown>;
-  const paeeData = (student.paee_data || {}) as Record<string, unknown>;
   const paeeCiclos = (student.paee_ciclos || []) as Array<{ ciclo_id?: string; config_ciclo?: { data_inicio?: string; data_fim?: string; foco_principal?: string } }>;
   const planejamentoAtivo = student.planejamento_ativo;
   const paeeAtivo = planejamentoAtivo
     ? paeeCiclos.find((c) => c.ciclo_id === planejamentoAtivo)
     : null;
 
-  const { data: processualData } = await sb
-    .from("avaliacao_processual")
-    .select("disciplina, bimestre, habilidades")
-    .eq("student_id", studentId)
-    .eq("workspace_id", session.workspace_id)
-    .order("bimestre", { ascending: true });
+  // Avaliação processual (tabela pode não existir)
+  let registros: Array<{ disciplina: string; bimestre: number; habilidades?: Array<{ nivel_atual?: number }> }> = [];
+  try {
+    const { data: processualData } = await sb
+      .from("avaliacao_processual")
+      .select("disciplina, bimestre, habilidades")
+      .eq("student_id", studentId)
+      .eq("workspace_id", session.workspace_id)
+      .order("bimestre", { ascending: true });
+    registros = (processualData || []) as typeof registros;
+  } catch (err) {
+    console.warn("[familia/estudante] avaliacao_processual query failed (table may not exist):", err);
+  }
 
-  const registros = processualData || [];
-  const disciplinas = [...new Set(registros.map((r: { disciplina: string }) => r.disciplina))];
-  const { data: ack } = await sb
-    .from("family_pei_acknowledgments")
-    .select("id, acknowledged_at")
-    .eq("family_responsible_id", familyId)
-    .eq("student_id", studentId)
-    .maybeSingle();
+  const disciplinas = [...new Set(registros.map((r) => r.disciplina))];
+
+  // Ciência do PEI (tabela pode não existir)
+  let ack: { id: string; acknowledged_at: string | null } | null = null;
+  try {
+    const { data: ackData } = await sb
+      .from("family_pei_acknowledgments")
+      .select("id, acknowledged_at")
+      .eq("family_responsible_id", familyId)
+      .eq("student_id", studentId)
+      .maybeSingle();
+    ack = ackData;
+  } catch (err) {
+    console.warn("[familia/estudante] family_pei_acknowledgments query failed (table may not exist):", err);
+  }
 
   const evolucaoPorDisciplina = disciplinas.map((disc: string) => {
     const regs = registros
-      .filter((r: { disciplina: string }) => r.disciplina === disc)
-      .sort((a: { bimestre: number }, b: { bimestre: number }) => a.bimestre - b.bimestre);
-    const habs = regs.flatMap((r: { habilidades?: Array<{ nivel_atual?: number }> }) => r.habilidades || []);
-    const medias = regs.map((r: { habilidades?: Array<{ nivel_atual?: number }> }) => {
+      .filter((r) => r.disciplina === disc)
+      .sort((a, b) => a.bimestre - b.bimestre);
+    const medias = regs.map((r) => {
       const h = r.habilidades || [];
-      return h.length > 0 ? h.reduce((acc: number, x: { nivel_atual?: number }) => acc + (x.nivel_atual || 0), 0) / h.length : null;
-    }).filter((m: number | null) => m !== null) as number[];
+      return h.length > 0 ? h.reduce((acc, x) => acc + (x.nivel_atual || 0), 0) / h.length : null;
+    }).filter((m): m is number => m !== null);
     const mediaRecente = medias.length > 0 ? Math.round(medias[medias.length - 1] * 10) / 10 : null;
     return { disciplina: disc, periodos: regs.length, media_mais_recente: mediaRecente };
   });
@@ -99,11 +123,11 @@ export async function GET(
     },
     paee_resumo: paeeAtivo
       ? {
-          periodo: paeeAtivo.config_ciclo
-            ? `${paeeAtivo.config_ciclo.data_inicio || ""} a ${paeeAtivo.config_ciclo.data_fim || ""}`
-            : null,
-          foco: paeeAtivo.config_ciclo?.foco_principal,
-        }
+        periodo: paeeAtivo.config_ciclo
+          ? `${paeeAtivo.config_ciclo.data_inicio || ""} a ${paeeAtivo.config_ciclo.data_fim || ""}`
+          : null,
+        foco: paeeAtivo.config_ciclo?.foco_principal,
+      }
       : null,
     evolucao: { evolucao: evolucaoPorDisciplina },
     ciencia_pei: ack
