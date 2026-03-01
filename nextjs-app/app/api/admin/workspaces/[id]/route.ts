@@ -30,6 +30,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       const cl = Number(body.credits_limit);
       updates.credits_limit = cl >= 0 ? cl : null;
     }
+    if (body.family_module_enabled !== undefined) updates.family_module_enabled = Boolean(body.family_module_enabled);
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: "Nenhum campo para atualizar." }, { status: 400 });
@@ -40,7 +41,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       .from("workspaces")
       .update(updates)
       .eq("id", id)
-      .select("id, name, pin, segments, ai_engines, enabled_modules, active, plan, credits_limit, created_at")
+      .select("id, name, pin, segments, ai_engines, enabled_modules, active, plan, credits_limit, family_module_enabled, created_at")
       .single();
 
     if (error) {

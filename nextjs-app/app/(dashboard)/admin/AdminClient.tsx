@@ -16,6 +16,7 @@ type Workspace = {
   active: boolean;
   plan: string;
   credits_limit: number | null;
+  family_module_enabled?: boolean;
   created_at?: string;
 };
 
@@ -376,6 +377,7 @@ function WorkspaceCard({
     });
     return result;
   });
+  const [localFamilyEnabled, setLocalFamilyEnabled] = useState(Boolean(workspace.family_module_enabled));
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
@@ -395,6 +397,7 @@ function WorkspaceCard({
           enabled_modules: enabledModules,
           plan: localPlan,
           credits_limit: localCreditsLimit || null,
+          family_module_enabled: localFamilyEnabled,
         }),
       });
 
@@ -566,6 +569,17 @@ function WorkspaceCard({
               ))}
             </div>
           </div>
+          <div>
+            <label className="flex items-center gap-3 px-3 py-2 border border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50">
+              <input
+                type="checkbox"
+                checked={localFamilyEnabled}
+                onChange={(e) => setLocalFamilyEnabled(e.target.checked)}
+                className="rounded"
+              />
+              <span className="text-sm font-semibold">👨‍👩‍👧 Módulo Família habilitado</span>
+            </label>
+          </div>
           <div className="flex gap-2">
             <button
               onClick={handleSave}
@@ -601,6 +615,7 @@ function WorkspaceCard({
                 <p>
                   Plano: {workspace.plan === "robusto" ? "Robusto (omnigreen)" : "Basic"} · Limite créditos:{" "}
                   {workspace.credits_limit || "ilimitado"}
+                  {workspace.family_module_enabled && " · 👨‍👩‍👧 Família ativo"}
                 </p>
               </div>
             </div>
@@ -2637,8 +2652,8 @@ function AparenciaTab() {
                                 key={iconName}
                                 onClick={() => updateModule(mod.key, "icon", `flat/${iconName}`)}
                                 className={`relative aspect-square rounded-lg border-2 p-1.5 transition-all hover:scale-105 flex flex-col items-center justify-center gap-0.5 ${isSelected
-                                    ? "border-blue-500 bg-blue-50 shadow-md"
-                                    : "border-slate-200 hover:border-slate-300 bg-white"
+                                  ? "border-blue-500 bg-blue-50 shadow-md"
+                                  : "border-slate-200 hover:border-slate-300 bg-white"
                                   }`}
                                 title={iconName.replace(/wired-flat-\d+-/, "").replace(/-hover.*/, "").replace(/-/g, " ")}
                               >
