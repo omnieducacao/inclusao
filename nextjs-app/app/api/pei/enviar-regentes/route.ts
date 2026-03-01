@@ -295,9 +295,18 @@ export async function POST(req: Request) {
         .eq("workspace_id", session.workspace_id);
 
     // Criar registros de pei_disciplinas (upsert para evitar duplicatas)
+    // Deduplicar por disciplina (pode haver 2 profs com mesmo componente)
+    const seen = new Set<string>();
+    const deduped = records.filter(r => {
+        const key = `${r.student_id}::${r.disciplina}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+
     const { data: inserted, error } = await sb
         .from("pei_disciplinas")
-        .upsert(records, { onConflict: "student_id,disciplina" })
+        .upsert(deduped, { onConflict: "student_id,disciplina" })
         .select();
 
     if (error) {
