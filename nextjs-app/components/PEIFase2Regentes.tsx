@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-    Send, Plus, Users, BookOpen, CheckCircle2,
-    Clock, AlertTriangle, Loader2, Trash2, Sparkles,
+    Send, Users, BookOpen, CheckCircle2,
+    Loader2, Trash2, Sparkles, AlertTriangle,
 } from "lucide-react";
-import { DISCIPLINAS_EF, FASE_STATUS_LABELS, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
+import { FASE_STATUS_LABELS, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -17,16 +17,11 @@ interface DisciplinaRegente {
     fase_status: FaseStatusPEIDisciplina;
 }
 
-interface Professor {
-    id: string;
-    name: string;
-    link_type: string;
-    components: string[]; // componentes curriculares atribuídos
-}
-
 interface Props {
     studentId: string | null;
     studentName: string;
+    studentGrade?: string;
+    studentClass?: string;
     onDisciplinaSelect?: (disciplina: string) => void;
 }
 
@@ -39,60 +34,16 @@ const STATUS_COLORS: Record<FaseStatusPEIDisciplina, string> = {
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export function PEIFase2Regentes({ studentId, studentName, onDisciplinaSelect }: Props) {
+export function PEIFase2Regentes({ studentId, studentName, studentGrade, studentClass, onDisciplinaSelect }: Props) {
     const [disciplinas, setDisciplinas] = useState<DisciplinaRegente[]>([]);
     const [loading, setLoading] = useState(false);
     const [sending, setSending] = useState(false);
+    const [removing, setRemoving] = useState<string | null>(null);
     const [error, setError] = useState("");
 
-    // Professores do banco
-    const [professores, setProfessores] = useState<Professor[]>([]);
-    const [loadingProfs, setLoadingProfs] = useState(false);
-
-    // Nova disciplina form
-    const [novaDisciplina, setNovaDisciplina] = useState("");
-    const [selectedProfId, setSelectedProfId] = useState("");
-    const [novasDisciplinas, setNovasDisciplinas] = useState<Array<{
-        disciplina: string;
-        professor_id: string;
-        professor_nome: string;
-    }>>([]);
-
-    // Carregar professores cadastrados
-    const fetchProfessores = useCallback(async () => {
-        setLoadingProfs(true);
-        try {
-            const res = await fetch("/api/members");
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Erro ao buscar professores");
-
-            // Filtrar apenas membros com can_pei e formatar
-            const members = (data.members || data || []) as Array<{
-                id: string;
-                name: string;
-                link_type?: string;
-                can_pei?: boolean;
-                teacher_assignments?: Array<{ component_name?: string; component_id?: string }>;
-            }>;
-
-            const profs: Professor[] = members
-                .filter(m => m.name) // pelo menos ter nome
-                .map(m => ({
-                    id: m.id,
-                    name: m.name,
-                    link_type: m.link_type || "todos",
-                    components: (m.teacher_assignments || [])
-                        .map(a => a.component_name || "")
-                        .filter(Boolean),
-                }));
-
-            setProfessores(profs);
-        } catch (err) {
-            console.warn("Erro ao buscar professores:", err);
-        } finally {
-            setLoadingProfs(false);
-        }
-    }, []);
+    // Preview: professores detectados da turma
+    const [preview, setPreview] = useState<Array<{ name: string; component: string }>>([]);
+    const [previewLoading, setPreviewLoading] = useState(false);
 
     // Carregar disciplinas existentes
     useEffect(() => {
@@ -107,38 +58,30 @@ export function PEIFase2Regentes({ studentId, studentName, onDisciplinaSelect }:
             .finally(() => setLoading(false));
     }, [studentId]);
 
-    // Carregar professores ao montar
-    useEffect(() => {
-        fetchProfessores();
-    }, [fetchProfessores]);
-
-    // ─── Ações ────────────────────────────────────────────────────────────────
-
-    const adicionarDisciplina = () => {
-        if (!novaDisciplina || !selectedProfId) return;
-        const prof = professores.find(p => p.id === selectedProfId);
-        if (!prof) return;
-
-        if (novasDisciplinas.some((d) => d.disciplina === novaDisciplina) ||
-            disciplinas.some((d) => d.disciplina === novaDisciplina)) {
-            setError("Esta disciplina já foi adicionada.");
-            return;
+    // Carregar preview de professores vinculados à turma
+    const loadPreview = useCallback(async (grade: string, classGroup: string) => {
+        if (!grade) return;
+        setPreviewLoading(true);
+        try {
+            const res = await fetch(`/api/pei/enviar-regentes?preview=1&grade=${encodeURIComponent(grade)}&classGroup=${encodeURIComponent(classGroup)}`);
+            const data = await res.json();
+            setPreview(data.teachers || []);
+        } catch {
+            setPreview([]);
+        } finally {
+            setPreviewLoading(false);
         }
-        setNovasDisciplinas([
-            ...novasDisciplinas,
-            { disciplina: novaDisciplina, professor_id: prof.id, professor_nome: prof.name },
-        ]);
-        setNovaDisciplina("");
-        setSelectedProfId("");
-        setError("");
-    };
+    }, []);
 
-    const removerNova = (idx: number) => {
-        setNovasDisciplinas(novasDisciplinas.filter((_, i) => i !== idx));
-    };
+    // Inicializar preview ao montar
+    useEffect(() => {
+        if (!studentId || !studentGrade) return;
+        loadPreview(studentGrade, studentClass || "");
+    }, [studentId, studentGrade, studentClass, loadPreview]);
 
-    // Enviar modo automático (busca teacher_assignments automaticamente)
-    const enviarAuto = async () => {
+    // ─── Vincular todos ────────────────────────────────────────────────────
+
+    const vincularTodos = async () => {
         if (!studentId) return;
         setSending(true);
         setError("");
@@ -149,41 +92,37 @@ export function PEIFase2Regentes({ studentId, studentName, onDisciplinaSelect }:
                 body: JSON.stringify({ studentId, auto: true }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Erro ao enviar");
+            if (!res.ok) throw new Error(data.error || "Erro ao vincular");
             setDisciplinas([...disciplinas, ...(data.disciplinas || [])]);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Erro ao enviar automaticamente");
+            setError(err instanceof Error ? err.message : "Erro ao vincular professores");
         } finally {
             setSending(false);
         }
     };
 
-    // Enviar modo manual
-    const enviarManual = async () => {
-        if (!studentId || novasDisciplinas.length === 0) return;
-        setSending(true);
-        setError("");
+    // ─── Desvincular disciplina ────────────────────────────────────────────
+
+    const desvincular = async (disc: DisciplinaRegente) => {
+        if (!disc.id || !studentId) return;
+        if (!confirm(`Desvincular ${disc.disciplina} (${disc.professor_regente_nome})?`)) return;
+        setRemoving(disc.id);
         try {
             const res = await fetch("/api/pei/enviar-regentes", {
-                method: "POST",
+                method: "DELETE",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    studentId,
-                    disciplinas: novasDisciplinas.map((d) => ({
-                        disciplina: d.disciplina,
-                        professor_regente_nome: d.professor_nome,
-                        professor_regente_id: d.professor_id,
-                    })),
-                }),
+                body: JSON.stringify({ id: disc.id, studentId }),
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Erro ao enviar");
-            setDisciplinas([...disciplinas, ...(data.disciplinas || [])]);
-            setNovasDisciplinas([]);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Erro ao enviar para regentes");
+            if (res.ok) {
+                setDisciplinas(disciplinas.filter((d) => d.id !== disc.id));
+            } else {
+                const data = await res.json();
+                setError(data.error || "Erro ao desvincular");
+            }
+        } catch {
+            setError("Erro ao desvincular");
         } finally {
-            setSending(false);
+            setRemoving(null);
         }
     };
 
@@ -210,17 +149,16 @@ export function PEIFase2Regentes({ studentId, studentName, onDisciplinaSelect }:
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <Users size={22} />
                     <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
-                        Fase 2 — Professores Regentes
+                        Professores Regentes
                     </h3>
                 </div>
                 <p style={{ margin: 0, fontSize: 14, opacity: 0.9 }}>
-                    Envie o PEI de <strong>{studentName}</strong> para cada professor regente.
-                    Eles irão inserir o plano de ensino, aplicar a avaliação diagnóstica e
-                    elaborar o PEI por componente curricular.
+                    Vincule o PEI de <strong>{studentName}</strong> aos professores da turma.
+                    Cada professor receberá acesso para elaborar o PEI da sua disciplina.
                 </p>
             </div>
 
-            {/* Envio automático */}
+            {/* Professores detectados (preview) */}
             {disciplinas.length === 0 && (
                 <div style={{
                     background: "rgba(16,185,129,.06)", borderRadius: 14, padding: 20,
@@ -228,73 +166,130 @@ export function PEIFase2Regentes({ studentId, studentName, onDisciplinaSelect }:
                 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                         <Sparkles size={18} style={{ color: "#10b981" }} />
-                        <h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "var(--text-primary, #e2e8f0)" }}>
-                            Envio automático por vínculo
+                        <h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>
+                            Professores detectados na turma
                         </h4>
                     </div>
-                    <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--text-muted, #94a3b8)" }}>
-                        Detecta automaticamente os professores vinculados à turma do estudante
-                        (cadastrados em <strong>Gestão de Usuários</strong>) e cria uma disciplina
-                        para cada componente curricular atribuído.
-                    </p>
-                    <button
-                        onClick={enviarAuto}
-                        disabled={sending}
-                        style={{
-                            padding: "10px 20px", borderRadius: 10,
-                            background: "linear-gradient(135deg, #059669, #10b981)",
-                            color: "#fff", border: "none",
-                            cursor: sending ? "wait" : "pointer",
-                            fontWeight: 700, fontSize: 14, display: "flex",
-                            alignItems: "center", gap: 8,
-                        }}
-                    >
-                        {sending ? (
-                            <><Loader2 size={16} className="animate-spin" /> Detectando professores...</>
-                        ) : (
-                            <><Sparkles size={16} /> Detectar e enviar automaticamente</>
-                        )}
-                    </button>
+
+                    {previewLoading ? (
+                        <p style={{ fontSize: 13, color: "#94a3b8" }}>
+                            <Loader2 size={14} className="animate-spin" style={{ verticalAlign: "middle", marginRight: 6 }} />
+                            Buscando professores vinculados...
+                        </p>
+                    ) : preview.length > 0 ? (
+                        <div style={{ marginBottom: 16 }}>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+                                {preview.map((t, i) => (
+                                    <div key={i} style={{
+                                        padding: "8px 14px", borderRadius: 10,
+                                        background: "rgba(99,102,241,.08)", border: "1px solid rgba(99,102,241,.15)",
+                                        fontSize: 13, color: "var(--text-primary, #334155)",
+                                    }}>
+                                        <strong>{t.name}</strong>
+                                        <span style={{ opacity: 0.6, marginLeft: 6 }}>• {t.component}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <button
+                                onClick={vincularTodos}
+                                disabled={sending}
+                                style={{
+                                    width: "100%", padding: "12px 20px", borderRadius: 12,
+                                    background: "linear-gradient(135deg, #059669, #10b981)",
+                                    color: "#fff", border: "none",
+                                    cursor: sending ? "wait" : "pointer",
+                                    fontWeight: 700, fontSize: 15, display: "flex",
+                                    alignItems: "center", justifyContent: "center", gap: 8,
+                                }}
+                            >
+                                {sending ? (
+                                    <><Loader2 size={18} className="animate-spin" /> Vinculando...</>
+                                ) : (
+                                    <><Send size={18} /> Vincular todos os professores ({preview.length})</>
+                                )}
+                            </button>
+                        </div>
+                    ) : (
+                        <div style={{ fontSize: 13, color: "#94a3b8" }}>
+                            <AlertTriangle size={14} style={{ verticalAlign: "middle", marginRight: 6, color: "#f59e0b" }} />
+                            Nenhum professor vinculado a esta turma. Cadastre professores com componentes curriculares em{" "}
+                            <strong>Gestão de Usuários</strong>.
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Cards de disciplinas já enviadas */}
+            {/* Cards de disciplinas vinculadas */}
             {disciplinas.length > 0 && (
                 <div>
-                    <h4 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 600, color: "var(--text-primary, #e2e8f0)" }}>
-                        Disciplinas enviadas ({disciplinas.length})
-                    </h4>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                        <h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>
+                            Disciplinas vinculadas ({disciplinas.length})
+                        </h4>
+                        <button
+                            onClick={vincularTodos}
+                            disabled={sending}
+                            style={{
+                                padding: "6px 14px", borderRadius: 8,
+                                background: "rgba(16,185,129,.1)", border: "1px solid rgba(16,185,129,.2)",
+                                color: "#059669", fontSize: 13, fontWeight: 600,
+                                cursor: sending ? "wait" : "pointer",
+                                display: "flex", alignItems: "center", gap: 6,
+                            }}
+                        >
+                            <Sparkles size={14} />
+                            {sending ? "Detectando..." : "+ Detectar novos"}
+                        </button>
+                    </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
                         {disciplinas.map((d) => {
                             const status = (d.fase_status || "plano_ensino") as FaseStatusPEIDisciplina;
                             const color = STATUS_COLORS[status] || "#94a3b8";
+                            const isRemoving = removing === d.id;
                             return (
                                 <div
                                     key={d.id || d.disciplina}
-                                    onClick={() => onDisciplinaSelect?.(d.disciplina)}
                                     style={{
-                                        background: "var(--bg-tertiary, rgba(30,41,59,.6))", borderRadius: 12,
-                                        padding: "16px 18px", border: `1px solid ${color}33`,
-                                        cursor: onDisciplinaSelect ? "pointer" : "default",
-                                        transition: "all .2s",
+                                        background: "var(--bg-tertiary, #f8fafc)", borderRadius: 12,
+                                        padding: "16px 18px", border: `2px solid ${color}33`,
+                                        transition: "all .2s", position: "relative",
                                     }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${color}88`; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${color}33`; }}
                                 >
                                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                                        <span style={{ fontWeight: 600, fontSize: 15, color: "var(--text-primary, #f1f5f9)" }}>
+                                        <span
+                                            onClick={() => onDisciplinaSelect?.(d.disciplina)}
+                                            style={{
+                                                fontWeight: 600, fontSize: 15, color: "var(--text-primary, #1e293b)",
+                                                cursor: onDisciplinaSelect ? "pointer" : "default",
+                                            }}
+                                        >
                                             {d.disciplina}
                                         </span>
                                         <span style={{
                                             fontSize: 11, padding: "2px 8px", borderRadius: 20,
-                                            background: `${color}22`, color, fontWeight: 600,
+                                            background: `${color}15`, color, fontWeight: 600,
                                         }}>
                                             {FASE_STATUS_LABELS[status] || status}
                                         </span>
                                     </div>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted, #94a3b8)" }}>
-                                        <BookOpen size={14} />
-                                        {d.professor_regente_nome}
+                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted, #64748b)" }}>
+                                            <BookOpen size={14} />
+                                            {d.professor_regente_nome}
+                                        </div>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); desvincular(d); }}
+                                            disabled={isRemoving}
+                                            title="Desvincular"
+                                            style={{
+                                                background: "none", border: "none",
+                                                color: isRemoving ? "#94a3b8" : "#ef4444",
+                                                cursor: isRemoving ? "wait" : "pointer",
+                                                padding: 4, borderRadius: 6,
+                                            }}
+                                        >
+                                            {isRemoving ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                        </button>
                                     </div>
                                 </div>
                             );
@@ -303,132 +298,16 @@ export function PEIFase2Regentes({ studentId, studentName, onDisciplinaSelect }:
                 </div>
             )}
 
-            {/* Adicionar manualmente */}
-            <div style={{ background: "var(--bg-tertiary, rgba(30,41,59,.4))", borderRadius: 14, padding: 20 }}>
-                <h4 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 600, color: "var(--text-primary, #e2e8f0)" }}>
-                    <Plus size={16} style={{ verticalAlign: "middle", marginRight: 6 }} />
-                    Adicionar disciplina manualmente
-                </h4>
-
-                <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
-                    {/* Select de disciplina */}
-                    <select
-                        value={novaDisciplina}
-                        onChange={(e) => setNovaDisciplina(e.target.value)}
-                        style={{
-                            flex: 1, minWidth: 180, padding: "8px 12px", borderRadius: 8,
-                            background: "var(--bg-primary, rgba(15,23,42,.6))",
-                            color: "var(--text-primary, #e2e8f0)",
-                            border: "1px solid var(--border-default, rgba(148,163,184,.3))",
-                            fontSize: 14,
-                        }}
-                    >
-                        <option value="">Selecionar disciplina...</option>
-                        {DISCIPLINAS_EF.filter(
-                            (d) => !disciplinas.some((ex) => ex.disciplina === d) &&
-                                !novasDisciplinas.some((n) => n.disciplina === d)
-                        ).map((d) => (
-                            <option key={d} value={d}>{d}</option>
-                        ))}
-                    </select>
-
-                    {/* Select de professor (do banco) */}
-                    <select
-                        value={selectedProfId}
-                        onChange={(e) => setSelectedProfId(e.target.value)}
-                        style={{
-                            flex: 1, minWidth: 200, padding: "8px 12px", borderRadius: 8,
-                            background: "var(--bg-primary, rgba(15,23,42,.6))",
-                            color: "var(--text-primary, #e2e8f0)",
-                            border: "1px solid var(--border-default, rgba(148,163,184,.3))",
-                            fontSize: 14,
-                        }}
-                    >
-                        <option value="">
-                            {loadingProfs ? "Carregando professores..." : "Selecionar professor cadastrado..."}
-                        </option>
-                        {professores.map((p) => (
-                            <option key={p.id} value={p.id}>
-                                {p.name}
-                                {p.components.length > 0 ? ` (${p.components.join(", ")})` : ""}
-                            </option>
-                        ))}
-                    </select>
-
-                    <button
-                        onClick={adicionarDisciplina}
-                        disabled={!novaDisciplina || !selectedProfId}
-                        style={{
-                            padding: "8px 16px", borderRadius: 8,
-                            background: novaDisciplina && selectedProfId ? "#4f46e5" : "var(--bg-tertiary, #334155)",
-                            color: "#fff", border: "none",
-                            cursor: novaDisciplina && selectedProfId ? "pointer" : "not-allowed",
-                            fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6,
-                        }}
-                    >
-                        <Plus size={16} /> Adicionar
-                    </button>
+            {error && (
+                <div style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    padding: "10px 14px", borderRadius: 10,
+                    background: "rgba(239,68,68,.08)", color: "#ef4444", fontSize: 13,
+                    border: "1px solid rgba(239,68,68,.15)",
+                }}>
+                    <AlertTriangle size={16} /> {error}
                 </div>
-
-                {professores.length === 0 && !loadingProfs && (
-                    <p style={{ fontSize: 12, color: "var(--text-muted, #94a3b8)", margin: "0 0 12px" }}>
-                        💡 Nenhum professor encontrado. Cadastre professores em{" "}
-                        <strong>Gestão de Usuários</strong> e atribua turmas e componentes curriculares.
-                    </p>
-                )}
-
-                {/* Lista de novas disciplinas pendentes */}
-                {novasDisciplinas.length > 0 && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-                        {novasDisciplinas.map((d, i) => (
-                            <div key={i} style={{
-                                display: "flex", justifyContent: "space-between", alignItems: "center",
-                                padding: "8px 12px", borderRadius: 8,
-                                background: "rgba(99,102,241,.1)", border: "1px solid rgba(99,102,241,.2)",
-                            }}>
-                                <span style={{ color: "var(--text-primary, #c7d2fe)", fontSize: 14 }}>
-                                    <strong>{d.disciplina}</strong> — {d.professor_nome}
-                                </span>
-                                <button onClick={() => removerNova(i)} style={{
-                                    background: "none", border: "none", color: "#f87171", cursor: "pointer",
-                                }}>
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {error && (
-                    <div style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        padding: "8px 12px", borderRadius: 8, marginBottom: 12,
-                        background: "rgba(239,68,68,.1)", color: "#f87171", fontSize: 13,
-                    }}>
-                        <AlertTriangle size={16} /> {error}
-                    </div>
-                )}
-
-                {novasDisciplinas.length > 0 && (
-                    <button
-                        onClick={enviarManual}
-                        disabled={sending}
-                        style={{
-                            width: "100%", padding: "12px 20px", borderRadius: 10,
-                            background: "linear-gradient(135deg, #4f46e5, #6366f1)",
-                            color: "#fff", border: "none", cursor: sending ? "wait" : "pointer",
-                            fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center",
-                            justifyContent: "center", gap: 8,
-                        }}
-                    >
-                        {sending ? (
-                            <><Loader2 size={18} className="animate-spin" /> Enviando...</>
-                        ) : (
-                            <><Send size={18} /> Enviar para {novasDisciplinas.length} professor{novasDisciplinas.length > 1 ? "es" : ""}</>
-                        )}
-                    </button>
-                )}
-            </div>
+            )}
 
             {loading && (
                 <div style={{ textAlign: "center", padding: 20 }}>

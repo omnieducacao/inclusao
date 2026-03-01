@@ -307,3 +307,32 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, disciplinas: inserted, count: inserted?.length || 0 });
 }
+
+export async function DELETE(req: Request) {
+    const session = await getSession();
+    if (!session?.workspace_id) {
+        return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { id, studentId } = body as { id: string; studentId: string };
+
+    if (!id || !studentId) {
+        return NextResponse.json({ error: "id e studentId obrigatórios" }, { status: 400 });
+    }
+
+    const sb = getSupabase();
+    const { error } = await sb
+        .from("pei_disciplinas")
+        .delete()
+        .eq("id", id)
+        .eq("student_id", studentId)
+        .eq("workspace_id", session.workspace_id);
+
+    if (error) {
+        console.error("DELETE /api/pei/enviar-regentes:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+}

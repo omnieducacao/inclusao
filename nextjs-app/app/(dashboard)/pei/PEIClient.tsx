@@ -2374,6 +2374,8 @@ export function PEIClient({
           <PEIFase2Regentes
             studentId={currentStudentId}
             studentName={peiData.nome || "Estudante"}
+            studentGrade={peiData.serie || ""}
+            studentClass={peiData.turma || ""}
           />
         )}
 
