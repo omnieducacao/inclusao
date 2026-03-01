@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import type { SessionPayload } from "@/lib/session";
-import { Building2, Settings, FileText, BarChart3, Bug, Loader2, Plus, Edit2, Trash2, Play, Pause, Save, X, Eye, Users, ScrollText, Megaphone, Download, Activity, Camera, Upload, ExternalLink } from "lucide-react";
+import { Building2, Settings, FileText, BarChart3, Bug, Loader2, Plus, Edit2, Trash2, Play, Pause, Save, X, Eye, Users, ScrollText, Megaphone, Download, Activity, Camera, Upload, ExternalLink, Palette } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { LottieIcon } from "@/components/LottieIcon";
 
 type Workspace = {
   id: string;
@@ -2604,8 +2605,8 @@ function AparenciaTab() {
                               key={color.key}
                               onClick={() => updateModule(mod.key, "color", color.key)}
                               className={`w-10 h-10 rounded-lg border-2 transition-all flex items-center justify-center ${currentColor === color.key
-                                  ? "border-blue-500 scale-110 shadow-lg"
-                                  : "border-transparent hover:border-slate-300"
+                                ? "border-blue-500 scale-110 shadow-lg"
+                                : "border-transparent hover:border-slate-300"
                                 }`}
                               style={{ backgroundColor: color.hex }}
                               title={color.label}
@@ -2635,21 +2636,20 @@ function AparenciaTab() {
                               <button
                                 key={iconName}
                                 onClick={() => updateModule(mod.key, "icon", `flat/${iconName}`)}
-                                className={`aspect-square rounded-lg border-2 p-1 transition-all hover:scale-105 flex items-center justify-center ${isSelected
+                                className={`relative aspect-square rounded-lg border-2 p-1.5 transition-all hover:scale-105 flex flex-col items-center justify-center gap-0.5 ${isSelected
                                     ? "border-blue-500 bg-blue-50 shadow-md"
                                     : "border-slate-200 hover:border-slate-300 bg-white"
                                   }`}
                                 title={iconName.replace(/wired-flat-\d+-/, "").replace(/-hover.*/, "").replace(/-/g, " ")}
                               >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={`/lottie/flat/${iconName}.json`}
-                                  alt=""
-                                  className="w-8 h-8 opacity-0"
-                                  onError={() => { }}
+                                <LottieIcon
+                                  animation={`flat/${iconName}`}
+                                  size={36}
+                                  loop={false}
+                                  autoplay={true}
                                 />
-                                <span className="text-[9px] text-slate-500 absolute bottom-0 truncate w-full text-center px-0.5">
-                                  {iconName.replace(/wired-flat-\d+-/, "").replace(/-hover.*/, "").substring(0, 10)}
+                                <span className="text-[8px] text-slate-500 truncate w-full text-center leading-tight">
+                                  {iconName.replace(/wired-flat-\d+-/, "").replace(/-hover.*/, "").replace(/-/g, " ").substring(0, 12)}
                                 </span>
                               </button>
                             );
