@@ -8,7 +8,7 @@ import { useTheme } from "./ThemeProvider";
 
 // ─── Canonical Lottie icon per module ─────────────────────────────────────────
 
-const moduleLottieIcon: Record<ModuleThemeKey, string> = {
+const moduleLottieIcon: Partial<Record<ModuleThemeKey, string>> = {
   omnisfera: "estudantes_flat",
   pei: "pei_flat",
   paee: "paee_flat",
