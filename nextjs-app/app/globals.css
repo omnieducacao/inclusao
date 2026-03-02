@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 @source "@omni/ds";
+@source "../app/**/*.{ts,tsx}";
+@source "../components/**/*.{ts,tsx}";
+@source "../lib/**/*.{ts,tsx}";
 @import "@omni/ds/src/theme/base.css";
 @import "@omni/ds/src/theme/animations.css";
 /* ═══════════════════════════════════════════════════
