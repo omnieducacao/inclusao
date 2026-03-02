@@ -31,9 +31,9 @@ describe("Criptografia LGPD — lib/encryption.ts", () => {
 
     afterEach(() => {
         if (ORIGINAL_KEY) {
-            process.env.ENCRYPTION_KEY = ORIGINAL_KEY;
+            (process.env as Record<string, unknown>).ENCRYPTION_KEY = ORIGINAL_KEY; // eslint-disable-line @typescript-eslint/no-explicit-any
         } else {
-            delete process.env.ENCRYPTION_KEY;
+            delete (process.env as Record<string, unknown>).ENCRYPTION_KEY; // eslint-disable-line @typescript-eslint/no-explicit-any
         }
     });
 
@@ -102,7 +102,7 @@ describe("Criptografia LGPD — lib/encryption.ts", () => {
 
     describe("encryptSensitivePeiFields / decryptSensitivePeiFields", () => {
         it("criptografa apenas campos sensíveis do PEI", async () => {
-            const { encryptSensitivePeiFields, SENSITIVE_PEI_FIELDS } = await import("@/lib/encryption");
+            const { encryptSensitivePeiFields } = await import("@/lib/encryption");
 
             const peiData = {
                 nome: "João Silva",
@@ -167,7 +167,7 @@ describe("Criptografia LGPD — lib/encryption.ts", () => {
             const { encryptSensitivePeiFields } = await import("@/lib/encryption");
 
             const peiData = { diagnostico: null, historico: undefined, nome: "Test" };
-            const encrypted = encryptSensitivePeiFields(peiData as any);
+            const encrypted = encryptSensitivePeiFields(peiData as unknown as Record<string, unknown>);
 
             expect(encrypted.diagnostico).toBeNull();
             expect(encrypted.historico).toBeUndefined();

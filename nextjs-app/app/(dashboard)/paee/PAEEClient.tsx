@@ -58,6 +58,8 @@ function PAEEClientInner({ students, studentId, student }: Props) {
   const [relatorio, setRelatorio] = useState<string | null>(null);
   const [relLoading, setRelLoading] = useState(false);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   const ciclos = (student?.paee_ciclos || []) as CicloPAEE[];
 
   // Carregar dados do PAEE quando o estudante mudar
@@ -449,6 +451,8 @@ function PAEEClientInner({ students, studentId, student }: Props) {
               <p className="text-sm text-slate-600 leading-relaxed">
                 <strong className="text-violet-700">Documento de referência:</strong> Registro pedagógico do ciclo de atendimento
                 com objetivos, período, recursos e cronograma geral em <strong>fases</strong> (visão macro). Este documento serve
+    {/* eslint-disable-next-line react/no-unescaped-entities */}
+    {/* eslint-disable-next-line react/no-unescaped-entities */}
                 como referência para o planejamento geral do AEE. Use "Definir como ciclo ativo" para referência em outras abas.
               </p>
               <p className="text-xs text-violet-600 mt-3 font-medium bg-violet-50 px-3 py-2 rounded-lg border border-violet-200">

@@ -73,12 +73,12 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
       >
         <div className="h-1 w-full opacity-60" style={{ background: `linear-gradient(to right, ${colors.text}, ${colors.icon || colors.text})` }} />
         <div className="flex items-center gap-5 h-[120px] px-8 md:px-10">
-          <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center">
-            <div className="w-14 h-14 bg-slate-200 rounded-xl animate-pulse" />
+          <div className="w-14 h-14 shrink-0 flex items-center justify-center">
+            <div className="w-14 h-14 bg-(--omni-bg-tertiary) rounded-xl animate-pulse" />
           </div>
           <div>
             <h1 className="text-xl font-extrabold" style={{ color: colors.text }}>{title}</h1>
-            <p className="text-[13px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>{desc}</p>
+            <p className="text-[13px] mt-0.5" style={{ color: 'var(--omni-text-secondary)' }}>{desc}</p>
           </div>
         </div>
       </div>
@@ -103,18 +103,18 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
       <div className="flex items-center gap-6 h-[120px] px-8 md:px-10">
         {/* Ícone dentro do quadrado minimalista - estático, anima só no hover */}
         <div
-          className="rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-105 flex-shrink-0"
-          style={{ width: '64px', height: '64px', padding: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', backgroundColor: 'var(--surface-2)' }}
+          className="rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-105 shrink-0"
+          style={{ width: '64px', height: '64px', padding: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', backgroundColor: 'var(--omni-bg-secondary)' }}
         >
           <LottieIcon
             animation={lottieAnimation}
             size={48}
-            className="flex-shrink-0"
+            className="shrink-0"
           />
         </div>
         <div className="flex-1">
           <h1 className="text-2xl font-extrabold mb-0.5 tracking-tight" style={{ color: colors.text }}>{title}</h1>
-          <p className="text-[13px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{desc}</p>
+          <p className="text-[13px] leading-relaxed" style={{ color: 'var(--omni-text-secondary)' }}>{desc}</p>
         </div>
       </div>
     </div>

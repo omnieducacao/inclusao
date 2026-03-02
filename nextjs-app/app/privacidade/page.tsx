@@ -1,3 +1,4 @@
+import Image from "next/image";
 /**
  * Política de Privacidade — Página pública (LGPD)
  * Acessível sem autenticação.

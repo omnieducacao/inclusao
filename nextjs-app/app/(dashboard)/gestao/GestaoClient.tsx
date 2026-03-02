@@ -18,6 +18,7 @@ import {
   Loader2 as SimLoader,
   Heart,
 } from "lucide-react";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell, Avatar, Badge, Button, Card, CardHeader, CardTitle, CardDescription, CardContent, DonutChart } from "@omni/ds";
 
 type WorkspaceMember = {
   id: string;
@@ -162,6 +163,25 @@ export function GestaoClient() {
         </div>
       )}
 
+      {/* Dashboard Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Demografia de Estudantes</CardTitle>
+            <CardDescription>Estudantes regulares vs. Inclusão (PEI)</CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center pb-6">
+            <DonutChart
+              segments={[
+                { label: "Ensino Regular", value: 340, color: "#94a3b8" },
+                { label: "Inclusão (PEI)", value: 45, color: "#6366f1" },
+              ]}
+              size={180}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Lista de membros ativos */}
       <div>
         <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
@@ -184,19 +204,31 @@ export function GestaoClient() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-2 stagger-children">
-            {activeMembers.map((m) => (
-              <MemberCard
-                key={m.id}
-                member={m}
-                editingId={editingId}
-                confirmDelId={confirmDelId}
-                setEditingId={setEditingId}
-                setConfirmDelId={setConfirmDelId}
-                onAction={loadData}
-                onError={(err) => setMessage({ type: "err", text: err })}
-              />
-            ))}
+          <div className="rounded-xl border border-[var(--omni-border-default)] overflow-hidden bg-white">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Usuário</TableHead>
+                  <TableHead>Permissões</TableHead>
+                  <TableHead>Vínculo</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeMembers.map((m) => (
+                  <MemberCard
+                    key={m.id}
+                    member={m}
+                    editingId={editingId}
+                    confirmDelId={confirmDelId}
+                    setEditingId={setEditingId}
+                    setConfirmDelId={setConfirmDelId}
+                    onAction={loadData}
+                    onError={(err) => setMessage({ type: "err", text: err })}
+                  />
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
@@ -211,18 +243,30 @@ export function GestaoClient() {
           <p className="text-slate-500">Carregando…</p>
         ) : activeFamily.length === 0 ? (
           <p className="text-sm text-slate-500 italic p-4 bg-slate-50 rounded-lg">
-            Nenhum responsável cadastrado. Use o formulário acima e selecione "Família" para criar.
+            Nenhum responsável cadastrado. Use o formulário acima e selecione &quot;Família&quot; para criar.
           </p>
         ) : (
-          <div className="space-y-2 stagger-children">
-            {activeFamily.map((f) => (
-              <FamilyCard
-                key={f.id}
-                responsavel={f}
-                onAction={loadData}
-                onError={(err) => setMessage({ type: "err", text: err })}
-              />
-            ))}
+          <div className="rounded-xl border border-[var(--omni-border-default)] overflow-hidden bg-white">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Responsável</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Parentesco</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeFamily.map((f) => (
+                  <FamilyCard
+                    key={f.id}
+                    responsavel={f}
+                    onAction={loadData}
+                    onError={(err) => setMessage({ type: "err", text: err })}
+                  />
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
@@ -235,31 +279,50 @@ export function GestaoClient() {
             Usuários desativados
           </h3>
           <p className="text-xs text-slate-500 mb-2">Excluir libera o email para novo cadastro.</p>
-          <div className="space-y-2 stagger-children">
-            {inactiveMembers.map((m) => (
-              <InactiveMemberCard
-                key={m.id}
-                member={m}
-                confirmDelId={confirmDelId}
-                setConfirmDelId={setConfirmDelId}
-                onAction={loadData}
-                onError={(err) => setMessage({ type: "err", text: err })}
-              />
-            ))}
-            {inactiveFamily.map((f) => (
-              <div key={f.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50">
-                <div className="flex justify-between items-center">
-                  <p className="text-slate-700">
-                    <Heart className="w-4 h-4 inline mr-1 text-amber-500" />
-                    {f.nome} — {f.email} (inativo · família)
-                  </p>
-                </div>
-              </div>
-            ))}
+          <div className="rounded-xl border border-[var(--omni-border-default)] overflow-hidden bg-white">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Usuário/Responsável</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {inactiveMembers.map((m) => (
+                  <InactiveMemberCard
+                    key={m.id}
+                    member={m}
+                    confirmDelId={confirmDelId}
+                    setConfirmDelId={setConfirmDelId}
+                    onAction={loadData}
+                    onError={(err) => setMessage({ type: "err", text: err })}
+                  />
+                ))}
+                {inactiveFamily.map((f) => (
+                  <TableRow key={f.id} className="bg-slate-50/50">
+                    <TableCell>
+                      <p className="font-medium text-[var(--omni-text-primary)]">
+                        <Heart className="w-4 h-4 inline mr-1 text-amber-500" />
+                        {f.nome}
+                      </p>
+                      <p className="text-xs text-[var(--omni-text-muted)] mt-0.5">{f.email}</p>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="default" className="bg-amber-100 text-amber-700 font-medium text-[10px]">Família (inativo)</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <p className="text-xs text-[var(--omni-text-muted)]">Nenhuma ação disponível</p>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 }
 
@@ -403,6 +466,7 @@ function NovoUsuarioForm({
     if (linkType === "turma") {
       Promise.all([
         fetch("/api/school/classes").then((r) => r.json()).then((d) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const classesData = (d.classes || []).map((c: any) => ({
             id: c.id,
             label: `${(c.grade || c.grades)?.label || c.grade_id || ""} - Turma ${c.class_group || ""}`,
@@ -410,6 +474,7 @@ function NovoUsuarioForm({
           setClasses(classesData);
         }),
         fetch("/api/school/components").then((r) => r.json()).then((d) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setComponents((d.components || []).map((c: any) => ({
             id: c.id,
             label: c.label || c.id,
@@ -420,6 +485,7 @@ function NovoUsuarioForm({
       fetch("/api/students")
         .then((r) => r.json())
         .then((d) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setStudents((d.students || []).map((s: any) => ({
             id: s.id,
             name: s.name,
@@ -675,88 +741,103 @@ function MemberCard({
 
   if (confirmDelId === member.id) {
     return (
-      <div className="p-4 rounded-xl border border-amber-200 bg-amber-50">
-        <p className="text-amber-800 font-medium mb-2">Excluir permanentemente? O email será liberado.</p>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={async () => {
-              const res = await fetch(`/api/members/${member.id}`, { method: "DELETE" });
-              if (!res.ok) {
-                const d = await res.json();
-                onError(d.error || "Erro ao excluir.");
-                return;
-              }
-              setConfirmDelId(null);
-              onAction();
-            }}
-            className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
-          >
-            Sim, excluir
-          </button>
-          <button
-            type="button"
-            onClick={() => setConfirmDelId(null)}
-            className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm hover:bg-slate-50"
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
+      <TableRow className="bg-amber-50">
+        <TableCell colSpan={4}>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-2">
+            <p className="text-amber-800 font-medium text-sm">Excluir permanentemente? O email será liberado.</p>
+            <div className="flex gap-2">
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={async () => {
+                  const res = await fetch(`/api/members/${member.id}`, { method: "DELETE" });
+                  if (!res.ok) {
+                    const d = await res.json();
+                    onError(d.error || "Erro ao excluir.");
+                    return;
+                  }
+                  setConfirmDelId(null);
+                  onAction();
+                }}
+              >
+                Sim, excluir
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setConfirmDelId(null)}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </TableCell>
+      </TableRow>
     );
   }
 
   if (editingId === member.id) {
     return (
-      <EditarUsuarioForm
-        member={member}
-        onSuccess={() => {
-          setEditingId(null);
-          onAction();
-        }}
-        onCancel={() => setEditingId(null)}
-        onError={onError}
-      />
+      <TableRow>
+        <TableCell colSpan={4} className="p-0">
+          <EditarUsuarioForm
+            member={member}
+            onSuccess={() => {
+              setEditingId(null);
+              onAction();
+            }}
+            onCancel={() => setEditingId(null)}
+            onError={onError}
+          />
+        </TableCell>
+      </TableRow>
     );
   }
 
   return (
-    <div className="p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
-      <div className="flex justify-between items-start gap-4">
-        <div>
-          <h4 className="font-medium text-slate-800 flex items-center gap-2">
-            <User className="w-5 h-5" />
-            {member.nome}
-          </h4>
-          {member.cargo && <span className="text-sm text-slate-500"> · {member.cargo}</span>}
-          <p className="text-sm text-slate-600 mt-0.5">
-            {member.email} · Tel: {member.telefone || "—"}
-          </p>
-          <div className="flex flex-wrap gap-1 mt-2">
-            {perms.map((p) => (
-              <span
-                key={p}
-                className="text-xs px-2 py-0.5 rounded bg-sky-100 text-sky-700"
-              >
-                {p}
-              </span>
-            ))}
-            {perms.length === 0 && <span className="text-slate-400 text-sm">—</span>}
+    <TableRow>
+      <TableCell className="align-top">
+        <div className="flex items-center gap-3">
+          <div className="hidden auto-cols-auto md:block">
+            <Avatar name={member.nome} size="sm" />
           </div>
-          <p className="text-xs text-slate-500 mt-1">Vínculo: {linkTxt}</p>
+          <div>
+            <p className="font-medium text-[var(--omni-text-primary)]">
+              {member.nome}
+              {member.cargo && <span className="font-normal text-[var(--omni-text-muted)]"> · {member.cargo}</span>}
+            </p>
+            <p className="text-xs text-[var(--omni-text-muted)] mt-0.5">
+              {member.email} · {member.telefone || "—"}
+            </p>
+          </div>
         </div>
-        <div className="flex gap-2 shrink-0 flex-wrap">
+      </TableCell>
+      <TableCell className="align-top">
+        <div className="flex flex-wrap gap-1">
+          {perms.map((p) => (
+            <Badge key={p} variant="default" className="font-medium text-[10px]">{p}</Badge>
+          ))}
+          {perms.length === 0 && <span className="text-slate-400 text-sm">—</span>}
+        </div>
+      </TableCell>
+      <TableCell className="align-top">
+        <p className="text-xs text-[var(--omni-text-muted)] whitespace-nowrap">{linkTxt}</p>
+      </TableCell>
+      <TableCell className="align-top text-right">
+        <div className="flex justify-end items-center gap-1.5 shrink-0 flex-wrap">
           <SimularButton memberId={member.id} memberName={member.nome} />
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setEditingId(member.id)}
-            className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm hover:bg-slate-50"
+            className="h-8"
           >
-            <Edit className="w-4 h-4 mr-2" />
+            <Edit size={14} />
             Editar
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={async () => {
               const res = await fetch(`/api/members/${member.id}`, {
                 method: "PATCH",
@@ -770,22 +851,23 @@ function MemberCard({
               }
               onAction();
             }}
-            className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm hover:bg-slate-50"
+            className="h-8"
           >
-            <Pause className="w-4 h-4 mr-2" />
+            <Pause size={14} />
             Desativar
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setConfirmDelId(member.id)}
-            className="px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-sm hover:bg-red-50 flex items-center gap-2"
+            className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 size={14} />
             Excluir
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -829,6 +911,7 @@ function EditarUsuarioForm({
     if (linkType === "turma") {
       Promise.all([
         fetch("/api/school/classes").then((r) => r.json()).then((d) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const classesData = (d.classes || []).map((c: any) => ({
             id: c.id,
             label: `${(c.grade || c.grades)?.label || c.grade_id || ""} - Turma ${c.class_group || ""}`,
@@ -836,6 +919,7 @@ function EditarUsuarioForm({
           setClasses(classesData);
         }),
         fetch("/api/school/components").then((r) => r.json()).then((d) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setComponents((d.components || []).map((c: any) => ({
             id: c.id,
             label: c.label || c.id,
@@ -844,6 +928,7 @@ function EditarUsuarioForm({
         // Carregar vínculos existentes
         fetch(`/api/members/${member.id}/assignments`).then((r) => r.json()).then((d) => {
           if (d.assignments) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             setTeacherAssignments(d.assignments.map((a: any) => ({
               class_id: a.class_id || "",
               component_id: a.component_id || "",
@@ -854,6 +939,7 @@ function EditarUsuarioForm({
     } else if (linkType === "tutor") {
       Promise.all([
         fetch("/api/students").then((r) => r.json()).then((d) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setStudents((d.students || []).map((s: any) => ({
             id: s.id,
             name: s.name,
@@ -1120,47 +1206,58 @@ function InactiveMemberCard({
 }) {
   if (confirmDelId === member.id) {
     return (
-      <div className="p-4 rounded-xl border border-amber-200 bg-amber-50">
-        <p className="text-amber-800 font-medium mb-2">Confirma exclusão permanente? O email será liberado.</p>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={async () => {
-              const res = await fetch(`/api/members/${member.id}`, { method: "DELETE" });
-              if (!res.ok) {
-                const d = await res.json();
-                onError(d.error || "Erro ao excluir.");
-                return;
-              }
-              setConfirmDelId(null);
-              onAction();
-            }}
-            className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
-          >
-            Sim, excluir
-          </button>
-          <button
-            type="button"
-            onClick={() => setConfirmDelId(null)}
-            className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm hover:bg-slate-50"
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
+      <TableRow className="bg-amber-50">
+        <TableCell colSpan={3}>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-2">
+            <p className="text-amber-800 font-medium text-sm">Confirma exclusão permanente? O email será liberado.</p>
+            <div className="flex gap-2">
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={async () => {
+                  const res = await fetch(`/api/members/${member.id}`, { method: "DELETE" });
+                  if (!res.ok) {
+                    const d = await res.json();
+                    onError(d.error || "Erro ao excluir.");
+                    return;
+                  }
+                  setConfirmDelId(null);
+                  onAction();
+                }}
+              >
+                Sim, excluir
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setConfirmDelId(null)}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </TableCell>
+      </TableRow>
     );
   }
 
   return (
-    <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
-      <div className="flex justify-between items-center">
-        <p className="text-slate-700">
+    <TableRow className="bg-slate-50/50">
+      <TableCell className="align-top">
+        <p className="font-medium text-[var(--omni-text-primary)]">
           <User className="w-4 h-4 inline mr-1" />
-          {member.nome} — {member.email} (inativo)
+          {member.nome}
         </p>
-        <div className="flex gap-2">
-          <button
-            type="button"
+        <p className="text-xs text-[var(--omni-text-muted)] mt-0.5">{member.email}</p>
+      </TableCell>
+      <TableCell className="align-top">
+        <Badge variant="default" className="bg-slate-200 text-slate-700 font-medium text-[10px]">Membro (inativo)</Badge>
+      </TableCell>
+      <TableCell className="align-top text-right">
+        <div className="flex justify-end gap-1.5 shrink-0 flex-wrap">
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={async () => {
               const res = await fetch(`/api/members/${member.id}`, {
                 method: "PATCH",
@@ -1174,22 +1271,23 @@ function InactiveMemberCard({
               }
               onAction();
             }}
-            className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm hover:bg-slate-100"
+            className="h-8"
           >
-            <Play className="w-4 h-4 mr-2" />
+            <Play size={14} />
             Reativar
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setConfirmDelId(member.id)}
-            className="px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-sm hover:bg-red-50"
+            className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
           >
-            <Trash2 className="w-4 h-4 mr-2" />
+            <Trash2 size={14} />
             Excluir permanentemente
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -1457,32 +1555,34 @@ function FamilyCard({
   onError: (err: string) => void;
 }) {
   return (
-    <div
-      className="p-6 rounded-2xl bg-white min-h-[120px]"
-      style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1px solid rgba(226,232,240,0.6)" }}
-    >
-      <div className="flex justify-between items-start gap-4">
-        <div>
-          <h4 className="font-medium text-slate-800 flex items-center gap-2">
-            <Heart className="w-5 h-5 text-amber-600" />
-            {responsavel.nome}
-            <span className="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-normal">
-              Família
-            </span>
-          </h4>
-          <p className="text-sm text-slate-600 mt-0.5">
-            {responsavel.email}
-            {responsavel.telefone && ` · Tel: ${responsavel.telefone}`}
-          </p>
-          {responsavel.parentesco && (
-            <p className="text-xs text-slate-500 mt-1">Parentesco: {responsavel.parentesco}</p>
-          )}
+    <TableRow>
+      <TableCell className="align-top">
+        <div className="flex items-center gap-3">
+          <div className="hidden auto-cols-auto md:block">
+            <Avatar name={responsavel.nome} size="sm" />
+          </div>
+          <div>
+            <p className="font-medium text-[var(--omni-text-primary)]">
+              {responsavel.nome}
+            </p>
+            <p className="text-xs text-[var(--omni-text-muted)] mt-0.5">
+              {responsavel.email} {responsavel.telefone && `· Tel: ${responsavel.telefone}`}
+            </p>
+          </div>
         </div>
-        <div className="flex gap-2 shrink-0 flex-wrap">
+      </TableCell>
+      <TableCell className="align-top">
+        <Badge variant="default" className="bg-amber-100 text-amber-700 font-medium text-[10px]">Família</Badge>
+      </TableCell>
+      <TableCell className="align-top">
+        <p className="text-xs text-[var(--omni-text-muted)]">{responsavel.parentesco || "—"}</p>
+      </TableCell>
+      <TableCell className="align-top text-right">
+        <div className="flex justify-end gap-2 shrink-0 flex-wrap">
           <SimularFamilyButton responsavelId={responsavel.id} responsavelName={responsavel.nome} />
         </div>
-      </div>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -1523,14 +1623,15 @@ function SimularFamilyButton({
   }
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="secondary"
+      size="sm"
       onClick={handleSimulate}
       disabled={loading}
-      className="px-3 py-1.5 border border-amber-200 text-amber-600 rounded-lg text-sm hover:bg-amber-50 flex items-center gap-2 disabled:opacity-50"
+      className="text-amber-600 border-amber-200 hover:bg-amber-50 h-8"
     >
-      {loading ? <SimLoader className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+      {loading ? <SimLoader size={14} className="animate-spin" /> : <Eye size={14} />}
       Simular
-    </button>
+    </Button>
   );
 }

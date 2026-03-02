@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 
 export default function DiarioError({
     error,
@@ -39,12 +40,12 @@ export default function DiarioError({
                     >
                         Tentar novamente
                     </button>
-                    <a
+                    <Link
                         href="/"
                         className="px-5 py-2.5 border border-slate-200 text-slate-600 text-sm font-semibold rounded-xl hover:bg-slate-50 transition-all"
                     >
                         Ir para Home
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>

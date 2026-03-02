@@ -98,6 +98,7 @@ export function NotificationBell() {
             const res = await fetch("/api/admin/announcements");
             if (res.ok) {
                 const data = await res.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const announcement = data.announcements?.find((a: any) => a.id === announcementId);
                 if (announcement) {
                     setSelectedAnnouncement({

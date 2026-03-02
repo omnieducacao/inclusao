@@ -364,6 +364,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
                   onError(data.error || "Erro ao gerar ações.");
                   return;
                 }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const novasAcoes = (data.acoes || []).map((a: any) => ({
                   ...a,
                   criado_em: new Date().toISOString(),

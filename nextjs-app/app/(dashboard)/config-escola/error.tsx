@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 
 export default function ConfigEscolaError({
     error,
@@ -39,12 +40,12 @@ export default function ConfigEscolaError({
                     >
                         Tentar novamente
                     </button>
-                    <a
+                    <Link
                         href="/"
-                        className="px-5 py-2.5 border border-slate-200 text-slate-600 text-sm font-semibold rounded-xl hover:bg-slate-50 transition-all"
+                        className="w-full sm:w-auto px-6 py-3 font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors shadow-sm inline-block text-center"
                     >
-                        Ir para Home
-                    </a>
+                        Voltar ao Início
+                    </Link>
                 </div>
             </div>
         </div>

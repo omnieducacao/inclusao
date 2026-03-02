@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
         // Get workspace names for lookup
         const { data: workspaces } = await sb.from("workspaces").select("id, name");
         const wsMap: Record<string, string> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (workspaces || []).forEach((ws: any) => { wsMap[ws.id] = ws.name; });
 
         let query = sb
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const logs = (events || []).map((ev: any) => ({
             id: ev.id,
             workspace_id: ev.workspace_id,
@@ -58,6 +60,7 @@ export async function GET(request: NextRequest) {
             .from("usage_events")
             .select("event_type")
             .limit(500);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const uniqueTypes = [...new Set((types || []).map((t: any) => t.event_type))].sort();
 
         return NextResponse.json({ logs, total: count || 0, event_types: uniqueTypes });

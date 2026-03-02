@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import type { SessionPayload } from "@/lib/session";
-import { X, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
+import { Modal, Button } from "@omni/ds";
 
 type Props = {
   session: SessionPayload;
@@ -84,95 +85,93 @@ export function TermsOfUseModal({ session }: Props) {
   if (!showModal || accepted) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-3xl max-h-[90vh] mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <Modal
+      open={showModal} // Always open when this renders, control handled by if (!showModal)
+      onClose={() => { }} // User shouldn't cancel terms
+      showClose={false}
+      size="lg"
+      className="p-0"
+    >
+      <div className="flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--omni-border-default)] bg-[var(--omni-bg-tertiary)] rounded-t-2xl">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-[var(--omni-primary)] flex items-center justify-center">
               <CheckCircle2 className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900">Termos de Uso</h2>
+            <h2 className="text-xl font-bold text-[var(--omni-text-primary)] tracking-tight">Termos de Uso</h2>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          <div className="prose prose-slate max-w-none">
-            <h3 className="text-lg font-semibold text-slate-800 mb-3">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+          <div className="prose max-w-none text-[var(--omni-text-secondary)]">
+            <h3 className="text-lg font-semibold text-[var(--omni-text-primary)] mb-3">
               Bem-vindo à Omnisfera - Plataforma de Inclusão Educacional
             </h3>
-
-            <p className="text-slate-700 leading-relaxed">
+            <p className="leading-relaxed">
               Ao utilizar esta plataforma, você concorda com os seguintes termos e condições:
             </p>
 
-            <div className="space-y-4 mt-6">
+            <div className="space-y-5 mt-6">
               <div>
-                <h4 className="font-semibold text-slate-800 mb-2">1. Uso Responsável</h4>
-                <p className="text-slate-700 text-sm leading-relaxed">
+                <h4 className="font-semibold text-[var(--omni-text-primary)] mb-1.5">1. Uso Responsável</h4>
+                <p className="text-sm leading-relaxed">
                   Você se compromete a utilizar a plataforma de forma responsável, respeitando a privacidade e os direitos dos estudantes e demais usuários.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-semibold text-slate-800 mb-2">2. Proteção de Dados</h4>
-                <p className="text-slate-700 text-sm leading-relaxed">
+                <h4 className="font-semibold text-[var(--omni-text-primary)] mb-1.5">2. Proteção de Dados</h4>
+                <p className="text-sm leading-relaxed">
                   Todos os dados dos estudantes são confidenciais e devem ser tratados com máxima segurança. Você não deve compartilhar informações pessoais sem autorização.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-semibold text-slate-800 mb-2">3. Conformidade Legal</h4>
-                <p className="text-slate-700 text-sm leading-relaxed">
-                  O uso da plataforma está          Termos baseados na &quot;Lei Geral de Proteção de Dados Pessoais (LGPD)&quot;. Em vigor para uso da plataforma Inclusão Omnisfera.686/2025 e 12.773/2025, e demais legislações aplicáveis à educação inclusiva.
+                <h4 className="font-semibold text-[var(--omni-text-primary)] mb-1.5">3. Conformidade Legal</h4>
+                <p className="text-sm leading-relaxed">
+                  O uso da plataforma está baseado na &quot;Lei Geral de Proteção de Dados Pessoais (LGPD)&quot;. Em vigor para uso da plataforma Inclusão Omnisfera.686/2025 e 12.773/2025, e demais legislações aplicáveis à educação inclusiva.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-semibold text-slate-800 mb-2">4. Responsabilidades</h4>
-                <p className="text-slate-700 text-sm leading-relaxed">
+                <h4 className="font-semibold text-[var(--omni-text-primary)] mb-1.5">4. Responsabilidades</h4>
+                <p className="text-sm leading-relaxed">
                   Você é responsável por manter a confidencialidade de sua conta e senha, e por todas as atividades que ocorram sob sua conta.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-semibold text-slate-800 mb-2">5. Propriedade Intelectual</h4>
-                <p className="text-slate-700 text-sm leading-relaxed">
+                <h4 className="font-semibold text-[var(--omni-text-primary)] mb-1.5">5. Propriedade Intelectual</h4>
+                <p className="text-sm leading-relaxed">
                   Todo o conteúdo gerado pela plataforma, incluindo planos educacionais e relatórios, é de propriedade da escola/instituição e deve ser utilizado exclusivamente para fins educacionais.
                 </p>
               </div>
             </div>
 
-            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
               <p className="text-sm text-amber-800">
-                <strong>Importante:</strong> Ao clicar em "Aceitar", você confirma que leu, compreendeu e concorda com todos os termos acima.
+                <strong>Importante:</strong> Ao clicar em &quot;Aceitar&quot;, você confirma que leu, compreendeu e concorda com todos os termos acima.
               </p>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3">
-          <button
+        <div className="px-6 py-4 border-t border-[var(--omni-border-default)] bg-[var(--omni-bg-tertiary)] rounded-b-2xl flex items-center justify-end gap-3">
+          <Button
             onClick={handleAccept}
+            loading={loading}
             disabled={loading}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-md"
+            className="w-full sm:w-auto"
+            variant="primary"
           >
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Salvando...
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="w-5 h-5" />
-                Aceitar Termos
-              </>
-            )}
-          </button>
+            {!loading && <CheckCircle2 className="w-5 h-5 mr-2" />}
+            Aceitar Termos
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

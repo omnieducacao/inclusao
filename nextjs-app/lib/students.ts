@@ -99,10 +99,12 @@ export async function getStudent(
       try {
         // Tentar extrair informações do erro de forma segura
         if (error && typeof error === 'object') {
-          errorMessage = (error as any)?.message || String(error) || "Sem mensagem";
-          errorDetails = (error as any)?.details || "Sem detalhes";
-          errorHint = (error as any)?.hint || "Sem dica";
-          errorCode = (error as any)?.code || "Sem código";
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const e = error as any;
+          errorMessage = e?.message || String(error) || "Sem mensagem";
+          errorDetails = e?.details || "Sem detalhes";
+          errorHint = e?.hint || "Sem dica";
+          errorCode = e?.code || "Sem código";
         } else {
           errorMessage = String(error);
         }

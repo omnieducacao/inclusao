@@ -8,6 +8,7 @@ import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { CheckCircle2, Info, AlertTriangle, Save, Sparkles, Loader2, TrendingUp, ExternalLink } from "lucide-react";
 import { OmniLoader } from "@/components/OmniLoader";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
+import { Card, CardHeader, CardTitle, CardContent, ActivityRow, SubjectProgressRow, StatusDot } from "@omni/ds";
 
 type Student = { id: string; name: string };
 type CicloPAEE = {
@@ -259,190 +260,185 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Expectativa (PEI) */}
-              <div className="p-6 rounded-2xl bg-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
-                <h4 className="font-medium text-sky-700 mb-2">Expectativa (PEI)</h4>
-                <p className="text-xs text-slate-500 mb-2">Objetivos cadastrados no Plano de Ensino</p>
-                {objetivosList.length > 0 ? (
-                  <ul className="space-y-2 max-h-64 overflow-y-auto">
-                    {objetivosList.map((obj, i) => (
-                      <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
-                        <span className="text-sky-500 mt-0.5 flex-shrink-0">📍</span>
-                        <span className="flex-1">{typeof obj === "string" ? obj : String(obj)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="text-sm text-slate-600 space-y-1">
-                    <p><strong>Contexto:</strong> {student.diagnosis || "Não informado"}</p>
-                    {peiData.ia_sugestao && typeof peiData.ia_sugestao === "string" ? (
-                      <div className="mt-2 pt-2 border-t border-slate-200">
-                        <p className="text-xs text-slate-500 mb-1">Resumo das Estratégias (IA):</p>
-                        <p className="text-xs text-slate-700 line-clamp-4">{peiData.ia_sugestao.substring(0, 200)}...</p>
-                      </div>
-                    ) : (
-                      <p>Sem objetivos estruturados no PEI.</p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Planejamento (PAEE) */}
-              <div className="p-6 rounded-2xl bg-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
-                <h4 className="font-medium text-emerald-700 mb-2">Planejamento (PAEE)</h4>
-                <p className="text-xs text-slate-500 mb-2">Ciclos de AEE planejados</p>
-                {paeeAtivo ? (
-                  <div className="text-sm space-y-2">
-                    <p className="text-emerald-600 font-medium flex items-center gap-1">
-                      <CheckCircle2 className="w-4 h-4" />
-                      Ciclo PAEE Ativo
-                    </p>
-                    <div className="space-y-1">
-                      <p>
-                        <strong>Período:</strong> {fmtData(paeeAtivo.config_ciclo?.data_inicio)} a{" "}
-                        {fmtData(paeeAtivo.config_ciclo?.data_fim)}
-                      </p>
-                      <p><strong>Status:</strong> {paeeAtivo.status || "rascunho"}</p>
-                      {paeeAtivo.config_ciclo?.foco_principal && (
-                        <p><strong>Foco:</strong> {paeeAtivo.config_ciclo.foco_principal}</p>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sky-700 text-base">Expectativa (PEI)</CardTitle>
+                  <p className="text-xs text-(--omni-text-muted)">Objetivos cadastrados no Plano</p>
+                </CardHeader>
+                <CardContent>
+                  {objetivosList.length > 0 ? (
+                    <ul className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                      {objetivosList.map((obj, i) => (
+                        <li key={i} className="text-sm text-(--omni-text-primary) flex items-start gap-2">
+                          <span className="text-sky-500 mt-0.5 shrink-0">📍</span>
+                          <span className="flex-1">{typeof obj === "string" ? obj : String(obj)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-sm text-(--omni-text-secondary) space-y-1">
+                      <p><strong>Contexto:</strong> {student.diagnosis || "Não informado"}</p>
+                      {peiData.ia_sugestao && typeof peiData.ia_sugestao === "string" ? (
+                        <div className="mt-2 pt-2 border-t border-(--omni-border-default)">
+                          <p className="text-xs text-(--omni-text-muted) mb-1">Resumo das Estratégias (IA):</p>
+                          <p className="text-xs text-(--omni-text-primary) line-clamp-4">{peiData.ia_sugestao.substring(0, 200)}...</p>
+                        </div>
+                      ) : (
+                        <p>Sem objetivos estruturados no PEI.</p>
                       )}
                     </div>
-                    {planoHabilidades && (
-                      <div className="mt-3 pt-3 border-t border-slate-200">
-                        <p className="text-xs font-semibold text-slate-600 mb-1">Plano de Habilidades:</p>
-                        <p className="text-xs text-slate-700 line-clamp-3">{planoHabilidades.substring(0, 150)}...</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Planejamento (PAEE) */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-emerald-700 text-base">Planejamento (PAEE)</CardTitle>
+                  <p className="text-xs text-(--omni-text-muted)">Ciclos de AEE planejados</p>
+                </CardHeader>
+                <CardContent>
+                  {paeeAtivo ? (
+                    <div className="text-sm space-y-2">
+                      <StatusDot variant="success" label="Ciclo PAEE Ativo" />
+                      <div className="space-y-1 mt-2 text-(--omni-text-primary)">
+                        <p><strong>Período:</strong> {fmtData(paeeAtivo.config_ciclo?.data_inicio)} a {fmtData(paeeAtivo.config_ciclo?.data_fim)}</p>
+                        <p><strong>Status:</strong> {paeeAtivo.status || "rascunho"}</p>
+                        {paeeAtivo.config_ciclo?.foco_principal && (
+                          <p><strong>Foco:</strong> {paeeAtivo.config_ciclo.foco_principal}</p>
+                        )}
                       </div>
-                    )}
-                    {tecnologiasAssistivas && (
-                      <div className="mt-2">
-                        <p className="text-xs font-semibold text-slate-600 mb-1">Tecnologias Assistivas:</p>
-                        <p className="text-xs text-slate-700 line-clamp-2">{tecnologiasAssistivas.substring(0, 100)}...</p>
-                      </div>
-                    )}
-                  </div>
-                ) : paeeCiclos.length > 0 ? (
-                  <p className="text-sm text-amber-700">
-                    <span className="flex items-center gap-1">
-                      <Info className="w-4 h-4" />
-                      {paeeCiclos.length} ciclo(s) cadastrado(s), nenhum ativo
-                    </span>
-                  </p>
-                ) : (
-                  <p className="text-sm text-amber-600 flex items-center gap-1">
-                    <AlertTriangle className="w-4 h-4" />
-                    Nenhum ciclo PAEE cadastrado
-                  </p>
-                )}
-              </div>
+                      {planoHabilidades && (
+                        <div className="mt-3 pt-3 border-t border-(--omni-border-default)">
+                          <p className="text-xs font-semibold text-(--omni-text-secondary) mb-1">Plano de Habilidades:</p>
+                          <p className="text-xs text-(--omni-text-primary) line-clamp-3">{planoHabilidades.substring(0, 150)}...</p>
+                        </div>
+                      )}
+                      {tecnologiasAssistivas && (
+                        <div className="mt-2 text-(--omni-text-primary)">
+                          <p className="text-xs font-semibold text-(--omni-text-secondary) mb-1">Tecnologias Assistivas:</p>
+                          <p className="text-xs text-(--omni-text-primary) line-clamp-2">{tecnologiasAssistivas.substring(0, 100)}...</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : paeeCiclos.length > 0 ? (
+                    <p className="text-sm text-amber-700 flex items-center gap-1">
+                      <Info className="w-4 h-4" /> {paeeCiclos.length} ciclo(s) cadastrado(s), nenhum ativo
+                    </p>
+                  ) : (
+                    <p className="text-sm text-amber-600 flex items-center gap-1">
+                      <AlertTriangle className="w-4 h-4" /> Nenhum ciclo PAEE cadastrado
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Realidade (Diário) */}
-              <div className="p-6 rounded-2xl bg-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
-                <h4 className="font-medium text-rose-600 mb-2">Realidade (Diário)</h4>
-                <p className="text-xs text-slate-500 mb-2">Últimos registros de atividades</p>
-                {registrosOrdenados.length > 0 ? (
-                  <div className="space-y-3 max-h-64 overflow-y-auto">
-                    {registrosOrdenados.slice(0, 5).map((r, idx) => {
-                      const data = r.data_sessao || r.criado_em || "";
-                      const atividade = r.atividade_principal || "";
-                      const objetivos = r.objetivos_trabalhados || "";
-                      const observacoes = r.observacoes || "";
-                      const engajamento = r.engajamento_aluno;
-                      const modalidade = r.modalidade_atendimento;
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-rose-600 text-base">Realidade (Diário)</CardTitle>
+                  <p className="text-xs text-(--omni-text-muted)">Últimos registros de atividades</p>
+                </CardHeader>
+                <CardContent>
+                  {registrosOrdenados.length > 0 ? (
+                    <div className="space-y-3 max-h-68 overflow-y-auto pr-2">
+                      {registrosOrdenados.slice(0, 5).map((r, idx) => {
+                        const data = r.data_sessao || r.criado_em || "";
+                        const atividade = r.atividade_principal || "";
+                        const objetivos = r.objetivos_trabalhados || "";
+                        const engajamento = r.engajamento_aluno;
+                        const modalidade = r.modalidade_atendimento;
 
-                      const getModalidadeColor = (mod?: string | null) => {
-                        switch (mod) {
-                          case "individual": return "bg-blue-100 border-blue-300";
-                          case "grupo": return "bg-green-100 border-green-300";
-                          case "observacao_sala": return "bg-yellow-100 border-yellow-300";
-                          case "consultoria": return "bg-purple-100 border-purple-300";
-                          default: return "bg-slate-100 border-slate-300";
-                        }
-                      };
+                        const getModColor = (mod?: string | null) => {
+                          switch (mod) {
+                            case "individual": return "#3b82f6";
+                            case "grupo": return "#10b981";
+                            case "observacao_sala": return "#f59e0b";
+                            case "consultoria": return "#a855f7";
+                            default: return "#64748b";
+                          }
+                        };
 
-                      return (
-                        <div
-                          key={r.registro_id || `${data}-${idx}`}
-                          className={`border-l-4 pl-3 py-2 rounded-r text-sm ${getModalidadeColor(modalidade || undefined)}`}
-                          style={{ borderLeftColor: modalidade === "individual" ? "#3b82f6" : modalidade === "grupo" ? "#10b981" : modalidade === "observacao_sala" ? "#f59e0b" : modalidade === "consultoria" ? "#a855f7" : "#64748b" }}
-                        >
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <span className="text-slate-600 text-xs font-semibold">{fmtData(data)}</span>
-                            {engajamento && (
-                              <span className="text-xs text-slate-500">{"⭐".repeat(engajamento)}</span>
-                            )}
-                          </div>
-                          {atividade && (
-                            <p className="text-slate-800 font-medium text-xs mb-1 line-clamp-1">{atividade}</p>
-                          )}
-                          {objetivos && (
-                            <p className="text-slate-700 text-xs line-clamp-1"><strong>Objetivos:</strong> {objetivos}</p>
-                          )}
-                          {observacoes && (
-                            <p className="text-slate-600 text-xs line-clamp-1 mt-1">{observacoes}</p>
-                          )}
-                        </div>
-                      );
-                    })}
+                        return (
+                          <ActivityRow
+                            key={r.registro_id || `${data}-${idx}`}
+                            icon={<span className="text-[10px] font-bold text-white">{fmtData(data).slice(0, 5)}</span>}
+                            iconColor={getModColor(modalidade)}
+                            title={atividade || "Sessão registrada"}
+                            subtitle={objetivos ? `Obj: ${objetivos.substring(0, 40)}...` : undefined}
+                            trailing={engajamento ? <span className="text-xs text-amber-500 font-bold">{"⭐".repeat(engajamento)}</span> : undefined}
+                            className="bg-(--omni-bg-primary) border border-(--omni-border-default) px-3 py-2"
+                          />
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-amber-600">Nenhum registro no diário para este estudante.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Card Avaliação Processual — evolução por disciplina */}
+            <Card className="mt-4 border-emerald-500/30 shadow-none">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-emerald-700 text-base flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" />
+                  Avaliação Processual
+                </CardTitle>
+                <p className="text-xs text-(--omni-text-muted)">
+                  Registro bimestral por habilidade na escala 0–4 (Omnisfera).
+                </p>
+              </CardHeader>
+              <CardContent>
+                {evolucaoProcessualLoading ? (
+                  <div className="flex items-center gap-2 text-slate-500 text-sm">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Carregando evolução...
+                  </div>
+                ) : evolucaoProcessual && evolucaoProcessual.resumo.total_registros > 0 ? (
+                  <div className="space-y-4 pt-1">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {evolucaoProcessual.evolucao.map((e) => {
+                        // Converter nota 0-4 para percentage 0-100%
+                        const pct = e.media_mais_recente ? (e.media_mais_recente / 4) * 100 : 0;
+                        const status: "intervir" | "acompanhar" | "desafiar" = pct < 40 ? "intervir" : pct < 70 ? "acompanhar" : "desafiar";
+
+                        return (
+                          <SubjectProgressRow
+                            key={e.disciplina}
+                            subject={e.disciplina}
+                            meta={`${e.periodos.length} bimestres`}
+                            percentage={Math.round(pct)}
+                            status={status}
+                          />
+                        );
+                      })}
+                    </div>
+                    <Link
+                      href={`/avaliacao-processual?student=${currentId}`}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Abrir Avaliação Completa
+                    </Link>
                   </div>
                 ) : (
-                  <p className="text-sm text-amber-600">Nenhum registro no diário para este estudante.</p>
-                )}
-              </div>
-            </div>
-
-            {/* Card Avaliação Processual — evolução por disciplina (escala 0–4 Omnisfera) */}
-            <div className="p-6 rounded-2xl bg-white min-h-[120px] mt-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(16,185,129,0.25)' }}>
-              <h4 className="font-medium text-emerald-700 mb-2 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Avaliação Processual
-              </h4>
-              <p className="text-xs text-slate-500 mb-3">
-                Registro bimestral por habilidade na escala 0–4 (Omnisfera). Para registrar, use o módulo Avaliação Processual.
-              </p>
-              {evolucaoProcessualLoading ? (
-                <div className="flex items-center gap-2 text-slate-500 text-sm">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Carregando evolução...
-                </div>
-              ) : evolucaoProcessual && evolucaoProcessual.resumo.total_registros > 0 ? (
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    {evolucaoProcessual.evolucao.map((e) => (
-                      <div
-                        key={e.disciplina}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm"
-                      >
-                        <span className="font-medium text-slate-800">{e.disciplina}</span>
-                        <span className="text-slate-500">
-                          {e.periodos.length} bim.{e.media_mais_recente != null ? ` · Média recente: ${e.media_mais_recente}` : ""}
-                        </span>
-                        {e.tendencia === "melhora" && <span title="Tendência: melhora"><TrendingUp className="w-4 h-4 text-emerald-600" /></span>}
-                        {e.tendencia === "regressao" && <span title="Tendência: atenção"><TrendingUp className="w-4 h-4 text-red-500 rotate-180" /></span>}
-                      </div>
-                    ))}
+                  <div className="space-y-3">
+                    <p className="text-sm text-slate-600">
+                      Nenhum registro de Avaliação Processual neste ano. Registre no módulo Avaliação Processual.
+                    </p>
+                    <Link
+                      href={`/avaliacao-processual?student=${currentId}`}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Abrir Avaliação Processual
+                    </Link>
                   </div>
-                  <Link
-                    href={`/avaliacao-processual?student=${currentId}`}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Abrir Avaliação Processual
-                  </Link>
-                </div>
-              ) : (
-                <p className="text-sm text-slate-600 mb-2">
-                  Nenhum registro de Avaliação Processual neste ano. Registre no módulo Avaliação Processual.
-                </p>
-              )}
-              {!evolucaoProcessualLoading && (!evolucaoProcessual || evolucaoProcessual.resumo.total_registros === 0) && (
-                <Link
-                  href={`/avaliacao-processual?student=${currentId}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Abrir Avaliação Processual
-                </Link>
-              )}
-            </div>
+                )}
+              </CardContent>
+            </Card>
 
             <p className="mt-4 text-sm text-slate-500">
               <span className="flex items-center gap-1">

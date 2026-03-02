@@ -14,6 +14,7 @@ export async function GET() {
         // 1. Workspaces
         const { data: workspaces } = await sb.from("workspaces").select("id, name, active, created_at");
         const wsList = workspaces || [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const activeSchools = wsList.filter((w: any) => w.active !== false).length;
         const inactiveSchools = wsList.length - activeSchools;
 
@@ -21,10 +22,13 @@ export async function GET() {
         const { data: members } = await sb.from("workspace_members").select("id, workspace_id, nome, role, active");
         const membersList = members || [];
         const totalUsers = membersList.length;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const activeUsers = membersList.filter((m: any) => m.active !== false).length;
 
         // Users per school
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const usersPerSchool = wsList.map((ws: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const count = membersList.filter((m: any) => m.workspace_id === ws.id).length;
             return { id: ws.id, name: ws.name, active: ws.active !== false, users: count };
         });
@@ -41,6 +45,7 @@ export async function GET() {
             .from("students")
             .select("workspace_id");
         const studentsMap: Record<string, number> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (studentsByWs || []).forEach((s: any) => {
             studentsMap[s.workspace_id] = (studentsMap[s.workspace_id] || 0) + 1;
         });

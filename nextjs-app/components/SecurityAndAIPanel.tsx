@@ -120,7 +120,6 @@ export function SecurityAndAIPanel({ engines = ["red", "blue", "green", "yellow"
                         <LottieIcon
                             animation="wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch"
                             size={22}
-                            loop={true}
                         />
                     </div>
                     <div className="flex-1 min-w-0">

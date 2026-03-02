@@ -37,6 +37,7 @@ export async function GET() {
             return NextResponse.json({ announcements: [] });
         }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let allAnnouncements: any[] = [];
         try {
             allAnnouncements = JSON.parse(configData.value);
@@ -48,6 +49,7 @@ export async function GET() {
 
         // Filter to active, non-expired, relevant announcements
         const relevantAnnouncements = allAnnouncements.filter(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (a: any) =>
                 a.active &&
                 (a.target === "all" || a.target === workspaceId) &&
@@ -65,6 +67,7 @@ export async function GET() {
 
         // Return unviewed announcements
         const unviewedAnnouncements = relevantAnnouncements.filter(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (a: any) => !viewedIds.has(a.id)
         );
 

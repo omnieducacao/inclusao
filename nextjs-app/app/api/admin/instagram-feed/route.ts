@@ -22,6 +22,7 @@ export async function GET() {
 
         if (error) throw error;
         return NextResponse.json({ posts: data || [] });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error("[admin/instagram-feed] GET error:", err);
         return NextResponse.json({ error: err.message || "Erro interno" }, { status: 500 });
@@ -105,6 +106,7 @@ export async function POST(req: NextRequest) {
 
         if (error) throw error;
         return NextResponse.json({ post: data }, { status: 201 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error("[admin/instagram-feed] POST error:", err);
         return NextResponse.json({ error: err.message || "Erro interno" }, { status: 500 });

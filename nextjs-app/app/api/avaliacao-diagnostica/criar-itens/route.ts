@@ -163,7 +163,9 @@ export async function POST(req: Request) {
     });
 
     // Build complete prompt (system + user)
-    let { system, user } = buildPromptCompleto(camada2, camada3);
+    const prompt = buildPromptCompleto(camada2, camada3);
+    const system = prompt.system;
+    let user = prompt.user;
 
     // Enrich with NEE-specific guidance
     if (alerta_nee) {

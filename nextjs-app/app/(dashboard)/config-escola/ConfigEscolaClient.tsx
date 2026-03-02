@@ -462,6 +462,7 @@ function AddClassForm({
   const [classGroup, setClassGroup] = useState("A");
   const [saving, setSaving] = useState(false);
 
+
   useEffect(() => {
     setYearId(activeYearId);
   }, [activeYearId]);
@@ -476,6 +477,7 @@ function AddClassForm({
           setGradeId(d.grades?.[0]?.id ?? "");
       })
       .catch(() => setGradesForWorkspace([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segmentId]);
 
   async function handleSubmit(e: React.FormEvent) {

@@ -86,7 +86,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16 gap-2 text-slate-500">
+      <div className="flex items-center justify-center py-16 gap-2 text-[var(--omni-text-muted)]">
         <Loader2 className="w-6 h-6 animate-spin" />
         Carregando...
       </div>
@@ -95,9 +95,9 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
 
   if (error || !data) {
     return (
-      <div className="rounded-2xl bg-white p-8 text-center border border-slate-200 shadow-sm">
+      <div className="rounded-2xl bg-[var(--omni-bg-secondary)] p-8 text-center border border-[var(--omni-border-default)] shadow-sm">
         <p className="text-red-600 font-medium">{error || "Não foi possível carregar os dados do estudante."}</p>
-        <p className="text-sm text-slate-500 mt-2">Verifique se o estudante está vinculado à sua conta.</p>
+        <p className="text-sm text-[var(--omni-text-muted)] mt-2">Verifique se o estudante está vinculado à sua conta.</p>
         <div className="mt-4 flex gap-3 justify-center">
           <button
             onClick={() => studentId && window.location.reload()}
@@ -107,7 +107,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
           </button>
           <Link
             href="/familia"
-            className="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50"
+            className="px-4 py-2 border border-[var(--omni-border-default)] text-[var(--omni-text-primary)] text-sm font-medium rounded-lg hover:bg-slate-50"
           >
             Voltar
           </Link>
@@ -151,7 +151,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
     <div className="space-y-8">
       <Link
         href="/familia"
-        className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-800 text-sm font-medium"
+        className="inline-flex items-center gap-2 text-[var(--omni-text-secondary)] hover:text-[var(--omni-text-primary)] text-sm font-medium"
       >
         <ArrowLeft className="w-4 h-4" />
         Voltar aos meus estudantes
@@ -164,8 +164,8 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
           </span>
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">{estudante.name}</h1>
-          <p className="text-slate-600 mt-1">
+          <h1 className="text-2xl font-bold text-[var(--omni-text-primary)]">{estudante.name}</h1>
+          <p className="text-[var(--omni-text-secondary)] mt-1">
             {estudante.grade || "—"} {estudante.class_group ? `• Turma ${estudante.class_group}` : ""}
           </p>
         </div>
@@ -173,18 +173,18 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* PEI Resumo + Ciência */}
-        <div className="p-6 rounded-2xl bg-white border border-slate-200">
-          <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
+        <div className="p-6 rounded-2xl bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)]">
+          <h3 className="font-semibold text-[var(--omni-text-primary)] flex items-center gap-2 mb-3">
             <FileText className="w-5 h-5 text-blue-600" />
             Resumo do PEI
           </h3>
           {pei_resumo?.ia_sugestao ? (
-            <div className="text-sm text-slate-600 whitespace-pre-wrap max-h-[600px] overflow-y-auto">{pei_resumo.ia_sugestao}</div>
+            <div className="text-sm text-[var(--omni-text-secondary)] whitespace-pre-wrap max-h-[600px] overflow-y-auto">{pei_resumo.ia_sugestao}</div>
           ) : (
-            <p className="text-sm text-slate-500">PEI em elaboração ou sem resumo disponível.</p>
+            <p className="text-sm text-[var(--omni-text-muted)]">PEI em elaboração ou sem resumo disponível.</p>
           )}
           {pei_resumo?.ia_sugestao && (
-            <div className="mt-4 pt-4 border-t border-slate-100">
+            <div className="mt-4 pt-4 border-t border-[var(--omni-border-default)]">
               {(ciencia_pei?.acknowledged ?? false) ? (
                 <div className="flex items-center gap-2 text-emerald-600 text-sm">
                   <CheckCircle2 className="w-5 h-5 shrink-0" />
@@ -197,7 +197,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
                 </div>
               ) : (
                 <div className="flex flex-col gap-2">
-                  <p className="text-xs text-slate-600">
+                  <p className="text-xs text-[var(--omni-text-secondary)]">
                     Li e tomei ciência do PEI do(a) estudante. Ao confirmar, registro minha ciência conforme a LBI.
                   </p>
                   <button
@@ -220,8 +220,8 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
         </div>
 
         {/* Evolução Processual */}
-        <div className="p-6 rounded-2xl bg-white border border-slate-200">
-          <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
+        <div className="p-6 rounded-2xl bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)]">
+          <h3 className="font-semibold text-[var(--omni-text-primary)] flex items-center gap-2 mb-3">
             <TrendingUp className="w-5 h-5 text-emerald-600" />
             Evolução (escala 0–4)
           </h3>
@@ -230,25 +230,25 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
               {evolucao.evolucao.map((e) => (
                 <div
                   key={e.disciplina}
-                  className="flex justify-between items-center py-2 border-b border-slate-100 last:border-0"
+                  className="flex justify-between items-center py-2 border-b border-[var(--omni-border-default)] last:border-0"
                 >
-                  <span className="text-sm font-medium text-slate-700">{e.disciplina}</span>
-                  <span className="text-sm text-slate-600">
+                  <span className="text-sm font-medium text-[var(--omni-text-primary)]">{e.disciplina}</span>
+                  <span className="text-sm text-[var(--omni-text-secondary)]">
                     {e.media_mais_recente != null ? `Média: ${e.media_mais_recente}` : "—"}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-slate-500">Nenhum registro de avaliação processual neste ano.</p>
+            <p className="text-sm text-[var(--omni-text-muted)]">Nenhum registro de avaliação processual neste ano.</p>
           )}
         </div>
       </div>
 
       {paee_resumo && (
-        <div className="p-6 rounded-2xl bg-white border border-slate-200">
-          <h3 className="font-semibold text-slate-800 mb-2">PAEE (Plano de Ação)</h3>
-          <p className="text-sm text-slate-600">
+        <div className="p-6 rounded-2xl bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)]">
+          <h3 className="font-semibold text-[var(--omni-text-primary)] mb-2">PAEE (Plano de Ação)</h3>
+          <p className="text-sm text-[var(--omni-text-secondary)]">
             {paee_resumo.periodo && `Período: ${paee_resumo.periodo}`}
             {paee_resumo.foco && ` • Foco: ${paee_resumo.foco}`}
           </p>
@@ -256,8 +256,8 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
       )}
 
       {/* ── Laudos ── */}
-      <div className="p-6 rounded-2xl bg-white border border-slate-200">
-        <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-4">
+      <div className="p-6 rounded-2xl bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)]">
+        <h3 className="font-semibold text-[var(--omni-text-primary)] flex items-center gap-2 mb-4">
           <FileText className="w-5 h-5 text-amber-600" />
           Laudos e Relatórios
         </h3>
@@ -303,18 +303,18 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
               <><Upload className="w-4 h-4" /> Enviar laudo (PDF ou imagem)</>
             )}
           </button>
-          <p className="text-xs text-slate-500 mt-1">O documento será transcrito automaticamente por IA.</p>
+          <p className="text-xs text-[var(--omni-text-muted)] mt-1">O documento será transcrito automaticamente por IA.</p>
         </div>
 
         {/* Lista de laudos */}
         {laudos.length === 0 ? (
-          <p className="text-sm text-slate-500">Nenhum laudo enviado.</p>
+          <p className="text-sm text-[var(--omni-text-muted)]">Nenhum laudo enviado.</p>
         ) : (
           <div className="space-y-2">
             {laudos.map((l) => {
               const isExpanded = laudoExpandedId === l.id;
               return (
-                <div key={l.id} className="border border-slate-200 rounded-lg">
+                <div key={l.id} className="border border-[var(--omni-border-default)] rounded-lg">
                   <button
                     type="button"
                     onClick={() => setLaudoExpandedId(isExpanded ? null : l.id)}
@@ -322,15 +322,15 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
                   >
                     <div className="flex items-center gap-2 text-sm">
                       <FileText className="w-4 h-4 text-amber-600" />
-                      <span className="font-medium text-slate-700">{l.nome_arquivo || "Laudo"}</span>
-                      <span className="text-slate-400">•</span>
-                      <span className="text-slate-500">{new Date(l.created_at).toLocaleDateString("pt-BR")}</span>
+                      <span className="font-medium text-[var(--omni-text-primary)]">{l.nome_arquivo || "Laudo"}</span>
+                      <span className="text-[var(--omni-text-muted)]">•</span>
+                      <span className="text-[var(--omni-text-muted)]">{new Date(l.created_at).toLocaleDateString("pt-BR")}</span>
                     </div>
-                    {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                    {isExpanded ? <ChevronUp className="w-4 h-4 text-[var(--omni-text-muted)]" /> : <ChevronDown className="w-4 h-4 text-[var(--omni-text-muted)]" />}
                   </button>
                   {isExpanded && (
-                    <div className="px-3 pb-3 border-t border-slate-100">
-                      <div className="text-sm text-slate-600 whitespace-pre-wrap mt-2 max-h-[400px] overflow-y-auto">
+                    <div className="px-3 pb-3 border-t border-[var(--omni-border-default)]">
+                      <div className="text-sm text-[var(--omni-text-secondary)] whitespace-pre-wrap mt-2 max-h-[400px] overflow-y-auto">
                         {l.transcricao}
                       </div>
                     </div>
@@ -343,9 +343,9 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
       </div>
 
       {/* ── Medicação ── */}
-      <div className="p-6 rounded-2xl bg-white border border-slate-200">
+      <div className="p-6 rounded-2xl bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)]">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+          <h3 className="font-semibold text-[var(--omni-text-primary)] flex items-center gap-2">
             <Pill className="w-5 h-5 text-violet-600" />
             Medicação
           </h3>
@@ -363,7 +363,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
           <div className="mb-4 p-4 bg-violet-50 border border-violet-200 rounded-lg space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Medicamento *</label>
+                <label className="block text-xs font-medium text-[var(--omni-text-primary)] mb-1">Medicamento *</label>
                 <input
                   type="text"
                   value={medForm.medicamento}
@@ -373,7 +373,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Dosagem</label>
+                <label className="block text-xs font-medium text-[var(--omni-text-primary)] mb-1">Dosagem</label>
                 <input
                   type="text"
                   value={medForm.dosagem}
@@ -384,11 +384,11 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Tipo de alteração *</label>
+              <label className="block text-xs font-medium text-[var(--omni-text-primary)] mb-1">Tipo de alteração *</label>
               <select
                 value={medForm.tipo_alteracao}
                 onChange={(e) => setMedForm({ ...medForm, tipo_alteracao: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-[var(--omni-bg-secondary)]"
               >
                 <option value="inicio">🟢 Início de medicação</option>
                 <option value="mudanca_dose">🔄 Mudança de dose</option>
@@ -396,7 +396,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Observação</label>
+              <label className="block text-xs font-medium text-[var(--omni-text-primary)] mb-1">Observação</label>
               <textarea
                 value={medForm.observacao}
                 onChange={(e) => setMedForm({ ...medForm, observacao: e.target.value })}
@@ -440,7 +440,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
               </button>
               <button
                 onClick={() => setShowMedForm(false)}
-                className="px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50"
+                className="px-4 py-2 border border-slate-300 text-[var(--omni-text-primary)] text-sm font-medium rounded-lg hover:bg-slate-50"
               >
                 Cancelar
               </button>
@@ -450,21 +450,21 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
 
         {/* Histórico */}
         {medicacaoList.length === 0 ? (
-          <p className="text-sm text-slate-500">Nenhuma alteração de medicação registrada.</p>
+          <p className="text-sm text-[var(--omni-text-muted)]">Nenhuma alteração de medicação registrada.</p>
         ) : (
           <div className="space-y-2">
             {medicacaoList.map((m) => {
               const tipoLabel = m.tipo_alteracao === "inicio" ? "🟢 Início" : m.tipo_alteracao === "suspensao" ? "🔴 Suspensão" : "🔄 Mudança de dose";
               return (
-                <div key={m.id} className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg">
+                <div key={m.id} className="flex items-start gap-3 p-3 border border-[var(--omni-border-default)] rounded-lg">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-slate-800">{m.medicamento}</span>
-                      {m.dosagem && <span className="text-xs text-slate-500">({m.dosagem})</span>}
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{tipoLabel}</span>
+                      <span className="text-sm font-medium text-[var(--omni-text-primary)]">{m.medicamento}</span>
+                      {m.dosagem && <span className="text-xs text-[var(--omni-text-muted)]">({m.dosagem})</span>}
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-[var(--omni-text-secondary)]">{tipoLabel}</span>
                     </div>
-                    {m.observacao && <p className="text-xs text-slate-600 mt-1">{m.observacao}</p>}
-                    <p className="text-xs text-slate-400 mt-1">{new Date(m.created_at).toLocaleDateString("pt-BR")}</p>
+                    {m.observacao && <p className="text-xs text-[var(--omni-text-secondary)] mt-1">{m.observacao}</p>}
+                    <p className="text-xs text-[var(--omni-text-muted)] mt-1">{new Date(m.created_at).toLocaleDateString("pt-BR")}</p>
                   </div>
                 </div>
               );

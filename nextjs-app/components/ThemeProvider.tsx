@@ -28,16 +28,22 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     // Initialize theme from localStorage or system preference
     useEffect(() => {
+        let timer: NodeJS.Timeout;
         const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
         if (stored === "light" || stored === "dark") {
-            const timer = setTimeout(() => setTheme(stored), 0);
-            return () => clearTimeout(timer);
+            timer = setTimeout(() => {
+                setTheme(stored);
+                setMounted(true);
+            }, 0);
         } else {
             // Detect system preference
             const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            setTheme(prefersDark ? "dark" : "light");
+            timer = setTimeout(() => {
+                setTheme(prefersDark ? "dark" : "light");
+                setMounted(true);
+            }, 0);
         }
-        setMounted(true);
+        return () => clearTimeout(timer);
     }, []);
 
     // Apply theme to <html> element

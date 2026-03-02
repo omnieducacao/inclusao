@@ -18,6 +18,7 @@ export async function GET() {
 
         if (error) throw error;
         return NextResponse.json({ posts: data || [] });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error("[instagram-feed] GET error:", err);
         return NextResponse.json({ posts: [] });

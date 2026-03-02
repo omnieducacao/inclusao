@@ -11,11 +11,11 @@ import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { SalvarNoPlanoButton } from "@/components/SalvarNoPlanoButton";
 // pptx-export removido — substituído por Mapa Mental
-import { getColorClasses } from "@/lib/colors";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { LottieIcon } from "@/components/LottieIcon";
 import { OmniLoader } from "@/components/OmniLoader";
+import { Card, Alert } from "@omni/ds";
 import {
   FileText,
   Image as ImageIcon,
@@ -118,9 +118,9 @@ function ToolCard({
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group text-left p-6 rounded-2xl transition-all duration-300 bg-gradient-to-br min-h-[160px] flex flex-col ${isActive
-        ? "border-cyan-500 from-cyan-50 to-white shadow-md scale-[1.01]"
-        : "border-slate-200 from-slate-50 to-white hover:border-slate-300 hover:shadow-lg hover:scale-[1.01]"
+      className={`group relative flex flex-col text-left p-6 rounded-2xl border transition-all duration-300 min-h-[160px] cursor-pointer touch-manipulation ${isActive
+        ? "border-[var(--omni-primary)] shadow-[var(--omni-shadow-md)] bg-white dark:bg-slate-800 scale-[1.01]"
+        : "border-[var(--omni-border-default)] bg-[var(--omni-bg-secondary)] shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[var(--omni-shadow-elevated)] hover:-translate-y-1"
         }`}
     >
       {/* Ícone dentro do quadrado minimalista */}
@@ -132,7 +132,6 @@ function ToolCard({
           <LottieIcon
             animation={lottieAnimation}
             size={60}
-            loop={isHovered}
             autoplay={isHovered}
             className="transition-all duration-300"
           />
@@ -169,32 +168,31 @@ export function HubClient({ students, studentId, student }: Props) {
       {currentId && student && (
         <div className="space-y-2">
           {isEI && (
-            <div className="px-4 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
-              <Star className="w-4 h-4 inline mr-1" />
+            <Alert variant="warning">
               <strong>Modo Educação Infantil</strong> — Ferramentas específicas para EI.
-            </div>
+            </Alert>
           )}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-2xl" style={{ backgroundColor: getColorClasses("cyan").bg, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+          <Card className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6">
             <div>
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Nome</div>
-              <div className="font-bold text-slate-800">{student.name}</div>
+              <div className="text-xs font-semibold text-[var(--omni-text-muted)] uppercase tracking-wide">Nome</div>
+              <div className="font-bold text-[var(--omni-text-primary)]">{student.name}</div>
             </div>
             <div>
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Série</div>
-              <div className="font-bold text-slate-800">{student.grade || "—"}</div>
+              <div className="text-xs font-semibold text-[var(--omni-text-muted)] uppercase tracking-wide">Série</div>
+              <div className="font-bold text-[var(--omni-text-primary)]">{student.grade || "—"}</div>
             </div>
-            <div>
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Hiperfoco</div>
-              <div className="font-bold text-slate-800 truncate" title={String(hiperfoco)}>{String(hiperfoco)}</div>
+            <div className="col-span-2 md:col-span-2">
+              <div className="text-xs font-semibold text-[var(--omni-text-muted)] uppercase tracking-wide">Hiperfoco</div>
+              <div className="font-bold text-[var(--omni-text-primary)] truncate" title={String(hiperfoco)}>{String(hiperfoco)}</div>
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
       {!currentId && (
-        <div className="bg-amber-50 text-amber-800 p-4 rounded-lg">
+        <Alert variant="warning">
           Selecione um estudante para usar as ferramentas do Hub com contexto personalizado.
-        </div>
+        </Alert>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -326,6 +324,7 @@ function CriarDoZero({
   const [formatoInclusivo, setFormatoInclusivo] = useState(false);
 
   const serieAluno = student?.grade || "";
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const peiData = student?.pei_data || {};
 
   // Carregar BNCC do PEI quando disponível
@@ -851,7 +850,7 @@ function CriarDoZero({
                 </div>
                 {dominioBloomSel && TAXONOMIA_BLOOM[dominioBloomSel] && (
                   <div>
-                    <label className="block text-xs text-slate-600 mb-1">Verbos de '{dominioBloomSel}':</label>
+                    <label className="block text-xs text-slate-600 mb-1">Verbos de &apos;{dominioBloomSel}&apos;:</label>
                     <select
                       multiple
                       value={verbosBloomSel[dominioBloomSel] || []}
@@ -1555,17 +1554,11 @@ function PlanoAulaDua({
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Plano de Aula DUA</span>
               <span className="flex gap-2 flex-wrap">
-                {(() => {
-                  const { getDataBrasiliaISO } = require("@/lib/date-utils");
-                  const dataStr = getDataBrasiliaISO();
-                  return (
-                    <>
-                      <DocxDownloadButton texto={resultado} titulo="Plano de Aula DUA" filename={`Plano_Aula_${dataStr}.docx`} />
-                      <PdfDownloadButton text={resultado} filename={`Plano_Aula_${dataStr}.pdf`} title="Plano de Aula DUA" />
-                      <SalvarNoPlanoButton conteudo={resultado} tipo="Plano de Aula DUA" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
-                    </>
-                  );
-                })()}
+                <>
+                  <DocxDownloadButton texto={resultado} titulo="Plano de Aula DUA" filename={`Plano_Aula_${new Date().toISOString().slice(0, 10)}.docx`} />
+                  <PdfDownloadButton text={resultado} filename={`Plano_Aula_${new Date().toISOString().slice(0, 10)}.pdf`} title="Plano de Aula DUA" />
+                  <SalvarNoPlanoButton conteudo={resultado} tipo="Plano de Aula DUA" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
+                </>
                 <button
                   type="button"
                   disabled={!!loadingMapa}

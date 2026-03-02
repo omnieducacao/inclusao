@@ -324,6 +324,7 @@ function ModuleCardWithLottie({
       onMouseLeave={() => setIsHovered(false)}
     >
       <ModuleCard
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         moduleKey={(href.replace("/", "") as any) || "pei"}
         title={title}
         description={desc}

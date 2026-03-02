@@ -20,6 +20,7 @@ export async function PATCH(
         const body = await req.json();
         const sb = getSupabase();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const updates: Record<string, any> = {};
         if (body.title !== undefined) updates.title = body.title;
         if (body.caption !== undefined) updates.caption = body.caption;
@@ -41,6 +42,7 @@ export async function PATCH(
 
         if (error) throw error;
         return NextResponse.json({ post: data });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error("[admin/instagram-feed/[id]] PATCH error:", err);
         return NextResponse.json({ error: err.message || "Erro interno" }, { status: 500 });
@@ -91,6 +93,7 @@ export async function DELETE(
 
         if (error) throw error;
         return NextResponse.json({ ok: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error("[admin/instagram-feed/[id]] DELETE error:", err);
         return NextResponse.json({ error: err.message || "Erro interno" }, { status: 500 });

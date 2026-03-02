@@ -16,18 +16,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // vi.hoisted para variáveis usadas em mocks (hoisted)
 const { mockMaybeSingle, mockSingle, mockEq, mockFrom, mockCompareSync } = vi.hoisted(() => {
-  const mockMaybeSingle = vi.fn();
-  const mockSingle = vi.fn();
-  let mockEqRef: ReturnType<typeof vi.fn>;
-  mockEqRef = vi.fn(() => ({
-    eq: mockEqRef,
-    maybeSingle: mockMaybeSingle,
-    single: mockSingle,
-  }));
-  const mockSelect = vi.fn(() => ({ eq: mockEqRef }));
-  const mockFrom = vi.fn((table: string) => ({ select: mockSelect }));
-  const mockCompareSync = vi.fn();
-  return { mockMaybeSingle, mockSingle, mockEq: mockEqRef, mockFrom, mockCompareSync };
+    const mockMaybeSingle = vi.fn();
+    const mockSingle = vi.fn();
+    const mockEqRef = vi.fn(() => ({
+        eq: mockEqRef,
+        maybeSingle: mockMaybeSingle,
+        single: mockSingle,
+    }));
+    const mockSelect = vi.fn(() => ({ eq: mockEqRef }));
+    const mockFrom = vi.fn((table: string) => ({ select: mockSelect }));
+    const mockCompareSync = vi.fn();
+    return { mockMaybeSingle, mockSingle, mockEq: mockEqRef, mockFrom, mockCompareSync };
 });
 
 vi.mock("@/lib/supabase", () => ({

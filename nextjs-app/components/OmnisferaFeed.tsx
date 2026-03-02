@@ -154,6 +154,7 @@ export function OmnisferaFeed() {
                 setIcons({
                     Info: phosphor.Info,
                     Confetti: phosphor.Confetti,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     BuildingOffice: (phosphor as any).BuildingOffice || phosphor.Buildings,
                     Megaphone: phosphor.Megaphone,
                     ArrowSquareOut: phosphor.ArrowSquareOut,

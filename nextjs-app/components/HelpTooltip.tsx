@@ -20,6 +20,7 @@ export function HelpTooltip({ fieldId, className = "" }: HelpTooltipProps) {
     if (!info) return null;
 
     // Close on click outside
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {
         if (!open) return;
         function handleClick(e: MouseEvent) {

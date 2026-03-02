@@ -1,4 +1,3 @@
-```
 "use client";
 
 import { useState, useCallback, useMemo, Suspense, useEffect } from "react";
@@ -7,8 +6,11 @@ import { StudentSelector } from "@/components/StudentSelector";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { getColorClasses } from "@/lib/colors";
-import { Filter, Plus, List, BarChart3, Settings, Download, FileText, Calendar, Clock, Users, Loader2, Sparkles } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
+import { Filter, Plus, List, BarChart3, Settings, Download, FileText, Loader2, Sparkles } from "lucide-react";
+import {
+  BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, ResponsiveContainer,
+  PieChart, Pie, Cell, LineChart, Line
+} from "recharts";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -82,6 +84,7 @@ function DiarioClientInner({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
   const currentId = studentId || searchParams?.get("student") || null;
   const [activeTab, setActiveTab] = useState<TabId>("novo");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [refreshKey, setRefreshKey] = useState(0);
 
   const peiData = student?.pei_data || {};
@@ -110,140 +113,140 @@ function DiarioClientInner({ students, studentId, student }: Props) {
           } else lista.push(novo);
         }
 
-        const res = await fetch(`/ api / students / ${ student.id }/diario`, {
-method: "PATCH",
-  headers: { "Content-Type": "application/json" },
-body: JSON.stringify({ daily_logs: lista }),
+        const res = await fetch(`/ api / students / ${student.id}/diario`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ daily_logs: lista }),
         });
-const data = await res.json();
-if (data.ok) {
-  setRefreshKey((k) => k + 1);
-  window.location.reload();
-  return true;
-}
+        const data = await res.json();
+        if (data.ok) {
+          setRefreshKey((k) => k + 1);
+          window.location.reload();
+          return true;
+        }
       } catch (e) {
-  console.error(e);
-}
-return false;
+        console.error(e);
+      }
+      return false;
     },
-[student?.id, registros]
+    [student, registros]
   );
 
-const deleteRegistro = useCallback(
-  async (registroId: string) => {
-    if (!student?.id) return false;
-    const lista = registros.filter((r) => r.registro_id !== registroId);
-    const res = await fetch(`/api/students/${student.id}/diario`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ daily_logs: lista }),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      setRefreshKey((k) => k + 1);
-      window.location.reload();
-    }
-    return !!data.ok;
-  },
-  [student?.id, registros]
-);
+  const deleteRegistro = useCallback(
+    async (registroId: string) => {
+      if (!student?.id) return false;
+      const lista = registros.filter((r) => r.registro_id !== registroId);
+      const res = await fetch(`/api/students/${student.id}/diario`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ daily_logs: lista }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setRefreshKey((k) => k + 1);
+        window.location.reload();
+      }
+      return !!data.ok;
+    },
+    [student, registros]
+  );
 
-if (!currentId) {
-  return (
-    <div className="space-y-4">
-      <StudentSelector students={students} currentId={currentId} placeholder="Selecione o estudante" />
-      <div className="bg-amber-50 text-amber-800 p-4 rounded-lg">
-        Selecione um estudante para registrar atendimentos.
+  if (!currentId) {
+    return (
+      <div className="space-y-4">
+        <StudentSelector students={students} currentId={currentId} placeholder="Selecione o estudante" />
+        <div className="bg-amber-50 text-amber-800 p-4 rounded-lg">
+          Selecione um estudante para registrar atendimentos.
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-if (!student && studentId) {
+  if (!student && studentId) {
+    return (
+      <div className="space-y-4">
+        <StudentSelector students={students} currentId={currentId} />
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <p className="text-amber-800 font-medium">Estudante não encontrado</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!student) {
+    return (
+      <div className="space-y-4">
+        <StudentSelector students={students} currentId={currentId} />
+        <div className="text-slate-500 text-center py-8">
+          Selecione um estudante para visualizar o diário.
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <StudentSelector students={students} currentId={currentId} />
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <p className="text-amber-800 font-medium">Estudante não encontrado</p>
+
+      {student && (
+        <PEISummaryPanel peiData={peiData} studentName={student.name} />
+      )}
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-2xl min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg, boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+        <div>
+          <div className="text-xs font-semibold text-slate-500 uppercase">Estudante</div>
+          <div className="font-bold text-slate-800">{student.name}</div>
+        </div>
+        <div>
+          <div className="text-xs font-semibold text-slate-500 uppercase">Série</div>
+          <div className="font-bold text-slate-800">{student.grade || "—"}</div>
+        </div>
+        <div>
+          <div className="text-xs font-semibold text-slate-500 uppercase">Registros</div>
+          <div className="font-bold text-slate-800">{registros.length}</div>
+        </div>
       </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-slate-200 mb-6">
+        {[
+          { id: "filtros" as TabId, label: "🔍 Filtros & Estatísticas", icon: Filter },
+          { id: "novo" as TabId, label: "➕ Novo Registro", icon: Plus },
+          { id: "lista" as TabId, label: "📋 Lista de Registros", icon: List },
+          { id: "relatorios" as TabId, label: "📊 Relatórios", icon: BarChart3 },
+          { id: "configuracoes" as TabId, label: "⚙️ Configurações", icon: Settings },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${activeTab === tab.id
+              ? "border-rose-600 text-rose-600"
+              : "border-transparent text-slate-600 hover:text-slate-900"
+              }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === "filtros" && (
+        <FiltrosTab students={students} registros={registrosOrdenados} />
+      )}
+      {activeTab === "novo" && (
+        <NovoRegistroTab studentId={student.id} onSave={saveRegistro} />
+      )}
+      {activeTab === "lista" && (
+        <ListaTab registros={registrosOrdenados} onDelete={deleteRegistro} />
+      )}
+      {activeTab === "relatorios" && (
+        <RelatoriosTab registros={registrosOrdenados} student={student} />
+      )}
+      {activeTab === "configuracoes" && (
+        <ConfiguracoesTab />
+      )}
     </div>
   );
-}
-
-if (!student) {
-  return (
-    <div className="space-y-4">
-      <StudentSelector students={students} currentId={currentId} />
-      <div className="text-slate-500 text-center py-8">
-        Selecione um estudante para visualizar o diário.
-      </div>
-    </div>
-  );
-}
-
-return (
-  <div className="space-y-6">
-    <StudentSelector students={students} currentId={currentId} />
-
-    {student && (
-      <PEISummaryPanel peiData={peiData} studentName={student.name} />
-    )}
-
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-2xl min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg, boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
-      <div>
-        <div className="text-xs font-semibold text-slate-500 uppercase">Estudante</div>
-        <div className="font-bold text-slate-800">{student.name}</div>
-      </div>
-      <div>
-        <div className="text-xs font-semibold text-slate-500 uppercase">Série</div>
-        <div className="font-bold text-slate-800">{student.grade || "—"}</div>
-      </div>
-      <div>
-        <div className="text-xs font-semibold text-slate-500 uppercase">Registros</div>
-        <div className="font-bold text-slate-800">{registros.length}</div>
-      </div>
-    </div>
-
-    {/* Tabs */}
-    <div className="flex gap-2 border-b border-slate-200 mb-6">
-      {[
-        { id: "filtros" as TabId, label: "🔍 Filtros & Estatísticas", icon: Filter },
-        { id: "novo" as TabId, label: "➕ Novo Registro", icon: Plus },
-        { id: "lista" as TabId, label: "📋 Lista de Registros", icon: List },
-        { id: "relatorios" as TabId, label: "📊 Relatórios", icon: BarChart3 },
-        { id: "configuracoes" as TabId, label: "⚙️ Configurações", icon: Settings },
-      ].map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => setActiveTab(tab.id)}
-          className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${activeTab === tab.id
-            ? "border-rose-600 text-rose-600"
-            : "border-transparent text-slate-600 hover:text-slate-900"
-            }`}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
-
-    {/* Tab Content */}
-    {activeTab === "filtros" && (
-      <FiltrosTab students={students} registros={registrosOrdenados} />
-    )}
-    {activeTab === "novo" && (
-      <NovoRegistroTab studentId={student.id} onSave={saveRegistro} />
-    )}
-    {activeTab === "lista" && (
-      <ListaTab registros={registrosOrdenados} onDelete={deleteRegistro} />
-    )}
-    {activeTab === "relatorios" && (
-      <RelatoriosTab registros={registrosOrdenados} student={student} />
-    )}
-    {activeTab === "configuracoes" && (
-      <ConfiguracoesTab />
-    )}
-  </div>
-);
 }
 
 // Aba: Filtros & Estatísticas
@@ -590,9 +593,9 @@ function ListaTab({
           </div>
         ) : viewMode === "lista" ? (
           <div className="space-y-3">
-            {registros.map((r) => (
+            {registros.map((r, i) => (
               <RegistroCard
-                key={r.registro_id || Math.random()}
+                key={r.registro_id || `temp-${i}`}
                 registro={r}
                 onDelete={() => r.registro_id && onDelete(r.registro_id)}
               />
@@ -678,7 +681,7 @@ function TimelineView({
                   <button
                     onClick={() => {
                       if (confirm("Excluir este registro?")) {
-                        r.registro_id && onDelete(r.registro_id);
+                        if (r.registro_id) onDelete(r.registro_id);
                       }
                     }}
                     className="text-red-600 hover:text-red-800 text-sm"
@@ -744,6 +747,7 @@ function RegistroCard({ registro, onDelete }: { registro: RegistroDiario; onDele
 
 // Aba: Relatórios
 function RelatoriosTab({ registros, student }: { registros: RegistroDiario[]; student: StudentFull }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedStudent, setSelectedStudent] = useState<string>(student.id);
 
   // Processar dados para gráficos
@@ -1086,15 +1090,17 @@ function ConfiguracoesTab() {
     // Carregar configurações salvas do localStorage
     const saved = localStorage.getItem("diario_config");
     if (saved) {
-      try {
-        const config = JSON.parse(saved);
-        setDuracaoPadrao(config.duracaoPadrao || 45);
-        setModalidadePadrao(config.modalidadePadrao || "individual");
-        setCompetenciasPadrao(config.competenciasPadrao || ["atenção", "memória"]);
-        setNotificacoes(config.notificacoes !== false);
-      } catch (e) {
-        console.error("Erro ao carregar configurações:", e);
-      }
+      setTimeout(() => {
+        try {
+          const config = JSON.parse(saved);
+          setDuracaoPadrao(config.duracaoPadrao || 45);
+          setModalidadePadrao(config.modalidadePadrao || "individual");
+          setCompetenciasPadrao(config.competenciasPadrao || ["atenção", "memória"]);
+          setNotificacoes(config.notificacoes !== false);
+        } catch (e) {
+          console.error("Erro ao carregar configurações:", e);
+        }
+      }, 0);
     }
   }, []);
 

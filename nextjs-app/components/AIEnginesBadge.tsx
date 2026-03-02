@@ -57,7 +57,6 @@ export function AIEnginesBadge({ engines }: { engines?: EngineId[] } = {}) {
               <LottieIcon
                 animation="wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch"
                 size={24}
-                loop={true}
                 className="transition-transform duration-300"
               />
             </div>
@@ -96,7 +95,6 @@ export function AIEnginesBadge({ engines }: { engines?: EngineId[] } = {}) {
             <LottieIcon
               animation="wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch"
               size={18}
-              loop={true}
               className="transition-transform duration-300"
             />
           ) : (

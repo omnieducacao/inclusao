@@ -796,14 +796,14 @@ function FinalizarPeiDisciplinaButton({
 
 // ─── PEI Avaliação Diagnóstica Link ──────────────────────────────────────────
 
-function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLinked }: {
+function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina }: {
     studentId: string; studentName: string; disciplina: string; onLinked?: () => void;
 }) {
     const [loading, setLoading] = useState(true);
     const [avaliacao, setAvaliacao] = useState<{ id: string; nivel: number | null; status: string; questoes: number; updated_at: string } | null>(null);
 
     useEffect(() => {
-        if (!studentId || !disciplina) { setLoading(false); return; }
+        if (!studentId || !disciplina) { setTimeout(() => setLoading(false), 0); return; }
         fetch(`/api/pei/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}`)
             .then(r => r.json())
             .then(data => {

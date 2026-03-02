@@ -19,6 +19,7 @@ export async function GET() {
     }
 
     // Normalizar dados (compatível com Streamlit)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const workspaces = (data || []).map((row: any) => ({
       id: row.id,
       name: row.name || "",

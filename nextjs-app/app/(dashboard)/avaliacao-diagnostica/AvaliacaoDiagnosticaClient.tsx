@@ -2368,8 +2368,8 @@ function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
 
         questoesParsed.forEach((q, i) => {
             // Simple heuristic: first 40% → SAEB I, next 35% → SAEB II, rest → SAEB III
-            const pct = total > 0 ? i / total : 0;
-            const saebLevel = pct < 0.4 ? "I" : pct < 0.75 ? "II" : "III";
+            const currentPct = total > 0 ? i / total : 0; // Renamed to avoid conflict with `pct` below
+            const saebLevel = currentPct < 0.4 ? "I" : currentPct < 0.75 ? "II" : "III";
             saebTotal[saebLevel] = (saebTotal[saebLevel] || 0) + 1;
             const marcada = respostasObj[i];
             if (marcada === q.gabarito) {

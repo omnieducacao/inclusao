@@ -85,6 +85,8 @@ export function PEISummaryPanel({ peiData, studentName }: Props) {
                 <h4 className="text-sm font-semibold text-amber-800">Relatório não gerado</h4>
               </div>
               <p className="text-gray-500 dark:text-gray-400 mt-1">Este rascunho de PEI é um ponto de partida sugerido pela &quot;OmniRed&quot;. Edite e valide estas informações com seu olhar pedagógico.</p>
+    {/* eslint-disable-next-line react/no-unescaped-entities */}
+    {/* eslint-disable-next-line react/no-unescaped-entities */}
               <p className="text-xs text-amber-700 mb-2">Gere o relatório na aba "Consultoria IA" do PEI.</p>
               <a
                 href={`/pei?student=${studentId || ""}`}

@@ -69,6 +69,7 @@ export async function POST(req: Request) {
 
       try {
         raw = await visionAdapt(prompt, base64, mime);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (visionErr: any) {
         console.error("Erro na visão:", visionErr);
         return NextResponse.json(
@@ -117,6 +118,7 @@ export async function POST(req: Request) {
 
       try {
         raw = (await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.2 })).trim();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (apiErr: any) {
         const errorMsg = apiErr?.message || String(apiErr);
         if (errorMsg.includes("API key") || errorMsg.includes("401") || errorMsg.includes("Incorrect API key")) {

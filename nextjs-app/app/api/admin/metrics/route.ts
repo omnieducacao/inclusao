@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
     const byEngine: Record<string, number> = {};
     const timeline: Record<string, number> = {};
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     eventsList.forEach((ev: any) => {
       const etype = ev.event_type || "desconhecido";
       byType[etype] = (byType[etype] || 0) + 1;
@@ -67,6 +68,7 @@ export async function GET(request: NextRequest) {
       .map(([day, count]) => ({ day, count }))
       .sort((a, b) => a.day.localeCompare(b.day));
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recent = eventsList.slice(0, 25).map((ev: any) => ({
       id: ev.id,
       workspace_id: ev.workspace_id,

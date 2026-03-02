@@ -73,6 +73,7 @@ export async function POST(req: Request) {
                             }
                         }
                     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } catch (err: any) {
                     const errStr = String(err).toLowerCase();
                     if (errStr.includes("404") || errStr.includes("not found")) {
@@ -125,6 +126,7 @@ export async function POST(req: Request) {
                 // Se não tem HTML válido, tentar próximo engine
                 lastError = new Error("Resposta não contém HTML válido.");
                 continue;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
                 lastError = err instanceof Error ? err : new Error(String(err));
                 console.warn(`Mapa mental HTML (${engine}):`, err);

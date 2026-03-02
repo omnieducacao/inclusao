@@ -74,9 +74,11 @@ export async function POST(req: Request) {
     const semanas = crono.semanas || [];
     let cronTexto = "";
     if (fases.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
       cronTexto += "FASES:\n" + fases.slice(0, 5).map((f: any) => `- ${f.nome || ""}: ${f.objetivo_geral || ""}`).join("\n");
     }
     if (semanas.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
       cronTexto += "\n\nSEMANAS (resumo):\n" + semanas.slice(0, 6).map((w: any) => `- Sem ${w.numero}: ${w.tema || ""} — ${w.objetivo || ""}`).join("\n");
     }
 

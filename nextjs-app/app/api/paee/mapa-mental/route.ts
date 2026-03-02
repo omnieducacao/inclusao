@@ -91,6 +91,7 @@ ${roteiro}
             }
           }
         }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         const errStr = String(err).toLowerCase();
         if (errStr.includes("404") || errStr.includes("not found")) {

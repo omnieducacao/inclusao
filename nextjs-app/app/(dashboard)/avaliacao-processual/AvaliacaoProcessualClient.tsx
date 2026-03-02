@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import {
-    Activity, Loader2, AlertTriangle, ChevronDown, ChevronUp,
+    Activity, Loader2 /* eslint-disable-line @typescript-eslint/no-unused-vars */, AlertTriangle, ChevronDown, ChevronUp,
     Users, ArrowLeft, Save, BarChart3, Calendar, BookOpen, TrendingUp, Sparkles, FileText,
     Printer,
 } from "lucide-react";

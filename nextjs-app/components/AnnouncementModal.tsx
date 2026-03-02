@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Info, AlertTriangle, AlertCircle } from "lucide-react";
+import { Info, AlertTriangle, AlertCircle } from "lucide-react";
+import { Modal, Button } from "@omni/ds";
 
 type Announcement = {
     id: string;
@@ -98,42 +99,31 @@ export function AnnouncementModal() {
     const config = typeConfig[current.type] || typeConfig.info;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
-                {/* Header */}
-                <div className={`${config.bg} ${config.border} border-b px-6 py-4 flex items-center gap-3`}>
-                    <div>{config.icon}</div>
-                    <h2 className={`font-semibold text-lg flex-1 ${config.text}`}>
-                        {current.title}
-                    </h2>
-                    <button
-                        onClick={handleClose}
-                        className={`${config.text} opacity-60 hover:opacity-100 transition-opacity`}
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                {/* Body */}
-                <div className="p-6">
-                    <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+        <Modal
+            open={true}
+            onClose={handleClose}
+            title={current.title}
+            showClose={true}
+            size="md"
+        >
+            <div className="flex flex-col gap-4">
+                <div className={`p-4 rounded-xl flex items-start gap-3 ${config.bg} ${config.border} border`}>
+                    <div className="mt-0.5 shrink-0">{config.icon}</div>
+                    <p className={`whitespace-pre-wrap leading-relaxed ${config.text}`}>
                         {current.message}
                     </p>
                 </div>
 
                 {/* Footer */}
-                <div className="bg-slate-50 px-6 py-4 flex items-center justify-between">
-                    <p className="text-sm text-slate-500">
+                <div className="flex items-center justify-between mt-2">
+                    <p className="text-sm text-[var(--omni-text-muted)]">
                         {currentIndex + 1} de {announcements.length}
                     </p>
-                    <button
-                        onClick={handleClose}
-                        className={`${config.buttonBg} text-white px-6 py-2 rounded-lg font-medium transition-colors`}
-                    >
+                    <Button onClick={handleClose}>
                         {currentIndex < announcements.length - 1 ? "Próximo" : "Entendi"}
-                    </button>
+                    </Button>
                 </div>
             </div>
-        </div>
+        </Modal>
     );
 }

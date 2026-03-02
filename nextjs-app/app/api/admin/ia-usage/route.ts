@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
       .from("workspaces")
       .select("id, name, plan, credits_limit");
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const wsMap = new Map((workspaces || []).map((w: any) => [w.id, w]));
 
     // Agregar por workspace
@@ -50,6 +51,7 @@ export async function GET(request: NextRequest) {
       credits_limit: number | null;
     }>();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (iaUsage || []).forEach((usage: any) => {
       const wsId = usage.workspace_id;
       if (!wsId) return;

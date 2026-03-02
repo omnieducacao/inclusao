@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import {
     User, Mail, Phone, Briefcase, Shield, BookOpen,
     Lock, Eye, EyeOff, CheckCircle2, AlertTriangle,
-    GraduationCap, Users, Loader2, Building2,
+    GraduationCap, Users, Loader2, Building2, Flame, Award, Lightbulb
 } from "lucide-react";
+import { ProfileCard, StreakCalendar, SkillBadge, Button, Input } from "@omni/ds";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -130,26 +131,13 @@ export default function PerfilClient() {
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 800 }}>
             {/* Header */}
-            <div style={{
-                background: "linear-gradient(135deg, #4285F4 0%, #3574D4 100%)",
-                borderRadius: 16, padding: "24px 28px", color: "#fff",
-            }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <div style={{
-                        width: 52, height: 52, borderRadius: 14,
-                        background: "rgba(255,255,255,.2)", display: "flex",
-                        alignItems: "center", justifyContent: "center",
-                    }}>
-                        <User size={26} />
-                    </div>
-                    <div>
-                        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>Meu Perfil</h2>
-                        <p style={{ margin: "4px 0 0", fontSize: 13, opacity: 0.85 }}>
-                            {profile.is_master ? "Coordenador(a)" : "Professor(a)"} · {profile.workspace_name}
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <ProfileCard
+                name={profile.nome}
+                role={`${profile.is_master ? "Coordenador(a)" : "Professor(a)"} · ${profile.workspace_name}`}
+                status="online"
+                variant="horizontal"
+                color="#4285F4"
+            />
 
             {/* Personal Data */}
             <section style={{
@@ -167,6 +155,38 @@ export default function PerfilClient() {
                     <InfoField icon={<Briefcase size={14} />} label="Cargo" value={profile.cargo || "—"} />
                     <InfoField icon={<Building2 size={14} />} label="Escola" value={profile.workspace_name} />
                     <InfoField icon={<Shield size={14} />} label="Papel" value={profile.is_master ? "Coordenador(a)" : "Professor(a)"} />
+                </div>
+            </section>
+
+            {/* Gamification - Engajamento */}
+            <section style={{
+                background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                border: "1px solid var(--border-default, rgba(148,163,184,.12))",
+                borderRadius: 14, padding: "20px 24px",
+            }}>
+                <h3 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 700, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                    <Flame size={16} className="text-orange-500" /> Meu Engajamento
+                </h3>
+                <div className="flex flex-col lg:flex-row gap-8 items-start">
+                    <div>
+                        <p className="text-sm font-semibold text-[var(--omni-text-muted)] mb-3">Dias preenchendo o Diário</p>
+                        <StreakCalendar
+                            days={[
+                                { date: new Date().toISOString().slice(0, 10), intensity: 3 },
+                                { date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), intensity: 4 },
+                                { date: new Date(Date.now() - 86400000 * 2).toISOString().slice(0, 10), intensity: 2 }
+                            ]}
+                            weeks={10}
+                            streakCount={12}
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-sm font-semibold text-[var(--omni-text-muted)] mb-3">Minhas Conquistas</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <SkillBadge name="Mestre do PEI" level={3} xp={450} xpNext={500} icon={<Award />} color="#059669" />
+                            <SkillBadge name="Especialista em DUA" level={2} xp={200} xpNext={300} icon={<Lightbulb />} color="#4F5BD5" />
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -325,21 +345,15 @@ export default function PerfilClient() {
                         </div>
                     )}
 
-                    <button
+                    <Button
                         type="submit"
                         disabled={saving || !senhaAtual || !novaSenha || !confirmarSenha}
-                        style={{
-                            padding: "10px 20px", borderRadius: 10, fontSize: 14, fontWeight: 700,
-                            background: "linear-gradient(135deg, #4285F4, #3574D4)",
-                            color: "#fff", border: "none", cursor: "pointer",
-                            opacity: saving || !senhaAtual || !novaSenha || !confirmarSenha ? 0.5 : 1,
-                            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                            width: "fit-content",
-                        }}
+                        variant="primary"
+                        className="w-fit"
                     >
-                        {saving && <Loader2 size={14} className="animate-spin" />}
+                        {saving && <Loader2 size={16} className="animate-spin mr-2 inline" />}
                         Alterar Senha
-                    </button>
+                    </Button>
                 </form>
             </section>
         </div>
@@ -372,34 +386,20 @@ function PasswordInput({ label, value, onChange, show, onToggle }: {
     onToggle: () => void;
 }) {
     return (
-        <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, display: "block" }}>
-                {label}
-            </label>
-            <div style={{ position: "relative" }}>
-                <input
-                    type={show ? "text" : "password"}
-                    value={value}
-                    onChange={e => onChange(e.target.value)}
-                    style={{
-                        width: "100%", padding: "10px 40px 10px 14px", borderRadius: 10,
-                        border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                        background: "var(--bg-primary, rgba(15,23,42,.6))",
-                        color: "var(--text-primary)", fontSize: 14, outline: "none",
-                    }}
-                />
+        <Input
+            label={label}
+            type={show ? "text" : "password"}
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            rightIcon={
                 <button
                     type="button"
                     onClick={onToggle}
-                    style={{
-                        position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-                        background: "none", border: "none", cursor: "pointer",
-                        color: "var(--text-muted)", padding: 4,
-                    }}
+                    className="focus:outline-none flex items-center justify-center p-1"
                 >
                     {show ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
-            </div>
-        </div>
+            }
+        />
     );
 }

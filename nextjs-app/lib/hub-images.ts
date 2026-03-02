@@ -23,7 +23,7 @@ export async function buscarImagemUnsplash(
     const resp = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
     if (!resp.ok) return null;
-    
+
     const data = await resp.json();
     if (data?.results && data.results.length > 0) {
       return data.results[0].urls?.regular || null;
@@ -31,7 +31,7 @@ export async function buscarImagemUnsplash(
   } catch (error) {
     console.error("Erro ao buscar imagem Unsplash:", error);
   }
-  
+
   return null;
 }
 
@@ -84,24 +84,24 @@ export async function gerarImagemInteligente(
             }
             const errorText = await response.text();
             let errorMessage = `API retornou ${response.status}: ${errorText}`;
-            
+
             // Melhorar mensagem de erro para chave inválida
             if (response.status === 400 && errorText.includes("API key not valid")) {
               errorMessage = "GEMINI_API_KEY não é válida. Verifique se a chave está correta no Render e se tem permissões para geração de imagens.";
             }
-            
+
             throw new Error(errorMessage);
           }
 
           const data = await response.json();
-          
+
           // Extrair imagem da resposta
           const candidates = data.candidates || [];
           if (candidates.length > 0) {
             const candidate = candidates[0];
             const content = candidate.content || {};
             const parts = content.parts || [];
-            
+
             for (const part of parts) {
               if (part.inlineData) {
                 const b64 = part.inlineData.data;
@@ -109,10 +109,10 @@ export async function gerarImagemInteligente(
               }
             }
           }
-        } catch (err: any) {
+        } catch (err: unknown) {
           const errStr = String(err).toLowerCase();
           if (errStr.includes("404") || errStr.includes("not found")) {
-            lastError = err;
+            lastError = err instanceof Error ? err : new Error(String(err));
             continue; // Tentar próximo modelo
           }
           throw err;
@@ -149,13 +149,13 @@ export async function baixarImagemUrl(url: string): Promise<string | null> {
       console.error(`Erro ao baixar imagem de ${url}: ${resp.status} ${resp.statusText}`);
       return null;
     }
-    
+
     // No servidor, usar arrayBuffer e converter para base64
     const arrayBuffer = await resp.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const base64 = buffer.toString("base64");
     const mimeType = resp.headers.get("content-type") || "image/jpeg";
-    
+
     return `data:${mimeType};base64,${base64}`;
   } catch (error) {
     console.error("Erro ao baixar imagem:", error);

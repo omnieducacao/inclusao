@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
+import { Select } from "@omni/ds";
 
 type Student = { id: string; name: string };
 
@@ -58,19 +59,21 @@ function StudentSelectorInner({
     }
   }
 
+  const options = students.map((s) => ({
+    value: s.id,
+    label: s.name || "Sem nome",
+  }));
+
   return (
-    <select
-      value={selected}
-      onChange={handleChange}
-      className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none bg-white min-w-[200px]"
-    >
-      <option value="">{placeholder}</option>
-      {students.map((s) => (
-        <option key={s.id} value={s.id}>
-          {s.name || "Sem nome"}
-        </option>
-      ))}
-    </select>
+    <div className="min-w-[200px]">
+      <Select
+        value={selected}
+        onChange={handleChange}
+        options={options}
+        placeholder={placeholder}
+        selectSize="sm"
+      />
+    </div>
   );
 }
 
@@ -87,12 +90,14 @@ export function StudentSelector({
 }) {
   return (
     <Suspense fallback={
-      <select
-        disabled
-        className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 min-w-[200px]"
-      >
-        <option>Carregando...</option>
-      </select>
+      <div className="min-w-[200px]">
+        <Select
+          disabled
+          options={[{ value: "", label: "Carregando..." }]}
+          value=""
+          selectSize="sm"
+        />
+      </div>
     }>
       <StudentSelectorInner
         students={students}

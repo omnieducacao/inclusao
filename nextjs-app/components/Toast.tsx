@@ -29,35 +29,17 @@ const ICONS: Record<ToastType, typeof CheckCircle2> = {
     info: Info,
 };
 
-const STYLES: Record<ToastType, { bg: string; border: string; text: string; icon: string }> = {
-    success: {
-        bg: "bg-emerald-50",
-        border: "border-emerald-200",
-        text: "text-emerald-800",
-        icon: "text-emerald-600",
-    },
-    error: {
-        bg: "bg-red-50",
-        border: "border-red-200",
-        text: "text-red-800",
-        icon: "text-red-600",
-    },
-    warning: {
-        bg: "bg-amber-50",
-        border: "border-amber-200",
-        text: "text-amber-800",
-        icon: "text-amber-600",
-    },
-    info: {
-        bg: "bg-blue-50",
-        border: "border-blue-200",
-        text: "text-blue-800",
-        icon: "text-blue-600",
-    },
+const STYLES: Record<ToastType, string> = {
+    success: "border-l-emerald-500 text-emerald-500",
+    error: "border-l-red-500 text-red-500",
+    warning: "border-l-amber-500 text-amber-500",
+    info: "border-l-sky-500 text-sky-500",
 };
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
-    const style = STYLES[toast.type];
+    const styleClass = STYLES[toast.type];
+    const borderColor = styleClass.split(' ')[0];
+    const iconColor = styleClass.split(' ')[1];
     const Icon = ICONS[toast.type];
 
     useEffect(() => {
@@ -67,16 +49,16 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
 
     return (
         <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg backdrop-blur-sm ${style.bg} ${style.border} animate-slide-up`}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)] border-l-4 shadow-[var(--omni-shadow-lg)] animate-slide-up ${borderColor}`}
             style={{ minWidth: 280, maxWidth: 420 }}
         >
-            <Icon className={`w-5 h-5 flex-shrink-0 ${style.icon}`} />
-            <span className={`text-sm font-medium flex-1 ${style.text}`}>{toast.message}</span>
+            <Icon className={`w-5 h-5 shrink-0 ${iconColor}`} />
+            <span className="text-sm font-medium flex-1 text-[var(--omni-text-primary)]">{toast.message}</span>
             <button
                 onClick={() => onDismiss(toast.id)}
-                className="flex-shrink-0 p-0.5 rounded hover:bg-black/5 transition-colors"
+                className="shrink-0 p-0.5 rounded text-[var(--omni-text-muted)] hover:text-[var(--omni-text-primary)] transition-colors"
             >
-                <X className="w-4 h-4 text-slate-400" />
+                <X className="w-4 h-4" />
             </button>
         </div>
     );

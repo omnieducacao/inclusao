@@ -26,6 +26,7 @@ export async function comprimirImagemParaVision(
   try {
     // Tentar usar sharp (biblioteca recomendada para processamento de imagem)
     // Se não estiver instalado, retorna a imagem original com aviso
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let sharp: any;
     try {
       sharp = (await import("sharp")).default;
@@ -36,21 +37,21 @@ export async function comprimirImagemParaVision(
       );
       return imageBuffer;
     }
-    
+
     // Obter dimensões atuais
     const metadata = await sharp(imageBuffer).metadata();
     const width = metadata.width || 1024;
     const height = metadata.height || 1024;
-    
+
     // Calcular escala baseada na razão de tamanho
     // scale = sqrt(max_bytes / current_bytes)
     // Isso mantém a proporção da imagem
     const scale = Math.sqrt(maxBytes / imageBuffer.length);
-    
+
     // Calcular novas dimensões (mínimo 256px, máximo dimensão original)
     const newWidth = Math.max(256, Math.min(width, Math.floor(width * scale)));
     const newHeight = Math.max(256, Math.min(height, Math.floor(height * scale)));
-    
+
     // Redimensionar e comprimir como JPEG com qualidade 85
     // Mantém proporção e não aumenta se já for menor
     const compressed = await sharp(imageBuffer)
@@ -60,13 +61,13 @@ export async function comprimirImagemParaVision(
       })
       .jpeg({ quality: 85 })
       .toBuffer();
-    
+
     // Verificar se a compressão foi efetiva
     if (compressed.length > imageBuffer.length) {
       // Se ficou maior, retorna a original
       return imageBuffer;
     }
-    
+
     return compressed;
   } catch (err) {
     console.error("Erro ao comprimir imagem:", err);

@@ -342,7 +342,6 @@ export async function POST(req: Request) {
   let dados: PEIDataPayload = {};
   let engine: EngineId = "red";
   let modoPratico = false;
-  let feedback: string | undefined;
 
   const parsed = await parseBody(req, peiConsultoriaSchema);
   if (parsed.error) return parsed.error;
@@ -350,7 +349,7 @@ export async function POST(req: Request) {
   dados = (body.peiData || body) as PEIDataPayload;
   engine = (body.engine || "red") as EngineId;
   modoPratico = !!body.modo_pratico;
-  feedback = body.feedback || undefined;
+  const feedback = body.feedback || undefined;
 
   const engineErr = getEngineError(engine);
   if (engineErr) {

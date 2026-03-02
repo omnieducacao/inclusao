@@ -69,6 +69,7 @@ export async function POST(req: Request) {
 
             try {
                 transcricao = await visionAdapt(prompt, base64, mime);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (visionErr: any) {
                 console.error("Erro na visão:", visionErr);
                 return NextResponse.json(
