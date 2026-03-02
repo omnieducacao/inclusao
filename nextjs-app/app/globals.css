@@ -1376,6 +1376,170 @@ h6 {
   }
 }
 
+/* ═══════════════════════════════════════════════════
+   Notebook Mode — Global Overrides
+   Catches ALL hardcoded Tailwind colors across
+   internal module components (PEI, PAEE, Hub, etc.)
+   Maps to warm parchment/sepia tones.
+   ═══════════════════════════════════════════════════ */
+
+[data-theme="notebook"] {
+
+  /* ─── Backgrounds ─── */
+  & .bg-white {
+    background-color: var(--bg-secondary) !important;
+  }
+
+  & .bg-slate-50,
+  & .bg-gray-50 {
+    background-color: var(--bg-tertiary) !important;
+  }
+
+  & .bg-slate-100,
+  & .bg-gray-100 {
+    background-color: var(--bg-tertiary) !important;
+  }
+
+  & .bg-slate-200,
+  & .bg-gray-200 {
+    background-color: #ede5d8 !important;
+  }
+
+  /* ─── Text ─── */
+  & .text-slate-900,
+  & .text-gray-900 {
+    color: var(--text-primary) !important;
+  }
+
+  & .text-slate-800,
+  & .text-gray-800 {
+    color: var(--text-primary) !important;
+  }
+
+  & .text-slate-700,
+  & .text-gray-700 {
+    color: #44403c !important;
+  }
+
+  & .text-slate-600,
+  & .text-gray-600 {
+    color: var(--text-secondary) !important;
+  }
+
+  & .text-slate-500,
+  & .text-gray-500 {
+    color: var(--text-muted) !important;
+  }
+
+  & .text-slate-400,
+  & .text-gray-400 {
+    color: var(--text-muted) !important;
+  }
+
+  /* ─── Borders ─── */
+  & .border-slate-200,
+  & .border-gray-200 {
+    border-color: var(--border-default) !important;
+  }
+
+  & .border-slate-100,
+  & .border-gray-100 {
+    border-color: var(--border-subtle) !important;
+  }
+
+  & .border-slate-300,
+  & .border-gray-300 {
+    border-color: var(--border-strong) !important;
+  }
+
+  /* ─── Inputs & Forms ─── */
+  & input,
+  & textarea,
+  & select {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-default) !important;
+    color: var(--text-primary) !important;
+  }
+
+  & input::placeholder,
+  & textarea::placeholder {
+    color: var(--text-muted) !important;
+  }
+
+  /* ─── Tables ─── */
+  & table {
+    border-color: var(--border-default) !important;
+  }
+
+  & th {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-default) !important;
+  }
+
+  & td {
+    border-color: var(--border-subtle) !important;
+  }
+
+  & tr:hover td {
+    background-color: var(--bg-hover) !important;
+  }
+
+  /* ─── Divider lines ─── */
+  & .divide-slate-200>*+*,
+  & .divide-gray-200>*+* {
+    border-color: var(--border-default) !important;
+  }
+
+  /* ─── Shadow adjustments ─── */
+  & .shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+  }
+
+  & .shadow-md {
+    box-shadow: var(--shadow-md) !important;
+  }
+
+  & .shadow-lg {
+    box-shadow: var(--shadow-lg) !important;
+  }
+
+  /* ─── Tabs / Pills with white bg ─── */
+  & [class*="bg-white/"] {
+    background-color: var(--surface-2) !important;
+  }
+
+  /* ─── Rings ─── */
+  & .ring-white {
+    --tw-ring-color: var(--bg-secondary) !important;
+  }
+
+  & .border-white {
+    border-color: var(--bg-secondary) !important;
+  }
+
+  /* ─── Gradient Cards ─── */
+  & [class*="bg-gradient"][class*="from-slate-50"],
+  & [class*="bg-gradient"][class*="from-white"],
+  & [class*="bg-gradient"][class*="to-white"] {
+    background: var(--bg-secondary) !important;
+  }
+
+  /* ─── Module Client Cards ─── */
+  & .bg-white.rounded-2xl,
+  & .bg-white.rounded-xl,
+  & .bg-white.rounded-lg {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-default) !important;
+  }
+
+  /* ─── Dialogs / Modals ─── */
+  & [role="dialog"] .bg-white,
+  & [role="dialog"] .bg-slate-50 {
+    background-color: var(--bg-secondary) !important;
+  }
+}
+
 /* ─── Omni Typography Scale ───────────────────────────────────────────────── */
 /* Use estas classes em vez de text-[Npx] arbitrários                        */
 
