@@ -163,7 +163,7 @@ export function PageHero({
       : (moduleKey ? moduleKeyToAdminKey[moduleKey] : undefined);
     if (!adminKey) return;
 
-    fetch("/api/admin/platform-config?key=card_customizations")
+    fetch("/api/public/platform-config?key=card_customizations")
       .then(r => r.json())
       .then(data => {
         if (data?.value) {

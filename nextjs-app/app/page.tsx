@@ -115,16 +115,14 @@ export default async function RootPage() {
   type CardCustomization = Record<string, { color?: string; icon?: string }>;
   let cardCustomizations: CardCustomization = {};
   try {
-    if (!sessionNonNull.is_platform_admin || sessionNonNull.workspace_id) {
-      const sb = getSupabase();
-      const { data: configRow } = await sb
-        .from("platform_config")
-        .select("value")
-        .eq("key", "card_customizations")
-        .maybeSingle();
-      if (configRow?.value) {
-        cardCustomizations = JSON.parse(configRow.value as string);
-      }
+    const sb = getSupabase();
+    const { data: configRow } = await sb
+      .from("platform_config")
+      .select("value")
+      .eq("key", "card_customizations")
+      .maybeSingle();
+    if (configRow?.value) {
+      cardCustomizations = JSON.parse(configRow.value as string);
     }
   } catch (err) {
     console.error("[RootPage] card_customizations load error:", err);

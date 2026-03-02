@@ -547,7 +547,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
     const timer = setTimeout(() => setIsMounted(true), 0);
     loadNavIcons().then(setNavIcons);
     // Fetch topbar customizations (icons, pill colors)
-    fetch("/api/admin/platform-config?key=topbar_customizations")
+    fetch("/api/public/platform-config?key=topbar_customizations")
       .then(r => r.json())
       .then(data => {
         if (data?.value) {
