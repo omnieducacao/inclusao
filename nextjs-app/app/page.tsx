@@ -122,8 +122,11 @@ export default async function RootPage() {
       .eq("key", "card_customizations")
       .maybeSingle();
     if (configRow?.value) {
-      cardCustomizations = JSON.parse(configRow.value as string);
+      // Handle both text column (string) and jsonb column (already parsed)
+      const raw = configRow.value;
+      cardCustomizations = typeof raw === "string" ? JSON.parse(raw) : raw as CardCustomization;
     }
+    console.log("[DEBUG] card_customizations:", JSON.stringify(cardCustomizations));
   } catch (err) {
     console.error("[RootPage] card_customizations load error:", err);
   }
