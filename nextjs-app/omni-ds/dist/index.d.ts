@@ -1018,7 +1018,7 @@ export declare type ModalProps = HTMLAttributes<HTMLDialogElement> & {
     showClose?: boolean;
 };
 
-export declare function ModuleCard({ moduleKey, icon: Icon, iconElement, title, description, badge, active, disabled, onClick, className, }: ModuleCardProps): JSX.Element;
+export declare function ModuleCard({ moduleKey, icon: Icon, iconElement, title, description, badge, active, disabled, variant, onClick, className, }: ModuleCardProps): JSX.Element;
 
 export declare type ModuleCardProps = {
     /** ID do módulo (determina cor automaticamente) */
@@ -1037,6 +1037,8 @@ export declare type ModuleCardProps = {
     active?: boolean;
     /** Desabilitado */
     disabled?: boolean;
+    /** Visual variant: 'saturated' (default) or 'pastel' (warm notebook) */
+    variant?: "saturated" | "pastel";
     /** Click handler */
     onClick?: () => void;
     className?: string;
@@ -1051,56 +1053,78 @@ export declare const moduleColors: {
         readonly bg: "#7c3aed";
         readonly text: "#ffffff";
         readonly glow: "rgba(139, 92, 246, 0.25)";
+        readonly bgPastel: "#ede5fb";
+        readonly textPastel: "#5b21b6";
     };
     readonly paee: {
         readonly bg: "#e11d48";
         readonly text: "#ffffff";
         readonly glow: "rgba(244, 63, 94, 0.25)";
+        readonly bgPastel: "#fce4ec";
+        readonly textPastel: "#9f1239";
     };
     readonly hub: {
         readonly bg: "#0891b2";
         readonly text: "#ffffff";
         readonly glow: "rgba(6, 182, 212, 0.25)";
+        readonly bgPastel: "#e0f5f9";
+        readonly textPastel: "#0e7490";
     };
     readonly diario: {
         readonly bg: "#059669";
         readonly text: "#ffffff";
         readonly glow: "rgba(16, 185, 129, 0.25)";
+        readonly bgPastel: "#dcfce7";
+        readonly textPastel: "#047857";
     };
     readonly cursos: {
         readonly bg: "#d97706";
         readonly text: "#ffffff";
         readonly glow: "rgba(245, 158, 11, 0.25)";
+        readonly bgPastel: "#fef3cd";
+        readonly textPastel: "#92400e";
     };
     readonly ferramentas: {
         readonly bg: "#2563eb";
         readonly text: "#ffffff";
         readonly glow: "rgba(59, 130, 246, 0.25)";
+        readonly bgPastel: "#dbeafe";
+        readonly textPastel: "#1d4ed8";
     };
     readonly omnisfera: {
         readonly bg: "#0ea5e9";
         readonly text: "#ffffff";
         readonly glow: "rgba(56, 189, 248, 0.25)";
+        readonly bgPastel: "#e0f2fe";
+        readonly textPastel: "#0369a1";
     };
     readonly gestao: {
         readonly bg: "#6366f1";
         readonly text: "#ffffff";
         readonly glow: "rgba(99, 102, 241, 0.25)";
+        readonly bgPastel: "#e0e1fc";
+        readonly textPastel: "#4338ca";
     };
     readonly monitoramento: {
         readonly bg: "#0d9488";
         readonly text: "#ffffff";
         readonly glow: "rgba(20, 184, 166, 0.25)";
+        readonly bgPastel: "#ccfbf1";
+        readonly textPastel: "#0f766e";
     };
     readonly pgi: {
         readonly bg: "#8b5cf6";
         readonly text: "#ffffff";
         readonly glow: "rgba(139, 92, 246, 0.25)";
+        readonly bgPastel: "#ede9fe";
+        readonly textPastel: "#6d28d9";
     };
     readonly admin: {
         readonly bg: "#475569";
         readonly text: "#ffffff";
         readonly glow: "rgba(71, 85, 105, 0.25)";
+        readonly bgPastel: "#e8eaed";
+        readonly textPastel: "#334155";
     };
 };
 

@@ -15,8 +15,8 @@ export function EmptyState({ icon: Icon, title, description, action, className }
         <div
             className={cn(
                 "flex flex-col items-center justify-center rounded-2xl",
-                "border border-[var(--omni-border-default)]",
-                "bg-[var(--omni-bg-tertiary)]/50",
+                "border border-(--omni-border-default)",
+                "bg-(--omni-bg-tertiary)/50",
                 "py-12 px-6 text-center",
                 className
             )}
@@ -28,9 +28,9 @@ export function EmptyState({ icon: Icon, title, description, action, className }
                     <Icon className="w-10 h-10" aria-hidden />
                 </div>
             )}
-            <h3 className="text-lg font-semibold text-[var(--omni-text-primary)]">{title}</h3>
+            <h3 className="text-lg font-semibold text-(--omni-text-primary)">{title}</h3>
             {description && (
-                <p className="mt-2 text-sm text-[var(--omni-text-muted)] max-w-sm">{description}</p>
+                <p className="mt-2 text-sm text-(--omni-text-muted) max-w-sm">{description}</p>
             )}
             {action && (
                 <div className="mt-4">

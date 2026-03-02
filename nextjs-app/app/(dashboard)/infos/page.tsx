@@ -11,12 +11,9 @@ export default async function InfosPage() {
 
   return (
     <div className="space-y-6">
-      <PageHero
-        iconName="BookMarked"
+      <PageHero moduleKey="gestao"
         title="Central de Inteligência Inclusiva"
         desc="Fundamentos Pedagógicos, Marcos Legais e Ferramentas Práticas."
-        color="blue"
-        useLottie={true}
       />
 
       <InfosClient />

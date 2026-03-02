@@ -74,13 +74,13 @@ export function ModuleCards({ modules, title, titleIconName, titleIconColor = "t
               style={{ backgroundColor: colors.bg }}
             >
               {m.badge && (
-                <span className="absolute top-3 right-3 px-2 py-0.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow-sm">
+                <span className="absolute top-3 right-3 px-2 py-0.5 text-xs font-bold text-white bg-linear-to-r from-emerald-500 to-emerald-600 rounded-full shadow-sm">
                   {m.badge}
                 </span>
               )}
               <div className="flex items-start gap-5">
                 <Icon 
-                  className="w-14 h-14 flex-shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300" 
+                  className="w-14 h-14 shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300" 
                   style={{ color: colors.icon }}
                   weight="duotone"
                 />
@@ -115,10 +115,10 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
         className="group relative block p-8 rounded-2xl border-2 border-slate-200 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.01] hover:border-slate-300 overflow-hidden"
         style={{ backgroundColor: colorPalette.table.bg }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${colorPalette.table.icon}15, transparent, ${colorPalette.table.icon}15)` }}></div>
+        <div className="absolute inset-0 bg-linear-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${colorPalette.table.icon}15, transparent, ${colorPalette.table.icon}15)` }}></div>
         <div className="relative flex items-start gap-6">
           <BookBookmark 
-            className="w-16 h-16 flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" 
+            className="w-16 h-16 shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" 
             style={{ color: colorPalette.table.icon }}
             weight="duotone"
           />

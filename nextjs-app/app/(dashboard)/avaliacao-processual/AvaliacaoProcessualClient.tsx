@@ -2,14 +2,16 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { Card } from "@omni/ds";
 import {
-    Activity, Loader2 /* eslint-disable-line @typescript-eslint/no-unused-vars */, AlertTriangle, ChevronDown, ChevronUp,
+    Activity /* eslint-disable-line @typescript-eslint/no-unused-vars */, AlertTriangle, ChevronDown, ChevronUp,
     Users, ArrowLeft, Save, BarChart3, Calendar, BookOpen, TrendingUp, Sparkles, FileText,
     Printer,
 } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import { RubricaOmnisfera } from "@/components/RubricaOmnisfera";
 import { OnboardingPanel } from "@/components/OnboardingPanel";
+import { PageHero } from "@/components/PageHero";
 import { OmniLoader } from "@/components/OmniLoader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -39,16 +41,9 @@ interface HabilidadeAvaliada {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const cardS: React.CSSProperties = {
-    borderRadius: 14, border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-    backgroundColor: "var(--bg-secondary, rgba(15,23,42,.4))", overflow: "hidden",
-};
-const headerS: React.CSSProperties = {
-    display: "flex", alignItems: "center", gap: 8, padding: "12px 16px",
-    borderBottom: "1px solid var(--border-default, rgba(148,163,184,.1))",
-    backgroundColor: "var(--bg-tertiary, rgba(15,23,42,.3))",
-};
-const bodyS: React.CSSProperties = { padding: 16 };
+const cardS = "rounded-[14px] border border-(--omni-border-default) bg-(--omni-bg-secondary) overflow-hidden";
+const headerS = "flex items-center gap-2 px-4 py-3 border-b border-(--omni-border-default) bg-(--omni-bg-tertiary)";
+const bodyS = "p-4";
 
 const NIVEL_COLORS: Record<number, { bg: string; border: string; text: string }> = {
     0: { bg: "rgba(239,68,68,.08)", border: "rgba(239,68,68,.2)", text: "#f87171" },
@@ -392,23 +387,22 @@ export default function AvaliacaoProcessualClient() {
 
     if (loading) {
         return (
-            <div style={{ padding: 60, textAlign: "center" }}>
-                <OmniLoader engine="green" variant="card" />
-                <p style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 16 }}>Carregando estudantes...</p>
+            <div className="p-15 text-center">
+                <OmniLoader variant="card" />
+                <p className="text-(--omni-text-muted) text-sm mt-4">Carregando estudantes...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div style={{ padding: 40 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#f87171", marginBottom: 12 }}>
-                    <AlertTriangle size={20} /> <span style={{ fontWeight: 600 }}>{error}</span>
+            <div className="p-10">
+                <div className="flex items-center gap-2 text-red-400 mb-3">
+                    <AlertTriangle size={20} /> <span className="font-semibold">{error}</span>
                 </div>
-                <button onClick={() => { setError(""); fetchAlunos(); }} style={{
-                    padding: "8px 16px", borderRadius: 8, border: "1px solid var(--border-default)",
-                    background: "transparent", color: "var(--text-primary)", cursor: "pointer", fontSize: 13,
-                }}>Tentar novamente</button>
+                <button onClick={() => { setError(""); fetchAlunos(); }}
+                    className="px-4 py-2 rounded-lg border border-(--omni-border-default) bg-transparent text-(--omni-text-primary) cursor-pointer text-[13px]"
+                >Tentar novamente</button>
             </div>
         );
     }
@@ -421,7 +415,7 @@ export default function AvaliacaoProcessualClient() {
             : 0;
 
         return (
-            <div style={{ maxWidth: 900, margin: "0 auto" }}>
+            <div className="w-full">
                 {/* Overlay: ícone girando + motor trabalhando (igual Hub / Diagnóstica) */}
                 {(salvando || gerandoRelatorio || gerandoIntegrado) && (
                     <OmniLoader
@@ -432,34 +426,25 @@ export default function AvaliacaoProcessualClient() {
                 )}
 
                 {/* Breadcrumb */}
-                <div style={{
-                    display: "flex", alignItems: "center", gap: 10, marginBottom: 20,
-                    padding: "12px 16px", borderRadius: 12,
-                    background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
-                }}>
-                    <button onClick={goBack} style={{
-                        display: "flex", alignItems: "center", padding: 6, borderRadius: 8,
-                        border: "none", background: "rgba(16,185,129,.1)", color: "#34d399", cursor: "pointer",
-                    }}><ArrowLeft size={16} /></button>
-                    <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                        {selectedAluno.name} <span style={{ margin: "0 6px", opacity: .5 }}>›</span>
-                        <strong style={{ color: "var(--text-primary)" }}>{selectedDisc}</strong>
+                <div className="flex items-center gap-2.5 mb-5 px-4 py-3 rounded-xl bg-(--omni-bg-secondary) border border-(--omni-border-default)">
+                    <button onClick={goBack} className="flex items-center p-1.5 rounded-lg border-none bg-emerald-500/10 text-emerald-400 cursor-pointer">
+                        <ArrowLeft size={16} />
+                    </button>
+                    <span className="text-[13px] text-(--omni-text-muted)">
+                        {selectedAluno.name} <span className="mx-1.5 opacity-50">›</span>
+                        <strong className="text-(--omni-text-primary)">{selectedDisc}</strong>
                     </span>
                 </div>
 
                 {/* Header */}
-                <div style={{
-                    background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
-                    borderRadius: 14, padding: "20px 24px", color: "#fff", marginBottom: 20,
-                }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <div className="bg-linear-to-br from-emerald-600 to-emerald-500 rounded-[14px] px-6 py-5 text-white mb-5">
+                    <div className="flex items-center gap-2.5 mb-2">
                         <Activity size={22} />
-                        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
+                        <h2 className="m-0 text-lg font-bold">
                             Avaliação Processual — {selectedDisc}
                         </h2>
                     </div>
-                    <p style={{ margin: 0, fontSize: 13, opacity: .85 }}>
+                    <p className="m-0 text-[13px] opacity-85">
                         Registre o nível Omnisfera atual do estudante em cada habilidade.
                     </p>
                 </div>
@@ -525,8 +510,7 @@ export default function AvaliacaoProcessualClient() {
 
                 {/* Summary card */}
                 <div style={{ display: "grid", gridTemplateColumns: diagBaseline ? "1fr 1fr 1fr 1fr" : "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
-                    <div style={{
-                        ...cardS, padding: 16, textAlign: "center",
+                    <div className={`${cardS} p-4 text-center`} style={{
                         background: "rgba(16,185,129,.04)",
                     }}>
                         <div style={{ fontSize: 24, fontWeight: 800, color: "#10b981" }}>{mediaHabs}</div>
@@ -541,8 +525,7 @@ export default function AvaliacaoProcessualClient() {
                         )}
                     </div>
                     {diagBaseline && (
-                        <div style={{
-                            ...cardS, padding: 16, textAlign: "center",
+                        <div className={`${cardS} p-4 text-center`} style={{
                             background: "rgba(14,165,233,.04)",
                         }}>
                             <div style={{ fontSize: 24, fontWeight: 800, color: "#0ea5e9" }}>N{diagBaseline.nivel}</div>
@@ -550,15 +533,13 @@ export default function AvaliacaoProcessualClient() {
                             <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 2 }}>{diagBaseline.score}% score</div>
                         </div>
                     )}
-                    <div style={{
-                        ...cardS, padding: 16, textAlign: "center",
+                    <div className={`${cardS} p-4 text-center`} style={{
                         background: "rgba(59,130,246,.04)",
                     }}>
                         <div style={{ fontSize: 24, fontWeight: 800, color: "#3b82f6" }}>{habilidades.length}</div>
                         <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Habilidades</div>
                     </div>
-                    <div style={{
-                        ...cardS, padding: 16, textAlign: "center",
+                    <div className={`${cardS} p-4 text-center`} style={{
                         background: "rgba(99,102,241,.04)",
                     }}>
                         <div style={{ fontSize: 24, fontWeight: 800, color: "#818cf8" }}>{selectedPeriodo}º</div>
@@ -568,12 +549,11 @@ export default function AvaliacaoProcessualClient() {
 
                 {/* Evolution chart */}
                 {evolucao.length > 0 && evolucao[0].periodos.length > 0 && (
-                    <div style={{ ...cardS, marginBottom: 20 }}>
+                    <div className={`${cardS} mb-5`}>
                         <button
                             onClick={() => setShowEvolucao(!showEvolucao)}
+                            className={`${headerS} w-full cursor-pointer justify-between border-none`}
                             style={{
-                                ...headerS, width: "100%", cursor: "pointer",
-                                justifyContent: "space-between", border: "none",
                                 background: "rgba(99,102,241,.05)",
                             }}
                         >
@@ -593,7 +573,7 @@ export default function AvaliacaoProcessualClient() {
                             {showEvolucao ? <ChevronUp size={14} style={{ color: "#818cf8" }} /> : <ChevronDown size={14} style={{ color: "#818cf8" }} />}
                         </button>
                         {showEvolucao && (
-                            <div style={bodyS}>
+                            <div className={bodyS}>
                                 {evolucao.map(evo => (
                                     <div key={evo.disciplina} style={{ marginBottom: 16 }}>
                                         <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 10 }}>
@@ -666,8 +646,8 @@ export default function AvaliacaoProcessualClient() {
                 )}
 
                 {/* Habilidades list */}
-                <div style={{ ...cardS, marginBottom: 20 }}>
-                    <div style={{ ...headerS, background: "rgba(16,185,129,.05)" }}>
+                <div className={`${cardS} mb-5`}>
+                    <div className={headerS} style={{ background: "rgba(16,185,129,.05)" }}>
                         <BookOpen size={16} style={{ color: "#10b981" }} />
                         <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>
                             {habSource === "plano_curso_professor" ? "Habilidades do Plano de Curso" :
@@ -678,7 +658,7 @@ export default function AvaliacaoProcessualClient() {
                             Avalie cada habilidade na escala 0-4
                         </span>
                     </div>
-                    <div style={bodyS}>
+                    <div className={bodyS}>
                         {habilidades.map((hab, idx) => {
                             const colors = NIVEL_COLORS[hab.nivel_atual] || NIVEL_COLORS[0];
                             const expanded = expandedHab === hab.codigo_bncc;
@@ -790,12 +770,12 @@ export default function AvaliacaoProcessualClient() {
                 </div>
 
                 {/* Observação geral */}
-                <div style={{ ...cardS, marginBottom: 20 }}>
-                    <div style={headerS}>
+                <div className={`${cardS} mb-5`}>
+                    <div className={headerS}>
                         <Activity size={16} style={{ color: "var(--text-muted)" }} />
                         <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>Observação Geral</span>
                     </div>
-                    <div style={bodyS}>
+                    <div className={bodyS}>
                         <textarea
                             value={observacaoGeral}
                             onChange={(e) => setObservacaoGeral(e.target.value)}
@@ -895,12 +875,11 @@ export default function AvaliacaoProcessualClient() {
 
                 {/* AI Report output */}
                 {relatorio && showRelatorio && (
-                    <div style={{ ...cardS, marginTop: 20, border: "1.5px solid rgba(168,85,247,.2)" }}>
+                    <div className={`${cardS} mt-5`} style={{ border: "1.5px solid rgba(168,85,247,.2)" }}>
                         <button
                             onClick={() => setShowRelatorio(!showRelatorio)}
+                            className={`${headerS} w-full cursor-pointer justify-between border-none`}
                             style={{
-                                ...headerS, width: "100%", cursor: "pointer",
-                                justifyContent: "space-between", border: "none",
                                 background: "rgba(168,85,247,.05)",
                             }}
                         >
@@ -921,7 +900,7 @@ export default function AvaliacaoProcessualClient() {
                             </div>
                             <ChevronUp size={14} style={{ color: "#a855f7" }} />
                         </button>
-                        <div style={bodyS}>
+                        <div className={bodyS}>
                             {Boolean(relatorio.periodo_analisado) && (
                                 <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8 }}>
                                     Período: {String(relatorio.periodo_analisado)}
@@ -989,8 +968,8 @@ export default function AvaliacaoProcessualClient() {
 
                 {/* ── Integrated Report Panel ──────────────────────────────── */}
                 {relatorioIntegrado && showIntegrado && (
-                    <div id="relatorio-integrado-print" style={{ ...cardS, marginTop: 20, border: "1.5px solid rgba(14,165,233,.2)" }}>
-                        <div style={{ ...headerS, background: "rgba(14,165,233,.05)", justifyContent: "space-between" }}>
+                    <div id="relatorio-integrado-print" className={`${cardS} mt-5`} style={{ border: "1.5px solid rgba(14,165,233,.2)" }}>
+                        <div className={`${headerS} justify-between`} style={{ background: "rgba(14,165,233,.05)" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                 <BarChart3 size={16} style={{ color: "#0ea5e9" }} />
                                 <span style={{ fontWeight: 700, fontSize: 14, color: "#0ea5e9" }}>Relatório Integrado — Diagnóstica + Processual</span>
@@ -1059,7 +1038,7 @@ export default function AvaliacaoProcessualClient() {
                                 <Printer size={12} /> Exportar PDF
                             </button>
                         </div>
-                        <div style={bodyS}>
+                        <div className={bodyS}>
                             {/* Diagnóstica baseline */}
                             {relatorioIntegrado.diagnostico_baseline?.nivel_omnisfera != null && (
                                 <div style={{
@@ -1157,7 +1136,7 @@ export default function AvaliacaoProcessualClient() {
     // ─── Student List ───────────────────────────────────────────────────
 
     return (
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <div>
             {/* Onboarding Panel */}
             {showOnboarding && (
                 <OnboardingPanel
@@ -1176,30 +1155,12 @@ export default function AvaliacaoProcessualClient() {
                 />
             )}
 
-            {/* Page header */}
-            <div style={{
-                background: "linear-gradient(135deg, #047857 0%, #059669 50%, #10b981 100%)",
-                borderRadius: 16, padding: "24px 28px", color: "#fff", marginBottom: 24,
-            }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-                    <div style={{
-                        width: 44, height: 44, borderRadius: 12, display: "flex", alignItems: "center",
-                        justifyContent: "center", background: "rgba(255,255,255,.15)", backdropFilter: "blur(8px)",
-                    }}>
-                        <Activity size={24} />
-                    </div>
-                    <div>
-                        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>Avaliação Processual</h1>
-                        <p style={{ margin: 0, fontSize: 13, opacity: 0.85 }}>
-                            {professorName} · {alunos.length} estudante{alunos.length !== 1 ? "s" : ""}
-                        </p>
-                    </div>
-                </div>
-                <p style={{ margin: 0, fontSize: 13, opacity: 0.8, maxWidth: 600 }}>
-                    Registre a evolução periódica de cada estudante na escala Omnisfera (0-4).
-                    Suporta avaliação bimestral, trimestral ou semestral.
-                </p>
-            </div>
+            {/* Page header — unified PageHero */}
+            <PageHero
+                route="/avaliacao-processual"
+                title="Avaliação Processual"
+                desc={`${professorName} · ${alunos.length} estudante${alunos.length !== 1 ? "s" : ""}`}
+            />
 
             {/* Link to Diagnóstica */}
             <div style={{
@@ -1217,7 +1178,7 @@ export default function AvaliacaoProcessualClient() {
 
             {/* Empty state */}
             {alunos.length === 0 && (
-                <div style={{ ...cardS, textAlign: "center", padding: "40px 20px" }}>
+                <div className={`${cardS} text-center px-5 py-10`}>
                     <Users size={48} style={{ margin: "0 auto 12px", color: "var(--text-muted)", opacity: 0.3 }} />
                     <h3 style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
                         Nenhum estudante encontrado
@@ -1231,8 +1192,8 @@ export default function AvaliacaoProcessualClient() {
             {/* Student cards */}
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {alunos.map(aluno => (
-                    <div key={aluno.id} style={cardS}>
-                        <div style={{ ...headerS, justifyContent: "space-between" }}>
+                    <div key={aluno.id} className={cardS}>
+                        <div className={`${headerS} justify-between`}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                 <div style={{
                                     width: 36, height: 36, borderRadius: "50%", display: "flex",
@@ -1255,7 +1216,7 @@ export default function AvaliacaoProcessualClient() {
                         </div>
 
                         {/* Discipline buttons */}
-                        <div style={{ ...bodyS, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        <div className={`${bodyS} flex flex-wrap gap-2`}>
                             {aluno.disciplinas.map(disc => (
                                 <button
                                     key={disc.id}

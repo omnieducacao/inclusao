@@ -117,7 +117,7 @@ const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
         return (
             <div ref={containerRef} className="relative flex flex-col gap-1.5">
                 {label && (
-                    <label className="text-sm font-semibold text-[var(--omni-text-primary)]">
+                    <label className="text-sm font-semibold text-(--omni-text-primary)">
                         {label}
                     </label>
                 )}
@@ -131,9 +131,9 @@ const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
                         aria-activedescendant={open && filtered[highlightedIndex] ? `combo-opt-${filtered[highlightedIndex].value}` : undefined}
                         className={cn(
                             "w-full h-10 px-3.5 text-sm rounded-xl",
-                            "bg-[var(--omni-bg-secondary)] text-[var(--omni-text-primary)]",
-                            "border border-[var(--omni-border-default)]",
-                            "placeholder:text-[var(--omni-text-muted)]",
+                            "bg-(--omni-bg-secondary) text-(--omni-text-primary)",
+                            "border border-(--omni-border-default)",
+                            "placeholder:text-(--omni-text-muted)",
                             "focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500",
                             "transition-all",
                             className
@@ -150,7 +150,7 @@ const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
                         {...props}
                     />
                     {/* Chevron */}
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--omni-text-muted)]">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-(--omni-text-muted)">
                         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M4 6L8 10L12 6" />
                         </svg>
@@ -164,12 +164,12 @@ const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
                         className={cn(
                             "absolute top-full left-0 right-0 z-50 mt-1",
                             "max-h-60 overflow-auto rounded-xl p-1.5",
-                            "bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)]",
-                            "shadow-[var(--omni-shadow-lg)]"
+                            "bg-(--omni-bg-secondary) border border-(--omni-border-default)",
+                            "shadow-(--omni-shadow-lg)"
                         )}
                     >
                         {filtered.length === 0 ? (
-                            <li className="px-3 py-2 text-sm text-[var(--omni-text-muted)] text-center">
+                            <li className="px-3 py-2 text-sm text-(--omni-text-muted) text-center">
                                 {emptyMessage}
                             </li>
                         ) : (
@@ -183,7 +183,7 @@ const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
                                     className={cn(
                                         "flex items-center gap-2 px-3 py-2 rounded-lg text-sm cursor-pointer",
                                         "transition-colors",
-                                        i === highlightedIndex && "bg-[var(--omni-bg-hover)]",
+                                        i === highlightedIndex && "bg-(--omni-bg-hover)",
                                         opt.value === value && "font-semibold text-sky-600",
                                         opt.disabled && "opacity-50 cursor-not-allowed"
                                     )}
@@ -194,7 +194,7 @@ const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
                                     <div className="flex-1 min-w-0">
                                         <p className="truncate">{opt.label}</p>
                                         {opt.description && (
-                                            <p className="text-xs text-[var(--omni-text-muted)] truncate">{opt.description}</p>
+                                            <p className="text-xs text-(--omni-text-muted) truncate">{opt.description}</p>
                                         )}
                                     </div>
                                     {opt.value === value && (

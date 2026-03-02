@@ -20,7 +20,7 @@ type Workspace = {
   created_at?: string;
 };
 
-type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "avisos" | "termo" | "bugs" | "instagram" | "aparencia";
+type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "avisos" | "termo" | "bugs" | "instagram" | "aparencia" | "topbar";
 
 const SEGMENT_OPTIONS: Record<string, string> = {
   EI: "Educação Infantil",
@@ -165,6 +165,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
           { id: "bugs" as TabId, label: "🐛 Bugs" },
           { id: "instagram" as TabId, label: "📸 Feed" },
           { id: "aparencia" as TabId, label: "🎨 Aparência" },
+          { id: "topbar" as TabId, label: "🧭 Topbar" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -209,6 +210,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
       {activeTab === "bugs" && <BugsTab />}
       {activeTab === "instagram" && <InstagramFeedTab />}
       {activeTab === "aparencia" && <AparenciaTab />}
+      {activeTab === "topbar" && <TopbarTab />}
     </div>
 
   );
@@ -2266,14 +2268,16 @@ function InstagramFeedTab() {
 const HOME_MODULES = [
   { key: "estudantes", title: "Estudantes", defaultColor: "sky", defaultIcon: "estudantes_flat" },
   { key: "pei", title: "Estratégias & PEI", defaultColor: "blue", defaultIcon: "pei_flat" },
-  { key: "pei-professor", title: "PEI - Professor", defaultColor: "teal", defaultIcon: "pei_flat" },
+  { key: "pei-regente", title: "PEI - Professor", defaultColor: "teal", defaultIcon: "pei_flat" },
   { key: "plano-curso", title: "Plano de Curso", defaultColor: "sky", defaultIcon: "central_inteligencia_flat" },
   { key: "avaliacao-diagnostica", title: "Avaliação Diagnóstica", defaultColor: "blue", defaultIcon: "avaliacao_diagnostica_flat" },
   { key: "avaliacao-processual", title: "Avaliação Processual", defaultColor: "green", defaultIcon: "dados_flat" },
   { key: "paee", title: "Plano de Ação / PAEE", defaultColor: "violet", defaultIcon: "paee_flat" },
   { key: "hub", title: "Hub de Inclusão", defaultColor: "cyan", defaultIcon: "hub_flat" },
+  { key: "familia", title: "Família", defaultColor: "rose", defaultIcon: "estudantes_flat" },
   { key: "diario", title: "Diário de Bordo", defaultColor: "rose", defaultIcon: "Diario_flat" },
   { key: "monitoramento", title: "Evolução & Dados", defaultColor: "slate", defaultIcon: "dados_flat" },
+  { key: "infos", title: "Central de Inteligência", defaultColor: "test", defaultIcon: "central_inteligencia_flat" },
   { key: "pgi", title: "PGI", defaultColor: "presentation", defaultIcon: "pgi_flat" },
   { key: "gestao", title: "Gestão de Usuários", defaultColor: "test", defaultIcon: "gestão_usuario_flat" },
   { key: "config-escola", title: "Configuração Escola", defaultColor: "reports", defaultIcon: "configuracao_escola_flat" },
@@ -2295,7 +2299,7 @@ const COLOR_OPTIONS = [
   { key: "reports", label: "Amarelo", hex: "#F9AB00" },
 ];
 
-type CardCustomization = Record<string, { color?: string; icon?: string }>;
+type CardCustomization = Record<string, { color?: string; heroColor?: string; icon?: string }>;
 
 function AparenciaTab() {
   const [customizations, setCustomizations] = useState<CardCustomization>({});
@@ -2351,7 +2355,7 @@ function AparenciaTab() {
     }
   }
 
-  function updateModule(moduleKey: string, field: "color" | "icon", value: string) {
+  function updateModule(moduleKey: string, field: "color" | "heroColor" | "icon", value: string) {
     setCustomizations((prev) => ({
       ...prev,
       [moduleKey]: {
@@ -2402,9 +2406,11 @@ function AparenciaTab() {
             {HOME_MODULES.map((mod) => {
               const custom = customizations[mod.key] || {};
               const currentColor = custom.color || mod.defaultColor;
+              const currentHeroColor = custom.heroColor || custom.color || mod.defaultColor;
               const currentIcon = custom.icon || mod.defaultIcon;
               const isEditing = editingModule === mod.key;
               const colorInfo = COLOR_OPTIONS.find((c) => c.key === currentColor);
+              const heroColorInfo = COLOR_OPTIONS.find((c) => c.key === currentHeroColor);
 
               return (
                 <div
@@ -2414,15 +2420,23 @@ function AparenciaTab() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {/* Color preview */}
-                      <div
-                        className="w-8 h-8 rounded-lg border border-white shadow"
-                        style={{ backgroundColor: colorInfo?.hex || "#4285F4" }}
-                      />
+                      {/* Color previews */}
+                      <div className="flex gap-1">
+                        <div
+                          className="w-8 h-8 rounded-lg border border-white shadow"
+                          style={{ backgroundColor: colorInfo?.hex || "#4285F4" }}
+                          title="Cor do Card"
+                        />
+                        <div
+                          className="w-8 h-8 rounded-lg border border-white shadow"
+                          style={{ backgroundColor: heroColorInfo?.hex || colorInfo?.hex || "#4285F4" }}
+                          title="Cor do Hero"
+                        />
+                      </div>
                       <div>
                         <h4 className="font-semibold text-slate-800">{mod.title}</h4>
                         <p className="text-xs text-slate-500">
-                          Cor: {colorInfo?.label || currentColor} · Ícone: {currentIcon}
+                          Card: {colorInfo?.label || currentColor} · Hero: {heroColorInfo?.label || currentHeroColor} · Ícone: {currentIcon}
                         </p>
                       </div>
                     </div>
@@ -2434,7 +2448,7 @@ function AparenciaTab() {
                         {isEditing ? <X className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
                         {isEditing ? "Fechar" : "Editar"}
                       </button>
-                      {custom.color || custom.icon ? (
+                      {custom.color || custom.heroColor || custom.icon ? (
                         <button
                           onClick={() => resetModule(mod.key)}
                           className="px-3 py-1.5 text-sm border border-amber-200 text-amber-600 rounded-lg hover:bg-amber-50"
@@ -2447,9 +2461,9 @@ function AparenciaTab() {
 
                   {isEditing && (
                     <div className="mt-4 space-y-4">
-                      {/* Color picker */}
+                      {/* Home Card Color picker */}
                       <div>
-                        <p className="text-sm font-semibold text-slate-700 mb-2">Cor do card</p>
+                        <p className="text-sm font-semibold text-slate-700 mb-2">🏠 Cor do Card (Home)</p>
                         <div className="flex flex-wrap gap-2">
                           {COLOR_OPTIONS.map((color) => (
                             <button
@@ -2463,6 +2477,29 @@ function AparenciaTab() {
                               title={color.label}
                             >
                               {currentColor === color.key && (
+                                <span className="text-white text-xs font-bold">✓</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Hero Color picker */}
+                      <div>
+                        <p className="text-sm font-semibold text-slate-700 mb-2">🌟 Cor do Hero (Subpágina)</p>
+                        <div className="flex flex-wrap gap-2">
+                          {COLOR_OPTIONS.map((color) => (
+                            <button
+                              key={color.key}
+                              onClick={() => updateModule(mod.key, "heroColor", color.key)}
+                              className={`w-10 h-10 rounded-lg border-2 transition-all flex items-center justify-center ${currentHeroColor === color.key
+                                ? "border-blue-500 scale-110 shadow-lg"
+                                : "border-transparent hover:border-slate-300"
+                                }`}
+                              style={{ backgroundColor: color.hex }}
+                              title={color.label}
+                            >
+                              {currentHeroColor === color.key && (
                                 <span className="text-white text-xs font-bold">✓</span>
                               )}
                             </button>
@@ -2495,9 +2532,9 @@ function AparenciaTab() {
                               >
                                 <LottieIcon
                                   animation={`flat/${iconName}`}
-                                  size={36}
+                                  size={60}
                                 />
-                                <span className="text-[8px] text-slate-500 truncate w-full text-center leading-tight">
+                                <span className="text-[9px] text-slate-500 truncate w-full text-center leading-tight mt-1">
                                   {iconName.replace(/wired-flat-\d+-/, "").replace(/-hover.*/, "").replace(/-/g, " ").substring(0, 12)}
                                 </span>
                               </button>
@@ -2523,3 +2560,307 @@ function AparenciaTab() {
     </div>
   );
 }
+
+// ─── Topbar Customization Tab ──────────────────────────────────────────────────
+
+const TOPBAR_NAV_ITEMS = [
+  { key: "pei", defaultLabel: "PEI", defaultIcon: "pei_simples", defaultGroup: null },
+  { key: "paee", defaultLabel: "PAEE ▼", defaultIcon: "paee_simples", defaultGroup: "paee" },
+  { key: "hub", defaultLabel: "Hub", defaultIcon: "hub_simples", defaultGroup: "paee" },
+  { key: "avaliacoes", defaultLabel: "Avaliações ▼", defaultIcon: "dados_simples", defaultGroup: "avaliacoes" },
+  { key: "avaliacao-diagnostica", defaultLabel: "Diagnóstica", defaultIcon: "dados_simples", defaultGroup: "avaliacoes" },
+  { key: "avaliacao-processual", defaultLabel: "Processual", defaultIcon: "dados_simples", defaultGroup: "avaliacoes" },
+  { key: "professor", defaultLabel: "Professor ▼", defaultIcon: "central_inteligencia_simples", defaultGroup: "professor" },
+  { key: "pei-regente", defaultLabel: "PEI Professor", defaultIcon: "pei_simples", defaultGroup: "professor" },
+  { key: "plano-curso", defaultLabel: "Plano de Curso", defaultIcon: "central_inteligencia_simples", defaultGroup: "professor" },
+  { key: "monitoramento", defaultLabel: "Ev&Dados", defaultIcon: "dados_simples", defaultGroup: null },
+  { key: "infos", defaultLabel: "Central", defaultIcon: "central_inteligencia_simples", defaultGroup: null },
+  { key: "pgi", defaultLabel: "PGI", defaultIcon: "pgi_simples", defaultGroup: null },
+  { key: "config", defaultLabel: "Config ▼", defaultIcon: "gestao_usuario_simples", defaultGroup: "config" },
+  { key: "gestao", defaultLabel: "Gestão de Usuários", defaultIcon: "gestao_usuario_simples", defaultGroup: "config" },
+  { key: "config-escola", defaultLabel: "Configuração Escola", defaultIcon: "gestao_usuario_simples", defaultGroup: "config" },
+  { key: "diario", defaultLabel: "Diário", defaultIcon: "diario_simples", defaultGroup: "paee" },
+];
+
+// Topbar icons are loaded dynamically from /api/admin/topbar-icons
+
+type TopbarCustom = Record<string, { label?: string; icon?: string; group?: string | null; visible?: boolean; pillColor?: string }>;
+
+function TopbarTab() {
+  const [customs, setCustoms] = useState<TopbarCustom>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [editingIcon, setEditingIcon] = useState<string | null>(null);
+  const [topbarIcons, setTopbarIcons] = useState<string[]>([]);
+  const [itemOrder, setItemOrder] = useState<string[]>(TOPBAR_NAV_ITEMS.map(i => i.key));
+
+  useEffect(() => {
+    // Load saved customizations
+    fetch("/api/admin/platform-config?key=topbar_customizations")
+      .then(r => r.json())
+      .then(data => {
+        if (data?.value) {
+          try {
+            const parsed = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
+            if (parsed._order) {
+              setItemOrder(parsed._order);
+              delete parsed._order;
+            }
+            setCustoms(parsed);
+          } catch { /* ignore */ }
+        }
+      })
+      .catch(() => { })
+      .finally(() => setLoading(false));
+
+    // Load available topbar icons
+    fetch("/api/admin/topbar-icons")
+      .then(r => r.json())
+      .then(data => {
+        if (data?.icons?.length) setTopbarIcons(data.icons);
+      })
+      .catch(() => { });
+  }, []);
+
+  function getVal(key: string, field: "label" | "icon" | "group" | "visible") {
+    const item = TOPBAR_NAV_ITEMS.find(i => i.key === key);
+    const custom = customs[key];
+    if (field === "label") return custom?.label ?? item?.defaultLabel ?? key;
+    if (field === "icon") return custom?.icon ?? item?.defaultIcon ?? "";
+    if (field === "group") return custom?.group ?? item?.defaultGroup ?? null;
+    if (field === "visible") return custom?.visible !== false;
+    return "";
+  }
+
+  function setVal(key: string, field: string, value: string | boolean | null) {
+    setCustoms(prev => ({
+      ...prev,
+      [key]: { ...prev[key], [field]: value },
+    }));
+    setSaved(false);
+  }
+
+  async function save() {
+    setSaving(true);
+    try {
+      const payload = { ...customs, _order: itemOrder };
+      await fetch("/api/admin/platform-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "topbar_customizations", value: JSON.stringify(payload) }),
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch { /* silent */ }
+    setSaving(false);
+  }
+
+  function moveItem(key: string, direction: "up" | "down") {
+    setItemOrder(prev => {
+      const idx = prev.indexOf(key);
+      if (idx < 0) return prev;
+      const target = direction === "up" ? idx - 1 : idx + 1;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
+    setSaved(false);
+  }
+
+  if (loading) {
+    return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-slate-400" size={28} /></div>;
+  }
+
+  // Dropdown group headers are items whose KEY matches a group name used by other items
+  const AVAILABLE_GROUPS = [
+    { value: "", label: "Item direto (sem dropdown)" },
+    { value: "paee", label: "Dentro de PAEE ▼" },
+    { value: "avaliacoes", label: "Dentro de Avaliações ▼" },
+    { value: "professor", label: "Dentro de Professor ▼" },
+    { value: "config", label: "Dentro de Config ▼" },
+  ];
+
+  // Dynamically determine which items are group headers based on current assignments
+  const groupHeaderKeys = new Set<string>();
+  TOPBAR_NAV_ITEMS.forEach(item => {
+    const g = getVal(item.key, "group") as string | null;
+    if (g) groupHeaderKeys.add(g);
+  });
+  const groupHeaders = TOPBAR_NAV_ITEMS.filter(i => groupHeaderKeys.has(i.key));
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">🧭 Personalizar Topbar</h2>
+          <p className="text-sm text-slate-500 mt-1">Altere nomes, ícones e agrupamentos dos itens da barra de navegação superior.</p>
+        </div>
+        <button
+          onClick={save}
+          disabled={saving}
+          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        >
+          {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+          {saving ? "Salvando..." : saved ? "✓ Salvo" : "Salvar Topbar"}
+        </button>
+      </div>
+
+      {/* Nav items list */}
+      <div className="space-y-3">
+        {TOPBAR_NAV_ITEMS.map((item) => {
+          const isGroupHeader = groupHeaderKeys.has(item.key);
+          const currentGroup = getVal(item.key, "group") as string | null;
+          const isGroupChild = !!currentGroup && !isGroupHeader;
+          const currentIcon = getVal(item.key, "icon") as string;
+
+          return (
+            <div
+              key={item.key}
+              className={`bg-white border rounded-xl p-4 ${isGroupChild ? "ml-8 border-dashed border-slate-200" : "border-slate-200"}`}
+            >
+              <div className="flex items-center gap-4">
+                {/* Icon preview */}
+                <button
+                  onClick={() => setEditingIcon(editingIcon === item.key ? null : item.key)}
+                  className="shrink-0 w-14 h-14 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors"
+                  title="Trocar ícone"
+                >
+                  <LottieIcon animation={currentIcon} size={36} />
+                </button>
+
+                {/* Label + meta */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    {groupHeaderKeys.has(item.key) && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-600 uppercase tracking-wider">Dropdown</span>
+                    )}
+                    {!groupHeaderKeys.has(item.key) && (
+                      <select
+                        value={(getVal(item.key, "group") as string | null) || ""}
+                        onChange={(e) => setVal(item.key, "group", e.target.value || null)}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200 bg-white text-slate-600 cursor-pointer"
+                      >
+                        {AVAILABLE_GROUPS.map(g => (
+                          <option key={g.value} value={g.value}>{g.label}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={getVal(item.key, "label") as string}
+                    onChange={(e) => setVal(item.key, "label", e.target.value)}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 outline-none"
+                    placeholder={item.defaultLabel}
+                  />
+                </div>
+
+                {/* Visibility toggle */}
+                <label className="flex items-center gap-2 shrink-0 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={getVal(item.key, "visible") as boolean}
+                    onChange={(e) => setVal(item.key, "visible", e.target.checked)}
+                    className="w-4 h-4 accent-blue-600 rounded"
+                  />
+                  <span className="text-xs text-slate-500">Visível</span>
+                </label>
+              </div>
+
+              {/* Pill color picker */}
+              <div className="mt-2 flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-semibold text-slate-400">Cor da pílula:</span>
+                <button
+                  onClick={() => setVal(item.key, "pillColor", null)}
+                  className={`w-5 h-5 rounded border-2 text-[8px] flex items-center justify-center cursor-pointer ${!customs[item.key]?.pillColor
+                    ? "border-blue-500 bg-slate-100"
+                    : "border-slate-200 bg-slate-50 hover:border-slate-300"
+                    }`}
+                  title="Padrão"
+                >✕</button>
+                {COLOR_OPTIONS.slice(0, 10).map(c => (
+                  <button
+                    key={c.key}
+                    onClick={() => setVal(item.key, "pillColor", c.key)}
+                    className={`w-5 h-5 rounded border-2 cursor-pointer transition-all ${customs[item.key]?.pillColor === c.key
+                      ? "border-blue-500 scale-110 shadow"
+                      : "border-transparent hover:border-slate-300"
+                      }`}
+                    style={{ backgroundColor: c.hex }}
+                    title={c.label}
+                  />
+                ))}
+              </div>
+
+              {editingIcon === item.key && (
+                <div className="mt-3 pt-3 border-t border-slate-100">
+                  <div className="text-xs font-semibold text-slate-500 mb-2">Escolher ícone:</div>
+                  {topbarIcons.length > 0 ? (
+                    <div className="grid grid-cols-5 sm:grid-cols-9 gap-2">
+                      {topbarIcons.map((icon) => (
+                        <button
+                          key={icon}
+                          onClick={() => { setVal(item.key, "icon", icon); setEditingIcon(null); }}
+                          className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all cursor-pointer ${currentIcon === icon
+                            ? "border-blue-500 bg-blue-50 ring-2 ring-blue-400/30"
+                            : "border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
+                            }`}
+                        >
+                          <LottieIcon animation={icon} size={36} />
+                          <span className="text-[7px] text-slate-500 truncate w-full text-center">
+                            {icon.replace(/^topbar\//, "").replace(/wired-gradient-\d+-/, "").replace(/-hover.*/, "").replace(/-/g, " ")}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400">Carregando ícones...</p>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Preview with reordering */}
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Pré-visualização da Topbar (arraste para reordenar)</div>
+        <div className="flex items-center gap-1 flex-wrap">
+          {itemOrder
+            .map(key => TOPBAR_NAV_ITEMS.find(i => i.key === key))
+            .filter((item): item is typeof TOPBAR_NAV_ITEMS[0] => !!item)
+            .filter(item => {
+              const isGroupChild = item.defaultGroup && !groupHeaders.some(g => g.key === item.key);
+              if (isGroupChild) return false;
+              return getVal(item.key, "visible");
+            })
+            .map((item, idx, arr) => (
+              <div
+                key={item.key}
+                className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200 group/preview"
+              >
+                <button
+                  onClick={() => moveItem(item.key, "up")}
+                  disabled={idx === 0}
+                  className="text-slate-300 hover:text-slate-600 disabled:opacity-30 text-[10px] cursor-pointer"
+                  title="Mover para esquerda"
+                >◀</button>
+                <LottieIcon animation={getVal(item.key, "icon") as string} size={18} />
+                <span className="mx-0.5">{getVal(item.key, "label") as string}</span>
+                <button
+                  onClick={() => moveItem(item.key, "down")}
+                  disabled={idx === arr.length - 1}
+                  className="text-slate-300 hover:text-slate-600 disabled:opacity-30 text-[10px] cursor-pointer"
+                  title="Mover para direita"
+                >▶</button>
+              </div>
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+

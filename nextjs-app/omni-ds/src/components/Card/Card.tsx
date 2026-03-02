@@ -6,15 +6,15 @@ const cardVariants = cva("transition-all duration-200", {
     variants: {
         variant: {
             default:
-                "bg-[var(--omni-bg-secondary)] rounded-[var(--omni-radius-lg)] border border-[var(--omni-border-default)] shadow-[var(--omni-shadow-sm)] hover:shadow-[var(--omni-shadow-md)]",
+                "bg-(--omni-bg-secondary) rounded-(--omni-radius-lg) border border-(--omni-border-default) shadow-(--omni-shadow-sm) hover:shadow-(--omni-shadow-md)",
             premium:
-                "bg-[var(--omni-bg-secondary)] rounded-[var(--omni-radius-lg)] border border-[var(--omni-border-default)] shadow-[var(--omni-shadow-md)] hover:shadow-[var(--omni-shadow-elevated)] hover:-translate-y-1 hover:border-[var(--omni-border-strong)]",
+                "bg-(--omni-bg-secondary) rounded-(--omni-radius-lg) border border-(--omni-border-default) shadow-(--omni-shadow-md) hover:shadow-(--omni-shadow-elevated) hover:-translate-y-1 hover:border-(--omni-border-strong)",
             glass:
-                "bg-[var(--omni-glass-bg-strong)] backdrop-blur-[24px] backdrop-saturate-[200%] rounded-[var(--omni-radius-lg)] border border-[var(--omni-border-default)] shadow-[var(--omni-shadow-md),var(--omni-shadow-inner)] hover:shadow-[var(--omni-shadow-elevated),var(--omni-shadow-inner)] hover:-translate-y-1",
+                "bg-(--omni-glass-bg-strong) backdrop-blur-[24px] backdrop-saturate-[200%] rounded-(--omni-radius-lg) border border-(--omni-border-default) shadow-[var(--omni-shadow-md),var(--omni-shadow-inner)] hover:shadow-[var(--omni-shadow-elevated),var(--omni-shadow-inner)] hover:-translate-y-1",
             interactive:
-                "bg-[var(--omni-surface-1)] rounded-[var(--omni-radius-lg)] border border-[var(--omni-border-default)] shadow-[var(--omni-shadow-md),var(--omni-shadow-inner)] hover:shadow-[var(--omni-shadow-lg),var(--omni-shadow-inner)] hover:-translate-y-[4px] cursor-pointer",
+                "bg-(--omni-surface-1) rounded-(--omni-radius-lg) border border-(--omni-border-default) shadow-[var(--omni-shadow-md),var(--omni-shadow-inner)] hover:shadow-[var(--omni-shadow-lg),var(--omni-shadow-inner)] hover:-translate-y-[4px] cursor-pointer",
             flat:
-                "rounded-[var(--omni-radius-lg)] border-none",
+                "rounded-(--omni-radius-lg) border-none",
         },
         padding: {
             none: "p-0",
@@ -56,7 +56,7 @@ const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingEleme
     ({ className, ...props }, ref) => (
         <h3
             ref={ref}
-            className={cn("text-lg font-bold tracking-tight text-[var(--omni-text-primary)]", className)}
+            className={cn("text-lg font-bold tracking-tight text-(--omni-text-primary)", className)}
             {...props}
         />
     )
@@ -67,7 +67,7 @@ const CardDescription = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLPara
     ({ className, ...props }, ref) => (
         <p
             ref={ref}
-            className={cn("text-sm text-[var(--omni-text-muted)]", className)}
+            className={cn("text-sm text-(--omni-text-muted)", className)}
             {...props}
         />
     )

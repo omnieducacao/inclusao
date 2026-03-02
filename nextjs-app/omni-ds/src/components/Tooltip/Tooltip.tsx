@@ -23,10 +23,10 @@ function Tooltip({ content, position = "top", children, className }: TooltipProp
                 role="tooltip"
                 className={cn(
                     "absolute z-50 px-2.5 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap pointer-events-none",
-                    "bg-[var(--omni-text-primary)] text-[var(--omni-text-inverse)]",
+                    "bg-(--omni-text-primary) text-(--omni-text-inverse)",
                     "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100",
                     "transition-all duration-150 ease-out",
-                    "shadow-[var(--omni-shadow-md)]",
+                    "shadow-(--omni-shadow-md)",
                     positionClasses[position]
                 )}
             >

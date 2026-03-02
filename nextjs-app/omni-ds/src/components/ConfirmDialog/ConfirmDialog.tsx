@@ -14,10 +14,10 @@ function ConfirmDialog({ open, onConfirm, onCancel, title, description, icon, va
                 <div className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl mb-4 ${variantBg[variant]}`}>
                     {icon ?? defaultIcons[variant]}
                 </div>
-                <h3 className="text-lg font-bold text-[var(--omni-text-primary)]">{title}</h3>
-                {description && <p className="text-sm text-[var(--omni-text-muted)] mt-2 max-w-xs">{description}</p>}
+                <h3 className="text-lg font-bold text-(--omni-text-primary)">{title}</h3>
+                {description && <p className="text-sm text-(--omni-text-muted) mt-2 max-w-xs">{description}</p>}
                 <div className="flex gap-3 mt-6 w-full">
-                    <button onClick={onCancel} className="flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl border border-[var(--omni-border-default)] text-[var(--omni-text-secondary)] hover:bg-[var(--omni-bg-tertiary)] transition-colors">{cancelText}</button>
+                    <button onClick={onCancel} className="flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl border border-(--omni-border-default) text-(--omni-text-secondary) hover:bg-(--omni-bg-tertiary) transition-colors">{cancelText}</button>
                     <button onClick={onConfirm} className="flex-1 px-4 py-2.5 text-sm font-bold rounded-xl text-white transition-colors hover:opacity-90" style={{ backgroundColor: variantColors[variant] }}>{confirmText}</button>
                 </div>
             </div>

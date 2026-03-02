@@ -116,7 +116,7 @@ export function AnnouncementModal() {
 
                 {/* Footer */}
                 <div className="flex items-center justify-between mt-2">
-                    <p className="text-sm text-[var(--omni-text-muted)]">
+                    <p className="text-sm text-(--omni-text-muted)">
                         {currentIndex + 1} de {announcements.length}
                     </p>
                     <Button onClick={handleClose}>

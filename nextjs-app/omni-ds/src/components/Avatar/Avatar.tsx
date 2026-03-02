@@ -9,10 +9,10 @@ function getInitials(name: string) { return name.split(" ").map((w) => w[0]).joi
 function hashColor(name: string) { let h = 0; for (const c of name) h = c.charCodeAt(0) + ((h << 5) - h); return colors[Math.abs(h) % colors.length]; }
 
 function Avatar({ src, alt, name, size = "md", className }: AvatarProps) {
-    if (src) return <img src={src} alt={alt || name || ""} className={cn("rounded-full object-cover ring-2 ring-[var(--omni-bg-secondary)]", sizes[size], className)} />;
+    if (src) return <img src={src} alt={alt || name || ""} className={cn("rounded-full object-cover ring-2 ring-(--omni-bg-secondary)", sizes[size], className)} />;
     const initials = name ? getInitials(name) : "?";
     return (
-        <div className={cn("rounded-full flex items-center justify-center font-bold text-white ring-2 ring-[var(--omni-bg-secondary)]", sizes[size], name ? hashColor(name) : "bg-slate-400", className)}>{initials}</div>
+        <div className={cn("rounded-full flex items-center justify-center font-bold text-white ring-2 ring-(--omni-bg-secondary)", sizes[size], name ? hashColor(name) : "bg-slate-400", className)}>{initials}</div>
     );
 }
 
@@ -25,7 +25,7 @@ function AvatarGroup({ children, max = 4, size = "md", className }: AvatarGroupP
         <div className={cn("flex -space-x-2", className)}>
             {visible}
             {overflow > 0 && (
-                <div className={cn("rounded-full flex items-center justify-center font-bold bg-[var(--omni-bg-tertiary)] text-[var(--omni-text-muted)] ring-2 ring-[var(--omni-bg-secondary)]", sizes[size])}>+{overflow}</div>
+                <div className={cn("rounded-full flex items-center justify-center font-bold bg-(--omni-bg-tertiary) text-(--omni-text-muted) ring-2 ring-(--omni-bg-secondary)", sizes[size])}>+{overflow}</div>
             )}
         </div>
     );

@@ -15,9 +15,9 @@ import {
   Play,
   AlertTriangle,
   Eye,
-  Loader2 as SimLoader,
   Heart,
 } from "lucide-react";
+import { OmniLoader } from "@/components/OmniLoader";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell, Avatar, Badge, Button, Card, CardHeader, CardTitle, CardDescription, CardContent, DonutChart } from "@omni/ds";
 
 type WorkspaceMember = {
@@ -130,7 +130,7 @@ export function GestaoClient() {
       )}
 
       {/* Novo usuário */}
-      <div className="rounded-2xl bg-white overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+      <Card padding="none" className="overflow-hidden">
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
@@ -152,16 +152,18 @@ export function GestaoClient() {
             />
           </div>
         )}
-      </div>
+      </Card>
 
-      {message && (
-        <div
-          className={`p-3 rounded-lg text-sm ${message.type === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
-            }`}
-        >
-          {message.text}
-        </div>
-      )}
+      {
+        message && (
+          <div
+            className={`p-3 rounded-lg text-sm ${message.type === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
+              }`}
+          >
+            {message.text}
+          </div>
+        )
+      }
 
       {/* Dashboard Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -204,7 +206,7 @@ export function GestaoClient() {
             </Link>
           </div>
         ) : (
-          <div className="rounded-xl border border-[var(--omni-border-default)] overflow-hidden bg-white">
+          <div className="rounded-xl border border-(--omni-border-default) overflow-hidden bg-white">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -246,7 +248,7 @@ export function GestaoClient() {
             Nenhum responsável cadastrado. Use o formulário acima e selecione &quot;Família&quot; para criar.
           </p>
         ) : (
-          <div className="rounded-xl border border-[var(--omni-border-default)] overflow-hidden bg-white">
+          <div className="rounded-xl border border-(--omni-border-default) overflow-hidden bg-white">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -272,55 +274,56 @@ export function GestaoClient() {
       </div>
 
       {/* Usuários desativados */}
-      {(inactiveMembers.length > 0 || inactiveFamily.length > 0) && (
-        <div>
-          <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
-            <Trash2 className="w-5 h-5" />
-            Usuários desativados
-          </h3>
-          <p className="text-xs text-slate-500 mb-2">Excluir libera o email para novo cadastro.</p>
-          <div className="rounded-xl border border-[var(--omni-border-default)] overflow-hidden bg-white">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuário/Responsável</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {inactiveMembers.map((m) => (
-                  <InactiveMemberCard
-                    key={m.id}
-                    member={m}
-                    confirmDelId={confirmDelId}
-                    setConfirmDelId={setConfirmDelId}
-                    onAction={loadData}
-                    onError={(err) => setMessage({ type: "err", text: err })}
-                  />
-                ))}
-                {inactiveFamily.map((f) => (
-                  <TableRow key={f.id} className="bg-slate-50/50">
-                    <TableCell>
-                      <p className="font-medium text-[var(--omni-text-primary)]">
-                        <Heart className="w-4 h-4 inline mr-1 text-amber-500" />
-                        {f.nome}
-                      </p>
-                      <p className="text-xs text-[var(--omni-text-muted)] mt-0.5">{f.email}</p>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="default" className="bg-amber-100 text-amber-700 font-medium text-[10px]">Família (inativo)</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <p className="text-xs text-[var(--omni-text-muted)]">Nenhuma ação disponível</p>
-                    </TableCell>
+      {
+        (inactiveMembers.length > 0 || inactiveFamily.length > 0) && (
+          <div>
+            <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
+              <Trash2 className="w-5 h-5" />
+              Usuários desativados
+            </h3>
+            <p className="text-xs text-slate-500 mb-2">Excluir libera o email para novo cadastro.</p>
+            <div className="rounded-xl border border-(--omni-border-default) overflow-hidden bg-white">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuário/Responsável</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {inactiveMembers.map((m) => (
+                    <InactiveMemberCard
+                      key={m.id}
+                      member={m}
+                      confirmDelId={confirmDelId}
+                      setConfirmDelId={setConfirmDelId}
+                      onAction={loadData}
+                      onError={(err) => setMessage({ type: "err", text: err })}
+                    />
+                  ))}
+                  {inactiveFamily.map((f) => (
+                    <TableRow key={f.id} className="bg-slate-50/50">
+                      <TableCell>
+                        <p className="font-medium text-(--omni-text-primary)">
+                          <Heart className="w-4 h-4 inline mr-1 text-amber-500" />
+                          {f.nome}
+                        </p>
+                        <p className="text-xs text-(--omni-text-muted) mt-0.5">{f.email}</p>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="default" className="bg-amber-100 text-amber-700 font-medium text-[10px]">Família (inativo)</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <p className="text-xs text-(--omni-text-muted)">Nenhuma ação disponível</p>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
-        </div>
-      )
+        )
       }
     </div >
   );
@@ -802,11 +805,11 @@ function MemberCard({
             <Avatar name={member.nome} size="sm" />
           </div>
           <div>
-            <p className="font-medium text-[var(--omni-text-primary)]">
+            <p className="font-medium text-(--omni-text-primary)">
               {member.nome}
-              {member.cargo && <span className="font-normal text-[var(--omni-text-muted)]"> · {member.cargo}</span>}
+              {member.cargo && <span className="font-normal text-(--omni-text-muted)"> · {member.cargo}</span>}
             </p>
-            <p className="text-xs text-[var(--omni-text-muted)] mt-0.5">
+            <p className="text-xs text-(--omni-text-muted) mt-0.5">
               {member.email} · {member.telefone || "—"}
             </p>
           </div>
@@ -821,7 +824,7 @@ function MemberCard({
         </div>
       </TableCell>
       <TableCell className="align-top">
-        <p className="text-xs text-[var(--omni-text-muted)] whitespace-nowrap">{linkTxt}</p>
+        <p className="text-xs text-(--omni-text-muted) whitespace-nowrap">{linkTxt}</p>
       </TableCell>
       <TableCell className="align-top text-right">
         <div className="flex justify-end items-center gap-1.5 shrink-0 flex-wrap">
@@ -1244,11 +1247,11 @@ function InactiveMemberCard({
   return (
     <TableRow className="bg-slate-50/50">
       <TableCell className="align-top">
-        <p className="font-medium text-[var(--omni-text-primary)]">
+        <p className="font-medium text-(--omni-text-primary)">
           <User className="w-4 h-4 inline mr-1" />
           {member.nome}
         </p>
-        <p className="text-xs text-[var(--omni-text-muted)] mt-0.5">{member.email}</p>
+        <p className="text-xs text-(--omni-text-muted) mt-0.5">{member.email}</p>
       </TableCell>
       <TableCell className="align-top">
         <Badge variant="default" className="bg-slate-200 text-slate-700 font-medium text-[10px]">Membro (inativo)</Badge>
@@ -1325,7 +1328,7 @@ function SimularButton({ memberId, memberName }: { memberId: string; memberName:
       disabled={loading}
       className="px-3 py-1.5 border border-purple-200 text-purple-600 rounded-lg text-sm hover:bg-purple-50 flex items-center gap-2 disabled:opacity-50"
     >
-      {loading ? <SimLoader className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+      {loading ? <OmniLoader size={16} /> : <Eye className="w-4 h-4" />}
       Simular
     </button>
   );
@@ -1562,10 +1565,10 @@ function FamilyCard({
             <Avatar name={responsavel.nome} size="sm" />
           </div>
           <div>
-            <p className="font-medium text-[var(--omni-text-primary)]">
+            <p className="font-medium text-(--omni-text-primary)">
               {responsavel.nome}
             </p>
-            <p className="text-xs text-[var(--omni-text-muted)] mt-0.5">
+            <p className="text-xs text-(--omni-text-muted) mt-0.5">
               {responsavel.email} {responsavel.telefone && `· Tel: ${responsavel.telefone}`}
             </p>
           </div>
@@ -1575,7 +1578,7 @@ function FamilyCard({
         <Badge variant="default" className="bg-amber-100 text-amber-700 font-medium text-[10px]">Família</Badge>
       </TableCell>
       <TableCell className="align-top">
-        <p className="text-xs text-[var(--omni-text-muted)]">{responsavel.parentesco || "—"}</p>
+        <p className="text-xs text-(--omni-text-muted)">{responsavel.parentesco || "—"}</p>
       </TableCell>
       <TableCell className="align-top text-right">
         <div className="flex justify-end gap-2 shrink-0 flex-wrap">
@@ -1630,7 +1633,7 @@ function SimularFamilyButton({
       disabled={loading}
       className="text-amber-600 border-amber-200 hover:bg-amber-50 h-8"
     >
-      {loading ? <SimLoader size={14} className="animate-spin" /> : <Eye size={14} />}
+      {loading ? <OmniLoader size={14} /> : <Eye size={14} />}
       Simular
     </Button>
   );

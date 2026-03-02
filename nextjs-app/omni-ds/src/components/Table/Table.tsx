@@ -25,7 +25,7 @@ import { cn } from "../../utils/cn";
 
 const Table = forwardRef<HTMLTableElement, HTMLAttributes<HTMLTableElement>>(
     ({ className, ...props }, ref) => (
-        <div className="relative w-full overflow-auto rounded-xl border border-[var(--omni-border-default)]">
+        <div className="relative w-full overflow-auto rounded-xl border border-(--omni-border-default)">
             <table
                 ref={ref}
                 className={cn("w-full caption-bottom text-sm", className)}
@@ -41,7 +41,7 @@ const TableHeader = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTable
         <thead
             ref={ref}
             className={cn(
-                "bg-[var(--omni-bg-tertiary)] [&_tr]:border-b [&_tr]:border-[var(--omni-border-default)]",
+                "bg-(--omni-bg-tertiary) [&_tr]:border-b [&_tr]:border-(--omni-border-default)",
                 className
             )}
             {...props}
@@ -55,7 +55,7 @@ const TableBody = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSe
         <tbody
             ref={ref}
             className={cn(
-                "bg-[var(--omni-bg-secondary)] [&_tr:last-child]:border-0",
+                "bg-(--omni-bg-secondary) [&_tr:last-child]:border-0",
                 className
             )}
             {...props}
@@ -69,7 +69,7 @@ const TableFooter = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTable
         <tfoot
             ref={ref}
             className={cn(
-                "border-t border-[var(--omni-border-default)] bg-[var(--omni-bg-tertiary)] font-medium",
+                "border-t border-(--omni-border-default) bg-(--omni-bg-tertiary) font-medium",
                 className
             )}
             {...props}
@@ -83,8 +83,8 @@ const TableRow = forwardRef<HTMLTableRowElement, HTMLAttributes<HTMLTableRowElem
         <tr
             ref={ref}
             className={cn(
-                "border-b border-[var(--omni-border-default)] transition-colors",
-                "hover:bg-[var(--omni-bg-hover)]",
+                "border-b border-(--omni-border-default) transition-colors",
+                "hover:bg-(--omni-bg-hover)",
                 "data-[state=selected]:bg-sky-50 dark:data-[state=selected]:bg-sky-900/10",
                 className
             )}
@@ -100,7 +100,7 @@ const TableHead = forwardRef<HTMLTableCellElement, ThHTMLAttributes<HTMLTableCel
             ref={ref}
             className={cn(
                 "h-11 px-4 text-left align-middle font-semibold",
-                "text-[var(--omni-text-secondary)] text-xs uppercase tracking-wider",
+                "text-(--omni-text-secondary) text-xs uppercase tracking-wider",
                 "[&:has([role=checkbox])]:pr-0",
                 className
             )}
@@ -115,7 +115,7 @@ const TableCell = forwardRef<HTMLTableCellElement, TdHTMLAttributes<HTMLTableCel
         <td
             ref={ref}
             className={cn(
-                "px-4 py-3 align-middle text-[var(--omni-text-primary)]",
+                "px-4 py-3 align-middle text-(--omni-text-primary)",
                 "[&:has([role=checkbox])]:pr-0",
                 className
             )}
@@ -129,7 +129,7 @@ const TableCaption = forwardRef<HTMLTableCaptionElement, HTMLAttributes<HTMLTabl
     ({ className, ...props }, ref) => (
         <caption
             ref={ref}
-            className={cn("mt-3 text-sm text-[var(--omni-text-muted)]", className)}
+            className={cn("mt-3 text-sm text-(--omni-text-muted)", className)}
             {...props}
         />
     )

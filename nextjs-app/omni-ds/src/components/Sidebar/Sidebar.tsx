@@ -62,7 +62,7 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(
                     aria-label="Sidebar navigation"
                     className={cn(
                         "flex flex-col h-full",
-                        "bg-[var(--omni-bg-secondary)] border-r border-[var(--omni-border-default)]",
+                        "bg-(--omni-bg-secondary) border-r border-(--omni-border-default)",
                         "transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
                         "overflow-hidden shrink-0",
                         className
@@ -101,7 +101,7 @@ const SidebarFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>
     ({ className, ...props }, ref) => (
         <div
             ref={ref}
-            className={cn("px-3 py-3 shrink-0 border-t border-[var(--omni-border-default)]", className)}
+            className={cn("px-3 py-3 shrink-0 border-t border-(--omni-border-default)", className)}
             {...props}
         />
     )
@@ -119,7 +119,7 @@ const SidebarGroup = forwardRef<HTMLDivElement, SidebarGroupProps>(
         return (
             <div ref={ref} className={cn("mb-2", className)} role="group" aria-label={label} {...props}>
                 {label && !collapsed && (
-                    <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[var(--omni-text-muted)]">
+                    <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-(--omni-text-muted)">
                         {label}
                     </p>
                 )}
@@ -149,7 +149,7 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
                     "transition-colors cursor-pointer outline-none",
                     active
                         ? "bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300"
-                        : "text-[var(--omni-text-secondary)] hover:bg-[var(--omni-bg-hover)] hover:text-[var(--omni-text-primary)]",
+                        : "text-(--omni-text-secondary) hover:bg-(--omni-bg-hover) hover:text-(--omni-text-primary)",
                     collapsed && "justify-center px-0",
                     className
                 )}
@@ -174,7 +174,7 @@ function SidebarToggle({ className, ...props }: HTMLAttributes<HTMLButtonElement
             onClick={() => setCollapsed(!collapsed)}
             className={cn(
                 "flex items-center justify-center w-full rounded-xl py-2 text-sm font-medium",
-                "text-[var(--omni-text-muted)] hover:bg-[var(--omni-bg-hover)] hover:text-[var(--omni-text-primary)]",
+                "text-(--omni-text-muted) hover:bg-(--omni-bg-hover) hover:text-(--omni-text-primary)",
                 "transition-colors cursor-pointer",
                 className
             )}

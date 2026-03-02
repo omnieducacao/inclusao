@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ClipboardList, FileText, Map, Trash2, ChevronDown, ChevronUp, X, AlertTriangle, Edit2, Save, XCircle } from "lucide-react";
 import { ResponsaveisSection } from "@/components/ResponsaveisSection";
+import { Card, Button, EmptyState } from "@omni/ds";
 
 type Student = {
   id: string;
@@ -222,14 +223,14 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
   }
 
   return (
-    <div className="bg-white rounded-2xl" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
-      <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
+    <Card padding="none">
+      <div className="p-4 border-b border-(--omni-border-default) flex items-center justify-between flex-wrap gap-4">
         <input
           type="search"
           placeholder="Buscar por nome, série, turma..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-lg text-sm w-72 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none"
+          className="px-3 py-2 border border-(--omni-border-default) rounded-lg text-sm w-72 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none bg-(--omni-bg-primary) text-(--omni-text-primary)"
         />
         <div className="flex gap-2">
           <Link
@@ -240,7 +241,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
           </Link>
           <Link
             href="/"
-            className="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+            className="px-4 py-2 border border-(--omni-border-default) text-(--omni-text-secondary) text-sm font-medium rounded-lg hover:bg-(--omni-bg-secondary) transition-colors"
           >
             Voltar
           </Link>
@@ -250,10 +251,10 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
       {students.length === 0 ? (
         <div className="p-12 text-center">
           <div className="mb-4 flex justify-center">
-            <ClipboardList className="w-16 h-16 text-slate-400" />
+            <ClipboardList className="w-16 h-16 text-(--omni-text-muted)" />
           </div>
-          <p className="text-slate-600 font-medium">Nenhum estudante encontrado</p>
-          <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto">
+          <p className="text-(--omni-text-secondary) font-medium">Nenhum estudante encontrado</p>
+          <p className="text-sm text-(--omni-text-muted) mt-2 max-w-md mx-auto">
             Para começar, crie um PEI no módulo Estratégias & PEI — o estudante é cadastrado junto com o plano.
           </p>
           <div className="mt-6 flex gap-3 justify-center">
@@ -265,7 +266,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
             </Link>
             <Link
               href="/"
-              className="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50"
+              className="px-4 py-2 border border-(--omni-border-default) text-(--omni-text-secondary) text-sm font-medium rounded-lg hover:bg-(--omni-bg-secondary)"
             >
               Página Inicial
             </Link>
@@ -273,7 +274,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
         </div>
       ) : filtered.length === 0 ? (
         <div className="p-8 text-center">
-          <p className="text-slate-600">Nenhum resultado para &quot;{search}&quot;</p>
+          <p className="text-(--omni-text-secondary)">Nenhum resultado para &quot;{search}&quot;</p>
           <button
             type="button"
             onClick={() => setSearch("")}
@@ -283,7 +284,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
           </button>
         </div>
       ) : (
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-(--omni-border-default)">
           {filtered.map((s) => {
             const peiData = (s.pei_data || {}) as Record<string, unknown>;
             const paeeCiclos = Array.isArray(s.paee_ciclos) ? s.paee_ciclos : [];
@@ -297,10 +298,10 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
             return (
               <div
                 key={s.id}
-                className="border-b border-slate-100 last:border-b-0"
+                className="border-b border-(--omni-border-default) last:border-b-0"
               >
                 {/* Header do estudante */}
-                <div className="p-4 hover:bg-slate-50/50 transition-colors">
+                <div className="p-4 hover:bg-(--omni-bg-secondary) transition-colors">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <button
@@ -309,7 +310,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
                         className="w-full text-left flex items-center justify-between gap-2 group"
                       >
                         <div className="flex-1">
-                          <h3 className="font-semibold text-slate-800 group-hover:text-sky-600 transition-colors">
+                          <h3 className="font-semibold text-(--omni-text-primary) group-hover:text-sky-600 transition-colors">
                             {s.name || "—"}
                           </h3>
                           <div className="flex gap-2 mt-1 flex-wrap">
@@ -332,15 +333,15 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
                               </span>
                             )}
                             {nCiclos > 0 && (
-                              <span className="text-xs text-slate-500">{nCiclos} ciclo(s) PAEE</span>
+                              <span className="text-xs text-(--omni-text-muted)">{nCiclos} ciclo(s) PAEE</span>
                             )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           {isExpanded ? (
-                            <ChevronUp className="w-5 h-5 text-slate-400" />
+                            <ChevronUp className="w-5 h-5 text-(--omni-text-muted)" />
                           ) : (
-                            <ChevronDown className="w-5 h-5 text-slate-400" />
+                            <ChevronDown className="w-5 h-5 text-(--omni-text-muted)" />
                           )}
                         </div>
                       </button>
@@ -380,11 +381,11 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
 
                 {/* Conteúdo expandido */}
                 {isExpanded && (
-                  <div className="px-4 pb-4 pt-0 bg-slate-50/30 border-t border-slate-100">
+                  <div className="px-4 pb-4 pt-0 bg-(--omni-bg-secondary) border-t border-(--omni-border-default)">
                     {isConfirmingDelete ? (
                       <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                         <div className="flex items-start gap-2 mb-3">
-                          <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                           <div>
                             <p className="font-semibold text-amber-800">Excluir {s.name}?</p>
                             <p className="text-sm text-amber-700 mt-1">Esta ação não pode ser desfeita.</p>
@@ -628,6 +629,6 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
           Dados sensíveis: uso exclusivo da equipe pedagógica. Não compartilhar com estudantes ou famílias.
         </p>
       )}
-    </div>
+    </Card>
   );
 }

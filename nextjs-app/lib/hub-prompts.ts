@@ -926,7 +926,20 @@ export function criarPromptItensAvancado(params: CriarAtividadeParams): string {
     ia_sugestao = "",
   } = params;
 
-  // ── Instrução de imagens ──
+  // ── Mapeamento barreira → tipo de imagem (Propósito Pedagógico) ──
+  const mapeamentoImagemBarreira: Record<string, string> = {
+    "compreensao_leitura": "imagens que SUBSTITUAM ou APOIEM o texto escrito, permitindo que o estudante acesse o conteúdo visualmente",
+    "atencao_sustentada": "imagens com elementos DESTACADOS, sequenciais e com organização visual clara para manter o foco",
+    "memoria_trabalho": "imagens com organização ESPACIAL clara, diagramas ou esquemas visuais que reduzam carga cognitiva",
+    "inferencia": "imagens que mostrem SEQUÊNCIAS CAUSAIS ou relações de causa-efeito de forma explícita e visual",
+    "generalizacao": "imagens com MÚLTIPLOS EXEMPLOS do mesmo conceito em contextos diferentes",
+    "abstracao": "imagens CONCRETAS e manipuláveis que representem conceitos abstratos (ex: frações como pizza dividida)",
+    "comunicacao_expressiva": "imagens com suporte visual para expressão (pictogramas, quadros de comunicação)",
+    "orientacao_espacial": "imagens com referências espaciais claras, setas direcionais e marcos visuais",
+    "processamento_auditivo": "imagens que complementem informações que normalmente seriam apenas auditivas/verbais",
+  };
+
+  // ── Instrução de imagens (com propósito pedagógico) ──
   const instrucao_img =
     qtd_imgs > 0
       ? `Incluir imagens em até ${qtd_imgs} questão(ões) (use [[GEN_IMG: termo]]).
@@ -938,7 +951,27 @@ REGRA DE POSIÇÃO (OBRIGATÓRIA):
 REGRA DE SENTIDO (OBRIGATÓRIA):
 - O "termo" dentro de [[GEN_IMG: termo]] deve ser uma descrição CONCRETA e ESPECÍFICA do que a figura deve mostrar, diretamente ligada à tarefa da questão (ex: "gráfico de barras com vendas trimestrais", "mapa do Brasil com regiões destacadas", "célula animal com organelas visíveis").
 - NUNCA use termos vagos como "contexto", "ilustração do texto", "imagem motivadora", "cenário" ou "contexto da questão" — isso gera imagens genéricas que atrapalham.
-- Só inclua [[GEN_IMG]] em questões em que a imagem seja NECESSÁRIA ou ajude de fato a responder (ex: questão sobre gráfico, mapa, figura científica). Se a questão não se beneficiar de imagem, NÃO insira tag.`
+- Só inclua [[GEN_IMG]] em questões em que a imagem seja NECESSÁRIA ou ajude de fato a responder (ex: questão sobre gráfico, mapa, figura científica). Se a questão não se beneficiar de imagem, NÃO insira tag.
+
+REGRA DE PROPÓSITO PEDAGÓGICO (OBRIGATÓRIA):
+Cada imagem deve ter uma FUNÇÃO PEDAGÓGICA específica conectada às barreiras do estudante.
+
+1. A imagem NUNCA deve ser apenas decorativa. Ela DEVE:
+   - SUBSTITUIR informação textual (para barreiras de leitura/compreensão)
+   - OU ORGANIZAR informação espacialmente (para barreiras de atenção/memória)
+   - OU ILUSTRAR o conceito de forma CONCRETA (para barreiras de abstração)
+   - OU MOSTRAR SEQUÊNCIAS causais explícitas (para barreiras de inferência)
+
+2. O "termo" em [[GEN_IMG: termo]] deve descrever:
+   - O CONTEÚDO específico da imagem (ex: "gráfico de barras comparando alturas")
+   - A FUNÇÃO na questão (ex: "mostrando a relação entre X e Y de forma visual")
+   - A FORMA de apresentação acessível (ex: "com rótulos grandes, cores contrastantes e sem poluição visual")
+
+3. EXEMPLOS por tipo de barreira:
+   - Barreira de LEITURA → A imagem É o conteúdo da questão (ex: sequência de quadrinhos ao invés de texto)
+   - Barreira de ATENÇÃO → Imagem com elementos destacados e numerados (ex: "diagrama com setas numeradas 1→2→3")
+   - Barreira de ABSTRAÇÃO → Imagem concreta (ex: "3 pizzas divididas em fatias mostrando 1/2, 1/3 e 1/4")
+   - Barreira de INFERÊNCIA → Sequência causal explícita (ex: "3 quadrinhos: semente → broto → árvore")`
       : "Sem imagens.";
 
   // ── Instrução de Bloom ──

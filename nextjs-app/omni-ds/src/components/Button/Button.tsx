@@ -11,9 +11,9 @@ const buttonVariants = cva(
                 primary:
                     "bg-sky-600 text-white hover:bg-sky-500 shadow-sm hover:shadow-md focus-visible:ring-sky-500 border border-transparent shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)]",
                 secondary:
-                    "bg-[var(--omni-surface-1)] text-[var(--omni-text-primary)] border border-[var(--omni-border-strong)] hover:bg-[var(--omni-surface-2)] shadow-sm focus-visible:ring-[var(--omni-border-strong)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]",
+                    "bg-(--omni-surface-1) text-(--omni-text-primary) border border-(--omni-border-strong) hover:bg-(--omni-surface-2) shadow-sm focus-visible:ring-(--omni-border-strong) shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]",
                 ghost:
-                    "text-[var(--omni-text-secondary)] hover:bg-[var(--omni-bg-hover)] hover:text-[var(--omni-text-primary)]",
+                    "text-(--omni-text-secondary) hover:bg-(--omni-bg-hover) hover:text-(--omni-text-primary)",
                 danger:
                     "bg-red-600 text-white hover:bg-red-500 shadow-sm hover:shadow-md focus-visible:ring-red-500 border border-transparent shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)]",
                 success:

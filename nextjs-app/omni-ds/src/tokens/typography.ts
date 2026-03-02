@@ -68,3 +68,41 @@ export const textStyles = {
         letterSpacing: letterSpacing.wide,
     },
 } as const;
+
+/**
+ * Omni Typography Scale — 10 níveis sistematizados
+ * Corresponde às classes CSS .omni-* em globals.css
+ *
+ * @example
+ * <span className="omni-label-xs">Badge</span>
+ * <p className="omni-body">Texto padrão</p>
+ * <h2 className="omni-heading">Título de seção</h2>
+ */
+export const omniScale = {
+    labelXs: { fontSize: "10px", lineHeight: 1.4, fontWeight: 600 },
+    labelSm: { fontSize: "11px", lineHeight: 1.45, fontWeight: 500 },
+    label: { fontSize: "11px", lineHeight: 1.45, fontWeight: 600 },
+    bodySm: { fontSize: "12px", lineHeight: 1.5, fontWeight: 400 },
+    body: { fontSize: "13px", lineHeight: 1.5, fontWeight: 400 },
+    bodyBold: { fontSize: "13px", lineHeight: 1.5, fontWeight: 700 },
+    headingSm: { fontSize: "14px", lineHeight: 1.35, fontWeight: 600 },
+    heading: { fontSize: "16px", lineHeight: 1.3, fontWeight: 700 },
+    headingLg: { fontSize: "20px", lineHeight: 1.25, fontWeight: 800 },
+    title: { fontSize: "24px", lineHeight: 1.2, fontWeight: 800 },
+} as const;
+
+/** Nomes de classes CSS para cada nível */
+export const omniClass = {
+    labelXs: "omni-label-xs",
+    labelSm: "omni-label-sm",
+    label: "omni-label",
+    bodySm: "omni-body-sm",
+    body: "omni-body",
+    bodyBold: "omni-body-bold",
+    headingSm: "omni-heading-sm",
+    heading: "omni-heading",
+    headingLg: "omni-heading-lg",
+    title: "omni-title",
+} as const;
+
+export type OmniScaleLevel = keyof typeof omniScale;

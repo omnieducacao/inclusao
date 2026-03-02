@@ -131,7 +131,7 @@ export function AILoadingOverlay() {
                 {/* Nome do motor */}
                 <div className="text-center">
                     <span
-                        className={`inline-block text-lg font-bold bg-gradient-to-r ${engineInfo.gradient} bg-clip-text text-transparent`}
+                        className={`inline-block text-lg font-bold bg-linear-to-r ${engineInfo.gradient} bg-clip-text text-transparent`}
                     >
                         {engineInfo.name}
                     </span>
@@ -154,7 +154,7 @@ export function AILoadingOverlay() {
                 {/* Barra de progresso indeterminada */}
                 <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
                     <div
-                        className={`h-full rounded-full bg-gradient-to-r ${engineInfo.gradient} animate-indeterminate-bar`}
+                        className={`h-full rounded-full bg-linear-to-r ${engineInfo.gradient} animate-indeterminate-bar`}
                     />
                 </div>
             </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { Card } from "@omni/ds";
 
 type SchoolYear = { id: string; year: number; name: string; active?: boolean };
 type Grade = { id: string; code: string; label: string; segment_id?: string };
@@ -109,7 +110,7 @@ export function ConfigEscolaClient() {
       <section>
         <h3 className="text-lg font-semibold text-slate-800 mb-3">1. Ano Letivo</h3>
         <AddYearForm onSuccess={() => { loadYears(); setMessage({ type: "ok", text: "Ano letivo adicionado." }); }} onError={(e) => setMessage({ type: "err", text: e })} />
-        <div className="mt-4 p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+        <Card className="mt-4">
           <p className="text-sm font-medium text-slate-600 mb-2">Anos cadastrados</p>
           {loading ? (
             <p className="text-slate-500">Carregando…</p>
@@ -124,7 +125,7 @@ export function ConfigEscolaClient() {
               ))}
             </ul>
           )}
-        </div>
+        </Card>
       </section>
 
       {/* 2. Séries */}
@@ -169,7 +170,7 @@ export function ConfigEscolaClient() {
               }}
               onError={(e) => setMessage({ type: "err", text: e })}
             />
-            <div className="mt-4 p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+            <Card className="mt-4">
               <p className="text-sm font-medium text-slate-600 mb-2">Turmas criadas ({activeYear.year})</p>
               {classes.length === 0 ? (
                 <p className="text-slate-500">
@@ -226,7 +227,7 @@ export function ConfigEscolaClient() {
                   })}
                 </ul>
               )}
-            </div>
+            </Card>
           </>
         )}
       </section>
@@ -234,7 +235,7 @@ export function ConfigEscolaClient() {
       {/* 4. Módulos */}
       <section>
         <h3 className="text-lg font-semibold text-slate-800 mb-3">4. Módulos opcionais</h3>
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1px solid rgba(226,232,240,0.6)" }}>
+        <Card>
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -307,7 +308,7 @@ export function ConfigEscolaClient() {
               </p>
             </div>
           </label>
-        </div>
+        </Card>
       </section>
     </div>
   );
@@ -512,64 +513,66 @@ function AddClassForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-wrap gap-4 items-end p-6 rounded-2xl bg-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
-      <div>
-        <label className="block text-xs text-slate-600 mb-1">Segmento</label>
-        <select
-          value={segmentId}
-          onChange={(e) => setSegmentId(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
+    <Card padding="none" className="p-6">
+      <form onSubmit={handleSubmit} className="flex flex-wrap gap-4 items-end">
+        <div>
+          <label className="block text-xs text-slate-600 mb-1">Segmento</label>
+          <select
+            value={segmentId}
+            onChange={(e) => setSegmentId(e.target.value)}
+            className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          >
+            {SEGMENTS.map((s) => (
+              <option key={s.id} value={s.id}>{s.label}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs text-slate-600 mb-1">Ano letivo</label>
+          <select
+            value={yearId}
+            onChange={(e) => setYearId(e.target.value)}
+            className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          >
+            {years.map((y) => (
+              <option key={y.id} value={y.id}>{y.year} — {y.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs text-slate-600 mb-1">Série</label>
+          <select
+            value={gradeId}
+            onChange={(e) => setGradeId(e.target.value)}
+            className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          >
+            {gradesForWorkspace.length === 0 ? (
+              <option value="">Selecione séries acima primeiro</option>
+            ) : (
+              gradesForWorkspace.map((g) => (
+                <option key={g.id} value={g.id}>{g.label || g.code}</option>
+              ))
+            )}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs text-slate-600 mb-1">Turma</label>
+          <input
+            type="text"
+            placeholder="A, B, 1..."
+            value={classGroup}
+            onChange={(e) => setClassGroup(e.target.value)}
+            className="w-20 px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={saving || !gradeId}
+          className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 disabled:opacity-60"
         >
-          {SEGMENTS.map((s) => (
-            <option key={s.id} value={s.id}>{s.label}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="block text-xs text-slate-600 mb-1">Ano letivo</label>
-        <select
-          value={yearId}
-          onChange={(e) => setYearId(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
-        >
-          {years.map((y) => (
-            <option key={y.id} value={y.id}>{y.year} — {y.name}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="block text-xs text-slate-600 mb-1">Série</label>
-        <select
-          value={gradeId}
-          onChange={(e) => setGradeId(e.target.value)}
-          className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
-        >
-          {gradesForWorkspace.length === 0 ? (
-            <option value="">Selecione séries acima primeiro</option>
-          ) : (
-            gradesForWorkspace.map((g) => (
-              <option key={g.id} value={g.id}>{g.label || g.code}</option>
-            ))
-          )}
-        </select>
-      </div>
-      <div>
-        <label className="block text-xs text-slate-600 mb-1">Turma</label>
-        <input
-          type="text"
-          placeholder="A, B, 1..."
-          value={classGroup}
-          onChange={(e) => setClassGroup(e.target.value)}
-          className="w-20 px-3 py-2 border border-slate-200 rounded-lg text-sm"
-        />
-      </div>
-      <button
-        type="submit"
-        disabled={saving || !gradeId}
-        className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 disabled:opacity-60"
-      >
-        {saving ? "..." : "Adicionar turma"}
-      </button>
-    </form>
+          {saving ? "..." : "Adicionar turma"}
+        </button>
+      </form>
+    </Card>
   );
 }

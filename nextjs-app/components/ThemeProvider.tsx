@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 
-type Theme = "light" | "dark";
+type Theme = "light" | "dark" | "notebook";
 
 interface ThemeContextType {
     theme: Theme;
@@ -23,23 +23,22 @@ export function useTheme() {
 const STORAGE_KEY = "omnisfera-theme";
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-    const [theme, setTheme] = useState<Theme>("light");
+    const [theme, setTheme] = useState<Theme>("notebook");
     const [mounted, setMounted] = useState(false);
 
     // Initialize theme from localStorage or system preference
     useEffect(() => {
         let timer: NodeJS.Timeout;
         const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-        if (stored === "light" || stored === "dark") {
+        if (stored === "light" || stored === "dark" || stored === "notebook") {
             timer = setTimeout(() => {
                 setTheme(stored);
                 setMounted(true);
             }, 0);
         } else {
             // Detect system preference
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
             timer = setTimeout(() => {
-                setTheme(prefersDark ? "dark" : "light");
+                setTheme("notebook");
                 setMounted(true);
             }, 0);
         }
@@ -67,7 +66,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const toggleTheme = useCallback(() => {
-        setTheme((prev) => (prev === "light" ? "dark" : "light"));
+        setTheme((prev) => {
+            if (prev === "notebook") return "light";
+            if (prev === "light") return "dark";
+            return "notebook";
+        });
     }, []);
 
     // Prevent flash of wrong theme

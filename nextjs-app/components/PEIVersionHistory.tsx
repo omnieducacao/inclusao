@@ -316,7 +316,7 @@ export function PEIVersionHistory({
                                                     <div className="text-xs space-y-1 pl-4">
                                                         {d.oldValue && (
                                                             <div className="flex gap-1">
-                                                                <span className="text-red-500 font-mono flex-shrink-0">−</span>
+                                                                <span className="text-red-500 font-mono shrink-0">−</span>
                                                                 <span className="text-red-700 line-through break-all">
                                                                     {d.oldValue.length > 200 ? d.oldValue.substring(0, 200) + "..." : d.oldValue}
                                                                 </span>
@@ -324,7 +324,7 @@ export function PEIVersionHistory({
                                                         )}
                                                         {d.newValue && (
                                                             <div className="flex gap-1">
-                                                                <span className="text-emerald-500 font-mono flex-shrink-0">+</span>
+                                                                <span className="text-emerald-500 font-mono shrink-0">+</span>
                                                                 <span className="text-emerald-700 break-all">
                                                                     {d.newValue.length > 200 ? d.newValue.substring(0, 200) + "..." : d.newValue}
                                                                 </span>

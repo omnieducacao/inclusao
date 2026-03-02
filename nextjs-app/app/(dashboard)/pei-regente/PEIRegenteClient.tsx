@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-    BookOpen, Users, Loader2, AlertTriangle, ChevronRight,
+    BookOpen, Users, AlertTriangle, ChevronRight,
     FileText, Brain, ClipboardCheck, CheckCircle2, ArrowLeft,
     Sparkles, School, ExternalLink, Target,
 } from "lucide-react";
+import { OmniLoader } from "@/components/OmniLoader";
 import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
 import { OnboardingPanel, OnboardingResetButton } from "@/components/OnboardingPanel";
-import { OmniLoader } from "@/components/OmniLoader";
 import { ESCALA_OMNISFERA, FASE_STATUS_LABELS, type NivelOmnisfera, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -104,24 +104,22 @@ export function PEIRegenteClient() {
 
     if (loading) {
         return (
-            <div className="rounded-2xl p-12 text-center" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
-                <Loader2 size={32} className="animate-spin mx-auto mb-4" style={{ color: '#10b981' }} />
-                <p style={{ color: 'var(--text-muted)' }}>Carregando seus estudantes...</p>
+            <div className="rounded-2xl p-12 text-center bg-(--omni-bg-secondary) border border-(--omni-border-default)">
+                <OmniLoader variant="card" />
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="rounded-2xl p-8" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
-                <div className="flex items-center gap-3 mb-4" style={{ color: '#f87171' }}>
+            <div className="rounded-2xl p-8 bg-(--omni-bg-secondary) border border-(--omni-border-default)">
+                <div className="flex items-center gap-3 mb-4 text-red-400">
                     <AlertTriangle size={24} />
                     <span className="font-semibold">{error}</span>
                 </div>
                 <button
                     onClick={fetchData}
-                    className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                    style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+                    className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-(--omni-bg-tertiary) text-(--omni-text-primary) border border-(--omni-border-default)"
                 >
                     Tentar novamente
                 </button>
@@ -131,12 +129,12 @@ export function PEIRegenteClient() {
 
     if (!data?.alunos?.length) {
         return (
-            <div className="rounded-2xl p-12 text-center" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
-                <School size={48} className="mx-auto mb-4" style={{ color: 'var(--text-muted)', opacity: 0.4 }} />
-                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+            <div className="rounded-2xl p-12 text-center bg-(--omni-bg-secondary) border border-(--omni-border-default)">
+                <School size={48} className="mx-auto mb-4 text-(--omni-text-muted) opacity-40" />
+                <h3 className="text-lg font-semibold mb-2 text-(--omni-text-primary)">
                     Nenhum estudante em Fase 2
                 </h3>
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-sm text-(--omni-text-muted)">
                     {data?.professor?.is_master
                         ? "Nenhum PEI foi enviado para professores regentes ainda. Finalize um PEI no módulo PEI e clique em \"Enviar para Regentes\"."
                         : "Aguarde o envio do PEI pelo profissional AEE ou coordenação."}
@@ -149,9 +147,9 @@ export function PEIRegenteClient() {
 
     if (selectedAluno && selectedDisc && activeStep) {
         return (
-            <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+            <div className="rounded-2xl overflow-hidden bg-(--omni-bg-secondary) border border-(--omni-border-default)">
                 {/* Header com breadcrumb */}
-                <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border-default)', backgroundColor: 'var(--bg-tertiary)' }}>
+                <div className="px-6 py-4 flex items-center gap-3 border-b border-(--omni-border-default) bg-(--omni-bg-tertiary)">
                     <button
                         onClick={() => { setActiveStep(null); setSelectedDisc(null); }}
                         className="p-1.5 rounded-lg transition-colors"
@@ -783,7 +781,7 @@ function FinalizarPeiDisciplinaButton({
                     display: "inline-flex",
                 }}
             >
-                {finalizando ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                {finalizando ? <OmniLoader engine="green" size={14} /> : <CheckCircle2 size={14} />}
                 {finalizando ? "Finalizando..." : "Finalizar e salvar PEI desta disciplina"}
             </button>
             {erro && <span className="text-xs text-red-400">{erro}</span>}
@@ -825,8 +823,8 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina }: {
 
     if (loading) {
         return (
-            <div style={{ padding: 40, textAlign: "center" }}>
-                <Loader2 size={28} className="animate-spin" style={{ color: "#3b82f6", margin: "0 auto" }} />
+            <div className="py-10 text-center">
+                <OmniLoader variant="card" />
             </div>
         );
     }

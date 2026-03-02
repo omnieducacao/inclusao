@@ -1,84 +1,230 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getColorClasses } from "@/lib/colors";
+import { moduleTheme, getRouteTheme, type ModuleThemeKey } from "@/lib/module-theme";
+import { moduleColors, type ModuleKey } from "@omni/ds";
 import { LottieIcon } from "./LottieIcon";
 import { useTheme } from "./ThemeProvider";
 
-// Mapeamento de ícones para Lottie OUTLINE COLORIDOS (minimalistas coloridas) - versões com cores nos tons de cada página!
-// Versões com "(1)" são as coloridas que você enviou mais para o final
-const lottieMapOutlineColored: Record<string, string> = {
-  UsersFour: "estudantes_simples", // Estudantes 🎨
-  Student: "pei_simples", // PEI 🧭
-  PuzzlePiece: "paee_simples", // PAEE 🗺️
-  RocketLaunch: "hub_simples", // Hub 🚀
-  BookOpen: "diario_simples", // Diário 📖
-  ChartLineUp: "dados_simples", // Evolução & Dados 📊
-  UsersThree: "gestao_usuario_simples", // Gestão Usuários 👥
-  GraduationCap: "configuracao_escola_flat", // Config Escola 🏫 (sem versão simples)
-  ClipboardText: "pgi_simples", // PGI 📄
-  Gear: "configuracao_escola_flat", // Admin ⚙️ (sem versão simples)
-  BookBookmark: "central_inteligencia_simples", // Central Inteligência 📚
-  Compass: "pei_simples", // Compass (PEI)
-  Puzzle: "paee_simples", // Puzzle (PAEE)
-  Rocket: "hub_simples", // Rocket (Hub)
-  BarChart3: "dados_simples", // BarChart3 (Monitoramento)
-  School: "configuracao_escola_flat", // School (Config Escola) (sem versão simples)
-  ClipboardList: "pgi_simples", // ClipboardList (PGI)
-  Settings: "configuracao_escola_flat", // Settings (Gestão) (sem versão simples)
+// ─── Canonical Lottie icon per module ─────────────────────────────────────────
+
+const moduleLottieIcon: Record<ModuleThemeKey, string> = {
+  omnisfera: "estudantes_flat",
+  pei: "pei_flat",
+  paee: "paee_flat",
+  hub: "hub_flat",
+  diario: "Diario_flat",
+  cursos: "pei_flat",
+  ferramentas: "hub_flat",
+  gestao: "gestao_usuario_simples",
+  monitoramento: "dados_flat",
+  pgi: "pgi_flat",
+  admin: "configuracao_escola_flat",
 };
 
-// Mapeamento de nomes de ícones Lucide para nomes de ícones Lottie
-const lucideToLottieMap: Record<string, string> = {
-  Compass: "Student",
-  Puzzle: "PuzzlePiece",
-  Rocket: "RocketLaunch",
-  BarChart3: "ChartLineUp",
-  School: "GraduationCap",
-  ClipboardList: "ClipboardText",
-  Settings: "Gear",
-  BookMarked: "BookBookmark",
+// ─── Legacy icon name → module key mapping ────────────────────────────────────
+
+const legacyIconToModule: Record<string, ModuleThemeKey> = {
+  UsersFour: "omnisfera",
+  Student: "pei",
+  Compass: "pei",
+  PuzzlePiece: "paee",
+  Puzzle: "paee",
+  RocketLaunch: "hub",
+  Rocket: "hub",
+  BookOpen: "diario",
+  ChartLineUp: "monitoramento",
+  BarChart3: "monitoramento",
+  UsersThree: "gestao",
+  Settings: "gestao",
+  GraduationCap: "cursos",
+  School: "cursos",
+  ClipboardText: "pgi",
+  ClipboardList: "pgi",
+  Gear: "admin",
+  BookBookmark: "gestao",
+  BookMarked: "gestao",
+  Brain: "ferramentas",
 };
+
+// ─── Route → admin config key ─────────────────────────────────────────────────
+
+const routeToAdminKey: Record<string, string> = {
+  "/estudantes": "estudantes",
+  "/pei": "pei",
+  "/pei-regente": "pei-regente",
+  "/plano-curso": "plano-curso",
+  "/avaliacao-diagnostica": "avaliacao-diagnostica",
+  "/avaliacao-processual": "avaliacao-processual",
+  "/paee": "paee",
+  "/hub": "hub",
+  "/diario": "diario",
+  "/monitoramento": "monitoramento",
+  "/infos": "infos",
+  "/pgi": "pgi",
+  "/gestao": "gestao",
+  "/config-escola": "config-escola",
+  "/admin": "admin",
+};
+
+// moduleKey → admin key (for when route is not provided)
+const moduleKeyToAdminKey: Record<string, string> = {
+  estudantes: "estudantes",
+  pei: "pei",
+  paee: "paee",
+  hub: "hub",
+  diario: "diario",
+  monitoramento: "monitoramento",
+  gestao: "gestao",
+  pgi: "pgi",
+  cursos: "config-escola",
+  omnisfera: "admin",
+};
+
+// ─── Props ────────────────────────────────────────────────────────────────────
 
 type PageHeroProps = {
-  iconName: string; // Nome do ícone (ex: "Student", "PuzzlePiece", "Compass")
+  moduleKey?: ModuleThemeKey;
+  route?: string;
   title: string;
   desc: string;
-  color?: "sky" | "blue" | "cyan" | "violet" | "rose" | "slate" | "teal";
-  useLottie?: boolean; // Se deve usar Lottie ao invés do ícone estático
+  /** @deprecated Use moduleKey instead */
+  iconName?: string;
+  /** @deprecated Use moduleKey instead */
+  color?: string;
+  useLottie?: boolean;
+  /** Explicit Lottie override (e.g., from home page customization) */
+  lottieOverride?: string;
 };
 
-export function PageHero({ iconName, title, desc, color = "sky", useLottie = true }: PageHeroProps) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-  const colors = getColorClasses(color, isDark);
-  // Mapear nome do ícone Lucide para nome do ícone Lottie se necessário
-  const lottieIconName = lucideToLottieMap[iconName] || iconName;
-  const lottieAnimation = useLottie && lottieIconName ? lottieMapOutlineColored[lottieIconName] : null;
+// Map admin COLOR_OPTIONS keys → hex (same values as AdminClient.tsx COLOR_OPTIONS)
+const ADMIN_COLOR_HEX: Record<string, string> = {
+  sky: "#4F5BD5",
+  blue: "#4285F4",
+  teal: "#34A853",
+  green: "#2E7D32",
+  cyan: "#34A853",
+  violet: "#9334E6",
+  rose: "#E8453C",
+  amber: "#F57F17",
+  slate: "#F9AB00",
+  presentation: "#7CB342",
+  table: "#1A73E8",
+  test: "#4285F4",
+  reports: "#F9AB00",
+};
+
+export function PageHero({
+  moduleKey,
+  route,
+  title,
+  desc,
+  iconName,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  color,
+  useLottie = true,
+  lottieOverride: propLottieOverride,
+}: PageHeroProps) {
+  const { theme: themeMode } = useTheme();
+  const isDark = themeMode === "dark";
+  const isNotebook = themeMode === "notebook";
+
+  // ─── Resolve module key ──────────────────────────────────────────────
+  let resolvedKey: ModuleThemeKey = "omnisfera";
+  if (moduleKey) {
+    resolvedKey = moduleKey;
+  } else if (route) {
+    const routeTheme = getRouteTheme(route);
+    resolvedKey = (Object.entries(moduleTheme).find(
+      ([, v]) => v === routeTheme
+    )?.[0] as ModuleThemeKey) || "omnisfera";
+  } else if (iconName && legacyIconToModule[iconName]) {
+    resolvedKey = legacyIconToModule[iconName];
+  }
+
+  const theme = moduleTheme[resolvedKey];
+  const dsColors = (resolvedKey in moduleColors)
+    ? moduleColors[resolvedKey as ModuleKey]
+    : moduleColors.omnisfera;
+
+  const defaultLottieAnimation = moduleLottieIcon[resolvedKey];
+
+  // ─── Read admin customization from DB ──────────────────────────────────────
+  const [adminIcon, setAdminIcon] = useState<string | null>(null);
+  const [adminColor, setAdminColor] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Garantir que só renderiza Lottie no cliente
   useEffect(() => {
-    const timer = setTimeout(() => setIsMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
+    setIsMounted(true);
 
-  // Se não montado ainda OU não deve usar Lottie, mostrar placeholder
+    const adminKey = route
+      ? routeToAdminKey[route]
+      : (moduleKey ? moduleKeyToAdminKey[moduleKey] : undefined);
+    if (!adminKey) return;
+
+    fetch("/api/admin/platform-config?key=card_customizations")
+      .then(r => r.json())
+      .then(data => {
+        if (data?.value) {
+          try {
+            const customs = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
+            if (customs[adminKey]?.icon) {
+              setAdminIcon(customs[adminKey].icon);
+            }
+            // heroColor is independent; fallback to color if not set
+            const hc = customs[adminKey]?.heroColor || customs[adminKey]?.color;
+            if (hc) {
+              setAdminColor(hc);
+            }
+          } catch { /* silent */ }
+        }
+      })
+      .catch(() => { /* silent */ });
+  }, [route]);
+
+  // Priority: prop override > admin DB > default
+  const lottieAnimation = propLottieOverride || adminIcon || defaultLottieAnimation;
+
+  // Resolve effective colors (admin color override > default)
+  // Admin saves color keys like 'sky', 'blue', 'violet' — map to hex
+  const adminHex = adminColor ? ADMIN_COLOR_HEX[adminColor] : null;
+
+  let cardBg: string;
+  let textColor: string;
+  let accentColor: string;
+
+  if (adminHex) {
+    // Admin override: use the hex color directly
+    cardBg = isDark ? `${adminHex}22` : adminHex;
+    textColor = isDark ? adminHex : "#ffffff";
+    accentColor = adminHex;
+  } else {
+    // Default: use module theme/DS colors
+    const effectiveTheme = moduleTheme[resolvedKey];
+    const effectiveDsColors = (resolvedKey in moduleColors)
+      ? moduleColors[resolvedKey as ModuleKey]
+      : moduleColors.omnisfera;
+    cardBg = isNotebook ? effectiveDsColors.bgPastel : isDark ? effectiveTheme.softDark : effectiveDsColors.bg;
+    textColor = isNotebook ? effectiveDsColors.textPastel : isDark ? effectiveTheme.secondary : "#ffffff";
+    accentColor = effectiveTheme.primary;
+  }
+
+  // ─── Skeleton while loading ─────────────────────────────────────────
   if (!isMounted || !useLottie || !lottieAnimation) {
     return (
       <div
         className="rounded-2xl overflow-hidden animate-fade-in-up"
-        style={{ backgroundColor: colors.bg, boxShadow: '0 4px 16px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.02)' }}
+        style={{ backgroundColor: cardBg, boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}
       >
-        <div className="h-1 w-full opacity-60" style={{ background: `linear-gradient(to right, ${colors.text}, ${colors.icon || colors.text})` }} />
+        <div className="h-1 w-full opacity-60" style={{ background: `linear-gradient(to right, ${accentColor}, ${theme.secondary})` }} />
         <div className="flex items-center gap-5 h-[120px] px-8 md:px-10">
-          <div className="w-14 h-14 shrink-0 flex items-center justify-center">
-            <div className="w-14 h-14 bg-(--omni-bg-tertiary) rounded-xl animate-pulse" />
+          <div className="w-16 h-16 shrink-0 flex items-center justify-center">
+            <div className="w-16 h-16 bg-(--omni-bg-tertiary) rounded-xl animate-pulse" />
           </div>
           <div>
-            <h1 className="text-xl font-extrabold" style={{ color: colors.text }}>{title}</h1>
-            <p className="text-[13px] mt-0.5" style={{ color: 'var(--omni-text-secondary)' }}>{desc}</p>
+            <h1 className="omni-heading-lg" style={{ color: textColor }}>{title}</h1>
+            <p className="omni-body mt-0.5" style={{ color: isNotebook ? `${dsColors.textPastel}99` : isDark ? "var(--omni-text-secondary)" : "rgba(255,255,255,0.7)" }}>{desc}</p>
           </div>
         </div>
       </div>
@@ -89,32 +235,48 @@ export function PageHero({ iconName, title, desc, color = "sky", useLottie = tru
     <div
       className="group rounded-2xl overflow-hidden transition-all duration-300 animate-fade-in-up"
       style={{
-        backgroundColor: colors.bg,
+        backgroundColor: cardBg,
         boxShadow: isHovered
-          ? '0 8px 24px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)'
-          : '0 4px 16px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.02)',
+          ? isNotebook
+            ? "0 8px 24px rgba(0,0,0,0.06)"
+            : "0 8px 24px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)"
+          : isNotebook
+            ? "0 2px 8px rgba(0,0,0,0.04)"
+            : "0 4px 16px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.03)",
+        ...(isNotebook ? { border: `1px solid ${dsColors.bg}25` } : {}),
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Top accent bar */}
-      <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${colors.text}, ${colors.icon || colors.text})` }} />
+      <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${accentColor}, ${theme.secondary})` }} />
 
       <div className="flex items-center gap-6 h-[120px] px-8 md:px-10">
-        {/* Ícone dentro do quadrado minimalista - estático, anima só no hover */}
+        {/* Lottie icon — glass/transparent container */}
         <div
-          className="rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-105 shrink-0"
-          style={{ width: '64px', height: '64px', padding: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', backgroundColor: 'var(--omni-bg-secondary)' }}
+          className="rounded-xl flex items-center justify-center backdrop-blur-md relative z-10 transition-all duration-300 group-hover:scale-105 shrink-0"
+          style={{
+            width: "80px",
+            height: "80px",
+            padding: "6px",
+            boxShadow: isNotebook
+              ? "0 2px 8px rgba(0,0,0,0.06)"
+              : "0 4px 16px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.15)",
+            backgroundColor: isNotebook ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.12)",
+            border: isNotebook ? "1px solid rgba(255,255,255,0.5)" : "1px solid rgba(255,255,255,0.18)",
+          }}
         >
           <LottieIcon
             animation={lottieAnimation}
-            size={48}
+            size={60}
             className="shrink-0"
           />
         </div>
         <div className="flex-1">
-          <h1 className="text-2xl font-extrabold mb-0.5 tracking-tight" style={{ color: colors.text }}>{title}</h1>
-          <p className="text-[13px] leading-relaxed" style={{ color: 'var(--omni-text-secondary)' }}>{desc}</p>
+          <h1 className="omni-heading-lg tracking-tight mb-0.5" style={{ color: textColor }}>{title}</h1>
+          <p className="omni-body leading-relaxed" style={{ color: isNotebook ? `${dsColors.textPastel}99` : isDark ? "var(--omni-text-secondary)" : "rgba(255,255,255,0.7)" }}>
+            {desc} — {title}
+          </p>
         </div>
       </div>
     </div>

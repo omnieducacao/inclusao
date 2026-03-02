@@ -36,7 +36,7 @@ export default function MonitoramentoError({
                 <div className="flex items-center justify-center gap-3">
                     <button
                         onClick={reset}
-                        className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-semibold rounded-xl hover:from-amber-600 hover:to-orange-700 shadow-md transition-all"
+                        className="px-5 py-2.5 bg-linear-to-r from-amber-500 to-orange-600 text-white text-sm font-semibold rounded-xl hover:from-amber-600 hover:to-orange-700 shadow-md transition-all"
                     >
                         Tentar novamente
                     </button>

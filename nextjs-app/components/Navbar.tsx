@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import type { SessionPayload } from "@/lib/session";
+import { getRouteTheme } from "@/lib/module-theme";
 import type { Icon } from "phosphor-react";
 import { useState, useEffect, useRef } from "react";
 import { LottieIcon } from "./LottieIcon";
@@ -77,10 +78,55 @@ function getNavLottieMap(): Record<string, string> {
     "/diario": "diario_simples", // Diário
     "/monitoramento": "dados_simples", // Evolução & Dados
     "/infos": "central_inteligencia_simples", // Central
-    "/config-escola": "configuracao_escola_flat", // Config Escola (sem versão simples)
+    "/config-escola": "configuracao_escola_flat", // Config Escola
     "/gestao": "gestao_usuario_simples", // Gestão
     "/pgi": "pgi_simples", // PGI
   };
+}
+
+// Topbar admin key → route mapping
+const TOPBAR_KEY_TO_ROUTE: Record<string, string> = {
+  pei: "/pei",
+  paee: "/paee",
+  hub: "/hub",
+  avaliacoes: "/avaliacoes",
+  "avaliacao-diagnostica": "/avaliacao-diagnostica",
+  "avaliacao-processual": "/avaliacao-processual",
+  professor: "/professor",
+  "pei-regente": "/pei-regente",
+  "plano-curso": "/plano-curso",
+  monitoramento: "/monitoramento",
+  infos: "/infos",
+  pgi: "/pgi",
+  config: "/config",
+  gestao: "/gestao",
+  "config-escola": "/config-escola",
+  diario: "/diario",
+  estudantes: "/estudantes",
+};
+
+// Admin color keys → hex (matches AdminClient.tsx COLOR_OPTIONS)
+const ADMIN_COLOR_HEX: Record<string, string> = {
+  sky: "#4F5BD5", blue: "#4285F4", teal: "#34A853", green: "#2E7D32",
+  cyan: "#34A853", violet: "#9334E6", rose: "#E8453C", amber: "#F57F17",
+  slate: "#F9AB00", presentation: "#7CB342", table: "#1A73E8",
+  test: "#4285F4", reports: "#F9AB00",
+};
+
+type TopbarOverrides = Record<string, { icon?: string; pillColor?: string }>;
+
+function buildTopbarOverrides(customs: Record<string, { icon?: string; pillColor?: string }>): TopbarOverrides {
+  const overrides: TopbarOverrides = {};
+  for (const [key, val] of Object.entries(customs)) {
+    if (key.startsWith("_")) continue; // skip _order etc.
+    const route = TOPBAR_KEY_TO_ROUTE[key];
+    if (!route) continue;
+    const o: TopbarOverrides[string] = {};
+    if (val.icon) o.icon = val.icon;
+    if (val.pillColor) o.pillColor = ADMIN_COLOR_HEX[val.pillColor] || val.pillColor;
+    if (Object.keys(o).length) overrides[route] = o;
+  }
+  return overrides;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,18 +134,19 @@ function getNavItems(icons: ReturnType<typeof loadNavIcons> extends Promise<infe
   if (!icons) return [];
 
   return [
-    { href: "/estudantes", label: "Estudantes", icon: icons.UsersFour, permission: "can_estudantes", group: "main" },
+    // Ordem visual da topbar: PEI → PAEE(dd) → Avaliações(dd) → Professor(dd) → Central → PGI → Config(dd)
     { href: "/pei", label: "PEI", icon: icons.FileText, permission: "can_pei", group: "modules" },
-    { href: "/pei-regente", label: "PEI - Professor", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
-    { href: "/plano-curso", label: "Plano de Curso", icon: icons.BookBookmark, permission: "can_pei_professor", group: "modules" },
+    { href: "/paee", label: "PAEE", icon: icons.PuzzlePiece, permission: "can_paee", group: "modules" },
+    { href: "/diario", label: "Diário", icon: icons.BookOpen, permission: "can_diario", group: "modules" },
     { href: "/avaliacao-diagnostica", label: "Avaliação Diagnóstica", icon: icons.Exam, permission: "can_pei_professor", group: "modules" },
     { href: "/avaliacao-processual", label: "Avaliação Processual", icon: icons.ChartLineUp, permission: "can_pei_professor", group: "modules" },
-    { href: "/paee", label: "PAEE", icon: icons.PuzzlePiece, permission: "can_paee", group: "modules" },
+    { href: "/pei-regente", label: "PEI - Professor", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
+    { href: "/plano-curso", label: "Plano de Curso", icon: icons.BookBookmark, permission: "can_pei_professor", group: "modules" },
     { href: "/hub", label: "Hub", icon: icons.RocketLaunch, permission: "can_hub", group: "modules" },
-    { href: "/diario", label: "Diário", icon: icons.BookOpen, permission: "can_diario", group: "modules" },
     { href: "/monitoramento", label: "Evolução & Dados", icon: icons.ChartLineUp, permission: "can_avaliacao", group: "modules" },
-    { href: "/pgi", label: "PGI", icon: icons.ClipboardText, permission: "can_gestao", group: "admin" },
     { href: "/infos", label: "Central", icon: icons.BookBookmark, group: "modules" },
+    { href: "/pgi", label: "PGI", icon: icons.ClipboardText, permission: "can_gestao", group: "admin" },
+    { href: "/estudantes", label: "Estudantes", icon: icons.UsersFour, permission: "can_estudantes", group: "admin" },
     { href: "/config-escola", label: "Config", icon: icons.Gear, permission: "can_gestao", group: "admin" },
     { href: "/gestao", label: "Gestão", icon: icons.UsersThree, permission: "can_gestao", group: "admin" },
   ];
@@ -117,33 +164,24 @@ function canAccess(
   return member[item.permission] === true;
 }
 
-// Cor da pill ativa por rota (corresponde à cor de cada módulo)
-const NAV_ROUTE_COLORS: Record<string, { from: string; to: string }> = {
-  "/": { from: "#3b82f6", to: "#6366f1" },           // Home: blue → indigo
-  "/estudantes": { from: "#4F5BD5", to: "#6366f1" },  // Estudantes: índigo
-  "/pei": { from: "#4285F4", to: "#3574D4" },         // PEI: azul
-  "/pei-regente": { from: "#059669", to: "#10b981" },   // PEI Regente: emerald
-  "/plano-curso": { from: "#0ea5e9", to: "#0284c7" },   // Plano de Curso: sky
-  "/avaliacao-diagnostica": { from: "#2563eb", to: "#1d4ed8" }, // Avaliação Diagnóstica: blue
-  "/avaliacao-processual": { from: "#10b981", to: "#059669" }, // Avaliação Processual: green
-  "/paee": { from: "#9334E6", to: "#7C2BC4" },        // PAEE: roxo
-  "/hub": { from: "#34A853", to: "#2D8C47" },         // Hub: verde
-  "/diario": { from: "#E8453C", to: "#C33B34" },      // Diário: vermelho
-  "/monitoramento": { from: "#34A853", to: "#2D8C47" }, // Evolução & Dados: verde
-  "/infos": { from: "#9334E6", to: "#6366f1" },       // Central: violeta
-  "/config-escola": { from: "#F9AB00", to: "#D49300" }, // Config: âmbar
-  "/gestao": { from: "#4285F4", to: "#3574D4" },      // Gestão: azul
-  "/pgi": { from: "#7CB342", to: "#6A9A38" },         // PGI: verde oliva
-  "/admin": { from: "#64748b", to: "#475569" },       // Admin: slate
-};
+// Cor da pill ativa derivada do module-theme (fonte única de cores)
+function getNavRouteColor(href: string) {
+  const theme = getRouteTheme(href);
+  return theme.navGrad;
+}
 
 // Componente para item de navegação com ícone Lottie
-function NavItemWithLottie({ item, isActive }: { item: NavItem; isActive: boolean }) {
+function NavItemWithLottie({ item, isActive, iconOverride, pillColorOverride }: {
+  item: NavItem; isActive: boolean; iconOverride?: string; pillColorOverride?: string;
+}) {
   const [isHovered, setIsHovered] = useState(false);
   const Icon = item.icon;
   const lottieMap = getNavLottieMap();
-  const lottieAnimation = lottieMap[item.href];
-  const routeColor = NAV_ROUTE_COLORS[item.href] || { from: "#3b82f6", to: "#6366f1" };
+  const lottieAnimation = iconOverride || lottieMap[item.href];
+  const routeColor = getNavRouteColor(item.href);
+  const pillGrad = pillColorOverride
+    ? { from: pillColorOverride, to: pillColorOverride }
+    : routeColor;
 
   // Evitar crash se ícone não carregou (ex.: admin com ShieldCheckered)
   if (!Icon) {
@@ -166,7 +204,7 @@ function NavItemWithLottie({ item, isActive }: { item: NavItem; isActive: boolea
       style={{
         color: isActive ? 'white' : 'var(--omni-text-muted)',
         transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-        ...(isActive ? { background: `linear-gradient(to right, ${routeColor.from}, ${routeColor.to})` } : {}),
+        ...(isActive ? { background: `linear-gradient(to right, ${pillGrad.from}, ${pillGrad.to})` } : {}),
       }}
       onMouseOver={(e) => {
         if (!isActive) {
@@ -205,10 +243,12 @@ function NavSeparator() {
 }
 
 // Dropdown component for navigation items
-function NavDropdown({ label, items, isActive, icon: Icon, pathname }: { label: string; items: NavItem[]; isActive: boolean; icon: Icon; pathname: string }) {
+function NavDropdown({ label, items, isActive, icon: Icon, lottieAnimation, pathname, topbarOverrides = {} }: { label: string; items: NavItem[]; isActive: boolean; icon: Icon; lottieAnimation?: string; pathname: string; topbarOverrides?: TopbarOverrides }) {
   const [isOpen, setIsOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const routeColor = { from: "#F9AB00", to: "#D49300" }; // Cor para Config/Gestão
+  const activeItemHref = items.find(i => i.href === pathname)?.href || items[0]?.href || "/";
+  const pillOverride = topbarOverrides[activeItemHref]?.pillColor;
+  const routeColor = getNavRouteColor(activeItemHref);
 
   useEffect(() => {
     return () => {
@@ -250,12 +290,21 @@ function NavDropdown({ label, items, isActive, icon: Icon, pathname }: { label: 
           color: isActive ? 'white' : 'var(--omni-text-muted)',
           transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
           ...(isActive
-            ? { backgroundImage: `linear-gradient(to right, ${routeColor.from}, ${routeColor.to})` }
+            ? { backgroundImage: `linear-gradient(to right, ${pillOverride || routeColor.from}, ${pillOverride || routeColor.to})` }
             : { backgroundColor: isOpen ? 'var(--omni-bg-hover)' : 'transparent' }
           ),
         }}
       >
-        {Icon && (
+        {lottieAnimation ? (
+          <div className="w-[18px] h-[18px] flex items-center justify-center shrink-0">
+            <LottieIcon
+              animation={lottieAnimation}
+              size={18}
+              autoplay={isOpen || isActive}
+              className={`transition-all duration-300 ${isActive ? "opacity-100 brightness-0 invert" : "opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0"}`}
+            />
+          </div>
+        ) : Icon && (
           <Icon
             className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-white" : "text-slate-400"}`}
             weight={isActive ? "fill" : "regular"}
@@ -287,7 +336,7 @@ function NavDropdown({ label, items, isActive, icon: Icon, pathname }: { label: 
           {items.map((item) => {
             const ItemIcon = item.icon;
             const lottieMap = getNavLottieMap();
-            const lottieAnimation = lottieMap[item.href];
+            const lottieAnimation = (topbarOverrides[item.href]?.icon) || lottieMap[item.href];
             const isCurrentPage = pathname === item.href;
 
             return (
@@ -400,7 +449,7 @@ function ProfileDropdown({
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md ring-2 ring-white">
+          <div className="w-9 h-9 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md ring-2 ring-white">
             {initials}
           </div>
           <svg
@@ -492,10 +541,23 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   const [isMounted, setIsMounted] = useState(false);
   const { state: aiState } = useAILoading();
   const { isDark } = useTheme();
+  const [topbarOverrides, setTopbarOverrides] = useState<TopbarOverrides>({});
 
   useEffect(() => {
     const timer = setTimeout(() => setIsMounted(true), 0);
     loadNavIcons().then(setNavIcons);
+    // Fetch topbar customizations (icons, pill colors)
+    fetch("/api/admin/platform-config?key=topbar_customizations")
+      .then(r => r.json())
+      .then(data => {
+        if (data?.value) {
+          try {
+            const parsed = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
+            setTopbarOverrides(buildTopbarOverrides(parsed));
+          } catch { /* silent */ }
+        }
+      })
+      .catch(() => { });
     return () => clearTimeout(timer);
   }, []);
 
@@ -560,16 +622,36 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   const moduleItems = items.filter((i: NavItem) => i.group === "modules");
   const adminItems = items.filter((i: NavItem) => i.group === "admin");
 
-  // Items para o dropdown "Configuração e Gestão"
+  // ── Dropdown Groups ──
+  // Avaliações: Diagnóstica + Processual
+  const avaliacoesPaths = ["/avaliacao-diagnostica", "/avaliacao-processual"];
+  const avaliacoesItems = items.filter((i: NavItem) => avaliacoesPaths.includes(i.href));
+  const hasAvaliacoes = avaliacoesItems.length > 0;
+  const isAvaliacoesActive = avaliacoesPaths.includes(pathname);
+
+  // Professor: Plano Curso + PEI Professor + Hub
+  const professorPaths = ["/plano-curso", "/pei-regente", "/hub"];
+  const professorItems = items.filter((i: NavItem) => professorPaths.includes(i.href));
+  const hasProfessor = professorItems.length > 0;
+  const isProfessorActive = professorPaths.includes(pathname);
+
+  // PAEE: PAEE + Diário de Bordo
+  const paeePaths = ["/paee", "/diario"];
+  const paeeItems = items.filter((i: NavItem) => paeePaths.includes(i.href));
+  const hasPaee = paeeItems.length > 0;
+  const isPaeeActive = paeePaths.includes(pathname);
+
+  // Config: Gestão + Config Escola + Estudantes (already existed)
   const configDropdownPaths = ["/gestao", "/config-escola", "/estudantes"];
   const configDropdownItems = items.filter((i: NavItem) => configDropdownPaths.includes(i.href));
   const hasConfigDropdown = configDropdownItems.length > 0;
   const isConfigDropdownActive = configDropdownPaths.includes(pathname);
 
-  // Remove config dropdown items from their respective groups
-  const filteredMainItems = mainItems.filter((i: NavItem) => !configDropdownPaths.includes(i.href));
-  const filteredModuleItems = moduleItems.filter((i: NavItem) => !configDropdownPaths.includes(i.href));
-  const filteredAdminItems = adminItems.filter((i: NavItem) => !configDropdownPaths.includes(i.href));
+  // All grouped paths — to filter them out of the flat list
+  const allGroupedPaths = [...avaliacoesPaths, ...professorPaths, ...paeePaths, ...configDropdownPaths];
+
+  // Items that are NOT in any dropdown group
+  const flatItems = items.filter((i: NavItem) => !allGroupedPaths.includes(i.href));
 
   return (
     <header className="glass-strong sticky top-0 z-50" style={{ boxShadow: 'var(--omni-shadow-xs)', borderBottom: '1px solid var(--omni-border-default)', overflow: 'visible' }}>
@@ -621,31 +703,81 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
           {!hideMenu && (
             <>
               <div className="hidden lg:flex items-center gap-0.5 flex-1 min-w-0" style={{ position: 'relative' }}>
-                <nav className="flex items-center gap-0.5 overflow-x-auto scrollbar-hide" style={{ flexShrink: 1 }}>
-                  {filteredMainItems.map((item: NavItem) => (
-                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} />
-                  ))}
-                  {filteredModuleItems.map((item: NavItem) => (
-                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} />
-                  ))}
-                  {(filteredAdminItems.length > 0 || hasConfigDropdown)}
-                  {filteredAdminItems.map((item: NavItem) => (
-                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} />
-                  ))}
-                </nav>
+                <nav className="flex items-center gap-0.5 scrollbar-hide" style={{ flexShrink: 1 }}>
+                  {/* Ordem: PEI(flat) → PAEE(dd) → Avaliações(dd) → Professor(dd) → Central(flat) → PGI(flat) → Config(dd) */}
 
-                {/* Dropdown fora do nav para evitar overflow */}
-                {hasConfigDropdown && navIcons && (
-                  <div className="shrink-0">
+                  {/* 1. PEI — flat */}
+                  {flatItems.filter((i: NavItem) => i.href === "/pei").map((item: NavItem) => (
+                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} iconOverride={topbarOverrides[item.href]?.icon} pillColorOverride={topbarOverrides[item.href]?.pillColor} />
+                  ))}
+
+                  {/* 2. PAEE — dropdown */}
+                  {hasPaee && navIcons && (
+                    <NavDropdown
+                      label="PAEE"
+                      items={paeeItems}
+                      isActive={isPaeeActive}
+                      icon={navIcons.PuzzlePiece}
+                      lottieAnimation={topbarOverrides["/paee"]?.icon || "paee_simples"}
+                      pathname={pathname}
+                      topbarOverrides={topbarOverrides}
+                    />
+                  )}
+
+                  {/* 3. Avaliações — dropdown */}
+                  {hasAvaliacoes && navIcons && (
+                    <NavDropdown
+                      label="Avaliações"
+                      items={avaliacoesItems}
+                      isActive={isAvaliacoesActive}
+                      icon={navIcons.Exam}
+                      lottieAnimation={topbarOverrides["/avaliacao-diagnostica"]?.icon || "dados_simples"}
+                      pathname={pathname}
+                      topbarOverrides={topbarOverrides}
+                    />
+                  )}
+
+                  {/* 4. Professor — dropdown */}
+                  {hasProfessor && navIcons && (
+                    <NavDropdown
+                      label="Professor"
+                      items={professorItems}
+                      isActive={isProfessorActive}
+                      icon={navIcons.BookOpen}
+                      lottieAnimation={topbarOverrides["/pei-regente"]?.icon || "central_inteligencia_simples"}
+                      pathname={pathname}
+                      topbarOverrides={topbarOverrides}
+                    />
+                  )}
+
+                  {/* 5. Evolução & Dados — flat */}
+                  {flatItems.filter((i: NavItem) => i.href === "/monitoramento").map((item: NavItem) => (
+                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} iconOverride={topbarOverrides[item.href]?.icon} pillColorOverride={topbarOverrides[item.href]?.pillColor} />
+                  ))}
+
+                  {/* 6. Central — flat */}
+                  {flatItems.filter((i: NavItem) => i.href === "/infos").map((item: NavItem) => (
+                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} iconOverride={topbarOverrides[item.href]?.icon} pillColorOverride={topbarOverrides[item.href]?.pillColor} />
+                  ))}
+
+                  {/* 7. PGI — flat */}
+                  {flatItems.filter((i: NavItem) => i.href === "/pgi").map((item: NavItem) => (
+                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} iconOverride={topbarOverrides[item.href]?.icon} pillColorOverride={topbarOverrides[item.href]?.pillColor} />
+                  ))}
+
+                  {/* 8. Config — dropdown */}
+                  {hasConfigDropdown && navIcons && (
                     <NavDropdown
                       label=""
                       items={configDropdownItems}
                       isActive={isConfigDropdownActive}
                       icon={navIcons.Gear}
+                      lottieAnimation={topbarOverrides["/gestao"]?.icon || "gestao_usuario_simples"}
                       pathname={pathname}
+                      topbarOverrides={topbarOverrides}
                     />
-                  </div>
-                )}
+                  )}
+                </nav>
               </div>
 
               {/* Menu Mobile/Tablet - Aparece no lugar da nav em lg */}

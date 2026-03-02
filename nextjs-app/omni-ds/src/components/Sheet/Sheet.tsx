@@ -94,7 +94,7 @@ const Sheet = forwardRef<HTMLDialogElement, SheetProps>(
             >
                 <div
                     className={cn(
-                        "bg-[var(--omni-bg-secondary)] shadow-[var(--omni-shadow-2xl)]",
+                        "bg-(--omni-bg-secondary) shadow-[var(--omni-shadow-2xl)]",
                         "flex flex-col overflow-hidden",
                         positionClasses[side]
                     )}
@@ -117,7 +117,7 @@ const SheetHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
             ref={ref}
             className={cn(
                 "flex items-center justify-between px-6 py-4",
-                "border-b border-[var(--omni-border-default)]",
+                "border-b border-(--omni-border-default)",
                 className
             )}
             {...props}
@@ -130,7 +130,7 @@ const SheetTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingElem
     ({ className, ...props }, ref) => (
         <h2
             ref={ref}
-            className={cn("text-lg font-bold tracking-tight text-[var(--omni-text-primary)]", className)}
+            className={cn("text-lg font-bold tracking-tight text-(--omni-text-primary)", className)}
             {...props}
         />
     )
@@ -154,7 +154,7 @@ const SheetFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
             ref={ref}
             className={cn(
                 "flex items-center justify-end gap-3 px-6 py-4",
-                "border-t border-[var(--omni-border-default)]",
+                "border-t border-(--omni-border-default)",
                 className
             )}
             {...props}

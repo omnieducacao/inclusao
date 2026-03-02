@@ -165,7 +165,7 @@ export function WelcomeHero({ saudacao, userFirst, session }: WelcomeHeroProps) 
 
             {/* Right: Date pill */}
             {isMounted && (
-              <div className="flex-shrink-0 hidden sm:flex flex-col items-end gap-2">
+              <div className="shrink-0 hidden sm:flex flex-col items-end gap-2">
                 <div
                   className="px-4 py-2.5 rounded-xl text-white/95 text-[13px] font-medium leading-tight text-right"
                   style={{

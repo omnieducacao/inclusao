@@ -87,7 +87,7 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
         return (
             <div ref={ref} className={cn("relative flex flex-col gap-1.5", className)} {...props}>
                 {label && (
-                    <label className="text-sm font-semibold text-[var(--omni-text-primary)]">{label}</label>
+                    <label className="text-sm font-semibold text-(--omni-text-primary)">{label}</label>
                 )}
                 <button
                     type="button"
@@ -97,14 +97,14 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
                     aria-expanded={open}
                     className={cn(
                         "flex items-center gap-2 w-full h-10 px-3.5 text-sm rounded-xl text-left",
-                        "bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)]",
+                        "bg-(--omni-bg-secondary) border border-(--omni-border-default)",
                         "transition-all cursor-pointer",
                         "focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500",
                         disabled && "opacity-50 cursor-not-allowed",
-                        !value && "text-[var(--omni-text-muted)]"
+                        !value && "text-(--omni-text-muted)"
                     )}
                 >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-[var(--omni-text-muted)]">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-(--omni-text-muted)">
                         <rect x="2" y="3" width="12" height="11" rx="2" />
                         <path d="M5 1v3M11 1v3M2 7h12" />
                     </svg>
@@ -117,20 +117,20 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
                         aria-label="Calendário"
                         className={cn(
                             "absolute top-full left-0 z-50 mt-1 p-3",
-                            "bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)]",
-                            "rounded-xl shadow-[var(--omni-shadow-lg)]",
+                            "bg-(--omni-bg-secondary) border border-(--omni-border-default)",
+                            "rounded-xl shadow-(--omni-shadow-lg)",
                             "min-w-[280px]"
                         )}
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between mb-3">
-                            <button type="button" onClick={() => navigate(-1)} className="p-1 rounded-lg hover:bg-[var(--omni-bg-hover)] transition-colors" aria-label="Mês anterior">
+                            <button type="button" onClick={() => navigate(-1)} className="p-1 rounded-lg hover:bg-(--omni-bg-hover) transition-colors" aria-label="Mês anterior">
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10 4L6 8L10 12" /></svg>
                             </button>
-                            <span className="text-sm font-bold text-[var(--omni-text-primary)]">
+                            <span className="text-sm font-bold text-(--omni-text-primary)">
                                 {MONTHS_PT[viewMonth]} {viewYear}
                             </span>
-                            <button type="button" onClick={() => navigate(1)} className="p-1 rounded-lg hover:bg-[var(--omni-bg-hover)] transition-colors" aria-label="Próximo mês">
+                            <button type="button" onClick={() => navigate(1)} className="p-1 rounded-lg hover:bg-(--omni-bg-hover) transition-colors" aria-label="Próximo mês">
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 4L10 8L6 12" /></svg>
                             </button>
                         </div>
@@ -138,7 +138,7 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
                         {/* Weekday headers */}
                         <div className="grid grid-cols-7 gap-0.5 mb-1">
                             {DAYS_PT.map((d) => (
-                                <div key={d} className="text-center text-[10px] font-bold uppercase tracking-wider text-[var(--omni-text-muted)] py-1">
+                                <div key={d} className="text-center text-[10px] font-bold uppercase tracking-wider text-(--omni-text-muted) py-1">
                                     {d}
                                 </div>
                             ))}
@@ -168,7 +168,7 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
                                                 ? "bg-sky-600 text-white font-bold"
                                                 : isToday
                                                     ? "bg-sky-100 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 font-bold"
-                                                    : "text-[var(--omni-text-primary)] hover:bg-[var(--omni-bg-hover)]",
+                                                    : "text-(--omni-text-primary) hover:bg-(--omni-bg-hover)",
                                             dis && "opacity-30 cursor-not-allowed"
                                         )}
                                     >
@@ -179,7 +179,7 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
                         </div>
 
                         {/* Today shortcut */}
-                        <div className="mt-2 pt-2 border-t border-[var(--omni-border-default)]">
+                        <div className="mt-2 pt-2 border-t border-(--omni-border-default)">
                             <button
                                 type="button"
                                 onClick={() => {
@@ -188,7 +188,7 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
                                     onChange?.(today);
                                     setOpen(false);
                                 }}
-                                className="w-full text-center text-xs font-semibold text-sky-600 hover:text-sky-700 py-1 rounded-lg hover:bg-[var(--omni-bg-hover)] transition-colors"
+                                className="w-full text-center text-xs font-semibold text-sky-600 hover:text-sky-700 py-1 rounded-lg hover:bg-(--omni-bg-hover) transition-colors"
                             >
                                 Hoje
                             </button>

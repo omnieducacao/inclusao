@@ -59,7 +59,6 @@ import { ResumoAnexosEstudante } from "@/components/ResumoAnexosEstudante";
 import {
   Download,
   FileText,
-  Loader2,
   Sparkles,
   Pill,
   CheckCircle2,
@@ -120,7 +119,7 @@ function TransicaoAnoButton({ studentId, studentName }: { studentId: string; stu
       disabled={loading}
       className="flex items-center gap-2 text-sm font-medium text-amber-600 hover:text-amber-700 disabled:opacity-60"
     >
-      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCw className="w-4 h-4" />}
+      {loading ? <OmniLoader size={16} /> : <RotateCw className="w-4 h-4" />}
       Relatório Transição {ano}
     </button>
   );
@@ -364,7 +363,7 @@ export function PEIClient({
 
     return (
       <div className="mb-4">
-        <div className="relative w-full h-2 rounded-full overflow-hidden shadow-inner bg-[var(--omni-border-default)]">
+        <div className="relative w-full h-2 rounded-full overflow-hidden shadow-inner bg-(--omni-border-default)">
           {/* Barra de progresso com animação - cor única */}
           <div
             className="absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out shadow-sm"
@@ -496,7 +495,7 @@ export function PEIClient({
     if (saving) {
       return (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-2xl animate-slide-up">
-          <Loader2 className="w-5 h-5 animate-spin" />
+          <OmniLoader size={20} />
           <span className="font-medium">Salvando...</span>
         </div>
       );
@@ -514,7 +513,7 @@ export function PEIClient({
 
   if (students.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-8 text-center" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+      <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-slate-200/60">
         <p className="text-slate-600">
           Nenhum estudante cadastrado. Crie um estudante em{" "}
           <Link href="/estudantes" className="text-sky-600 hover:underline">
@@ -702,7 +701,7 @@ export function PEIClient({
   }
 
   return (
-    <div className="rounded-2xl shadow-lg overflow-hidden bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)]">
+    <div className="rounded-2xl shadow-lg overflow-hidden bg-(--omni-bg-secondary) border border-(--omni-border-default)">
       {/* Onboarding Panel */}
       {showOnboarding && (
         <div className="px-6 pt-6">
@@ -723,13 +722,13 @@ export function PEIClient({
         </div>
       )}
       {/* Barra de Progresso Global */}
-      <div className="px-6 pt-4 pb-2 bg-[var(--omni-bg-tertiary)] border-b border-[var(--omni-border-default)]">
+      <div className="px-6 pt-4 pb-2 bg-(--omni-bg-tertiary) border-b border-(--omni-border-default)">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-            <span className="text-xs font-semibold text-[var(--omni-text-secondary)]">Progresso do PEI</span>
+            <span className="text-xs font-semibold text-(--omni-text-secondary)">Progresso do PEI</span>
           </div>
-          <span className="text-sm font-bold text-[var(--omni-text-primary)]">{calcularProgresso()}%</span>
+          <span className="text-sm font-bold text-(--omni-text-primary)">{calcularProgresso()}%</span>
         </div>
         <RenderProgresso />
       </div>
@@ -753,7 +752,7 @@ export function PEIClient({
       )}
 
       {/* Navegação de Abas com Indicadores Visuais */}
-      <div className="flex gap-1.5 p-1.5 rounded-2xl overflow-x-auto scrollbar-hide bg-[var(--omni-bg-tertiary)] border border-[var(--omni-border-default)]">
+      <div className="flex gap-1.5 p-1.5 rounded-2xl overflow-x-auto scrollbar-hide bg-(--omni-bg-tertiary) border border-(--omni-border-default)">
         {TABS.map((t) => {
           const status = getTabStatus(t.id);
           const isActive = activeTab === t.id;
@@ -763,8 +762,8 @@ export function PEIClient({
               key={t.id}
               onClick={() => setActiveTab(t.id)}
               className={`group relative px-3 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-[13px] font-semibold whitespace-nowrap shrink-0 flex items-center gap-1.5 sm:gap-2 rounded-xl transition-all duration-200 ${isActive
-                  ? "shadow-sm bg-[var(--omni-bg-secondary)] text-[var(--omni-text-primary)]"
-                  : "text-[var(--omni-text-muted)]"
+                ? "shadow-sm bg-(--omni-bg-secondary) text-(--omni-text-primary)"
+                : "text-(--omni-text-muted)"
                 }`}
             >
               {/* Indicador de Status */}
@@ -787,7 +786,7 @@ export function PEIClient({
       </div>
 
       {/* Breadcrumb e Navegação Contextual */}
-      <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-[var(--omni-bg-tertiary)] border-b border-[var(--omni-border-default)]">
+      <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-(--omni-bg-tertiary) border-b border-(--omni-border-default)">
         <div className="flex items-center gap-2 text-xs sm:text-sm flex-wrap">
           <Link href="/" className="text-slate-500 hover:text-sky-600 transition-colors">Home</Link>
           <span className="text-slate-300">/</span>
@@ -806,7 +805,7 @@ export function PEIClient({
 
       <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto scroll-smooth">
         {activeTab === "inicio" && (
-          <div className="space-y-4 max-w-6xl mx-auto">
+          <div className="space-y-4">
             {/* Título da aba com ícone */}
             <div className="flex items-center gap-2 mb-2">
               <FileText className="w-5 h-5 text-sky-600" />
@@ -1524,7 +1523,7 @@ export function PEIClient({
         )}
 
         {activeTab === "evidencias" && (
-          <div className="space-y-6 max-w-4xl">
+          <div className="space-y-6">
             {/* Título da aba com ícone */}
             <div className="flex items-center gap-2 mb-4">
               <Search className="w-5 h-5 text-sky-600" />
@@ -2267,7 +2266,7 @@ export function PEIClient({
         )}
 
         {activeTab === "monitoramento" && (
-          <div className="space-y-6 max-w-4xl">
+          <div className="space-y-6">
             {/* Título da aba com ícone */}
             <div className="flex items-center gap-2 mb-4">
               <RotateCw className="w-5 h-5 text-sky-600" />
@@ -2827,7 +2826,7 @@ function DashboardTab({
                 >
                   {saving ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <OmniLoader size={16} />
                       Atualizando…
                     </>
                   ) : (
@@ -2845,7 +2844,7 @@ function DashboardTab({
                 >
                   {saving ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <OmniLoader size={16} />
                       Criando estudante…
                     </>
                   ) : (
@@ -2890,10 +2889,10 @@ function DashboardTab({
         {/* 1. Progresso do PEI */}
         <div className="metric-card">
           <div className="css-donut" style={{ background: `conic-gradient(${progrColor} ${progresso}%, #F3F4F6 0)` }}>
-            <div className="d-val" style={{ fontSize: "0.65rem" }}>{progresso}%</div>
+            <div className="d-val text-[0.65rem]">{progresso}%</div>
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div className="d-lbl" style={{ marginTop: 0 }}>Progresso do PEI</div>
+          <div className="min-w-0">
+            <div className="d-lbl mt-0">Progresso do PEI</div>
             <div className="text-[10px]" style={{ color: progrColor }}>
               {progresso >= 100 ? "Completo ✅" : `${Math.round(progresso / 12.5)}/8 abas`}
             </div>
@@ -2901,39 +2900,38 @@ function DashboardTab({
         </div>
 
         {/* 2. Diagnóstico */}
-        <div className="metric-card" style={{ cursor: "default" }}>
-          <div style={{ fontSize: "1.2rem", minWidth: "24px", textAlign: "center" }}>🏥</div>
-          <div style={{ minWidth: 0, overflow: "hidden" }}>
+        <div className="metric-card cursor-default">
+          <div className="text-[1.2rem] min-w-6 text-center">🏥</div>
+          <div className="min-w-0 overflow-hidden">
             <div
-              className="font-bold text-[10px] text-slate-800 leading-snug"
+              className="font-bold text-[10px] text-slate-800 leading-snug line-clamp-2 wrap-break-word"
               title={String(peiData.diagnostico || "Não informado")}
-              style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", wordBreak: "break-word" }}
             >
               {diagTxt}
             </div>
-            <div className="d-lbl" style={{ marginTop: "1px" }}>Diagnóstico{nDetalhes > 0 ? ` • ${nDetalhes} det.` : ""}</div>
+            <div className="d-lbl mt-px">Diagnóstico{nDetalhes > 0 ? ` • ${nDetalhes} det.` : ""}</div>
           </div>
         </div>
 
         {/* 3. Habilidades BNCC */}
         <div className="metric-card">
           <div className="css-donut" style={{ background: `conic-gradient(${bnccColor} ${Math.min(nHabBncc * 8, 100)}%, #F3F4F6 0)` }}>
-            <div className="d-val" style={{ fontSize: "0.65rem" }}>{nHabBncc}</div>
+            <div className="d-val text-[0.65rem]">{nHabBncc}</div>
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div className="d-lbl" style={{ marginTop: 0 }}>Habilidades BNCC</div>
+          <div className="min-w-0">
+            <div className="d-lbl mt-0">Habilidades BNCC</div>
             {nHabBncc === 0 && <div className="text-[10px] text-amber-600">Selecione na aba BNCC</div>}
             {nHabBncc > 0 && <div className="text-[10px] text-emerald-600">{nHabBncc} selecionada{nHabBncc > 1 ? "s" : ""}</div>}
           </div>
         </div>
 
         {/* 4. Compliance LBI */}
-        <div className="metric-card" style={{ cursor: "pointer" }} onClick={() => setShowLbiChecklist((v) => !v)}>
+        <div className="metric-card cursor-pointer" onClick={() => setShowLbiChecklist((v) => !v)}>
           <div className="css-donut" style={{ background: `conic-gradient(${lbiColor} ${lbiPct}%, #F3F4F6 0)` }}>
-            <div className="d-val" style={{ fontSize: "0.6rem" }}>{lbiOk}/{lbiChecks.length}</div>
+            <div className="d-val text-[0.6rem]">{lbiOk}/{lbiChecks.length}</div>
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div className="d-lbl" style={{ marginTop: 0 }}>Compliance LBI</div>
+          <div className="min-w-0">
+            <div className="d-lbl mt-0">Compliance LBI</div>
             <div className="text-[10px] flex items-center gap-1" style={{ color: lbiColor }}>
               {lbiPct >= 75 ? "Conforme ✅" : lbiPct >= 50 ? "Parcial ⚠️" : "Pendente ❌"}
               <span className="text-slate-400 text-[9px]">{showLbiChecklist ? "▲" : "▼"}</span>
@@ -2944,7 +2942,7 @@ function DashboardTab({
 
       {/* Checklist LBI expandido (abaixo dos KPIs) */}
       {showLbiChecklist && (
-        <div className="mt-2 p-4 rounded-xl border border-slate-200 bg-white shadow-sm" style={{ transition: "all 0.2s ease" }}>
+        <div className="mt-2 p-4 rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200">
           <div className="flex items-center justify-between mb-3">
             <h5 className="text-sm font-bold text-slate-700">📋 Checklist Compliance LBI (Lei 13.146/2015)</h5>
             <button onClick={() => setShowLbiChecklist(false)} className="text-xs text-slate-400 hover:text-slate-600">Fechar ✕</button>
@@ -2976,7 +2974,7 @@ function DashboardTab({
           <p className="text-sm text-slate-500">Selecione um estudante para ver a evolução.</p>
         ) : evolucaoProcessualLoading ? (
           <div className="flex items-center gap-2 text-slate-500 text-sm">
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <OmniLoader size={16} />
             Carregando evolução...
           </div>
         ) : evolucaoProcessual && evolucaoProcessual.resumo.total_registros > 0 ? (
@@ -3025,26 +3023,26 @@ function DashboardTab({
           {listaMeds.length > 0 ? (
             <div className="soft-card sc-orange">
               <div className="sc-head">
-                <Pill className="w-5 h-5" style={{ color: "#DD6B20" }} />
+                <Pill className="w-5 h-5 text-orange-600" />
                 Atenção Farmacológica
                 {alertaEscola && <span className="pulse-alert">⚠️</span>}
               </div>
-              <div className="sc-body" style={{ gap: "8px", display: "flex", flexDirection: "column" }}>
+              <div className="sc-body flex flex-col gap-2">
                 {listaMeds.map((m, i) => (
                   <div key={i} style={{ padding: "8px 10px", background: "rgba(255,255,255,0.7)", borderRadius: "8px", borderLeft: m.escola ? "3px solid #E53E3E" : "3px solid #DD6B20" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontWeight: 700, fontSize: "0.82rem", color: "#1e293b" }}>💊 {m.nome}</span>
-                      {m.escola && <span style={{ fontSize: "0.65rem", background: "#FED7D7", color: "#C53030", padding: "1px 6px", borderRadius: "10px", fontWeight: 700 }}>Escola</span>}
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-[0.82rem] text-slate-800">💊 {m.nome}</span>
+                      {m.escola && <span className="text-[0.65rem] bg-red-100 text-red-700 px-1.5 py-px rounded-full font-bold">Escola</span>}
                     </div>
-                    {m.posologia && <div style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "2px" }}>Posologia: {m.posologia}</div>}
-                    {m.escola && <div style={{ fontSize: "0.72rem", color: "#C53030", fontWeight: 600, marginTop: "3px" }}>🚨 Administração na escola necessária</div>}
+                    {m.posologia && <div className="text-xs text-slate-500 mt-0.5">Posologia: {m.posologia}</div>}
+                    {m.escola && <div className="text-[0.72rem] text-red-600 font-semibold mt-[3px]">🚨 Administração na escola necessária</div>}
                   </div>
                 ))}
 
                 {/* Pontos de Atenção */}
-                <div style={{ marginTop: "4px", padding: "8px 10px", background: "rgba(255,237,213,0.6)", borderRadius: "8px" }}>
-                  <div style={{ fontWeight: 700, fontSize: "0.78rem", color: "#9A3412", marginBottom: "4px" }}>⚠️ Pontos de Atenção:</div>
-                  <ul style={{ fontSize: "0.72rem", color: "#78350F", margin: 0, paddingLeft: "16px", lineHeight: "1.6" }}>
+                <div className="mt-1 px-2.5 py-2 bg-orange-50/60 rounded-lg">
+                  <div className="font-bold text-[0.78rem] text-orange-800 mb-1">⚠️ Pontos de Atenção:</div>
+                  <ul className="text-[0.72rem] text-amber-900 m-0 pl-4 leading-relaxed">
                     <li>Observar sinais de <strong>sonolência</strong> ou <strong>agitação incomum</strong> em sala</li>
                     <li>Monitorar mudanças de <strong>apetite</strong> e <strong>humor</strong> ao longo do dia</li>
                     {alertaEscola && <li><strong>Garantir horário correto</strong> de administração na escola</li>}
@@ -3058,7 +3056,7 @@ function DashboardTab({
           ) : (
             <div className="soft-card sc-green">
               <div className="sc-head">
-                <CheckCircle2 className="w-5 h-5" style={{ color: "#38A169" }} />
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
                 Medicação
               </div>
               <div className="sc-body">Nenhuma medicação informada.</div>
@@ -3069,7 +3067,7 @@ function DashboardTab({
           {/* DNA do Estudante — Hiperfoco + Potencialidades + Nível Alfabetização */}
           <div className="soft-card sc-blue">
             <div className="sc-head">
-              <Sparkles className="w-5 h-5" style={{ color: "#3182CE" }} />
+              <Sparkles className="w-5 h-5 text-blue-600" />
               DNA do Estudante
             </div>
             <div className="sc-body">
@@ -3108,7 +3106,7 @@ function DashboardTab({
           {/* Cronograma de Metas + Status */}
           <div className="soft-card sc-yellow">
             <div className="sc-head">
-              <FileText className="w-5 h-5" style={{ color: "#D69E2E" }} />
+              <FileText className="w-5 h-5 text-yellow-600" />
               Cronograma de Metas
               {peiData.status_meta && (
                 <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full" style={{
@@ -3142,7 +3140,7 @@ function DashboardTab({
           {/* Rede de Apoio + Estratégias */}
           <div className="soft-card sc-cyan">
             <div className="sc-head">
-              <Users className="w-5 h-5" style={{ color: "#0BC5EA" }} />
+              <Users className="w-5 h-5 text-cyan-400" />
               Rede de Apoio & Estratégias
             </div>
             <div className="sc-body">
@@ -3314,8 +3312,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
           type="button"
           onClick={gerarMapa}
           disabled={mapaLoading}
-          className="group rounded-xl border-2 border-dashed border-violet-200 hover:border-violet-400 bg-linear-to-r from-violet-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60"
-          style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px", height: "70px" }}
+          className="group rounded-xl border-2 border-dashed border-violet-200 hover:border-violet-400 bg-linear-to-r from-violet-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60 px-4 py-3 flex items-center gap-3 h-[70px]"
         >
           <div className="text-2xl">🧠</div>
           <div>
@@ -3332,8 +3329,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
           type="button"
           onClick={gerarResumo}
           disabled={resumoLoading}
-          className="group rounded-xl border-2 border-dashed border-emerald-200 hover:border-emerald-400 bg-linear-to-r from-emerald-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60"
-          style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px", height: "70px" }}
+          className="group rounded-xl border-2 border-dashed border-emerald-200 hover:border-emerald-400 bg-linear-to-r from-emerald-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60 px-4 py-3 flex items-center gap-3 h-[70px]"
         >
           <div className="text-2xl">👨‍👩‍👧</div>
           <div>
@@ -3350,8 +3346,7 @@ function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
           type="button"
           onClick={gerarFaq}
           disabled={faqLoading}
-          className="group rounded-xl border-2 border-dashed border-amber-200 hover:border-amber-400 bg-linear-to-r from-amber-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60"
-          style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px", height: "70px" }}
+          className="group rounded-xl border-2 border-dashed border-amber-200 hover:border-amber-400 bg-linear-to-r from-amber-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60 px-4 py-3 flex items-center gap-3 h-[70px]"
         >
           <div className="text-2xl">❓</div>
           <div>
@@ -3568,7 +3563,7 @@ function PeiExportPdfButton({ peiData }: { peiData: PEIData }) {
     >
       {loading ? (
         <>
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <OmniLoader size={16} />
           Gerando PDF...
         </>
       ) : (
@@ -3621,7 +3616,7 @@ function PeiExportPdfOficialButton({ peiData }: { peiData: PEIData }) {
     >
       {loading ? (
         <>
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <OmniLoader size={16} />
           IA processando...
         </>
       ) : (
@@ -3667,7 +3662,7 @@ function PeiExportDocxButton({ peiData }: { peiData: PEIData }) {
     >
       {loading ? (
         <>
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <OmniLoader size={16} />
           Gerando…
         </>
       ) : (
@@ -4456,7 +4451,7 @@ function BNCCTab({
               >
                 {sugerindoAtual ? (
                   <>
-                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <OmniLoader size={12} />
                     Sugerindo...
                   </>
                 ) : (
@@ -4545,7 +4540,7 @@ function BNCCTab({
               >
                 {sugerindoAnteriores ? (
                   <>
-                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <OmniLoader size={12} />
                     Sugerindo...
                   </>
                 ) : (
@@ -5564,7 +5559,7 @@ function EnviarParaProfessoresButton({
               }}
             >
               {saving ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
+                <><OmniLoader size={16} /> Salvando...</>
               ) : (
                 <><Download className="w-4 h-4" /> Salvar PEI primeiro</>
               )}
@@ -5585,7 +5580,7 @@ function EnviarParaProfessoresButton({
               }}
             >
               {sending ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Salvando e enviando...</>
+                <><OmniLoader size={16} /> Salvando e enviando...</>
               ) : (
                 <><Send className="w-4 h-4" /> Enviar para {matchingTeachers.length} professor{matchingTeachers.length !== 1 ? "es" : ""}</>
               )}

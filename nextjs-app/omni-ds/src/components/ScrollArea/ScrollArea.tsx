@@ -27,8 +27,8 @@ const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
                 // Custom scrollbar styling
                 "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar]:h-1.5",
                 "[&::-webkit-scrollbar-track]:bg-transparent",
-                "[&::-webkit-scrollbar-thumb]:bg-[var(--omni-scrollbar-thumb)] [&::-webkit-scrollbar-thumb]:rounded-full",
-                "[&::-webkit-scrollbar-thumb:hover]:bg-[var(--omni-scrollbar-thumb-hover)]",
+                "[&::-webkit-scrollbar-thumb]:bg-(--omni-scrollbar-thumb) [&::-webkit-scrollbar-thumb]:rounded-full",
+                "[&::-webkit-scrollbar-thumb:hover]:bg-(--omni-scrollbar-thumb-hover)",
                 scrollbarVisibility === "hover" && "[&::-webkit-scrollbar-thumb]:opacity-0 [&:hover::-webkit-scrollbar-thumb]:opacity-100",
                 scrollbarVisibility === "always" && "[&::-webkit-scrollbar-thumb]:opacity-100",
                 className

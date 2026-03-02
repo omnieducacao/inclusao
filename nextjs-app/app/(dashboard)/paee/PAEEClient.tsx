@@ -24,6 +24,7 @@ import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { ResumoAnexosEstudante } from "@/components/ResumoAnexosEstudante";
 import { OmniLoader } from "@/components/OmniLoader";
+import { Card } from "@omni/ds";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -58,8 +59,8 @@ function PAEEClientInner({ students, studentId, student }: Props) {
   const [relatorio, setRelatorio] = useState<string | null>(null);
   const [relLoading, setRelLoading] = useState(false);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const ciclos = (student?.paee_ciclos || []) as CicloPAEE[];
 
   // Carregar dados do PAEE quando o estudante mudar
@@ -308,7 +309,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
 
       {/* Card de informações do estudante */}
       {student && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-2xl bg-gradient-to-br from-violet-50/80 to-purple-50/50" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(196,181,253,0.4)' }}>
+        <Card padding="none" className="p-6 bg-linear-to-br from-violet-50/80 to-purple-50/50 border-violet-200/40">
           <div className="space-y-1">
             <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Nome</div>
             <div className="font-bold text-slate-900 text-lg">{student.name}</div>
@@ -325,12 +326,12 @@ function PAEEClientInner({ students, studentId, student }: Props) {
             <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Hiperfoco</div>
             <div className="font-semibold text-slate-800 truncate" title={hiperfoco}>{hiperfoco}</div>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Tabs Navigation - Melhorada com ícones e badges */}
       {student && (
-        <div className="flex gap-1.5 p-1.5 bg-slate-100/80 rounded-2xl overflow-x-auto scrollbar-hide" style={{ border: '1px solid rgba(226,232,240,0.6)' }}>
+        <div className="flex gap-1.5 p-1.5 bg-(--omni-bg-secondary) rounded-2xl overflow-x-auto scrollbar-hide border border-(--omni-border-default)">
           {tabsConfig.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -339,7 +340,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`group relative px-4 py-2.5 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 flex-shrink-0 ${isActive
+                className={`group relative px-4 py-2.5 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 shrink-0 ${isActive
                   ? "bg-white text-slate-800 shadow-sm"
                   : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
                   }`}
@@ -348,7 +349,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                 <Icon className={`w-4 h-4 ${isActive ? "text-violet-600" : "text-slate-400 group-hover:text-violet-500"}`} />
                 <span>{tab.label}</span>
                 {tab.badge && (
-                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isActive ? "bg-violet-500" : "bg-emerald-500"}`} title="Conteúdo gerado" />
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? "bg-violet-500" : "bg-emerald-500"}`} title="Conteúdo gerado" />
                 )}
               </button>
             );
@@ -440,10 +441,10 @@ function PAEEClientInner({ students, studentId, student }: Props) {
       )}
 
       {student && activeTab === "planejamento" && (
-        <div className="space-y-6 p-6 rounded-2xl bg-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+        <Card padding="none" className="p-6">
           {/* Header da aba */}
           <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
               <Search className="w-6 h-6 text-violet-600" />
             </div>
             <div className="flex-1">
@@ -451,8 +452,8 @@ function PAEEClientInner({ students, studentId, student }: Props) {
               <p className="text-sm text-slate-600 leading-relaxed">
                 <strong className="text-violet-700">Documento de referência:</strong> Registro pedagógico do ciclo de atendimento
                 com objetivos, período, recursos e cronograma geral em <strong>fases</strong> (visão macro). Este documento serve
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                {/* eslint-disable-next-line react/no-unescaped-entities */}
+                {/* eslint-disable-next-line react/no-unescaped-entities */}
                 como referência para o planejamento geral do AEE. Use "Definir como ciclo ativo" para referência em outras abas.
               </p>
               <p className="text-xs text-violet-600 mt-3 font-medium bg-violet-50 px-3 py-2 rounded-lg border border-violet-200">
@@ -532,7 +533,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                         aiLoadingStop();
                       }
                     }}
-                    className="px-3 py-1.5 text-sm bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 flex items-center gap-1.5"
+                    className="px-3 py-1.5 text-sm bg-linear-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 flex items-center gap-1.5"
                   >
                     {relLoading ? "Gerando..." : "📊 Relatório do Ciclo"}
                   </button>
@@ -575,14 +576,14 @@ function PAEEClientInner({ students, studentId, student }: Props) {
               )}
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {student && activeTab === "execucao" && (
-        <div className="space-y-6 p-6 rounded-2xl bg-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+        <Card padding="none" className="p-6">
           {/* Header da aba */}
           <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
               <Target className="w-6 h-6 text-violet-600" />
             </div>
             <div className="flex-1">
@@ -659,7 +660,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
               )}
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {student && activeTab === "jornada" && (
@@ -976,10 +977,10 @@ function JornadaTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <Card padding="none" className="p-6">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
           <Map className="w-6 h-6 text-violet-600" />
         </div>
         <div className="flex-1">
@@ -989,7 +990,7 @@ function JornadaTab({
             jornada gamificada motivadora para o estudante e a família. A IA cria um roteiro com linguagem de conquistas, missões
             e recompensas, sem incluir diagnósticos ou informações clínicas.
           </p>
-          <div className="p-3 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-lg">
+          <div className="p-3 bg-linear-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-lg">
             <p className="text-sm text-violet-800">
               Cada aba do PAEE pode virar uma <strong>jornada gamificada</strong>. Escolha a <strong>origem</strong> na lista abaixo.
               ⚠️ O material gerado será entregue ao estudante — diagnósticos e dados clínicos não são incluídos.
@@ -1299,7 +1300,7 @@ function JornadaTab({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -1676,10 +1677,10 @@ function MapearBarreirasTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <Card padding="none" className="p-6">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
           <AlertTriangle className="w-6 h-6 text-violet-600" />
         </div>
         <div className="flex-1">
@@ -1856,7 +1857,7 @@ function MapearBarreirasTab({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -2030,10 +2031,10 @@ function PlanoHabilidadesTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <Card padding="none" className="p-6">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
           <Target className="w-6 h-6 text-violet-600" />
         </div>
         <div className="flex-1">
@@ -2235,7 +2236,7 @@ function PlanoHabilidadesTab({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -2345,10 +2346,10 @@ function TecAssistivaTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <Card padding="none" className="p-6">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
           <Puzzle className="w-6 h-6 text-violet-600" />
         </div>
         <div className="flex-1">
@@ -2514,7 +2515,7 @@ function TecAssistivaTab({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -2637,10 +2638,10 @@ function ArticulacaoTab({
   };
 
   return (
-    <div className="space-y-6 p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <Card padding="none" className="p-6">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
           <Users className="w-6 h-6 text-violet-600" />
         </div>
         <div className="flex-1">
@@ -2835,7 +2836,7 @@ function ArticulacaoTab({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 

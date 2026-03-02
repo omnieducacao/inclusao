@@ -5,10 +5,10 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { StudentSelector } from "@/components/StudentSelector";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
-import { CheckCircle2, Info, AlertTriangle, Save, Sparkles, Loader2, TrendingUp, ExternalLink } from "lucide-react";
+import { CheckCircle2, Info, AlertTriangle, Save, Sparkles, TrendingUp, ExternalLink } from "lucide-react";
 import { OmniLoader } from "@/components/OmniLoader";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
-import { Card, CardHeader, CardTitle, CardContent, ActivityRow, SubjectProgressRow, StatusDot } from "@omni/ds";
+import { Card, CardHeader, CardTitle, CardContent, ActivityRow, SubjectProgressRow, StatusDot, Button, Select, Textarea, Alert } from "@omni/ds";
 
 type Student = { id: string; name: string };
 type CicloPAEE = {
@@ -234,13 +234,13 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
       />
 
       {!currentId && (
-        <div className="bg-amber-50 text-amber-800 p-4 rounded-lg border border-amber-200">
+        <Alert variant="warning">
           Selecione um estudante para ver o consolidado de dados (PEI, PAEE, Diário) e registrar avaliações.
-        </div>
+        </Alert>
       )}
 
       {currentId && !student && (
-        <div className="text-slate-500">Estudante não encontrado.</div>
+        <div className="text-(--omni-text-muted)">Estudante não encontrado.</div>
       )}
 
       {currentId && student && (
@@ -251,10 +251,10 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
         <div className="space-y-6">
           {/* Consolidação: PEI | PAEE | Diário */}
           <div>
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">
+            <h3 className="text-lg font-semibold text-(--omni-text-primary) mb-2">
               Consolidação de Dados
             </h3>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="text-sm text-(--omni-text-secondary) mb-4">
               Expectativa (PEI), Planejamento (PAEE) e Realidade (Diário de Bordo).
             </p>
 
@@ -392,8 +392,8 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
               </CardHeader>
               <CardContent>
                 {evolucaoProcessualLoading ? (
-                  <div className="flex items-center gap-2 text-slate-500 text-sm">
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                  <div className="flex items-center gap-2 text-(--omni-text-muted) text-sm">
+                    <OmniLoader size={16} />
                     Carregando evolução...
                   </div>
                 ) : evolucaoProcessual && evolucaoProcessual.resumo.total_registros > 0 ? (
@@ -415,32 +415,38 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
                         );
                       })}
                     </div>
-                    <Link
-                      href={`/avaliacao-processual?student=${currentId}`}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition"
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700"
                     >
-                      <ExternalLink className="w-4 h-4" />
-                      Abrir Avaliação Completa
-                    </Link>
+                      <Link href={`/avaliacao-processual?student=${currentId}`} className="flex items-center gap-2 text-white">
+                        <ExternalLink className="w-4 h-4" />
+                        Abrir Avaliação Completa
+                      </Link>
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <p className="text-sm text-slate-600">
+                    <p className="text-sm text-(--omni-text-secondary)">
                       Nenhum registro de Avaliação Processual neste ano. Registre no módulo Avaliação Processual.
                     </p>
-                    <Link
-                      href={`/avaliacao-processual?student=${currentId}`}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition"
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700"
                     >
-                      <ExternalLink className="w-4 h-4" />
-                      Abrir Avaliação Processual
-                    </Link>
+                      <Link href={`/avaliacao-processual?student=${currentId}`} className="flex items-center gap-2 text-white">
+                        <ExternalLink className="w-4 h-4" />
+                        Abrir Avaliação Processual
+                      </Link>
+                    </Button>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            <p className="mt-4 text-sm text-slate-500">
+            <p className="mt-4 text-sm text-(--omni-text-muted)">
               <span className="flex items-center gap-1">
                 <Info className="w-4 h-4" />
                 Recursos gerados no Hub de Inclusão não são persistidos. Registre o uso no Diário de Bordo.
@@ -450,56 +456,45 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
 
           {/* Links rápidos */}
           <div className="flex flex-wrap gap-2">
-            <Link
-              href={`/pei?student=${student.id}`}
-              className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700"
-            >
-              Ver PEI
+            <Link href={`/pei?student=${student.id}`}>
+              <Button variant="primary" size="sm" className="bg-sky-600 hover:bg-sky-700">Ver PEI</Button>
             </Link>
-            <Link
-              href={`/paee?student=${student.id}`}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm hover:bg-slate-50"
-            >
-              Ver PAEE
+            <Link href={`/paee?student=${student.id}`}>
+              <Button variant="ghost" size="sm">Ver PAEE</Button>
             </Link>
-            <Link
-              href={`/diario?student=${student.id}`}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm hover:bg-slate-50"
-            >
-              Ver Diário
+            <Link href={`/diario?student=${student.id}`}>
+              <Button variant="ghost" size="sm">Ver Diário</Button>
             </Link>
-            <Link
-              href={`/avaliacao-processual?student=${student.id}`}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm hover:bg-slate-50"
-            >
-              Avaliação Processual
+            <Link href={`/avaliacao-processual?student=${student.id}`}>
+              <Button variant="ghost" size="sm">Avaliação Processual</Button>
             </Link>
           </div>
 
           {/* Rubrica de Avaliação */}
-          <div className="p-6 rounded-2xl bg-white min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+          <Card>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold text-slate-800">Rubrica de Desenvolvimento</h3>
-              <button
-                type="button"
+              <h3 className="text-lg font-semibold text-(--omni-text-primary)">Rubrica de Desenvolvimento</h3>
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={sugerirRubricas}
                 disabled={sugLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 transition-all shadow-sm"
+                className="bg-linear-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700"
                 title="Analisa registros do Diário para sugerir pontuações"
               >
                 {sugLoading ? <OmniLoader engine="red" size={14} /> : <Sparkles className="w-3.5 h-3.5" />}
                 Sugerir com IA
-              </button>
+              </Button>
             </div>
             <form onSubmit={handleSalvarAvaliacao} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.entries(CRITERIOS).map(([key, label]) => (
                   <div key={key}>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+                    <label className="block text-sm font-medium text-(--omni-text-secondary) mb-1">{label}</label>
                     <select
                       value={rubrica[key] || "Em Desenvolvimento"}
                       onChange={(e) => setRubrica((p) => ({ ...p, [key]: e.target.value }))}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                      className="w-full px-3 py-2 border border-(--omni-border-default) rounded-lg text-sm bg-(--omni-bg-primary) text-(--omni-text-primary) focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                     >
                       {OPCOES_RUBRICA.map((op) => (
                         <option key={op} value={op}>
@@ -511,32 +506,26 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
                 ))}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-(--omni-text-secondary) mb-1">
                   Observação Final da Avaliação
                 </label>
-                <textarea
+                <Textarea
                   value={observacao}
                   onChange={(e) => setObservacao(e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                   placeholder="Registre observações relevantes..."
                 />
               </div>
               {message && (
-                <div
-                  className={
-                    message.type === "ok"
-                      ? "text-emerald-600 text-sm"
-                      : "text-red-600 text-sm"
-                  }
-                >
+                <Alert variant={message.type === "ok" ? "success" : "error"}>
                   {message.text}
-                </div>
+                </Alert>
               )}
-              <button
+              <Button
                 type="submit"
                 disabled={saving}
-                className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 disabled:opacity-60"
+                variant="primary"
+                className="bg-sky-600 hover:bg-sky-700"
               >
                 {saving ? "Salvando…" : (
                   <>
@@ -544,9 +533,9 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
                     Salvar Monitoramento
                   </>
                 )}
-              </button>
+              </Button>
             </form>
-          </div>
+          </Card>
         </div>
       )}
     </div>
@@ -557,8 +546,8 @@ export function MonitoramentoClient({ students, studentId, student }: Props) {
   return (
     <Suspense fallback={
       <div className="space-y-4">
-        <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
-        <div className="text-slate-500 text-center py-8">Carregando...</div>
+        <div className="h-10 bg-(--omni-bg-tertiary) rounded-lg animate-pulse" />
+        <div className="text-(--omni-text-muted) text-center py-8">Carregando...</div>
       </div>
     }>
       <MonitoramentoClientInner students={students} studentId={studentId} student={student} />

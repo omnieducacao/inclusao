@@ -10,14 +10,11 @@ export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" |
       {/* Logos lado a lado: Omni Educação + "Conheça também" + OmniProf */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
         {/* Omni Educação logo */}
-        <div className="flex-shrink-0 relative">
-          <Image
-            src="/omni_icone.png"
-            alt="Omnisfera Icon"
-            width={16}
-            height={16}
-            className="w-4 h-4 object-contain"
-            style={{ filter: 'var(--img-dark-invert, none)' }}
+        <div className="shrink-0">
+          <img
+            src="/omni_educacao_logo.png"
+            alt="Omni Educação"
+            className="h-10 w-auto object-contain"
           />
         </div>
 
@@ -38,7 +35,7 @@ export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" |
               className="h-7 w-auto object-contain"
               style={{ filter: 'var(--img-dark-invert, none)' }}
             />
-            <svg className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--text-muted, #94a3b8)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-3 h-3 shrink-0" style={{ color: 'var(--text-muted, #94a3b8)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
           </a>

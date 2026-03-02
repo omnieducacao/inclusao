@@ -6,7 +6,9 @@ import { StudentSelector } from "@/components/StudentSelector";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { getColorClasses } from "@/lib/colors";
-import { Filter, Plus, List, BarChart3, Settings, Download, FileText, Loader2, Sparkles } from "lucide-react";
+import { Card } from "@omni/ds";
+import { OmniLoader } from "@/components/OmniLoader";
+import { Filter, Plus, List, BarChart3, Settings, Download, FileText, Sparkles } from "lucide-react";
 import {
   BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line
@@ -192,7 +194,7 @@ function DiarioClientInner({ students, studentId, student }: Props) {
         <PEISummaryPanel peiData={peiData} studentName={student.name} />
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-2xl min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg, boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)', border: '1px solid rgba(226,232,240,0.6)' }}>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-2xl border border-(--omni-border-default) shadow-sm min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg }}>
         <div>
           <div className="text-xs font-semibold text-slate-500 uppercase">Estudante</div>
           <div className="font-bold text-slate-800">{student.name}</div>
@@ -588,9 +590,9 @@ function ListaTab({
           </div>
         </div>
         {registros.length === 0 ? (
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white text-slate-500 min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+          <Card className="text-(--omni-text-muted)">
             Nenhum registro ainda. Preencha o formulário acima para criar o primeiro.
-          </div>
+          </Card>
         ) : viewMode === "lista" ? (
           <div className="space-y-3">
             {registros.map((r, i) => (
@@ -646,7 +648,7 @@ function TimelineView({
           return (
             <div key={r.registro_id || idx} className="relative flex items-start gap-4">
               {/* Ponto na timeline */}
-              <div className="relative z-10 flex-shrink-0">
+              <div className="relative z-10 shrink-0">
                 <div className={`w-4 h-4 rounded-full border-2 ${r.modalidade_atendimento === "individual" ? "bg-blue-500 border-blue-700" :
                   r.modalidade_atendimento === "grupo" ? "bg-green-500 border-green-700" :
                     r.modalidade_atendimento === "observacao_sala" ? "bg-yellow-500 border-yellow-700" :
@@ -1297,7 +1299,7 @@ function AnaliseIADiario({ registros, student }: { registros: RegistroDiario[]; 
         >
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <OmniLoader size={16} />
               Analisando padrões...
             </>
           ) : (
@@ -1313,7 +1315,7 @@ function AnaliseIADiario({ registros, student }: { registros: RegistroDiario[]; 
       </p>
       {erro && <p className="text-red-600 text-sm mb-3">❌ {erro}</p>}
       {resultado && (
-        <div className="p-5 rounded-xl bg-gradient-to-br from-violet-50 to-slate-50 border border-violet-200">
+        <div className="p-5 rounded-xl bg-linear-to-br from-violet-50 to-slate-50 border border-violet-200">
           <div className="flex justify-end mb-2">
             <button
               type="button"

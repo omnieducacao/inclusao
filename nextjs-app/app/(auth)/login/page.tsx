@@ -96,10 +96,10 @@ function LoginForm() {
   }
 
   const inputCls =
-    "w-full px-4 py-3 bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)] rounded-xl text-[var(--omni-text-primary)] placeholder:text-[var(--omni-text-muted)] focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 outline-none transition-all duration-200";
+    "w-full px-4 py-3 bg-(--omni-bg-secondary) border border-(--omni-border-default) rounded-xl text-(--omni-text-primary) placeholder:text-(--omni-text-muted) focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 outline-none transition-all duration-200";
 
   return (
-    <div className="bg-[var(--omni-bg-primary)] min-h-screen relative flex items-center justify-center overflow-hidden">
+    <div className="bg-(--omni-bg-primary) min-h-screen relative flex items-center justify-center overflow-hidden">
       {/* ═══════ Full-Screen Aurora Background ═══════ */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-[5%] left-[2%] w-[500px] h-[500px] rounded-full bg-red-400/[0.07] blur-[120px] animate-blob" />
@@ -140,7 +140,7 @@ function LoginForm() {
         {/* ────────────────────────────────────────
             LEFT — Brand Element (logo + wordmark)
            ──────────────────────────────────────── */}
-        <div className="flex items-center justify-center py-12 lg:py-0 flex-shrink-0">
+        <div className="flex items-center justify-center py-12 lg:py-0 shrink-0">
           <div className="flex flex-col items-center gap-0 animate-fade-in-up">
             {/* Glow + Orbital rings + Logo */}
             <div className="relative">
@@ -243,14 +243,14 @@ function LoginForm() {
                   </div>
                   {error && (
                     <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-2.5 rounded-xl">
-                      <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                      <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
                       {error}
                     </div>
                   )}
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-60 disabled:hover:shadow-none transition-all duration-300 active:scale-[0.98]"
+                    className="w-full py-3 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-60 disabled:hover:shadow-none transition-all duration-300 active:scale-[0.98]"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -263,7 +263,7 @@ function LoginForm() {
               ) : (
                 <form onSubmit={handleAdminLogin} className="space-y-5">
                   <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50/80 border border-slate-200 px-4 py-2.5 rounded-xl mb-1">
-                    <svg className="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    <svg className="w-4 h-4 text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     Acesso administrativo da plataforma
                   </div>
                   <div>
@@ -294,14 +294,14 @@ function LoginForm() {
                   </div>
                   {adminError && (
                     <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-2.5 rounded-xl">
-                      <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                      <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
                       {adminError}
                     </div>
                   )}
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white font-bold rounded-xl hover:from-slate-800 hover:to-slate-900 hover:shadow-lg disabled:opacity-60 transition-all duration-300 active:scale-[0.98]"
+                    className="w-full py-3 bg-linear-to-r from-slate-700 to-slate-800 text-white font-bold rounded-xl hover:from-slate-800 hover:to-slate-900 hover:shadow-lg disabled:opacity-60 transition-all duration-300 active:scale-[0.98]"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -347,7 +347,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="bg-[var(--omni-bg-primary)] min-h-screen flex items-center justify-center">
+      <div className="bg-(--omni-bg-primary) min-h-screen flex items-center justify-center">
         <div className="omni-logo-spin">
           <Image src="/omni_icone.png" alt="Omnisfera" width={48} height={48} className="object-contain" priority />
         </div>

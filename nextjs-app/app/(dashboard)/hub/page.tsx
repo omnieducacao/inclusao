@@ -70,12 +70,9 @@ export default async function HubPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <PageHero
-        iconName="Rocket"
+      <PageHero moduleKey="hub"
         title="Hub de Recursos"
         desc="Adaptar provas, atividades, criar do zero e muito mais."
-        color="cyan"
-        useLottie={true}
       />
 
       <Suspense fallback={<div className="rounded-2xl bg-white animate-pulse min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }} />}>

@@ -19,9 +19,9 @@ function Tabs({ items, activeKey: controlledKey, defaultActiveKey, onChange, var
 
     const base = "inline-flex items-center gap-1.5 font-semibold transition-all cursor-pointer select-none whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed";
     const variants = {
-        line: { wrapper: "flex border-b border-[var(--omni-border-default)] gap-1", tab: "px-4 py-2.5 text-sm -mb-px", active: "text-sky-600 border-b-2 border-sky-600", inactive: "text-[var(--omni-text-muted)] hover:text-[var(--omni-text-primary)]" },
-        card: { wrapper: "flex bg-[var(--omni-bg-tertiary)] p-1 rounded-xl gap-1", tab: "px-4 py-2 text-sm rounded-lg", active: "bg-[var(--omni-bg-secondary)] text-[var(--omni-text-primary)] shadow-[var(--omni-shadow-sm)]", inactive: "text-[var(--omni-text-muted)] hover:text-[var(--omni-text-primary)]" },
-        pill: { wrapper: "flex gap-2", tab: "px-4 py-2 text-sm rounded-full", active: "bg-sky-600 text-white shadow-sm", inactive: "bg-[var(--omni-bg-tertiary)] text-[var(--omni-text-muted)] hover:bg-[var(--omni-bg-hover)]" },
+        line: { wrapper: "flex border-b border-(--omni-border-default) gap-1", tab: "px-4 py-2.5 text-sm -mb-px", active: "text-sky-600 border-b-2 border-sky-600", inactive: "text-(--omni-text-muted) hover:text-(--omni-text-primary)" },
+        card: { wrapper: "flex bg-(--omni-bg-tertiary) p-1 rounded-xl gap-1", tab: "px-4 py-2 text-sm rounded-lg", active: "bg-(--omni-bg-secondary) text-(--omni-text-primary) shadow-(--omni-shadow-sm)", inactive: "text-(--omni-text-muted) hover:text-(--omni-text-primary)" },
+        pill: { wrapper: "flex gap-2", tab: "px-4 py-2 text-sm rounded-full", active: "bg-sky-600 text-white shadow-sm", inactive: "bg-(--omni-bg-tertiary) text-(--omni-text-muted) hover:bg-(--omni-bg-hover)" },
     };
     const v = variants[variant];
     return (

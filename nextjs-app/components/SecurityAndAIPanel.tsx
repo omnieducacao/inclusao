@@ -42,7 +42,7 @@ export function SecurityAndAIPanel({ engines = ["red", "blue", "green", "yellow"
                 {/* ── LGPD Section ── */}
                 <div className="flex items-start gap-3 mb-4">
                     <div
-                        className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                        className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
                         style={{
                             background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(59,130,246,0.12))',
                             border: '1px solid rgba(16,185,129,0.15)',
@@ -111,7 +111,7 @@ export function SecurityAndAIPanel({ engines = ["red", "blue", "green", "yellow"
                 {/* ── AI Engines Section ── */}
                 <div className="flex items-start gap-3 mb-3">
                     <div
-                        className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                        className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
                         style={{
                             background: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.12))',
                             border: '1px solid rgba(99,102,241,0.15)',
@@ -165,7 +165,7 @@ export function SecurityAndAIPanel({ engines = ["red", "blue", "green", "yellow"
                                 onMouseLeave={() => setHoveredEngine(null)}
                             >
                                 <span
-                                    className="w-2 h-2 rounded-full flex-shrink-0"
+                                    className="w-2 h-2 rounded-full shrink-0"
                                     style={{
                                         backgroundColor: colors.dot,
                                         boxShadow: `0 0 6px ${colors.dot}40`,

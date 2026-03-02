@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-    BookOpen, Loader2, Plus, ChevronLeft, CheckCircle2,
-    GraduationCap, FileText, AlertTriangle, ListChecks, Save,
+    BookOpen, Plus, ChevronLeft, CheckCircle2,
+    GraduationCap, FileText, ListChecks, Save,
 } from "lucide-react";
 import { PlanoCursoEditor } from "@/components/PlanoCursoEditor";
+import { PageHero } from "@/components/PageHero";
 import { OnboardingPanel } from "@/components/OnboardingPanel";
+import { Card, Button, Badge, EmptyState, SectionTitle } from "@omni/ds";
+import { OmniLoader } from "@/components/OmniLoader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -110,9 +113,8 @@ export default function PlanoCursoClient() {
 
     if (loading) {
         return (
-            <div style={{ padding: 60, textAlign: "center" }}>
-                <Loader2 size={32} className="animate-spin" style={{ color: "#0ea5e9", margin: "0 auto" }} />
-                <p style={{ color: "var(--text-muted)", marginTop: 14, fontSize: 14 }}>Carregando seus componentes...</p>
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <OmniLoader variant="card" />
             </div>
         );
     }
@@ -121,20 +123,15 @@ export default function PlanoCursoClient() {
 
     if (selectedCombo) {
         return (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <button
+            <div className="flex flex-col gap-4">
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => { setSelectedCombo(null); fetchData(); }}
-                    type="button"
-                    style={{
-                        display: "flex", alignItems: "center", gap: 6,
-                        padding: "8px 14px", borderRadius: 10, fontSize: 13, fontWeight: 600,
-                        border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                        background: "transparent", color: "var(--text-muted, #94a3b8)",
-                        cursor: "pointer", width: "fit-content",
-                    }}
+                    className="w-fit"
                 >
                     <ChevronLeft size={16} /> Voltar aos componentes
-                </button>
+                </Button>
 
                 <PlanoCursoEditor
                     componente={selectedCombo.componente}
@@ -148,7 +145,7 @@ export default function PlanoCursoClient() {
     // ─── Grid view ──────────────────────────────────────────────────────────
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="flex flex-col gap-5">
             {/* Onboarding Panel */}
             {showOnboarding && (
                 <OnboardingPanel
@@ -167,38 +164,20 @@ export default function PlanoCursoClient() {
                 />
             )}
 
-            {/* Header */}
-            <div style={{
-                background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-                borderRadius: 16, padding: "24px 28px", color: "#fff",
-            }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <BookOpen size={28} />
-                    <div>
-                        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>Plano de Curso</h2>
-                        <p style={{ margin: "4px 0 0", fontSize: 13, opacity: 0.85 }}>
-                            {professorName} · {combos.length} componente{combos.length !== 1 ? "s" : ""}/série{combos.length !== 1 ? "s" : ""} vinculado{combos.length !== 1 ? "s" : ""}
-                        </p>
-                    </div>
-                </div>
-            </div>
+            {/* Header — unified PageHero */}
+            <PageHero
+                route="/plano-curso"
+                title="Plano de Curso"
+                desc={`${professorName} · ${combos.length} componente${combos.length !== 1 ? "s" : ""}/série${combos.length !== 1 ? "s" : ""} vinculado${combos.length !== 1 ? "s" : ""}`}
+            />
 
             {/* Empty state */}
             {combos.length === 0 && (
-                <div style={{
-                    padding: "48px 24px", textAlign: "center",
-                    border: "2px dashed var(--border-default, rgba(148,163,184,.15))",
-                    borderRadius: 16, color: "var(--text-muted, #64748b)",
-                }}>
-                    <AlertTriangle size={36} style={{ margin: "0 auto 16px", opacity: 0.4 }} />
-                    <h3 style={{ marginBottom: 8, fontWeight: 700, color: "var(--text-primary, #e2e8f0)" }}>
-                        Nenhum componente vinculado
-                    </h3>
-                    <p style={{ fontSize: 14, maxWidth: 400, margin: "0 auto" }}>
-                        Você ainda não está vinculado a componentes curriculares e séries.
-                        Peça ao coordenador para cadastrar seus vínculos em <strong>Gestão de Usuários</strong>.
-                    </p>
-                </div>
+                <EmptyState
+                    icon={BookOpen}
+                    title="Nenhum componente vinculado"
+                    description="Você ainda não está vinculado a componentes curriculares e séries. Peça ao coordenador para cadastrar seus vínculos em Gestão de Usuários."
+                />
             )}
 
             {/* Component groups */}
@@ -206,76 +185,67 @@ export default function PlanoCursoClient() {
                 const color = getColor(componente);
                 return (
                     <div key={componente}>
-                        <div style={{
-                            display: "flex", alignItems: "center", gap: 8,
-                            marginBottom: 12, paddingBottom: 8,
-                            borderBottom: `2px solid ${color.border}`,
-                        }}>
+                        <div className="flex items-center gap-2 mb-3 pb-2" style={{ borderBottom: `2px solid ${color.border}` }}>
                             <GraduationCap size={18} style={{ color: color.accent }} />
-                            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: color.text }}>{componente}</h3>
-                            <span style={{
-                                fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6,
-                                background: color.bg, color: color.text,
-                            }}>
+                            <h3 className="text-base font-bold m-0" style={{ color: color.text }}>{componente}</h3>
+                            <Badge size="sm" style={{ background: color.bg, color: color.text }}>
                                 {items.length} série{items.length !== 1 ? "s" : ""}
-                            </span>
+                            </Badge>
                         </div>
 
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                             {items.map((item) => {
                                 const count = getPlanoCount(item.componente, item.serie);
                                 const lastUpdated = getLastUpdated(item.componente, item.serie);
                                 const hasPlanos = count > 0;
 
                                 return (
-                                    <button
+                                    <Card
                                         key={`${item.componente}:${item.serie}`}
-                                        onClick={() => setSelectedCombo(item)}
-                                        type="button"
+                                        variant="interactive"
+                                        padding="md"
+                                        className="cursor-pointer"
                                         style={{
-                                            display: "flex", flexDirection: "column", gap: 8,
-                                            padding: "16px 18px", borderRadius: 14,
-                                            border: `1.5px solid ${hasPlanos ? color.border : "var(--border-default, rgba(148,163,184,.12))"}`,
-                                            background: hasPlanos ? color.bg : "var(--bg-secondary, rgba(15,23,42,.4))",
-                                            cursor: "pointer", textAlign: "left",
-                                            transition: "all .2s",
+                                            borderColor: hasPlanos ? color.border : undefined,
+                                            background: hasPlanos ? color.bg : undefined,
                                         }}
+                                        onClick={() => setSelectedCombo(item)}
                                     >
-                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-                                            <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary, #e2e8f0)" }}>
+                                        <div className="flex items-center justify-between w-full">
+                                            <span className="text-[15px] font-bold text-(--omni-text-primary)">
                                                 {item.serie}
                                             </span>
                                             {hasPlanos ? (
                                                 <CheckCircle2 size={16} style={{ color: color.accent }} />
                                             ) : (
-                                                <Plus size={16} style={{ color: "var(--text-muted, #64748b)" }} />
+                                                <Plus size={16} className="text-(--omni-text-muted)" />
                                             )}
                                         </div>
 
                                         {item.classGroup && (
-                                            <span style={{ fontSize: 11, color: "var(--text-muted, #94a3b8)" }}>
+                                            <span className="text-xs text-(--omni-text-muted) mt-1">
                                                 Turma {item.classGroup}
                                             </span>
                                         )}
 
                                         {hasPlanos ? (
-                                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                            <div className="flex items-center gap-1.5 mt-2">
                                                 <FileText size={12} style={{ color: color.text }} />
-                                                <span style={{ fontSize: 12, fontWeight: 600, color: color.text }}>
+                                                <span className="text-xs font-semibold" style={{ color: color.text }}>
                                                     {count} plano{count !== 1 ? "s" : ""}
                                                 </span>
                                                 {lastUpdated && (
-                                                    <span style={{ fontSize: 10, color: "var(--text-muted, #94a3b8)" }}>
+                                                    <span className="text-[10px] text-(--omni-text-muted)">
                                                         · {new Date(lastUpdated).toLocaleDateString("pt-BR")}
                                                     </span>
                                                 )}
                                             </div>
                                         ) : (
-                                            <span style={{ fontSize: 12, color: "var(--text-muted, #64748b)" }}>
+                                            <span className="text-xs text-(--omni-text-muted) mt-2">
                                                 Criar plano
                                             </span>
                                         )}
-                                    </button>
+                                    </Card>
                                 );
                             })}
                         </div>

@@ -126,7 +126,7 @@ const CommandPalette = forwardRef<HTMLDivElement, CommandPaletteProps>(
                     aria-label="Command palette"
                     className={cn(
                         "relative w-full max-w-lg rounded-2xl overflow-hidden",
-                        "bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)]",
+                        "bg-(--omni-bg-secondary) border border-(--omni-border-default)",
                         "shadow-[var(--omni-shadow-2xl)]",
                         className
                     )}
@@ -134,8 +134,8 @@ const CommandPalette = forwardRef<HTMLDivElement, CommandPaletteProps>(
                     {...props}
                 >
                     {/* Search input */}
-                    <div className="flex items-center gap-3 px-4 border-b border-[var(--omni-border-default)]">
-                        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="shrink-0 text-[var(--omni-text-muted)]">
+                    <div className="flex items-center gap-3 px-4 border-b border-(--omni-border-default)">
+                        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="shrink-0 text-(--omni-text-muted)">
                             <circle cx="7" cy="7" r="5" />
                             <path d="M14 14L10.5 10.5" />
                         </svg>
@@ -146,12 +146,12 @@ const CommandPalette = forwardRef<HTMLDivElement, CommandPaletteProps>(
                             onChange={(e) => { setQuery(e.target.value); setHighlightedIndex(0); }}
                             onKeyDown={handleKeyDown}
                             placeholder={placeholder}
-                            className="flex-1 bg-transparent h-12 text-sm text-[var(--omni-text-primary)] placeholder:text-[var(--omni-text-muted)] outline-none"
+                            className="flex-1 bg-transparent h-12 text-sm text-(--omni-text-primary) placeholder:text-(--omni-text-muted) outline-none"
                             role="combobox"
                             aria-expanded={true}
                             aria-autocomplete="list"
                         />
-                        <kbd className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-[var(--omni-text-muted)] bg-[var(--omni-bg-tertiary)] rounded-md border border-[var(--omni-border-default)]">
+                        <kbd className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-(--omni-text-muted) bg-(--omni-bg-tertiary) rounded-md border border-(--omni-border-default)">
                             ESC
                         </kbd>
                     </div>
@@ -159,13 +159,13 @@ const CommandPalette = forwardRef<HTMLDivElement, CommandPaletteProps>(
                     {/* Results */}
                     <div ref={listRef} className="max-h-72 overflow-auto p-2" role="listbox">
                         {flatItems.length === 0 ? (
-                            <div className="py-6 text-center text-sm text-[var(--omni-text-muted)]">
+                            <div className="py-6 text-center text-sm text-(--omni-text-muted)">
                                 Nenhum comando encontrado
                             </div>
                         ) : (
                             Object.entries(groups).map(([group, groupItems]) => (
                                 <div key={group}>
-                                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[var(--omni-text-muted)]">
+                                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-(--omni-text-muted)">
                                         {group}
                                     </div>
                                     {groupItems.map((item) => {
@@ -184,24 +184,24 @@ const CommandPalette = forwardRef<HTMLDivElement, CommandPaletteProps>(
                                                     "flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm",
                                                     "transition-colors cursor-pointer outline-none text-left",
                                                     globalIndex === highlightedIndex
-                                                        ? "bg-[var(--omni-bg-hover)]"
-                                                        : "hover:bg-[var(--omni-bg-hover)]",
+                                                        ? "bg-(--omni-bg-hover)"
+                                                        : "hover:bg-(--omni-bg-hover)",
                                                     item.disabled && "opacity-40 cursor-not-allowed"
                                                 )}
                                             >
                                                 {item.icon && (
-                                                    <span className="shrink-0 w-5 h-5 flex items-center justify-center text-[var(--omni-text-muted)]">
+                                                    <span className="shrink-0 w-5 h-5 flex items-center justify-center text-(--omni-text-muted)">
                                                         {item.icon}
                                                     </span>
                                                 )}
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-medium text-[var(--omni-text-primary)] truncate">{item.label}</p>
+                                                    <p className="font-medium text-(--omni-text-primary) truncate">{item.label}</p>
                                                     {item.description && (
-                                                        <p className="text-xs text-[var(--omni-text-muted)] truncate">{item.description}</p>
+                                                        <p className="text-xs text-(--omni-text-muted) truncate">{item.description}</p>
                                                     )}
                                                 </div>
                                                 {item.shortcut && (
-                                                    <kbd className="flex items-center gap-0.5 text-[10px] font-mono font-semibold text-[var(--omni-text-muted)]">
+                                                    <kbd className="flex items-center gap-0.5 text-[10px] font-mono font-semibold text-(--omni-text-muted)">
                                                         {item.shortcut}
                                                     </kbd>
                                                 )}
@@ -214,7 +214,7 @@ const CommandPalette = forwardRef<HTMLDivElement, CommandPaletteProps>(
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center gap-4 px-4 py-2 border-t border-[var(--omni-border-default)] text-[10px] text-[var(--omni-text-muted)]">
+                    <div className="flex items-center gap-4 px-4 py-2 border-t border-(--omni-border-default) text-[10px] text-(--omni-text-muted)">
                         <span className="flex items-center gap-1"><kbd className="font-mono">↑↓</kbd> Navegar</span>
                         <span className="flex items-center gap-1"><kbd className="font-mono">↵</kbd> Selecionar</span>
                         <span className="flex items-center gap-1"><kbd className="font-mono">ESC</kbd> Fechar</span>

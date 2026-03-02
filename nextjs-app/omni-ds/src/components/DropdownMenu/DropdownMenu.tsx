@@ -128,8 +128,8 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
                 aria-orientation="vertical"
                 className={cn(
                     "absolute z-50 min-w-[180px] overflow-hidden rounded-xl",
-                    "bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)]",
-                    "shadow-[var(--omni-shadow-lg)] p-1.5",
+                    "bg-(--omni-bg-secondary) border border-(--omni-border-default)",
+                    "shadow-(--omni-shadow-lg) p-1.5",
                     "animate-in fade-in-0 zoom-in-95",
                     side === "bottom" ? "mt-2" : "mb-2 bottom-full",
                     align === "end" ? "right-0" : align === "center" ? "left-1/2 -translate-x-1/2" : "left-0",
@@ -166,10 +166,10 @@ export const DropdownMenuItem = forwardRef<HTMLButtonElement, DropdownMenuItemPr
                 className={cn(
                     "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium",
                     "transition-colors cursor-pointer outline-none",
-                    "focus:bg-[var(--omni-bg-hover)] hover:bg-[var(--omni-bg-hover)]",
+                    "focus:bg-(--omni-bg-hover) hover:bg-(--omni-bg-hover)",
                     destructive
                         ? "text-red-600 focus:text-red-600 dark:text-red-400"
-                        : "text-[var(--omni-text-primary)]",
+                        : "text-(--omni-text-primary)",
                     disabled && "opacity-50 cursor-not-allowed pointer-events-none",
                     className
                 )}
@@ -193,10 +193,10 @@ export const DropdownMenuItem = forwardRef<HTMLButtonElement, DropdownMenuItemPr
                 }}
                 {...props}
             >
-                {icon && <span className="shrink-0 text-[var(--omni-text-muted)]">{icon}</span>}
+                {icon && <span className="shrink-0 text-(--omni-text-muted)">{icon}</span>}
                 <span className="flex-1 text-left">{children}</span>
                 {shortcut && (
-                    <span className="ml-auto text-xs text-[var(--omni-text-muted)] font-mono">
+                    <span className="ml-auto text-xs text-(--omni-text-muted) font-mono">
                         {shortcut}
                     </span>
                 )}
@@ -211,7 +211,7 @@ export function DropdownMenuSeparator({ className, ...props }: HTMLAttributes<HT
     return (
         <div
             role="separator"
-            className={cn("h-px my-1 bg-[var(--omni-border-default)]", className)}
+            className={cn("h-px my-1 bg-(--omni-border-default)", className)}
             {...props}
         />
     );
@@ -222,7 +222,7 @@ export function DropdownMenuLabel({ className, children, ...props }: HTMLAttribu
     return (
         <div
             className={cn(
-                "px-3 py-1.5 text-xs font-semibold text-[var(--omni-text-muted)] uppercase tracking-wider",
+                "px-3 py-1.5 text-xs font-semibold text-(--omni-text-muted) uppercase tracking-wider",
                 className
             )}
             {...props}

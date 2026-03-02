@@ -3,11 +3,39 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import type { Icon } from "phosphor-react";
-import { getColorClasses, colorPalette, colorPaletteDark } from "@/lib/colors";
+import { getModuleColors } from "@/lib/module-theme";
 import { LottieIcon } from "@omni/ds";
 import { ModuleCard } from "@omni/ds";
 import { useRouter } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
+
+// Mapeamento de href para moduleKey válido no DS
+// Todos os valores devem ser chaves que existem no moduleColors do @omni/ds
+const hrefToModuleKey: Record<string, string> = {
+  "/pei": "pei",
+  "/paee": "paee",
+  "/hub": "hub",
+  "/diario": "diario",
+  "/cursos": "cursos",
+  "/ferramentas": "ferramentas",
+  "/omnisfera": "omnisfera",
+  "/gestao": "gestao",
+  "/monitoramento": "monitoramento",
+  "/pgi": "pgi",
+  "/admin": "admin",
+  // Módulos que não têm chave direta no DS — mapeados para cores similares
+  "/estudantes": "omnisfera",      // sky blue
+  "/pei-regente": "monitoramento", // teal
+  "/plano-curso": "omnisfera",     // sky blue
+  "/avaliacao-diagnostica": "ferramentas", // blue
+  "/avaliacao-processual": "diario",       // green
+  "/infos": "gestao",              // indigo
+  "/config-escola": "pgi",         // purple
+};
+
+function getModuleKey(href: string): string {
+  return hrefToModuleKey[href] || "pei";
+}
 
 // Import dinâmico dos ícones Phosphor para evitar problemas de SSR
 let iconMap: Record<string, Icon> | null = null;
@@ -186,7 +214,7 @@ export function ModuleCardsLottie({
         {modules.map((m, index) => {
           const Icon = loadedIconMap[m.iconName];
           if (!Icon) return null;
-          const colors = getColorClasses(m.color, isDark);
+          const colors = getModuleColors(m.color, isDark);
           const lottieMaps = getLottieMaps();
           const lottieAnimation = m.lottieOverride || lottieMaps.default[m.iconName];
           const shouldUseLottie = (m.useLottie ?? useLottieOnHover) || useLottieByDefault;
@@ -205,6 +233,7 @@ export function ModuleCardsLottie({
               useLottieByDefault={useLottieByDefault}
               index={index}
               compact={compact}
+              variant={theme === 'notebook' ? 'pastel' : 'saturated'}
             />
           );
         })}
@@ -225,11 +254,12 @@ function ModuleCardWithLottie({
   useLottieByDefault = false,
   index = 0,
   compact = false,
+  variant = "saturated",
 }: {
   href: string;
   icon: Icon;
   lottieAnimation?: string;
-  colors: ReturnType<typeof getColorClasses>;
+  colors: ReturnType<typeof getModuleColors>;
   title: string;
   desc: string;
   badge?: string | BadgeInfo;
@@ -237,6 +267,7 @@ function ModuleCardWithLottie({
   useLottieByDefault?: boolean;
   index?: number;
   compact?: boolean;
+  variant?: "saturated" | "pastel";
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -324,13 +355,14 @@ function ModuleCardWithLottie({
       onMouseLeave={() => setIsHovered(false)}
     >
       <ModuleCard
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        moduleKey={(href.replace("/", "") as any) || "pei"}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        moduleKey={getModuleKey(href) as any}
         title={title}
         description={desc}
         badge={typeof badge === "string" ? badge : badge?.text}
         onClick={() => router.push(href)}
-        className={`w-full h-full cursor-pointer ${compact ? 'min-h-[120px]' : 'min-h-[150px]'}`}
+        variant={variant}
+        className={`w-full h-full cursor-pointer aspect-square`}
         iconElement={
           <div className={`transition-all duration-300 ease-out mb-2`}>
             {shouldShowLottie && lottieAnimation ? (
@@ -340,7 +372,7 @@ function ModuleCardWithLottie({
                   width: `${iconSize}px`,
                   height: `${iconSize}px`,
                   background: `linear-gradient(135deg, ${colors.icon}20, ${colors.icon}09)`,
-                  boxShadow: isHovered ? `0 8px 20px ${colors.icon}25` : undefined,
+                  boxShadow: isHovered ? `0 8px 20px ${colors.icon}25` : `0 2px 10px ${colors.icon}15, 0 1px 3px rgba(0,0,0,0.06)`,
                 }}
               >
                 <LottieIcon
@@ -358,7 +390,7 @@ function ModuleCardWithLottie({
                   width: `${iconSize}px`,
                   height: `${iconSize}px`,
                   background: `linear-gradient(135deg, ${colors.icon}20, ${colors.icon}09)`,
-                  boxShadow: isHovered ? `0 8px 20px ${colors.icon}25` : undefined,
+                  boxShadow: isHovered ? `0 8px 20px ${colors.icon}25` : `0 2px 10px ${colors.icon}15, 0 1px 3px rgba(0,0,0,0.06)`,
                 }}
               >
                 <Icon
@@ -438,14 +470,14 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
         className="group relative block rounded-2xl overflow-hidden transition-all duration-300 ease-out
           hover:-translate-y-1 hover:shadow-premium-lg shadow-premium
           border border-(--border-default) hover:border-purple-500/30"
-        style={{ backgroundColor: isDark ? colorPaletteDark.table.bg : colorPalette.table.bg }}
+        style={{ backgroundColor: getModuleColors('gestao', isDark).bg }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Top accent bar */}
         <div
           className="h-[3px] group-hover:h-[4px] w-full transition-all duration-300 ease-out"
-          style={{ background: `linear-gradient(to right, ${isDark ? colorPaletteDark.table.icon : colorPalette.table.icon}, #a855f7)` }}
+          style={{ background: `linear-gradient(to right, ${getModuleColors('gestao', isDark).icon}, #a855f7)` }}
         />
 
         {/* Glow no topo */}
@@ -455,7 +487,7 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
         />
 
         <div className="p-5 relative z-10">
-          <div className="absolute inset-0 bg-linear-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${isDark ? colorPaletteDark.table.icon : colorPalette.table.icon}15, transparent, ${isDark ? colorPaletteDark.table.icon : colorPalette.table.icon}15)` }} />
+          <div className="absolute inset-0 bg-linear-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ background: `linear-gradient(to right, ${getModuleColors('gestao', isDark).icon}15, transparent, ${getModuleColors('gestao', isDark).icon}15)` }} />
           <div className="relative flex items-start gap-4">
             {lottieAnimation ? (
               <div
@@ -478,7 +510,7 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
                 >
                   <ClipboardTextIcon
                     className="transition-all duration-300"
-                    style={{ color: isDark ? colorPaletteDark.table.icon : colorPalette.table.icon, width: '36px', height: '36px' }}
+                    style={{ color: getModuleColors('gestao', isDark).icon, width: '36px', height: '36px' }}
                     weight="duotone"
                   />
                 </div>
@@ -486,14 +518,14 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
             )}
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <span className="font-extrabold text-lg transition-colors" style={{ color: isDark ? colorPaletteDark.table.text : colorPalette.table.text }}>
+                <span className="font-extrabold text-lg transition-colors" style={{ color: getModuleColors('gestao', isDark).text }}>
                   {title}
                 </span>
               </div>
               <p className="text-[13px] text-slate-600 leading-relaxed">
                 {desc}
               </p>
-              <div className="mt-4 flex items-center gap-2 text-sm font-bold group-hover:gap-3 transition-all" style={{ color: isDark ? colorPaletteDark.table.icon : colorPalette.table.icon }}>
+              <div className="mt-4 flex items-center gap-2 text-sm font-bold group-hover:gap-3 transition-all" style={{ color: getModuleColors('gestao', isDark).icon }}>
                 <span>Explorar recursos</span>
                 <span className="group-hover:translate-x-1 transition-transform">→</span>
               </div>

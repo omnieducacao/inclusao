@@ -37,7 +37,7 @@ export function HelpTooltip({ fieldId, className = "" }: HelpTooltipProps) {
             <button
                 type="button"
                 onClick={() => setOpen(!open)}
-                className="w-5 h-5 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-400 hover:text-blue-600 flex items-center justify-center text-xs font-bold transition-colors border border-slate-200 hover:border-blue-300 flex-shrink-0"
+                className="w-5 h-5 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-400 hover:text-blue-600 flex items-center justify-center text-xs font-bold transition-colors border border-slate-200 hover:border-blue-300 shrink-0"
                 title={info.title}
                 aria-label={`Ajuda: ${info.title}`}
             >
@@ -92,7 +92,7 @@ export function EmptyStateGuide({
             {actionLabel && actionHref && (
                 <a
                     href={actionHref}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl bg-linear-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all"
                 >
                     {actionLabel}
                 </a>

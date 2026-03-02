@@ -118,11 +118,11 @@ export function NotificationBell() {
     const getSeverityIcon = (severity: string) => {
         switch (severity) {
             case "alert":
-                return <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />;
+                return <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />;
             case "warning":
-                return <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />;
+                return <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />;
             default:
-                return <Info className="w-4 h-4 text-blue-500 flex-shrink-0" />;
+                return <Info className="w-4 h-4 text-blue-500 shrink-0" />;
         }
     };
 

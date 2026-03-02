@@ -16,13 +16,13 @@ function Alert({ variant = "info", title, children, closable, onClose, icon, cla
     const s = styles[variant];
     return (
         <div className={cn("flex gap-3 p-4 rounded-xl border", s.bg, s.border, className)} role="alert">
-            <span className={cn("flex-shrink-0 text-lg", s.icon)}>{icon ?? defaultIcons[variant]}</span>
+            <span className={cn("shrink-0 text-lg", s.icon)}>{icon ?? defaultIcons[variant]}</span>
             <div className="flex-1 min-w-0">
                 {title && <p className={cn("text-sm font-bold", s.title)}>{title}</p>}
-                <div className={cn("text-sm text-[var(--omni-text-secondary)]", title && "mt-1")}>{children}</div>
+                <div className={cn("text-sm text-(--omni-text-secondary)", title && "mt-1")}>{children}</div>
             </div>
             {closable && (
-                <button onClick={onClose} className="flex-shrink-0 p-1 rounded-lg text-[var(--omni-text-muted)] hover:text-[var(--omni-text-primary)] hover:bg-black/5 transition-colors" aria-label="Fechar">
+                <button onClick={onClose} className="shrink-0 p-1 rounded-lg text-(--omni-text-muted) hover:text-(--omni-text-primary) hover:bg-black/5 transition-colors" aria-label="Fechar">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
             )}

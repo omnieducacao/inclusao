@@ -47,7 +47,7 @@ const Modal = forwardRef<HTMLDialogElement, ModalProps>(
             <dialog
                 ref={setRef}
                 className={cn(
-                    "p-0 rounded-2xl border border-[var(--omni-border-default)] bg-[var(--omni-bg-secondary)] text-[var(--omni-text-primary)] shadow-[var(--omni-shadow-2xl)]",
+                    "p-0 rounded-2xl border border-(--omni-border-default) bg-(--omni-bg-secondary) text-(--omni-text-primary) shadow-[var(--omni-shadow-2xl)]",
                     "backdrop:bg-black/50 backdrop:backdrop-blur-md",
                     "w-full",
                     sizeClasses[size],
@@ -62,7 +62,7 @@ const Modal = forwardRef<HTMLDialogElement, ModalProps>(
                         {showClose && (
                             <button
                                 onClick={onClose}
-                                className="ml-auto p-1.5 rounded-lg text-[var(--omni-text-muted)] hover:text-[var(--omni-text-primary)] hover:bg-[var(--omni-bg-tertiary)] transition-colors"
+                                className="ml-auto p-1.5 rounded-lg text-(--omni-text-muted) hover:text-(--omni-text-primary) hover:bg-(--omni-bg-tertiary) transition-colors"
                                 aria-label="Fechar"
                             >
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

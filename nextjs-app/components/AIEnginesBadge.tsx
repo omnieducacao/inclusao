@@ -53,7 +53,7 @@ export function AIEnginesBadge({ engines }: { engines?: EngineId[] } = {}) {
           style={{ boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-default)' }}
         >
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
               <LottieIcon
                 animation="wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch"
                 size={24}

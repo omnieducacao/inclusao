@@ -94,19 +94,19 @@ export function TermsOfUseModal({ session }: Props) {
     >
       <div className="flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--omni-border-default)] bg-[var(--omni-bg-tertiary)] rounded-t-2xl">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-(--omni-border-default) bg-(--omni-bg-tertiary) rounded-t-2xl">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[var(--omni-primary)] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-(--omni-primary) flex items-center justify-center">
               <CheckCircle2 className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-xl font-bold text-[var(--omni-text-primary)] tracking-tight">Termos de Uso</h2>
+            <h2 className="text-xl font-bold text-(--omni-text-primary) tracking-tight">Termos de Uso</h2>
           </div>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          <div className="prose max-w-none text-[var(--omni-text-secondary)]">
-            <h3 className="text-lg font-semibold text-[var(--omni-text-primary)] mb-3">
+          <div className="prose max-w-none text-(--omni-text-secondary)">
+            <h3 className="text-lg font-semibold text-(--omni-text-primary) mb-3">
               Bem-vindo à Omnisfera - Plataforma de Inclusão Educacional
             </h3>
             <p className="leading-relaxed">
@@ -115,35 +115,35 @@ export function TermsOfUseModal({ session }: Props) {
 
             <div className="space-y-5 mt-6">
               <div>
-                <h4 className="font-semibold text-[var(--omni-text-primary)] mb-1.5">1. Uso Responsável</h4>
+                <h4 className="font-semibold text-(--omni-text-primary) mb-1.5">1. Uso Responsável</h4>
                 <p className="text-sm leading-relaxed">
                   Você se compromete a utilizar a plataforma de forma responsável, respeitando a privacidade e os direitos dos estudantes e demais usuários.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-semibold text-[var(--omni-text-primary)] mb-1.5">2. Proteção de Dados</h4>
+                <h4 className="font-semibold text-(--omni-text-primary) mb-1.5">2. Proteção de Dados</h4>
                 <p className="text-sm leading-relaxed">
                   Todos os dados dos estudantes são confidenciais e devem ser tratados com máxima segurança. Você não deve compartilhar informações pessoais sem autorização.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-semibold text-[var(--omni-text-primary)] mb-1.5">3. Conformidade Legal</h4>
+                <h4 className="font-semibold text-(--omni-text-primary) mb-1.5">3. Conformidade Legal</h4>
                 <p className="text-sm leading-relaxed">
                   O uso da plataforma está baseado na &quot;Lei Geral de Proteção de Dados Pessoais (LGPD)&quot;. Em vigor para uso da plataforma Inclusão Omnisfera.686/2025 e 12.773/2025, e demais legislações aplicáveis à educação inclusiva.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-semibold text-[var(--omni-text-primary)] mb-1.5">4. Responsabilidades</h4>
+                <h4 className="font-semibold text-(--omni-text-primary) mb-1.5">4. Responsabilidades</h4>
                 <p className="text-sm leading-relaxed">
                   Você é responsável por manter a confidencialidade de sua conta e senha, e por todas as atividades que ocorram sob sua conta.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-semibold text-[var(--omni-text-primary)] mb-1.5">5. Propriedade Intelectual</h4>
+                <h4 className="font-semibold text-(--omni-text-primary) mb-1.5">5. Propriedade Intelectual</h4>
                 <p className="text-sm leading-relaxed">
                   Todo o conteúdo gerado pela plataforma, incluindo planos educacionais e relatórios, é de propriedade da escola/instituição e deve ser utilizado exclusivamente para fins educacionais.
                 </p>
@@ -159,7 +159,7 @@ export function TermsOfUseModal({ session }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-[var(--omni-border-default)] bg-[var(--omni-bg-tertiary)] rounded-b-2xl flex items-center justify-end gap-3">
+        <div className="px-6 py-4 border-t border-(--omni-border-default) bg-(--omni-bg-tertiary) rounded-b-2xl flex items-center justify-end gap-3">
           <Button
             onClick={handleAccept}
             loading={loading}

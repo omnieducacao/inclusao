@@ -95,7 +95,7 @@ const DonutChart = forwardRef<HTMLDivElement, DonutChartProps>(
                     {/* Center label */}
                     {centerLabel && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-xl font-extrabold text-[var(--omni-text-primary)]">
+                            <span className="text-xl font-extrabold text-(--omni-text-primary)">
                                 {centerLabel}
                             </span>
                         </div>
@@ -113,11 +113,11 @@ const DonutChart = forwardRef<HTMLDivElement, DonutChartProps>(
                                         className="w-2.5 h-2.5 rounded-full shrink-0"
                                         style={{ backgroundColor: seg.color }}
                                     />
-                                    <span className="text-xs font-medium text-[var(--omni-text-secondary)]">
+                                    <span className="text-xs font-medium text-(--omni-text-secondary)">
                                         {seg.label}
                                     </span>
                                     {showValues && (
-                                        <span className="text-xs font-bold text-[var(--omni-text-primary)] ml-auto tabular-nums">
+                                        <span className="text-xs font-bold text-(--omni-text-primary) ml-auto tabular-nums">
                                             {formatVal(seg.value)}
                                         </span>
                                     )}
@@ -189,7 +189,7 @@ const GoalCard = forwardRef<HTMLDivElement, GoalCardProps>(
             <div
                 ref={ref}
                 className={cn(
-                    "rounded-2xl border border-[var(--omni-border-default)] bg-[var(--omni-bg-secondary)] p-5 transition-all duration-200 hover:shadow-[var(--omni-shadow-elevated)] hover:-translate-y-0.5",
+                    "rounded-2xl border border-(--omni-border-default) bg-(--omni-bg-secondary) p-5 transition-all duration-200 hover:shadow-(--omni-shadow-elevated) hover:-translate-y-0.5",
                     className
                 )}
                 {...props}
@@ -197,13 +197,13 @@ const GoalCard = forwardRef<HTMLDivElement, GoalCardProps>(
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <p className="text-sm font-bold text-[var(--omni-text-primary)]">{title}</p>
-                        {subtitle && <p className="text-[11px] text-[var(--omni-text-muted)] mt-0.5">{subtitle}</p>}
+                        <p className="text-sm font-bold text-(--omni-text-primary)">{title}</p>
+                        {subtitle && <p className="text-[11px] text-(--omni-text-muted) mt-0.5">{subtitle}</p>}
                     </div>
                     {actionLabel && (
                         <button
                             type="button" onClick={onAction}
-                            className="text-[11px] font-semibold px-3 py-1 rounded-lg border border-[var(--omni-border-default)] text-[var(--omni-text-secondary)] hover:bg-[var(--omni-bg-hover)] transition-colors"
+                            className="text-[11px] font-semibold px-3 py-1 rounded-lg border border-(--omni-border-default) text-(--omni-text-secondary) hover:bg-(--omni-bg-hover) transition-colors"
                         >
                             {actionLabel}
                         </button>
@@ -227,10 +227,10 @@ const GoalCard = forwardRef<HTMLDivElement, GoalCardProps>(
                         </div>
                     </div>
                     <div>
-                        <p className="text-2xl font-extrabold tracking-tight text-[var(--omni-text-primary)]">
+                        <p className="text-2xl font-extrabold tracking-tight text-(--omni-text-primary)">
                             {formatVal(current)}
                         </p>
-                        <p className="text-xs text-[var(--omni-text-muted)]">
+                        <p className="text-xs text-(--omni-text-muted)">
                             de {formatVal(goal)}{unit ? ` ${unit}` : ""}
                         </p>
                     </div>
@@ -238,7 +238,7 @@ const GoalCard = forwardRef<HTMLDivElement, GoalCardProps>(
 
                 {/* Targets grid */}
                 {targets && targets.length > 0 && (
-                    <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-[var(--omni-border-default)]">
+                    <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-(--omni-border-default)">
                         {targets.map((t) => (
                             <div key={t.label} className="flex items-center gap-2.5">
                                 <div
@@ -248,9 +248,9 @@ const GoalCard = forwardRef<HTMLDivElement, GoalCardProps>(
                                     {t.icon}
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-[11px] font-bold text-[var(--omni-text-primary)] truncate">{t.label}</p>
+                                    <p className="text-[11px] font-bold text-(--omni-text-primary) truncate">{t.label}</p>
                                     {t.progress && (
-                                        <p className="text-[10px] text-[var(--omni-text-muted)] truncate">{t.progress}</p>
+                                        <p className="text-[10px] text-(--omni-text-muted) truncate">{t.progress}</p>
                                     )}
                                 </div>
                             </div>
@@ -296,7 +296,7 @@ const ActivityRow = forwardRef<HTMLDivElement, ActivityRowProps>(
                 ref={ref}
                 className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors",
-                    clickable && "cursor-pointer hover:bg-[var(--omni-bg-hover)]",
+                    clickable && "cursor-pointer hover:bg-(--omni-bg-hover)",
                     className
                 )}
                 {...props}
@@ -313,14 +313,14 @@ const ActivityRow = forwardRef<HTMLDivElement, ActivityRowProps>(
                 </div>
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[var(--omni-text-primary)] truncate">{title}</p>
+                    <p className="text-sm font-semibold text-(--omni-text-primary) truncate">{title}</p>
                     {subtitle && (
-                        <p className="text-[11px] text-[var(--omni-text-muted)] truncate">{subtitle}</p>
+                        <p className="text-[11px] text-(--omni-text-muted) truncate">{subtitle}</p>
                     )}
                 </div>
                 {/* Trailing */}
                 {trailing && (
-                    <div className="text-sm font-bold text-[var(--omni-text-primary)] shrink-0 text-right tabular-nums">
+                    <div className="text-sm font-bold text-(--omni-text-primary) shrink-0 text-right tabular-nums">
                         {trailing}
                     </div>
                 )}

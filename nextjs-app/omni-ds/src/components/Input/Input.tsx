@@ -3,12 +3,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../utils/cn";
 
 const inputVariants = cva(
-    "w-full bg-[var(--omni-surface-0)] text-[var(--omni-text-primary)] border shadow-sm transition-all duration-200 placeholder:text-[var(--omni-text-muted)] focus:outline-none focus:bg-[var(--omni-surface-1)] focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed",
+    "w-full bg-(--omni-surface-0) text-(--omni-text-primary) border shadow-sm transition-all duration-200 placeholder:text-(--omni-text-muted) focus:outline-none focus:bg-(--omni-surface-1) focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed",
     {
         variants: {
             variant: {
                 default:
-                    "border-[var(--omni-border-default)] focus:border-sky-500 focus:ring-sky-500/20 hover:border-[var(--omni-border-strong)]",
+                    "border-(--omni-border-default) focus:border-sky-500 focus:ring-sky-500/20 hover:border-(--omni-border-strong)",
                 error:
                     "border-red-500 focus:border-red-500 focus:ring-red-500/20 hover:border-red-600",
                 success:

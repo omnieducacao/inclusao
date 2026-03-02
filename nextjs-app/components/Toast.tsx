@@ -49,14 +49,14 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
 
     return (
         <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)] border-l-4 shadow-[var(--omni-shadow-lg)] animate-slide-up ${borderColor}`}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-(--omni-bg-secondary) border border-(--omni-border-default) border-l-4 shadow-(--omni-shadow-lg) animate-slide-up ${borderColor}`}
             style={{ minWidth: 280, maxWidth: 420 }}
         >
             <Icon className={`w-5 h-5 shrink-0 ${iconColor}`} />
-            <span className="text-sm font-medium flex-1 text-[var(--omni-text-primary)]">{toast.message}</span>
+            <span className="text-sm font-medium flex-1 text-(--omni-text-primary)">{toast.message}</span>
             <button
                 onClick={() => onDismiss(toast.id)}
-                className="shrink-0 p-0.5 rounded text-[var(--omni-text-muted)] hover:text-[var(--omni-text-primary)] transition-colors"
+                className="shrink-0 p-0.5 rounded text-(--omni-text-muted) hover:text-(--omni-text-primary) transition-colors"
             >
                 <X className="w-4 h-4" />
             </button>

@@ -114,20 +114,20 @@ const SubjectProgressRow = forwardRef<HTMLDivElement, SubjectProgressRowProps>(
         const cfg = statusConfig[status];
 
         return (
-            <div ref={ref} className={cn("border border-[var(--omni-border-default)] rounded-xl overflow-hidden transition-all", className)} {...props}>
+            <div ref={ref} className={cn("border border-(--omni-border-default) rounded-xl overflow-hidden transition-all", className)} {...props}>
                 <div
                     className={cn(
                         "flex items-center gap-4 px-5 py-4",
-                        expandable && "cursor-pointer hover:bg-[var(--omni-bg-hover)]"
+                        expandable && "cursor-pointer hover:bg-(--omni-bg-hover)"
                     )}
                     onClick={expandable ? onToggle : undefined}
                     style={{ borderLeft: `3px solid ${cfg.color}` }}
                 >
                     {/* Subject info */}
                     <div className="flex-1 min-w-0">
-                        <span className="text-sm font-bold text-[var(--omni-text-primary)]">{subject}</span>
+                        <span className="text-sm font-bold text-(--omni-text-primary)">{subject}</span>
                         {meta && (
-                            <span className="text-xs text-[var(--omni-text-muted)] ml-2">{meta}</span>
+                            <span className="text-xs text-(--omni-text-muted) ml-2">{meta}</span>
                         )}
                     </div>
 
@@ -143,7 +143,7 @@ const SubjectProgressRow = forwardRef<HTMLDivElement, SubjectProgressRowProps>(
                     <ScoreBar value={percentage} marker={marker} color={cfg.color} width={120} />
 
                     {/* Percentage */}
-                    <span className="text-sm font-bold tabular-nums text-[var(--omni-text-primary)] w-10 text-right shrink-0">
+                    <span className="text-sm font-bold tabular-nums text-(--omni-text-primary) w-10 text-right shrink-0">
                         {percentage}%
                     </span>
 
@@ -152,7 +152,7 @@ const SubjectProgressRow = forwardRef<HTMLDivElement, SubjectProgressRowProps>(
                         <svg
                             width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                            className={cn("shrink-0 transition-transform text-[var(--omni-text-muted)]", expanded && "rotate-180")}
+                            className={cn("shrink-0 transition-transform text-(--omni-text-muted)", expanded && "rotate-180")}
                         >
                             <path d="m6 9 6 6 6-6" />
                         </svg>
@@ -160,7 +160,7 @@ const SubjectProgressRow = forwardRef<HTMLDivElement, SubjectProgressRowProps>(
                 </div>
                 {/* Expanded content */}
                 {expandable && expanded && children && (
-                    <div className="px-5 pb-4 pt-0 border-t border-[var(--omni-border-default)]">
+                    <div className="px-5 pb-4 pt-0 border-t border-(--omni-border-default)">
                         {children}
                     </div>
                 )}
@@ -217,8 +217,8 @@ const RecommendationPanel = forwardRef<HTMLDivElement, RecommendationPanelProps>
         ];
 
         return (
-            <div ref={ref} className={cn("rounded-2xl border border-[var(--omni-border-default)] bg-[var(--omni-bg-secondary)] overflow-hidden transition-all duration-200 hover:shadow-[var(--omni-shadow-elevated)] hover:-translate-y-0.5", className)} {...props}>
-                <div className="grid grid-cols-3 divide-x divide-[var(--omni-border-default)]">
+            <div ref={ref} className={cn("rounded-2xl border border-(--omni-border-default) bg-(--omni-bg-secondary) overflow-hidden transition-all duration-200 hover:shadow-(--omni-shadow-elevated) hover:-translate-y-0.5", className)} {...props}>
+                <div className="grid grid-cols-3 divide-x divide-(--omni-border-default)">
                     {cols.map(({ key, data, icon }) => {
                         const cfg = statusConfig[key];
                         return (
@@ -227,10 +227,10 @@ const RecommendationPanel = forwardRef<HTMLDivElement, RecommendationPanelProps>
                                     {icon}
                                     <span className="text-sm font-bold" style={{ color: cfg.color }}>{cfg.label}</span>
                                 </div>
-                                <p className="text-sm font-semibold text-[var(--omni-text-primary)]">
+                                <p className="text-sm font-semibold text-(--omni-text-primary)">
                                     {data.count} disciplina{data.count !== 1 ? "s" : ""}
                                 </p>
-                                <p className="text-xs text-[var(--omni-text-muted)] mt-0.5 truncate">
+                                <p className="text-xs text-(--omni-text-muted) mt-0.5 truncate">
                                     {data.items.join(", ")}
                                 </p>
                             </div>
@@ -238,10 +238,10 @@ const RecommendationPanel = forwardRef<HTMLDivElement, RecommendationPanelProps>
                     })}
                 </div>
                 {actionLabel && (
-                    <div className="border-t border-[var(--omni-border-default)] px-5 py-3 text-center">
+                    <div className="border-t border-(--omni-border-default) px-5 py-3 text-center">
                         <button
                             type="button" onClick={onAction}
-                            className="text-sm font-semibold text-[var(--omni-primary)] hover:underline inline-flex items-center gap-1"
+                            className="text-sm font-semibold text-(--omni-primary) hover:underline inline-flex items-center gap-1"
                         >
                             {actionLabel}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
@@ -284,14 +284,14 @@ const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>(
             <div
                 ref={ref}
                 className={cn(
-                    "rounded-2xl border border-[var(--omni-border-default)] bg-[var(--omni-bg-secondary)] p-5 text-center transition-all duration-200 hover:shadow-[var(--omni-shadow-elevated)] hover:-translate-y-0.5",
+                    "rounded-2xl border border-(--omni-border-default) bg-(--omni-bg-secondary) p-5 text-center transition-all duration-200 hover:shadow-(--omni-shadow-elevated) hover:-translate-y-0.5",
                     className
                 )}
                 {...props}
             >
-                <p className="text-sm font-bold text-[var(--omni-text-primary)]">{title}</p>
+                <p className="text-sm font-bold text-(--omni-text-primary)">{title}</p>
                 {subtitle && (
-                    <p className="text-xs text-[var(--omni-text-muted)] mt-0.5 flex items-center justify-center gap-1">
+                    <p className="text-xs text-(--omni-text-muted) mt-0.5 flex items-center justify-center gap-1">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 21h18M5 21V7l7-4 7 4v14" /></svg>
                         {subtitle}
                     </p>
@@ -310,10 +310,10 @@ const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>(
                     )}>
                         {areas.map((a) => (
                             <div key={a.label}>
-                                <p className="text-xl font-extrabold text-[var(--omni-text-primary)]">
+                                <p className="text-xl font-extrabold text-(--omni-text-primary)">
                                     {a.position}<span className="text-xs align-super">º</span>
                                 </p>
-                                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--omni-text-muted)]">
+                                <p className="text-[10px] font-semibold uppercase tracking-wider text-(--omni-text-muted)">
                                     {a.label}
                                 </p>
                             </div>
@@ -323,9 +323,9 @@ const RankingCard = forwardRef<HTMLDivElement, RankingCardProps>(
 
                 {/* Footer */}
                 {footer && footer.length > 0 && (
-                    <div className="mt-4 pt-3 border-t border-[var(--omni-border-default)] space-y-1">
+                    <div className="mt-4 pt-3 border-t border-(--omni-border-default) space-y-1">
                         {footer.map((f, i) => (
-                            <p key={i} className="text-xs text-[var(--omni-text-muted)] flex items-center justify-center gap-1.5">
+                            <p key={i} className="text-xs text-(--omni-text-muted) flex items-center justify-center gap-1.5">
                                 {f.icon}{f.text}
                             </p>
                         ))}
@@ -378,13 +378,13 @@ const PanoramaCard = forwardRef<HTMLDivElement, PanoramaCardProps>(
             <div
                 ref={ref}
                 className={cn(
-                    "rounded-2xl border border-[var(--omni-border-default)] bg-[var(--omni-bg-secondary)] p-5 transition-all duration-200 hover:shadow-[var(--omni-shadow-elevated)] hover:-translate-y-0.5",
+                    "rounded-2xl border border-(--omni-border-default) bg-(--omni-bg-secondary) p-5 transition-all duration-200 hover:shadow-(--omni-shadow-elevated) hover:-translate-y-0.5",
                     className
                 )}
                 {...props}
             >
                 <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm font-bold text-[var(--omni-text-primary)]">{title}</p>
+                    <p className="text-sm font-bold text-(--omni-text-primary)">{title}</p>
                     {showInfo && (
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--omni-text-muted)" strokeWidth="2" strokeLinecap="round" className="shrink-0">
                             <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
@@ -398,10 +398,10 @@ const PanoramaCard = forwardRef<HTMLDivElement, PanoramaCardProps>(
                         return (
                             <div key={i}>
                                 <div className="flex items-center justify-between mb-1">
-                                    <span className="text-sm font-semibold text-[var(--omni-text-primary)]">{line.label}</span>
-                                    <span className="text-sm font-bold tabular-nums text-[var(--omni-text-primary)]">
-                                        {line.current}<span className="text-[var(--omni-text-muted)] font-normal">/{line.total}</span>{" "}
-                                        <span className="text-xs text-[var(--omni-text-muted)]">({pct}%)</span>
+                                    <span className="text-sm font-semibold text-(--omni-text-primary)">{line.label}</span>
+                                    <span className="text-sm font-bold tabular-nums text-(--omni-text-primary)">
+                                        {line.current}<span className="text-(--omni-text-muted) font-normal">/{line.total}</span>{" "}
+                                        <span className="text-xs text-(--omni-text-muted)">({pct}%)</span>
                                     </span>
                                 </div>
                                 {/* Progress bar */}
@@ -412,7 +412,7 @@ const PanoramaCard = forwardRef<HTMLDivElement, PanoramaCardProps>(
                                     />
                                 </div>
                                 {line.detail && (
-                                    <p className="text-[11px] text-[var(--omni-text-muted)] mt-1">{line.detail}</p>
+                                    <p className="text-[11px] text-(--omni-text-muted) mt-1">{line.detail}</p>
                                 )}
                             </div>
                         );
@@ -487,7 +487,7 @@ function LegendBar({ items, shape = "square", className, ...props }: LegendBarPr
     return (
         <div className={cn("flex flex-wrap items-center gap-4", className)} {...props}>
             {items.map((item) => (
-                <span key={item.label} className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--omni-text-secondary)]">
+                <span key={item.label} className="inline-flex items-center gap-1.5 text-xs font-medium text-(--omni-text-secondary)">
                     <span
                         className="shrink-0"
                         style={{

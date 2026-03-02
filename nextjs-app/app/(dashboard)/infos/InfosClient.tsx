@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Card } from "@omni/ds";
 import { RestartTourButton } from "@/components/GuidedTour";
 import {
   BookMarked,
@@ -269,14 +270,14 @@ export default function InfosClient() {
   return (
     <div className="space-y-6">
       {/* Tabs Navigation */}
-      <div className="flex gap-1.5 p-1.5 bg-slate-100/80 rounded-2xl overflow-x-auto scrollbar-hide" style={{ border: '1px solid rgba(226,232,240,0.6)' }}>
+      <div className="flex gap-1.5 p-1.5 bg-(--omni-bg-secondary) rounded-2xl overflow-x-auto scrollbar-hide border border-(--omni-border-default)">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 text-[13px] font-semibold whitespace-nowrap flex items-center gap-2 flex-shrink-0 rounded-xl transition-all duration-200 ${activeTab === tab.id
+              className={`px-4 py-2.5 text-[13px] font-semibold whitespace-nowrap flex items-center gap-2 shrink-0 rounded-xl transition-all duration-200 ${activeTab === tab.id
                 ? "bg-white text-slate-800 shadow-sm"
                 : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
                 }`}
@@ -294,14 +295,14 @@ export default function InfosClient() {
           <div className="space-y-6">
             <div>
               <h3 className="heading-section text-slate-800 mb-2 flex items-center gap-3">
-                <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #4285F4, #3574D4)' }} />
+                <div className="w-1 h-5 rounded-full bg-linear-to-b from-[#4285F4] to-[#3574D4]" />
                 <BarChart3 className="w-5 h-5 text-blue-600" />
                 O Fluxo da Inclusão (Omnisfera 2025)
               </h3>
               <p className="text-sm text-slate-600 mb-4">
                 Visualização do ecossistema escolar atualizado com os novos decretos.
               </p>
-              <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-cyan-50 rounded-2xl p-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
+              <Card className="bg-linear-to-r from-blue-50 via-purple-50 to-cyan-50">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4 stagger-children">
                   {[
                     { num: "1", title: "ACOLHIMENTO", desc: "(Matrícula Garantida)", color: "bg-blue-100 text-blue-700 border-blue-300" },
@@ -320,22 +321,22 @@ export default function InfosClient() {
                 <div className="mt-4 text-xs text-slate-600 text-center">
                   Fluxo: Equipe → Substitui Laudo → Duplo Fundo
                 </div>
-              </div>
+              </Card>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
+              <Card className="transition-all duration-200 hover:shadow-md">
                 <h4 className="heading-subsection text-slate-800 mb-2 flex items-center gap-2">
                   <Users className="w-5 h-5 text-sky-600" />
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
                   Filosofia: "Outrar-se"
                 </h4>
                 <p className="text-slate-600 text-sm">
                   A capacidade de sentir o mundo do outro mantendo o distanciamento profissional. É ter empatia sem confundir papéis, superando o capacitismo.
                 </p>
-              </div>
-              <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+              </Card>
+              <Card>
                 <h4 className="heading-subsection text-slate-800 mb-2 flex items-center gap-2">
                   <Scale className="w-5 h-5 text-sky-600" />
                   Justiça Curricular
@@ -343,60 +344,66 @@ export default function InfosClient() {
                 <p className="text-slate-600 text-sm">
                   O currículo não pode ser uma barreira. O PEI materializa a justiça curricular, garantindo acesso ao conhecimento através da adaptação.
                 </p>
-              </div>
+              </Card>
             </div>
 
             <div>
               <h4 className="heading-subsection text-slate-800 mb-4">Amplie o Conhecimento — Fundamentos da Educação Inclusiva</h4>
               <div className="space-y-3">
-                <details className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
-                  <summary className="cursor-pointer heading-subsection text-slate-800 mb-2">
-                    1. Educação Inclusiva – Definição
-                  </summary>
-                  <div className="mt-3 text-sm text-slate-600 space-y-2">
-                    <blockquote className="border-l-4 border-sky-500 pl-4 italic text-slate-700">
-                      &quot;Temos direito à igualdade, quando a diferença nos inferioriza, e direito à diferença, quando a igualdade nos descaracteriza.&quot;
-                      <br />
-                      <strong>Boaventura de Souza Santos</strong>
-                    </blockquote>
-                    <p>
-                      A educação inclusiva é a efetiva realização do que dispõe a Constituição: todos devem ter direitos iguais à educação, frequentar os mesmos ambientes e serem beneficiados pelo processo de socialização. Engloba a educação especial e a regular, da Educação Infantil ao Ensino Superior, incluindo EJA, ensino profissionalizante e grupos quilombolas e indígenas.
-                    </p>
-                    <p>
-                      <strong>Todos devem aprender juntos</strong>, independentemente de suas diferenças e dificuldades. Apesar de técnicas aplicáveis de forma geral, é necessária uma <strong>seleção específica e individualizada</strong> dos recursos e planos de ensino — a diversidade exige clareza de objetivos, respeito ao tempo do aluno e identificação de necessidades e potencialidades.
-                    </p>
-                  </div>
-                </details>
+                <Card padding="none" className="p-5 transition-all duration-200 hover:shadow-md">
+                  <details>
+                    <summary className="cursor-pointer heading-subsection text-slate-800 mb-2">
+                      1. Educação Inclusiva – Definição
+                    </summary>
+                    <div className="mt-3 text-sm text-slate-600 space-y-2">
+                      <blockquote className="border-l-4 border-sky-500 pl-4 italic text-slate-700">
+                        &quot;Temos direito à igualdade, quando a diferença nos inferioriza, e direito à diferença, quando a igualdade nos descaracteriza.&quot;
+                        <br />
+                        <strong>Boaventura de Souza Santos</strong>
+                      </blockquote>
+                      <p>
+                        A educação inclusiva é a efetiva realização do que dispõe a Constituição: todos devem ter direitos iguais à educação, frequentar os mesmos ambientes e serem beneficiados pelo processo de socialização. Engloba a educação especial e a regular, da Educação Infantil ao Ensino Superior, incluindo EJA, ensino profissionalizante e grupos quilombolas e indígenas.
+                      </p>
+                      <p>
+                        <strong>Todos devem aprender juntos</strong>, independentemente de suas diferenças e dificuldades. Apesar de técnicas aplicáveis de forma geral, é necessária uma <strong>seleção específica e individualizada</strong> dos recursos e planos de ensino — a diversidade exige clareza de objetivos, respeito ao tempo do aluno e identificação de necessidades e potencialidades.
+                      </p>
+                    </div>
+                  </details>
+                </Card>
 
-                <details className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
-                  <summary className="cursor-pointer heading-subsection text-slate-800 mb-2">
-                    2. Capacitismo
-                  </summary>
-                  <div className="mt-3 text-sm text-slate-600 space-y-2">
-                    <p>
-                      Conforme a <strong>Lei Brasileira de Inclusão (Lei nº 13.146/2015)</strong>, o capacitismo é <em>&quot;toda forma de distinção, restrição ou exclusão, por ação ou omissão, que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício dos direitos e das liberdades fundamentais de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas&quot;</em>.
-                    </p>
-                    <p>
-                      O termo vem do inglês <em>ableism</em> (able + ism). As consequências podem ser <strong>físicas</strong> (barreiras estruturais em ambientes) ou <strong>simbólicas</strong> (metáforas, gestos e sons que reforçam estigmas).
-                    </p>
-                  </div>
-                </details>
+                <Card padding="none" className="p-5 transition-all duration-200 hover:shadow-md">
+                  <details>
+                    <summary className="cursor-pointer heading-subsection text-slate-800 mb-2">
+                      2. Capacitismo
+                    </summary>
+                    <div className="mt-3 text-sm text-slate-600 space-y-2">
+                      <p>
+                        Conforme a <strong>Lei Brasileira de Inclusão (Lei nº 13.146/2015)</strong>, o capacitismo é <em>&quot;toda forma de distinção, restrição ou exclusão, por ação ou omissão, que tenha o propósito ou o efeito de prejudicar, impedir ou anular o reconhecimento ou o exercício dos direitos e das liberdades fundamentais de pessoa com deficiência, incluindo a recusa de adaptações razoáveis e de fornecimento de tecnologias assistivas&quot;</em>.
+                      </p>
+                      <p>
+                        O termo vem do inglês <em>ableism</em> (able + ism). As consequências podem ser <strong>físicas</strong> (barreiras estruturais em ambientes) ou <strong>simbólicas</strong> (metáforas, gestos e sons que reforçam estigmas).
+                      </p>
+                    </div>
+                  </details>
+                </Card>
 
-                <details className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
-                  <summary className="cursor-pointer heading-subsection text-slate-800 mb-2">
-                    3. Uma escola para todos: recursos, currículo e gestão
-                  </summary>
-                  <div className="mt-3 text-sm text-slate-600 space-y-2">
-                    <p>
-                      O <strong>IBGE (PNAD Contínua 2022)</strong> revelou: <strong>18,6 milhões</strong> de pessoas com 2 anos ou mais têm deficiência no Brasil (8,9% da população). Dados relevantes:
-                    </p>
-                    <ul className="list-disc list-inside space-y-1 ml-2">
-                      <li>19,5% das PcD são analfabetas (vs 4,1% sem deficiência)</li>
-                      <li>25,6% das PcD concluíram o Ensino Médio (vs 57,3%)</li>
-                      <li>55% das PcD que trabalham estão na informalidade</li>
-                    </ul>
-                  </div>
-                </details>
+                <Card padding="none" className="p-5 transition-all duration-200 hover:shadow-md">
+                  <details>
+                    <summary className="cursor-pointer heading-subsection text-slate-800 mb-2">
+                      3. Uma escola para todos: recursos, currículo e gestão
+                    </summary>
+                    <div className="mt-3 text-sm text-slate-600 space-y-2">
+                      <p>
+                        O <strong>IBGE (PNAD Contínua 2022)</strong> revelou: <strong>18,6 milhões</strong> de pessoas com 2 anos ou mais têm deficiência no Brasil (8,9% da população). Dados relevantes:
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li>19,5% das PcD são analfabetas (vs 4,1% sem deficiência)</li>
+                        <li>25,6% das PcD concluíram o Ensino Médio (vs 57,3%)</li>
+                        <li>55% das PcD que trabalham estão na informalidade</li>
+                      </ul>
+                    </div>
+                  </details>
+                </Card>
               </div>
             </div>
           </div>
@@ -411,44 +418,48 @@ export default function InfosClient() {
                   Legislação em Foco (2025)
                 </h3>
 
-                <details className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.5)' }} open>
-                  <summary className="cursor-pointer font-bold text-slate-800 mb-3 flex items-center gap-2">
-                    <Scale className="w-5 h-5 text-sky-600" />
-                    Decreto 12.686/2025: O Financiamento (Duplo Fundo)
-                  </summary>
-                  <div className="mt-3 text-sm text-slate-700 space-y-2">
-                    <p className="font-semibold">Mudança Estrutural:</p>
-                    <ol className="list-decimal list-inside space-y-1 ml-2">
-                      <li>
-                        <strong>Dupla Matrícula:</strong> O aluno público-alvo da educação especial é contabilizado <strong>duas vezes</strong> no FUNDEB (Matrícula Comum + AEE).
-                      </li>
-                      <li>
-                        <strong>Destinação:</strong> A verba extra deve ser usada para Sala de Recursos, materiais adaptados e contratação de profissionais de apoio.
-                      </li>
-                    </ol>
-                  </div>
-                </details>
+                <Card padding="none" className="p-5 transition-all duration-200 hover:shadow-md">
+                  <details open>
+                    <summary className="cursor-pointer font-bold text-slate-800 mb-3 flex items-center gap-2">
+                      <Scale className="w-5 h-5 text-sky-600" />
+                      Decreto 12.686/2025: O Financiamento (Duplo Fundo)
+                    </summary>
+                    <div className="mt-3 text-sm text-slate-700 space-y-2">
+                      <p className="font-semibold">Mudança Estrutural:</p>
+                      <ol className="list-decimal list-inside space-y-1 ml-2">
+                        <li>
+                          <strong>Dupla Matrícula:</strong> O aluno público-alvo da educação especial é contabilizado <strong>duas vezes</strong> no FUNDEB (Matrícula Comum + AEE).
+                        </li>
+                        <li>
+                          <strong>Destinação:</strong> A verba extra deve ser usada para Sala de Recursos, materiais adaptados e contratação de profissionais de apoio.
+                        </li>
+                      </ol>
+                    </div>
+                  </details>
+                </Card>
 
-                <details className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.5)' }}>
-                  <summary className="cursor-pointer font-bold text-slate-800 mb-3 flex items-center gap-2">
-                    <XCircle className="w-5 h-5 text-red-600" />
-                    Decreto 12.773/2025: Garantia de Acesso (Escolas Privadas)
-                  </summary>
-                  <div className="mt-3 text-sm text-slate-700 space-y-2">
-                    <p className="font-semibold">Tolerância Zero para Barreiras:</p>
-                    <ol className="list-decimal list-inside space-y-1 ml-2">
-                      <li>
-                        <strong>Taxas Extras:</strong> É <strong>ilegal</strong> cobrar valor adicional na mensalidade para custear monitor ou material.
-                      </li>
-                      <li>
-                        <strong>Porta de Entrada:</strong> A escola não pode exigir laudo médico para efetivar a matrícula. A avaliação pedagógica é soberana.
-                      </li>
-                    </ol>
-                  </div>
-                </details>
+                <Card padding="none" className="p-5 transition-all duration-200 hover:shadow-md">
+                  <details>
+                    <summary className="cursor-pointer font-bold text-slate-800 mb-3 flex items-center gap-2">
+                      <XCircle className="w-5 h-5 text-red-600" />
+                      Decreto 12.773/2025: Garantia de Acesso (Escolas Privadas)
+                    </summary>
+                    <div className="mt-3 text-sm text-slate-700 space-y-2">
+                      <p className="font-semibold">Tolerância Zero para Barreiras:</p>
+                      <ol className="list-decimal list-inside space-y-1 ml-2">
+                        <li>
+                          <strong>Taxas Extras:</strong> É <strong>ilegal</strong> cobrar valor adicional na mensalidade para custear monitor ou material.
+                        </li>
+                        <li>
+                          <strong>Porta de Entrada:</strong> A escola não pode exigir laudo médico para efetivar a matrícula. A avaliação pedagógica é soberana.
+                        </li>
+                      </ol>
+                    </div>
+                  </details>
+                </Card>
               </div>
 
-              <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl border border-teal-200/60 p-6">
+              <div className="bg-linear-to-br from-teal-50 to-cyan-50 rounded-xl border border-teal-200/60 p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center">
                     <Rocket className="w-6 h-6 text-teal-600" />
@@ -482,7 +493,7 @@ export default function InfosClient() {
           <div className="space-y-6">
             <div>
               <h3 className="heading-section text-slate-800 mb-2 flex items-center gap-3">
-                <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #4285F4, #3574D4)' }} />
+                <div className="w-1 h-5 rounded-full bg-linear-to-b from-[#4285F4] to-[#3574D4]" />
                 <BookOpen className="w-5 h-5 text-blue-600" />
                 Glossário Técnico Conceitual
               </h3>
@@ -502,10 +513,10 @@ export default function InfosClient() {
 
             <div className="space-y-3">
               {filteredGlossario.map((item, idx) => (
-                <div key={idx} className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md hover:border-blue-200" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
+                <Card key={idx} className="transition-all duration-200 hover:shadow-md hover:border-blue-200">
                   <div className="font-bold text-sky-700 text-base mb-2">{item.t}</div>
                   <div className="text-sm text-slate-600 leading-relaxed">{item.d}</div>
-                </div>
+                </Card>
               ))}
             </div>
           </div>
@@ -515,7 +526,7 @@ export default function InfosClient() {
           <div className="space-y-6">
             <div>
               <h3 className="heading-section text-slate-800 mb-2 flex items-center gap-3">
-                <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #4285F4, #3574D4)' }} />
+                <div className="w-1 h-5 rounded-full bg-linear-to-b from-[#4285F4] to-[#3574D4]" />
                 <MessageSquare className="w-5 h-5 text-blue-600" />
                 Guia de Linguagem Inclusiva
               </h3>
@@ -560,7 +571,7 @@ export default function InfosClient() {
           <div className="space-y-6">
             <div>
               <h3 className="heading-section text-slate-800 mb-2 flex items-center gap-3">
-                <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #4285F4, #3574D4)' }} />
+                <div className="w-1 h-5 rounded-full bg-linear-to-b from-[#4285F4] to-[#3574D4]" />
                 <BookText className="w-5 h-5 text-blue-600" />
                 Acervo Bibliográfico Completo
               </h3>
@@ -572,31 +583,33 @@ export default function InfosClient() {
                 <h4 className="heading-subsection text-slate-800">{categoria.categoria}</h4>
                 <div className="space-y-3">
                   {categoria.livros.map((livro, livroIdx) => (
-                    <details key={livroIdx} className="bg-white rounded-2xl p-5 transition-all duration-200 hover:shadow-md" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)', border: '1px solid rgba(226,232,240,0.6)' }}>
-                      <summary className="cursor-pointer font-semibold text-slate-800 mb-2 flex items-center gap-2">
-                        <BookText className="w-4 h-4 text-sky-600" />
-                        {livro.titulo}
-                      </summary>
-                      <div className="mt-3 text-sm text-slate-600 space-y-2">
-                        <p>
-                          <strong>Autor/Fonte:</strong> {livro.autor}
-                        </p>
-                        <p>
-                          <strong>Sobre:</strong> {livro.resumo}
-                        </p>
-                        {livro.link && (
-                          <a
-                            href={livro.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-sky-600 hover:text-sky-700 font-medium text-sm"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                            Acessar Documento
-                          </a>
-                        )}
-                      </div>
-                    </details>
+                    <Card key={livroIdx} padding="none" className="p-5 transition-all duration-200 hover:shadow-md">
+                      <details>
+                        <summary className="cursor-pointer font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                          <BookText className="w-4 h-4 text-sky-600" />
+                          {livro.titulo}
+                        </summary>
+                        <div className="mt-3 text-sm text-slate-600 space-y-2">
+                          <p>
+                            <strong>Autor/Fonte:</strong> {livro.autor}
+                          </p>
+                          <p>
+                            <strong>Sobre:</strong> {livro.resumo}
+                          </p>
+                          {livro.link && (
+                            <a
+                              href={livro.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 text-sky-600 hover:text-sky-700 font-medium text-sm"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              Acessar Documento
+                            </a>
+                          )}
+                        </div>
+                      </details>
+                    </Card>
                   ))}
                 </div>
               </div>
@@ -608,7 +621,7 @@ export default function InfosClient() {
           <div className="space-y-6">
             <div>
               <h3 className="heading-section text-slate-800 mb-2 flex items-center gap-3">
-                <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #4285F4, #3574D4)' }} />
+                <div className="w-1 h-5 rounded-full bg-linear-to-b from-[#4285F4] to-[#3574D4]" />
                 <BookOpenCheck className="w-5 h-5 text-blue-600" />
                 Manual da Jornada Omnisfera: O Ciclo da Inclusão
               </h3>
@@ -616,14 +629,14 @@ export default function InfosClient() {
             </div>
 
             <div className="space-y-6">
-              <div className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-xl border border-sky-200/60 p-6">
+              <div className="bg-linear-to-br from-sky-50 to-blue-50 rounded-xl border border-sky-200/60 p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <FileText className="w-7 h-7 text-sky-600" />
                   <h4 className="text-lg font-bold text-slate-800">O Alicerce: Planejamento (PEI)</h4>
                 </div>
                 <blockquote className="border-l-4 border-sky-500 pl-4 italic text-slate-700 mb-3 text-sm">
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
                   "Não há inclusão sem intenção. Conhecer para incluir."
                 </blockquote>
                 <p className="text-sm text-slate-700 mb-3">
@@ -637,21 +650,21 @@ export default function InfosClient() {
                 </ul>
                 <div className="mt-4 bg-white rounded-lg p-3 border border-sky-200">
                   <p className="text-xs text-slate-700">
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                    {/* eslint-disable-next-line react/no-unescaped-entities */}
                     <strong>💡 Conceito Chave:</strong> O PEI não é um "laudo", é um projeto de futuro. Ele define O QUE vamos ensinar e QUAIS barreiras remover.
                   </p>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-200/60 p-6">
+              <div className="bg-linear-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-200/60 p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <Puzzle className="w-7 h-7 text-purple-600" />
                   <h4 className="text-lg font-bold text-slate-800">A Estratégia: O AEE e o Plano de Ação (PAEE)</h4>
                 </div>
                 <blockquote className="border-l-4 border-purple-500 pl-4 italic text-slate-700 mb-3 text-sm">
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
                   "A articulação entre o suporte especializado e a sala comum."
                 </blockquote>
                 <p className="text-sm text-slate-700 mb-3">
@@ -670,14 +683,14 @@ export default function InfosClient() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl border border-cyan-200/60 p-6">
+              <div className="bg-linear-to-br from-cyan-50 to-teal-50 rounded-xl border border-cyan-200/60 p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <Rocket className="w-7 h-7 text-cyan-600" />
                   <h4 className="text-lg font-bold text-slate-800">A Ferramenta: Adaptação (Hub de Inclusão)</h4>
                 </div>
                 <blockquote className="border-l-4 border-cyan-500 pl-4 italic text-slate-700 mb-3 text-sm">
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
                   "Acessibilidade é garantir que o conteúdo chegue a todos."
                 </blockquote>
                 <p className="text-sm text-slate-700 mb-3">
@@ -691,31 +704,31 @@ export default function InfosClient() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl border border-rose-200/60 p-5">
+                <div className="bg-linear-to-br from-rose-50 to-pink-50 rounded-xl border border-rose-200/60 p-5">
                   <h4 className="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-rose-600" />
                     O Registro: Diário de Bordo
                   </h4>
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
                   <p className="text-xs italic text-slate-700 mb-2">"O olhar atento transforma a prática."</p>
                   <p className="text-sm text-slate-700">
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                    {/* eslint-disable-next-line react/no-unescaped-entities */}
                     Registre o que funcionou e o engajamento. Use o conceito de <strong>"outrar-se"</strong>.
                   </p>
                 </div>
-                <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl border border-slate-200/60 p-5">
+                <div className="bg-linear-to-br from-slate-50 to-blue-50 rounded-xl border border-slate-200/60 p-5">
                   <h4 className="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
                     <BarChart3 className="w-5 h-5 text-slate-600" />
                     O Fechamento: Avaliação
                   </h4>
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
+                  {/* eslint-disable-next-line react/no-unescaped-entities */}
                   <p className="text-xs italic text-slate-700 mb-2">"Avaliar para recalcular a rota."</p>
                   <p className="text-sm text-slate-700">
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                    {/* eslint-disable-next-line react/no-unescaped-entities */}
                     Use as <strong>Rubricas</strong> para fugir do "achismo". Se a meta foi atingida, avançamos.
                   </p>
                 </div>

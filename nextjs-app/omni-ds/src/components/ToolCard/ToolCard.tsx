@@ -19,7 +19,7 @@ const ToolCard = forwardRef<HTMLDivElement, ToolCardProps>(
             tabIndex={onClick ? 0 : undefined}
             onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
             className={cn(
-                "group relative flex flex-col gap-3 p-5 rounded-2xl border border-[var(--omni-border-default)] bg-[var(--omni-bg-secondary)]",
+                "group relative flex flex-col gap-3 p-5 rounded-2xl border border-(--omni-border-default) bg-(--omni-bg-secondary)",
                 "shadow-[var(--omni-shadow-md),var(--omni-shadow-inner)]",
                 "hover:shadow-[var(--omni-shadow-elevated),var(--omni-shadow-inner)] hover:-translate-y-1",
                 "transition-all duration-200 cursor-pointer active:scale-[0.98] touch-manipulation",
@@ -44,10 +44,10 @@ const ToolCard = forwardRef<HTMLDivElement, ToolCardProps>(
                 )}
             </div>
             <div>
-                <h3 className="text-sm font-bold text-[var(--omni-text-primary)] group-hover:text-[var(--omni-text-primary)]">
+                <h3 className="text-sm font-bold text-(--omni-text-primary) group-hover:text-(--omni-text-primary)">
                     {title}
                 </h3>
-                <p className="text-xs text-[var(--omni-text-muted)] mt-1 line-clamp-2">
+                <p className="text-xs text-(--omni-text-muted) mt-1 line-clamp-2">
                     {description}
                 </p>
             </div>

@@ -9,10 +9,11 @@ import {
 } from "@/lib/pgi";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { EngineSelector } from "@/components/EngineSelector";
-import { Plus, User, Trash2, Save, MapPin, Calendar, Sparkles, Loader2 } from "lucide-react";
+import { Plus, User, Trash2, Save, MapPin, Calendar, Sparkles } from "lucide-react";
 import { OmniLoader } from "@/components/OmniLoader";
 import type { EngineId } from "@/lib/ai-engines";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
+import { Card } from "@omni/ds";
 
 type TabId = "inicial" | "gerador";
 
@@ -282,59 +283,61 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
   return (
     <div className="space-y-6">
       {/* Dimensionamento */}
-      <details className="rounded-2xl bg-gradient-to-br from-slate-50 to-white p-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
-        <summary className="cursor-pointer font-medium text-slate-700">Dimensionamento preliminar (opcional)</summary>
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">Nº total de alunos</label>
-            <input
-              type="number"
-              min={0}
-              value={nTotal}
-              onChange={(e) => setDimLocal((d) => ({ ...d, n_total: Number(e.target.value) }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-            />
+      <Card padding="none" className="p-4">
+        <details>
+          <summary className="cursor-pointer font-medium text-slate-700">Dimensionamento preliminar (opcional)</summary>
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Nº total de alunos</label>
+              <input
+                type="number"
+                min={0}
+                value={nTotal}
+                onChange={(e) => setDimLocal((d) => ({ ...d, n_total: Number(e.target.value) }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Nº alunos com deficiência</label>
+              <input
+                type="number"
+                min={0}
+                value={nDef}
+                onChange={(e) => setDimLocal((d) => ({ ...d, n_deficiencia: Number(e.target.value) }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Nº profissionais inclusão</label>
+              <input
+                type="number"
+                min={0}
+                value={nProf}
+                onChange={(e) => setDimLocal((d) => ({ ...d, n_prof: Number(e.target.value) }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Horas/dia da equipe</label>
+              <input
+                type="number"
+                min={0}
+                step={0.5}
+                value={horasDia}
+                onChange={(e) => setDimLocal((d) => ({ ...d, horas_dia: Number(e.target.value) }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">Nº alunos com deficiência</label>
-            <input
-              type="number"
-              min={0}
-              value={nDef}
-              onChange={(e) => setDimLocal((d) => ({ ...d, n_deficiencia: Number(e.target.value) }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">Nº profissionais inclusão</label>
-            <input
-              type="number"
-              min={0}
-              value={nProf}
-              onChange={(e) => setDimLocal((d) => ({ ...d, n_prof: Number(e.target.value) }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">Horas/dia da equipe</label>
-            <input
-              type="number"
-              min={0}
-              step={0.5}
-              value={horasDia}
-              onChange={(e) => setDimLocal((d) => ({ ...d, horas_dia: Number(e.target.value) }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-            />
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => salvarDimensionamento(nTotal, nDef, nProf, horasDia)}
-          className="mt-2 px-3 py-1.5 text-sm bg-teal-100 text-teal-800 rounded-lg hover:bg-teal-200"
-        >
-          Salvar dimensionamento
-        </button>
-      </details>
+          <button
+            type="button"
+            onClick={() => salvarDimensionamento(nTotal, nDef, nProf, horasDia)}
+            className="mt-2 px-3 py-1.5 text-sm bg-teal-100 text-teal-800 rounded-lg hover:bg-teal-200"
+          >
+            Salvar dimensionamento
+          </button>
+        </details>
+      </Card>
 
       {/* Gerar ações com IA */}
       {(nTotal > 0 || nDef > 0 || nProf > 0 || horasDia > 0) && (
@@ -364,7 +367,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
                   onError(data.error || "Erro ao gerar ações.");
                   return;
                 }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const novasAcoes = (data.acoes || []).map((a: any) => ({
                   ...a,
                   criado_em: new Date().toISOString(),
@@ -423,130 +426,132 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
       </div>
 
       {/* Formulário */}
-      <form onSubmit={handleAddAcao} className="rounded-2xl bg-white p-6 space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
-        <h4 className="font-semibold text-slate-800">Adicionar ação ao plano</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Card>
+        <form onSubmit={handleAddAcao} className="space-y-4">
+          <h4 className="font-semibold text-slate-800">Adicionar ação ao plano</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Tipo de ação</label>
+              <select
+                value={tipo}
+                onChange={(e) => setTipo(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              >
+                {Object.entries(TIPOS_ACAO).map(([k, [label]]) => (
+                  <option key={k} value={k}>{label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">O QUE (Ação prática) *</label>
+              <input
+                type="text"
+                value={oQue}
+                onChange={(e) => setOQue(e.target.value)}
+                placeholder="Ex: Contratar mediador / Equipar SRM"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">POR QUE (Justificativa)</label>
+              <textarea
+                value={porQue}
+                onChange={(e) => setPorQue(e.target.value)}
+                rows={2}
+                placeholder="Ex: Dimensionamento PGEI"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">QUEM (Responsável)</label>
+              <input
+                type="text"
+                value={quem}
+                onChange={(e) => setQuem(e.target.value)}
+                placeholder="Ex: Coordenação pedagógica"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">ONDE (Local)</label>
+              <input
+                type="text"
+                value={onde}
+                onChange={(e) => setOnde(e.target.value)}
+                placeholder="Ex: SRM, Bloco A"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">COMO (Método)</label>
+              <input
+                type="text"
+                value={como}
+                onChange={(e) => setComo(e.target.value)}
+                placeholder="Ex: Palestra em HTPC"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">PRAZO</label>
+              <input
+                type="date"
+                value={prazo}
+                onChange={(e) => setPrazo(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">CUSTO (R$)</label>
+              <input
+                type="text"
+                value={custo}
+                onChange={(e) => setCusto(e.target.value)}
+                placeholder="Ex: 5.000,00"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+          </div>
           <div>
-            <label className="block text-xs text-slate-600 mb-1">Tipo de ação</label>
-            <select
-              value={tipo}
-              onChange={(e) => setTipo(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-            >
-              {Object.entries(TIPOS_ACAO).map(([k, [label]]) => (
-                <option key={k} value={k}>{label}</option>
+            <label className="block text-xs text-slate-600 mb-1">Perfil de atendimento</label>
+            <div className="flex flex-wrap gap-2">
+              {PERFIS_ATENDIMENTO.map((p) => (
+                <label key={p} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={perfil.includes(p)}
+                    onChange={(e) =>
+                      setPerfil((prev) =>
+                        e.target.checked ? [...prev, p] : prev.filter((x) => x !== p)
+                      )
+                    }
+                    className="rounded border-slate-300"
+                  />
+                  {p}
+                </label>
               ))}
-            </select>
+            </div>
           </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">O QUE (Ação prática) *</label>
-            <input
-              type="text"
-              value={oQue}
-              onChange={(e) => setOQue(e.target.value)}
-              placeholder="Ex: Contratar mediador / Equipar SRM"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">POR QUE (Justificativa)</label>
-            <textarea
-              value={porQue}
-              onChange={(e) => setPorQue(e.target.value)}
-              rows={2}
-              placeholder="Ex: Dimensionamento PGEI"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">QUEM (Responsável)</label>
-            <input
-              type="text"
-              value={quem}
-              onChange={(e) => setQuem(e.target.value)}
-              placeholder="Ex: Coordenação pedagógica"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">ONDE (Local)</label>
-            <input
-              type="text"
-              value={onde}
-              onChange={(e) => setOnde(e.target.value)}
-              placeholder="Ex: SRM, Bloco A"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">COMO (Método)</label>
-            <input
-              type="text"
-              value={como}
-              onChange={(e) => setComo(e.target.value)}
-              placeholder="Ex: Palestra em HTPC"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">PRAZO</label>
-            <input
-              type="date"
-              value={prazo}
-              onChange={(e) => setPrazo(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">CUSTO (R$)</label>
-            <input
-              type="text"
-              value={custo}
-              onChange={(e) => setCusto(e.target.value)}
-              placeholder="Ex: 5.000,00"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-xs text-slate-600 mb-1">Perfil de atendimento</label>
-          <div className="flex flex-wrap gap-2">
-            {PERFIS_ATENDIMENTO.map((p) => (
-              <label key={p} className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={perfil.includes(p)}
-                  onChange={(e) =>
-                    setPerfil((prev) =>
-                      e.target.checked ? [...prev, p] : prev.filter((x) => x !== p)
-                    )
-                  }
-                  className="rounded border-slate-300"
-                />
-                {p}
-              </label>
-            ))}
-          </div>
-        </div>
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 disabled:opacity-60"
-        >
-          {saving ? "Salvando…" : (
-            <>
-              <Plus className="w-4 h-4 inline mr-1" />
-              Adicionar ação ao plano
-            </>
-          )}
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 disabled:opacity-60"
+          >
+            {saving ? "Salvando…" : (
+              <>
+                <Plus className="w-4 h-4 inline mr-1" />
+                Adicionar ação ao plano
+              </>
+            )}
+          </button>
+        </form>
+      </Card>
 
       {/* Lista de ações */}
       <div>

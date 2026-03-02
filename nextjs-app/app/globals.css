@@ -126,6 +126,55 @@
   --noise-opacity: 0.015;
 }
 
+/* ─── Notebook Theme (inspired by NotebookLM) ─── */
+[data-theme="notebook"] {
+  --bg-primary: #faf6f1;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f3ece3;
+  --bg-hover: #f7f1ea;
+  --bg-gradient-from: #faf6f1;
+  --bg-gradient-via: rgba(243, 236, 227, 0.25);
+  --bg-gradient-to: rgba(250, 246, 241, 0.15);
+
+  --text-primary: #1c1917;
+  --text-secondary: #57534e;
+  --text-muted: #a8a29e;
+  --text-inverse: #ffffff;
+
+  --border-default: rgba(214, 200, 181, 0.45);
+  --border-strong: rgba(196, 178, 156, 0.55);
+  --border-subtle: rgba(232, 222, 210, 0.65);
+
+  --surface-0: #faf6f1;
+  --surface-1: #ffffff;
+  --surface-2: rgba(255, 255, 255, 0.80);
+  --surface-3: rgba(255, 255, 255, 0.55);
+
+  --glass-bg: rgba(255, 253, 250, 0.78);
+  --glass-bg-strong: rgba(255, 253, 250, 0.92);
+
+  --shadow-xs: 0 1px 2px rgba(120, 90, 50, 0.04);
+  --shadow-sm: 0 2px 10px rgba(120, 90, 50, 0.05), 0 6px 20px rgba(120, 90, 50, 0.02);
+  --shadow-md: 0 4px 16px rgba(120, 90, 50, 0.06), 0 12px 32px rgba(120, 90, 50, 0.03);
+  --shadow-lg: 0 8px 24px rgba(120, 90, 50, 0.06), 0 20px 48px rgba(120, 90, 50, 0.04);
+  --shadow-xl: 0 12px 32px rgba(120, 90, 50, 0.08), 0 32px 64px rgba(120, 90, 50, 0.05);
+  --shadow-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+
+  --scrollbar-thumb: #d6c8b5;
+  --scrollbar-thumb-hover: #b8a690;
+
+  --glow-blue: 0 0 20px rgba(59, 130, 246, 0.18);
+  --glow-violet: 0 0 20px rgba(139, 92, 246, 0.18);
+  --glow-rose: 0 0 20px rgba(244, 63, 94, 0.18);
+  --glow-cyan: 0 0 20px rgba(6, 182, 212, 0.18);
+  --glow-emerald: 0 0 20px rgba(16, 185, 129, 0.18);
+  --glow-amber: 0 0 20px rgba(245, 158, 11, 0.18);
+  --glow-sky: 0 0 20px rgba(56, 189, 248, 0.18);
+  --glow-indigo: 0 0 20px rgba(99, 102, 241, 0.18);
+
+  --noise-opacity: 0.018;
+}
+
 /* ─── Base ─── */
 html {
   scroll-behavior: smooth;
@@ -1325,4 +1374,98 @@ h6 {
   & .border-orange-200 {
     border-color: rgba(249, 115, 22, 0.3) !important;
   }
+}
+
+/* ─── Omni Typography Scale ───────────────────────────────────────────────── */
+/* Use estas classes em vez de text-[Npx] arbitrários                        */
+
+.omni-label-xs {
+  font-size: 10px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.omni-label-sm {
+  font-size: 11px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.omni-label {
+  font-size: 11px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.omni-body-sm {
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.omni-body {
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.omni-body-bold {
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+.omni-heading-sm {
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.omni-heading {
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.omni-heading-lg {
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.omni-title {
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* ─── Omni Card Variants ──────────────────────────────────────────────────── */
+
+.omni-card {
+  background: var(--omni-bg-secondary);
+  border: 1px solid var(--omni-border-default);
+  border-radius: 16px;
+  padding: 20px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.omni-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-color: var(--omni-border-strong);
+}
+
+.omni-card-kpi {
+  background: var(--omni-bg-tertiary);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.omni-card-glass {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.6));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--omni-border-subtle);
+  border-radius: 16px;
+  padding: 20px;
 }

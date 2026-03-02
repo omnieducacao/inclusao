@@ -265,9 +265,9 @@ export function LBIComplianceChecklist({ peiData }: { peiData: PEIData }) {
                         <div key={item.label} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${item.passed ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
                             }`}>
                             {item.passed ? (
-                                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-emerald-500" />
+                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
                             ) : (
-                                <XCircle className="w-3.5 h-3.5 flex-shrink-0 text-red-500" />
+                                <XCircle className="w-3.5 h-3.5 shrink-0 text-red-500" />
                             )}
                             <span className="flex-1">{item.label}</span>
                             <span className="text-[10px] opacity-70">{item.ref}</span>
@@ -286,9 +286,9 @@ export function LBIComplianceChecklist({ peiData }: { peiData: PEIData }) {
                         <div key={item.label} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${item.passed ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-600"
                             }`}>
                             {item.passed ? (
-                                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-emerald-500" />
+                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
                             ) : (
-                                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-amber-500" />
+                                <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-500" />
                             )}
                             <span className="flex-1">{item.label}</span>
                             <span className="text-[10px] opacity-70">{item.ref}</span>
@@ -300,7 +300,7 @@ export function LBIComplianceChecklist({ peiData }: { peiData: PEIData }) {
             {/* Alerta */}
             {!allObrigatoriosPassed && (
                 <div className="px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                     <div>
                         <strong>Atenção:</strong> Preencha todos os campos obrigatórios antes de exportar o PDF oficial.
                         O documento pode ser considerado incompleto para fins legais (Lei 13.146/2015).

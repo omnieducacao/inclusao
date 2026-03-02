@@ -61,7 +61,7 @@ export function GuidedTour({ onComplete }: { onComplete?: () => void }) {
                 {/* Progress bar */}
                 <div className="h-1.5 bg-slate-100">
                     <div
-                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-r-full transition-all duration-500"
+                        className="h-full bg-linear-to-r from-blue-500 to-indigo-600 rounded-r-full transition-all duration-500"
                         style={{ width: `${progress}%` }}
                     />
                 </div>
@@ -122,7 +122,7 @@ export function GuidedTour({ onComplete }: { onComplete?: () => void }) {
                         <button
                             type="button"
                             onClick={next}
-                            className="px-6 py-2.5 text-sm font-bold rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all"
+                            className="px-6 py-2.5 text-sm font-bold rounded-xl bg-linear-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all"
                         >
                             {isLast ? "Começar a usar! 🚀" : "Próximo →"}
                         </button>

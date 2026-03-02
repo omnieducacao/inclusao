@@ -51,7 +51,7 @@ const ProfileCard = forwardRef<HTMLDivElement, ProfileCardProps>(
             <div
                 ref={ref}
                 className={cn(
-                    "rounded-2xl border border-[var(--omni-border-default)] bg-[var(--omni-bg-secondary)]",
+                    "rounded-2xl border border-(--omni-border-default) bg-(--omni-bg-secondary)",
                     "transition-all duration-200 hover:shadow-md",
                     isHorizontal ? "flex items-center gap-4 p-4" : "p-5",
                     className
@@ -91,9 +91,9 @@ const ProfileCard = forwardRef<HTMLDivElement, ProfileCardProps>(
 
                     {/* Info */}
                     <div className={cn(!isHorizontal && !isCompact && "mt-1")}>
-                        <p className="text-sm font-bold text-[var(--omni-text-primary)] truncate">{name}</p>
+                        <p className="text-sm font-bold text-(--omni-text-primary) truncate">{name}</p>
                         {role && (
-                            <p className="text-xs font-medium text-[var(--omni-text-muted)] truncate mt-0.5">{role}</p>
+                            <p className="text-xs font-medium text-(--omni-text-muted) truncate mt-0.5">{role}</p>
                         )}
                     </div>
                 </div>

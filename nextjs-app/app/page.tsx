@@ -131,13 +131,14 @@ export default async function RootPage() {
   }
 
   // Helper to apply customization overrides to a module card
-  function applyCustomization<T extends { href: string; color: string; iconName: string }>(card: T): T & { lottieOverride?: string } {
-    // Extract module key from href (e.g., "/estudantes" -> "estudantes")
-    const key = card.href.replace(/^\//, "");
+  function applyCustomization<T extends { href: string; color: string; iconName: string; customKey?: string }>(card: T): T & { lottieOverride?: string } {
+    // Use customKey if provided (e.g., Família has customKey="familia" but href="/estudantes")
+    const key = card.customKey || card.href.replace(/^\//, "");
     const custom = cardCustomizations[key];
     if (!custom) return card;
     return {
       ...card,
+      // Aplica cor e ícone customizados pelo admin
       color: custom.color || card.color,
       lottieOverride: custom.icon || undefined,
     };
@@ -145,36 +146,36 @@ export default async function RootPage() {
 
   // ── Row 1: Módulos Principais ──
   const row1Raw = [
-    { href: "/estudantes", iconName: "UsersFour" as const, title: "Estudantes", desc: "Gestão completa de estudantes e acompanhamento.", color: "sky", permission: "can_estudantes", badge: kpiBadges["Estudantes"] },
-    { href: "/pei", iconName: "Student" as const, title: "Estratégias & PEI", desc: "Plano Educacional Individual com IA e acompanhamento.", color: "blue", permission: "can_pei", badge: kpiBadges["Estratégias & PEI"] },
-    { href: "/pei-regente", iconName: "BookOpen" as const, title: "PEI - Professor", desc: "Plano de ensino, avaliação diagnóstica e PEI por disciplina.", color: "teal", permission: "can_pei_professor" },
-    { href: "/plano-curso", iconName: "BookBookmark" as const, title: "Plano de Curso", desc: "Planejamento pedagógico por componente curricular e série.", color: "sky", permission: "can_pei_professor" },
-    { href: "/avaliacao-diagnostica", iconName: "Brain" as const, title: "Avaliação Diagnóstica", desc: "Gere questões com IA, aplique e identifique o nível Omnisfera.", color: "blue", permission: "can_pei_professor" },
-    { href: "/avaliacao-processual", iconName: "ChartLineUp" as const, title: "Avaliação Processual", desc: "Acompanhe a evolução do estudante ao longo do ano letivo.", color: "green", permission: "can_pei_professor", badge: kpiBadges["Avaliação Processual"] },
-    { href: "/paee", iconName: "PuzzlePiece" as const, title: "Plano de Ação / PAEE", desc: "Atendimento Educacional Especializado e sala de recursos.", color: "violet", permission: "can_paee" },
-    { href: "/hub", iconName: "RocketLaunch" as const, title: "Hub de Inclusão", desc: "Ferramentas de inteligência artificial para criar e adaptar.", color: "cyan", permission: "can_hub" },
+    { href: "/estudantes", iconName: "UsersFour" as const, title: "Estudantes", desc: "Gestão completa de estudantes e acompanhamento.", color: "omnisfera", permission: "can_estudantes", badge: kpiBadges["Estudantes"] },
+    { href: "/pei", iconName: "Student" as const, title: "Estratégias & PEI", desc: "Plano Educacional Individual com IA e acompanhamento.", color: "pei", permission: "can_pei", badge: kpiBadges["Estratégias & PEI"] },
+    { href: "/pei-regente", iconName: "BookOpen" as const, title: "PEI - Professor", desc: "Plano de ensino, avaliação diagnóstica e PEI por disciplina.", color: "monitoramento", permission: "can_pei_professor" },
+    { href: "/plano-curso", iconName: "BookBookmark" as const, title: "Plano de Curso", desc: "Planejamento pedagógico por componente curricular e série.", color: "omnisfera", permission: "can_pei_professor" },
+    { href: "/avaliacao-diagnostica", iconName: "Brain" as const, title: "Avaliação Diagnóstica", desc: "Gere questões com IA, aplique e identifique o nível Omnisfera.", color: "ferramentas", permission: "can_pei_professor" },
+    { href: "/avaliacao-processual", iconName: "ChartLineUp" as const, title: "Avaliação Processual", desc: "Acompanhe a evolução do estudante ao longo do ano letivo.", color: "diario", permission: "can_pei_professor", badge: kpiBadges["Avaliação Processual"] },
+    { href: "/paee", iconName: "PuzzlePiece" as const, title: "Plano de Ação / PAEE", desc: "Atendimento Educacional Especializado e sala de recursos.", color: "paee", permission: "can_paee" },
+    { href: "/hub", iconName: "RocketLaunch" as const, title: "Hub de Inclusão", desc: "Ferramentas de inteligência artificial para criar e adaptar.", color: "hub", permission: "can_hub" },
   ];
   const row1 = row1Raw.filter((m) => canAccessModule(m.permission)).map(applyCustomization);
 
   // ── Row 2: Acompanhamento + Referência ──
   const row2Raw = [
-    { href: "/diario", iconName: "BookOpen" as const, title: "Diário de Bordo", desc: "Registro de observações, evidências e intervenções.", color: "rose", permission: "can_diario", badge: kpiBadges["Diário de Bordo"] },
-    { href: "/monitoramento", iconName: "ChartLineUp" as const, title: "Evolução & Dados", desc: "Indicadores e relatórios de progresso dos estudantes.", color: "slate", permission: "can_avaliacao", badge: kpiBadges["Evolução & Dados"] },
+    { href: "/diario", iconName: "BookOpen" as const, title: "Diário de Bordo", desc: "Registro de observações, evidências e intervenções.", color: "diario", permission: "can_diario", badge: kpiBadges["Diário de Bordo"] },
+    { href: "/monitoramento", iconName: "ChartLineUp" as const, title: "Evolução & Dados", desc: "Indicadores e relatórios de progresso dos estudantes.", color: "monitoramento", permission: "can_avaliacao", badge: kpiBadges["Evolução & Dados"] },
     ...(familyModuleEnabled && canAccessModule("can_estudantes")
-      ? [{ href: "/estudantes", iconName: "Users" as const, title: "Família", desc: "Cadastrar responsáveis e vincular a estudantes para acesso à plataforma.", color: "amber", permission: "can_estudantes" as const, badge: kpiBadges["Família"] }]
+      ? [{ href: "/estudantes", customKey: "familia", iconName: "Users" as const, title: "Família", desc: "Cadastrar responsáveis e vincular a estudantes para acesso à plataforma.", color: "cursos", permission: "can_estudantes" as const, badge: kpiBadges["Família"] }]
       : []),
-    { href: "/pgi", iconName: "ClipboardText" as const, title: "PGI", desc: "Plano de Gestão Inclusiva da escola.", color: "presentation", permission: "can_gestao" },
-    { href: "/infos", iconName: "BookBookmark" as const, title: "Central de Inteligência", desc: "Fundamentos pedagógicos, legislação e ferramentas.", color: "table" },
+    { href: "/pgi", iconName: "ClipboardText" as const, title: "PGI", desc: "Plano de Gestão Inclusiva da escola.", color: "pgi", permission: "can_gestao" },
+    { href: "/infos", iconName: "BookBookmark" as const, title: "Central de Inteligência", desc: "Fundamentos pedagógicos, legislação e ferramentas.", color: "gestao", permission: "can_gestao" },
   ];
   const row2 = row2Raw.filter((m) => !m.permission || canAccessModule(m.permission)).map(applyCustomization);
 
   // ── Row 3: Gestão e Configuração ──
   const row3Raw: Array<{ href: string; iconName: string; title: string; desc: string; color: string; permission?: string }> = [
-    { href: "/gestao", iconName: "UsersThree", title: "Gestão de Usuários", desc: "Cadastrar usuários, permissões e vínculos.", color: "test", permission: "can_gestao" },
-    { href: "/config-escola", iconName: "GraduationCap", title: "Configuração Escola", desc: "Ano letivo, séries e turmas.", color: "reports", permission: "can_gestao" },
+    { href: "/gestao", iconName: "UsersThree", title: "Gestão de Usuários", desc: "Cadastrar usuários, permissões e vínculos.", color: "gestao", permission: "can_gestao" },
+    { href: "/config-escola", iconName: "GraduationCap", title: "Configuração Escola", desc: "Ano letivo, séries e turmas.", color: "cursos", permission: "can_gestao" },
   ];
   const row3Base = sessionNonNull.is_platform_admin
-    ? [...row3Raw, { href: "/admin", iconName: "Gear", title: "Admin Plataforma", desc: "Gerenciamento completo da plataforma", color: "reports" }]
+    ? [...row3Raw, { href: "/admin", iconName: "Gear", title: "Admin Plataforma", desc: "Gerenciamento completo da plataforma", color: "admin" }]
     : row3Raw;
   const row3 = row3Base.filter((m) => !m.permission || canAccessModule(m.permission)).map(applyCustomization);
 

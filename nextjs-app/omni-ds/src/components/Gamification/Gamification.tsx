@@ -77,8 +77,8 @@ const StreakCalendar = forwardRef<HTMLDivElement, StreakCalendarProps>(
                     <div className="flex items-center gap-2 mb-1">
                         <span className="text-2xl">🔥</span>
                         <div>
-                            <p className="text-2xl font-extrabold tracking-tight text-[var(--omni-text-primary)]">{streakCount}</p>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--omni-text-muted)]">dias seguidos</p>
+                            <p className="text-2xl font-extrabold tracking-tight text-(--omni-text-primary)">{streakCount}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-(--omni-text-muted)">dias seguidos</p>
                         </div>
                     </div>
                 )}
@@ -90,7 +90,7 @@ const StreakCalendar = forwardRef<HTMLDivElement, StreakCalendarProps>(
                             {dayLabels.map((label, i) => (
                                 <span
                                     key={i}
-                                    className="text-[9px] font-semibold text-[var(--omni-text-muted)] flex items-center justify-end"
+                                    className="text-[9px] font-semibold text-(--omni-text-muted) flex items-center justify-end"
                                     style={{ height: cellSize, lineHeight: `${cellSize}px` }}
                                 >
                                     {i % 2 === 0 ? label : ""}
@@ -123,7 +123,7 @@ const StreakCalendar = forwardRef<HTMLDivElement, StreakCalendarProps>(
 
                 {/* Legend */}
                 <div className="flex items-center gap-1 mt-1">
-                    <span className="text-[9px] text-[var(--omni-text-muted)] mr-1">Menos</span>
+                    <span className="text-[9px] text-(--omni-text-muted) mr-1">Menos</span>
                     {[0, 1, 2, 3, 4].map(i => (
                         <div
                             key={i}
@@ -131,7 +131,7 @@ const StreakCalendar = forwardRef<HTMLDivElement, StreakCalendarProps>(
                             style={{ width: cellSize - 2, height: cellSize - 2, backgroundColor: color, opacity: intensityOpacity[i] }}
                         />
                     ))}
-                    <span className="text-[9px] text-[var(--omni-text-muted)] ml-1">Mais</span>
+                    <span className="text-[9px] text-(--omni-text-muted) ml-1">Mais</span>
                 </div>
             </div>
         );
@@ -273,15 +273,15 @@ const StudyGoalRing = forwardRef<HTMLDivElement, StudyGoalRingProps>(
                     {/* Center content */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                         {icon && <span className="mb-0.5">{icon}</span>}
-                        <p className="text-xl font-extrabold tracking-tight text-[var(--omni-text-primary)]">
-                            {current}<span className="text-xs font-semibold text-[var(--omni-text-muted)]">/{goal}</span>
+                        <p className="text-xl font-extrabold tracking-tight text-(--omni-text-primary)">
+                            {current}<span className="text-xs font-semibold text-(--omni-text-muted)">/{goal}</span>
                         </p>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--omni-text-muted)]">{unit}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-(--omni-text-muted)">{unit}</p>
                     </div>
                 </div>
                 {/* Label */}
                 {label && (
-                    <p className="text-xs font-semibold text-[var(--omni-text-secondary)]">{label}</p>
+                    <p className="text-xs font-semibold text-(--omni-text-secondary)">{label}</p>
                 )}
                 {/* Complete badge */}
                 {isComplete && (
@@ -337,7 +337,7 @@ const SkillBadge = forwardRef<HTMLDivElement, SkillBadgeProps>(
                     ref={ref}
                     className={cn(
                         "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-all",
-                        unlocked ? "border-transparent" : "border-dashed border-[var(--omni-border-default)] opacity-40",
+                        unlocked ? "border-transparent" : "border-dashed border-(--omni-border-default) opacity-40",
                         className
                     )}
                     style={unlocked ? { backgroundColor: `${color}12`, color } : undefined}
@@ -353,10 +353,10 @@ const SkillBadge = forwardRef<HTMLDivElement, SkillBadgeProps>(
             <div
                 ref={ref}
                 className={cn(
-                    "rounded-2xl border overflow-hidden transition-all duration-200 hover:shadow-[var(--omni-shadow-elevated)] hover:-translate-y-0.5",
+                    "rounded-2xl border overflow-hidden transition-all duration-200 hover:shadow-(--omni-shadow-elevated) hover:-translate-y-0.5",
                     unlocked
-                        ? "border-[var(--omni-border-default)] bg-[var(--omni-bg-secondary)]"
-                        : "border-dashed border-[var(--omni-border-default)] bg-[var(--omni-bg-secondary)] opacity-50",
+                        ? "border-(--omni-border-default) bg-(--omni-bg-secondary)"
+                        : "border-dashed border-(--omni-border-default) bg-(--omni-bg-secondary) opacity-50",
                     isCompact ? "p-3" : "p-4",
                     className
                 )}
@@ -374,7 +374,7 @@ const SkillBadge = forwardRef<HTMLDivElement, SkillBadgeProps>(
                         {icon || "⭐"}
                     </div>
                     <div className="min-w-0 flex-1">
-                        <p className={cn("font-bold text-[var(--omni-text-primary)] truncate", isCompact ? "text-xs" : "text-sm")}>
+                        <p className={cn("font-bold text-(--omni-text-primary) truncate", isCompact ? "text-xs" : "text-sm")}>
                             {name}
                         </p>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -385,14 +385,14 @@ const SkillBadge = forwardRef<HTMLDivElement, SkillBadgeProps>(
                                 Nv.{level}
                             </span>
                             {xp !== undefined && xpNext && (
-                                <span className="text-[10px] text-[var(--omni-text-muted)] font-semibold tabular-nums">
+                                <span className="text-[10px] text-(--omni-text-muted) font-semibold tabular-nums">
                                     {xp}/{xpNext} XP
                                 </span>
                             )}
                         </div>
                     </div>
                     {!unlocked && (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-[var(--omni-text-muted)] shrink-0">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-(--omni-text-muted) shrink-0">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
                         </svg>
                     )}

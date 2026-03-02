@@ -51,7 +51,7 @@ const AvatarGroup = forwardRef<HTMLDivElement, AvatarGroupProps>(
                         size,
                         className: cn(
                             i > 0 && s.overlap,
-                            "ring-2 ring-[var(--omni-bg-secondary)]",
+                            "ring-2 ring-(--omni-bg-secondary)",
                             (child as React.ReactElement<{ className?: string }>).props.className
                         ),
                     })
@@ -60,8 +60,8 @@ const AvatarGroup = forwardRef<HTMLDivElement, AvatarGroupProps>(
                     <div
                         className={cn(
                             "inline-flex items-center justify-center rounded-full",
-                            "bg-[var(--omni-bg-tertiary)] text-[var(--omni-text-secondary)]",
-                            "font-semibold ring-2 ring-[var(--omni-bg-secondary)]",
+                            "bg-(--omni-bg-tertiary) text-(--omni-text-secondary)",
+                            "font-semibold ring-2 ring-(--omni-bg-secondary)",
                             s.overlap,
                             s.text
                         )}

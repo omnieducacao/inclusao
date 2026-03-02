@@ -5,17 +5,17 @@
 
 // Cores por módulo (usadas em ModuleCard, badges, glows)
 export const moduleColors = {
-    pei: { bg: "#7c3aed", text: "#ffffff", glow: "rgba(139, 92, 246, 0.25)" },
-    paee: { bg: "#e11d48", text: "#ffffff", glow: "rgba(244, 63, 94, 0.25)" },
-    hub: { bg: "#0891b2", text: "#ffffff", glow: "rgba(6, 182, 212, 0.25)" },
-    diario: { bg: "#059669", text: "#ffffff", glow: "rgba(16, 185, 129, 0.25)" },
-    cursos: { bg: "#d97706", text: "#ffffff", glow: "rgba(245, 158, 11, 0.25)" },
-    ferramentas: { bg: "#2563eb", text: "#ffffff", glow: "rgba(59, 130, 246, 0.25)" },
-    omnisfera: { bg: "#0ea5e9", text: "#ffffff", glow: "rgba(56, 189, 248, 0.25)" },
-    gestao: { bg: "#6366f1", text: "#ffffff", glow: "rgba(99, 102, 241, 0.25)" },
-    monitoramento: { bg: "#0d9488", text: "#ffffff", glow: "rgba(20, 184, 166, 0.25)" },
-    pgi: { bg: "#8b5cf6", text: "#ffffff", glow: "rgba(139, 92, 246, 0.25)" },
-    admin: { bg: "#475569", text: "#ffffff", glow: "rgba(71, 85, 105, 0.25)" },
+    pei: { bg: "#7c3aed", text: "#ffffff", glow: "rgba(139, 92, 246, 0.25)", bgPastel: "#ede5fb", textPastel: "#5b21b6" },
+    paee: { bg: "#e11d48", text: "#ffffff", glow: "rgba(244, 63, 94, 0.25)", bgPastel: "#fce4ec", textPastel: "#9f1239" },
+    hub: { bg: "#0891b2", text: "#ffffff", glow: "rgba(6, 182, 212, 0.25)", bgPastel: "#e0f5f9", textPastel: "#0e7490" },
+    diario: { bg: "#059669", text: "#ffffff", glow: "rgba(16, 185, 129, 0.25)", bgPastel: "#dcfce7", textPastel: "#047857" },
+    cursos: { bg: "#d97706", text: "#ffffff", glow: "rgba(245, 158, 11, 0.25)", bgPastel: "#fef3cd", textPastel: "#92400e" },
+    ferramentas: { bg: "#2563eb", text: "#ffffff", glow: "rgba(59, 130, 246, 0.25)", bgPastel: "#dbeafe", textPastel: "#1d4ed8" },
+    omnisfera: { bg: "#0ea5e9", text: "#ffffff", glow: "rgba(56, 189, 248, 0.25)", bgPastel: "#e0f2fe", textPastel: "#0369a1" },
+    gestao: { bg: "#6366f1", text: "#ffffff", glow: "rgba(99, 102, 241, 0.25)", bgPastel: "#e0e1fc", textPastel: "#4338ca" },
+    monitoramento: { bg: "#0d9488", text: "#ffffff", glow: "rgba(20, 184, 166, 0.25)", bgPastel: "#ccfbf1", textPastel: "#0f766e" },
+    pgi: { bg: "#8b5cf6", text: "#ffffff", glow: "rgba(139, 92, 246, 0.25)", bgPastel: "#ede9fe", textPastel: "#6d28d9" },
+    admin: { bg: "#475569", text: "#ffffff", glow: "rgba(71, 85, 105, 0.25)", bgPastel: "#e8eaed", textPastel: "#334155" },
 } as const;
 
 export type ModuleKey = keyof typeof moduleColors;

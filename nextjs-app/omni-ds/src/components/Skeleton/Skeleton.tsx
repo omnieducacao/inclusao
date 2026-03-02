@@ -18,7 +18,7 @@ function Skeleton({
     style,
     ...props
 }: SkeletonProps) {
-    const baseClasses = "relative overflow-hidden bg-[var(--omni-surface-0)] dark:bg-white/5 rounded-lg before:absolute before:inset-0 before:-translate-x-full before:animate-[omni-shimmer_2s_infinite_ease-in-out] before:bg-gradient-to-r before:from-transparent before:via-black/5 dark:before:via-white/10 before:to-transparent";
+    const baseClasses = "relative overflow-hidden bg-(--omni-surface-0) dark:bg-white/5 rounded-lg before:absolute before:inset-0 before:-translate-x-full before:animate-[omni-shimmer_2s_infinite_ease-in-out] before:bg-linear-to-r before:from-transparent before:via-black/5 dark:before:via-white/10 before:to-transparent";
 
     if (variant === "circular") {
         const size = width || height || 40;

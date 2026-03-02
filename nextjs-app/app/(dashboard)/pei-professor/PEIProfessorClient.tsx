@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import {
-    Loader2, Users, BookOpen, Brain, CheckCircle2, ChevronDown,
+    Users, BookOpen, Brain, CheckCircle2, ChevronDown,
     ChevronUp, Sparkles, Save, FileText, TrendingUp, ArrowLeft,
     Target, Lightbulb, ClipboardList, Package,
 } from "lucide-react";
+import { Card, Button, Badge, EmptyState, Accordion, Textarea } from "@omni/ds";
+import { OmniLoader } from "@/components/OmniLoader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -198,8 +200,8 @@ export default function PEIProfessorClient() {
     // ─── Loading ──────
     if (loading) {
         return (
-            <div className="flex items-center justify-center py-16 gap-2 text-slate-500">
-                <Loader2 className="w-6 h-6 animate-spin" /> Carregando...
+            <div className="flex items-center justify-center py-16 gap-2 text-(--omni-text-muted)">
+                <OmniLoader size={24} /> Carregando...
             </div>
         );
     }
@@ -207,7 +209,7 @@ export default function PEIProfessorClient() {
     // ─── Lista de estudantes ──────
     if (!selectedDisc) {
         return (
-            <div className="space-y-6">
+            <div className="space-y-5">
                 {/* Header */}
                 <div className="bg-linear-to-r from-violet-600 to-indigo-600 rounded-2xl p-6 text-white">
                     <div className="flex items-center gap-3 mb-2">
@@ -221,21 +223,19 @@ export default function PEIProfessorClient() {
                 </div>
 
                 {estudantes.length === 0 ? (
-                    <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center">
-                        <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                        <p className="text-slate-600 font-medium">Nenhum estudante com PEI atribuído.</p>
-                        <p className="text-sm text-slate-500 mt-1">
-                            Solicite ao coordenador que envie o PEI para sua disciplina na aba Regentes.
-                        </p>
-                    </div>
+                    <EmptyState
+                        icon={Users}
+                        title="Nenhum estudante com PEI atribuído"
+                        description="Solicite ao coordenador que envie o PEI para sua disciplina na aba Regentes."
+                    />
                 ) : (
                     <div className="space-y-4">
                         {estudantes.map((est) => (
-                            <div key={est.id} className="bg-white rounded-2xl border border-slate-200 p-5">
+                            <Card key={est.id}>
                                 <div className="flex items-start justify-between mb-3">
                                     <div>
-                                        <h3 className="font-semibold text-slate-800 text-lg">{est.name}</h3>
-                                        <p className="text-sm text-slate-500">
+                                        <h3 className="font-semibold text-(--omni-text-primary) text-lg">{est.name}</h3>
+                                        <p className="text-sm text-(--omni-text-muted)">
                                             {est.grade} {est.class_group && `• ${est.class_group}`}
                                             {est.diagnosis && ` • ${est.diagnosis}`}
                                         </p>
@@ -244,8 +244,8 @@ export default function PEIProfessorClient() {
 
                                 {/* PEI 1 resumo */}
                                 {est.pei_resumo && (
-                                    <div className="mb-3 p-3 bg-slate-50 rounded-lg text-sm text-slate-600 line-clamp-2">
-                                        <span className="font-medium text-slate-700">PEI 1:</span> {est.pei_resumo}
+                                    <div className="mb-3 p-3 bg-(--omni-bg-tertiary) rounded-lg text-sm text-(--omni-text-secondary) line-clamp-2">
+                                        <span className="font-medium text-(--omni-text-primary)">PEI 1:</span> {est.pei_resumo}
                                     </div>
                                 )}
 
@@ -255,28 +255,30 @@ export default function PEIProfessorClient() {
                                         const fase = FASE_LABELS[disc.fase_status] || FASE_LABELS.plano_ensino;
                                         const hasContent = disc.pei_disciplina_data && Object.keys(disc.pei_disciplina_data).length > 0;
                                         return (
-                                            <button
+                                            <Card
                                                 key={disc.disciplina}
+                                                variant="interactive"
+                                                padding="md"
                                                 onClick={() => openDisciplina(est, disc)}
-                                                className="text-left p-4 rounded-xl border-2 hover:shadow-md transition-all"
                                                 style={{ borderColor: `${fase.color}44` }}
                                             >
                                                 <div className="flex items-center justify-between mb-2">
-                                                    <span className="font-semibold text-slate-800">{disc.disciplina}</span>
+                                                    <span className="font-semibold text-(--omni-text-primary)">{disc.disciplina}</span>
                                                     {hasContent && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
                                                 </div>
-                                                <div
-                                                    className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full"
+                                                <Badge
+                                                    size="sm"
                                                     style={{ background: `${fase.color}15`, color: fase.color }}
+                                                    className="inline-flex items-center gap-1.5"
                                                 >
                                                     {fase.icon}
                                                     {fase.label}
-                                                </div>
-                                            </button>
+                                                </Badge>
+                                            </Card>
                                         );
                                     })}
                                 </div>
-                            </div>
+                            </Card>
                         ))}
                     </div>
                 )}
@@ -302,61 +304,62 @@ export default function PEIProfessorClient() {
                 <p className="text-sm opacity-80">
                     {selectedStudent?.grade} {selectedStudent?.class_group && `• ${selectedStudent.class_group}`}
                 </p>
-                <div
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold mt-2 px-2.5 py-1 rounded-full"
-                    style={{ background: "rgba(255,255,255,.2)" }}
+                <Badge
+                    size="sm"
+                    className="mt-2 inline-flex items-center gap-1.5"
+                    style={{ background: "rgba(255,255,255,.2)", color: "#fff" }}
                 >
                     {fase.icon} {fase.label}
-                </div>
+                </Badge>
             </div>
 
             {/* Ações */}
             <div className="flex gap-3 flex-wrap">
-                <button
+                <Button
                     onClick={gerarPEI}
                     disabled={generating}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white font-medium rounded-xl hover:bg-violet-700 disabled:opacity-60 shadow-sm"
+                    variant="primary"
+                    className="bg-violet-600 hover:bg-violet-700"
                 >
                     {generating ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" /> Gerando PEI...</>
+                        <><OmniLoader size={16} /> Gerando PEI...</>
                     ) : (
                         <><Sparkles className="w-4 h-4" /> {hasContent ? "Regenerar com IA" : "Gerar PEI com IA"}</>
                     )}
-                </button>
-                <button
+                </Button>
+                <Button
                     onClick={salvarPEI}
                     disabled={saving || !hasContent}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 disabled:opacity-60 shadow-sm"
+                    variant="primary"
+                    className="bg-emerald-600 hover:bg-emerald-700"
                 >
                     {saving ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
+                        <><OmniLoader size={16} /> Salvando...</>
                     ) : saved ? (
                         <><CheckCircle2 className="w-4 h-4" /> Salvo!</>
                     ) : (
                         <><Save className="w-4 h-4" /> Salvar</>
                     )}
-                </button>
+                </Button>
             </div>
 
             {/* PEI 1 resumo */}
             {selectedStudent?.pei_resumo && (
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <h4 className="text-sm font-semibold text-slate-700 mb-1 flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-slate-500" /> Resumo do PEI 1
+                <Card className="bg-(--omni-bg-tertiary)">
+                    <h4 className="text-sm font-semibold text-(--omni-text-primary) mb-1 flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-(--omni-text-muted)" /> Resumo do PEI 1
                     </h4>
-                    <p className="text-sm text-slate-600">{selectedStudent.pei_resumo}</p>
-                </div>
+                    <p className="text-sm text-(--omni-text-secondary)">{selectedStudent.pei_resumo}</p>
+                </Card>
             )}
 
             {/* Seções do PEI */}
             {!hasContent && !generating && (
-                <div className="rounded-2xl bg-violet-50 border border-violet-200 p-8 text-center">
-                    <Brain className="w-12 h-12 text-violet-400 mx-auto mb-3" />
-                    <p className="text-violet-800 font-medium">PEI da disciplina ainda não gerado.</p>
-                    <p className="text-sm text-violet-600 mt-1">
-                        Clique em &quot;Gerar PEI com IA&quot; para criar automaticamente com base no PEI 1, avaliação diagnóstica e habilidades BNCC.
-                    </p>
-                </div>
+                <EmptyState
+                    icon={Brain}
+                    title="PEI da disciplina ainda não gerado"
+                    description='Clique em "Gerar PEI com IA" para criar automaticamente com base no PEI 1, avaliação diagnóstica e habilidades BNCC.'
+                />
             )}
 
             {(hasContent || generating) && (
@@ -365,48 +368,47 @@ export default function PEIProfessorClient() {
                         const isExpanded = expandedSection === key;
                         const value = peiContent[key];
                         return (
-                            <div key={key} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                            <Card key={key} padding="none">
                                 <button
                                     type="button"
                                     onClick={() => setExpandedSection(isExpanded ? null : key)}
-                                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
+                                    className="w-full flex items-center justify-between p-4 hover:bg-(--omni-bg-tertiary) transition-colors rounded-t-(--omni-radius-lg)"
                                 >
                                     <div className="flex items-center gap-3">
                                         <span className={color}>{icon}</span>
-                                        <span className="font-semibold text-slate-800">{label}</span>
+                                        <span className="font-semibold text-(--omni-text-primary)">{label}</span>
                                         {value && <span className="text-xs text-emerald-500">✓</span>}
                                     </div>
-                                    {isExpanded ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                                    {isExpanded ? <ChevronUp className="w-5 h-5 text-(--omni-text-muted)" /> : <ChevronDown className="w-5 h-5 text-(--omni-text-muted)" />}
                                 </button>
                                 {isExpanded && (
-                                    <div className="px-4 pb-4 border-t border-slate-100">
-                                        <textarea
+                                    <div className="px-4 pb-4 border-t border-(--omni-border-default)">
+                                        <Textarea
                                             value={value}
                                             onChange={(e) => updateField(key, e.target.value)}
                                             placeholder={`Escreva ou edite ${label.toLowerCase()}...`}
                                             rows={8}
-                                            className="w-full mt-3 px-4 py-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 resize-y bg-slate-50"
+                                            className="mt-3"
                                         />
                                     </div>
                                 )}
-                            </div>
+                            </Card>
                         );
                     })}
 
                     {/* Anotações do professor */}
-                    <div className="bg-white rounded-xl border border-slate-200 p-4">
-                        <h4 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
-                            <ClipboardList className="w-5 h-5 text-slate-600" />
+                    <Card>
+                        <h4 className="font-semibold text-(--omni-text-primary) flex items-center gap-2 mb-3">
+                            <ClipboardList className="w-5 h-5 text-(--omni-text-muted)" />
                             Anotações do Professor
                         </h4>
-                        <textarea
+                        <Textarea
                             value={peiContent.anotacoes_professor}
                             onChange={(e) => updateField("anotacoes_professor", e.target.value)}
                             placeholder="Escreva suas observações, anotações e estratégias pessoais aqui..."
                             rows={5}
-                            className="w-full px-4 py-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 resize-y bg-slate-50"
                         />
-                    </div>
+                    </Card>
                 </div>
             )}
         </div>

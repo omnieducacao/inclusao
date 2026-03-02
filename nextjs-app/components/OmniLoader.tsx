@@ -11,6 +11,7 @@ const ENGINE_META: Record<string, { label: string; color: string; glow: string }
     green: { label: "OmniGreen", color: "#10b981", glow: "rgba(16,185,129,.25)" },
     orange: { label: "OmniOrange", color: "#f59e0b", glow: "rgba(245,158,11,.25)" },
     yellow: { label: "OmniYellow", color: "#eab308", glow: "rgba(234,179,8,.25)" },
+    default: { label: "Omnisfera", color: "#94a3b8", glow: "rgba(148,163,184,.20)" },
 };
 
 // ─── Contextual Messages ──────────────────────────────────────────────────────
@@ -21,6 +22,12 @@ const DEFAULT_MESSAGES = [
     "Gerando adaptações individualizadas...",
     "Estruturando o documento...",
     "Verificando alinhamento com BNCC...",
+];
+
+const LOADING_MESSAGES = [
+    "Carregando dados...",
+    "Preparando informações...",
+    "Organizando conteúdo...",
 ];
 
 const MODULE_MESSAGES: Record<string, string[]> = {
@@ -136,13 +143,13 @@ interface OmniLoaderProps {
 }
 
 export function OmniLoader({
-    engine = "red",
+    engine = "default",
     module: moduleName,
     message,
     variant = "inline",
     size = 16,
 }: OmniLoaderProps) {
-    const meta = ENGINE_META[engine] || ENGINE_META.red;
+    const meta = ENGINE_META[engine] || ENGINE_META.default;
 
     // ── Inline: PURE render, zero hooks ──
     if (variant === "inline") {
@@ -178,7 +185,8 @@ function OmniLoaderWithMessages({
     meta: { label: string; color: string; glow: string };
 }) {
     const [msgIndex, setMsgIndex] = useState(0);
-    const messages = message ? [message] : (moduleName && MODULE_MESSAGES[moduleName]) || DEFAULT_MESSAGES;
+    const isNeutral = engine === "default";
+    const messages = message ? [message] : (moduleName && MODULE_MESSAGES[moduleName]) || (isNeutral ? LOADING_MESSAGES : DEFAULT_MESSAGES);
 
     useEffect(() => {
         ensureStyles();
@@ -208,7 +216,7 @@ function OmniLoaderWithMessages({
                         fontSize: 13, fontWeight: 700, color: meta.color,
                         marginBottom: 4,
                     }}>
-                        {meta.label} processando
+                        {isNeutral ? "Carregando..." : `${meta.label} processando`}
                     </div>
                     <div style={{
                         fontSize: 12, color: "var(--text-muted, #94a3b8)",

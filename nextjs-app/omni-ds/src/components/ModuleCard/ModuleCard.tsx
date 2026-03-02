@@ -20,6 +20,8 @@ export type ModuleCardProps = {
     active?: boolean;
     /** Desabilitado */
     disabled?: boolean;
+    /** Visual variant: 'saturated' (default) or 'pastel' (warm notebook) */
+    variant?: "saturated" | "pastel";
     /** Click handler */
     onClick?: () => void;
     className?: string;
@@ -34,10 +36,16 @@ export function ModuleCard({
     badge,
     active,
     disabled,
+    variant = "saturated",
     onClick,
     className,
 }: ModuleCardProps) {
     const colors = moduleColors[moduleKey];
+    const isPastel = variant === "pastel";
+    const cardBg = isPastel ? colors.bgPastel : colors.bg;
+    const cardText = isPastel ? colors.textPastel : colors.text;
+    const badgeBg = isPastel ? `${colors.bg}20` : "rgba(255,255,255,0.2)";
+    const badgeText = isPastel ? colors.textPastel : "white";
 
     return (
         <button
@@ -54,31 +62,39 @@ export function ModuleCard({
                 className
             )}
             style={{
-                backgroundColor: colors.bg,
-                color: colors.text,
-                boxShadow: active ? `0 0 0 1px rgba(255,255,255,0.2) inset, ${colors.glow}, var(--omni-shadow-lg)` : `0 1px 0 0 rgba(255,255,255,0.15) inset, var(--omni-shadow-elevated)`,
+                backgroundColor: cardBg,
+                color: cardText,
+                boxShadow: active
+                    ? `0 0 0 1px rgba(255,255,255,0.2) inset, ${colors.glow}, var(--omni-shadow-lg)`
+                    : isPastel
+                        ? `0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)`
+                        : `0 1px 0 0 rgba(255,255,255,0.15) inset, var(--omni-shadow-elevated)`,
+                ...(isPastel ? { border: `1px solid ${colors.bg}25` } : {}),
             }}
         >
             {/* Icon */}
             <div className="mb-3 flex items-center justify-center">
-                {iconElement ?? (Icon && <Icon className="w-10 h-10 text-white/90" strokeWidth={1.5} />)}
+                {iconElement ?? (Icon && <Icon className={`w-10 h-10 ${isPastel ? '' : 'text-white/90'}`} strokeWidth={1.5} style={isPastel ? { color: colors.bg } : undefined} />)}
             </div>
 
             {/* Title */}
-            <span className="text-sm font-bold tracking-tight text-white leading-tight">
+            <span className={`text-sm font-bold tracking-tight leading-tight ${isPastel ? '' : 'text-white'}`} style={isPastel ? { color: cardText } : undefined}>
                 {title}
             </span>
 
             {/* Description */}
             {description && (
-                <span className="mt-1 text-[11px] font-medium text-white/70 leading-snug line-clamp-2">
+                <span className={`mt-1 text-[11px] font-medium leading-snug line-clamp-2 ${isPastel ? 'opacity-70' : 'text-white/70'}`} style={isPastel ? { color: cardText } : undefined}>
                     {description}
                 </span>
             )}
 
             {/* Badge */}
             {badge && (
-                <span className="mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
+                <span
+                    className="mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-sm"
+                    style={{ backgroundColor: badgeBg, color: badgeText }}
+                >
                     {badge}
                 </span>
             )}

@@ -29,14 +29,14 @@ export function ToastContainer({ position = "top-right" }: { position?: "top-rig
     return (
         <div className={cn("fixed z-[9999] flex flex-col gap-2 pointer-events-none", posClass)} aria-live="polite">
             {toasts.map((t) => (
-                <div key={t.id} className={cn("pointer-events-auto min-w-[300px] max-w-sm p-4 rounded-xl bg-[var(--omni-bg-secondary)] border border-[var(--omni-border-default)] border-l-4 shadow-[var(--omni-shadow-lg)] animate-[slide-in_300ms_ease-out]", colors[t.variant])}>
+                <div key={t.id} className={cn("pointer-events-auto min-w-[300px] max-w-sm p-4 rounded-xl bg-(--omni-bg-secondary) border border-(--omni-border-default) border-l-4 shadow-(--omni-shadow-lg) animate-[slide-in_300ms_ease-out]", colors[t.variant])}>
                     <div className="flex gap-2.5">
-                        <span className="text-base flex-shrink-0">{icons[t.variant]}</span>
+                        <span className="text-base shrink-0">{icons[t.variant]}</span>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-[var(--omni-text-primary)]">{t.title}</p>
-                            {t.description && <p className="text-xs text-[var(--omni-text-muted)] mt-0.5">{t.description}</p>}
+                            <p className="text-sm font-bold text-(--omni-text-primary)">{t.title}</p>
+                            {t.description && <p className="text-xs text-(--omni-text-muted) mt-0.5">{t.description}</p>}
                         </div>
-                        <button onClick={() => remove(t.id)} className="flex-shrink-0 p-0.5 rounded text-[var(--omni-text-muted)] hover:text-[var(--omni-text-primary)] transition-colors">
+                        <button onClick={() => remove(t.id)} className="shrink-0 p-0.5 rounded text-(--omni-text-muted) hover:text-(--omni-text-primary) transition-colors">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         </button>
                     </div>

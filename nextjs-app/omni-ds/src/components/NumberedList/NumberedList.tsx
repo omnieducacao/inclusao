@@ -53,8 +53,8 @@ function NumberedList({ items, color = "#059669", startAt = 1, variant = "defaul
                         className={cn(
                             "flex items-center gap-4 group transition-colors",
                             isCard
-                                ? "p-3.5 rounded-xl hover:bg-[var(--omni-bg-hover)] border border-transparent hover:border-[var(--omni-border-default)]"
-                                : "py-3 border-b border-[var(--omni-border-default)] last:border-b-0"
+                                ? "p-3.5 rounded-xl hover:bg-(--omni-bg-hover) border border-transparent hover:border-(--omni-border-default)"
+                                : "py-3 border-b border-(--omni-border-default) last:border-b-0"
                         )}
                     >
                         {/* Number */}
@@ -71,19 +71,19 @@ function NumberedList({ items, color = "#059669", startAt = 1, variant = "defaul
                         {/* Content */}
                         <div className="min-w-0 flex-1">
                             <p className={cn(
-                                "font-semibold text-[var(--omni-text-primary)] truncate",
+                                "font-semibold text-(--omni-text-primary) truncate",
                                 isCompact ? "text-sm" : "text-sm"
                             )}>
                                 {item.title}
                             </p>
                             {item.description && (
-                                <p className="text-xs text-[var(--omni-text-muted)] mt-0.5 truncate">{item.description}</p>
+                                <p className="text-xs text-(--omni-text-muted) mt-0.5 truncate">{item.description}</p>
                             )}
                         </div>
 
                         {/* Icon slot */}
                         {item.icon && (
-                            <span className="shrink-0 text-[var(--omni-text-muted)]">{item.icon}</span>
+                            <span className="shrink-0 text-(--omni-text-muted)">{item.icon}</span>
                         )}
                     </li>
                 );

@@ -137,7 +137,7 @@ export function GlobalSearch() {
             >
                 {/* Search input */}
                 <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid var(--border-default)' }}>
-                    <Search className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
+                    <Search className="w-5 h-5 shrink-0" style={{ color: 'var(--text-muted)' }} />
                     <input
                         ref={inputRef}
                         type="text"
@@ -148,7 +148,7 @@ export function GlobalSearch() {
                         className="flex-1 text-sm outline-none"
                         style={{ color: 'var(--text-primary)', backgroundColor: 'transparent' }}
                     />
-                    {loading && <Loader2 className="w-4 h-4 text-blue-500 animate-spin flex-shrink-0" />}
+                    {loading && <Loader2 className="w-4 h-4 text-blue-500 animate-spin shrink-0" />}
                     <button
                         type="button"
                         onClick={() => setOpen(false)}
@@ -193,7 +193,7 @@ export function GlobalSearch() {
                                             : "hover:bg-slate-50 text-slate-700"
                                             }`}
                                     >
-                                        <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center flex-shrink-0">
+                                        <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center shrink-0">
                                             <User className="w-4 h-4 text-sky-600" />
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -228,7 +228,7 @@ export function GlobalSearch() {
                                             : "hover:bg-slate-50 text-slate-700"
                                             }`}
                                     >
-                                        <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                                        <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
                                             <Users className="w-4 h-4 text-indigo-600" />
                                         </div>
                                         <div className="flex-1 min-w-0">

@@ -16,10 +16,10 @@ const Toggle = forwardRef<HTMLInputElement, ToggleProps>(({ label, size = "md", 
         <label className={cn("inline-flex items-center gap-2.5 cursor-pointer select-none", disabled && "opacity-50 cursor-not-allowed", className)} htmlFor={inputId}>
             <div className="relative">
                 <input ref={ref} id={inputId} type="checkbox" role="switch" aria-checked={checked} checked={checked} defaultChecked={defaultChecked} onChange={onChange} disabled={disabled} className="sr-only peer" {...props} />
-                <div className={cn("rounded-full transition-colors duration-200 bg-[var(--omni-bg-tertiary)] border border-[var(--omni-border-default)] peer-checked:border-transparent", s.track)} style={checked || defaultChecked ? { backgroundColor: color || "#0ea5e9" } : undefined} />
+                <div className={cn("rounded-full transition-colors duration-200 bg-(--omni-bg-tertiary) border border-(--omni-border-default) peer-checked:border-transparent", s.track)} style={checked || defaultChecked ? { backgroundColor: color || "#0ea5e9" } : undefined} />
                 <div className={cn("absolute top-0.5 left-0.5 bg-white rounded-full shadow-sm transition-transform duration-200 peer-checked:" + s.translate, s.thumb)} />
             </div>
-            {label && <span className="text-sm font-medium text-[var(--omni-text-primary)]">{label}</span>}
+            {label && <span className="text-sm font-medium text-(--omni-text-primary)">{label}</span>}
         </label>
     );
 });

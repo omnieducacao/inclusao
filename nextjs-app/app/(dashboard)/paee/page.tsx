@@ -71,15 +71,12 @@ export default async function PAEEPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <PageHero
-        iconName="Puzzle"
+      <PageHero moduleKey="paee"
         title="Plano de Ação / PAEE"
         desc="Atendimento Educacional Especializado — Planeje e implemente estratégias de AEE para eliminação de barreiras"
-        color="violet"
-        useLottie={true}
       />
 
-      <Suspense fallback={<div className="rounded-2xl bg-white animate-pulse min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }} />}>
+      <Suspense fallback={<div className="rounded-2xl bg-(--omni-bg-primary) border border-(--omni-border-default) shadow-sm animate-pulse min-h-[200px]" />}>
         <PAEEClient
           students={students.map((s) => ({ id: s.id, name: s.name }))}
           studentId={studentId}

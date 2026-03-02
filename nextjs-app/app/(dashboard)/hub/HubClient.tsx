@@ -29,7 +29,6 @@ import {
   RefreshCw,
   ToyBrick,
   BookOpen,
-  Loader2,
   GraduationCap,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -119,14 +118,13 @@ function ToolCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`group relative flex flex-col text-left p-6 rounded-2xl border transition-all duration-300 min-h-[160px] cursor-pointer touch-manipulation ${isActive
-        ? "border-[var(--omni-primary)] shadow-[var(--omni-shadow-md)] bg-white dark:bg-slate-800 scale-[1.01]"
-        : "border-[var(--omni-border-default)] bg-[var(--omni-bg-secondary)] shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[var(--omni-shadow-elevated)] hover:-translate-y-1"
+        ? "border-(--omni-primary) shadow-(--omni-shadow-md) bg-white dark:bg-slate-800 scale-[1.01]"
+        : "border-(--omni-border-default) bg-(--omni-bg-secondary) shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-(--omni-shadow-elevated) hover:-translate-y-1"
         }`}
     >
       {/* Ícone dentro do quadrado minimalista */}
       <div
-        className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 mb-3"
-        style={{ width: '72px', height: '72px', padding: '6px' }}
+        className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 mb-3 w-[72px] h-[72px] p-1.5"
       >
         {lottieAnimation ? (
           <LottieIcon
@@ -174,16 +172,16 @@ export function HubClient({ students, studentId, student }: Props) {
           )}
           <Card className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6">
             <div>
-              <div className="text-xs font-semibold text-[var(--omni-text-muted)] uppercase tracking-wide">Nome</div>
-              <div className="font-bold text-[var(--omni-text-primary)]">{student.name}</div>
+              <div className="text-xs font-semibold text-(--omni-text-muted) uppercase tracking-wide">Nome</div>
+              <div className="font-bold text-(--omni-text-primary)">{student.name}</div>
             </div>
             <div>
-              <div className="text-xs font-semibold text-[var(--omni-text-muted)] uppercase tracking-wide">Série</div>
-              <div className="font-bold text-[var(--omni-text-primary)]">{student.grade || "—"}</div>
+              <div className="text-xs font-semibold text-(--omni-text-muted) uppercase tracking-wide">Série</div>
+              <div className="font-bold text-(--omni-text-primary)">{student.grade || "—"}</div>
             </div>
             <div className="col-span-2 md:col-span-2">
-              <div className="text-xs font-semibold text-[var(--omni-text-muted)] uppercase tracking-wide">Hiperfoco</div>
-              <div className="font-bold text-[var(--omni-text-primary)] truncate" title={String(hiperfoco)}>{String(hiperfoco)}</div>
+              <div className="text-xs font-semibold text-(--omni-text-muted) uppercase tracking-wide">Hiperfoco</div>
+              <div className="font-bold text-(--omni-text-primary) truncate" title={String(hiperfoco)}>{String(hiperfoco)}</div>
             </div>
           </Card>
         </div>
@@ -254,7 +252,7 @@ export function HubClient({ students, studentId, student }: Props) {
       )}
 
       {activeTool && !["criar-zero", "criar-itens", "criar-experiencia", "papo-mestre", "plano-aula", "adaptar-prova", "adaptar-atividade", "estudio-visual", "roteiro", "dinamica", "rotina-avd", "inclusao-brincar"].includes(activeTool) && (
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white min-h-[180px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+        <div className="p-6 rounded-2xl bg-linear-to-br from-slate-50 to-white min-h-[180px] shadow-sm border border-slate-200/60">
           <p className="text-slate-600">
             <strong>{TOOLS.find((t) => t.id === activeTool)?.title}</strong> — Em breve nesta versão.
           </p>
@@ -605,7 +603,7 @@ function CriarDoZero({
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">{label || (eiMode ? "Criar Experiência (EI)" : "Criar Questões")}</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -944,7 +942,7 @@ function CriarDoZero({
               </button>
             </div>
           )}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+          <div className="p-6 rounded-xl bg-linear-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Atividade Criada</span>
               <span className="flex gap-2 items-center">
@@ -1109,7 +1107,7 @@ function PapoDeMestre({
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Papo de Mestre — Conexões para Engajamento</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -1196,7 +1194,7 @@ function PapoDeMestre({
               </button>
             </div>
           )}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+          <div className="p-6 rounded-2xl bg-linear-to-br from-slate-50 to-white shadow-sm border border-slate-200/60">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Conexões para Engajamento</span>
               <span className="flex gap-2">
@@ -1325,7 +1323,7 @@ function PlanoAulaDua({
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Plano de Aula DUA</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -1550,7 +1548,7 @@ function PlanoAulaDua({
               </button>
             </div>
           )}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+          <div className="p-6 rounded-2xl bg-linear-to-br from-slate-50 to-white shadow-sm border border-slate-200/60">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Plano de Aula DUA</span>
               <span className="flex gap-2 flex-wrap">
@@ -1627,8 +1625,7 @@ function PlanoAulaDua({
                 <iframe
                   srcDoc={mapaHtml}
                   title="Mapa Mental"
-                  className="w-full border-0"
-                  style={{ height: "600px" }}
+                  className="w-full border-0 h-[600px]"
                   sandbox="allow-scripts"
                 />
               </div>
@@ -1707,7 +1704,7 @@ function RotinaAvdTool({
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800 flex items-center gap-2">
           <RefreshCw className="w-5 h-5" />
@@ -1774,7 +1771,7 @@ function RotinaAvdTool({
               </details>
             </div>
           )}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+          <div className="p-6 rounded-2xl bg-linear-to-br from-slate-50 to-white shadow-sm border border-slate-200/60">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Rotina & Previsibilidade</span>
               <span className="flex gap-2">
@@ -1845,7 +1842,7 @@ function InclusaoBrincarTool({
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800 flex items-center gap-2">
           <ToyBrick className="w-5 h-5" />
@@ -1902,7 +1899,7 @@ function InclusaoBrincarTool({
               </details>
             </div>
           )}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+          <div className="p-6 rounded-2xl bg-linear-to-br from-slate-50 to-white shadow-sm border border-slate-200/60">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Inclusão no Brincar</span>
               <span className="flex gap-2">
@@ -2142,7 +2139,7 @@ function AdaptarProva({
   const temDados = !!docxExtraido?.texto || !!file;
 
   return (
-    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Adaptar Prova (DUA)</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -2387,7 +2384,7 @@ function AdaptarProva({
               <FormattedTextDisplay texto={resultado.analise} />
             </div>
           )}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+          <div className="p-6 rounded-2xl bg-linear-to-br from-slate-50 to-white shadow-sm border border-slate-200/60">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Prova Adaptada (DUA)</span>
               <span className="flex gap-2 items-center">
@@ -2533,7 +2530,7 @@ function RoteiroIndividual({
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Roteiro de Aula Individualizado</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
@@ -2663,7 +2660,7 @@ function RoteiroIndividual({
               </button>
             </div>
           )}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+          <div className="p-6 rounded-2xl bg-linear-to-br from-slate-50 to-white shadow-sm border border-slate-200/60">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Roteiro Individual</span>
               <span className="flex gap-2">
@@ -2794,7 +2791,7 @@ function DinamicaInclusiva({
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Dinâmica Inclusiva</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
@@ -2919,7 +2916,7 @@ function DinamicaInclusiva({
       </button>
       {erro && <p className="text-red-600 text-sm">{erro}</p>}
       {resultado && (
-        <div className="p-6 rounded-xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
+        <div className="p-6 rounded-xl bg-linear-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
           <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
             <span className="text-base font-semibold text-slate-800">Dinâmica Inclusiva</span>
             <span className="flex gap-2">
@@ -2948,7 +2945,7 @@ function EstudioVisual({
   const hiperfoco = hiperfocoProp || (peiData.hiperfoco as string) || "";
 
   return (
-    <div className="p-6 rounded-2xl bg-white space-y-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <div className="p-6 rounded-2xl bg-white space-y-6 shadow-sm border border-slate-200/60">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Estúdio Visual & CAA</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -3367,7 +3364,7 @@ function AdaptarAtividade({
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white space-y-4 min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+    <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-slate-800">Adaptar Atividade (OCR + IA)</h3>
         <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
@@ -3726,7 +3723,7 @@ function AdaptarAtividade({
               <FormattedTextDisplay texto={resultado.analise} />
             </div>
           )}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }}>
+          <div className="p-6 rounded-2xl bg-linear-to-br from-slate-50 to-white shadow-sm border border-slate-200/60">
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
               <span className="text-base font-semibold text-slate-800">Atividade Adaptada (DUA)</span>
               <span className="flex gap-2 items-center">
