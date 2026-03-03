@@ -478,19 +478,51 @@ export default function AvaliacaoDiagnosticaClient() {
         setAnalisando(false);
     };
 
-    // ─── Helper: extrair questões do markdown ─────────────────────────────
+    // ─── Helper: extrair questões do markdown ou JSON ───────────────────
     const extrairQuestoes = (texto: string): { gabarito: string; habilidade: string }[] => {
+        // 1) Try to parse as JSON first (AI sometimes returns JSON despite markdown prompt)
+        try {
+            const cleaned = texto.replace(/```(?:json)?\s*([\s\S]*?)```/, "$1").trim();
+            const parsed = JSON.parse(cleaned);
+            if (parsed?.questoes && Array.isArray(parsed.questoes)) {
+                return parsed.questoes.map((q: { gabarito?: string; habilidade_bncc_ref?: string }) => ({
+                    gabarito: (q.gabarito || "").toUpperCase(),
+                    habilidade: q.habilidade_bncc_ref || "",
+                }));
+            }
+        } catch { /* not JSON, continue to regex */ }
+
+        // 2) Multi-pattern regex extraction from markdown text
         const questoes: { gabarito: string; habilidade: string }[] = [];
-        // Match patterns like "Gabarito: A" or "**Gabarito:** A" or "Resposta correta: B"
-        const gabRegex = /(?:gabarito|resposta\s*correta)[:\s]*\**([A-D])\**/gi;
-        const habRegex = /(?:habilidade|BNCC)[:\s]*\**([^\n*]+)/gi;
+
+        // Pattern A: "**Gabarito: X**" or "Gabarito: X" or "Resposta correta: X"
+        const gabRegex1 = /(?:\*{0,2})(?:gabarito|resposta\s*correta)(?:\*{0,2})\s*[:]\s*\*{0,2}\s*([A-Ea-e])\s*\*{0,2}/gi;
+        // Pattern B: "**GABARITO (letra X):**" or "GABARITO (X):"
+        const gabRegex2 = /GABARITO\s*\(\s*(?:letra\s+)?([A-Ea-e])\s*\)/gi;
+        // Pattern C: "alternativa correta: X" or "Resposta: X"
+        const gabRegex3 = /(?:alternativa\s*correta|resposta)\s*[:]\s*\*{0,2}\s*([A-Ea-e])\s*\*{0,2}/gi;
+
+        const habRegex = /(?:\*{0,2})(?:habilidade|BNCC|habilidade_bncc)(?:\*{0,2})\s*[:]\s*\*{0,2}\s*([^\n*]+)/gi;
+
         const gabs: string[] = [];
         const habs: string[] = [];
         let m: RegExpExecArray | null;
-        while ((m = gabRegex.exec(texto)) !== null) gabs.push(m[1].toUpperCase());
+
+        // Try all gabarito patterns
+        while ((m = gabRegex1.exec(texto)) !== null) gabs.push(m[1].toUpperCase());
+        if (gabs.length === 0) {
+            while ((m = gabRegex2.exec(texto)) !== null) gabs.push(m[1].toUpperCase());
+        }
+        if (gabs.length === 0) {
+            while ((m = gabRegex3.exec(texto)) !== null) gabs.push(m[1].toUpperCase());
+        }
+
         while ((m = habRegex.exec(texto)) !== null) habs.push(m[1].trim());
+
         for (let i = 0; i < gabs.length; i++) {
-            questoes.push({ gabarito: gabs[i], habilidade: habs[i] || "" });
+            // Clamp to A-D (UI only shows 4 options)
+            const g = gabs[i] === "E" ? "D" : gabs[i];
+            questoes.push({ gabarito: g, habilidade: habs[i] || "" });
         }
         return questoes;
     };
@@ -2243,15 +2275,43 @@ function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
         setConfirmDeleteId(null);
     };
 
-    // Parse questions from the saved text
+    // Parse questions from the saved data — handles both JSON objects and text
     const extrairQuestoesTexto = (texto: string): { gabarito: string; habilidade: string }[] => {
+        // 1) Try to parse as JSON (questoes_geradas may be a JSON object)
+        try {
+            const cleaned = texto.replace(/```(?:json)?\s*([\s\S]*?)```/, "$1").trim();
+            const parsed = JSON.parse(cleaned);
+            if (parsed?.questoes && Array.isArray(parsed.questoes)) {
+                return parsed.questoes.map((q: { gabarito?: string; habilidade_bncc_ref?: string }) => ({
+                    gabarito: (q.gabarito || "").toUpperCase(),
+                    habilidade: q.habilidade_bncc_ref || "",
+                }));
+            }
+            // raw_response fallback
+            if (parsed?.raw_response) {
+                return extrairQuestoesTexto(parsed.raw_response);
+            }
+        } catch { /* not JSON, continue to regex */ }
+
+        // 2) Multi-pattern regex
         const questoes: { gabarito: string; habilidade: string }[] = [];
-        const gabRegex = /(?:gabarito|resposta\s*correta)[:\s]*\**([A-D])\**/gi;
-        const habRegex = /(?:habilidade|BNCC)[:\s]*\**([A-Za-z0-9]+)\**/gi;
-        const gabs = [...texto.matchAll(gabRegex)].map(m => m[1].toUpperCase());
-        const habs = [...texto.matchAll(habRegex)].map(m => m[1]);
+        const gabRegex1 = /(?:\*{0,2})(?:gabarito|resposta\s*correta)(?:\*{0,2})\s*[:]\s*\*{0,2}\s*([A-Ea-e])\s*\*{0,2}/gi;
+        const gabRegex2 = /GABARITO\s*\(\s*(?:letra\s+)?([A-Ea-e])\s*\)/gi;
+        const gabRegex3 = /(?:alternativa\s*correta|resposta)\s*[:]\s*\*{0,2}\s*([A-Ea-e])\s*\*{0,2}/gi;
+        const habRegex = /(?:\*{0,2})(?:habilidade|BNCC|habilidade_bncc)(?:\*{0,2})\s*[:]\s*\*{0,2}\s*([^\n*]+)/gi;
+
+        const gabs: string[] = [];
+        const habs: string[] = [];
+        let m: RegExpExecArray | null;
+
+        while ((m = gabRegex1.exec(texto)) !== null) gabs.push(m[1].toUpperCase());
+        if (gabs.length === 0) { while ((m = gabRegex2.exec(texto)) !== null) gabs.push(m[1].toUpperCase()); }
+        if (gabs.length === 0) { while ((m = gabRegex3.exec(texto)) !== null) gabs.push(m[1].toUpperCase()); }
+        while ((m = habRegex.exec(texto)) !== null) habs.push(m[1].trim());
+
         for (let i = 0; i < gabs.length; i++) {
-            questoes.push({ gabarito: gabs[i], habilidade: habs[i] || "" });
+            const g = gabs[i] === "E" ? "D" : gabs[i];
+            questoes.push({ gabarito: g, habilidade: habs[i] || "" });
         }
         return questoes;
     };

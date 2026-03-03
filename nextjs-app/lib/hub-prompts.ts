@@ -1066,8 +1066,8 @@ FORMATO: ITEM OBJETIVO (MÚLTIPLA ESCOLHA) — REGRAS RIGOROSAS:
    - Claro, impessoal, no modo IMPERATIVO.
    - Apresenta a tarefa de forma objetiva.
 
-3. ALTERNATIVAS (A–E):
-   - Exatamente 5 alternativas com paralelismo sintático e tamanho similar (formato trapezoidal).
+3. ALTERNATIVAS (A–D):
+   - Exatamente 4 alternativas com paralelismo sintático e tamanho similar.
    - Gabarito único e indiscutível.
    - Os DISTRATORES devem refletir ERROS REAIS de raciocínio, NÃO absurdos óbvios.
 
@@ -1081,10 +1081,15 @@ FORMATO: ITEM OBJETIVO (MÚLTIPLA ESCOLHA) — REGRAS RIGOROSAS:
    - NUNCA use comandos negativos: "Marque a incorreta", "Exceto".
    - NUNCA crie "pegadinhas" baseadas em detalhes irrelevantes.
 
-5. JUSTIFICATIVA OBRIGATÓRIA (após cada item):
-   Para CADA alternativa, forneça:
-   - **GABARITO (letra X):** Justificativa de por que esta é a resposta correta.
-   - **Distrator A/B/C/D:** Qual erro de raciocínio ou lacuna de competência levaria o aluno a escolher esta alternativa? (diagnóstico de erro)
+5. GABARITO E JUSTIFICATIVA (FORMATO OBRIGATÓRIO, após cada item):
+   IMPORTANTE: Para cada questão, use EXATAMENTE este formato de gabarito:
+   **Gabarito: X**
+   Onde X é a letra correta (A, B, C ou D). Esta linha DEVE estar isolada.
+   **Habilidade: EFXXXXXXXX**
+   O código BNCC relacionado.
+
+   Para CADA alternativa, forneça justificativa:
+   - **Distrator A/B/C/D:** Qual erro de raciocínio ou lacuna levaria o aluno a escolher esta alternativa?
 `;
   } else {
     bloco_tipo = `
