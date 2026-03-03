@@ -180,7 +180,33 @@ export function PEIRegenteClient() {
                             studentId={selectedAluno.id}
                             disciplina={selectedDisc.disciplina}
                             anoSerie={selectedAluno.grade || "6º Ano"}
-                            onPlanoSaved={() => {
+                            onPlanoSaved={async (planoId: string) => {
+                                // Link plano_ensino_id to pei_disciplinas AND advance status
+                                if (selectedDisc.id && !String(selectedDisc.id).startsWith("virtual_")) {
+                                    try {
+                                        // Save plano_ensino_id via POST
+                                        await fetch("/api/pei/disciplina", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({
+                                                studentId: selectedAluno.id,
+                                                disciplina: selectedDisc.disciplina,
+                                                plano_ensino_id: planoId,
+                                            }),
+                                        });
+                                        // Advance status to diagnostica
+                                        if (selectedDisc.fase_status === "plano_ensino") {
+                                            await fetch("/api/pei/disciplina", {
+                                                method: "PATCH",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({
+                                                    id: selectedDisc.id,
+                                                    fase_status: "diagnostica",
+                                                }),
+                                            });
+                                        }
+                                    } catch { /* silent */ }
+                                }
                                 fetchData();
                             }}
                         />
@@ -330,6 +356,31 @@ export function PEIRegenteClient() {
                                                     plano_encontrado: data.plano_curso_encontrado || false,
                                                     nivel_diag: data.diagnostica_nivel ?? null,
                                                 });
+
+                                                // Auto-save adaptation to pei_disciplina_data
+                                                if (selectedDisc.id && !String(selectedDisc.id).startsWith("virtual_")) {
+                                                    fetch("/api/pei/disciplina", {
+                                                        method: "POST",
+                                                        headers: { "Content-Type": "application/json" },
+                                                        body: JSON.stringify({
+                                                            studentId: selectedAluno.id,
+                                                            disciplina: selectedDisc.disciplina,
+                                                            pei_disciplina_data: { adaptacao_rascunho: data.sugestao },
+                                                        }),
+                                                    }).catch(() => { });
+
+                                                    // Advance to pei_disciplina step
+                                                    if (selectedDisc.fase_status === "diagnostica" || selectedDisc.fase_status === "plano_ensino") {
+                                                        fetch("/api/pei/disciplina", {
+                                                            method: "PATCH",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({
+                                                                id: selectedDisc.id,
+                                                                fase_status: "pei_disciplina",
+                                                            }),
+                                                        }).catch(() => { });
+                                                    }
+                                                }
                                             }
                                         } catch { /* silent */ }
                                         setGerandoAdaptacao(false);
