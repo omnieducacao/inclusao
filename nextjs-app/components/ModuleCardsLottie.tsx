@@ -226,6 +226,7 @@ export function ModuleCardsLottie({
               icon={Icon}
               lottieAnimation={lottieAnimation}
               colors={colors}
+              moduleColorKey={m.color}
               title={m.title}
               desc={m.desc}
               badge={m.badge}
@@ -247,6 +248,7 @@ function ModuleCardWithLottie({
   icon: Icon,
   lottieAnimation,
   colors,
+  moduleColorKey,
   title,
   desc,
   badge,
@@ -260,6 +262,7 @@ function ModuleCardWithLottie({
   icon: Icon;
   lottieAnimation?: string;
   colors: ReturnType<typeof getModuleColors>;
+  moduleColorKey: string;
   title: string;
   desc: string;
   badge?: string | BadgeInfo;
@@ -356,7 +359,7 @@ function ModuleCardWithLottie({
     >
       <ModuleCard
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        moduleKey={getModuleKey(href) as any}
+        moduleKey={moduleColorKey as any}
         title={title}
         description={desc}
         badge={typeof badge === "string" ? badge : badge?.text}
