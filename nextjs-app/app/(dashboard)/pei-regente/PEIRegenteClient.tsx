@@ -84,6 +84,7 @@ export function PEIRegenteClient() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [adaptacaoSugestao, setAdaptacaoSugestao] = useState<Record<string, any> | null>(null);
     const [adaptacaoMeta, setAdaptacaoMeta] = useState<{ plano_encontrado: boolean; nivel_diag: number | null } | null>(null);
+    const [versionSaveStatus, setVersionSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -217,7 +218,20 @@ export function PEIRegenteClient() {
                             studentId={selectedAluno.id}
                             studentName={selectedAluno.name}
                             disciplina={selectedDisc.disciplina}
-                            onLinked={() => fetchData()}
+                            onLinked={async () => {
+                                // Auto-advance to pei_disciplina when diagnostic is applied
+                                if (selectedDisc.id && !String(selectedDisc.id).startsWith("virtual_") && selectedDisc.fase_status === "diagnostica") {
+                                    await fetch("/api/pei/disciplina", {
+                                        method: "PATCH",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                            id: selectedDisc.id,
+                                            fase_status: "pei_disciplina",
+                                        }),
+                                    }).catch(() => { });
+                                }
+                                fetchData();
+                            }}
                         />
                     )}
 
@@ -541,8 +555,9 @@ export function PEIRegenteClient() {
                                             {/* Auto-save version */}
                                             <button
                                                 onClick={async () => {
+                                                    setVersionSaveStatus('saving');
                                                     try {
-                                                        await fetch('/api/pei/versions', {
+                                                        const res = await fetch('/api/pei/versions', {
                                                             method: 'POST',
                                                             headers: { 'Content-Type': 'application/json' },
                                                             body: JSON.stringify({
@@ -550,16 +565,28 @@ export function PEIRegenteClient() {
                                                                 label: `Adaptação ${selectedDisc.disciplina} — ${new Date().toLocaleDateString('pt-BR')}`,
                                                             }),
                                                         });
-                                                    } catch { /* silent */ }
+                                                        setVersionSaveStatus(res.ok ? 'saved' : 'error');
+                                                    } catch { setVersionSaveStatus('error'); }
+                                                    setTimeout(() => setVersionSaveStatus('idle'), 3000);
                                                 }}
+                                                disabled={versionSaveStatus === 'saving'}
                                                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
                                                 style={{
-                                                    backgroundColor: 'rgba(99,102,241,.08)',
-                                                    color: '#818cf8',
-                                                    border: '1px solid rgba(99,102,241,.15)',
+                                                    backgroundColor: versionSaveStatus === 'saved' ? 'rgba(16,185,129,.1)'
+                                                        : versionSaveStatus === 'error' ? 'rgba(239,68,68,.1)'
+                                                            : 'rgba(99,102,241,.08)',
+                                                    color: versionSaveStatus === 'saved' ? '#10b981'
+                                                        : versionSaveStatus === 'error' ? '#f87171'
+                                                            : '#818cf8',
+                                                    border: versionSaveStatus === 'saved' ? '1px solid rgba(16,185,129,.2)'
+                                                        : versionSaveStatus === 'error' ? '1px solid rgba(239,68,68,.2)'
+                                                            : '1px solid rgba(99,102,241,.15)',
                                                 }}
                                             >
-                                                📸 Salvar Versão PEI
+                                                {versionSaveStatus === 'saving' ? '⏳ Salvando...'
+                                                    : versionSaveStatus === 'saved' ? '✅ Versão salva!'
+                                                        : versionSaveStatus === 'error' ? '❌ Erro ao salvar'
+                                                            : '📸 Salvar Versão PEI'}
                                             </button>
                                         </div>
 
@@ -982,7 +1009,7 @@ function FinalizarPeiDisciplinaButton({
 
 // ─── PEI Avaliação Diagnóstica Link ──────────────────────────────────────────
 
-function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina }: {
+function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLinked }: {
     studentId: string; studentName: string; disciplina: string; onLinked?: () => void;
 }) {
     const [loading, setLoading] = useState(true);
@@ -1008,6 +1035,14 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina }: {
             .catch(() => { })
             .finally(() => setLoading(false));
     }, [studentId, disciplina]);
+
+    // Auto-advance fase_status when diagnóstica is applied
+    useEffect(() => {
+        if (avaliacao?.status === "aplicada" && onLinked) {
+            // Notify parent so it can refresh data (status advance happens via polling)
+            onLinked();
+        }
+    }, [avaliacao?.status, onLinked]);
 
     if (loading) {
         return (

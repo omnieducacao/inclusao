@@ -360,11 +360,40 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                         <label style={{
                             display: "inline-flex", alignItems: "center", gap: 6,
                             padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 700,
-                            background: "rgba(139,92,246,.1)", border: "1.5px solid #8b5cf6",
-                            color: "#a78bfa", cursor: "pointer",
+                            background: saving ? "rgba(139,92,246,.05)" : "rgba(139,92,246,.1)",
+                            border: "1.5px solid #8b5cf6",
+                            color: "#a78bfa", cursor: saving ? "wait" : "pointer",
+                            opacity: saving ? 0.6 : 1,
                         }}>
-                            <Upload size={14} /> Selecionar arquivo
-                            <input type="file" accept=".pdf" style={{ display: "none" }} onChange={() => { /* TODO: implement upload */ }} />
+                            {saving ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                            {saving ? "Enviando..." : "Selecionar arquivo"}
+                            <input type="file" accept=".pdf" style={{ display: "none" }} disabled={saving} onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                setSaving(true); setError("");
+                                try {
+                                    const fd = new FormData();
+                                    fd.append("file", file);
+                                    fd.append("disciplina", disciplina);
+                                    fd.append("ano_serie", anoSerie);
+                                    const res = await fetch("/api/pei/plano-ensino/upload", { method: "POST", body: fd });
+                                    const data = await res.json();
+                                    if (!res.ok) throw new Error(data.error || "Erro no upload");
+                                    setPlanoVinculado({
+                                        id: data.plano?.id || "",
+                                        disciplina, ano_serie: anoSerie,
+                                        bimestre: null,
+                                        conteudo: null,
+                                        habilidades_bncc: [],
+                                        professor_nome: data.plano?.professor_nome || "",
+                                        updated_at: new Date().toISOString(),
+                                    });
+                                    setSaved(true);
+                                    onPlanoSaved?.(data.plano?.id);
+                                } catch (err) {
+                                    setError(err instanceof Error ? err.message : "Erro no upload");
+                                } finally { setSaving(false); }
+                            }} />
                         </label>
                     </div>
                 </div>
