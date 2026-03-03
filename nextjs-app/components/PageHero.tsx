@@ -221,7 +221,7 @@ export function PageHero({
         className="rounded-2xl overflow-hidden animate-fade-in-up"
         style={{ backgroundColor: cardBg, boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}
       >
-        <div className="h-1 w-full opacity-60" style={{ background: `linear-gradient(to right, ${accentColor}, ${theme.secondary})` }} />
+        <div className="h-1 w-full opacity-60" style={{ background: `linear-gradient(to right, ${accentColor}, ${accentColor}88)` }} />
         <div className="flex items-center gap-5 h-[120px] px-8 md:px-10">
           <div className="w-16 h-16 shrink-0 flex items-center justify-center">
             <div className="w-16 h-16 bg-(--omni-bg-tertiary) rounded-xl animate-pulse" />
@@ -252,22 +252,21 @@ export function PageHero({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Top accent bar */}
-      <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${accentColor}, ${theme.secondary})` }} />
+      {/* Top accent bar — uses admin color */}
+      <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${accentColor}, ${accentColor}88)` }} />
 
       <div className="flex items-center gap-6 h-[120px] px-8 md:px-10">
-        {/* Lottie icon — glass/transparent container */}
+        {/* Lottie icon — glass container matching home card style */}
         <div
-          className="rounded-xl flex items-center justify-center backdrop-blur-md relative z-10 transition-all duration-300 group-hover:scale-105 shrink-0"
+          className="rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-105 shrink-0 border border-white/20"
           style={{
             width: "80px",
             height: "80px",
             padding: "6px",
-            boxShadow: isNotebook
-              ? "0 2px 8px rgba(0,0,0,0.06)"
-              : "0 4px 16px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.15)",
-            backgroundColor: isNotebook ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.12)",
-            border: isNotebook ? "1px solid rgba(255,255,255,0.5)" : "1px solid rgba(255,255,255,0.18)",
+            background: `linear-gradient(135deg, ${accentColor}20, ${accentColor}09)`,
+            boxShadow: isHovered
+              ? `0 8px 20px ${accentColor}25`
+              : `0 2px 10px ${accentColor}15, 0 1px 3px rgba(0,0,0,0.06)`,
           }}
         >
           <LottieIcon
