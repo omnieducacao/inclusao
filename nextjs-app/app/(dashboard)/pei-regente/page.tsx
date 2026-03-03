@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { PageHero } from "@/components/PageHero";
+import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { PEIRegenteClient } from "./PEIRegenteClient";
 
 export default async function PEIRegentePage() {
@@ -15,17 +16,19 @@ export default async function PEIRegentePage() {
     }
 
     return (
-        <div className="space-y-6">
-            <PageHero moduleKey="pei" adminKey="pei-regente"
-                title="PEI - Professor"
-                desc="Plano de Ensino, Avaliação Diagnóstica e PEI por Componente Curricular."
-            />
+        <PageAccentProvider adminKey="pei-regente">
+            <div className="space-y-6">
+                <PageHero moduleKey="pei" adminKey="pei-regente"
+                    title="PEI - Professor"
+                    desc="Plano de Ensino, Avaliação Diagnóstica e PEI por Componente Curricular."
+                />
 
-            <Suspense fallback={
-                <div className="rounded-2xl animate-pulse min-h-[200px] bg-(--omni-bg-secondary) border border-(--omni-border-default)" />
-            }>
-                <PEIRegenteClient />
-            </Suspense>
-        </div>
+                <Suspense fallback={
+                    <div className="rounded-2xl animate-pulse min-h-[200px] bg-(--omni-bg-secondary) border border-(--omni-border-default)" />
+                }>
+                    <PEIRegenteClient />
+                </Suspense>
+            </div>
+        </PageAccentProvider>
     );
 }

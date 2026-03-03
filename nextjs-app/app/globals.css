@@ -1633,3 +1633,61 @@ h6 {
   border-radius: 16px;
   padding: 20px;
 }
+
+/* ═══════════════════════════════════════════════════
+   Module Accent Color Cascade
+   When PageAccentProvider sets --module-accent,
+   these rules recolor common page elements.
+   ═══════════════════════════════════════════════════ */
+
+[data-module-accent="true"] {
+
+  /* ─── Section title accent icons ─── */
+  & [class*="rounded-full"][style*="background"] {
+    background: var(--module-accent) !important;
+  }
+
+  /* ─── Avatar initials circles ─── */
+  & [class*="rounded-full"][class*="flex"][class*="items-center"][class*="justify-center"][class*="text-white"] {
+    background: linear-gradient(135deg, var(--module-accent), color-mix(in srgb, var(--module-accent) 70%, #000)) !important;
+  }
+
+  /* ─── Pill badges (discipline tags, status badges) ─── */
+  & [class*="rounded-full"][class*="text-xs"],
+  & [class*="rounded-full"][class*="text-sm"] {
+    background-color: var(--module-accent-bg) !important;
+    color: var(--module-accent) !important;
+    border-color: var(--module-accent-light) !important;
+  }
+
+  /* ─── Inline gradient backgrounds (section headers, CTAs) ─── */
+  & [style*="linear-gradient"][style*="#8b5cf6"],
+  & [style*="linear-gradient"][style*="#7c3aed"],
+  & [style*="linear-gradient"][style*="#6366f1"],
+  & [style*="linear-gradient"][style*="#9334E6"] {
+    background: linear-gradient(135deg, var(--module-accent), color-mix(in srgb, var(--module-accent) 70%, #000)) !important;
+  }
+
+  /* ─── Hardcoded accent text colors ─── */
+  & [style*="color: #8b5cf6"],
+  & [style*="color: #7c3aed"],
+  & [style*="color: #6366f1"],
+  & [style*="color: rgb(139, 92, 246)"] {
+    color: var(--module-accent) !important;
+  }
+
+  /* ─── Progress indicators and active states ─── */
+  & [style*="color: #10b981"],
+  & .text-emerald-500,
+  & .text-emerald-600 {
+    color: var(--module-accent) !important;
+  }
+
+  /* ─── Accent borders ─── */
+  & [style*="border-color: #8b5cf6"],
+  & [style*="border-color: #7c3aed"],
+  & .border-violet-300,
+  & .border-violet-200 {
+    border-color: var(--module-accent-light) !important;
+  }
+}

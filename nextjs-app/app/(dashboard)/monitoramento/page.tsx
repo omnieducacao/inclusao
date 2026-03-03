@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { listStudents, getStudent, type Student } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
+import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { MonitoramentoClient } from "./MonitoramentoClient";
 
 type Props = { searchParams: Promise<{ student?: string }> };
@@ -68,19 +69,21 @@ export default async function MonitoramentoPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHero moduleKey="monitoramento"
-        title="Evolução & Dados"
-        desc="Indicadores, gráficos e relatórios de progresso dos estudantes."
-      />
-
-      <Suspense fallback={<div className="rounded-2xl bg-white animate-pulse min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }} />}>
-        <MonitoramentoClient
-          students={students.map((s) => ({ id: s.id, name: s.name }))}
-          studentId={studentId}
-          student={student}
+    <PageAccentProvider adminKey="monitoramento">
+      <div className="space-y-6">
+        <PageHero moduleKey="monitoramento"
+          title="Evolução & Dados"
+          desc="Indicadores, gráficos e relatórios de progresso dos estudantes."
         />
-      </Suspense>
-    </div>
+
+        <Suspense fallback={<div className="rounded-2xl bg-white animate-pulse min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }} />}>
+          <MonitoramentoClient
+            students={students.map((s) => ({ id: s.id, name: s.name }))}
+            studentId={studentId}
+            student={student}
+          />
+        </Suspense>
+      </div>
+    </PageAccentProvider>
   );
 }

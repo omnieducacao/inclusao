@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { listStudents, getStudent, type Student } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
+import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { PAEEClient } from "./PAEEClient";
 import type { CicloPAEE } from "@/lib/paee";
 
@@ -70,32 +71,34 @@ export default async function PAEEPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHero moduleKey="paee"
-        title="Plano de Ação / PAEE"
-        desc="Atendimento Educacional Especializado — Planeje e implemente estratégias de AEE para eliminação de barreiras"
-      />
-
-      <Suspense fallback={<div className="rounded-2xl bg-(--omni-bg-primary) border border-(--omni-border-default) shadow-sm animate-pulse min-h-[200px]" />}>
-        <PAEEClient
-          students={students.map((s) => ({ id: s.id, name: s.name }))}
-          studentId={studentId}
-          student={
-            student
-              ? {
-                id: student.id,
-                name: student.name,
-                grade: student.grade,
-                diagnosis: student.diagnosis,
-                pei_data: (student.pei_data || {}) as Record<string, unknown>,
-                paee_ciclos: (student.paee_ciclos || []) as CicloPAEE[],
-                planejamento_ativo: student.planejamento_ativo,
-                paee_data: (student.paee_data || {}) as Record<string, unknown>,
-              }
-              : null
-          }
+    <PageAccentProvider adminKey="paee">
+      <div className="space-y-6">
+        <PageHero moduleKey="paee"
+          title="Plano de Ação / PAEE"
+          desc="Atendimento Educacional Especializado — Planeje e implemente estratégias de AEE para eliminação de barreiras"
         />
-      </Suspense>
-    </div>
+
+        <Suspense fallback={<div className="rounded-2xl bg-(--omni-bg-primary) border border-(--omni-border-default) shadow-sm animate-pulse min-h-[200px]" />}>
+          <PAEEClient
+            students={students.map((s) => ({ id: s.id, name: s.name }))}
+            studentId={studentId}
+            student={
+              student
+                ? {
+                  id: student.id,
+                  name: student.name,
+                  grade: student.grade,
+                  diagnosis: student.diagnosis,
+                  pei_data: (student.pei_data || {}) as Record<string, unknown>,
+                  paee_ciclos: (student.paee_ciclos || []) as CicloPAEE[],
+                  planejamento_ativo: student.planejamento_ativo,
+                  paee_data: (student.paee_data || {}) as Record<string, unknown>,
+                }
+                : null
+            }
+          />
+        </Suspense>
+      </div>
+    </PageAccentProvider>
   );
 }

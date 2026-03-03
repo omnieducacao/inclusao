@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { listStudents, getStudent, type Student } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
+import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { DiarioClient } from "./DiarioClient";
 
 type Props = { searchParams: Promise<{ student?: string }> };
@@ -68,28 +69,30 @@ export default async function DiarioPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHero moduleKey="diario"
-        title="Diário de Bordo"
-        desc="Registro de atendimentos e sessões AEE."
-      />
-
-      <Suspense fallback={<div className="rounded-2xl bg-white animate-pulse min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }} />}>
-        <DiarioClient
-          students={students.map((s) => ({ id: s.id, name: s.name }))}
-          studentId={studentId}
-          student={
-            student
-              ? {
-                id: student.id,
-                name: student.name,
-                grade: student.grade,
-                daily_logs: (student.daily_logs || []) as Record<string, unknown>[],
-              }
-              : null
-          }
+    <PageAccentProvider adminKey="diario">
+      <div className="space-y-6">
+        <PageHero moduleKey="diario"
+          title="Diário de Bordo"
+          desc="Registro de atendimentos e sessões AEE."
         />
-      </Suspense>
-    </div>
+
+        <Suspense fallback={<div className="rounded-2xl bg-white animate-pulse min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }} />}>
+          <DiarioClient
+            students={students.map((s) => ({ id: s.id, name: s.name }))}
+            studentId={studentId}
+            student={
+              student
+                ? {
+                  id: student.id,
+                  name: student.name,
+                  grade: student.grade,
+                  daily_logs: (student.daily_logs || []) as Record<string, unknown>[],
+                }
+                : null
+            }
+          />
+        </Suspense>
+      </div>
+    </PageAccentProvider>
   );
 }
