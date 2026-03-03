@@ -2578,8 +2578,10 @@ function AparenciaTab() {
 
 const TOPBAR_NAV_ITEMS = [
   { key: "pei", defaultLabel: "PEI", defaultIcon: "pei_simples", defaultGroup: null },
+  { key: "estudantes", defaultLabel: "Estudantes", defaultIcon: "estudantes_simples", defaultGroup: null },
   { key: "paee", defaultLabel: "PAEE ▼", defaultIcon: "paee_simples", defaultGroup: "paee" },
   { key: "hub", defaultLabel: "Hub", defaultIcon: "hub_simples", defaultGroup: "paee" },
+  { key: "diario", defaultLabel: "Diário", defaultIcon: "diario_simples", defaultGroup: "paee" },
   { key: "avaliacoes", defaultLabel: "Avaliações ▼", defaultIcon: "dados_simples", defaultGroup: "avaliacoes" },
   { key: "avaliacao-diagnostica", defaultLabel: "Diagnóstica", defaultIcon: "dados_simples", defaultGroup: "avaliacoes" },
   { key: "avaliacao-processual", defaultLabel: "Processual", defaultIcon: "dados_simples", defaultGroup: "avaliacoes" },
@@ -2592,7 +2594,13 @@ const TOPBAR_NAV_ITEMS = [
   { key: "config", defaultLabel: "Config ▼", defaultIcon: "gestao_usuario_simples", defaultGroup: "config" },
   { key: "gestao", defaultLabel: "Gestão de Usuários", defaultIcon: "gestao_usuario_simples", defaultGroup: "config" },
   { key: "config-escola", defaultLabel: "Configuração Escola", defaultIcon: "gestao_usuario_simples", defaultGroup: "config" },
-  { key: "diario", defaultLabel: "Diário", defaultIcon: "diario_simples", defaultGroup: "paee" },
+];
+
+// Default _simples icons available for topbar (always shown in picker)
+const DEFAULT_TOPBAR_ICONS = [
+  "pei_simples", "paee_simples", "hub_simples", "diario_simples",
+  "dados_simples", "central_inteligencia_simples", "pgi_simples",
+  "gestao_usuario_simples", "estudantes_simples",
 ];
 
 // Topbar icons are loaded dynamically from /api/admin/topbar-icons
@@ -2810,23 +2818,50 @@ function TopbarTab() {
               {editingIcon === item.key && (
                 <div className="mt-3 pt-3 border-t border-slate-100">
                   <div className="text-xs font-semibold text-slate-500 mb-2">Escolher ícone:</div>
-                  {topbarIcons.length > 0 ? (
-                    <div className="grid grid-cols-5 sm:grid-cols-9 gap-2">
-                      {topbarIcons.map((icon) => (
-                        <button
-                          key={icon}
-                          onClick={() => { setVal(item.key, "icon", icon); setEditingIcon(null); }}
-                          className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all cursor-pointer ${currentIcon === icon
-                            ? "border-blue-500 bg-blue-50 ring-2 ring-blue-400/30"
-                            : "border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
-                            }`}
-                        >
-                          <LottieIcon animation={icon} size={36} />
-                          <span className="text-[7px] text-slate-500 truncate w-full text-center">
-                            {icon.replace(/^topbar\//, "").replace(/wired-gradient-\d+-/, "").replace(/-hover.*/, "").replace(/-/g, " ")}
-                          </span>
-                        </button>
-                      ))}
+                  {(topbarIcons.length > 0 || DEFAULT_TOPBAR_ICONS.length > 0) ? (
+                    <div>
+                      {/* Default _simples icons */}
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Ícones padrão</div>
+                      <div className="grid grid-cols-5 sm:grid-cols-9 gap-2 mb-3">
+                        {DEFAULT_TOPBAR_ICONS.map((icon) => (
+                          <button
+                            key={icon}
+                            onClick={() => { setVal(item.key, "icon", icon); setEditingIcon(null); }}
+                            className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all cursor-pointer ${currentIcon === icon
+                              ? "border-blue-500 bg-blue-50 ring-2 ring-blue-400/30"
+                              : "border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
+                              }`}
+                          >
+                            <LottieIcon animation={icon} size={36} />
+                            <span className="text-[7px] text-slate-500 truncate w-full text-center">
+                              {icon.replace(/_simples$/, "").replace(/_/g, " ")}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                      {/* Topbar animated icons */}
+                      {topbarIcons.length > 0 && (
+                        <>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Ícones animados</div>
+                          <div className="grid grid-cols-5 sm:grid-cols-9 gap-2">
+                            {topbarIcons.map((icon) => (
+                              <button
+                                key={icon}
+                                onClick={() => { setVal(item.key, "icon", icon); setEditingIcon(null); }}
+                                className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all cursor-pointer ${currentIcon === icon
+                                  ? "border-blue-500 bg-blue-50 ring-2 ring-blue-400/30"
+                                  : "border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
+                                  }`}
+                              >
+                                <LottieIcon animation={icon} size={36} />
+                                <span className="text-[7px] text-slate-500 truncate w-full text-center">
+                                  {icon.replace(/^topbar\//, "").replace(/wired-gradient-\d+-/, "").replace(/-hover.*/, "").replace(/-/g, " ")}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <p className="text-xs text-slate-400">Carregando ícones...</p>
