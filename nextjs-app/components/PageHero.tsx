@@ -194,14 +194,40 @@ export function PageHero({
   // Admin saves color keys like 'sky', 'blue', 'violet' — map to hex
   const adminHex = adminColor ? ADMIN_COLOR_HEX[adminColor] : null;
 
+  // Helper: create pastel bg from hex (blend 92% toward white)
+  function hexToPastelBg(hex: string): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const blend = (c: number) => Math.round(c + (255 - c) * 0.92);
+    return `#${blend(r).toString(16).padStart(2, "0")}${blend(g).toString(16).padStart(2, "0")}${blend(b).toString(16).padStart(2, "0")}`;
+  }
+
+  // Helper: darken hex for text on pastel bg
+  function hexToDarkenedText(hex: string): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const d = (c: number) => Math.max(0, Math.round(c * 0.7));
+    return `#${d(r).toString(16).padStart(2, "0")}${d(g).toString(16).padStart(2, "0")}${d(b).toString(16).padStart(2, "0")}`;
+  }
+
   let cardBg: string;
   let textColor: string;
   let accentColor: string;
 
   if (adminHex) {
-    // Admin override: use the hex color directly
-    cardBg = isDark ? `${adminHex}22` : adminHex;
-    textColor = isDark ? adminHex : "#ffffff";
+    // Admin override with notebook/dark/light mode awareness
+    if (isNotebook) {
+      cardBg = hexToPastelBg(adminHex);
+      textColor = hexToDarkenedText(adminHex);
+    } else if (isDark) {
+      cardBg = `${adminHex}22`;
+      textColor = adminHex;
+    } else {
+      cardBg = adminHex;
+      textColor = "#ffffff";
+    }
     accentColor = adminHex;
   } else {
     // Default: use module theme/DS colors
