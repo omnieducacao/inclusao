@@ -2315,7 +2315,9 @@ function AparenciaTab() {
         .then((d) => {
           if (d.value) {
             try {
-              setCustomizations(JSON.parse(d.value));
+              // Handle both text (string) and jsonb (already parsed object)
+              const parsed = typeof d.value === "string" ? JSON.parse(d.value) : d.value;
+              setCustomizations(parsed);
             } catch { /* ignore parse errors */ }
           }
         })

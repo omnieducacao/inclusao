@@ -86,20 +86,21 @@ export const moduleTheme = {
     monitoramento: buildTheme("monitoramento", moduleColors.monitoramento),
     pgi: buildTheme("pgi", moduleColors.pgi),
     admin: buildTheme("admin", moduleColors.admin),
-    // ── Admin COLOR_OPTIONS aliases (so admin-selected colors resolve correctly) ──
-    sky: buildTheme("sky", { bg: "#4F5BD5", text: "#FFFFFF", glow: "#4F5BD540" }),
-    blue: buildTheme("blue", { bg: "#4285F4", text: "#FFFFFF", glow: "#4285F440" }),
-    teal: buildTheme("teal", { bg: "#34A853", text: "#FFFFFF", glow: "#34A85340" }),
-    green: buildTheme("green", { bg: "#2E7D32", text: "#FFFFFF", glow: "#2E7D3240" }),
-    cyan: buildTheme("cyan", { bg: "#34A853", text: "#FFFFFF", glow: "#34A85340" }),
-    violet: buildTheme("violet", { bg: "#9334E6", text: "#FFFFFF", glow: "#9334E640" }),
-    rose: buildTheme("rose", { bg: "#E8453C", text: "#FFFFFF", glow: "#E8453C40" }),
-    amber: buildTheme("amber", { bg: "#F57F17", text: "#FFFFFF", glow: "#F57F1740" }),
-    slate: buildTheme("slate", { bg: "#F9AB00", text: "#FFFFFF", glow: "#F9AB0040" }),
-    presentation: buildTheme("presentation", { bg: "#7CB342", text: "#FFFFFF", glow: "#7CB34240" }),
-    table: buildTheme("table", { bg: "#1A73E8", text: "#FFFFFF", glow: "#1A73E840" }),
-    test: buildTheme("test", { bg: "#4285F4", text: "#FFFFFF", glow: "#4285F440" }),
-    reports: buildTheme("reports", { bg: "#F9AB00", text: "#FFFFFF", glow: "#F9AB0040" }),
+    // ── Legacy admin COLOR_OPTIONS aliases (backwards compat with existing saved data) ──
+    // These map to the same DS colors as the new keys for consistency
+    sky: buildTheme("sky", moduleColors.omnisfera),
+    blue: buildTheme("blue", moduleColors.ferramentas),
+    teal: buildTheme("teal", moduleColors.monitoramento),
+    green: buildTheme("green", moduleColors.diario),
+    cyan: buildTheme("cyan", moduleColors.hub),
+    violet: buildTheme("violet", moduleColors.pei),
+    rose: buildTheme("rose", moduleColors.paee),
+    amber: buildTheme("amber", moduleColors.cursos),
+    slate: buildTheme("slate", moduleColors.admin),
+    presentation: buildTheme("presentation", moduleColors.pgi),
+    table: buildTheme("table", moduleColors.ferramentas),
+    test: buildTheme("test", moduleColors.gestao),
+    reports: buildTheme("reports", moduleColors.cursos),
 } as const;
 
 export type ModuleThemeKey = keyof typeof moduleTheme;
