@@ -31,6 +31,8 @@ interface Aluno {
     class_group: string;
     diagnostico: string;
     fase_pei: string;
+    habilidades_bncc: Array<{ codigo?: string; disciplina?: string; habilidade?: string; unidade_tematica?: string; objeto_conhecimento?: string;[key: string]: unknown }>;
+    bncc_ei_objetivos: string[];
     disciplinas: AlunoDisc[];
 }
 
@@ -202,6 +204,89 @@ export function PEIRegenteClient() {
                                     PEI por Disciplina — {selectedDisc.disciplina}
                                 </h3>
                             </div>
+
+                            {/* ── BNCC do Especialista (read-only) ── */}
+                            {selectedAluno.habilidades_bncc?.length > 0 && (
+                                <details className="rounded-xl overflow-hidden" style={{
+                                    border: '1px solid rgba(56,161,105,.2)',
+                                    background: 'rgba(56,161,105,.03)',
+                                }}>
+                                    <summary className="px-5 py-3 cursor-pointer flex items-center gap-2" style={{ background: 'rgba(56,161,105,.06)' }}>
+                                        <BookOpen className="w-4 h-4" style={{ color: '#38A169' }} />
+                                        <span className="text-sm font-bold" style={{ color: '#38A169' }}>
+                                            Habilidades BNCC (selecionadas pelo Especialista)
+                                        </span>
+                                        <span className="text-[10px] ml-auto px-2 py-0.5 rounded-full font-bold" style={{
+                                            background: 'rgba(56,161,105,.12)', color: '#38A169',
+                                        }}>
+                                            {(() => {
+                                                const disc = selectedDisc.disciplina.toLowerCase();
+                                                const filtered = selectedAluno.habilidades_bncc.filter(h =>
+                                                    !h.disciplina || h.disciplina.toLowerCase().includes(disc)
+                                                );
+                                                return filtered.length > 0
+                                                    ? `${filtered.length} da sua disciplina`
+                                                    : `${selectedAluno.habilidades_bncc.length} total`;
+                                            })()}
+                                        </span>
+                                    </summary>
+                                    <div className="px-5 pb-4 pt-2 space-y-1.5">
+                                        {selectedAluno.habilidades_bncc.map((h, i) => {
+                                            const disc = selectedDisc.disciplina.toLowerCase();
+                                            const isMyDisc = !h.disciplina || h.disciplina.toLowerCase().includes(disc);
+                                            return (
+                                                <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{
+                                                    background: isMyDisc ? 'rgba(56,161,105,.06)' : 'transparent',
+                                                    border: isMyDisc ? '1px solid rgba(56,161,105,.15)' : '1px solid transparent',
+                                                    opacity: isMyDisc ? 1 : 0.5,
+                                                }}>
+                                                    {h.codigo && (
+                                                        <span className="font-bold shrink-0 px-1.5 py-0.5 rounded" style={{
+                                                            background: 'rgba(56,161,105,.1)', color: '#38A169', fontSize: 10,
+                                                        }}>{h.codigo}</span>
+                                                    )}
+                                                    <span style={{ color: 'var(--text-secondary)' }}>
+                                                        {h.habilidade || h.objeto_conhecimento || String(h.codigo || `Habilidade ${i + 1}`)}
+                                                    </span>
+                                                    {h.disciplina && (
+                                                        <span className="shrink-0 text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                                                            {h.disciplina}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </details>
+                            )}
+
+                            {/* EI Objetivos */}
+                            {selectedAluno.bncc_ei_objetivos?.length > 0 && (
+                                <details className="rounded-xl overflow-hidden" style={{
+                                    border: '1px solid rgba(66,153,225,.2)',
+                                    background: 'rgba(66,153,225,.03)',
+                                }}>
+                                    <summary className="px-5 py-3 cursor-pointer flex items-center gap-2" style={{ background: 'rgba(66,153,225,.06)' }}>
+                                        <BookOpen className="w-4 h-4" style={{ color: '#4299e1' }} />
+                                        <span className="text-sm font-bold" style={{ color: '#4299e1' }}>
+                                            Objetivos EI (BNCC — Campos de Experiência)
+                                        </span>
+                                        <span className="text-[10px] ml-auto px-2 py-0.5 rounded-full font-bold" style={{
+                                            background: 'rgba(66,153,225,.12)', color: '#4299e1',
+                                        }}>
+                                            {selectedAluno.bncc_ei_objetivos.length}
+                                        </span>
+                                    </summary>
+                                    <div className="px-5 pb-4 pt-2 space-y-1">
+                                        {selectedAluno.bncc_ei_objetivos.map((obj, i) => (
+                                            <p key={i} className="text-xs p-2 rounded-lg" style={{
+                                                color: 'var(--text-secondary)',
+                                                background: 'rgba(66,153,225,.04)',
+                                            }}>• {obj}</p>
+                                        ))}
+                                    </div>
+                                </details>
+                            )}
 
                             {/* ── Ponte Pedagógica: Plano de Curso + Diagnóstica → PEI ── */}
                             <div className="p-5 rounded-xl space-y-4" style={{

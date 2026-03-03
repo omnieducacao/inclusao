@@ -174,6 +174,8 @@ export async function GET() {
         class_group: string;
         diagnostico: string;
         fase_pei: string;
+        habilidades_bncc: unknown[];
+        bncc_ei_objetivos: string[];
         disciplinas: Array<{
             id: string;
             disciplina: string;
@@ -200,6 +202,8 @@ export async function GET() {
                 class_group: student.class_group || "",
                 diagnostico: decryptField(student.diagnosis || ""),
                 fase_pei: (peiData.fase_pei as string) || "fase_1",
+                habilidades_bncc: (peiData.habilidades_bncc_validadas || peiData.habilidades_bncc_selecionadas || []) as unknown[],
+                bncc_ei_objetivos: (peiData.bncc_ei_objetivos || []) as string[],
                 disciplinas: [],
             });
         }
@@ -231,6 +235,8 @@ export async function GET() {
             class_group: s.class_group || "",
             diagnostico: decryptField(s.diagnosis || ""),
             fase_pei: (peiData.fase_pei as string) || "fase_1",
+            habilidades_bncc: (peiData.habilidades_bncc_validadas || peiData.habilidades_bncc_selecionadas || []) as unknown[],
+            bncc_ei_objetivos: (peiData.bncc_ei_objetivos || []) as string[],
             disciplinas: [] as Array<{
                 id: string;
                 disciplina: string;
