@@ -78,7 +78,8 @@ const moduleKeyToAdminKey: Record<string, string> = {
   gestao: "gestao",
   pgi: "pgi",
   cursos: "config-escola",
-  omnisfera: "admin",
+  omnisfera: "estudantes",
+  ferramentas: "avaliacao-diagnostica",
 };
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -86,6 +87,8 @@ const moduleKeyToAdminKey: Record<string, string> = {
 type PageHeroProps = {
   moduleKey?: ModuleThemeKey;
   route?: string;
+  /** Explicit admin customization key (overrides moduleKey/route derivation) */
+  adminKey?: string;
   title: string;
   desc: string;
   /** @deprecated Use moduleKey instead */
@@ -117,6 +120,7 @@ const ADMIN_COLOR_HEX: Record<string, string> = {
 export function PageHero({
   moduleKey,
   route,
+  adminKey: adminKeyProp,
   title,
   desc,
   iconName,
@@ -158,9 +162,9 @@ export function PageHero({
   useEffect(() => {
     setIsMounted(true);
 
-    const adminKey = route
-      ? routeToAdminKey[route]
-      : (moduleKey ? moduleKeyToAdminKey[moduleKey] : undefined);
+    const adminKey = adminKeyProp
+      || (route ? routeToAdminKey[route] : undefined)
+      || (moduleKey ? moduleKeyToAdminKey[moduleKey] : undefined);
     if (!adminKey) return;
 
     fetch("/api/public/platform-config?key=card_customizations")
@@ -181,7 +185,7 @@ export function PageHero({
         }
       })
       .catch(() => { /* silent */ });
-  }, [route]);
+  }, [route, moduleKey, adminKeyProp]);
 
   // Priority: prop override > admin DB > default
   const lottieAnimation = propLottieOverride || adminIcon || defaultLottieAnimation;

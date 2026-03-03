@@ -16,7 +16,7 @@ export default async function PEIRegentePage() {
 
     return (
         <div className="space-y-6">
-            <PageHero moduleKey="pei"
+            <PageHero moduleKey="pei" adminKey="pei-regente"
                 title="PEI - Professor"
                 desc="Plano de Ensino, Avaliação Diagnóstica e PEI por Componente Curricular."
             />

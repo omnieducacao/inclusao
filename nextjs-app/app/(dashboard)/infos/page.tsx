@@ -11,7 +11,7 @@ export default async function InfosPage() {
 
   return (
     <div className="space-y-6">
-      <PageHero moduleKey="gestao"
+      <PageHero moduleKey="gestao" adminKey="infos"
         title="Central de Inteligência Inclusiva"
         desc="Fundamentos Pedagógicos, Marcos Legais e Ferramentas Práticas."
       />
