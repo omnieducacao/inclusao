@@ -717,6 +717,8 @@ function FinalizarPeiDisciplinaButton({
     const [finalizando, setFinalizando] = useState(false);
     const [finalizado, setFinalizado] = useState(false);
     const [erro, setErro] = useState("");
+    const [feedbackProfessor, setFeedbackProfessor] = useState("");
+    const [showFeedback, setShowFeedback] = useState(false);
 
     const handleFinalizar = async () => {
         if (!adaptacaoSugestao) return;
@@ -739,7 +741,11 @@ function FinalizarPeiDisciplinaButton({
             const resPatch = await fetch("/api/pei/disciplina", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: peiDisciplinaId, fase_status: "concluido" }),
+                body: JSON.stringify({
+                    id: peiDisciplinaId,
+                    fase_status: "concluido",
+                    feedback_professor: feedbackProfessor.trim() || undefined,
+                }),
             });
             if (!resPatch.ok) {
                 const d = await resPatch.json().catch(() => ({}));
@@ -770,23 +776,69 @@ function FinalizarPeiDisciplinaButton({
     }
 
     return (
-        <div className="flex flex-col gap-1">
-            <button
-                type="button"
-                onClick={handleFinalizar}
-                disabled={finalizando || !adaptacaoSugestao}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50"
-                style={{
-                    background: finalizando ? "#94a3b8" : "linear-gradient(135deg, #059669, #10b981)",
-                    display: "inline-flex",
-                }}
-            >
-                {finalizando ? <OmniLoader engine="green" size={14} /> : <CheckCircle2 size={14} />}
-                {finalizando ? "Finalizando..." : "Finalizar e salvar PEI desta disciplina"}
-            </button>
+        <div className="flex flex-col gap-2">
+            {/* Toggle feedback area */}
+            {!showFeedback ? (
+                <button
+                    type="button"
+                    onClick={() => setShowFeedback(true)}
+                    disabled={finalizando || !adaptacaoSugestao}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50"
+                    style={{
+                        background: finalizando ? "#94a3b8" : "linear-gradient(135deg, #059669, #10b981)",
+                        display: "inline-flex",
+                    }}
+                >
+                    <CheckCircle2 size={14} />
+                    Finalizar e devolver ao especialista
+                </button>
+            ) : (
+                <div className="p-4 rounded-xl space-y-3" style={{
+                    border: '2px solid rgba(16,185,129,.2)',
+                    background: 'rgba(16,185,129,.03)',
+                }}>
+                    <p className="text-xs font-bold" style={{ color: '#059669' }}>
+                        📝 Devolutiva para o Especialista (opcional)
+                    </p>
+                    <textarea
+                        value={feedbackProfessor}
+                        onChange={(e) => setFeedbackProfessor(e.target.value)}
+                        placeholder="Observações sobre o estudante nesta disciplina, dificuldades percebidas, sugestões de adaptação, etc."
+                        rows={3}
+                        className="w-full p-3 rounded-lg text-sm resize-none"
+                        style={{
+                            backgroundColor: 'var(--bg-primary)',
+                            border: '1px solid var(--border-default)',
+                            color: 'var(--text-primary)',
+                        }}
+                    />
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={handleFinalizar}
+                            disabled={finalizando}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50"
+                            style={{
+                                background: finalizando ? "#94a3b8" : "linear-gradient(135deg, #059669, #10b981)",
+                            }}
+                        >
+                            {finalizando ? <OmniLoader engine="green" size={14} /> : <CheckCircle2 size={14} />}
+                            {finalizando ? "Finalizando..." : "Confirmar e devolver"}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowFeedback(false)}
+                            className="px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+                            style={{ color: 'var(--text-muted)' }}
+                        >
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            )}
             {erro && <span className="text-xs text-red-400">{erro}</span>}
             <span className="text-[10px] text-slate-500">
-                Depois, use &quot;Enviar para PEI geral e consolidar&quot; para o AEE consolidar no documento oficial.
+                A adaptação será enviada ao especialista AEE para consolidação no PEI oficial.
             </span>
         </div>
     );

@@ -135,9 +135,10 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { id, fase_status } = body as {
+    const { id, fase_status, feedback_professor } = body as {
         id: string;
         fase_status: string;
+        feedback_professor?: string;
     };
 
     if (!id || !fase_status) {
@@ -155,13 +156,21 @@ export async function PATCH(req: Request) {
         );
     }
 
+    const updateFields: Record<string, unknown> = {
+        fase_status,
+        updated_at: new Date().toISOString(),
+    };
+
+    // Save professor feedback and return timestamp
+    if (feedback_professor !== undefined) {
+        updateFields.feedback_professor = feedback_professor;
+        updateFields.data_devolucao = new Date().toISOString();
+    }
+
     const sb = getSupabase();
     const { data, error } = await sb
         .from("pei_disciplinas")
-        .update({
-            fase_status,
-            updated_at: new Date().toISOString(),
-        })
+        .update(updateFields)
         .eq("id", id)
         .eq("workspace_id", session.workspace_id)
         .select()

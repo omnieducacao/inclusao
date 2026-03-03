@@ -5545,6 +5545,11 @@ function EnviarParaProfessoresButton({
           </div>
         )}
 
+        {/* Discipline status panel — visible after sending */}
+        {(alreadySent || result?.ok) && studentId && (
+          <DisciplinaStatusPanel studentId={studentId} />
+        )}
+
         {/* Botões */}
         <div className="flex items-center gap-3">
           {needsSaveFirst && !alreadySent && (
@@ -5601,6 +5606,101 @@ function EnviarParaProfessoresButton({
             </a>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Status das disciplinas enviadas ─────────────────────────────────────
+function DisciplinaStatusPanel({ studentId }: { studentId: string }) {
+  const [disciplinas, setDisciplinas] = React.useState<Array<{
+    id: string; disciplina: string; professor_regente_nome: string;
+    fase_status: string; feedback_professor?: string; data_devolucao?: string;
+    updated_at?: string;
+  }>>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    fetch(`/api/pei/enviar-regentes?studentId=${studentId}`)
+      .then(r => r.json())
+      .then(data => setDisciplinas(data.disciplinas || []))
+      .catch(() => { })
+      .finally(() => setLoading(false));
+  }, [studentId]);
+
+  if (loading) return <div className="text-xs text-center py-3" style={{ color: 'var(--text-muted)' }}>Carregando status...</div>;
+  if (disciplinas.length === 0) return null;
+
+  const statusConfig: Record<string, { label: string; color: string; bg: string; icon: string }> = {
+    plano_ensino: { label: "Plano de Ensino", color: "#f59e0b", bg: "rgba(245,158,11,.08)", icon: "📄" },
+    diagnostica: { label: "Diagnóstica", color: "#3b82f6", bg: "rgba(59,130,246,.08)", icon: "🧠" },
+    pei_disciplina: { label: "Adaptando PEI", color: "#8b5cf6", bg: "rgba(139,92,246,.08)", icon: "📋" },
+    concluido: { label: "Devolvido ✅", color: "#10b981", bg: "rgba(16,185,129,.08)", icon: "✅" },
+  };
+
+  const concluidas = disciplinas.filter(d => d.fase_status === "concluido").length;
+
+  return (
+    <div className="mt-3 p-4 rounded-xl" style={{ border: '1px solid rgba(99,102,241,.15)', background: 'rgba(99,102,241,.03)' }}>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs font-bold" style={{ color: '#6366f1' }}>
+          📊 Status por Disciplina ({concluidas}/{disciplinas.length} concluídas)
+        </p>
+        <button
+          onClick={() => {
+            setLoading(true);
+            fetch(`/api/pei/enviar-regentes?studentId=${studentId}`)
+              .then(r => r.json())
+              .then(data => setDisciplinas(data.disciplinas || []))
+              .catch(() => { })
+              .finally(() => setLoading(false));
+          }}
+          className="text-[10px] px-2 py-1 rounded-md transition-colors"
+          style={{ color: '#6366f1', background: 'rgba(99,102,241,.08)' }}
+        >
+          Atualizar
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {disciplinas.map(d => {
+          const st = statusConfig[d.fase_status] || statusConfig.plano_ensino;
+          return (
+            <div key={d.id} className="p-3 rounded-lg" style={{ background: st.bg, border: `1px solid ${st.color}20` }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs">{st.icon}</span>
+                  <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
+                    {d.disciplina}
+                  </span>
+                  <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                    ({d.professor_regente_nome})
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${st.color}18`, color: st.color }}>
+                  {st.label}
+                </span>
+              </div>
+
+              {/* Professor feedback */}
+              {d.feedback_professor && (
+                <div className="mt-2 p-2.5 rounded-lg text-xs" style={{
+                  background: 'rgba(16,185,129,.06)',
+                  border: '1px solid rgba(16,185,129,.15)',
+                  color: 'var(--text-secondary)',
+                }}>
+                  <span className="font-bold" style={{ color: '#059669' }}>📝 Devolutiva: </span>
+                  {d.feedback_professor}
+                  {d.data_devolucao && (
+                    <span className="text-[10px] ml-2" style={{ color: 'var(--text-muted)' }}>
+                      — {new Date(d.data_devolucao).toLocaleDateString("pt-BR")}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
