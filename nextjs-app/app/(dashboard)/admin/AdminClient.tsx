@@ -2266,21 +2266,21 @@ function InstagramFeedTab() {
    ═══════════════════════════════════════════════════════════════ */
 
 const HOME_MODULES = [
-  { key: "estudantes", title: "Estudantes", defaultColor: "sky", defaultIcon: "estudantes_flat" },
-  { key: "pei", title: "Estratégias & PEI", defaultColor: "blue", defaultIcon: "pei_flat" },
-  { key: "pei-regente", title: "PEI - Professor", defaultColor: "teal", defaultIcon: "pei_flat" },
-  { key: "plano-curso", title: "Plano de Curso", defaultColor: "sky", defaultIcon: "central_inteligencia_flat" },
-  { key: "avaliacao-diagnostica", title: "Avaliação Diagnóstica", defaultColor: "blue", defaultIcon: "avaliacao_diagnostica_flat" },
-  { key: "avaliacao-processual", title: "Avaliação Processual", defaultColor: "green", defaultIcon: "dados_flat" },
-  { key: "paee", title: "Plano de Ação / PAEE", defaultColor: "violet", defaultIcon: "paee_flat" },
-  { key: "hub", title: "Hub de Inclusão", defaultColor: "cyan", defaultIcon: "hub_flat" },
-  { key: "familia", title: "Família", defaultColor: "rose", defaultIcon: "estudantes_flat" },
-  { key: "diario", title: "Diário de Bordo", defaultColor: "rose", defaultIcon: "Diario_flat" },
-  { key: "monitoramento", title: "Evolução & Dados", defaultColor: "slate", defaultIcon: "dados_flat" },
-  { key: "infos", title: "Central de Inteligência", defaultColor: "test", defaultIcon: "central_inteligencia_flat" },
-  { key: "pgi", title: "PGI", defaultColor: "presentation", defaultIcon: "pgi_flat" },
-  { key: "gestao", title: "Gestão de Usuários", defaultColor: "test", defaultIcon: "gestão_usuario_flat" },
-  { key: "config-escola", title: "Configuração Escola", defaultColor: "reports", defaultIcon: "configuracao_escola_flat" },
+  { key: "estudantes", title: "Estudantes", defaultColor: "omnisfera", defaultIcon: "estudantes_flat" },
+  { key: "pei", title: "Estratégias & PEI", defaultColor: "pei", defaultIcon: "pei_flat" },
+  { key: "pei-regente", title: "PEI - Professor", defaultColor: "monitoramento", defaultIcon: "pei_flat" },
+  { key: "plano-curso", title: "Plano de Curso", defaultColor: "omnisfera", defaultIcon: "central_inteligencia_flat" },
+  { key: "avaliacao-diagnostica", title: "Avaliação Diagnóstica", defaultColor: "ferramentas", defaultIcon: "avaliacao_diagnostica_flat" },
+  { key: "avaliacao-processual", title: "Avaliação Processual", defaultColor: "diario", defaultIcon: "dados_flat" },
+  { key: "paee", title: "Plano de Ação / PAEE", defaultColor: "paee", defaultIcon: "paee_flat" },
+  { key: "hub", title: "Hub de Inclusão", defaultColor: "hub", defaultIcon: "hub_flat" },
+  { key: "familia", title: "Família", defaultColor: "cursos", defaultIcon: "estudantes_flat" },
+  { key: "diario", title: "Diário de Bordo", defaultColor: "diario", defaultIcon: "Diario_flat" },
+  { key: "monitoramento", title: "Evolução & Dados", defaultColor: "monitoramento", defaultIcon: "dados_flat" },
+  { key: "infos", title: "Central de Inteligência", defaultColor: "gestao", defaultIcon: "central_inteligencia_flat" },
+  { key: "pgi", title: "PGI", defaultColor: "pgi", defaultIcon: "pgi_flat" },
+  { key: "gestao", title: "Gestão de Usuários", defaultColor: "gestao", defaultIcon: "gestão_usuario_flat" },
+  { key: "config-escola", title: "Configuração Escola", defaultColor: "cursos", defaultIcon: "configuracao_escola_flat" },
 ];
 
 const COLOR_OPTIONS = [
@@ -2317,7 +2317,20 @@ function AparenciaTab() {
             try {
               // Handle both text (string) and jsonb (already parsed object)
               const parsed = typeof d.value === "string" ? JSON.parse(d.value) : d.value;
-              setCustomizations(parsed);
+              // Migrate old color keys to new DS-aligned keys
+              const LEGACY_MAP: Record<string, string> = {
+                sky: "omnisfera", blue: "ferramentas", teal: "monitoramento",
+                green: "diario", cyan: "hub", violet: "pei", rose: "paee",
+                amber: "cursos", slate: "admin", presentation: "pgi",
+                table: "ferramentas", test: "gestao", reports: "cursos",
+              };
+              const migrated: CardCustomization = {};
+              for (const [k, v] of Object.entries(parsed as CardCustomization)) {
+                migrated[k] = { ...v };
+                if (v.color && LEGACY_MAP[v.color]) migrated[k].color = LEGACY_MAP[v.color];
+                if (v.heroColor && LEGACY_MAP[v.heroColor]) migrated[k].heroColor = LEGACY_MAP[v.heroColor];
+              }
+              setCustomizations(migrated);
             } catch { /* ignore parse errors */ }
           }
         })
