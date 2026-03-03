@@ -244,12 +244,38 @@ export function PageHero({
     return `#${l(r).toString(16).padStart(2, "0")}${l(g).toString(16).padStart(2, "0")}${l(b).toString(16).padStart(2, "0")}`;
   }
 
-  // Gradient line color: needs to contrast with cardBg
-  const gradientLineColor = isNotebook
-    ? accentColor // notebook bg is pastel, saturated accent will pop
+  // ─── Premium gradient line ───────────────────────────────────────────
+  // Creates a shimmer effect that contrasts beautifully with any background
+  const gradientLine = isNotebook
+    ? `linear-gradient(to right, ${accentColor}, ${accentColor}60, ${accentColor}20)`
     : isDark
-      ? accentColor // dark bg, saturated accent visible
-      : hexLighten(accentColor, 0.4); // saturated bg → lighter line for contrast
+      ? `linear-gradient(to right, ${accentColor}, ${hexLighten(accentColor, 0.3)}90, transparent)`
+      : `linear-gradient(to right, ${hexLighten(accentColor, 0.5)}, rgba(255,255,255,0.7), ${hexLighten(accentColor, 0.6)}60)`;
+
+  // ─── Icon container glass effect ─────────────────────────────────────
+  // In saturated mode use white-tinted glass (accent-on-accent is invisible)
+  const iconGlassBg = isNotebook
+    ? `linear-gradient(135deg, ${accentColor}18, ${accentColor}08)`
+    : isDark
+      ? `linear-gradient(135deg, ${accentColor}25, ${accentColor}10)`
+      : `linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.10))`;
+
+  const iconGlowIdle = isNotebook || isDark
+    ? `0 2px 10px ${accentColor}15, 0 1px 3px rgba(0,0,0,0.06)`
+    : `0 2px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(255,255,255,0.15)`;
+  const iconGlowHover = isNotebook || isDark
+    ? `0 8px 20px ${accentColor}25`
+    : `0 8px 24px rgba(0,0,0,0.1), 0 4px 12px rgba(255,255,255,0.2)`;
+
+  // ─── Card border (notebook) ──────────────────────────────────────────
+  const notebookBorder = adminHex ? `${adminHex}25` : `${dsColors.bg}25`;
+
+  // ─── Description text color ──────────────────────────────────────────
+  const descColor = isNotebook
+    ? `${adminHex ? hexToDarkenedText(adminHex) : dsColors.textPastel}99`
+    : isDark
+      ? "var(--omni-text-secondary)"
+      : "rgba(255,255,255,0.75)";
 
   // ─── Skeleton while loading ─────────────────────────────────────────
   if (!isMounted || !useLottie || !lottieAnimation) {
@@ -258,14 +284,14 @@ export function PageHero({
         className="rounded-2xl overflow-hidden animate-fade-in-up"
         style={{ backgroundColor: cardBg, boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}
       >
-        <div className="h-1 w-full opacity-60" style={{ background: `linear-gradient(to right, ${gradientLineColor}, ${gradientLineColor}88)` }} />
+        <div className="h-1 w-full" style={{ background: gradientLine }} />
         <div className="flex items-center gap-5 h-[120px] px-8 md:px-10">
           <div className="w-16 h-16 shrink-0 flex items-center justify-center">
             <div className="w-16 h-16 bg-(--omni-bg-tertiary) rounded-xl animate-pulse" />
           </div>
           <div>
             <h1 className="omni-heading-lg" style={{ color: textColor }}>{title}</h1>
-            <p className="omni-body mt-0.5" style={{ color: isNotebook ? `${dsColors.textPastel}99` : isDark ? "var(--omni-text-secondary)" : "rgba(255,255,255,0.7)" }}>{desc}</p>
+            <p className="omni-body mt-0.5" style={{ color: descColor }}>{desc}</p>
           </div>
         </div>
       </div>
@@ -279,31 +305,33 @@ export function PageHero({
         backgroundColor: cardBg,
         boxShadow: isHovered
           ? isNotebook
-            ? "0 8px 24px rgba(0,0,0,0.06)"
-            : "0 8px 24px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)"
+            ? `0 8px 24px rgba(0,0,0,0.06), 0 0 0 1px ${notebookBorder}`
+            : isDark
+              ? `0 8px 32px ${accentColor}20, 0 4px 12px rgba(0,0,0,0.3)`
+              : `0 8px 32px ${accentColor}30, 0 4px 16px rgba(0,0,0,0.1)`
           : isNotebook
-            ? "0 2px 8px rgba(0,0,0,0.04)"
-            : "0 4px 16px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.03)",
-        ...(isNotebook ? { border: `1px solid ${dsColors.bg}25` } : {}),
+            ? `0 2px 8px rgba(0,0,0,0.04), 0 0 0 1px ${notebookBorder}`
+            : isDark
+              ? "0 4px 16px rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.1)"
+              : `0 4px 20px ${accentColor}15, 0 2px 8px rgba(0,0,0,0.05)`,
+        ...(isNotebook ? { border: `1px solid ${notebookBorder}` } : {}),
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Top accent bar — contrasting gradient */}
-      <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${gradientLineColor}, ${gradientLineColor}88)` }} />
+      {/* Top accent bar — premium shimmer gradient */}
+      <div className="h-1 w-full" style={{ background: gradientLine }} />
 
       <div className="flex items-center gap-6 h-[120px] px-8 md:px-10">
-        {/* Lottie icon — glass container matching home card style */}
+        {/* Lottie icon — glass container */}
         <div
           className="rounded-xl flex items-center justify-center backdrop-blur-sm relative z-10 transition-all duration-300 group-hover:scale-105 shrink-0 border border-white/20"
           style={{
             width: "80px",
             height: "80px",
             padding: "6px",
-            background: `linear-gradient(135deg, ${accentColor}20, ${accentColor}09)`,
-            boxShadow: isHovered
-              ? `0 8px 20px ${accentColor}25`
-              : `0 2px 10px ${accentColor}15, 0 1px 3px rgba(0,0,0,0.06)`,
+            background: iconGlassBg,
+            boxShadow: isHovered ? iconGlowHover : iconGlowIdle,
           }}
         >
           <LottieIcon
@@ -314,7 +342,7 @@ export function PageHero({
         </div>
         <div className="flex-1">
           <h1 className="omni-heading-lg tracking-tight mb-0.5" style={{ color: textColor }}>{title}</h1>
-          <p className="omni-body leading-relaxed" style={{ color: isNotebook ? `${dsColors.textPastel}99` : isDark ? "var(--omni-text-secondary)" : "rgba(255,255,255,0.7)" }}>
+          <p className="omni-body leading-relaxed" style={{ color: descColor }}>
             {desc} — {title}
           </p>
         </div>
