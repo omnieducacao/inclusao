@@ -2284,19 +2284,17 @@ const HOME_MODULES = [
 ];
 
 const COLOR_OPTIONS = [
-  { key: "sky", label: "Azul Índigo", hex: "#4F5BD5" },
-  { key: "blue", label: "Azul Vivo", hex: "#4285F4" },
-  { key: "teal", label: "Teal", hex: "#34A853" },
-  { key: "green", label: "Verde", hex: "#2E7D32" },
-  { key: "cyan", label: "Ciano", hex: "#34A853" },
-  { key: "violet", label: "Roxo", hex: "#9334E6" },
-  { key: "rose", label: "Rosa", hex: "#E8453C" },
-  { key: "amber", label: "Âmbar", hex: "#F57F17" },
-  { key: "slate", label: "Cinza", hex: "#F9AB00" },
-  { key: "presentation", label: "Verde Lima", hex: "#7CB342" },
-  { key: "table", label: "Azul Google", hex: "#1A73E8" },
-  { key: "test", label: "Azul PEI", hex: "#4285F4" },
-  { key: "reports", label: "Amarelo", hex: "#F9AB00" },
+  { key: "omnisfera", label: "Omnisfera (Sky Blue)", hex: "#0ea5e9" },
+  { key: "pei", label: "PEI (Roxo)", hex: "#7c3aed" },
+  { key: "paee", label: "PAEE (Rosa)", hex: "#e11d48" },
+  { key: "hub", label: "Hub (Ciano)", hex: "#0891b2" },
+  { key: "diario", label: "Diário (Verde)", hex: "#059669" },
+  { key: "monitoramento", label: "Monitoramento (Teal)", hex: "#0d9488" },
+  { key: "ferramentas", label: "Ferramentas (Azul)", hex: "#2563eb" },
+  { key: "gestao", label: "Gestão (Índigo)", hex: "#6366f1" },
+  { key: "cursos", label: "Config (Âmbar)", hex: "#d97706" },
+  { key: "pgi", label: "PGI (Violeta)", hex: "#8b5cf6" },
+  { key: "admin", label: "Admin (Slate)", hex: "#475569" },
 ];
 
 type CardCustomization = Record<string, { color?: string; heroColor?: string; icon?: string }>;

@@ -105,12 +105,16 @@ const TOPBAR_KEY_TO_ROUTE: Record<string, string> = {
   estudantes: "/estudantes",
 };
 
-// Admin color keys → hex (matches AdminClient.tsx COLOR_OPTIONS)
+// Admin color keys → hex (matches DS moduleColors)
 const ADMIN_COLOR_HEX: Record<string, string> = {
-  sky: "#4F5BD5", blue: "#4285F4", teal: "#34A853", green: "#2E7D32",
-  cyan: "#34A853", violet: "#9334E6", rose: "#E8453C", amber: "#F57F17",
-  slate: "#F9AB00", presentation: "#7CB342", table: "#1A73E8",
-  test: "#4285F4", reports: "#F9AB00",
+  omnisfera: "#0ea5e9", pei: "#7c3aed", paee: "#e11d48", hub: "#0891b2",
+  diario: "#059669", monitoramento: "#0d9488", ferramentas: "#2563eb",
+  gestao: "#6366f1", cursos: "#d97706", pgi: "#8b5cf6", admin: "#475569",
+  // Legacy keys (for backwards compatibility with existing saved data)
+  sky: "#0ea5e9", blue: "#2563eb", teal: "#0d9488", green: "#059669",
+  cyan: "#0891b2", violet: "#7c3aed", rose: "#e11d48", amber: "#d97706",
+  slate: "#475569", presentation: "#8b5cf6", table: "#2563eb",
+  test: "#6366f1", reports: "#d97706",
 };
 
 type TopbarOverrides = Record<string, { icon?: string; pillColor?: string }>;

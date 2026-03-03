@@ -100,21 +100,16 @@ type PageHeroProps = {
   lottieOverride?: string;
 };
 
-// Map admin COLOR_OPTIONS keys → hex (same values as AdminClient.tsx COLOR_OPTIONS)
+// Map admin COLOR_OPTIONS keys → hex (matches DS moduleColors)
 const ADMIN_COLOR_HEX: Record<string, string> = {
-  sky: "#4F5BD5",
-  blue: "#4285F4",
-  teal: "#34A853",
-  green: "#2E7D32",
-  cyan: "#34A853",
-  violet: "#9334E6",
-  rose: "#E8453C",
-  amber: "#F57F17",
-  slate: "#F9AB00",
-  presentation: "#7CB342",
-  table: "#1A73E8",
-  test: "#4285F4",
-  reports: "#F9AB00",
+  omnisfera: "#0ea5e9", pei: "#7c3aed", paee: "#e11d48", hub: "#0891b2",
+  diario: "#059669", monitoramento: "#0d9488", ferramentas: "#2563eb",
+  gestao: "#6366f1", cursos: "#d97706", pgi: "#8b5cf6", admin: "#475569",
+  // Legacy keys (backwards compat with existing saved data)
+  sky: "#0ea5e9", blue: "#2563eb", teal: "#0d9488", green: "#059669",
+  cyan: "#0891b2", violet: "#7c3aed", rose: "#e11d48", amber: "#d97706",
+  slate: "#475569", presentation: "#8b5cf6", table: "#2563eb",
+  test: "#6366f1", reports: "#d97706",
 };
 
 export function PageHero({
@@ -240,6 +235,22 @@ export function PageHero({
     accentColor = effectiveTheme.primary;
   }
 
+  // Helper: lighten hex for gradient line contrast on saturated bg
+  function hexLighten(hex: string, amount: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const l = (c: number) => Math.min(255, Math.round(c + (255 - c) * amount));
+    return `#${l(r).toString(16).padStart(2, "0")}${l(g).toString(16).padStart(2, "0")}${l(b).toString(16).padStart(2, "0")}`;
+  }
+
+  // Gradient line color: needs to contrast with cardBg
+  const gradientLineColor = isNotebook
+    ? accentColor // notebook bg is pastel, saturated accent will pop
+    : isDark
+      ? accentColor // dark bg, saturated accent visible
+      : hexLighten(accentColor, 0.4); // saturated bg → lighter line for contrast
+
   // ─── Skeleton while loading ─────────────────────────────────────────
   if (!isMounted || !useLottie || !lottieAnimation) {
     return (
@@ -247,7 +258,7 @@ export function PageHero({
         className="rounded-2xl overflow-hidden animate-fade-in-up"
         style={{ backgroundColor: cardBg, boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}
       >
-        <div className="h-1 w-full opacity-60" style={{ background: `linear-gradient(to right, ${accentColor}, ${accentColor}88)` }} />
+        <div className="h-1 w-full opacity-60" style={{ background: `linear-gradient(to right, ${gradientLineColor}, ${gradientLineColor}88)` }} />
         <div className="flex items-center gap-5 h-[120px] px-8 md:px-10">
           <div className="w-16 h-16 shrink-0 flex items-center justify-center">
             <div className="w-16 h-16 bg-(--omni-bg-tertiary) rounded-xl animate-pulse" />
@@ -278,8 +289,8 @@ export function PageHero({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Top accent bar — uses admin color */}
-      <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${accentColor}, ${accentColor}88)` }} />
+      {/* Top accent bar — contrasting gradient */}
+      <div className="h-1 w-full" style={{ background: `linear-gradient(to right, ${gradientLineColor}, ${gradientLineColor}88)` }} />
 
       <div className="flex items-center gap-6 h-[120px] px-8 md:px-10">
         {/* Lottie icon — glass container matching home card style */}
