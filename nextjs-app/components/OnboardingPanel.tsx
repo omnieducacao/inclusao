@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ChevronRight, HelpCircle, X } from "lucide-react";
 
 export interface OnboardingStep {
@@ -23,14 +23,29 @@ export function OnboardingPanel({
     moduleKey,
     moduleTitle,
     moduleSubtitle,
-    accentColor,
-    accentColorLight,
+    accentColor: accentColorProp,
+    accentColorLight: accentColorLightProp,
     steps,
     onStart,
 }: OnboardingPanelProps) {
     const storageKey = `onboarding_${moduleKey}`;
     const [dismissed, setDismissed] = useState(true); // start hidden to avoid flash
     const [fadeIn, setFadeIn] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [resolvedAccent, setResolvedAccent] = useState<string | null>(null);
+
+    // Read --module-accent CSS variable from PageAccentProvider ancestor
+    useEffect(() => {
+        if (containerRef.current) {
+            const val = getComputedStyle(containerRef.current).getPropertyValue("--module-accent").trim();
+            if (val && val.startsWith("#")) {
+                setResolvedAccent(val);
+            }
+        }
+    }, []);
+
+    const accentColor = resolvedAccent || accentColorProp;
+    const accentColorLight = resolvedAccent ? `${resolvedAccent}88` : accentColorLightProp;
 
     useEffect(() => {
         const done = localStorage.getItem(storageKey);
@@ -56,6 +71,7 @@ export function OnboardingPanel({
 
     return (
         <div
+            ref={containerRef}
             style={{
                 opacity: fadeIn ? 1 : 0,
                 transform: fadeIn ? "translateY(0)" : "translateY(12px)",
