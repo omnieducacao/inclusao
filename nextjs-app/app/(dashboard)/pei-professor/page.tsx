@@ -1,12 +1,10 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/session";
-import PEIProfessorClient from "./PEIProfessorClient";
 
-export default async function PEIProfessorPage() {
-    const session = await getSession();
-    if (!session?.workspace_id) {
-        redirect("/login");
-    }
-
-    return <PEIProfessorClient />;
+/**
+ * /pei-professor → redireciona para /pei-regente (rota consolidada)
+ * A rota /pei-professor era a versão legada simplificada.
+ * Todo o fluxo PEI-Professor agora vive em /pei-regente.
+ */
+export default function PEIProfessorPage() {
+    redirect("/pei-regente");
 }

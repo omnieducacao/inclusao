@@ -185,6 +185,7 @@ export async function GET() {
             has_avaliacao: boolean;
             nivel_omnisfera: number | null;
             avaliacao_status: string;
+            is_virtual: boolean;
         }>;
     }>();
 
@@ -221,6 +222,7 @@ export async function GET() {
             has_avaliacao: !!avData,
             nivel_omnisfera: avData?.nivel || null,
             avaliacao_status: avData?.status || "pendente",
+            is_virtual: false,
         });
     }
 
@@ -246,6 +248,7 @@ export async function GET() {
                 has_avaliacao: boolean;
                 nivel_omnisfera: number | null;
                 avaliacao_status: string;
+                is_virtual: boolean;
             }>,
         };
 
@@ -262,6 +265,7 @@ export async function GET() {
                 has_avaliacao: !!avData,
                 nivel_omnisfera: avData?.nivel || null,
                 avaliacao_status: avData?.status || "pendente",
+                is_virtual: true,
             });
         }
 

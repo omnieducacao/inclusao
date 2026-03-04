@@ -22,6 +22,7 @@ interface AlunoDisc {
     has_avaliacao: boolean;
     nivel_omnisfera: number | null;
     avaliacao_status: string;
+    is_virtual: boolean;
 }
 
 interface Aluno {
@@ -85,6 +86,8 @@ export function PEIRegenteClient() {
     const [adaptacaoSugestao, setAdaptacaoSugestao] = useState<Record<string, any> | null>(null);
     const [adaptacaoMeta, setAdaptacaoMeta] = useState<{ plano_encontrado: boolean; nivel_diag: number | null } | null>(null);
     const [versionSaveStatus, setVersionSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+    const [transitioning, setTransitioning] = useState(false);
+    const [toast, setToast] = useState<string | null>(null);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -102,6 +105,26 @@ export function PEIRegenteClient() {
     }, []);
 
     useEffect(() => { fetchData(); }, [fetchData]);
+
+    // Load existing adaptation draft when entering PEI step (B3 + B1: avoid re-calling AI)
+    useEffect(() => {
+        if (activeStep !== "pei" || !selectedAluno || !selectedDisc) return;
+        if (adaptacaoSugestao) return; // Already loaded
+
+        fetch(`/api/pei/disciplina?studentId=${selectedAluno.id}&disciplina=${encodeURIComponent(selectedDisc.disciplina)}`)
+            .then(r => r.json())
+            .then(data => {
+                const peiData = data.pei_disciplina?.pei_disciplina_data as Record<string, unknown> | undefined;
+                const rascunho = peiData?.adaptacao_rascunho as Record<string, unknown> | undefined;
+                if (rascunho && Object.keys(rascunho).length > 0) {
+                    setAdaptacaoSugestao(rascunho);
+                    setToast("📋 Adaptação anterior carregada");
+                    setTimeout(() => setToast(null), 2500);
+                }
+            })
+            .catch(() => { });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeStep, selectedAluno?.id, selectedDisc?.disciplina]);
 
     // ─── Loading / Erro ───────────────────────────────────────────────────────
 
@@ -150,7 +173,33 @@ export function PEIRegenteClient() {
 
     if (selectedAluno && selectedDisc && activeStep) {
         return (
-            <div className="rounded-2xl overflow-hidden bg-(--omni-bg-secondary) border border-(--omni-border-default)">
+            <div className="rounded-2xl overflow-hidden bg-(--omni-bg-secondary) border border-(--omni-border-default)" style={{ position: 'relative' }}>
+                {/* Toast notification */}
+                {toast && (
+                    <div style={{
+                        position: 'absolute', top: 12, right: 12, zIndex: 50,
+                        padding: '10px 18px', borderRadius: 10,
+                        background: 'rgba(16,185,129,.15)', border: '1px solid rgba(16,185,129,.3)',
+                        color: '#10b981', fontSize: 13, fontWeight: 600,
+                        animation: 'fadeIn .3s ease',
+                    }}>
+                        {toast}
+                    </div>
+                )}
+                {/* Transitioning overlay */}
+                {transitioning && (
+                    <div style={{
+                        position: 'absolute', inset: 0, zIndex: 40,
+                        background: 'rgba(0,0,0,.3)', backdropFilter: 'blur(2px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        borderRadius: 14,
+                    }}>
+                        <div style={{ textAlign: 'center' }}>
+                            <OmniLoader variant="card" />
+                            <p style={{ color: '#fff', fontSize: 13, marginTop: 8, fontWeight: 600 }}>Avançando fase...</p>
+                        </div>
+                    </div>
+                )}
                 {/* Header com breadcrumb */}
                 <div className="px-6 py-4 flex items-center gap-3 border-b border-(--omni-border-default) bg-(--omni-bg-tertiary)">
                     <button
@@ -176,16 +225,27 @@ export function PEIRegenteClient() {
                 </div>
 
                 <div className="p-6">
+                    {activeStep === "plano" && !selectedAluno.grade && (
+                        <div className="mb-4 p-3 rounded-lg flex items-center gap-2" style={{
+                            background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.2)',
+                        }}>
+                            <AlertTriangle size={16} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                            <p className="text-xs" style={{ color: '#f59e0b' }}>
+                                <strong>Atenção:</strong> A série/ano do estudante não está cadastrada.
+                                O plano será buscado com valor padrão. Atualize o cadastro do estudante para resultados mais precisos.
+                            </p>
+                        </div>
+                    )}
                     {activeStep === "plano" && (
                         <PEIPlanoEnsino
                             studentId={selectedAluno.id}
                             disciplina={selectedDisc.disciplina}
                             anoSerie={selectedAluno.grade || "6º Ano"}
                             onPlanoSaved={async (planoId: string) => {
+                                setTransitioning(true);
                                 // Link plano_ensino_id to pei_disciplinas AND advance status
-                                if (selectedDisc.id && !String(selectedDisc.id).startsWith("virtual_")) {
+                                if (selectedDisc.id && !selectedDisc.is_virtual) {
                                     try {
-                                        // Save plano_ensino_id via POST
                                         await fetch("/api/pei/disciplina", {
                                             method: "POST",
                                             headers: { "Content-Type": "application/json" },
@@ -195,7 +255,6 @@ export function PEIRegenteClient() {
                                                 plano_ensino_id: planoId,
                                             }),
                                         });
-                                        // Advance status to diagnostica
                                         if (selectedDisc.fase_status === "plano_ensino") {
                                             await fetch("/api/pei/disciplina", {
                                                 method: "PATCH",
@@ -206,9 +265,12 @@ export function PEIRegenteClient() {
                                                 }),
                                             });
                                         }
+                                        setToast("✅ Plano vinculado! Avançando para Diagnóstica...");
+                                        setTimeout(() => setToast(null), 3000);
                                     } catch { /* silent */ }
                                 }
-                                fetchData();
+                                await fetchData();
+                                setTransitioning(false);
                             }}
                         />
                     )}
@@ -219,8 +281,8 @@ export function PEIRegenteClient() {
                             studentName={selectedAluno.name}
                             disciplina={selectedDisc.disciplina}
                             onLinked={async () => {
-                                // Auto-advance to pei_disciplina when diagnostic is applied
-                                if (selectedDisc.id && !String(selectedDisc.id).startsWith("virtual_") && selectedDisc.fase_status === "diagnostica") {
+                                setTransitioning(true);
+                                if (selectedDisc.id && !selectedDisc.is_virtual && selectedDisc.fase_status === "diagnostica") {
                                     await fetch("/api/pei/disciplina", {
                                         method: "PATCH",
                                         headers: { "Content-Type": "application/json" },
@@ -229,8 +291,11 @@ export function PEIRegenteClient() {
                                             fase_status: "pei_disciplina",
                                         }),
                                     }).catch(() => { });
+                                    setToast("✅ Diagnóstica aplicada! Avançando para PEI...");
+                                    setTimeout(() => setToast(null), 3000);
                                 }
-                                fetchData();
+                                await fetchData();
+                                setTransitioning(false);
                             }}
                         />
                     )}
@@ -372,7 +437,7 @@ export function PEIRegenteClient() {
                                                 });
 
                                                 // Auto-save adaptation to pei_disciplina_data
-                                                if (selectedDisc.id && !String(selectedDisc.id).startsWith("virtual_")) {
+                                                if (selectedDisc.id && !selectedDisc.is_virtual) {
                                                     fetch("/api/pei/disciplina", {
                                                         method: "POST",
                                                         headers: { "Content-Type": "application/json" },
@@ -542,7 +607,7 @@ export function PEIRegenteClient() {
                                             </a>
 
                                             {/* Finalizar PEI desta disciplina e enviar para consolidar */}
-                                            {selectedDisc.id && !String(selectedDisc.id).startsWith("virtual_") && (
+                                            {selectedDisc.id && !selectedDisc.is_virtual && (
                                                 <FinalizarPeiDisciplinaButton
                                                     studentId={selectedAluno.id}
                                                     disciplina={selectedDisc.disciplina}
@@ -1112,7 +1177,7 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
                             {avaliacao.questoes} questões · Aplique no módulo Avaliação Diagnóstica
                         </div>
                     </div>
-                    <a href="/avaliacao-diagnostica" style={{
+                    <a href={`/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&fromPEI=true`} style={{
                         display: "flex", alignItems: "center", gap: 6,
                         padding: "8px 16px", borderRadius: 10, fontSize: 13, fontWeight: 700,
                         background: "linear-gradient(135deg, #f59e0b, #d97706)",
@@ -1137,7 +1202,7 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
                     <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 16px" }}>
                         Gere e aplique uma avaliação no módulo <strong>Avaliação Diagnóstica</strong> para {studentName} em {disciplina}.
                     </p>
-                    <a href="/avaliacao-diagnostica" style={{
+                    <a href={`/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&fromPEI=true`} style={{
                         display: "inline-flex", alignItems: "center", gap: 8,
                         padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 700,
                         background: "linear-gradient(135deg, #2563eb, #3b82f6)",

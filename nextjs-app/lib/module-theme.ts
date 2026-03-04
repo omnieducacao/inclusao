@@ -113,7 +113,7 @@ export const routeThemeMap: Record<string, ModuleThemeKey> = {
     "/estudantes": "omnisfera",
     "/pei": "pei",
     "/pei-regente": "monitoramento",
-    "/pei-professor": "pei",
+    "/pei-professor": "monitoramento",  // redirects to /pei-regente
     "/plano-curso": "omnisfera",
     "/avaliacao-diagnostica": "ferramentas",
     "/avaliacao-processual": "diario",

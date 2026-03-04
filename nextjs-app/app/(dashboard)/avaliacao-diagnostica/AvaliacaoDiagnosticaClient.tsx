@@ -202,6 +202,24 @@ export default function AvaliacaoDiagnosticaClient() {
 
     useEffect(() => { fetchAlunos(); }, [fetchAlunos]);
 
+    // Auto-select student + discipline when coming from PEI module
+    useEffect(() => {
+        if (alunos.length === 0 || selectedAluno) return;
+        const params = new URLSearchParams(window.location.search);
+        const fromPEI = params.get("fromPEI");
+        const studentId = params.get("studentId");
+        const disciplina = params.get("disciplina");
+        if (fromPEI && studentId) {
+            const aluno = alunos.find(a => a.id === studentId);
+            if (aluno) {
+                setSelectedAluno(aluno);
+                if (disciplina) {
+                    setSelectedDisc(disciplina);
+                }
+            }
+        }
+    }, [alunos, selectedAluno]);
+
     // Fetch pending assessments count for badge
     useEffect(() => {
         fetch('/api/pei/avaliacao-diagnostica?all=true')
