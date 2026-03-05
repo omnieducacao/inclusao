@@ -1829,152 +1829,161 @@ export default function AvaliacaoDiagnosticaClient() {
                             </div>
 
                             {/* ── Image Management Strip (Phase 2) ── */}
-                            {questoesIndividuais.some(q => q.suporte_visual?.necessario && q._imagemPermitida !== false) && (
-                                <div style={{
-                                    padding: "10px 16px",
-                                    borderBottom: "1px solid rgba(99,102,241,.1)",
-                                    background: "rgba(99,102,241,.02)",
-                                }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#818cf8" }}>🖼️ Imagens ({qtdImagens > 0 ? `limite: ${qtdImagens}` : "sem limite"})</span>
-                                        <span style={{ fontSize: 10, color: "var(--text-muted)", fontStyle: "italic" }}>
-                                            {Object.keys(mapaImagensResultado).length} de {questoesIndividuais.filter(q => q.suporte_visual?.necessario && q._imagemPermitida !== false).length} imagens
-                                        </span>
-                                    </div>
-                                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                        {questoesIndividuais.map((q, idx) => {
-                                            if (!q.suporte_visual?.necessario || q._imagemPermitida === false) return null;
-                                            const qNum = q._numero || idx + 1;
-                                            const imgUrl = mapaImagensResultado[qNum];
-                                            const isRegenerating = q._regeneratingImage;
-                                            return (
-                                                <div key={qNum} style={{
-                                                    display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                                                    padding: 6, borderRadius: 8, border: "1px solid rgba(99,102,241,.15)",
-                                                    background: "rgba(99,102,241,.03)", minWidth: 100,
-                                                }}>
-                                                    <span style={{ fontSize: 9, fontWeight: 700, color: "#818cf8" }}>Q{qNum}</span>
-                                                    {imgUrl ? (
-                                                        <>
-                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                            <img
-                                                                src={imgUrl}
-                                                                alt={q.suporte_visual?.texto_alternativo || `Imagem Q${qNum}`}
-                                                                style={{
-                                                                    width: 80, height: 60, objectFit: "cover",
-                                                                    borderRadius: 6, border: "1px solid rgba(99,102,241,.2)",
-                                                                }}
-                                                            />
-                                                            <div style={{ display: "flex", gap: 3 }}>
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        const sv = q.suporte_visual;
-                                                                        q._regeneratingImage = true;
-                                                                        setQuestoesIndividuais([...questoesIndividuais]);
-                                                                        try {
-                                                                            const r = await fetch("/api/avaliacao-diagnostica/gerar-imagem", {
-                                                                                method: "POST",
-                                                                                headers: { "Content-Type": "application/json" },
-                                                                                body: JSON.stringify({
-                                                                                    tipo: sv.tipo || 'ilustracao',
-                                                                                    descricao: sv.descricao_para_geracao,
-                                                                                    texto_alternativo: sv.texto_alternativo || sv.descricao_para_geracao,
-                                                                                    disciplina: selectedDisc,
-                                                                                    serie: selectedAluno?.grade || '',
-                                                                                }),
-                                                                            });
-                                                                            if (r.ok) {
-                                                                                const d = await r.json();
-                                                                                if (d.imageUrl) {
-                                                                                    const newMapa = { ...mapaImagensResultado, [qNum]: d.imageUrl };
-                                                                                    setMapaImagensResultado(newMapa);
-                                                                                    rebuildResultadoFormatado(questoesIndividuais, newMapa);
+                            {(() => {
+                                // Compute which questions should have images (respecting qtdImagens limit)
+                                const questoesComSuporte = questoesIndividuais
+                                    .map((q, idx) => ({ q, qNum: q._numero || idx + 1 }))
+                                    .filter(({ q }) => q.suporte_visual?.necessario);
+                                const maxSlots = qtdImagens > 0 ? qtdImagens : questoesComSuporte.length;
+                                const allowedQNums = new Set(questoesComSuporte.slice(0, maxSlots).map(x => x.qNum));
+                                const slotsToShow = questoesComSuporte.filter(x => allowedQNums.has(x.qNum));
+
+                                if (slotsToShow.length === 0) return null;
+                                return (
+                                    <div style={{
+                                        padding: "10px 16px",
+                                        borderBottom: "1px solid rgba(99,102,241,.1)",
+                                        background: "rgba(99,102,241,.02)",
+                                    }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                                            <span style={{ fontSize: 11, fontWeight: 700, color: "#818cf8" }}>🖼️ Imagens ({qtdImagens > 0 ? `limite: ${qtdImagens}` : "sem limite"})</span>
+                                            <span style={{ fontSize: 10, color: "var(--text-muted)", fontStyle: "italic" }}>
+                                                {Object.keys(mapaImagensResultado).filter(k => allowedQNums.has(Number(k))).length} de {slotsToShow.length} imagens
+                                            </span>
+                                        </div>
+                                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                            {slotsToShow.map(({ q, qNum }) => {
+                                                const imgUrl = mapaImagensResultado[qNum];
+                                                const isRegenerating = q._regeneratingImage;
+                                                return (
+                                                    <div key={qNum} style={{
+                                                        display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                                                        padding: 6, borderRadius: 8, border: "1px solid rgba(99,102,241,.15)",
+                                                        background: "rgba(99,102,241,.03)", minWidth: 100,
+                                                    }}>
+                                                        <span style={{ fontSize: 9, fontWeight: 700, color: "#818cf8" }}>Q{qNum}</span>
+                                                        {imgUrl ? (
+                                                            <>
+                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                <img
+                                                                    src={imgUrl}
+                                                                    alt={q.suporte_visual?.texto_alternativo || `Imagem Q${qNum}`}
+                                                                    style={{
+                                                                        width: 80, height: 60, objectFit: "cover",
+                                                                        borderRadius: 6, border: "1px solid rgba(99,102,241,.2)",
+                                                                    }}
+                                                                />
+                                                                <div style={{ display: "flex", gap: 3 }}>
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            const sv = q.suporte_visual;
+                                                                            q._regeneratingImage = true;
+                                                                            setQuestoesIndividuais([...questoesIndividuais]);
+                                                                            try {
+                                                                                const r = await fetch("/api/avaliacao-diagnostica/gerar-imagem", {
+                                                                                    method: "POST",
+                                                                                    headers: { "Content-Type": "application/json" },
+                                                                                    body: JSON.stringify({
+                                                                                        tipo: sv.tipo || 'ilustracao',
+                                                                                        descricao: sv.descricao_para_geracao,
+                                                                                        texto_alternativo: sv.texto_alternativo || sv.descricao_para_geracao,
+                                                                                        disciplina: selectedDisc,
+                                                                                        serie: selectedAluno?.grade || '',
+                                                                                    }),
+                                                                                });
+                                                                                if (r.ok) {
+                                                                                    const d = await r.json();
+                                                                                    if (d.imageUrl) {
+                                                                                        const newMapa = { ...mapaImagensResultado, [qNum]: d.imageUrl };
+                                                                                        setMapaImagensResultado(newMapa);
+                                                                                        rebuildResultadoFormatado(questoesIndividuais, newMapa);
+                                                                                    }
                                                                                 }
-                                                                            }
-                                                                        } catch { /* silent */ }
-                                                                        q._regeneratingImage = false;
-                                                                        setQuestoesIndividuais([...questoesIndividuais]);
-                                                                    }}
-                                                                    disabled={isRegenerating}
-                                                                    style={{
-                                                                        fontSize: 9, padding: "2px 5px", borderRadius: 4,
-                                                                        border: "1px solid rgba(99,102,241,.2)", background: "rgba(99,102,241,.08)",
-                                                                        color: "#818cf8", cursor: isRegenerating ? "wait" : "pointer",
-                                                                    }}
-                                                                    title="Regenerar imagem"
-                                                                >
-                                                                    {isRegenerating ? "⏳" : "🔄"}
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        const newMapa = { ...mapaImagensResultado };
-                                                                        delete newMapa[qNum];
-                                                                        setMapaImagensResultado(newMapa);
-                                                                        rebuildResultadoFormatado(questoesIndividuais, newMapa);
-                                                                    }}
-                                                                    style={{
-                                                                        fontSize: 9, padding: "2px 5px", borderRadius: 4,
-                                                                        border: "1px solid rgba(239,68,68,.2)", background: "rgba(239,68,68,.05)",
-                                                                        color: "#ef4444", cursor: "pointer",
-                                                                    }}
-                                                                    title="Remover imagem"
-                                                                >
-                                                                    ✕
-                                                                </button>
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <button
-                                                            onClick={async () => {
-                                                                const sv = q.suporte_visual;
-                                                                q._regeneratingImage = true;
-                                                                setQuestoesIndividuais([...questoesIndividuais]);
-                                                                try {
-                                                                    const r = await fetch("/api/avaliacao-diagnostica/gerar-imagem", {
-                                                                        method: "POST",
-                                                                        headers: { "Content-Type": "application/json" },
-                                                                        body: JSON.stringify({
-                                                                            tipo: sv.tipo || 'ilustracao',
-                                                                            descricao: sv.descricao_para_geracao,
-                                                                            texto_alternativo: sv.texto_alternativo || sv.descricao_para_geracao,
-                                                                            disciplina: selectedDisc,
-                                                                            serie: selectedAluno?.grade || '',
-                                                                        }),
-                                                                    });
-                                                                    if (r.ok) {
-                                                                        const d = await r.json();
-                                                                        if (d.imageUrl) {
-                                                                            const newMapa = { ...mapaImagensResultado, [qNum]: d.imageUrl };
+                                                                            } catch { /* silent */ }
+                                                                            q._regeneratingImage = false;
+                                                                            setQuestoesIndividuais([...questoesIndividuais]);
+                                                                        }}
+                                                                        disabled={isRegenerating}
+                                                                        style={{
+                                                                            fontSize: 9, padding: "2px 5px", borderRadius: 4,
+                                                                            border: "1px solid rgba(99,102,241,.2)", background: "rgba(99,102,241,.08)",
+                                                                            color: "#818cf8", cursor: isRegenerating ? "wait" : "pointer",
+                                                                        }}
+                                                                        title="Regenerar imagem"
+                                                                    >
+                                                                        {isRegenerating ? "⏳" : "🔄"}
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const newMapa = { ...mapaImagensResultado };
+                                                                            delete newMapa[qNum];
                                                                             setMapaImagensResultado(newMapa);
                                                                             rebuildResultadoFormatado(questoesIndividuais, newMapa);
+                                                                        }}
+                                                                        style={{
+                                                                            fontSize: 9, padding: "2px 5px", borderRadius: 4,
+                                                                            border: "1px solid rgba(239,68,68,.2)", background: "rgba(239,68,68,.05)",
+                                                                            color: "#ef4444", cursor: "pointer",
+                                                                        }}
+                                                                        title="Remover imagem"
+                                                                    >
+                                                                        ✕
+                                                                    </button>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <button
+                                                                onClick={async () => {
+                                                                    const sv = q.suporte_visual;
+                                                                    q._regeneratingImage = true;
+                                                                    setQuestoesIndividuais([...questoesIndividuais]);
+                                                                    try {
+                                                                        const r = await fetch("/api/avaliacao-diagnostica/gerar-imagem", {
+                                                                            method: "POST",
+                                                                            headers: { "Content-Type": "application/json" },
+                                                                            body: JSON.stringify({
+                                                                                tipo: sv.tipo || 'ilustracao',
+                                                                                descricao: sv.descricao_para_geracao,
+                                                                                texto_alternativo: sv.texto_alternativo || sv.descricao_para_geracao,
+                                                                                disciplina: selectedDisc,
+                                                                                serie: selectedAluno?.grade || '',
+                                                                            }),
+                                                                        });
+                                                                        if (r.ok) {
+                                                                            const d = await r.json();
+                                                                            if (d.imageUrl) {
+                                                                                const newMapa = { ...mapaImagensResultado, [qNum]: d.imageUrl };
+                                                                                setMapaImagensResultado(newMapa);
+                                                                                rebuildResultadoFormatado(questoesIndividuais, newMapa);
+                                                                            }
                                                                         }
-                                                                    }
-                                                                } catch { /* silent */ }
-                                                                q._regeneratingImage = false;
-                                                                setQuestoesIndividuais([...questoesIndividuais]);
-                                                            }}
-                                                            disabled={isRegenerating}
-                                                            style={{
-                                                                fontSize: 9, padding: "4px 8px", borderRadius: 4,
-                                                                border: "1px dashed rgba(99,102,241,.3)", background: "rgba(99,102,241,.05)",
-                                                                color: "#818cf8", cursor: isRegenerating ? "wait" : "pointer",
-                                                                minHeight: 60, display: "flex", alignItems: "center",
-                                                                justifyContent: "center",
-                                                            }}
-                                                            title="Gerar imagem"
-                                                        >
-                                                            {isRegenerating ? "⏳ Gerando..." : "🖼️ Gerar"}
-                                                        </button>
-                                                    )}
-                                                    <span style={{ fontSize: 8, color: "var(--text-muted)", textAlign: "center", maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                                        {q.suporte_visual?.tipo || "visual"}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })}
+                                                                    } catch { /* silent */ }
+                                                                    q._regeneratingImage = false;
+                                                                    setQuestoesIndividuais([...questoesIndividuais]);
+                                                                }}
+                                                                disabled={isRegenerating}
+                                                                style={{
+                                                                    fontSize: 9, padding: "4px 8px", borderRadius: 4,
+                                                                    border: "1px dashed rgba(99,102,241,.3)", background: "rgba(99,102,241,.05)",
+                                                                    color: "#818cf8", cursor: isRegenerating ? "wait" : "pointer",
+                                                                    minHeight: 60, display: "flex", alignItems: "center",
+                                                                    justifyContent: "center",
+                                                                }}
+                                                                title="Gerar imagem"
+                                                            >
+                                                                {isRegenerating ? "⏳ Gerando..." : "🖼️ Gerar"}
+                                                            </button>
+                                                        )}
+                                                        <span style={{ fontSize: 8, color: "var(--text-muted)", textAlign: "center", maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                            {q.suporte_visual?.tipo || "visual"}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                );
+                            })()}
 
                             <div className={bodyS}>
                                 <FormattedTextDisplay
@@ -1995,16 +2004,18 @@ export default function AvaliacaoDiagnosticaClient() {
                 )
                 }
 
-                {avalError && (
-                    <div style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        padding: "12px 16px", borderRadius: 10,
-                        background: "rgba(239,68,68,.1)", color: "#f87171", fontSize: 13,
-                        marginBottom: 16,
-                    }}>
-                        <AlertTriangle size={16} /> {avalError}
-                    </div>
-                )}
+                {
+                    avalError && (
+                        <div style={{
+                            display: "flex", alignItems: "center", gap: 8,
+                            padding: "12px 16px", borderRadius: 10,
+                            background: "rgba(239,68,68,.1)", color: "#f87171", fontSize: 13,
+                            marginBottom: 16,
+                        }}>
+                            <AlertTriangle size={16} /> {avalError}
+                        </div>
+                    )
+                }
 
 
                 {/* ─── CAMADA B: Cognitivo-Funcional ──────────────────── */}
@@ -2162,11 +2173,13 @@ export default function AvaliacaoDiagnosticaClient() {
                 }
 
                 {/* ─── Erro ao gerar perfil ─────────────────────────────── */}
-                {perfilError && (
-                    <div style={{ padding: 12, marginBottom: 16, borderRadius: 10, background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", color: "#f87171", fontSize: 13 }}>
-                        <strong>Erro:</strong> {perfilError}
-                    </div>
-                )}
+                {
+                    perfilError && (
+                        <div style={{ padding: 12, marginBottom: 16, borderRadius: 10, background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", color: "#f87171", fontSize: 13 }}>
+                            <strong>Erro:</strong> {perfilError}
+                        </div>
+                    )
+                }
 
                 {/* ─── Perfil de Funcionamento Output ─────────────────── */}
                 {

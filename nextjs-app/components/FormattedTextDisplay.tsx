@@ -107,10 +107,19 @@ export function FormattedTextDisplay({ texto, titulo, className = "", mapaImagen
         .replace(/\*([^*\n]+)\*/g, '<em class="italic">$1</em>')
         .replace(/`([^`]+)`/g, '<code class="bg-slate-100 px-1 py-0.5 rounded text-xs font-mono">$1</code>');
 
-      // Processar links básicos
+      // Processar imagens markdown ![alt](url) ANTES de links
+      textoFormatado = textoFormatado.replace(
+        /!\[([^\]]*)\]\(([^)]+)\)/g,
+        '<img src="$2" alt="$1" style="max-width:100%;height:auto;border-radius:8px;margin:8px 0;border:1px solid rgba(148,163,184,.2)" />'
+      );
+
+      // Processar links básicos [text](url) — excluindo imagens já processadas
       textoFormatado = textoFormatado.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-cyan-600 hover:text-cyan-700 hover:underline font-medium" target="_blank" rel="noopener noreferrer">$1</a>');
 
-      const textoLimpo = DOMPurify.sanitize(textoFormatado);
+      const textoLimpo = DOMPurify.sanitize(textoFormatado, {
+        ADD_TAGS: ['img'],
+        ADD_ATTR: ['src', 'alt', 'style'],
+      });
       return <span dangerouslySetInnerHTML={{ __html: textoLimpo }} />;
     };
 
