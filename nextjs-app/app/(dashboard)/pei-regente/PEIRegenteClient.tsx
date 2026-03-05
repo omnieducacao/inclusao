@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
     BookOpen, Users, AlertTriangle, ChevronRight,
     FileText, Brain, ClipboardCheck, CheckCircle2, ArrowLeft,
-    Sparkles, School, ExternalLink, Target,
+    Sparkles, School, ExternalLink, Target, Trash2, RotateCcw,
 } from "lucide-react";
 import { OmniLoader } from "@/components/OmniLoader";
 import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
@@ -698,7 +698,18 @@ export function PEIRegenteClient() {
 
     if (selectedAluno) {
         return (
-            <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+            <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)', position: 'relative' }}>
+                {/* Toast notification */}
+                {toast && (
+                    <div style={{
+                        position: 'absolute', top: 12, right: 12, zIndex: 50,
+                        padding: '10px 18px', borderRadius: 10,
+                        background: 'rgba(16,185,129,.15)', border: '1px solid rgba(16,185,129,.3)',
+                        color: '#10b981', fontSize: 13, fontWeight: 600,
+                    }}>
+                        {toast}
+                    </div>
+                )}
                 {/* Header do aluno */}
                 <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border-default)', backgroundColor: 'var(--bg-tertiary)' }}>
                     <div className="flex items-center gap-3">
@@ -756,12 +767,36 @@ export function PEIRegenteClient() {
                                     </div>
 
                                     {/* Badge nível */}
-                                    {disc.nivel_omnisfera !== null && (
-                                        <span className="text-xs font-bold px-2.5 py-1 rounded-full"
-                                            style={{ backgroundColor: 'rgba(99,102,241,.12)', color: '#818cf8' }}>
-                                            N{disc.nivel_omnisfera} — {ESCALA_OMNISFERA[disc.nivel_omnisfera as NivelOmnisfera]?.label || ""}
-                                        </span>
-                                    )}
+                                    <div className="flex items-center gap-2">
+                                        {disc.nivel_omnisfera !== null && (
+                                            <span className="text-xs font-bold px-2.5 py-1 rounded-full"
+                                                style={{ backgroundColor: 'rgba(99,102,241,.12)', color: '#818cf8' }}>
+                                                N{disc.nivel_omnisfera} — {ESCALA_OMNISFERA[disc.nivel_omnisfera as NivelOmnisfera]?.label || ""}
+                                            </span>
+                                        )}
+                                        {/* Reset discipline button */}
+                                        {!disc.is_virtual && disc.fase_status !== 'concluido' && (
+                                            <button
+                                                title="Resetar esta disciplina"
+                                                onClick={async (e) => {
+                                                    e.stopPropagation();
+                                                    if (!confirm(`Resetar o PEI de ${disc.disciplina}? Isso apagará o progresso (plano vinculado, adaptações). A avaliação diagnóstica NÃO será afetada.`)) return;
+                                                    try {
+                                                        await fetch(`/api/pei/disciplina?id=${disc.id}`, { method: 'DELETE' });
+                                                        setToast(`🗑️ PEI ${disc.disciplina} resetado`);
+                                                        setTimeout(() => setToast(null), 3000);
+                                                        fetchData();
+                                                    } catch { /* silent */ }
+                                                }}
+                                                className="p-1.5 rounded-lg transition-all"
+                                                style={{ color: 'var(--text-muted)', opacity: 0.5 }}
+                                                onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#ef4444'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                                            >
+                                                <RotateCcw size={14} />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Pipeline steps */}
