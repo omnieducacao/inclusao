@@ -183,3 +183,36 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json({ ok: true, pei_disciplina: data });
 }
+
+/**
+ * DELETE /api/pei/disciplina?id=xxx
+ * Remove PEI de disciplina. Avaliações vinculadas serão órfãs
+ * (mas como student_id tem CASCADE, ao deletar estudante tudo limpa).
+ */
+export async function DELETE(req: Request) {
+    const session = await getSession();
+    if (!session?.workspace_id) {
+        return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
+
+    if (!id) {
+        return NextResponse.json({ error: "id é obrigatório" }, { status: 400 });
+    }
+
+    const sb = getSupabase();
+    const { error } = await sb
+        .from("pei_disciplinas")
+        .delete()
+        .eq("id", id)
+        .eq("workspace_id", session.workspace_id);
+
+    if (error) {
+        console.error("DELETE /api/pei/disciplina:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+}

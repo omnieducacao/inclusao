@@ -171,3 +171,36 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, plano: data });
 }
+
+/**
+ * DELETE /api/pei/plano-ensino?id=xxx
+ * Remove um plano de ensino. Com ON DELETE SET NULL nas FKs,
+ * pei_disciplinas e avaliacoes_diagnosticas terão plano_ensino_id = NULL.
+ */
+export async function DELETE(req: Request) {
+    const session = await getSession();
+    if (!session?.workspace_id) {
+        return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
+
+    if (!id) {
+        return NextResponse.json({ error: "id é obrigatório" }, { status: 400 });
+    }
+
+    const sb = getSupabase();
+    const { error } = await sb
+        .from("planos_ensino")
+        .delete()
+        .eq("id", id)
+        .eq("workspace_id", session.workspace_id);
+
+    if (error) {
+        console.error("DELETE /api/pei/plano-ensino:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+}

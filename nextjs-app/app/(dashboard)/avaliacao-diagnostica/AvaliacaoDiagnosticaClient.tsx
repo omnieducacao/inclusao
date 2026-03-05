@@ -690,6 +690,58 @@ export default function AvaliacaoDiagnosticaClient() {
                     </p>
                 </div>
 
+                {/* ── Progress Stepper ── */}
+                <div style={{
+                    display: "flex", gap: 4, marginBottom: 16, padding: "12px 16px",
+                    borderRadius: 12, background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                }}>
+                    {([
+                        {
+                            label: "① Gerar Avaliação",
+                            desc: "IA cria questões baseadas na BNCC",
+                            done: !!resultadoFormatado || !!avaliacaoSalvaId,
+                            current: !resultadoFormatado && !avaliacaoSalvaId,
+                        },
+                        {
+                            label: "② Aplicar Gabarito",
+                            desc: "Registrar respostas do estudante",
+                            done: nivelIdentificado !== null,
+                            current: !!avaliacaoSalvaId && nivelIdentificado === null,
+                        },
+                        {
+                            label: "③ Perfil de Funcionamento",
+                            desc: "Avaliação cognitivo-funcional (NEE)",
+                            done: !!perfilGerado,
+                            current: nivelIdentificado !== null && !perfilGerado,
+                        },
+                        {
+                            label: "④ Estratégias Práticas",
+                            desc: "Relatório com estratégias adaptadas",
+                            done: !!estrategiasGeradas,
+                            current: !!perfilGerado && !estrategiasGeradas,
+                        },
+                    ] as const).map((step, i) => (
+                        <div key={i} style={{
+                            flex: 1, padding: "10px 12px", borderRadius: 10, textAlign: "center",
+                            background: step.done ? "rgba(16,185,129,.1)" : step.current ? "rgba(59,130,246,.1)" : "transparent",
+                            border: step.done ? "1px solid rgba(16,185,129,.2)" : step.current ? "1px solid rgba(59,130,246,.2)" : "1px solid transparent",
+                            opacity: (!step.done && !step.current) ? 0.45 : 1,
+                        }}>
+                            <div style={{
+                                fontSize: 12, fontWeight: 800,
+                                color: step.done ? "#10b981" : step.current ? "#3b82f6" : "var(--text-muted)",
+                                marginBottom: 2,
+                            }}>
+                                {step.done ? "✅ " : ""}{step.label}
+                            </div>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                                {step.desc}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
                 {/* NEE Alert from Planos Genéricos */}
                 {Boolean(neeAlert) && (
                     <div style={{
