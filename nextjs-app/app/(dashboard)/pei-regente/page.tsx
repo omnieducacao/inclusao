@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
+import { SafeModuleWrapper } from "@/components/SafeModuleWrapper";
 import { PEIRegenteClient } from "./PEIRegenteClient";
 
 export default async function PEIRegentePage() {
@@ -26,7 +27,9 @@ export default async function PEIRegentePage() {
                 <Suspense fallback={
                     <div className="rounded-2xl animate-pulse min-h-[200px] bg-(--omni-bg-secondary) border border-(--omni-border-default)" />
                 }>
-                    <PEIRegenteClient />
+                    <SafeModuleWrapper fallbackTitle="PEI Professor">
+                        <PEIRegenteClient />
+                    </SafeModuleWrapper>
                 </Suspense>
             </div>
         </PageAccentProvider>

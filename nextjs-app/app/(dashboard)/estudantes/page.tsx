@@ -4,6 +4,7 @@ import { getSupabase } from "@/lib/supabase";
 import { listStudents } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
+import { SafeModuleWrapper } from "@/components/SafeModuleWrapper";
 import { EstudantesClient } from "./EstudantesClient";
 
 export default async function EstudantesPage() {
@@ -27,18 +28,20 @@ export default async function EstudantesPage() {
           desc="Dados dos estudantes vinculados aos PEIs neste workspace."
         />
         <Suspense fallback={<div className="rounded-2xl bg-white animate-pulse min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }} />}>
-          <EstudantesClient
-            students={students.map((s) => ({
-              id: s.id,
-              name: s.name,
-              grade: s.grade,
-              class_group: s.class_group,
-              diagnosis: s.diagnosis,
-              pei_data: s.pei_data,
-              paee_ciclos: s.paee_ciclos,
-            }))}
-            familyModuleEnabled={familyModuleEnabled}
-          />
+          <SafeModuleWrapper fallbackTitle="Estudantes">
+            <EstudantesClient
+              students={students.map((s) => ({
+                id: s.id,
+                name: s.name,
+                grade: s.grade,
+                class_group: s.class_group,
+                diagnosis: s.diagnosis,
+                pei_data: s.pei_data,
+                paee_ciclos: s.paee_ciclos,
+              }))}
+              familyModuleEnabled={familyModuleEnabled}
+            />
+          </SafeModuleWrapper>
         </Suspense>
       </div>
     </PageAccentProvider>
