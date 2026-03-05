@@ -59,16 +59,64 @@ export async function GET() {
     const isMaster = session.user_role === "master" || !memberIdResolved;
 
     // 2. Buscar pei_disciplinas do professor (ou todos se master)
-    let query = sb
-        .from("pei_disciplinas")
-        .select("*")
-        .eq("workspace_id", session.workspace_id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let disciplinas: any[] | null = null;
+    let discError: { message: string } | null = null;
 
-    if (!isMaster && memberIdResolved) {
-        query = query.eq("professor_regente_id", memberIdResolved);
+    if (isMaster) {
+        const result = await sb
+            .from("pei_disciplinas")
+            .select("*")
+            .eq("workspace_id", session.workspace_id)
+            .order("disciplina");
+        disciplinas = result.data;
+        discError = result.error;
+    } else if (memberIdResolved) {
+        // Primeiro: buscar por professor_regente_id (campo correto)
+        const result = await sb
+            .from("pei_disciplinas")
+            .select("*")
+            .eq("workspace_id", session.workspace_id)
+            .eq("professor_regente_id", memberIdResolved)
+            .order("disciplina");
+        disciplinas = result.data;
+        discError = result.error;
+
+        // Fallback: se nenhum resultado por ID, buscar por nome
+        // (compatibilidade com registros antigos sem professor_regente_id)
+        if (!discError && (!disciplinas || disciplinas.length === 0)) {
+            // Buscar o nome do membro
+            const { data: memberData } = await sb
+                .from("workspace_members")
+                .select("nome")
+                .eq("id", memberIdResolved)
+                .single();
+
+            if (memberData?.nome) {
+                const fallbackResult = await sb
+                    .from("pei_disciplinas")
+                    .select("*")
+                    .eq("workspace_id", session.workspace_id)
+                    .eq("professor_regente_nome", memberData.nome)
+                    .is("professor_regente_id", null)
+                    .order("disciplina");
+                disciplinas = fallbackResult.data;
+                discError = fallbackResult.error;
+
+                // Auto-fix: atualizar registros antigos com o ID correto
+                if (disciplinas && disciplinas.length > 0) {
+                    const idsToFix = disciplinas.map(d => d.id).filter(Boolean);
+                    if (idsToFix.length > 0) {
+                        await sb
+                            .from("pei_disciplinas")
+                            .update({ professor_regente_id: memberIdResolved })
+                            .in("id", idsToFix as string[]);
+                        console.log(`[meus-alunos] Auto-fixed ${idsToFix.length} pei_disciplinas with professor_regente_id for ${memberData.nome}`);
+                    }
+                }
+            }
+        }
     }
-
-    const { data: disciplinas, error: discError } = await query.order("disciplina");
 
     if (discError) {
         console.error("GET /api/pei-regente/meus-alunos (disciplinas):", discError);
