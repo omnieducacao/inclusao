@@ -154,6 +154,40 @@ export default function AvaliacaoDiagnosticaClient() {
     const [questoesIndividuais, setQuestoesIndividuais] = useState<Array<Record<string, any>>>([]);
     const [progressoGeracao, setProgressoGeracao] = useState<{ atual: number; total: number; status: 'idle' | 'gerando' | 'concluido' | 'erro' }>({ atual: 0, total: 0, status: 'idle' });
 
+    // Helper: rebuild resultadoFormatado with current images
+    const rebuildResultadoFormatado = useCallback((questoes: Record<string, any>[], imagens: Record<number, string>) => {
+        let texto = '';
+        for (let i = 0; i < questoes.length; i++) {
+            const q = questoes[i];
+            if (q._erro) {
+                texto += `### Questão ${i + 1}\n\n⚠️ Erro ao gerar: ${q._erro}\n\n---\n\n`;
+                continue;
+            }
+            const sv = q.suporte_visual;
+            let enunciadoClean = (q.enunciado || '') as string;
+            if (sv?.descricao_para_geracao) {
+                enunciadoClean = enunciadoClean.replace(sv.descricao_para_geracao, '').replace(/\n{3,}/g, '\n\n').trim();
+            }
+            enunciadoClean = enunciadoClean
+                .replace(/\[?\s*(?:Ilustra[çc][aã]o|Imagem|Fotografia|Diagrama|Gr[aá]fico|Mapa)\s*(?:mostrando|representando|de|com|:)[^\]\n]*\]?/gi, '')
+                .replace(/\n{3,}/g, '\n\n').trim();
+
+            const imgUrl = imagens[i + 1] || q._imagemUrl;
+            texto += [
+                `### Questão ${i + 1} — ${q.habilidade_bncc_ref || ''}`,
+                '', enunciadoClean || '',
+                q.comando ? `\n**${q.comando}**` : '',
+                imgUrl ? `\n![${sv?.texto_alternativo || `Imagem Q${i + 1}`}](${imgUrl})` : '',
+                '',
+                q.alternativas ? Object.entries(q.alternativas as Record<string, string>).map(([k, v]) =>
+                    `${k === q.gabarito ? `**${k})** ${v}` : `${k}) ${v}`}`
+                ).join('\n') : '',
+                '', `**Gabarito:** ${q.gabarito || ''}`, '', `*${q.justificativa_pedagogica || ''}*`, '', '---',
+            ].join('\n') + '\n\n';
+        }
+        setResultadoFormatado(texto.trim());
+    }, []);
+
     // ─── Gabarito de Respostas ────────────────────────────────────────────
     const [avaliacaoSalvaId, setAvaliacaoSalvaId] = useState<string | null>(null);
     const [salvandoAvaliacao, setSalvandoAvaliacao] = useState(false);
@@ -1337,13 +1371,29 @@ export default function AvaliacaoDiagnosticaClient() {
 
                                                 // Build text representation for backward compatibility
                                                 const q = questao;
+                                                // Strip image description text from enunciado if the AI embedded it
+                                                let enunciadoClean = (q.enunciado || '') as string;
+                                                if (sv?.descricao_para_geracao) {
+                                                    // Remove the AI's image description from the text
+                                                    enunciadoClean = enunciadoClean
+                                                        .replace(sv.descricao_para_geracao, '')
+                                                        .replace(/\n{3,}/g, '\n\n')
+                                                        .trim();
+                                                }
+                                                // Also strip common AI patterns like "Ilustração mostrando..." or "[Imagem: ...]"
+                                                enunciadoClean = enunciadoClean
+                                                    .replace(/\[?\s*(?:Ilustra[çc][aã]o|Imagem|Fotografia|Diagrama|Gr[aá]fico|Mapa)\s*(?:mostrando|representando|de|com|:)[^\]\n]*\]?/gi, '')
+                                                    .replace(/\n{3,}/g, '\n\n')
+                                                    .trim();
+
+                                                const imgUrl = q._imagemUrl || mapaImagensResultado[i + 1];
                                                 const textoQ = [
                                                     `### Questão ${i + 1} — ${q.habilidade_bncc_ref || fila[i]}`,
                                                     '',
-                                                    q.enunciado || '',
+                                                    enunciadoClean || '',
                                                     q.comando ? `\n**${q.comando}**` : '',
-                                                    // Image placeholder in text (for DOCX export)
-                                                    q._imagemUrl ? `\n![${sv?.texto_alternativo || 'Imagem'}](${q._imagemUrl})` : '',
+                                                    // Image INLINE in the question (not just in the strip)
+                                                    imgUrl ? `\n![${sv?.texto_alternativo || `Imagem Q${i + 1}`}](${imgUrl})` : '',
                                                     '',
                                                     q.alternativas ? Object.entries(q.alternativas as Record<string, string>).map(([k, v]) =>
                                                         `${k === q.gabarito ? `**${k})** ${v}` : `${k}) ${v}`}`
@@ -1836,7 +1886,9 @@ export default function AvaliacaoDiagnosticaClient() {
                                                                             if (r.ok) {
                                                                                 const d = await r.json();
                                                                                 if (d.imageUrl) {
-                                                                                    setMapaImagensResultado(prev => ({ ...prev, [qNum]: d.imageUrl }));
+                                                                                    const newMapa = { ...mapaImagensResultado, [qNum]: d.imageUrl };
+                                                                                    setMapaImagensResultado(newMapa);
+                                                                                    rebuildResultadoFormatado(questoesIndividuais, newMapa);
                                                                                 }
                                                                             }
                                                                         } catch { /* silent */ }
@@ -1855,11 +1907,10 @@ export default function AvaliacaoDiagnosticaClient() {
                                                                 </button>
                                                                 <button
                                                                     onClick={() => {
-                                                                        setMapaImagensResultado(prev => {
-                                                                            const next = { ...prev };
-                                                                            delete next[qNum];
-                                                                            return next;
-                                                                        });
+                                                                        const newMapa = { ...mapaImagensResultado };
+                                                                        delete newMapa[qNum];
+                                                                        setMapaImagensResultado(newMapa);
+                                                                        rebuildResultadoFormatado(questoesIndividuais, newMapa);
                                                                     }}
                                                                     style={{
                                                                         fontSize: 9, padding: "2px 5px", borderRadius: 4,
@@ -1893,7 +1944,9 @@ export default function AvaliacaoDiagnosticaClient() {
                                                                     if (r.ok) {
                                                                         const d = await r.json();
                                                                         if (d.imageUrl) {
-                                                                            setMapaImagensResultado(prev => ({ ...prev, [qNum]: d.imageUrl }));
+                                                                            const newMapa = { ...mapaImagensResultado, [qNum]: d.imageUrl };
+                                                                            setMapaImagensResultado(newMapa);
+                                                                            rebuildResultadoFormatado(questoesIndividuais, newMapa);
                                                                         }
                                                                     }
                                                                 } catch { /* silent */ }
