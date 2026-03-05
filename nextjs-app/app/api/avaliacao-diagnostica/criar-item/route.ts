@@ -178,18 +178,21 @@ Organize as alternativas para que a resposta correta esteja na posição ${gabar
 ${planoContext}
 
 ESTRUTURA OBRIGATÓRIA (Guia CAEd/UFJF):
-1. ENUNCIADO: instrução clara (máx. 2 sentenças) — direciona ao suporte se houver
-2. SUPORTE: texto/cenário (SÓ se essencial ao percurso cognitivo)
-3. COMANDO: pergunta SEM negativas, SEM ambiguidade
-4. ALTERNATIVAS: 4 opções paralelas em estrutura e comprimento
+1. ENUNCIADO: instrução clara (máx. 2 sentenças) + TEXTO DE APOIO COMPLETO quando necessário
+   - Se a questão precisa de um trecho de leitura, problema contextualizado, ou cenário: INCLUA NO ENUNCIADO
+   - O enunciado DEVE conter TODO o texto que o estudante precisa ler
+   - NÃO delegue o texto ao suporte_visual — suporte_visual é SÓ para IMAGENS
+2. COMANDO: pergunta SEM negativas, SEM ambiguidade
+3. ALTERNATIVAS: 4 opções paralelas em estrutura e comprimento
    - Gabarito inequívoco na posição ${gabarito_definido}
    - 3 distratores baseados em erros cognitivos reais
+4. SUPORTE_VISUAL: SÓ para imagens (gráficos, ilustrações, mapas). O TEXTO vai no enunciado.
 
 ## SCHEMA DE SAÍDA (JSON obrigatório — retorne SOMENTE este JSON):
 {
   "id": "Q${numero_questao}",
   "habilidade_bncc_ref": "${hab.codigo}",
-  "enunciado": "string — instrução inicial + suporte textual",
+  "enunciado": "string — OBRIGATÓRIO: instrução + texto de apoio/leitura/cenário completo. TODO o texto que o estudante precisa ler vai aqui.",
   "comando": "string — a pergunta em si",
   "suporte_visual": {
     "necessario": true | false,

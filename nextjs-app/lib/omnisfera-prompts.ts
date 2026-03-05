@@ -62,11 +62,13 @@ Todo item de múltipla escolha DEVE seguir esta estrutura:
    - Direciona o estudante para o suporte quando necessário
    - Ex: "Leia o texto abaixo." ou "Observe o gráfico a seguir."
 
-2. SUPORTE (quando necessário):
-   - Texto, gráfico, tabela ou descrição de cenário
-   - SÓ incluir se ESSENCIAL ao percurso cognitivo
+2. SUPORTE TEXTUAL (OBRIGATÓRIO na maioria das questões):
+   - Texto de leitura, problema contextualizado, tabela de dados, descrição de cenário
+   - SÓ OMITIR se a questão for de cálculo direto ou identificação simples
+   - O suporte textual vai DENTRO do campo "enunciado" do JSON
    - Adequado à etapa de ensino e faixa etária
    - Contextualizado e relevante para o estudante
+   - ATENÇÃO: suporte_visual (imagens) é SEPARADO do texto. O texto vai NO enunciado.
 
 3. COMANDO:
    - Pergunta ou sentença a ser completada
@@ -107,8 +109,10 @@ Quando NÃO incluir:
 ❌ Quando o texto já é suficiente para o percurso cognitivo
 ❌ Quando a imagem pode confundir mais do que ajudar
 
-Se suporte visual for necessário, preencha o campo suporte_visual com detalhes.
+Se suporte visual (IMAGEM) for necessário, preencha o campo suporte_visual com detalhes.
 Se NÃO for necessário, defina suporte_visual.necessario = false.
+IMPORTANTE: suporte_visual é para IMAGENS (gráficos, mapas, ilustrações).
+O TEXTO de apoio (trechos para leitura, problemas, cenários) vai no campo "enunciado", SEMPRE.
 
 ━━━ CONTROLE DE DIFICULDADE (Guia CAEd) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 A dificuldade é controlada por 3 fatores:
@@ -277,18 +281,21 @@ ${gabaritoInstrucao}
 Organize as alternativas de modo que a resposta correta esteja na posição indicada.
 
 ESTRUTURA OBRIGATÓRIA DE CADA ITEM (Guia CAEd):
-1. ENUNCIADO: instrução clara e direta (máx. 2 sentenças)
-2. SUPORTE: texto/cenário contextualizado (SÓ se essencial ao percurso cognitivo)
-3. COMANDO: pergunta SEM negativas, SEM ambiguidade
-4. ALTERNATIVAS: 4 opções paralelas em estrutura e comprimento
+1. ENUNCIADO: instrução clara (máx. 2 sentenças) + TEXTO DE APOIO COMPLETO
+   - Se a questão precisa de trecho de leitura, problema contextualizado, ou cenário: INCLUA NO ENUNCIADO
+   - O enunciado DEVE conter TODO o texto que o estudante precisa ler
+   - NÃO delegue o texto ao suporte_visual — suporte_visual é SÓ para IMAGENS
+2. COMANDO: pergunta SEM negativas, SEM ambiguidade
+3. ALTERNATIVAS: 4 opções paralelas em estrutura e comprimento
    - Gabarito inequívoco na posição definida acima
    - 3 distratores baseados em erros cognitivos reais
+4. SUPORTE_VISUAL: SÓ para imagens (gráficos, ilustrações, mapas). O TEXTO vai no enunciado.
 
 REGRAS OBRIGATÓRIAS:
-- Enunciado: máx. 3 sentenças, contexto real, linguagem ativa
+- Enunciado: DEVE conter texto de apoio/leitura/cenário. Máx. 3 sentenças de instrução + texto contextualizado
 - Distratores: cada um captura um erro cognitivo específico (justificar em analise_distratores)
 - instrucao_aplicacao_professor: obrigatória, mín. 20 caracteres
-- suporte_visual: definir se é necessário ou não (ver schema)
+- suporte_visual: APENAS para imagens. Definir necessario=true/false (ver schema)
 
 ## SCHEMA DE SAÍDA (JSON obrigatório):
 {
@@ -296,7 +303,7 @@ REGRAS OBRIGATÓRIAS:
     {
       "id": "Q1",
       "habilidade_bncc_ref": "código BNCC",
-      "enunciado": "string — instrução inicial + suporte textual quando necessário",
+      "enunciado": "string — OBRIGATÓRIO: instrução + texto de apoio/leitura/cenário completo",
       "comando": "string — a pergunta em si",
       "suporte_visual": {
         "necessario": true | false,

@@ -30,14 +30,27 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Body inválido" }, { status: 400 });
     }
 
-    const suporteVisual = body.suporte_visual as {
+    // Accept both flat format (from front-end) and nested suporte_visual format
+    let suporteVisual: {
         tipo?: string;
         descricao_para_geracao?: string;
         texto_alternativo?: string;
     } | undefined;
 
+    if (body.suporte_visual && typeof body.suporte_visual === 'object') {
+        // Nested format: { suporte_visual: { tipo, descricao_para_geracao, ... } }
+        suporteVisual = body.suporte_visual as typeof suporteVisual;
+    } else {
+        // Flat format from front-end: { tipo, descricao, texto_alternativo, ... }
+        suporteVisual = {
+            tipo: (body.tipo as string) || undefined,
+            descricao_para_geracao: (body.descricao as string) || (body.descricao_para_geracao as string) || undefined,
+            texto_alternativo: (body.texto_alternativo as string) || undefined,
+        };
+    }
+
     if (!suporteVisual?.descricao_para_geracao) {
-        return NextResponse.json({ error: "Campo suporte_visual.descricao_para_geracao é obrigatório." }, { status: 400 });
+        return NextResponse.json({ error: "Campo descricao_para_geracao (ou suporte_visual.descricao_para_geracao) é obrigatório." }, { status: 400 });
     }
 
     const serie = (body.serie as string) || "";
@@ -95,6 +108,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({
             image: imageResult,
+            imageUrl: imageResult,  // alias for front-end compatibility
             tipo,
             texto_alternativo: suporteVisual.texto_alternativo || suporteVisual.descricao_para_geracao,
             prompt_usado: prompt.slice(0, 200),
