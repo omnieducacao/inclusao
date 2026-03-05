@@ -1267,6 +1267,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                         // ── Loop progressivo: 1 item por vez ────
                                         const questoesGeradas: Record<string, unknown>[] = [];
                                         let textoCompleto = '';
+                                        let imagensGeradas = 0;  // Track images generated vs qtdImagens limit
 
                                         for (let i = 0; i < fila.length; i++) {
                                             setProgressoGeracao({ atual: i + 1, total: fila.length, status: 'gerando' });
@@ -1301,9 +1302,11 @@ export default function AvaliacaoDiagnosticaClient() {
                                                 questoesGeradas.push(questao);
                                                 setQuestoesIndividuais([...questoesGeradas]);
 
-                                                // ── Phase 2: Auto-generate image if needed ──
+                                                // ── Phase 2: Auto-generate image if needed AND within limit ──
                                                 const sv = questao.suporte_visual;
-                                                if (sv && sv.necessario && sv.descricao_para_geracao) {
+                                                const withinImageLimit = usarImagens && imagensGeradas < qtdImagens;
+                                                if (sv && sv.necessario && sv.descricao_para_geracao && withinImageLimit) {
+                                                    questao._imagemPermitida = true;
                                                     setProgressoGeracao(p => ({ ...p, status: 'gerando' as const }));
                                                     try {
                                                         const imgRes = await fetch("/api/avaliacao-diagnostica/gerar-imagem", {
@@ -1323,9 +1326,13 @@ export default function AvaliacaoDiagnosticaClient() {
                                                                 setMapaImagensResultado(prev => ({ ...prev, [i + 1]: imgData.imageUrl }));
                                                                 questao._imagemUrl = imgData.imageUrl;
                                                                 questao._imagemGerada = true;
+                                                                imagensGeradas++;
                                                             }
                                                         }
                                                     } catch { /* image generation is optional */ }
+                                                } else if (sv && sv.necessario) {
+                                                    // AI says it needs an image, but professor limit reached
+                                                    questao._imagemPermitida = false;
                                                 }
 
                                                 // Build text representation for backward compatibility
@@ -1772,21 +1779,21 @@ export default function AvaliacaoDiagnosticaClient() {
                             </div>
 
                             {/* ── Image Management Strip (Phase 2) ── */}
-                            {questoesIndividuais.some(q => q.suporte_visual?.necessario) && (
+                            {questoesIndividuais.some(q => q.suporte_visual?.necessario && q._imagemPermitida !== false) && (
                                 <div style={{
                                     padding: "10px 16px",
                                     borderBottom: "1px solid rgba(99,102,241,.1)",
                                     background: "rgba(99,102,241,.02)",
                                 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#818cf8" }}>🖼️ Imagens Geradas</span>
+                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#818cf8" }}>🖼️ Imagens ({qtdImagens > 0 ? `limite: ${qtdImagens}` : "sem limite"})</span>
                                         <span style={{ fontSize: 10, color: "var(--text-muted)", fontStyle: "italic" }}>
-                                            {Object.keys(mapaImagensResultado).length} de {questoesIndividuais.filter(q => q.suporte_visual?.necessario).length} imagens
+                                            {Object.keys(mapaImagensResultado).length} de {questoesIndividuais.filter(q => q.suporte_visual?.necessario && q._imagemPermitida !== false).length} imagens
                                         </span>
                                     </div>
                                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                                         {questoesIndividuais.map((q, idx) => {
-                                            if (!q.suporte_visual?.necessario) return null;
+                                            if (!q.suporte_visual?.necessario || q._imagemPermitida === false) return null;
                                             const qNum = q._numero || idx + 1;
                                             const imgUrl = mapaImagensResultado[qNum];
                                             const isRegenerating = q._regeneratingImage;
