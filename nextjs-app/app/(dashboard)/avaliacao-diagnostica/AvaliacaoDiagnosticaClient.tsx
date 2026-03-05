@@ -1646,29 +1646,61 @@ export default function AvaliacaoDiagnosticaClient() {
                 {/* ─── Generate V3 Outputs ─────────────────────────────── */}
                 {
                     nivelIdentificado !== null && (
-                        <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
-                            <button onClick={gerarPerfil} disabled={gerandoPerfil} style={{
-                                flex: 1, padding: "14px 16px", borderRadius: 12,
-                                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                                cursor: gerandoPerfil ? "not-allowed" : "pointer",
-                                fontSize: 13, fontWeight: 700, border: "none",
-                                background: gerandoPerfil ? "var(--bg-tertiary)" : "linear-gradient(135deg, #7c3aed, #a855f7)",
-                                color: "#fff", boxShadow: "0 4px 16px rgba(168,85,247,.2)",
+                        <div style={{ marginBottom: 20 }}>
+                            {/* Section header */}
+                            <div style={{
+                                display: "flex", alignItems: "center", gap: 8,
+                                marginBottom: 12, paddingBottom: 8,
+                                borderBottom: "1px solid var(--border-default, rgba(148,163,184,.1))",
                             }}>
-                                {gerandoPerfil ? <OmniLoader engine="red" size={16} /> : <Sparkles size={16} />}
-                                {gerandoPerfil ? "Gerando..." : "Gerar Perfil de Funcionamento"}
-                            </button>
-                            <button onClick={gerarEstrategias} disabled={gerandoEstrategias} style={{
-                                flex: 1, padding: "14px 16px", borderRadius: 12,
-                                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                                cursor: gerandoEstrategias ? "not-allowed" : "pointer",
-                                fontSize: 13, fontWeight: 700, border: "none",
-                                background: gerandoEstrategias ? "var(--bg-tertiary)" : "linear-gradient(135deg, #059669, #10b981)",
-                                color: "#fff", boxShadow: "0 4px 16px rgba(16,185,129,.2)",
-                            }}>
-                                {gerandoEstrategias ? <OmniLoader engine="red" size={16} /> : <Target size={16} />}
-                                {gerandoEstrategias ? "Gerando..." : "Gerar Estratégias Práticas"}
-                            </button>
+                                <Target size={18} style={{ color: "#a855f7" }} />
+                                <div>
+                                    <span style={{ fontWeight: 800, fontSize: 14, color: "var(--text-primary, #e2e8f0)" }}>
+                                        Relatórios IA (Opcionais)
+                                    </span>
+                                    <p style={{ fontSize: 11, color: "var(--text-muted, #64748b)", margin: "2px 0 0" }}>
+                                        Com o nível Omnisfera identificado, você pode gerar dois relatórios complementares para enriquecer o PEI.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div style={{ display: "flex", gap: 12 }}>
+                                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                                    <button onClick={gerarPerfil} disabled={gerandoPerfil} style={{
+                                        flex: 1, padding: "14px 16px", borderRadius: 12,
+                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                        cursor: gerandoPerfil ? "not-allowed" : "pointer",
+                                        fontSize: 13, fontWeight: 700, border: "none",
+                                        background: perfilGerado ? "rgba(168,85,247,.1)" : gerandoPerfil ? "var(--bg-tertiary)" : "linear-gradient(135deg, #7c3aed, #a855f7)",
+                                        color: perfilGerado ? "#a855f7" : "#fff",
+                                        boxShadow: perfilGerado ? "none" : "0 4px 16px rgba(168,85,247,.2)",
+                                    }}>
+                                        {gerandoPerfil ? <OmniLoader engine="red" size={16} /> : perfilGerado ? <CheckCircle2 size={16} /> : <Sparkles size={16} />}
+                                        {gerandoPerfil ? "Gerando..." : perfilGerado ? "✅ Perfil gerado — Regenerar" : "Gerar Perfil de Funcionamento"}
+                                    </button>
+                                    <span style={{ fontSize: 10, color: "var(--text-muted)", textAlign: "center" }}>
+                                        Analisa dimensões cognitivo-funcionais do estudante
+                                    </span>
+                                </div>
+
+                                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                                    <button onClick={gerarEstrategias} disabled={gerandoEstrategias} style={{
+                                        flex: 1, padding: "14px 16px", borderRadius: 12,
+                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                        cursor: gerandoEstrategias ? "not-allowed" : "pointer",
+                                        fontSize: 13, fontWeight: 700, border: "none",
+                                        background: estrategiasGeradas ? "rgba(16,185,129,.1)" : gerandoEstrategias ? "var(--bg-tertiary)" : "linear-gradient(135deg, #059669, #10b981)",
+                                        color: estrategiasGeradas ? "#10b981" : "#fff",
+                                        boxShadow: estrategiasGeradas ? "none" : "0 4px 16px rgba(16,185,129,.2)",
+                                    }}>
+                                        {gerandoEstrategias ? <OmniLoader engine="red" size={16} /> : estrategiasGeradas ? <CheckCircle2 size={16} /> : <Target size={16} />}
+                                        {gerandoEstrategias ? "Gerando..." : estrategiasGeradas ? "✅ Estratégias geradas — Regenerar" : "Gerar Estratégias Práticas"}
+                                    </button>
+                                    <span style={{ fontSize: 10, color: "var(--text-muted)", textAlign: "center" }}>
+                                        Sugere intervenções para dimensões com dificuldade
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     )
                 }

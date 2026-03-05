@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Card } from "@omni/ds";
+import { DataCleanupPanel } from "@/components/DataCleanupPanel";
 
 type SchoolYear = { id: string; year: number; name: string; active?: boolean };
 type Grade = { id: string; code: string; label: string; segment_id?: string };
@@ -309,6 +310,15 @@ export function ConfigEscolaClient() {
             </div>
           </label>
         </Card>
+      </section>
+
+      {/* 5. Limpeza de Dados */}
+      <section>
+        <h3 className="text-lg font-semibold text-slate-800 mb-3">5. Limpeza de Dados</h3>
+        <p className="text-sm text-slate-500 mb-3">
+          Verifique e remova dados órfãos (registros sem estudante ou referências inválidas).
+        </p>
+        <DataCleanupPanel />
       </section>
     </div>
   );

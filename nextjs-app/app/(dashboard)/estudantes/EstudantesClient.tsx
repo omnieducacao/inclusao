@@ -388,7 +388,15 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
                           <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                           <div>
                             <p className="font-semibold text-amber-800">Excluir {s.name}?</p>
-                            <p className="text-sm text-amber-700 mt-1">Esta ação não pode ser desfeita.</p>
+                            <p className="text-sm text-amber-700 mt-1">Esta ação <strong>não pode ser desfeita</strong>. Os seguintes dados serão removidos permanentemente:</p>
+                            <ul className="text-sm text-amber-700 mt-2 space-y-1 list-disc list-inside">
+                              <li>Dados do PEI (todas as fases e versões)</li>
+                              <li>PEI por disciplina (planos vinculados, adaptações IA)</li>
+                              <li>Avaliações diagnósticas (questões, gabaritos, nível)</li>
+                              {temRelatorio && <li>Relatório PEI (consultoria IA)</li>}
+                              {temJornada && <li>Jornada gamificada</li>}
+                              {nCiclos > 0 && <li>{nCiclos} ciclo(s) PAEE</li>}
+                            </ul>
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -397,7 +405,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
                             disabled={deleting}
                             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm"
                           >
-                            Sim, excluir
+                            {deleting ? "Excluindo..." : "Sim, excluir tudo"}
                           </button>
                           <button
                             onClick={() => setConfirmDeleteId(null)}
