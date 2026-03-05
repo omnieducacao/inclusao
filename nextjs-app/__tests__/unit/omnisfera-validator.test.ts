@@ -16,7 +16,7 @@ const questaoValida = {
   enunciado: "Qual o resultado de 2 + 2? A) 3 B) 4 C) 5.",
   gabarito: "B",
   instrucao_aplicacao_professor: "Aplicar individualmente em ambiente silencioso.",
-  contexto_visual_sugerido: "Imagem de maçãs",
+  suporte_visual: { necessario: true, justificativa: "TEA requer apoio visual", tipo: "ilustracao" as const, descricao_para_geracao: "Imagem de maçãs", texto_alternativo: "Maçãs" },
   justificativa_pedagogica: "Avalia compreensão de adição simples no campo numérico.",
   tempo_estimado_minutos: 3,
 };
@@ -33,10 +33,10 @@ describe("omnisfera-validator", () => {
       expect(result.erros).toContain("Campo questoes ausente ou inválido");
     });
 
-    it("retorna erro quando gabarito não é B ou C", () => {
+    it("retorna erro quando gabarito não é A, B, C ou D", () => {
       const result = validarQuestoesDiagnosticas(
         {
-          questoes: [{ ...questaoValida, gabarito: "A" }],
+          questoes: [{ ...questaoValida, gabarito: "E" }],
           nivel_cognitivo_saeb: "I",
         },
         "TEA",
@@ -46,19 +46,15 @@ describe("omnisfera-validator", () => {
       expect(result.erros.some((e) => e.includes("gabarito inválido"))).toBe(true);
     });
 
-    it("aceita gabarito B e C", () => {
-      const resultB = validarQuestoesDiagnosticas(
-        { questoes: [{ ...questaoValida, gabarito: "B" }], nivel_cognitivo_saeb: "I" },
-        "TEA",
-        2
-      );
-      const resultC = validarQuestoesDiagnosticas(
-        { questoes: [{ ...questaoValida, gabarito: "C" }], nivel_cognitivo_saeb: "I" },
-        "TEA",
-        2
-      );
-      expect(resultB.erros.some((e) => e.includes("gabarito"))).toBe(false);
-      expect(resultC.erros.some((e) => e.includes("gabarito"))).toBe(false);
+    it("aceita gabarito A, B, C e D", () => {
+      for (const letra of ["A", "B", "C", "D"]) {
+        const result = validarQuestoesDiagnosticas(
+          { questoes: [{ ...questaoValida, gabarito: letra }], nivel_cognitivo_saeb: "I" },
+          "TEA",
+          2
+        );
+        expect(result.erros.some((e) => e.includes("gabarito"))).toBe(false);
+      }
     });
 
     it("retorna erro quando enunciado tem mais de 3 sentenças", () => {
@@ -90,17 +86,17 @@ describe("omnisfera-validator", () => {
       expect(result.erros.some((e) => e.includes("instrucao_aplicacao_professor"))).toBe(true);
     });
 
-    it("retorna erro quando TEA sem contexto_visual_sugerido", () => {
+    it("retorna erro quando TEA sem suporte_visual", () => {
       const result = validarQuestoesDiagnosticas(
         {
-          questoes: [{ ...questaoValida, contexto_visual_sugerido: "" }],
+          questoes: [{ ...questaoValida, suporte_visual: { necessario: false, justificativa: "n/a" }, contexto_visual_sugerido: "" }],
           nivel_cognitivo_saeb: "I",
         },
         "TEA",
         2
       );
       expect(result.valido).toBe(false);
-      expect(result.erros.some((e) => e.includes("contexto_visual_sugerido"))).toBe(true);
+      expect(result.erros.some((e) => e.includes("suporte_visual"))).toBe(true);
     });
 
     it("retorna valido para questão bem formada", () => {
@@ -155,10 +151,10 @@ describe("omnisfera-validator", () => {
       expect(result.erros.some((e) => e.includes("nível cognitivo III"))).toBe(true);
     });
 
-    it("ALTAS_HABILIDADES aceita questão sem contexto visual", () => {
+    it("ALTAS_HABILIDADES aceita questão sem suporte visual", () => {
       const result = validarQuestoesDiagnosticas(
         {
-          questoes: [{ ...questaoValida, contexto_visual_sugerido: "" }],
+          questoes: [{ ...questaoValida, suporte_visual: { necessario: false, justificativa: "Textual" }, contexto_visual_sugerido: "" }],
           nivel_cognitivo_saeb: "I",
         },
         "ALTAS_HABILIDADES",

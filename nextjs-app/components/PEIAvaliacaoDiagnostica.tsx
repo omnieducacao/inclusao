@@ -10,11 +10,20 @@ import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 interface Questao {
     id: string;
     enunciado: string;
+    comando?: string;
     alternativas: { A: string; B: string; C: string; D: string };
     gabarito: string;
     justificativa_pedagogica: string;
     instrucao_aplicacao_professor: string;
+    /** @deprecated Use suporte_visual instead */
     contexto_visual_sugerido?: string | null;
+    suporte_visual?: {
+        necessario: boolean;
+        justificativa?: string;
+        tipo?: string | null;
+        descricao_para_geracao?: string | null;
+        texto_alternativo?: string | null;
+    };
     adaptacao_nee_aplicada?: string;
 }
 

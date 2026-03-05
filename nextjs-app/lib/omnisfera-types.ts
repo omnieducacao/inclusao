@@ -202,21 +202,37 @@ export interface Alternativas {
 
 export interface AnalistDistratores {
   A: string
+  B: string
+  C: string
   D: string
+}
+
+export interface SuporteVisual {
+  necessario: boolean
+  justificativa?: string
+  tipo?: 'grafico' | 'mapa' | 'diagrama' | 'tabela' | 'ilustracao' | 'fotografia' | null
+  descricao_para_geracao?: string | null
+  texto_alternativo?: string | null
 }
 
 export interface QuestaoGerada {
   id: string
   enunciado: string
-  contexto_visual_sugerido: string | null
+  comando?: string
+  /** @deprecated Use suporte_visual instead */
+  contexto_visual_sugerido?: string | null
+  suporte_visual?: SuporteVisual
   alternativas: Alternativas
-  gabarito: 'B' | 'C'
+  gabarito: string  // 'A' | 'B' | 'C' | 'D'
   analise_distratores: AnalistDistratores
   justificativa_pedagogica: string
   instrucao_aplicacao_professor: string
   adaptacao_nee_aplicada: string
   nivel_suporte_recomendado: NivelSuporte
   tempo_estimado_minutos: number
+  habilidade_bncc_ref?: string
+  nivel_omnisfera_alvo?: number
+  nivel_bloom?: string
 }
 
 export interface InstrumentoGerado {

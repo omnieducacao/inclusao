@@ -23,6 +23,14 @@ interface Props {
     studentGrade?: string;
     studentClass?: string;
     onDisciplinaSelect?: (disciplina: string) => void;
+    /** Called to save a NEW student PEI */
+    onSave?: () => void;
+    /** Called to update an EXISTING student PEI */
+    onUpdate?: () => void;
+    /** Whether the PEI is currently being saved */
+    saving?: boolean;
+    /** Whether we are editing an existing student (vs new) */
+    isEditing?: boolean;
 }
 
 const STATUS_COLORS: Record<FaseStatusPEIDisciplina, string> = {
@@ -34,7 +42,7 @@ const STATUS_COLORS: Record<FaseStatusPEIDisciplina, string> = {
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export function PEIFase2Regentes({ studentId, studentName, studentGrade, studentClass, onDisciplinaSelect }: Props) {
+export function PEIFase2Regentes({ studentId, studentName, studentGrade, studentClass, onDisciplinaSelect, onSave, onUpdate, saving: externalSaving, isEditing }: Props) {
     const [disciplinas, setDisciplinas] = useState<DisciplinaRegente[]>([]);
     const [loading, setLoading] = useState(false);
     const [sending, setSending] = useState(false);
@@ -81,11 +89,23 @@ export function PEIFase2Regentes({ studentId, studentName, studentGrade, student
 
     // ─── Vincular todos ────────────────────────────────────────────────────
 
+    const needsSaveFirst = !isEditing || !studentId;
+
     const vincularTodos = async () => {
         if (!studentId) return;
         setSending(true);
         setError("");
         try {
+            // ── Auto-save PEI before sending ──
+            if (isEditing && onUpdate) {
+                onUpdate();
+                // Wait for save to complete
+                await new Promise(r => setTimeout(r, 1500));
+            } else if (!isEditing && onSave) {
+                onSave();
+                await new Promise(r => setTimeout(r, 1500));
+            }
+
             const res = await fetch("/api/pei/enviar-regentes", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -132,7 +152,21 @@ export function PEIFase2Regentes({ studentId, studentName, studentGrade, student
         return (
             <div style={{ padding: 24, textAlign: "center", color: "#94a3b8" }}>
                 <Users size={48} style={{ margin: "0 auto 12px", opacity: 0.5 }} />
-                <p>Selecione um estudante para enviar o PEI para os professores regentes.</p>
+                <p>Selecione e salve um estudante para enviar o PEI para os professores regentes.</p>
+                {needsSaveFirst && onSave && (
+                    <button
+                        onClick={onSave}
+                        disabled={externalSaving}
+                        style={{
+                            marginTop: 12, padding: "10px 20px", borderRadius: 10,
+                            background: "linear-gradient(135deg, #7c3aed, #8b5cf6)",
+                            color: "#fff", border: "none", cursor: externalSaving ? "wait" : "pointer",
+                            fontWeight: 700, fontSize: 14,
+                        }}
+                    >
+                        {externalSaving ? "Salvando..." : "☁️ Salvar PEI primeiro"}
+                    </button>
+                )}
             </div>
         );
     }

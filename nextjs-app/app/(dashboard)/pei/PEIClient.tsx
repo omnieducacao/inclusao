@@ -2379,6 +2379,10 @@ export function PEIClient({
             studentName={peiData.nome || "Estudante"}
             studentGrade={peiData.serie || ""}
             studentClass={peiData.turma || ""}
+            onSave={handleSave}
+            onUpdate={handleUpdate}
+            isEditing={!!selectedStudentId}
+            saving={saving}
           />
         )}
 
@@ -2868,18 +2872,28 @@ function DashboardTab({
           </p>
         )}
 
-        {/* Enviar para Professores Regentes */}
-        <EnviarParaProfessoresButton
-          studentId={currentStudentId}
-          studentName={String(peiData.nome || "Estudante")}
-          studentGrade={String(peiData.serie || "")}
-          studentClass={String(peiData.turma || "")}
-          fasePei={(peiData as Record<string, unknown>).fase_pei as string}
-          isEditing={isEditing}
-          onSave={onSave}
-          onUpdate={onUpdate}
-          saving={saving}
-        />
+        {/* Status de Envio — link para aba Regentes */}
+        {(peiData as Record<string, unknown>).fase_pei === "fase_2" ? (
+          <div className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{
+            background: "rgba(16,185,129,.06)", border: "1px solid rgba(16,185,129,.2)",
+          }}>
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-semibold text-emerald-700">✅ PEI enviado aos Professores Regentes</span>
+              <p className="text-xs text-slate-500 mt-0.5">Gerencie os vínculos na aba <strong>Regentes</strong>.</p>
+            </div>
+          </div>
+        ) : currentStudentId && (
+          <div className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{
+            background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.2)",
+          }}>
+            <Send className="w-4 h-4 text-indigo-500 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-xs text-indigo-700 font-medium">PEI ainda não foi enviado aos professores regentes.</span>
+              <p className="text-xs text-slate-500 mt-0.5">Vá até a aba <strong>Regentes</strong> para vincular.</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <hr className="my-6" />

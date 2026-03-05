@@ -28,9 +28,9 @@ export function validarQuestoesDiagnosticas(
   }
 
   for (const q of output.questoes) {
-    // Regra 1: gabarito nunca pode ser A ou D
-    if (!['B', 'C'].includes(q.gabarito)) {
-      erros.push(`${q.id}: gabarito inválido (${q.gabarito}) — deve ser B ou C`)
+    // Regra 1: gabarito must be one of A, B, C, D
+    if (!['A', 'B', 'C', 'D'].includes(q.gabarito)) {
+      erros.push(`${q.id}: gabarito inválido (${q.gabarito}) — deve ser A, B, C ou D`)
     }
 
     // Regra 2: enunciado máx. 3 sentenças
@@ -52,9 +52,13 @@ export function validarQuestoesDiagnosticas(
       erros.push(`${q.id}: instrucao_aplicacao_professor ausente ou muito curta`)
     }
 
-    // Regra 5: contexto visual obrigatório para TEA
-    if (perfil_nee === 'TEA' && !q.contexto_visual_sugerido) {
-      erros.push(`${q.id}: contexto_visual_sugerido obrigatório para TEA`)
+    // Regra 5: suporte visual obrigatório para TEA (aceita campo novo e legado)
+    if (perfil_nee === 'TEA') {
+      const temSuporteVisual = q.suporte_visual?.necessario === true;
+      const temContextoLegado = !!q.contexto_visual_sugerido;
+      if (!temSuporteVisual && !temContextoLegado) {
+        erros.push(`${q.id}: suporte_visual obrigatório para TEA (suporte_visual.necessario deve ser true)`)
+      }
     }
 
     // Regra 6: justificativa pedagógica obrigatória

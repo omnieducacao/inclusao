@@ -5,14 +5,25 @@ import { Printer, FileDown } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
+interface SuporteVisualProva {
+    necessario: boolean;
+    justificativa?: string;
+    tipo?: string | null;
+    descricao_para_geracao?: string | null;
+    texto_alternativo?: string | null;
+}
+
 interface Questao {
     id: string;
     enunciado: string;
+    comando?: string;
     alternativas: { A: string; B: string; C: string; D: string };
     gabarito: string;
     justificativa_pedagogica: string;
     instrucao_aplicacao_professor: string;
+    /** @deprecated Use suporte_visual instead */
     contexto_visual_sugerido?: string | null;
+    suporte_visual?: SuporteVisualProva;
     adaptacao_nee_aplicada?: string;
     texto_base?: string;
 }
@@ -156,7 +167,17 @@ ${questoes.map((q, idx) => `
 <h2>Questão ${idx + 1}</h2>
 ${q.texto_base ? `<p style="background:#f8fafc;padding:8px;border-left:3px solid #3b82f6;margin-bottom:8px"><em>${q.texto_base}</em></p>` : ""}
 <p>${q.enunciado}</p>
-${q.contexto_visual_sugerido ? `<p style="color:#6366f1;font-style:italic">[Imagem sugerida: ${q.contexto_visual_sugerido}]</p>` : ""}
+${(() => {
+                const sv = q.suporte_visual;
+                const legacy = q.contexto_visual_sugerido;
+                if (sv && sv.necessario && sv.descricao_para_geracao) {
+                    return `<p style="color:#6366f1;font-style:italic">[Imagem: ${sv.tipo || 'visual'} — ${sv.descricao_para_geracao}]</p>`;
+                } else if (legacy) {
+                    return `<p style="color:#6366f1;font-style:italic">[Imagem sugerida: ${legacy}]</p>`;
+                }
+                return '';
+            })()}
+${q.comando ? `<p><strong>${q.comando}</strong></p>` : ''}
 ${Object.entries(q.alternativas).map(([letra, texto]) => `
 <div class="alternativa${mostrarGabarito && letra === q.gabarito ? ' correta' : ''}">
 <strong>(${letra})</strong> ${texto}
@@ -279,18 +300,25 @@ ${mostrarGabarito ? `
                             </div>
                         )}
 
-                        {/* Visual context placeholder */}
-                        {q.contexto_visual_sugerido && (
-                            <div style={{
-                                padding: "12px 14px", marginBottom: 10,
-                                border: "2px dashed #c7d2fe", borderRadius: 8,
-                                background: "#eef2ff",
-                                display: "flex", alignItems: "center", gap: 8,
-                                fontSize: 11, color: "#6366f1",
-                            }}>
-                                🖼️ <em>Espaço para imagem: {q.contexto_visual_sugerido}</em>
-                            </div>
-                        )}
+                        {/* Visual context placeholder — supports both old and new field */}
+                        {(() => {
+                            const sv = (q as Questao & { suporte_visual?: SuporteVisualProva }).suporte_visual;
+                            const descricao = sv?.necessario
+                                ? (sv.descricao_para_geracao || sv.justificativa || 'Imagem necessária')
+                                : q.contexto_visual_sugerido;
+                            if (!descricao) return null;
+                            return (
+                                <div style={{
+                                    padding: "12px 14px", marginBottom: 10,
+                                    border: "2px dashed #c7d2fe", borderRadius: 8,
+                                    background: "#eef2ff",
+                                    display: "flex", alignItems: "center", gap: 8,
+                                    fontSize: 11, color: "#6366f1",
+                                }}>
+                                    🖼️ <em>Espaço para imagem{sv?.tipo ? ` (${sv.tipo})` : ''}: {descricao}</em>
+                                </div>
+                            );
+                        })()}
 
                         {/* Enunciado */}
                         <div style={{

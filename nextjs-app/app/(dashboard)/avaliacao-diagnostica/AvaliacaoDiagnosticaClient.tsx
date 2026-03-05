@@ -149,6 +149,11 @@ export default function AvaliacaoDiagnosticaClient() {
     const [validadoFormatado, setValidadoFormatado] = useState(false);
     const [engineSel, setEngineSel] = useState<EngineId>("red");
 
+    // ─── Progressive Generation (Phase 1: 1 item at a time) ──────────────
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [questoesIndividuais, setQuestoesIndividuais] = useState<Array<Record<string, any>>>([]);
+    const [progressoGeracao, setProgressoGeracao] = useState<{ atual: number; total: number; status: 'idle' | 'gerando' | 'concluido' | 'erro' }>({ atual: 0, total: 0, status: 'idle' });
+
     // ─── Gabarito de Respostas ────────────────────────────────────────────
     const [avaliacaoSalvaId, setAvaliacaoSalvaId] = useState<string | null>(null);
     const [salvandoAvaliacao, setSalvandoAvaliacao] = useState(false);
@@ -432,7 +437,7 @@ export default function AvaliacaoDiagnosticaClient() {
         setSalvandoAvaliacao(false);
     };
 
-    // ─── Analisar Respostas + Calcular Nível ─────────────────────────────
+    // ─── Analisar Respostas + Calcular Nível + Resultado Qualitativo ─────
     const analisarRespostas = async () => {
         if (!avaliacaoSalvaId || Object.keys(respostasAluno).length === 0) return;
         setAnalisando(true);
@@ -462,10 +467,10 @@ export default function AvaliacaoDiagnosticaClient() {
             });
 
             const score = totalQ > 0 ? Math.round((acertos / totalQ) * 100) : 0;
-            // Map score to Omnisfera level (0-4)
             const nivel = score >= 90 ? 4 : score >= 70 ? 3 : score >= 50 ? 2 : score >= 25 ? 1 : 0;
 
-            const analise = {
+            // Build basic analysis
+            const analise: Record<string, unknown> = {
                 total: totalQ,
                 acertos,
                 score,
@@ -474,6 +479,50 @@ export default function AvaliacaoDiagnosticaClient() {
                 hab_dominadas: habDominadas,
                 hab_desenvolvimento: habDesenvolvimento,
             };
+
+            // ── Phase 4: Qualitative Result via API ──────────────────
+            try {
+                // Build questões data for qualitative analysis
+                const questoesParaAnalise = questoesIndividuais.length > 0
+                    ? questoesIndividuais.filter(q => !q._erro).map(q => ({
+                        id: q.id || `Q${q._numero}`,
+                        habilidade_bncc_ref: q.habilidade_bncc_ref || q._habilidade || "",
+                        gabarito: q.gabarito || "",
+                        analise_distratores: q.analise_distratores || {},
+                        nivel_omnisfera_alvo: q.nivel_omnisfera_alvo,
+                    }))
+                    : questoes.map((q, i) => ({
+                        id: `Q${i + 1}`,
+                        habilidade_bncc_ref: q.habilidade,
+                        gabarito: q.gabarito,
+                        analise_distratores: {},
+                    }));
+
+                const respostasFormatadas: Record<string, string> = {};
+                for (const [k, v] of Object.entries(respostasAluno)) {
+                    const num = k.replace("q", "Q");
+                    respostasFormatadas[num] = v;
+                }
+
+                const resQual = await fetch("/api/avaliacao-diagnostica/resultado-qualitativo", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        questoes: questoesParaAnalise,
+                        respostas: respostasFormatadas,
+                        perfil_nee: selectedAluno?.diagnostico || "",
+                        nome_aluno: selectedAluno?.name?.split(" ")[0] || "",
+                        disciplina: selectedDisc || "",
+                        serie: selectedAluno?.grade || "",
+                    }),
+                });
+                if (resQual.ok) {
+                    const dataQual = await resQual.json();
+                    if (dataQual.resultado) {
+                        analise.qualitativo = dataQual.resultado;
+                    }
+                }
+            } catch { /* qualitative analysis is optional, don't block */ }
 
             setAnaliseResultado(analise);
             setNivelIdentificado(nivel);
@@ -1172,90 +1221,147 @@ export default function AvaliacaoDiagnosticaClient() {
                                     setResultadoFormatado(null);
                                     setMapaImagensResultado({});
                                     setValidadoFormatado(false);
+                                    setQuestoesIndividuais([]);
+                                    setProgressoGeracao({ atual: 0, total: 0, status: 'idle' });
                                     try {
-                                        const verbosFinais = usarBloom ? Object.values(verbosBloomSel).flat() : [];
-                                        // No decorrer do ano com plano do professor: usar habilidades do plano; senão matriz (ano anterior)
+                                        // ── Montar fila de habilidades ──────────
                                         const usarPlanoProfessor = momentoDiagnostica === "decorrer_ano" && planoVinculado?.habilidades_bncc && planoVinculado.habilidades_bncc.length > 0;
-                                        const habilidadesParaGerar = usarPlanoProfessor
-                                            ? planoVinculado!.habilidades_bncc!
-                                            : (habsSelecionadas.length > 0
-                                                ? matrizHabs.filter(h => habsSelecionadas.includes(h.habilidade)).map(h => {
-                                                    const codeMatch = h.habilidade.match(/^(EF\d+\w+\d+H?\d*|\(EF\d+\w+\d+\))/i);
-                                                    return `[${codeMatch ? codeMatch[1].replace(/[()]/g, '') : ''}] ${h.competencia ? `(${h.competencia}) ` : ''}${h.habilidade}${h.descritor ? ` | ${h.descritor}` : ''}`;
-                                                })
-                                                : matrizHabs.slice(0, 4).map(h => h.habilidade));
-                                        const res = await fetch("/api/hub/criar-itens", {
-                                            method: "POST",
-                                            headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({
-                                                assunto: assunto.trim() || (habilidadesParaGerar.length > 0 ? (typeof habilidadesParaGerar[0] === "string" ? habilidadesParaGerar[0] : selectedDisc) : selectedDisc),
-                                                engine: engineSel,
-                                                habilidades: habilidadesParaGerar,
-                                                verbos_bloom: verbosFinais.length > 0 ? verbosFinais : undefined,
-                                                qtd_questoes: qtdQuestoes,
-                                                distribuicao_cognitiva: qtdQuestoes >= 8 ? {
-                                                    facil: Math.round(qtdQuestoes * 0.33),
-                                                    medio: Math.round(qtdQuestoes * 0.42),
-                                                    dificil: Math.round(qtdQuestoes * 0.25),
-                                                } : undefined,
-                                                tipo_questao: tipoQuestao,
-                                                qtd_imagens: usarImagens ? qtdImagens : 0,
-                                                checklist_adaptacao: Object.keys(checklist).length > 0 ? checklist : undefined,
-                                                estudante: {
-                                                    nome: selectedAluno.name,
-                                                    serie: selectedAluno.grade,
-                                                    hiperfoco: undefined,
-                                                    perfil: selectedAluno.diagnostico || undefined,
-                                                },
-                                            }),
-                                        });
-                                        const data = await res.json();
-                                        if (!res.ok) throw new Error(data.error || "Erro");
-                                        let textoFinal = data.texto || "Atividade gerada.";
-                                        if (textoFinal.includes("---DIVISOR---")) {
-                                            const parts = textoFinal.split("---DIVISOR---");
-                                            const analise = parts[0]?.replace("[ANÁLISE PEDAGÓGICA]", "").trim();
-                                            const atividade = parts[1]?.replace("[ATIVIDADE]", "").trim() || textoFinal;
-                                            textoFinal = analise ? `## Análise Pedagógica\n\n${analise}\n\n---\n\n## Atividade\n\n${atividade}` : atividade;
+                                        let habilidadesParaGerar: string[];
+                                        if (usarPlanoProfessor) {
+                                            habilidadesParaGerar = planoVinculado!.habilidades_bncc!;
+                                        } else if (habsSelecionadas.length > 0) {
+                                            habilidadesParaGerar = matrizHabs.filter(h => habsSelecionadas.includes(h.habilidade)).map(h => {
+                                                const codeMatch = h.habilidade.match(/^(EF\d+\w+\d+H?\d*|\(EF\d+\w+\d+\))/i);
+                                                return codeMatch ? codeMatch[1].replace(/[()]/g, '') : h.habilidade;
+                                            });
+                                        } else {
+                                            habilidadesParaGerar = matrizHabs.slice(0, Math.min(qtdQuestoes, 4)).map(h => {
+                                                const codeMatch = h.habilidade.match(/^(EF\d+\w+\d+H?\d*|\(EF\d+\w+\d+\))/i);
+                                                return codeMatch ? codeMatch[1].replace(/[()]/g, '') : h.habilidade;
+                                            });
                                         }
-                                        // Process images: só gerar quando o termo for concreto (evita "contexto", "ilustração" etc.)
-                                        const mapa: Record<number, string> = {};
-                                        if (usarImagens && qtdImagens > 0) {
-                                            const genImgRegex = /\[\[GEN_IMG:\s*([^\]]+)\]\]/gi;
-                                            const termos: string[] = [];
-                                            let mm: RegExpExecArray | null;
-                                            while ((mm = genImgRegex.exec(textoFinal)) !== null) termos.push(mm[1].trim());
-                                            const termoVago = (t: string) => {
-                                                const v = t.toLowerCase().trim();
-                                                return v.length < 15 || /contexto|ilustração|ilustração do|cenário|motivador|texto base|situação estímulo|imagem do texto/i.test(v);
-                                            };
-                                            let imgCount = 0;
-                                            const substituicoes = termos.map((t) => termoVago(t) ? "" : `[[IMG_${++imgCount}]]`);
-                                            let replaceIdx = 0;
-                                            textoFinal = textoFinal.replace(/\[\[GEN_IMG:\s*[^\]]+\]\]/gi, () => substituicoes[replaceIdx++] ?? "");
-                                            let imgNum = 0;
-                                            for (let i = 0; i < termos.length; i++) {
-                                                if (termoVago(termos[i]!)) continue;
-                                                imgNum++;
-                                                const termo = termos[i]!;
-                                                try {
-                                                    const imgRes = await fetch("/api/hub/gerar-imagem", {
-                                                        method: "POST", headers: { "Content-Type": "application/json" },
-                                                        body: JSON.stringify({ prompt: termo, prioridade: "BANCO" }),
-                                                    });
-                                                    const imgData = await imgRes.json();
-                                                    if (imgRes.ok && imgData.image) {
-                                                        const imgStr = imgData.image as string;
-                                                        const base64 = imgStr.startsWith("data:image") ? imgStr.replace(/^data:image\/\w+;base64,/, "") : imgStr;
-                                                        if (base64?.length > 100) mapa[imgNum] = base64;
-                                                    }
-                                                } catch { /* silent */ }
+
+                                        // Expand: if more questions than skills, cycle through skills
+                                        const fila: string[] = [];
+                                        for (let i = 0; i < qtdQuestoes; i++) {
+                                            fila.push(habilidadesParaGerar[i % habilidadesParaGerar.length] || selectedDisc);
+                                        }
+
+                                        // ── Distribuir gabaritos A-D ────────────
+                                        const letras = ['A', 'B', 'C', 'D'];
+                                        const gabaritos: string[] = [];
+                                        for (let i = 0; i < fila.length; i++) gabaritos.push(letras[i % 4]);
+                                        for (let i = gabaritos.length - 1; i > 0; i--) {
+                                            const j = Math.floor(Math.random() * (i + 1));
+                                            [gabaritos[i], gabaritos[j]] = [gabaritos[j], gabaritos[i]];
+                                        }
+
+                                        // ── Distribuir dificuldade progressiva ──
+                                        const dificuldades = fila.map((_, i) => {
+                                            const pct = i / (fila.length - 1 || 1);
+                                            return pct < 0.33 ? 'facil' : pct < 0.67 ? 'medio' : 'dificil';
+                                        });
+
+                                        setProgressoGeracao({ atual: 0, total: fila.length, status: 'gerando' });
+
+                                        // ── Loop progressivo: 1 item por vez ────
+                                        const questoesGeradas: Record<string, unknown>[] = [];
+                                        let textoCompleto = '';
+
+                                        for (let i = 0; i < fila.length; i++) {
+                                            setProgressoGeracao({ atual: i + 1, total: fila.length, status: 'gerando' });
+
+                                            try {
+                                                const res = await fetch("/api/avaliacao-diagnostica/criar-item", {
+                                                    method: "POST",
+                                                    headers: { "Content-Type": "application/json" },
+                                                    body: JSON.stringify({
+                                                        habilidade_codigo: fila[i],
+                                                        disciplina: selectedDisc,
+                                                        serie: selectedAluno.grade || '',
+                                                        gabarito_definido: gabaritos[i],
+                                                        nivel_dificuldade: dificuldades[i],
+                                                        numero_questao: i + 1,
+                                                        total_questoes: fila.length,
+                                                        diagnostico_aluno: selectedAluno.diagnostico || '',
+                                                        nome_aluno: selectedAluno.name || 'o estudante',
+                                                        nivel_omnisfera_estimado: nivelIdentificado ?? 1,
+                                                        plano_ensino_contexto: planoVinculado?.conteudo,
+                                                        alerta_nee: neeAlert || '',
+                                                        instrucao_uso_diagnostica: instrucaoDiag || '',
+                                                        engine: engineSel,
+                                                    }),
+                                                });
+                                                const data = await res.json();
+                                                if (!res.ok) throw new Error(data.error || 'Erro ao gerar item');
+
+                                                const questao = data.questao || {};
+                                                questao._numero = i + 1;
+                                                questao._gabarito_esperado = gabaritos[i];
+                                                questoesGeradas.push(questao);
+                                                setQuestoesIndividuais([...questoesGeradas]);
+
+                                                // ── Phase 2: Auto-generate image if needed ──
+                                                const sv = questao.suporte_visual;
+                                                if (sv && sv.necessario && sv.descricao_para_geracao) {
+                                                    setProgressoGeracao(p => ({ ...p, status: 'gerando' as const }));
+                                                    try {
+                                                        const imgRes = await fetch("/api/avaliacao-diagnostica/gerar-imagem", {
+                                                            method: "POST",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({
+                                                                tipo: sv.tipo || 'ilustracao',
+                                                                descricao: sv.descricao_para_geracao,
+                                                                texto_alternativo: sv.texto_alternativo || sv.descricao_para_geracao,
+                                                                disciplina: selectedDisc,
+                                                                serie: selectedAluno.grade || '',
+                                                            }),
+                                                        });
+                                                        if (imgRes.ok) {
+                                                            const imgData = await imgRes.json();
+                                                            if (imgData.imageUrl) {
+                                                                setMapaImagensResultado(prev => ({ ...prev, [i + 1]: imgData.imageUrl }));
+                                                                questao._imagemUrl = imgData.imageUrl;
+                                                                questao._imagemGerada = true;
+                                                            }
+                                                        }
+                                                    } catch { /* image generation is optional */ }
+                                                }
+
+                                                // Build text representation for backward compatibility
+                                                const q = questao;
+                                                const textoQ = [
+                                                    `### Questão ${i + 1} — ${q.habilidade_bncc_ref || fila[i]}`,
+                                                    '',
+                                                    q.enunciado || '',
+                                                    q.comando ? `\n**${q.comando}**` : '',
+                                                    // Image placeholder in text (for DOCX export)
+                                                    q._imagemUrl ? `\n![${sv?.texto_alternativo || 'Imagem'}](${q._imagemUrl})` : '',
+                                                    '',
+                                                    q.alternativas ? Object.entries(q.alternativas as Record<string, string>).map(([k, v]) =>
+                                                        `${k === q.gabarito ? `**${k})** ${v}` : `${k}) ${v}`}`
+                                                    ).join('\n') : '',
+                                                    '',
+                                                    `**Gabarito:** ${q.gabarito || gabaritos[i]}`,
+                                                    '',
+                                                    `*${q.justificativa_pedagogica || ''}*`,
+                                                    '',
+                                                    '---',
+                                                ].join('\n');
+                                                textoCompleto += textoQ + '\n\n';
+                                            } catch (itemErr) {
+                                                const errMsg = itemErr instanceof Error ? itemErr.message : 'Erro';
+                                                questoesGeradas.push({ _numero: i + 1, _erro: errMsg, _gabarito_esperado: gabaritos[i] });
+                                                setQuestoesIndividuais([...questoesGeradas]);
+                                                textoCompleto += `### Questão ${i + 1}\n\n⚠️ Erro ao gerar: ${errMsg}\n\n---\n\n`;
                                             }
                                         }
-                                        setMapaImagensResultado(mapa);
-                                        setResultadoFormatado(textoFinal);
+
+                                        setResultadoFormatado(textoCompleto.trim());
+                                        setProgressoGeracao({ atual: fila.length, total: fila.length, status: 'concluido' });
                                     } catch (err) {
                                         setAvalError(err instanceof Error ? err.message : "Erro ao gerar");
+                                        setProgressoGeracao(p => ({ ...p, status: 'erro' }));
                                     }
                                     setGerando(false);
                                 }} disabled={gerando} style={{
@@ -1267,8 +1373,30 @@ export default function AvaliacaoDiagnosticaClient() {
                                     boxShadow: "0 4px 20px rgba(99,102,241,.3)",
                                 }}>
                                     {gerando ? <OmniLoader engine={engineSel} size={20} /> : <Sparkles size={20} />}
-                                    {gerando ? "Gerando itens com IA..." : "Gerar Itens com IA"}
+                                    {gerando
+                                        ? `Gerando questão ${progressoGeracao.atual} de ${progressoGeracao.total}...`
+                                        : "Gerar Itens com IA"
+                                    }
                                 </button>
+
+                                {/* ── Progress bar during generation ── */}
+                                {gerando && progressoGeracao.total > 0 && (
+                                    <div style={{ marginTop: 12 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>
+                                            <span>Questão {progressoGeracao.atual} de {progressoGeracao.total}</span>
+                                            <span>{Math.round((progressoGeracao.atual / progressoGeracao.total) * 100)}%</span>
+                                        </div>
+                                        <div style={{ width: '100%', height: 6, background: 'var(--bg-tertiary, rgba(148,163,184,.12))', borderRadius: 3, overflow: 'hidden' }}>
+                                            <div style={{
+                                                width: `${(progressoGeracao.atual / progressoGeracao.total) * 100}%`,
+                                                height: '100%',
+                                                background: 'linear-gradient(90deg, #6366f1, #818cf8)',
+                                                borderRadius: 3,
+                                                transition: 'width 0.4s ease',
+                                            }} />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Overlay já exibido no topo da view quando gerando/salvando/perfil/estratégias */}
@@ -1487,6 +1615,127 @@ export default function AvaliacaoDiagnosticaClient() {
                                                         </div>
                                                     </div>
                                                 )}
+
+                                                {/* ── Phase 4: Qualitative Analysis Panel ── */}
+                                                {analiseResultado.qualitativo && (() => {
+                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                    const qual = analiseResultado.qualitativo as Record<string, any>;
+                                                    const nivelColors: Record<string, { bg: string; border: string; text: string; emoji: string }> = {
+                                                        avancado: { bg: "rgba(16,185,129,.06)", border: "rgba(16,185,129,.2)", text: "#10b981", emoji: "🌟" },
+                                                        adequado: { bg: "rgba(59,130,246,.06)", border: "rgba(59,130,246,.2)", text: "#3b82f6", emoji: "✅" },
+                                                        razoavel: { bg: "rgba(245,158,11,.06)", border: "rgba(245,158,11,.2)", text: "#f59e0b", emoji: "🔄" },
+                                                        em_processo: { bg: "rgba(239,68,68,.06)", border: "rgba(239,68,68,.2)", text: "#ef4444", emoji: "📌" },
+                                                    };
+                                                    const nv = nivelColors[qual.nivel_desempenho] || nivelColors.em_processo;
+                                                    const grupoColors: Record<string, { bg: string; border: string; text: string }> = {
+                                                        defasagem: { bg: "rgba(239,68,68,.05)", border: "rgba(239,68,68,.15)", text: "#ef4444" },
+                                                        intermediario: { bg: "rgba(245,158,11,.05)", border: "rgba(245,158,11,.15)", text: "#f59e0b" },
+                                                        avancado: { bg: "rgba(16,185,129,.05)", border: "rgba(16,185,129,.15)", text: "#10b981" },
+                                                    };
+                                                    const gc = grupoColors[qual.grupo_sugerido] || grupoColors.intermediario;
+
+                                                    return (
+                                                        <>
+                                                            {/* Separator */}
+                                                            <div style={{ margin: "8px 0", borderTop: "1px dashed rgba(148,163,184,.15)" }} />
+
+                                                            {/* Performance Level */}
+                                                            <div style={{
+                                                                padding: "12px 14px", borderRadius: 10,
+                                                                background: nv.bg, border: `1px solid ${nv.border}`,
+                                                            }}>
+                                                                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                                                                    <span style={{ fontSize: 16 }}>{nv.emoji}</span>
+                                                                    <span style={{ fontSize: 12, fontWeight: 700, color: nv.text, textTransform: "capitalize" }}>
+                                                                        Nível de Desempenho: {(qual.nivel_desempenho as string).replace("_", " ")}
+                                                                    </span>
+                                                                </div>
+                                                                <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
+                                                                    {qual.descricao_nivel}
+                                                                </p>
+                                                            </div>
+
+                                                            {/* Grouping Suggestion */}
+                                                            <div style={{
+                                                                padding: "12px 14px", borderRadius: 10,
+                                                                background: gc.bg, border: `1px solid ${gc.border}`,
+                                                            }}>
+                                                                <span style={{ fontSize: 12, fontWeight: 700, color: gc.text }}>
+                                                                    👥 Agrupamento Sugerido: {(qual.grupo_sugerido as string).charAt(0).toUpperCase() + (qual.grupo_sugerido as string).slice(1)}
+                                                                </span>
+                                                                <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: "4px 0 0", lineHeight: 1.5 }}>
+                                                                    {qual.descricao_grupo}
+                                                                </p>
+                                                            </div>
+
+                                                            {/* Competency Map */}
+                                                            {qual.mapa_competencias && (
+                                                                <div style={{
+                                                                    padding: "12px 14px", borderRadius: 10,
+                                                                    background: "rgba(99,102,241,.04)", border: "1px solid rgba(99,102,241,.12)",
+                                                                }}>
+                                                                    <span style={{ fontSize: 12, fontWeight: 700, color: "#818cf8" }}>🗺️ Mapa de Competências</span>
+                                                                    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                                                                        {(qual.mapa_competencias.dominadas as string[])?.length > 0 && (
+                                                                            <div>
+                                                                                <span style={{ fontSize: 10, fontWeight: 600, color: "#10b981" }}>✅ Dominadas:</span>
+                                                                                <div style={{ marginTop: 2, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                                                                    {(qual.mapa_competencias.dominadas as string[]).map((h: string, i: number) => (
+                                                                                        <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(16,185,129,.1)", color: "#10b981", fontWeight: 600 }}>{h}</span>
+                                                                                    ))}
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                        {(qual.mapa_competencias.em_desenvolvimento as string[])?.length > 0 && (
+                                                                            <div>
+                                                                                <span style={{ fontSize: 10, fontWeight: 600, color: "#f59e0b" }}>🔄 Em desenvolvimento:</span>
+                                                                                <div style={{ marginTop: 2, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                                                                    {(qual.mapa_competencias.em_desenvolvimento as string[]).map((h: string, i: number) => (
+                                                                                        <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(245,158,11,.1)", color: "#f59e0b", fontWeight: 600 }}>{h}</span>
+                                                                                    ))}
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                        {(qual.mapa_competencias.nao_demonstradas as string[])?.length > 0 && (
+                                                                            <div>
+                                                                                <span style={{ fontSize: 10, fontWeight: 600, color: "#94a3b8" }}>⬜ Não demonstradas:</span>
+                                                                                <div style={{ marginTop: 2, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                                                                    {(qual.mapa_competencias.nao_demonstradas as string[]).map((h: string, i: number) => (
+                                                                                        <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(148,163,184,.08)", color: "#94a3b8", fontWeight: 600 }}>{h}</span>
+                                                                                    ))}
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Mediation */}
+                                                            {qual.mediacao_sugerida && (
+                                                                <div style={{
+                                                                    padding: "12px 14px", borderRadius: 10,
+                                                                    background: "rgba(139,92,246,.04)", border: "1px solid rgba(139,92,246,.12)",
+                                                                }}>
+                                                                    <span style={{ fontSize: 12, fontWeight: 700, color: "#8b5cf6" }}>🎯 Mediação Pedagógica (Como chegar lá?)</span>
+                                                                    <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: "6px 0 0", lineHeight: 1.6, whiteSpace: "pre-line" }}>
+                                                                        {qual.mediacao_sugerida}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Pedagogical Disclaimer */}
+                                                            {qual.aviso_hipotese && (
+                                                                <div style={{
+                                                                    padding: "8px 12px", borderRadius: 8,
+                                                                    background: "rgba(245,158,11,.04)", border: "1px solid rgba(245,158,11,.12)",
+                                                                    fontSize: 10, color: "#f59e0b", lineHeight: 1.5,
+                                                                }}>
+                                                                    {qual.aviso_hipotese}
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    );
+                                                })()}{/* /Phase 4 */}
                                             </div>
                                         )}
                                     </div>
@@ -1521,6 +1770,152 @@ export default function AvaliacaoDiagnosticaClient() {
                                     />
                                 </div>
                             </div>
+
+                            {/* ── Image Management Strip (Phase 2) ── */}
+                            {questoesIndividuais.some(q => q.suporte_visual?.necessario) && (
+                                <div style={{
+                                    padding: "10px 16px",
+                                    borderBottom: "1px solid rgba(99,102,241,.1)",
+                                    background: "rgba(99,102,241,.02)",
+                                }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#818cf8" }}>🖼️ Imagens Geradas</span>
+                                        <span style={{ fontSize: 10, color: "var(--text-muted)", fontStyle: "italic" }}>
+                                            {Object.keys(mapaImagensResultado).length} de {questoesIndividuais.filter(q => q.suporte_visual?.necessario).length} imagens
+                                        </span>
+                                    </div>
+                                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                        {questoesIndividuais.map((q, idx) => {
+                                            if (!q.suporte_visual?.necessario) return null;
+                                            const qNum = q._numero || idx + 1;
+                                            const imgUrl = mapaImagensResultado[qNum];
+                                            const isRegenerating = q._regeneratingImage;
+                                            return (
+                                                <div key={qNum} style={{
+                                                    display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                                                    padding: 6, borderRadius: 8, border: "1px solid rgba(99,102,241,.15)",
+                                                    background: "rgba(99,102,241,.03)", minWidth: 100,
+                                                }}>
+                                                    <span style={{ fontSize: 9, fontWeight: 700, color: "#818cf8" }}>Q{qNum}</span>
+                                                    {imgUrl ? (
+                                                        <>
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img
+                                                                src={imgUrl}
+                                                                alt={q.suporte_visual?.texto_alternativo || `Imagem Q${qNum}`}
+                                                                style={{
+                                                                    width: 80, height: 60, objectFit: "cover",
+                                                                    borderRadius: 6, border: "1px solid rgba(99,102,241,.2)",
+                                                                }}
+                                                            />
+                                                            <div style={{ display: "flex", gap: 3 }}>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        const sv = q.suporte_visual;
+                                                                        q._regeneratingImage = true;
+                                                                        setQuestoesIndividuais([...questoesIndividuais]);
+                                                                        try {
+                                                                            const r = await fetch("/api/avaliacao-diagnostica/gerar-imagem", {
+                                                                                method: "POST",
+                                                                                headers: { "Content-Type": "application/json" },
+                                                                                body: JSON.stringify({
+                                                                                    tipo: sv.tipo || 'ilustracao',
+                                                                                    descricao: sv.descricao_para_geracao,
+                                                                                    texto_alternativo: sv.texto_alternativo || sv.descricao_para_geracao,
+                                                                                    disciplina: selectedDisc,
+                                                                                    serie: selectedAluno?.grade || '',
+                                                                                }),
+                                                                            });
+                                                                            if (r.ok) {
+                                                                                const d = await r.json();
+                                                                                if (d.imageUrl) {
+                                                                                    setMapaImagensResultado(prev => ({ ...prev, [qNum]: d.imageUrl }));
+                                                                                }
+                                                                            }
+                                                                        } catch { /* silent */ }
+                                                                        q._regeneratingImage = false;
+                                                                        setQuestoesIndividuais([...questoesIndividuais]);
+                                                                    }}
+                                                                    disabled={isRegenerating}
+                                                                    style={{
+                                                                        fontSize: 9, padding: "2px 5px", borderRadius: 4,
+                                                                        border: "1px solid rgba(99,102,241,.2)", background: "rgba(99,102,241,.08)",
+                                                                        color: "#818cf8", cursor: isRegenerating ? "wait" : "pointer",
+                                                                    }}
+                                                                    title="Regenerar imagem"
+                                                                >
+                                                                    {isRegenerating ? "⏳" : "🔄"}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setMapaImagensResultado(prev => {
+                                                                            const next = { ...prev };
+                                                                            delete next[qNum];
+                                                                            return next;
+                                                                        });
+                                                                    }}
+                                                                    style={{
+                                                                        fontSize: 9, padding: "2px 5px", borderRadius: 4,
+                                                                        border: "1px solid rgba(239,68,68,.2)", background: "rgba(239,68,68,.05)",
+                                                                        color: "#ef4444", cursor: "pointer",
+                                                                    }}
+                                                                    title="Remover imagem"
+                                                                >
+                                                                    ✕
+                                                                </button>
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <button
+                                                            onClick={async () => {
+                                                                const sv = q.suporte_visual;
+                                                                q._regeneratingImage = true;
+                                                                setQuestoesIndividuais([...questoesIndividuais]);
+                                                                try {
+                                                                    const r = await fetch("/api/avaliacao-diagnostica/gerar-imagem", {
+                                                                        method: "POST",
+                                                                        headers: { "Content-Type": "application/json" },
+                                                                        body: JSON.stringify({
+                                                                            tipo: sv.tipo || 'ilustracao',
+                                                                            descricao: sv.descricao_para_geracao,
+                                                                            texto_alternativo: sv.texto_alternativo || sv.descricao_para_geracao,
+                                                                            disciplina: selectedDisc,
+                                                                            serie: selectedAluno?.grade || '',
+                                                                        }),
+                                                                    });
+                                                                    if (r.ok) {
+                                                                        const d = await r.json();
+                                                                        if (d.imageUrl) {
+                                                                            setMapaImagensResultado(prev => ({ ...prev, [qNum]: d.imageUrl }));
+                                                                        }
+                                                                    }
+                                                                } catch { /* silent */ }
+                                                                q._regeneratingImage = false;
+                                                                setQuestoesIndividuais([...questoesIndividuais]);
+                                                            }}
+                                                            disabled={isRegenerating}
+                                                            style={{
+                                                                fontSize: 9, padding: "4px 8px", borderRadius: 4,
+                                                                border: "1px dashed rgba(99,102,241,.3)", background: "rgba(99,102,241,.05)",
+                                                                color: "#818cf8", cursor: isRegenerating ? "wait" : "pointer",
+                                                                minHeight: 60, display: "flex", alignItems: "center",
+                                                                justifyContent: "center",
+                                                            }}
+                                                            title="Gerar imagem"
+                                                        >
+                                                            {isRegenerating ? "⏳ Gerando..." : "🖼️ Gerar"}
+                                                        </button>
+                                                    )}
+                                                    <span style={{ fontSize: 8, color: "var(--text-muted)", textAlign: "center", maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                        {q.suporte_visual?.tipo || "visual"}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
                             <div className={bodyS}>
                                 <FormattedTextDisplay
                                     texto={resultadoFormatado}
@@ -1537,7 +1932,8 @@ export default function AvaliacaoDiagnosticaClient() {
                             Gerar nova prova
                         </button>
                     </div>
-                )}
+                )
+                }
 
                 {avalError && (
                     <div style={{
@@ -2397,10 +2793,10 @@ function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
 
         // 2) Multi-pattern regex
         const questoes: { gabarito: string; habilidade: string }[] = [];
-        const gabRegex1 = /(?:\*{0,2})(?:gabarito|resposta\s*correta)(?:\*{0,2})\s*[:]\s*\*{0,2}\s*([A-Ea-e])\s*\*{0,2}/gi;
+        const gabRegex1 = /(?:\*{0, 2})(?:gabarito|resposta\s*correta)(?:\*{0, 2})\s*[:]\s*\*{0, 2}\s*([A-Ea-e])\s*\*{0, 2}/gi;
         const gabRegex2 = /GABARITO\s*\(\s*(?:letra\s+)?([A-Ea-e])\s*\)/gi;
-        const gabRegex3 = /(?:alternativa\s*correta|resposta)\s*[:]\s*\*{0,2}\s*([A-Ea-e])\s*\*{0,2}/gi;
-        const habRegex = /(?:\*{0,2})(?:habilidade|BNCC|habilidade_bncc)(?:\*{0,2})\s*[:]\s*\*{0,2}\s*([^\n*]+)/gi;
+        const gabRegex3 = /(?:alternativa\s*correta|resposta)\s*[:]\s*\*{0, 2}\s*([A-Ea-e])\s*\*{0, 2}/gi;
+        const habRegex = /(?:\*{0, 2})(?:habilidade|BNCC|habilidade_bncc)(?:\*{0, 2})\s*[:]\s*\*{0, 2}\s*([^\n*]+)/gi;
 
         const gabs: string[] = [];
         const habs: string[] = [];

@@ -8,6 +8,7 @@ import {
     templateQuestoesDiagnosticas,
     buildPromptCompleto,
     mapDiagnosticoToPerfilNEE,
+    distribuirGabaritos,
 } from "@/lib/omnisfera-prompts";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -154,12 +155,14 @@ export async function POST(req: Request) {
     });
 
     // Camada 3: Template da Tarefa
+    const gabaritos = distribuirGabaritos(qtdQuestoes);
     const camada3 = templateQuestoesDiagnosticas({
         habilidades: habsParaPrompt,
         quantidade: qtdQuestoes,
         tipo_questao: tipoQuestao,
         nivel_omnisfera_estimado,
         plano_ensino_contexto: plano_ensino_contexto || undefined,
+        gabaritos_definidos: gabaritos,
     });
 
     // Build complete prompt (system + user)

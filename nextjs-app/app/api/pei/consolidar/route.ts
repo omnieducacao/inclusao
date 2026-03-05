@@ -67,6 +67,7 @@ export async function GET(req: Request) {
         const data = (d.pei_disciplina_data || {}) as Record<string, unknown>;
 
         return {
+            id: d.id,
             disciplina: d.disciplina,
             professor_regente: d.professor_regente_nome,
             fase_status: d.fase_status,
@@ -75,6 +76,8 @@ export async function GET(req: Request) {
             nivel_omnisfera: avaliacao?.nivel_omnisfera_identificado ?? null,
             metas_smart: Array.isArray(data.metas_smart) ? data.metas_smart.length : 0,
             adaptacoes: !!data.adaptacoes,
+            feedback_professor: d.feedback_professor || null,
+            data_devolucao: d.data_devolucao || null,
             updated_at: d.updated_at,
         };
     });

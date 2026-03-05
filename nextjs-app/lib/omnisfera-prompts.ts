@@ -2,11 +2,33 @@
 // OMNISFERA — Prompts Engine for Avaliação Diagnóstica
 // Adapted from omnisfera-ai-package/prompts/engine.ts
 // 3-layer prompt system: System → Context → Task
+// Ref: Guia de Ação Avaliativa (CAEd/UFJF)
+//      Guia de Avaliação e Mediações Pedagógicas (MEC/CONSED 2025)
 // ============================================================
 
 import type {
   NivelCognitivoSAEB,
 } from './omnisfera-types'
+
+// ── Utilitário: distribuir gabaritos A-D ──────────────────────
+
+/**
+ * Distribui gabaritos equilibradamente entre A, B, C, D.
+ * Garante ~25% em cada letra e embaralha para evitar padrões.
+ */
+export function distribuirGabaritos(total: number): string[] {
+  const letras = ['A', 'B', 'C', 'D']
+  const resultado: string[] = []
+  for (let i = 0; i < total; i++) {
+    resultado.push(letras[i % 4])
+  }
+  // Fisher-Yates shuffle
+  for (let i = resultado.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [resultado[i], resultado[j]] = [resultado[j], resultado[i]]
+  }
+  return resultado
+}
 
 // ── Camada 1: System Prompt ───────────────────────────────────
 
@@ -33,11 +55,73 @@ Nível III— Avaliar/Criar: julgamento crítico, síntese, produção original.
 REGRA OBRIGATÓRIA: questões para alunos em nível Omnisfera 0-2 devem usar Nível I cognitivo.
 Alunos em nível 3-4 podem receber Nível II-III cognitivo.
 
+━━━ ESTRUTURA PEDAGÓGICA DO ITEM (Guia CAEd/UFJF) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Todo item de múltipla escolha DEVE seguir esta estrutura:
+
+1. ENUNCIADO: instrução inicial clara e direta (máx. 2 sentenças)
+   - Direciona o estudante para o suporte quando necessário
+   - Ex: "Leia o texto abaixo." ou "Observe o gráfico a seguir."
+
+2. SUPORTE (quando necessário):
+   - Texto, gráfico, tabela ou descrição de cenário
+   - SÓ incluir se ESSENCIAL ao percurso cognitivo
+   - Adequado à etapa de ensino e faixa etária
+   - Contextualizado e relevante para o estudante
+
+3. COMANDO:
+   - Pergunta ou sentença a ser completada
+   - SEM negativas ("Qual NÃO é..." = PROIBIDO)
+   - Claro, direto, sem ambiguidade
+   - O verbo indica a operação cognitiva esperada
+
+4. ALTERNATIVAS (exatamente 4):
+   - GABARITO: resposta inequivocamente correta
+   - DISTRATORES: baseados em ERROS COGNITIVOS REAIS (ver regras abaixo)
+
+REGRA FUNDAMENTAL: 1 ITEM = 1 HABILIDADE.
+Cada questão avalia somente UMA habilidade BNCC específica.
+
+━━━ REGRAS PARA DISTRATORES (Guia CAEd) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Cada distrator deve capturar um ERRO COGNITIVO REAL e plausível:
+- Leitura/interpretação superficial do suporte
+- Confusão entre conceitos relacionados
+- Aplicação parcial ou incompleta da habilidade
+- Inversão de relações (causa/efeito, maior/menor)
+- Generalização indevida de uma informação
+
+PROIBIDO:
+- Distratores absurdos ou incoerentes ("pegadinhas")
+- Distratores óbvios que qualquer estudante descartaria
+- Alternativas com extensão muito diferente das demais
+
+Para cada distrator, justifique BREVEMENTE em analise_distratores o erro que ele captura.
+
+━━━ REGRAS PARA SUPORTE VISUAL (Guia CAEd) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Quando incluir suporte visual:
+✅ A habilidade exige interpretação visual (gráficos, mapas, diagramas)
+✅ O contexto precisa de cenário que texto puro não comunica bem
+✅ O perfil NEE indica necessidade de apoio visual (ex: TEA)
+
+Quando NÃO incluir:
+❌ Apenas para "decorar" ou "enfeitar" a questão
+❌ Quando o texto já é suficiente para o percurso cognitivo
+❌ Quando a imagem pode confundir mais do que ajudar
+
+Se suporte visual for necessário, preencha o campo suporte_visual com detalhes.
+Se NÃO for necessário, defina suporte_visual.necessario = false.
+
+━━━ CONTROLE DE DIFICULDADE (Guia CAEd) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+A dificuldade é controlada por 3 fatores:
+1. Complexidade do SUPORTE (texto mais simples → mais complexo)
+2. Sofisticação dos DISTRATORES (erros mais óbvios → mais sutis)
+3. Nível do VERBO cognitivo (identificar < comparar < avaliar)
+NUNCA torne difícil por linguagem inacessível ou pegadinhas.
+
 ━━━ PERFIS NEE ATENDIDOS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TEA (Transtorno do Espectro Autista):
   - Linguagem direta, literal. Sem metáforas não explicadas.
   - Estrutura visual clara: enunciado curto, alternativas paralelas.
-  - contexto_visual_sugerido: OBRIGATÓRIO para todas as questões.
+  - suporte_visual.necessario: OBRIGATÓRIO (true) para todas as questões.
 
 DI (Deficiência Intelectual):
   - Vocabulário do ano de referência PEI, não do ano de matrícula.
@@ -55,8 +139,8 @@ Transtornos de Aprendizagem (Dislexia, TDAH, Discalculia):
 ━━━ REGRAS DE FORMATO OBRIGATÓRIAS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 1. Enunciado: máx. 3 sentenças. Linguagem ativa. Contexto real e relevante.
 2. Alternativas: exatamente 4. A correta + 3 distratores pedagogicamente plausíveis.
-3. Distratores NÃO podem ser absurdos — capturam erros típicos do nível do aluno.
-4. Gabarito: sempre B ou C. Nunca A ou D.
+3. Distratores capturam erros cognitivos reais do nível do aluno (ver regras acima).
+4. Gabarito: a letra do gabarito é DEFINIDA pelo sistema e informada na tarefa.
 5. justificativa_pedagogica: obrigatória.
 6. instrucao_aplicacao_professor: obrigatória — como aplicar e qual suporte oferecer.
 7. NUNCA avalie a deficiência. Se a habilidade-alvo é matemática, leitura não pode ser a barreira.
@@ -71,7 +155,7 @@ Se não conseguir gerar um campo obrigatório, use null e informe em observacoes
 export const REGRAS_NEE: Record<string, string> = {
   TEA: `## REGRAS ADICIONAIS — TEA
 - Use linguagem literal. Evite ironias, metáforas não explicadas.
-- contexto_visual_sugerido é OBRIGATÓRIO.
+- suporte_visual.necessario DEVE ser true em TODAS as questões.
 - Alternativas curtas e estruturalmente paralelas.
 - Nunca avalie capacidade social — avalie habilidade curricular específica.`,
 
@@ -152,6 +236,7 @@ export function templateQuestoesDiagnosticas(params: {
   tipo_questao: 'Objetiva' | 'Discursiva'
   nivel_omnisfera_estimado?: number
   plano_ensino_contexto?: string
+  gabaritos_definidos?: string[]  // ['B', 'A', 'D', 'C', ...] — defined by system
 }): string {
   const nivelAluno = params.nivel_omnisfera_estimado ?? 1
   const nivelCognitivo = nivelCognitivoAutomatico(nivelAluno)
@@ -166,6 +251,12 @@ export function templateQuestoesDiagnosticas(params: {
     ? `\n## PLANO DE ENSINO VINCULADO (use como contexto)\n${params.plano_ensino_contexto.slice(0, 2000)}`
     : ''
 
+  // Build gabarito instructions
+  const gabs = params.gabaritos_definidos || distribuirGabaritos(params.quantidade)
+  const gabaritoInstrucao = gabs.map((g, i) =>
+    `Questão ${i + 1}: gabarito DEVE ser letra ${g}`
+  ).join('\n')
+
   if (params.tipo_questao === 'Objetiva') {
     return `
 ## TAREFA: GERAR ${params.quantidade} QUESTÕES DIAGNÓSTICAS — MÚLTIPLA ESCOLHA
@@ -179,14 +270,25 @@ ${planoContext}
 
 REGRAS DE DIFICULDADE PROGRESSIVA:
 - Crie questões com dificuldade CRESCENTE: começa nível ${Math.max(0, nivelAluno - 1)}, vai até ${Math.min(4, nivelAluno + 2)}.
-- Cada questão deve avaliar uma habilidade diferente quando possível.
+- Cada questão DEVE avaliar UMA habilidade diferente (1 item = 1 habilidade).
+
+GABARITOS DEFINIDOS PELO SISTEMA (obrigatório seguir):
+${gabaritoInstrucao}
+Organize as alternativas de modo que a resposta correta esteja na posição indicada.
+
+ESTRUTURA OBRIGATÓRIA DE CADA ITEM (Guia CAEd):
+1. ENUNCIADO: instrução clara e direta (máx. 2 sentenças)
+2. SUPORTE: texto/cenário contextualizado (SÓ se essencial ao percurso cognitivo)
+3. COMANDO: pergunta SEM negativas, SEM ambiguidade
+4. ALTERNATIVAS: 4 opções paralelas em estrutura e comprimento
+   - Gabarito inequívoco na posição definida acima
+   - 3 distratores baseados em erros cognitivos reais
 
 REGRAS OBRIGATÓRIAS:
-- Gabarito: SEMPRE B ou C (nunca A ou D — viés de posição)
-- Enunciado: máx. 3 sentenças, contexto real
-- Alternativas: exatamente 4, paralelas em estrutura e comprimento
-- Distratores capturam erros típicos do nível ${nivelAluno}
+- Enunciado: máx. 3 sentenças, contexto real, linguagem ativa
+- Distratores: cada um captura um erro cognitivo específico (justificar em analise_distratores)
 - instrucao_aplicacao_professor: obrigatória, mín. 20 caracteres
+- suporte_visual: definir se é necessário ou não (ver schema)
 
 ## SCHEMA DE SAÍDA (JSON obrigatório):
 {
@@ -194,13 +296,25 @@ REGRAS OBRIGATÓRIAS:
     {
       "id": "Q1",
       "habilidade_bncc_ref": "código BNCC",
-      "enunciado": "string",
-      "contexto_visual_sugerido": "string | null",
+      "enunciado": "string — instrução inicial + suporte textual quando necessário",
+      "comando": "string — a pergunta em si",
+      "suporte_visual": {
+        "necessario": true | false,
+        "justificativa": "string — por que é ou não necessário",
+        "tipo": "grafico | mapa | diagrama | tabela | ilustracao | fotografia | null",
+        "descricao_para_geracao": "string detalhada para gerar a imagem | null",
+        "texto_alternativo": "string — acessibilidade | null"
+      },
       "alternativas": { "A": "string", "B": "string", "C": "string", "D": "string" },
-      "gabarito": "B ou C",
-      "analise_distratores": { "A": "erro que captura", "B_ou_C_incorreta": "erro que captura", "D": "erro que captura" },
+      "gabarito": "A | B | C | D",
+      "analise_distratores": {
+        "A": "erro cognitivo que captura (se A não for gabarito) | gabarito",
+        "B": "erro cognitivo que captura (se B não for gabarito) | gabarito",
+        "C": "erro cognitivo que captura (se C não for gabarito) | gabarito",
+        "D": "erro cognitivo que captura (se D não for gabarito) | gabarito"
+      },
       "justificativa_pedagogica": "string",
-      "instrucao_aplicacao_professor": "string",
+      "instrucao_aplicacao_professor": "string — como aplicar e qual suporte oferecer",
       "adaptacao_nee_aplicada": "string",
       "nivel_suporte_recomendado": "S1|S2|S3|S4",
       "nivel_omnisfera_alvo": number,
@@ -223,11 +337,15 @@ HABILIDADES BNCC A AVALIAR:
 ${habsStr}
 ${planoContext}
 
+ESTRUTURA OBRIGATÓRIA DE CADA ITEM:
+1. ENUNCIADO + SUPORTE: situação-problema com contexto real
+2. COMANDO: verbos no imperativo (ANALISE, JUSTIFIQUE, PROPONHA)
+3. Cada questão DEVE avaliar UMA habilidade diferente (1 item = 1 habilidade)
+
 REGRAS:
-- Situação-problema obrigatória com contexto real
-- Verbos de comando no imperativo: ANALISE, JUSTIFIQUE, PROPONHA
 - Padrão de resposta obrigatório (grade de correção)
 - instrucao_aplicacao_professor: obrigatória
+- suporte_visual: definir se é necessário ou não
 
 ## SCHEMA DE SAÍDA (JSON obrigatório):
 {
@@ -235,8 +353,15 @@ REGRAS:
     {
       "id": "Q1",
       "habilidade_bncc_ref": "código BNCC",
-      "enunciado": "string",
-      "contexto_visual_sugerido": "string | null",
+      "enunciado": "string — situação-problema",
+      "comando": "string — instrução ao estudante",
+      "suporte_visual": {
+        "necessario": true | false,
+        "justificativa": "string",
+        "tipo": "grafico | mapa | diagrama | tabela | ilustracao | fotografia | null",
+        "descricao_para_geracao": "string | null",
+        "texto_alternativo": "string | null"
+      },
       "padrao_resposta": { "topicos_essenciais": ["string"], "resposta_ideal_resumida": "string" },
       "justificativa_pedagogica": "string",
       "instrucao_aplicacao_professor": "string",

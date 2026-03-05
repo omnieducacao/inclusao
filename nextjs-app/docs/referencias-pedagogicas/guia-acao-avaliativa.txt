@@ -1,0 +1,441 @@
+GUIA DA AÇÃO AVALIATIVA
+Estratégias de avaliação diagnóstica e formativa para uso durante as aulas
+
+EXPEDIENTE
+REALIZAÇÃO:
+- Centro de Políticas Públicas e Avaliação da Educação da UFJF (CAEd/UFJF)
+- Frente CONSED/UNDIME de Avaliação
+- Fundação Lemann
+
+COORDENAÇÃO: Carlos Palacios, Leonardo Lapa Pereira, Lina Kátia Mesquita de Oliveira, Renata Ferraz
+
+SUMÁRIO
+1. Introdução ao Tema: Avaliação diagnóstica e formativa no retorno às aulas presenciais
+2. Avaliação Formativa e a Base Nacional Comum Curricular (BNCC)
+3. Atividades de Múltipla Escolha
+4. Atividades de Resposta Construída
+5. Rubricas com Foco no Socioemocional
+6. Observação e Registro em Sala de Aula
+7. Portfólio
+
+1. INTRODUÇÃO AO TEMA
+Avaliação diagnóstica e formativa no retorno às aulas presenciais
+Sabemos que a maioria das redes, escolas e professores organizaram estratégias para garantir que crianças e jovens mantivessem suas rotinas de estudos durante a pandemia do novo coronavírus. Mas, distantes da sala de aula e sem o contato próximo dos professores, o processo de ensino e aprendizagem torna-se mais difícil para muitos estudantes.
+
+Diante disso, uma pergunta se faz fundamental: como verificar o impacto desse período de isolamento social no desenvolvimento de habilidades e competências nos diferentes componentes curriculares?
+
+Parecer CNE 11/2020
+O planejamento da volta às aulas ocorre em três frentes principais:
+1. Acolhimento
+2. Avaliações diagnósticas para identificar os níveis de aprendizagem dos estudantes e, a partir disso, estabelecer intervenções
+3. Reorganização do espaço físico e adoção das medidas de higiene necessárias para evitar a contaminação da COVID-19
+
+Objetivo do Guia
+O objetivo do Guia é apoiar a realização das avaliações diagnósticas de retorno e servir ao acompanhamento do percurso formativo dos estudantes na volta às aulas presenciais.
+
+O Guia traz orientações sobre diferentes modelos de avaliação:
+- Atividades de múltipla escolha
+- Atividades de resposta construída
+- Rubricas com foco no socioemocional
+- Observação e registro em sala de aula
+- Portfólio
+
+2. AVALIAÇÃO FORMATIVA E A BASE NACIONAL COMUM CURRICULAR (BNCC)
+A BNCC e a Aprendizagem
+A Base Nacional Comum Curricular (BNCC) é composta por textos conceituais, seguidos de um conjunto de objetivos de aprendizagem que definem aquilo que é essencial que todos os estudantes aprendam ao fim do seu percurso escolar.
+
+Para definir as aprendizagens essenciais, a BNCC considerou as necessidades dos estudantes brasileiros para acessar uma vida plena no século XXI, um período marcado por volatilidade, incerteza, complexidade e ambiguidade.
+
+As aprendizagens essenciais partem do princípio de que os estudantes devem mobilizar aprendizados em três grandes domínios:
+1. CONHECIMENTOS: conhecimentos fundamentais das diferentes áreas, conhecimentos interdisciplinares e processuais
+2. HABILIDADES: habilidades cognitivas e metacognitivas (pensamento crítico, criatividade, capacidade de aprender), habilidades sociais e emocionais (empatia, autoeficácia, colaboração), habilidades práticas e físicas
+3. ATITUDES E VALORES: expressos em cidadania com dimensão local e global
+
+As Três Perguntas Fundamentais
+Os educadores devem responder a três perguntas fundamentais:
+1. O QUE ENSINAR? - A resposta é construída a partir da BNCC e dos currículos das diferentes redes de ensino
+2. COMO ENSINAR? - Não tem uma resposta única; saberes diferentes não podem ser obtidos com uma única maneira de organizar o trabalho pedagógico
+3. COMO AVALIAR? - É preciso saber quais objetivos de aprendizagem ainda não conseguiram alcançar para orientar as decisões sobre oportunidades de aprendizado
+
+Avaliação Formativa: Objetivos, Finalidades e Características
+A avaliação da aprendizagem pode ocorrer antes, durante ou depois das atividades de ensino. Para cada caso, ela receberá, respectivamente, o nome de:
+- DIAGNÓSTICA (antes)
+- FORMATIVA (durante)
+- SOMATIVA (depois)
+
+A avaliação formativa merece destaque, pois trata-se de avaliação PARA a aprendizagem e não apenas DA aprendizagem.
+
+Três Etapas da Avaliação Formativa
+1. ONDE O ESTUDANTE DEVE CHEGAR? - Compreender e introjetar os objetivos de aprendizagem
+2. ONDE O ESTUDANTE ESTÁ? - Preparar discussões, tarefas e atividades que evidenciam o aprendizado
+3. COMO CHEGAR LÁ? - Fornecer devolutivas que ajudem os estudantes a progredir
+
+Síntese Conceitual da Avaliação Formativa
+PROFESSOR: Compreende objetivos de aprendizagem, desenvolve atividades que evidenciam aprendizado, fornece devolutivas
+TURMA: Cada estudante é fonte de aprendizado para seus colegas
+ESTUDANTE: Cada estudante é responsável pelo seu próprio aprendizado
+
+Onde o Estudante Deve Chegar?
+É necessário construir uma descrição do significado de cada objetivo de aprendizagem. O verbo da frase indica a ação que deve ser realizada com conhecimentos, habilidades e atitudes.
+Exemplo: 'Distinguir fato de opinião' - assume que os estudantes já sabem caracterizar conceitualmente o que é fato e opinião, e antes de saber distinguir, devem ser capazes de identificar as marcas linguísticas usadas para expressar os conceitos.
+
+Onde o Estudante Está?
+Definidos os critérios, é necessário elaborar atividades que revelem se o estudante desenvolveu ou não o respectivo aprendizado.
+Na avaliação formativa não se deve atribuir uma nota, mas elaborar comentários que mostrem onde a resposta pode ser melhorada.
+Outro caminho é estabelecer níveis de desempenho: Em processo; Razoável; Adequado; Avançado.
+Esta etapa deve ser feita não apenas pelos professores, mas também pela turma como um todo, em atividades de coavaliação e autoavaliação.
+
+Como Progredir?
+Os professores devem definir quais conhecimentos ou habilidades precisam ser reforçados e quais estudantes ainda necessitam desenvolvê-los. Esta etapa é uma orientação para o estudante sobre como preencher as lacunas encontradas.
+
+A avaliação formativa é um processo contínuo que ocorre junto ao trabalho de ensino e consiste na coleta e na interpretação de evidências sobre a conquista de objetivos de aprendizagem.
+
+3. ATIVIDADES DE MÚLTIPLA ESCOLHA
+Situações de Uso
+Atividades de múltipla escolha são o tipo de instrumento mais utilizado para compor avaliações e testes em larga escala. A razão se deve à facilidade com que os resultados podem ser gerados e processados, dado que a sua correção é absolutamente objetiva.
+
+Essa praticidade também vale para o trabalho do professor em sala de aula, permitindo que elabore, aplique e corrija testes em curto espaço de tempo.
+
+Características Principais e Partes que Compõem
+No modelo de atividades de múltipla escolha (também chamado de item de resposta selecionada ou questão objetiva), o estudante realiza um percurso cognitivo a partir de algum estímulo e seleciona uma das alternativas apresentadas.
+
+Partes de uma Atividade de Múltipla Escolha
+1. ENUNCIADO: primeira instrução do problema a ser resolvido, utilizado quando há necessidade de direcionar o estudante para a leitura de um texto
+2. SUPORTE: texto, gráfico, tabela, imagem que contextualiza a questão (não é obrigatório)
+3. COMANDO: estímulo que direcionará o estudante à sua resposta (pergunta ou sentença a ser completada)
+4. DISTRATORES: alternativas incorretas, mas plausíveis
+5. GABARITO: alternativa correta
+
+Exemplo de Atividade
+ENUNCIADO: Leia o texto abaixo.
+SUPORTE: Poema 'Canção do Exílio' de Gonçalves Dias
+COMANDO: Nesse fragmento de poema, ao falar de sua terra de origem, o eu lírico...
+ALTERNATIVAS:
+A) critica o povo (distrator)
+B) exalta a natureza (gabarito)
+C) glorifica uma conquista (distrator)
+D) lamenta um amor perdido (distrator)
+
+Atenção na Elaboração do Comando
+- Evitar comandos muito longos e pouco claros
+- Evitar termos na negativa
+- Evitar pedir para identificar a alternativa incorreta em vez da correta
+
+Habilidades e Níveis de Dificuldade
+Cada atividade deve avaliar somente uma habilidade, de forma que seja possível estimar se o estudante já a desenvolveu ou não.
+
+Existem diferentes graus de dificuldade de uma habilidade. Um suporte menos acessível torna automaticamente uma habilidade mais difícil. A escolha das alternativas também tem o mesmo efeito.
+
+Regra fundamental: todos os elementos de uma atividade devem ser construídos tendo em vista o nível de dificuldade desejado, além de estarem de acordo com a etapa de ensino do estudante.
+
+Etapas e Critérios para Elaboração
+1. Escolher a habilidade que será avaliada (BNCC, Matriz de Referência ou currículo da rede)
+2. Refletir se a atividade será contextualizada (suporte)
+3. Elaborar o comando que induzirá o estudante a realizar um percurso cognitivo
+4. Construir distratores pensando em caminhos possíveis que estudantes que ainda não desenvolveram a habilidade podem percorrer
+5. Redigir o gabarito de forma clara, evitando ambiguidades
+
+Dicas importantes:
+- Diversificar os suportes em termos de formato e nível de complexidade
+- Tentar abarcar uma quantidade razoável de habilidades
+- Incluir atividades com diferentes níveis de dificuldade
+- Fugir das 'pegadinhas'
+- Controlar o tamanho do teste para não cansar o estudante
+
+Outros Formatos
+TRECHOS SUPRIMIDOS: sentenças com espaços em branco para preenchimento
+MODELO COMPLEXO: comando com conjunto de opções que serão reagrupadas em alternativas
+ASSOCIAÇÕES: conjunto de alternativas no topo seguido por opções correspondentes abaixo
+VERDADEIRO OU FALSO: sequência de alternativas corretas e incorretas
+
+Exemplos de Atividades por Disciplina
+Biologia - 3º ano EM
+HABILIDADE: Reconhecer os níveis de organização do corpo humano
+TAREFA: Identificar o processo de respiração celular e seu local de ocorrência relacionando-o aos níveis hierárquicos do organismo humano através da análise de um esquema
+
+Física - 2º ano EM
+HABILIDADE: Compreender o calor como forma de transferência de energia
+TAREFA: Reconhecer que dois blocos com temperaturas diferentes, quando postos em contato, trocam calor entre si até atingirem o equilíbrio térmico
+
+Química - 2º ano EM
+HABILIDADE: Compreender a cinética de reações químicas
+TAREFA: Identificar, a partir da análise de uma fotografia, a maneira como a temperatura influi na velocidade da ocorrência de uma reação de efervescência de um comprimido de vitamina C em água
+
+Matemática - 8º ano EF
+HABILIDADE: (EF08MA13) Resolver problemas que envolvam grandezas diretamente ou inversamente proporcionais, por meio de estratégias variadas
+TAREFA: Utilizar proporcionalidade direta entre duas grandezas na resolução de problema
+
+Língua Portuguesa - 9º ano EF
+HABILIDADE: Identificar o objetivo comunicativo de um texto com base na sua estrutura e seu conteúdo
+TAREFA: Identificar o objetivo comunicativo de uma reportagem
+
+História - 9º ano EF
+HABILIDADE: Identificar diferentes abordagens existentes em fontes históricas diversas
+TAREFA: Identificar a construção do conhecimento histórico relacionado à escravidão da população negra, no Brasil do final do século XIX, através de uma fotografia daquele contexto
+
+Geografia - 1º ano EM
+HABILIDADE: Identificar os diferentes tipos de biomas brasileiros
+TAREFA: Identificar a espacialidade do bioma da Mata Atlântica por meio da associação entre uma imagem da paisagem desse bioma e um mapa sobre a espacialidade dos biomas brasileiros
+
+Sugestões de Leitura
+- HALADYNA, Thomas M. Developing and validating multiple-choice test items. 2004
+- HOGAN, Thomas P. Introdução à Prática de Testes Psicológicos. 2006
+
+4. ATIVIDADES DE RESPOSTA CONSTRUÍDA
+Situações de Uso
+As atividades de resposta construída (questões abertas) são normalmente o modelo mais utilizado em sala de aula, pois permitem ao professor visualizar melhor as habilidades e o conhecimento desenvolvidos pelos alunos.
+
+Tanto uma atividade de resposta construída quanto uma de múltipla escolha podem avaliar habilidades e conteúdos semelhantes, dependendo do modo como a questão é elaborada.
+
+As questões de resposta construída podem contribuir para avaliar mais adequadamente processos cognitivos complexos, além de ajudar a visualizar aspectos importantes do desempenho estudantil.
+
+Características Principais e Formatos
+As atividades de respostas construídas exigem que, a partir de um comando ou instrução, o aluno construa sua resposta.
+
+Elementos Universais
+1. INSTRUÇÃO / COMANDO AO RESPONDENTE: pode ser uma única frase ou sequência de instruções sobre a natureza do que se deseja avaliar
+2. CONTEÚDO E DEMANDA COGNITIVA: o conteúdo pode ser objetivo (resposta certa/errado) ou subjetivo (avaliação detalhada do corretor)
+3. CONDIÇÕES DE EXECUÇÃO: orientações para realização de atividades e/ou testes
+4. CHAVES E CRITÉRIOS DE CORREÇÃO: devem ser estabelecidos quando da elaboração da questão
+
+Atividades com Respostas Objetivas
+- RESPOSTA CURTA A PARTIR DE UMA IMAGEM: bastante utilizada no processo de alfabetização
+- RESPOSTA CURTA COM SITUAÇÃO PROBLEMA: exige cálculo ou raciocínio simples
+- RESPOSTA CURTA QUE EXIGE CONHECIMENTO DE FATOS: pode haver mais de uma pergunta relativa ao fato
+- PREENCHIMENTO DE LACUNAS: envolve uma única frase com espaços em branco
+- CLOZE: o aluno intervém no corpo do texto com termos suprimidos, avaliando compreensão e fluência de leitura
+
+Atividades com Respostas Subjetivas
+Essas atividades adequam-se à avaliação de demandas cognitivas mais complexas, refletindo a habilidade do aluno de desenvolver raciocínio crítico.
+
+Para elaboração de comandos para produção de redação/ensaio, um bom comando deve:
+- Mostrar com clareza o processo a ser seguido (descrever, narrar, argumentar, analisar, persuadir, informar)
+- Indicar um tempo limite para execução da tarefa
+- Sugerir a extensão da resposta (limitar número de linhas ou parágrafos)
+
+Roteiro Básico para Elaboração
+Perguntas guia para escolha do formato:
+- Quais resultados desejo observar?
+- Quais conteúdos serão avaliados?
+- Será uma atividade individual ou em grupo?
+- Que materiais e recursos os alunos terão acesso?
+
+Diretrizes para Elaboração
+Preocupações de conteúdo:
+1. Ter clareza sobre o domínio de conhecimento e habilidades a serem avaliados
+2. Certificar-se de que o formato seja apropriado para a demanda cognitiva pretendida
+3. Garantir comparabilidade da construção entre as tarefas
+
+Formatação e estilo:
+4. Editar e verificar as instruções das questões
+5. Definir claramente as orientações, expectativas para o formato de resposta e demandas de tarefas
+6. Fornecer informações sobre os critérios de pontuação
+7. Evitar suposições implícitas e recursos irrelevantes
+
+Preocupações de contexto:
+8. Considerar a diversidade cultural e a acessibilidade
+9. Certificar-se de que a complexidade linguística é adequada para a etapa de escolaridade
+
+Considerações Práticas para Correção
+Chave de Correção Holística
+Considera o desempenho de modo que todos os componentes da escrita/resposta são considerados de modo integrado. Está mais sujeita à subjetividade do avaliador.
+
+Chave de Correção Analítica
+Caracteriza-se por trazer um conjunto de elementos avaliados de modo independente, com diferentes gradações de acerto. Exemplo: matriz de competências para redação do Enem.
+
+VANTAGENS:
+- Por descrever cada componente a ser avaliado, pode-se minimizar a subjetividade
+- O processo de correção detalhada torna-se oportunidade sólida para conhecer o desempenho, pontos fortes e fragilidades
+- Mais adequada em termos de avaliação formativa
+
+Sugestões de Leitura
+- HALADYNA, Thomas M. e RODRIGUEZ, Michael C. Developing and Validating Test Items. 2013
+- OSTERLING, Steven J. et al. Constructing Test Items: Multiple-Choice, Constructed-Response, Performance, and Other Formats. 1998
+
+5. RUBRICAS COM FOCO NO SOCIOEMOCIONAL
+Conceito
+O exercício de autoconhecimento e autorreflexão pode auxiliar o estudante a entender quais pontos precisa desenvolver para dominar algum conteúdo ou competência.
+
+As rubricas instrucionais apresentam uma progressão de comportamentos e conhecimentos relacionados a uma determinada competência ou habilidade. Servem como guia do processo de ensino e aprendizagem, a partir de uma descrição do que se espera para cada nível de desenvolvimento.
+
+Quando compartilhadas com os estudantes em uma proposta formativa, as rubricas ajudam a explicar as expectativas de aprendizagem e envolvem o estudante no processo.
+
+Situações de Uso
+As rubricas têm se mostrado como intervenção educacional relevante para o desenvolvimento e acompanhamento de diversas competências entre estudantes.
+
+Exemplo: Rubrica da Empatia
+DESCRIÇÃO DA COMPETÊNCIA: Ter empatia significa usar nossa compreensão da realidade, da vida e habilidades para entender as necessidades e sentimentos dos outros, agir com bondade e investir em nossos relacionamentos, ajudando e prestando apoio e assistência.
+
+RELEVÂNCIA: Quando temos empatia, podemos entender as necessidades e sentimentos de outras pessoas e dar apoio de acordo com o que elas precisam. Agindo assim somos mais gentis e atenciosos com os outros.
+
+Degraus da Rubrica da Empatia
+DEGRAU 1: Acho difícil entender as necessidades e sentimentos dos outros. Tenho dificuldade em perceber quando alguém está chateado(a).
+DEGRAU 1-2: Entre os degraus 1 e 2
+DEGRAU 2: Tento ajudar quando alguém está chateado(a), mas não sei muito bem o que fazer ou como reagir nessas situações.
+DEGRAU 2-3: Entre os degraus 2 e 3
+DEGRAU 3: Quando alguém está chateado(a) eu me coloco no lugar da pessoa para ver como posso ajudá-la. Tento checar para confirmar se entendi bem seus sentimentos e conflitos.
+DEGRAU 3-4: Entre os degraus 3 e 4
+DEGRAU 4: Consigo entender bem os sentimentos e necessidades dos outros. Ouço atentamente e ajudo a descobrir o que estão sentindo ou pensando.
+
+A Importância da Devolutiva Pedagógica
+O uso formativo das rubricas favorece a devolutiva pedagógica - informações dadas pelos professores que podem melhorar o desempenho do estudante.
+
+O principal intuito da devolutiva é reforçar o conhecimento, as habilidades e o entendimento do estudante em algum aspecto ou área da sua vida.
+
+Características de uma boa devolutiva:
+- DETALHADAS: possibilitem ao estudante apreender todos os pontos abordados
+- ESPECÍFICAS: mensagem clara e baseada na necessidade do estudante
+- IMPARCIAIS: compreendidas como análise objetiva
+- CONSTANTES: fornecidas em momentos nos quais os estudantes já tenham tentado uma solução
+
+Como Utilizar Rubricas com Foco no Socioemocional
+Procedimentos de aplicação:
+
+1. APRESENTE aos estudantes qual competência será foco de desenvolvimento e promova a escuta de seus conhecimentos e experiências
+2. LEIA, junto aos estudantes, o texto que apresenta a competência e os seus degraus de desenvolvimento
+3. COMBINE um tempo adequado para que cada estudante possa refletir e responder à autoavaliação proposta
+4. PEÇA a cada estudante que registre a resposta de sua autoavaliação, consolidando uma 'fotografia' da turma
+5. Após algumas aulas, ORIENTE os estudantes para que respondam novamente à autoavaliação da mesma competência
+
+Observações Importantes
+- O desenvolvimento de competências socioemocionais nunca deve ser mensurado em nota
+- A rubrica visa dar suporte ao diálogo entre professores e estudantes
+- Não deve ser utilizada para justificar comportamentos passados nem para rotular alunos
+- As ações propostas na rubrica não são isoladas, mas fazem parte de um todo coerente
+
+Sugestões de Leitura
+- AVALIAÇÕES POR RUBRICAS: INTRODUÇÃO
+- CONHECENDO E APLICANDO RUBRICAS EM AVALIAÇÕES
+- AUTOAVALIAÇÃO RÁPIDA POR GRÁFICOS DE GRADAR
+- EARL, L. Assessment as learning: Using classroom assessment to maximize student learning. 2013
+
+6. OBSERVAÇÃO E REGISTRO EM SALA DE AULA
+Situações de Uso
+A prática de observação e registro, realizada de forma sistemática em sala de aula, tem por objetivo coletar evidências que indiquem o andamento do percurso escolar do estudante.
+
+Esse trabalho deve estar presente durante todo o processo de ensino, auxiliando na construção de uma documentação pedagógica que contribua ao avanço da aprendizagem, principalmente em competências relacionadas a autoconhecimento, pensamento crítico, argumentação e cultura digital.
+
+Avaliação Formativa como Coleta Contínua
+A avaliação formativa pode ser pensada com base em um processo contínuo de coleta de diferentes tipos de evidências:
+- Verificações informais da compreensão
+- Observações e diálogos
+- Testes e questionários
+- Comandos acadêmicos
+- Tarefas de desempenho
+
+Observações
+As observações podem ser de dois tipos: estruturadas ou não estruturadas.
+
+Observações Não Estruturadas
+São espontâneas, realizadas a cada aula ao longo do tempo. Capturam: dificuldade ou facilidade em realizar tarefas, interação entre estudantes, engajamento, disposição para participar, perfis de desempenho e personalidade, interesses, concentração ou dispersão.
+
+Observações Estruturadas
+Seguem critérios-chave consensuais que podem ser discutidos e compartilhados. Podem girar em torno de:
+- Roteiro geral de questionamentos sobre tema, conteúdo ou competência
+- Organização de temas, conteúdos ou competências com critérios de observação a partir de níveis de desempenho
+- Roteiro de perguntas abertas ou critérios gerais para reflexão docente
+
+Registros
+Há diversas estratégias e suportes para o registro formativo em sala de aula:
+
+REGISTROS DIÁRIOS: anotações em cadernos físicos ou digitais sobre pauta da aula, explicações, perguntas, hipóteses, exercícios
+REGISTROS DE SÍNTESE REFLEXIVA: definem ideia central de um debate e resumo de aula
+SUPORTES: murais em sala, cadernos digitais, lousa digital, aplicativos de escrita coletiva, formulários online
+
+Investigação
+- TABELA DE HIPÓTESES: estimula estudantes a monitorarem o avanço da aprendizagem a partir de hipóteses prévias
+- LEVANTAMENTO DE PERGUNTAS: inicia aula com perguntas dos alunos sobre o tema
+
+Síntese
+- MINUTO FINAL: redação curta após aula expositiva ou debate, resumindo pontos principais e expondo dúvidas
+- MANCHETE: construção de título e subtítulo que resumem o que foi estudado
+
+Balanço de Aprendizagem
+- AUTOAVALIAÇÃO COLETIVA: tabelas com registros de síntese em torno de tópicos
+- AUTOAVALIAÇÃO INDIVIDUAL: sistematização de ideias e conclusões
+- AUTOAVALIAÇÃO DE PÓS-ESCRITO: reflexão sobre o comprometimento com o tema
+- PERFIL DE ESTUDANTE: construção de perfil com pontos fortes e fracos
+- IDENTIFICAÇÃO DE ESTRATÉGIAS: reconhecimento de estratégias de aprendizagem positivas
+
+Avaliação de Aula
+Com as experiências de aula online e dos celulares com câmeras, tornou-se fácil gravá-las. Assisti-las com olhar crítico pode ser produtivo para avaliar oportunidades de melhoria:
+- Quais pontos você poderia explicar melhor?
+- Quais grupos de estudantes poderiam ser mais produtivos?
+- Quais estudantes requerem maior atenção e acompanhamento?
+- Que atividades podem ser aperfeiçoadas?
+
+Exemplos de Modelos de Observação Estruturada
+Roteiro de Perguntas Abertas para Professores
+COMPREENSÃO:
+- Os estudantes estão sabendo realizar autonomamente as tarefas propostas?
+- Há falta de clareza ou ansiedade?
+- É possível combinar com os estudantes que primeiro recorram aos colegas?
+
+CLIMA E PARTICIPAÇÃO:
+- Os estudantes sentem-se à vontade para participar?
+- Há espaço para experimentação e para errar?
+- O erro é experimentado como oportunidade de aprendizado?
+
+PERFIL DOS ESTUDANTES:
+- Quais são os talentos e paixões da turma?
+- Quantos estudantes são extrovertidos? E tímidos?
+- Há casos de inclusão? O que demandam de adaptação?
+
+Sugestões de Leitura
+- EARL, L. Assessment as learning. 2013
+- RUSSELL, M; AIRASIAN, P. Avaliação na Sala de aula. 2014
+- WIGGINS, G.; MCTIGHE, J. Planejamento para a compreensão. 2019
+
+7. PORTFÓLIO
+Conceito
+O portfólio é um instrumento que organiza, de modo visual, diferentes exemplos de trabalhos realizados. A partir de um conjunto de produtos desenvolvidos, busca-se organizar amostras de um percurso formativo que jogue luz sobre a progressão das capacidades desenvolvidas.
+
+Na educação básica, o portfólio vem se constituindo como poderoso instrumento avaliativo para professores e estudantes, cujo propósito é coletar e documentar evidências para acompanhar o processo de desenvolvimento de conhecimentos, habilidades e atitudes.
+
+Situações de Uso
+O portfólio pode ser elaborado em diferentes linguagens e suportes, tornando-se mais rico quando estruturado em modelos híbridos que articulam recursos visuais, textuais, áudio e vídeo.
+
+Funções do portfólio:
+- Documentação de processos e produtos desenvolvidos
+- Apresentação de resultados de sequência didática ou projeto específico
+- Incentivo à construção do diálogo entre estudantes e professores
+- Ampliação do repertório da turma a partir da observação da diversidade de registros
+- Reforço do propósito comunicativo dos trabalhos
+- Divulgação dos trabalhos significativos da turma
+- Organização de materiais para eventos de culminância
+- Abertura à singularidade de cada estudante
+- Reflexão sobre a continuidade dos processos de formação
+- Percepção de novos indicadores de qualidade da aprendizagem
+
+O que Contém
+Básico
+Conjunto de documentos que registrem momentos decisivos da aprendizagem individual e em grupo: textos explicativos, fotos com legendas, vídeos, áudios, painéis, produtos finais. O objetivo é propor uma organização que revele um percurso formativo com começo, meio e fim.
+
+Avançado
+Documentação pedagógica mais ampla, que inclui autoavaliações, balanços de aprendizagem e textos reflexivos que evidenciem que os estudantes leram e refletiram sobre seu próprio portfólio, compreendendo seu próprio desenvolvimento ao longo do tempo.
+
+Como Elaborar
+Definição de Suportes e Materiais
+FÍSICOS: cadernos, diários de bordo, livro, pasta-caderno, painéis ou murais
+DIGITAL: blog, site, e-book, vídeos, aplicativos digitais
+HÍBRIDOS: fotos de suporte físico, QR Codes, podcasts, vídeos
+
+Definição de Objetivos, Critérios e Processos
+- OBJETIVO: para que e para quem será apresentado? Quais objetivos de aprendizagem devem ser mobilizados?
+- CONTEÚDOS: quais temas serão abordados? Que tipo de produção textual envolverá?
+- CRITÉRIOS AVALIATIVOS: quais critérios observar no desempenho e no processo de elaboração?
+- TEMPO E PRAZO: durante quanto tempo será coletado material? Qual o prazo para elaboração?
+- PAPÉIS: como será a divisão de atribuições entre estudantes e professor?
+- POLÍTICA DE PRIVACIDADE: obter autorização dos pais e direitos de cessão de imagem
+
+Níveis de Reflexão sobre o Portfólio
+1. DESCRITIVA SIMPLES: foco no que, como e quando foi feito
+2. NARRATIVAS PRÁTICAS: ênfase nas habilidades e procedimentos
+3. NARRATIVAS CRÍTICAS: avaliação em relação aos objetivos propostos
+4. METACRÍTICAS/METACOGNITIVAS: avaliação crítica do próprio processo de elaboração
+
+Sugestões de Leitura
+- SHORE, Elisabeth; GRACE, Kathy. Manual de portfólio. 2001
+- WIGGINS, G.; MCTIGHE, J. Planejamento para a compreensão. 2019
+- CHAVES, Idália da Silva Carvalho Sá. Portfólios reflexivos. 2000
+- BLACK, P.; WILLIAN, D. Trabalhando por dentro da caixa preta. 2019

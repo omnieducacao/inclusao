@@ -1,0 +1,377 @@
+GUIA DE AVALIAÇÃO E MEDIAÇÕES PEDAGÓGICAS PARA RECOMPOSIÇÃO DAS APRENDIZAGENS
+Ministério da Educação (MEC), CONSED, UNDIME, Instituto Reúna
+Brasília, DF: MEC, 2025
+
+INTRODUÇÃO
+O Pacto Nacional pela Recomposição das Aprendizagens é uma estratégia crucial para enfrentar e mitigar as defasagens educacionais evidenciadas pelas avaliações do Saeb. Essas lacunas, exacerbadas pela pandemia de covid-19, têm sido aprofundadas por situações de emergência climática e outras adversidades.
+
+Este Guia surge como ferramenta estratégica para apoiar as redes estaduais, distritais e municipais no fortalecimento de políticas educacionais voltadas à recomposição das aprendizagens.
+
+Estrutura RAPID (Reinserir, Avaliar, Priorizar, Incrementar, Desenvolver) - Framework for Learning Recovery and Acceleration (UNESCO, UNICEF, Banco Mundial, 2023).
+
+Este Guia foca especificamente no eixo AVALIAR, com ênfase no uso pedagógico das avaliações diagnósticas, formativas e somativas.
+
+OBJETIVOS ESPECÍFICOS DO GUIA
+• Apresentar estratégias para apoiar iniciativas de avaliações de aprendizagem focadas em recomposição das aprendizagens
+• Apoiar a organização dos processos para aplicação das avaliações e análise dos resultados
+• Trazer sugestões de como organizar e viabilizar processos avaliativos e o uso pedagógico dos resultados
+
+ESTRUTURA DO GUIA:
+Parte A: Tipos de avaliação (diagnóstica, formativa e somativa)
+Parte B: Organização das avaliações (estruturação dos processos avaliativos)
+Parte C: Mediações pedagógicas e planejamento
+
+FUNDAMENTOS
+A avaliação é um elemento central no processo educacional, funcionando como mecanismo de diagnóstico, regulação e validação das aprendizagens. Segundo Luckesi (2011), 'avaliar é um ato amoroso, pois se preocupa em auxiliar o educando em seu processo de aprendizagem, respeitando suas condições e necessidades'.
+
+Avaliação no Contexto da Recomposição das Aprendizagens
+A avaliação e a recomposição das aprendizagens configuram-se como processos essenciais para assegurar que todos os estudantes avancem de maneira equitativa e significativa.
+
+A avaliação diagnóstica desempenha papel estratégico ao identificar lacunas no aprendizado e conhecimentos prévios dos estudantes, permitindo que o planejamento pedagógico seja fundamentado em dados concretos (Perrenoud, 1999).
+
+A recomposição das aprendizagens transcende a simples recuperação de conteúdos. Trata-se de um processo que envolve a retomada da confiança do estudante em sua capacidade de aprender, bem como o fortalecimento do engajamento escolar (Vygotsky, 1984).
+
+10 Recomendações Gerais para Organizar Avaliações
+1. Alinhamento com o referencial curricular reorganizado
+2. Planejamento de avaliações centralizadas com momentos de alinhamento
+3. Apresentação e contextualização da proposta à comunidade escolar
+4. Planejamento e acompanhamento pedagógico
+5. Preparação para aplicação das avaliações
+6. Engajamento da comunidade escolar
+7. Monitoramento e devolutiva
+8. Papel das equipes gestoras nas escolas
+9. Enfoque principal: avaliações diagnósticas e formativas
+10. Resultados e impactos esperados
+
+MODELOS DE AVALIAÇÃO: DIAGNÓSTICA, FORMATIVA E SOMATIVA
+Os diferentes tipos de avaliação apresentam características e funções complementares no processo educacional, formando um ciclo dinâmico que sustenta e aprimora o aprendizado.
+
+Avaliação Diagnóstica
+OBJETIVO: Identificar o estado atual das aprendizagens dos estudantes, mapeando conhecimentos prévios, lacunas e potenciais.
+MOMENTO: No início de um ciclo educacional, unidade de conhecimento ou período letivo.
+
+CARACTERÍSTICAS:
+• Fornece dados para planejamento em diferentes níveis: secretaria, gestão escolar e sala de aula
+• Instrumentos comuns: sondagens, testes de conhecimentos prévios, plataformas digitais, ciclos de atividades
+• Gera devolutivas que ajudam a ajustar práticas pedagógicas de forma construtiva e formativa
+
+CUIDADOS:
+• Primeiros dias de aula devem priorizar ambiente acolhedor, evitando testes precoces
+• Provas centralizadas devem ser complementadas por observações, discussões e entrevistas
+• Primeiras impressões devem ser tratadas como hipóteses a serem verificadas
+
+Avaliação Formativa
+OBJETIVO: Monitorar e acompanhar o progresso dos estudantes ao longo do processo de aprendizagem, oferecendo devolutivas frequentes.
+MOMENTO: De maneira contínua durante o ano letivo.
+
+INSTRUMENTOS E ESTRATÉGIAS:
+• Testes periódicos aplicados pela rede ou escola
+• Avaliações por rubricas
+• Projetos e atividades em sala
+• Quizzes e discussões
+• Questionamento direto e análise de erros com devolutiva imediata
+
+CUIDADOS:
+• Adotar estratégias simples como manter cadernos para registrar observações
+• Minimizar problemas de confiabilidade na observação de todos os estudantes
+• Usar rubricas avaliativas para documentar e analisar o desempenho
+
+Exemplo de Rubrica Avaliativa
+DIMENSÕES AVALIADAS:
+1. CONHECIMENTO: Nível 1 (não conseguiu), Nível 2 (com apoio), Nível 3 (autônomo)
+2. MOTIVAÇÃO: Nível 1 (sem motivação), Nível 2 (motivação parcial), Nível 3 (motivação alta)
+3. ESTRATÉGIAS: Nível 1 (sem organização), Nível 2 (organização parcial), Nível 3 (lógica de pensamento criada)
+
+Quizzes e Questionamento
+O questionamento é reconhecido como uma das estratégias mais eficazes para avaliar e promover o progresso da aprendizagem (Brookfield e Preskill, 2005).
+
+PERGUNTAS SUGERIDAS PARA ENCERRAMENTO DE AULA:
+• Quais foram as três principais ideias da aula de hoje?
+• Quais dúvidas surgiram durante a aula?
+
+EXEMPLO DE QUIZ: Ciclo da água e suas implicações (10 questões sobre mudanças de estado físico, evaporação, condensação, precipitação, impactos na agricultura e energia).
+
+Avaliação Somativa
+OBJETIVO: Identificar o desempenho final dos estudantes, oferecendo oportunidade justa de demonstrar o que aprenderam.
+MOMENTO: No final de um ciclo letivo.
+
+INSTRUMENTOS: Provas finais, trabalhos de conclusão, projetos avaliados, exames anuais da rede (Saeb).
+
+TRÊS CARACTERÍSTICAS ESSENCIAIS:
+1. Alinhamento com os objetivos de aprendizagem
+2. Amostra representativa do que foi ensinado
+3. Clareza e adequação aos procedimentos
+
+Ciclo Completo de Avaliação
+FLUXO DE ARTICULAÇÃO:
+1. AVALIAÇÃO DIAGNÓSTICA: Identifica o ponto de partida
+2. AVALIAÇÃO FORMATIVA: Acompanha o progresso e ajusta o ensino
+3. AVALIAÇÃO SOMATIVA: Mede o desempenho final
+4. REINÍCIO: Resultados informam novas avaliações diagnósticas
+
+BENEFÍCIOS DA ARTICULAÇÃO:
+• Adaptação do ensino conforme necessidades
+• Personalização do aprendizado
+• Melhora no desempenho
+• Devolutiva contínua
+
+PLANEJAMENTO AVALIATIVO
+O planejamento e a organização dos processos avaliativos requerem intencionalidade e articulação com as diretrizes curriculares.
+
+Etapas do Planejamento Avaliativo
+1. DIAGNÓSTICO INICIAL: Identificar lacunas e habilidades prioritárias (testes diagnósticos, observações, discussões)
+2. DEFINIÇÃO DE OBJETIVOS AVALIATIVOS: Específicos, mensuráveis, alinhados ao currículo
+3. SELEÇÃO DE INSTRUMENTOS AVALIATIVOS: Rubricas, provas diagnósticas, avaliações formativas, projetos
+4. ELABORAÇÃO DO CRONOGRAMA: Aplicação, análise e devolutiva dos resultados
+5. FORMAÇÃO CONTINUADA: Capacitação de gestores e professores
+
+Plano de Mediação Pedagógica com Base nos Resultados
+I. ANÁLISE DETALHADA DOS RESULTADOS: Identificar lacunas, grupos com desempenhos diferenciados, habilidades críticas
+II. PRIORIZAÇÃO DE HABILIDADES E COMPETÊNCIAS: Considerar objetivos essenciais e urgência das defasagens
+III. PLANEJAMENTO DAS AÇÕES DE INTERVENÇÃO: Estratégias diferenciadas, metodologias ativas, cronograma detalhado
+IV. FORMAÇÃO CONTINUADA DOS PROFESSORES: Interpretar dados, planejar ações, utilizar práticas inovadoras
+V. ENGAJAMENTO DA COMUNIDADE ESCOLAR: Gestores, famílias e estudantes
+VI. MONITORAMENTO E AVALIAÇÃO CONTÍNUOS: Revisar periodicamente os planos de ação
+
+ARTICULAÇÃO ENTRE CURRÍCULO E AVALIAÇÃO
+A articulação entre avaliação e currículo escolar é indispensável para garantir que os esforços pedagógicos sejam direcionados ao desenvolvimento de habilidades e conhecimentos essenciais.
+
+DUAS DIMENSÕES IMPORTANTES:
+1. Toda avaliação deve partir do currículo
+2. A avaliação deve informar e ajustar o próprio currículo
+
+Definição de Instrumentos e Cronogramas
+INSTRUMENTOS:
+• Rubricas, provas reflexivas, avaliações entre pares, autoavalações, portfólios
+• Avaliações em larga escala para dados amplos
+
+CRONOGRAMA: Deve prever datas de aplicação, correção, sistematização dos resultados, devolutivas e intervenções pedagógicas.
+
+PLATAFORMA DE AVALIAÇÃO: Plataforma de Avaliação para Recomposição das Aprendizagens nos Anos Finais (MEC).
+
+Rubrica de Acompanhamento da Implementação dos Processos Avaliativos
+A rubrica contribui para identificar ajustes necessários e fornece critérios claros que orientam as decisões sobre o alcance dos objetivos estabelecidos.
+
+CRITÉRIOS PARA AVALIAÇÃO DIAGNÓSTICA:
+• Reconhecimento e utilização
+• Comunicação e engajamento
+• Participação dos estudantes
+• Análise dos resultados
+• Devolutiva aos estudantes
+• Orientação e planejamento com base nos resultados
+
+CRITÉRIOS PARA AVALIAÇÃO FORMATIVA:
+• Planejamento e divulgação
+• Organização dos instrumentos formativos
+• Análise e planejamento das mediações pedagógicas
+• Devolutiva dos resultados
+
+MEDIAÇÕES PEDAGÓGICAS
+Mediações pedagógicas são intervenções intencionais e planejadas realizadas por educadores com o objetivo de promover, facilitar e sustentar a aprendizagem dos estudantes, considerando suas necessidades individuais e coletivas (Vygotsky, 1984).
+
+Características Fundamentais da Mediação Pedagógica
+• DIAGNÓSTICO CONTÍNUO: Identificar em tempo real as dificuldades enfrentadas pelos estudantes
+• RETORNO ESPECÍFICO: Feedback claro, detalhado e acionável
+• INTERVENÇÃO IMEDIATA: Ações rápidas e direcionadas baseadas nos dados
+• AJUSTE DO ENSINO: Adaptação de estratégias de ensino conforme necessidades detectadas
+• USO DE ESTRATÉGIAS DIFERENCIADAS: Grupos diferenciados, tutoria entre pares
+• FOCO NA AUTONOMIA: Desenvolvimento da metacognição e autorregulação (Flavell, 1979)
+
+Ciclo de Avaliação e Mediação Pedagógica
+O ciclo começa com o planejamento, envolvendo redes de ensino, escolas e professores, que definem objetivos, estratégias e instrumentos de avaliação. Após a execução das atividades e aplicação dos instrumentos, inicia-se a etapa de análise dos resultados.
+
+PERGUNTAS ESSENCIAIS PARA ANÁLISE:
+• Os objetivos de aprendizagem foram alcançados?
+• Quais habilidades ou conteúdos ainda apresentam lacunas?
+• Que práticas pedagógicas foram eficazes e quais necessitam de ajustes?
+
+TRÊS NÍVEIS INTERCONECTADOS DE MEDIAÇÃO:
+1. Da rede com as equipes gestoras das escolas: suporte técnico e diretrizes estratégicas
+2. Das equipes gestoras com os professores: formações e reuniões organizadas
+3. Dos professores com os estudantes: práticas pedagógicas personalizadas baseadas em dados
+
+Mediações Lideradas pelas Equipes Técnicas da Rede
+FASE 1 - DIAGNÓSTICO E SENSIBILIZAÇÃO: Mapear práticas avaliativas, sessões de estudo dos resultados, seminários
+FASE 2 - FORMAÇÃO TEÓRICA E PRÁTICA: Avaliação formativa, devolutiva efetiva, metodologias ativas
+FASE 3 - TROCA DE BOAS PRÁTICAS: Encontros regulares, grupos de trabalho
+FASE 4 - IMPLEMENTAÇÃO E ACOMPANHAMENTO: Comunidades de prática, observação de sala de aula
+FASE 5 - MONITORAMENTO E AVALIAÇÃO: Revisão dos planos de ação, ajustes contínuos
+FASE 6 - SUSTENTABILIDADE E EXPANSÃO: Formação de novos líderes pedagógicos
+
+Estratégias Práticas para Avaliação e Mediação
+MAPAS DE PROGRESSO E GRÁFICOS VISUAIS: Ferramentas que tornam o aprendizado tangível e visível
+DEVOLUTIVA IMEDIATA E ESPECÍFICA: Orientações contínuas e práticas para melhorias (Hattie e Timperley, 2007)
+GRUPOS DE APOIO PERSONALIZADOS: Foco em estudantes que enfrentam dificuldades específicas
+METODOLOGIAS ATIVAS: Rotação por estações, projetos colaborativos (Barron e Darling-Hammond, 2008)
+AUTOAVALIAÇÃO E METACOGNIÇÃO: Reflexão sobre o próprio aprendizado (Andrade e Valtcheva, 2009)
+TUTORIA ENTRE PARES: Estudantes avançados ajudam colegas (Topping, 2005)
+
+MONITORAMENTO E AVALIAÇÃO DE IMPACTO
+Indicadores de impacto são métricas que avaliam os resultados das políticas e ações educacionais, focando o efeito dessas intervenções na aprendizagem, na equidade e na eficiência do sistema educacional.
+
+Principais Indicadores de Impacto
+A. DESEMPENHO ACADÊMICO: Provas padronizadas (Saeb, Ideb, Pisa)
+B. TAXAS DE ACESSO E PERMANÊNCIA: Matrícula, frequência, evasão, abandono escolar
+C. EQUIDADE NA APRENDIZAGEM: Redução de disparidades (gênero, raça, localização geográfica, condições socioeconômicas)
+D. EFICIÊNCIA DO SISTEMA EDUCACIONAL: Taxas de aprovação e progressão
+E. SATISFAÇÃO E ENGAJAMENTO: Percepções de estudantes, professores e famílias
+
+Etapas para Transformar Indicadores em Melhorias
+I. DEFINIÇÃO DE METAS: Metas SMART (específicas, mensuráveis, atingíveis, relevantes, temporais)
+II. COLETA E ANÁLISE DE DADOS: Utilizar sistemas de monitoramento (Sima)
+III. ALOCAÇÃO DE RECURSOS: Direcionar recursos para áreas de maior necessidade
+IV. FORMAÇÃO CONTINUADA: Capacitar gestores, coordenadores e professores
+V. IMPLEMENTAÇÃO DE AÇÕES: Estratégias personalizadas para cada escola ou rede
+VI. MONITORAMENTO E AVALIAÇÃO CONTÍNUOS: Revisar periodicamente os planos de ação
+
+ANEXOS
+Anexo 1 - Rubrica de Acompanhamento dos Processos Avaliativos
+AVALIAÇÃO DIAGNÓSTICA:
+
+RECONHECIMENTO E UTILIZAÇÃO:
+INSUFICIENTE: Avaliação reconhecida como ação promovida pela secretaria, sem relação com planejamento
+ADEQUADO: Reconhecida como ferramenta estratégica, ponto de partida para planejamento e referência para formativas
+EXCELENTE: Reconhecida como ferramenta estratégica que estabelece linha de base e aponta fragilidades para formação continuada
+
+COMUNICAÇÃO E ENGAJAMENTO:
+INSUFICIENTE: Equipe gestora conhece cronograma e divulga
+ADEQUADO: Divulgação para comunidade escolar com estratégias diversificadas de mobilização
+EXCELENTE: Divulgação com estratégias diversificadas explicando objetivos e importância da avaliação
+
+PARTICIPAÇÃO DOS ESTUDANTES:
+INSUFICIENTE: Participação de pelo menos 50%
+ADEQUADO: Participação de pelo menos 70%
+EXCELENTE: Participação superior a 90%
+
+ANÁLISE DOS RESULTADOS:
+INSUFICIENTE: Orientação sobre como acessar e verificar resultados
+ADEQUADO: Orientação e acompanhamento para acesso e análise coletiva
+EXCELENTE: Reuniões formativas para acessar e analisar conjuntamente com objetivo de planejar ações
+
+DEVOLUTIVA AOS ESTUDANTES:
+INSUFICIENTE: Devolutivas genéricas sobre desempenho
+ADEQUADO: Devolutivas específicas sobre habilidades a serem desenvolvidas
+EXCELENTE: Devolutivas detalhadas e personalizadas com orientações claras e recursos adicionais
+
+ORIENTAÇÃO E PLANEJAMENTO:
+INSUFICIENTE: Momentos de análise para elaboração de planos de aulas
+ADEQUADO: Análise para identificar defasagens e orientar replanejamento
+EXCELENTE: Análise para identificar defasagens, orientar replanejamento e elaborar estratégias de recomposição
+
+AVALIAÇÃO FORMATIVA:
+
+PLANEJAMENTO E DIVULGAÇÃO:
+INSUFICIENTE: Organização do cronograma e divulgação aos professores
+ADEQUADO: Cronograma de acordo com orientações da secretaria, divulgação e mobilização
+EXCELENTE: Cronograma para todo o período letivo, reunião para explicar importância e objetivos, divulgação ampla
+
+ORGANIZAÇÃO DOS INSTRUMENTOS:
+INSUFICIENTE: Organizado tendo em vista aprendizagens do currículo reorganizado
+ADEQUADO: Organizado tendo em vista aprendizagens e resultados da avaliação diagnóstica
+EXCELENTE: Organizado tendo em vista aprendizagens, resultados da diagnóstica e retroalimentação dos dados coletados
+
+ANÁLISE E PLANEJAMENTO DAS MEDIAÇÕES:
+INSUFICIENTE: Orientação sobre acesso e utilização para planejar mediações
+ADEQUADO: Orientação e acesso com professores, discussão e planejamento de mediações
+EXCELENTE: Análise detalhada por turma/estudante, planejamento de mediações personalizadas e comparação de defasagens
+
+DEVOLUTIVAS DOS RESULTADOS:
+INSUFICIENTE: Resultados apresentados para identificar defasagens
+ADEQUADO: Resultados compartilhados periodicamente com reuniões para discussão de causas e estratégias
+EXCELENTE: Resultados compartilhados com discussão de causas, possibilidades de atuação da família, motivação e estratégias personalizadas
+
+Anexo 2 - Mapa de Progresso
+COMO FAZER UM MAPA DE PROGRESSO:
+
+1. DEFINIR OS OBJETIVOS DO MAPA: Quais habilidades serão monitoradas? Para quais estudantes? Qual período de acompanhamento?
+2. SELECIONAR AS HABILIDADES: Com base no currículo, BNCC ou Mapas de foco do Instituto Reúna
+3. DETERMINAR OS NÍVEIS DE PROGRESSO: Iniciante, Desenvolvendo, Satisfatório, Avançado
+4. PLANEJAR A ESTRUTURA DO MAPA: Tabela com habilidades, níveis e comentários/ações recomendadas
+5. DEFINIR INSTRUMENTOS DE AVALIAÇÃO: Atividades que ajudarão a avaliar cada habilidade
+6. COLETAR E REGISTRAR OS DADOS: Aplicar instrumentos e registrar resultados
+7. REVISAR E ATUALIZAR O MAPA REGULARMENTE: Atualizar em ciclos definidos
+
+EXEMPLO DE MAPA PARA 6º ANO (LÍNGUA PORTUGUESA):
+• EF67LP02: Identificar tema principal de textos
+• EF67LP05: Inferir informações implícitas
+• EF67LP19: Produzir textos narrativos
+• EF67LP27: Aplicar regras de ortografia e pontuação
+
+COMO CADA ATOR PODE USAR O MAPA:
+TÉCNICO DA SECRETARIA: Análise global dos dados, planejamento de intervenções, monitoramento de metas, suporte aos gestores
+GESTOR ESCOLAR: Diagnóstico escolar, planejamento de ações coletivas, acompanhamento individual, feedback e reconhecimento
+PROFESSOR: Planejamento de aulas, formação de grupos diferenciados, monitoramento contínuo, devolutiva aos estudantes
+
+Anexo 3 - Plano de Mediação de Língua Portuguesa (9º ano)
+DIAGNÓSTICO: 16% dos estudantes apresentam defasagem significativa
+
+HABILIDADES PRIORITÁRIAS:
+• EF89LP03: Analisar posição de enunciadores em textos argumentativos
+• EF89LP04: Inferir informações implícitas em textos argumentativos e narrativos
+• EF89LP19: Planejar e produzir textos argumentativos e opinativos
+
+ESTRATÉGIAS:
+• Organização por níveis de defasagem (Grupo 1 - Defasagem, Grupo 2 - Intermediário, Grupo 3 - Avançado)
+• Metodologias ativas: rodas de leitura, debates, projetos de escrita colaborativa
+• Uso de tecnologias: plataformas digitais, ferramentas online
+
+ACOMPANHAMENTO:
+• Avaliações formativas semanais
+• Feedback individualizado
+• Observação direta
+
+Anexo 4 - Plano de Mediação de Matemática (7º ano)
+CONCEITOS PREGRESSOS: Habilidades adquiridas em etapas anteriores que servem de base para novas aprendizagens
+
+DADOS DA REDE X (Ciclo II - 2024):
+• 527.021 estudantes do 7º ano realizaram a avaliação
+• Distribuição nacional: 46% Defasagem, 32% Intermediário, 22% Adequado
+• Distribuição Rede X: 31% Defasagem, 37% Intermediário, 32% Adequado
+
+EXEMPLO DE HABILIDADE CRÍTICA: 7EF06_M - Utilizar proporcionalidade inversa entre duas grandezas
+• Percentual de acerto nacional: 31%
+• Percentual de acerto Rede X: 35%
+
+HABILIDADES PREGRESSAS A RETOMAR:
+• EF06MA14: Resolver problemas de partilha em duas partes desiguais
+• EF06MA15: Resolver problemas de partilha envolvendo razão
+
+PLANEJAMENTO SUGERIDO (6 aulas - 50 min cada):
+Aulas 1-3: Retomar habilidades pregressas (razão entre partes)
+Aulas 4-6: Proporcionalidade direta e inversa, aplicação em contextos reais
+
+ESTRATÉGIAS DE MEDIAÇÃO:
+• Aula invertida: vídeo curto + atividades preparadas + discussão em grupo
+• Tarefas com níveis de complexidade diferentes
+• Roda de conversa final com metacognição
+
+Anexo 5 - Hyperlinks e Endereços
+• Acompanhamento pedagógico: https://educacional.com.br/praticas-pedagogicas/acompanhamento-pedagogico/
+• Guia de acompanhamento pedagógico (CENPRE): https://drive.google.com/drive/u/0/folders/1tHmp8NRhT-ZgcQwYhYKDyEwj-mBeImVzU
+• Plataforma de Avaliação Anos Finais: https://avaliacao-aprendizagensanosfinais.mec.gov.br/
+• Portal do Professor MEC: http://portaldoprofessor.mec.gov.br/
+• Planos de aula Nova Escola: https://novaescola.org.br/planos-de-aula/
+
+REFERÊNCIAS BIBLIOGRÁFICAS
+ALARCÃO, Isabel. Professores reflexivos em uma escola reflexiva. São Paulo: Cortez, 2011.
+ANDRADE, Heidi; VALTCHEVA, Anna. Promoting Learning and Achievement Through Self-Assessment. Theory Into Practice, 2009.
+BARRON, B.; DARLING-HAMMOND, L. Teaching for meaningful learning. Jossey-Bass, 2008.
+BLACK, P.; WILIAM, D. Inside the Black Box: Raising Standards Through Classroom Assessment. London: GL Assessment, 1998.
+BRASIL. Ministério da Educação. Base Nacional Comum Curricular (BNCC). Brasília: MEC, 2018.
+BROOKFIELD, S.; PRESKILL, S. Discussion as a Way of Teaching. Jossey-Bass, 2005.
+BROOKHART, S. M. How to Give Effective Feedback to Your Students. Alexandria: ASCD, 2017.
+FLAVELL, J. H. Metacognition and Cognitive Monitoring. American Psychologist, 1979.
+FREIRE, P. Pedagogia da autonomia. São Paulo: Paz e Terra, 1996.
+HATTIE, J.; TIMPERLEY, H. The Power of Feedback. Review of Educational Research, 2007.
+HOFFMANN, Jussara. Avaliação mediadora. Porto Alegre: Mediação, 2005.
+LUCKESI, C. C. Avaliação da aprendizagem escolar. São Paulo: Cortez, 2011.
+MOREIRA, Antonio Flávio Barbosa. Currículos e programas no Brasil. Campinas: Papirus, 1990.
+PERRENOUD, P. Avaliação formativa e sucesso dos alunos. Porto Alegre: Artmed, 1999.
+POPHAM, W. J. What's Wrong and What's Right with Rubrics. Educational Leadership, 1997.
+SACRISTÁN, J. G. Currículo: uma reflexão sobre a prática. Porto Alegre: Artmed, 2000.
+SÁNCHEZ, A. et al. Learning Recovery to Acceleration. World Bank Group, 2023.
+STENHOUSE, Lawrence. An introduction to curriculum research and development. London: Heinemann, 1975.
+STIGGINS, R. Student-Involved Classroom Assessment. Merrill/Prentice Hall, 2004.
+TOPPING, K. J. Trends in Peer Learning. Educational Psychology, 2005.
+TYLER, R. W. Basic Principles of Curriculum and Instruction. Chicago: University of Chicago Press, 1949.
+VYGOTSKY, L. S. A formação social da mente. São Paulo: Martins Fontes, 1984.

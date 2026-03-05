@@ -4,7 +4,8 @@ import { ESCALA_OMNISFERA, NivelOmnisfera } from "@/lib/omnisfera-types";
 
 /**
  * Visual rubric guide for level attribution.
- * Shows all 5 Omnisfera levels with support level, description, and recommended instrument.
+ * Shows all 5 Omnisfera levels with support level, description, recommended instrument,
+ * AND the corresponding qualitative level (Guia MEC) with score range.
  * Highlights the currently selected level.
  */
 
@@ -22,6 +23,18 @@ const LEVEL_COLORS: Record<NivelOmnisfera, { bg: string; border: string; text: s
     4: { bg: "rgba(99,102,241,.06)", border: "rgba(99,102,241,.25)", text: "#6366f1", gradient: "linear-gradient(135deg, #4f46e5, #6366f1)" },
 };
 
+/**
+ * Mapping Omnisfera levels → Guia MEC qualitative levels (aligned thresholds).
+ * Thresholds: <25%=0, 25-49%=1, 50-69%=2, 70-89%=3, ≥90%=4
+ */
+const NIVEL_QUALITATIVO: Record<NivelOmnisfera, { label: string; faixa: string; grupo: string }> = {
+    0: { label: "Em Processo", faixa: "<25%", grupo: "Defasagem" },
+    1: { label: "Em Processo", faixa: "25–49%", grupo: "Defasagem" },
+    2: { label: "Razoável", faixa: "50–69%", grupo: "Intermediário" },
+    3: { label: "Adequado", faixa: "70–89%", grupo: "Avançado" },
+    4: { label: "Avançado", faixa: "≥90%", grupo: "Avançado+" },
+};
+
 export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnisferaProps) {
     const levels = [0, 1, 2, 3, 4] as NivelOmnisfera[];
 
@@ -35,12 +48,13 @@ export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnis
                 {levels.map(n => {
                     const c = LEVEL_COLORS[n];
                     const esc = ESCALA_OMNISFERA[n];
+                    const nq = NIVEL_QUALITATIVO[n];
                     const selected = nivelAtual === n;
                     return (
                         <button
                             key={n}
                             onClick={() => onSelect?.(n)}
-                            title={`${esc.label}: ${esc.descricao}`}
+                            title={`${esc.label}: ${esc.descricao} | ${nq.label} (${nq.faixa})`}
                             style={{
                                 flex: 1, minWidth: 70, padding: "8px 6px", borderRadius: 10,
                                 border: selected ? `2px solid ${c.text}` : `1px solid ${c.border}`,
@@ -61,6 +75,7 @@ export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnis
                                 {n}
                             </div>
                             <div style={{ fontSize: 10, fontWeight: 700, color: c.text }}>{esc.label}</div>
+                            <div style={{ fontSize: 8, color: c.text, opacity: .7 }}>{nq.faixa}</div>
                         </button>
                     );
                 })}
@@ -81,12 +96,13 @@ export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnis
                 fontSize: 12, fontWeight: 700, color: "var(--text-primary)",
                 display: "flex", alignItems: "center", gap: 6,
             }}>
-                📊 Rubrica de Correção — Escala Omnisfera
+                📊 Rubrica de Correção — Escala Omnisfera + Guia MEC
             </div>
             <div style={{ padding: 0 }}>
                 {levels.map(n => {
                     const c = LEVEL_COLORS[n];
                     const esc = ESCALA_OMNISFERA[n];
+                    const nq = NIVEL_QUALITATIVO[n];
                     const selected = nivelAtual === n;
 
                     return (
@@ -118,7 +134,7 @@ export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnis
 
                             {/* Content */}
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2, flexWrap: "wrap" }}>
                                     <span style={{ fontSize: 13, fontWeight: 700, color: selected ? c.text : "var(--text-primary)" }}>
                                         {esc.label}
                                     </span>
@@ -128,12 +144,25 @@ export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnis
                                     }}>
                                         {esc.suporte_correspondente}
                                     </span>
+                                    {/* MEC qualitative level badge */}
+                                    <span style={{
+                                        fontSize: 8, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
+                                        background: `${c.text}10`, color: c.text, border: `1px solid ${c.border}`,
+                                        letterSpacing: ".3px", textTransform: "uppercase",
+                                    }}>
+                                        {nq.label} • {nq.faixa}
+                                    </span>
                                 </div>
                                 <div style={{ fontSize: 12, color: "var(--text-secondary, #94a3b8)", lineHeight: 1.5 }}>
                                     {esc.descricao}
                                 </div>
-                                <div style={{ fontSize: 10, color: "var(--text-muted, #64748b)", marginTop: 4, fontStyle: "italic" }}>
-                                    🔧 {esc.instrumento_recomendado}
+                                <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap", alignItems: "center" }}>
+                                    <span style={{ fontSize: 10, color: "var(--text-muted, #64748b)", fontStyle: "italic" }}>
+                                        🔧 {esc.instrumento_recomendado}
+                                    </span>
+                                    <span style={{ fontSize: 9, color: c.text, opacity: .6 }}>
+                                        | Grupo: {nq.grupo}
+                                    </span>
                                 </div>
                             </div>
                         </div>
