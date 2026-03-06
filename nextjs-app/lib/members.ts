@@ -146,6 +146,7 @@ export async function createMember(
     telefone: (input.telefone || "").trim() || null,
     cargo: (input.cargo || "").trim() || null,
     password_hash: ph,
+    active: true,
     can_estudantes: input.can_estudantes ?? false,
     can_pei: input.can_pei ?? false,
     can_pei_professor: input.can_pei_professor ?? false,
