@@ -156,10 +156,22 @@ export async function POST(req: Request) {
     });
     const instrucaoImagem = gerarInstrucaoImagemParaPrompt(decisaoImagem);
 
+    // Use BNCC cognitive level if available, otherwise derive from Omnisfera
+    const nivelCognitivoFinal = hab.nivel_cognitivo_saeb || nivelCognitivo;
+
     const dificuldadeMap: Record<string, string> = {
-        facil: `Nível fácil — suporte simples, distratores mais óbvios, verbo cognitivo básico (identificar, reconhecer)`,
-        medio: `Nível médio — suporte moderado, distratores plausíveis, verbo cognitivo intermediário (comparar, classificar)`,
-        dificil: `Nível difícil — suporte complexo, distratores sutis, verbo cognitivo avançado (analisar, avaliar)`,
+        facil: `Nível fácil (SAEB Nível I) — Avalia reconhecimento e localização de informação explícita.
+  Verbo: identificar, reconhecer, localizar.
+  Distratores: devem representar erros de leitura superficial, confusão entre dados adjacentes.
+  Exige texto-base com informação direta.`,
+        medio: `Nível médio (SAEB Nível II-III) — Avalia inferência, comparação e relação entre elementos.
+  Verbo: comparar, classificar, inferir, relacionar.
+  Distratores: devem representar erros de inferência parcial, generalização indevida, confusão causa-efeito.
+  Exige cenário contextualizado que requeira operação cognitiva intermediária.`,
+        dificil: `Nível difícil (SAEB Nível III-IV) — Avalia análise crítica, síntese e avaliação.
+  Verbo: analisar, avaliar, justificar, argumentar.
+  Distratores: devem ser plausíveis e representar raciocínios parcialmente corretos mas com falha lógica.
+  Exige cenário complexo com múltiplas variáveis ou texto-base extendido.`,
     };
 
     const planoContext = plano_ensino_contexto
@@ -182,16 +194,23 @@ Esta é a questão ${numero_questao} de ${total_questoes} da avaliação.
 HABILIDADE BNCC A AVALIAR:
 [${hab.codigo}] ${hab.disciplina} — ${hab.unidade_tematica} / ${hab.objeto_conhecimento}
 "${hab.habilidade}"
-Nível Cognitivo SAEB: ${hab.nivel_cognitivo_saeb || nivelCognitivo}
+Nível Cognitivo SAEB da matriz: ${nivelCognitivoFinal}
 
 DIFICULDADE DESTA QUESTÃO: ${dificuldadeMap[nivel_dificuldade] || dificuldadeMap.medio}
+
+## RIGOR E QUALIDADE (OBRIGATÓRIO)
+- A questão DEVE avaliar a habilidade BNCC descrita, não ser genérica.
+- O nível de complexidade DEVE corresponder ao ano/série (${serie}).
+- Adaptações NEE NÃO significam simplificar o conteúdo — significam torná-lo acessível (linguagem clara, suporte visual) mantendo a exigência curricular.
+- Distratores DEVEM representar erros cognitivos REAIS da faixa etária, não opções absurdas.
+- O texto-base/enunciado deve ser suficiente para responder SEM conhecimento prévio externo.
 
 GABARITO DEFINIDO PELO SISTEMA: A resposta correta DEVE estar na letra ${gabarito_definido}.
 Organize as alternativas para que a resposta correta esteja na posição ${gabarito_definido}.
 ${planoContext}
 
 ESTRUTURA OBRIGATÓRIA (Guia CAEd/UFJF):
-1. ENUNCIADO: instrução clara (máx. 2 sentenças) + TEXTO DE APOIO COMPLETO quando necessário
+1. ENUNCIADO: instrução clara + TEXTO DE APOIO COMPLETO quando necessário
    - Se a questão precisa de um trecho de leitura, problema contextualizado, ou cenário: INCLUA NO ENUNCIADO
    - O enunciado DEVE conter TODO o texto que o estudante precisa ler
    - NÃO delegue o texto ao suporte_visual — suporte_visual é SÓ para IMAGENS

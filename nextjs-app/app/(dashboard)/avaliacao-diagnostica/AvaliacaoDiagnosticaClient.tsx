@@ -1143,9 +1143,9 @@ export default function AvaliacaoDiagnosticaClient() {
                             </div>
                         )}
 
-                        {/* Habilidades da Matriz de Referência */}
+                        {/* Habilidades da Matriz de Referência — auto-expandido */}
                         {matrizHabs.length > 0 && (
-                            <div className={cardS}>
+                            <div className={cardS} style={{ border: "1.5px solid rgba(99,102,241,.2)" }}>
                                 <div className={headerS} style={{ background: "rgba(99,102,241,.05)" }}>
                                     <Layers size={16} style={{ color: "#818cf8" }} />
                                     <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>Habilidades da Matriz de Referência</span>
@@ -1478,10 +1478,10 @@ export default function AvaliacaoDiagnosticaClient() {
                                             [gabaritos[i], gabaritos[j]] = [gabaritos[j], gabaritos[i]];
                                         }
 
-                                        // ── Distribuir dificuldade progressiva ──
+                                        // ── Distribuir dificuldade progressiva (25% fácil, 50% médio, 25% difícil) ──
                                         const dificuldades = fila.map((_, i) => {
                                             const pct = i / (fila.length - 1 || 1);
-                                            return pct < 0.33 ? 'facil' : pct < 0.67 ? 'medio' : 'dificil';
+                                            return pct < 0.2 ? 'facil' : pct < 0.75 ? 'medio' : 'dificil';
                                         });
 
                                         setProgressoGeracao({ atual: 0, total: fila.length, status: 'gerando' });
@@ -1522,6 +1522,14 @@ export default function AvaliacaoDiagnosticaClient() {
                                                 const questao = data.questao || {};
                                                 questao._numero = i + 1;
                                                 questao._gabarito_esperado = gabaritos[i];
+                                                // Store full habilidade text from BNCC for display
+                                                if (data.habilidade?.habilidade) {
+                                                    questao._habilidadeTexto = data.habilidade.habilidade;
+                                                }
+                                                // Store instrucao_aplicacao_professor into instrucao_professor
+                                                if (questao.instrucao_aplicacao_professor && !questao.instrucao_professor) {
+                                                    questao.instrucao_professor = questao.instrucao_aplicacao_professor;
+                                                }
                                                 questoesGeradas.push(questao);
                                                 setQuestoesIndividuais([...questoesGeradas]);
 
@@ -2026,6 +2034,8 @@ export default function AvaliacaoDiagnosticaClient() {
                                 const qNum = q._numero || idx + 1;
                                 const imgUrl = mapaImagensResultado[qNum] || q._imagemUrl;
                                 const hab = q.habilidade_bncc_ref || q._habilidade || '';
+                                const habTexto = q._habilidadeTexto || q.habilidade_texto || '';
+                                const analiseDistratores = q.analise_distratores as Record<string, string> | undefined;
                                 const sv = q.suporte_visual;
                                 const isError = Boolean(q._erro);
                                 const isRegenerating = q._refazendo || false;
@@ -2062,8 +2072,14 @@ export default function AvaliacaoDiagnosticaClient() {
                                                         padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700,
                                                         background: "rgba(99,102,241,.08)", color: "#6366f1",
                                                         border: "1px solid rgba(99,102,241,.15)",
-                                                        maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                                                     }}>{hab}</span>
+                                                )}
+                                                {q.nivel_bloom && (
+                                                    <span style={{
+                                                        padding: "2px 7px", borderRadius: 5, fontSize: 9, fontWeight: 700,
+                                                        background: "rgba(168,85,247,.08)", color: "#a855f7",
+                                                        border: "1px solid rgba(168,85,247,.15)",
+                                                    }}>{q.nivel_bloom}</span>
                                                 )}
                                                 {q.gabarito && (
                                                     <span style={{
@@ -2286,6 +2302,18 @@ export default function AvaliacaoDiagnosticaClient() {
                                                 </div>
                                             ) : (
                                                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                                                    {/* Habilidade BNCC texto completo */}
+                                                    {habTexto && (
+                                                        <div style={{
+                                                            padding: "6px 10px", borderRadius: 8,
+                                                            background: "rgba(99,102,241,.03)",
+                                                            border: "1px solid rgba(99,102,241,.08)",
+                                                            fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5,
+                                                        }}>
+                                                            📚 <strong>Habilidade:</strong> {habTexto}
+                                                        </div>
+                                                    )}
+
                                                     {/* Enunciado */}
                                                     {q.enunciado && (
                                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "var(--text-primary)", margin: 0 }}>
@@ -2318,33 +2346,47 @@ export default function AvaliacaoDiagnosticaClient() {
                                                         </div>
                                                     )}
 
-                                                    {/* Alternativas */}
+                                                    {/* Alternativas + Distratores */}
                                                     {q.alternativas && (
                                                         <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
                                                             {Object.entries(q.alternativas as Record<string, string>).map(([letra, texto]) => {
                                                                 const isCorrect = letra === q.gabarito;
+                                                                const distratorInfo = analiseDistratores?.[letra];
                                                                 return (
                                                                     <div key={letra} style={{
-                                                                        display: "flex", alignItems: "flex-start", gap: 8,
+                                                                        display: "flex", flexDirection: "column",
                                                                         padding: "8px 12px", borderRadius: 8,
                                                                         background: isCorrect ? "rgba(16,185,129,.06)" : "transparent",
                                                                         border: isCorrect ? "1px solid rgba(16,185,129,.2)" : "1px solid var(--border-default, rgba(148,163,184,.08))",
                                                                     }}>
-                                                                        <span style={{
-                                                                            fontWeight: isCorrect ? 800 : 600, fontSize: 13,
-                                                                            color: isCorrect ? "#10b981" : "var(--text-primary)",
-                                                                            minWidth: 20,
-                                                                        }}>
-                                                                            {letra})
-                                                                        </span>
-                                                                        <span style={{
-                                                                            fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6,
-                                                                            fontWeight: isCorrect ? 600 : 400,
-                                                                        }}>
-                                                                            {texto}
-                                                                        </span>
-                                                                        {isCorrect && (
-                                                                            <CheckCircle2 size={14} style={{ color: "#10b981", marginLeft: "auto", flexShrink: 0 }} />
+                                                                        <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                                                                            <span style={{
+                                                                                fontWeight: isCorrect ? 800 : 600, fontSize: 13,
+                                                                                color: isCorrect ? "#10b981" : "var(--text-primary)",
+                                                                                minWidth: 20,
+                                                                            }}>
+                                                                                {letra})
+                                                                            </span>
+                                                                            <span style={{
+                                                                                fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6,
+                                                                                fontWeight: isCorrect ? 600 : 400, flex: 1,
+                                                                            }}>
+                                                                                {texto}
+                                                                            </span>
+                                                                            {isCorrect && (
+                                                                                <CheckCircle2 size={14} style={{ color: "#10b981", flexShrink: 0, marginTop: 3 }} />
+                                                                            )}
+                                                                        </div>
+                                                                        {/* Análise do distrator — visível para o professor */}
+                                                                        {distratorInfo && (
+                                                                            <div style={{
+                                                                                marginTop: 4, marginLeft: 28,
+                                                                                fontSize: 10, lineHeight: 1.4,
+                                                                                color: isCorrect ? "#059669" : "#94a3b8",
+                                                                                fontStyle: "italic",
+                                                                            }}>
+                                                                                {isCorrect ? "✅ Resposta correta" : `⚡ ${distratorInfo}`}
+                                                                            </div>
                                                                         )}
                                                                     </div>
                                                                 );
