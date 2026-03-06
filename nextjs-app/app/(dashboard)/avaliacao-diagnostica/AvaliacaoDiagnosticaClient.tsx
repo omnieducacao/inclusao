@@ -432,33 +432,41 @@ export default function AvaliacaoDiagnosticaClient() {
         const gradeAnterior = Math.max(gradeNum - 1, 1);
         const serieNameAnterior = `EF${gradeAnterior}`;
 
+        console.log('[Diagnóstica] Fetching matriz:', disciplina, 'serie:', serieNameAnterior, 'grade:', aluno.grade);
         fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}&serie=${serieNameAnterior}`)
             .then(r => r.json())
             .then(data => {
+                console.log('[Diagnóstica] Matriz result (ano anterior):', data.total, 'habs, source:', data.source);
                 const habs = data.habilidades || [];
                 if (habs.length > 0) {
-                    setMatrizHabs(habs);
+                    setMatrizHabs(habs.slice(0, 40));
                 } else {
                     // Fallback: buscar BNCC do ano atual quando o ano anterior não tem dados
                     const serieAtual = `EF${gradeNum}`;
+                    console.log('[Diagnóstica] Fallback 1: serie atual', serieAtual);
                     fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}&serie=${serieAtual}`)
                         .then(r2 => r2.json())
                         .then(d2 => {
+                            console.log('[Diagnóstica] Fallback 1 result:', d2.total, 'habs, source:', d2.source);
                             const habs2 = d2.habilidades || [];
                             if (habs2.length > 0) {
-                                setMatrizHabs(habs2);
+                                setMatrizHabs(habs2.slice(0, 40));
                             } else {
                                 // Último fallback: buscar só por disciplina, sem filtro de série
+                                console.log('[Diagnóstica] Fallback 2: sem série');
                                 fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}`)
                                     .then(r3 => r3.json())
-                                    .then(d3 => setMatrizHabs((d3.habilidades || []).slice(0, 30)))
-                                    .catch(() => { });
+                                    .then(d3 => {
+                                        console.log('[Diagnóstica] Fallback 2 result:', d3.total, 'habs, source:', d3.source);
+                                        setMatrizHabs((d3.habilidades || []).slice(0, 40));
+                                    })
+                                    .catch(err => console.error('[Diagnóstica] Fallback 2 error:', err));
                             }
                         })
-                        .catch(() => { });
+                        .catch(err => console.error('[Diagnóstica] Fallback 1 error:', err));
                 }
             })
-            .catch(() => { });
+            .catch(err => console.error('[Diagnóstica] Matrix fetch error:', err));
     }, [loadExistingAvaliacao, momentoDiagnostica]);
 
     const goBack = () => {
@@ -1143,85 +1151,159 @@ export default function AvaliacaoDiagnosticaClient() {
                             </div>
                         )}
 
-                        {/* Habilidades da Matriz de Referência — auto-expandido */}
-                        {matrizHabs.length > 0 && (
-                            <div className={cardS} style={{ border: "1.5px solid rgba(99,102,241,.2)" }}>
-                                <div className={headerS} style={{ background: "rgba(99,102,241,.05)" }}>
+                        {/* Habilidades da Matriz BNCC — sempre visível */}
+                        <div className={cardS} style={{ border: "1.5px solid rgba(99,102,241,.2)" }}>
+                            <div className={headerS} style={{ background: "rgba(99,102,241,.05)", justifyContent: "space-between" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                     <Layers size={16} style={{ color: "#818cf8" }} />
-                                    <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>Habilidades da Matriz de Referência</span>
-                                    <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "auto" }}>
+                                    <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>Habilidades BNCC para Avaliação</span>
+                                </div>
+                                {matrizHabs.length > 0 && (
+                                    <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
                                         {habsSelecionadas.length} de {matrizHabs.length} selecionadas
                                     </span>
-                                </div>
-                                <div className={`${bodyS} max-h-[260px] overflow-y-auto`}>
-                                    {momentoDiagnostica === "decorrer_ano" && planoVinculado?.habilidades_bncc?.length ? (
-                                        <p style={{ fontSize: 11, color: "#0ea5e9", margin: "0 0 10px 0", padding: "6px 10px", borderRadius: 6, background: "rgba(14,165,233,.08)", border: "1px solid rgba(14,165,233,.15)" }}>
-                                            No decorrer do ano com plano vinculado: a geração usará as habilidades do plano de ensino. Abaixo, matriz do ano anterior para referência.
+                                )}
+                            </div>
+                            <div className={`${bodyS} max-h-[320px] overflow-y-auto`}>
+                                {matrizHabs.length === 0 ? (
+                                    /* Loading / empty state */
+                                    <div style={{ padding: "20px 0", textAlign: "center" }}>
+                                        <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 10 }}>
+                                            <OmniLoader size={18} /> Carregando habilidades BNCC para <strong>{selectedDisc}</strong>...
+                                        </div>
+                                        <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "8px 0" }}>
+                                            Se as habilidades não carregarem, clique abaixo para tentar novamente.
                                         </p>
-                                    ) : null}
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                                        {matrizHabs.map((h, i) => {
-                                            const selected = habsSelecionadas.includes(h.habilidade);
-                                            const codeMatch = h.habilidade.match(/^(EF\d+\w+\d+H?\d*|\(EF\d+\w+\d+\))/i);
-                                            const code = codeMatch ? codeMatch[1].replace(/[()]/g, '') : '';
-                                            return (
-                                                <label key={i} style={{
-                                                    display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 10px",
-                                                    borderRadius: 8, cursor: "pointer",
-                                                    background: selected ? "rgba(99,102,241,.08)" : "transparent",
-                                                    border: selected ? "1px solid rgba(99,102,241,.2)" : "1px solid transparent",
-                                                    transition: "all .15s",
-                                                }}>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selected}
-                                                        onChange={() => {
-                                                            const newSelected = selected
-                                                                ? habsSelecionadas.filter(x => x !== h.habilidade)
-                                                                : [...habsSelecionadas, h.habilidade];
-                                                            setHabsSelecionadas(newSelected);
+                                        <button
+                                            onClick={() => {
+                                                if (!selectedAluno || !selectedDisc) return;
+                                                const gradeNum = parseInt(selectedAluno.grade?.match(/\d+/)?.[0] || "6", 10);
+                                                // Try direct discipline fetch (no serie filter)
+                                                console.log('[Diagnóstica] Retry fetch matriz:', selectedDisc);
+                                                fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(selectedDisc)}`)
+                                                    .then(r => r.json())
+                                                    .then(data => {
+                                                        console.log('[Diagnóstica] Retry result:', data.total, 'habilidades, source:', data.source);
+                                                        const habs = data.habilidades || [];
+                                                        if (habs.length > 0) {
+                                                            // Filter by grade if possible
+                                                            const gradeAnterior = Math.max(gradeNum - 1, 1);
+                                                            const filtered = habs.filter((h: { ano?: string }) =>
+                                                                h.ano?.includes(String(gradeAnterior)) || h.ano?.includes(String(gradeNum))
+                                                            );
+                                                            setMatrizHabs(filtered.length > 0 ? filtered.slice(0, 40) : habs.slice(0, 40));
+                                                        }
+                                                    })
+                                                    .catch(err => console.error('[Diagnóstica] Retry error:', err));
+                                            }}
+                                            style={{
+                                                padding: "8px 18px", borderRadius: 8, fontSize: 12, fontWeight: 700,
+                                                background: "rgba(99,102,241,.1)", color: "#6366f1",
+                                                border: "1px solid rgba(99,102,241,.2)", cursor: "pointer",
+                                            }}
+                                        >
+                                            🔄 Carregar Habilidades BNCC
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {momentoDiagnostica === "decorrer_ano" && planoVinculado?.habilidades_bncc?.length ? (
+                                            <p style={{ fontSize: 11, color: "#0ea5e9", margin: "0 0 10px 0", padding: "6px 10px", borderRadius: 6, background: "rgba(14,165,233,.08)", border: "1px solid rgba(14,165,233,.15)" }}>
+                                                No decorrer do ano com plano vinculado: a geração usará as habilidades do plano de ensino. Abaixo, matriz do ano anterior para referência.
+                                            </p>
+                                        ) : null}
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                            {matrizHabs.map((h, i) => {
+                                                const selected = habsSelecionadas.includes(h.habilidade);
+                                                const codeMatch = h.habilidade.match(/^(EF\d+\w+\d+H?\d*|\(EF\d+\w+\d+\))/i);
+                                                const code = codeMatch ? codeMatch[1].replace(/[()]/g, '') : '';
+                                                return (
+                                                    <label key={i} style={{
+                                                        display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 10px",
+                                                        borderRadius: 8, cursor: "pointer",
+                                                        background: selected ? "rgba(99,102,241,.08)" : "transparent",
+                                                        border: selected ? "1px solid rgba(99,102,241,.2)" : "1px solid transparent",
+                                                        transition: "all .15s",
+                                                    }}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selected}
+                                                            onChange={() => {
+                                                                const newSelected = selected
+                                                                    ? habsSelecionadas.filter(x => x !== h.habilidade)
+                                                                    : [...habsSelecionadas, h.habilidade];
+                                                                setHabsSelecionadas(newSelected);
 
-                                                            // Auto-ativar Bloom com base no domínio cognitivo SAEB
-                                                            if (!selected && h.competencia) {
-                                                                const saebLevel = extractSaebLevel(h.competencia);
-                                                                if (saebLevel) {
-                                                                    const bloomDomains = SAEB_TO_BLOOM[saebLevel];
-                                                                    if (bloomDomains?.length) {
-                                                                        setUsarBloom(true);
-                                                                        setDominioBloomSel(bloomDomains[0]);
-                                                                        const newVerbos: Record<string, string[]> = {};
-                                                                        for (const dom of bloomDomains) {
-                                                                            newVerbos[dom] = (TAXONOMIA_BLOOM[dom] || []).slice(0, 3);
+                                                                // Auto-ativar Bloom com base no domínio cognitivo SAEB
+                                                                if (!selected && h.competencia) {
+                                                                    const saebLevel = extractSaebLevel(h.competencia);
+                                                                    if (saebLevel) {
+                                                                        const bloomDomains = SAEB_TO_BLOOM[saebLevel];
+                                                                        if (bloomDomains?.length) {
+                                                                            setUsarBloom(true);
+                                                                            setDominioBloomSel(bloomDomains[0]);
+                                                                            const newVerbos: Record<string, string[]> = {};
+                                                                            for (const dom of bloomDomains) {
+                                                                                newVerbos[dom] = (TAXONOMIA_BLOOM[dom] || []).slice(0, 3);
+                                                                            }
+                                                                            setVerbosBloomSel(prev => ({ ...prev, ...newVerbos }));
                                                                         }
-                                                                        setVerbosBloomSel(prev => ({ ...prev, ...newVerbos }));
                                                                     }
                                                                 }
-                                                            }
-                                                        }}
-                                                        style={{ marginTop: 2, accentColor: "#6366f1" }}
-                                                    />
-                                                    <div style={{ flex: 1 }}>
-                                                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                                                            {code && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: "rgba(99,102,241,.1)", color: "#818cf8" }}>{code}</span>}
-                                                            <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{h.tema}</span>
+                                                            }}
+                                                            style={{ marginTop: 2, accentColor: "#6366f1" }}
+                                                        />
+                                                        <div style={{ flex: 1 }}>
+                                                            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                                                {code && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: "rgba(99,102,241,.1)", color: "#818cf8" }}>{code}</span>}
+                                                                <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{h.tema}</span>
+                                                            </div>
+                                                            <div style={{ fontSize: 12, color: "var(--text-primary)", marginTop: 2, lineHeight: 1.4 }}>
+                                                                {h.competencia && <span style={{ fontSize: 10, fontWeight: 600, color: "#a855f7", display: "block", marginBottom: 2 }}>{h.competencia}</span>}
+                                                                {h.habilidade}
+                                                            </div>
+                                                            {h.descritor && <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>📝 {h.descritor}</div>}
                                                         </div>
-                                                        <div style={{ fontSize: 12, color: "var(--text-primary)", marginTop: 2, lineHeight: 1.4 }}>
-                                                            {h.competencia && <span style={{ fontSize: 10, fontWeight: 600, color: "#a855f7", display: "block", marginBottom: 2 }}>{h.competencia}</span>}
-                                                            {h.habilidade}
-                                                        </div>
-                                                        {h.descritor && <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>📝 {h.descritor}</div>}
-                                                    </div>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                            {matrizHabs.length > 0 && (
                                 <div style={{ padding: "8px 16px", borderTop: "1px solid var(--border-default, rgba(148,163,184,.08))", display: "flex", gap: 8 }}>
                                     <button onClick={() => setHabsSelecionadas(matrizHabs.map(h => h.habilidade))} style={{ fontSize: 11, color: "#818cf8", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>Selecionar todas</button>
                                     <button onClick={() => setHabsSelecionadas([])} style={{ fontSize: 11, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>Limpar</button>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
+
+                        {/* Links rápidos: Matriz completa + Manual */}
+                        <div style={{ display: "flex", gap: 8 }}>
+                            <button
+                                onClick={() => { setSelectedAluno(null); setSelectedDisc(null); setActiveTab("matriz"); }}
+                                style={{
+                                    flex: 1, padding: "10px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600,
+                                    background: "rgba(99,102,241,.04)", color: "#818cf8",
+                                    border: "1px solid rgba(99,102,241,.12)", cursor: "pointer",
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                                }}
+                            >
+                                <Grid3X3 size={14} /> Ver Matriz Completa
+                            </button>
+                            <button
+                                onClick={() => { setSelectedAluno(null); setSelectedDisc(null); setActiveTab("manual"); }}
+                                style={{
+                                    flex: 1, padding: "10px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600,
+                                    background: "rgba(245,158,11,.04)", color: "#f59e0b",
+                                    border: "1px solid rgba(245,158,11,.12)", cursor: "pointer",
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                                }}
+                            >
+                                <BookMarked size={14} /> Manual de Aplicação
+                            </button>
+                        </div>
 
                         {/* Configuração da Geração */}
                         <div className={cardS}>
