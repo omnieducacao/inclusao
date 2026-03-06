@@ -1167,11 +1167,13 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
             .finally(() => setLoading(false));
     }, [studentId, disciplina]);
 
-    // Auto-advance fase_status when diagnóstica is applied
+    // Auto-advance fase_status when diagnóstica is applied (only ONCE)
+    const autoAdvancedRef = React.useRef(false);
     useEffect(() => {
-        if (avaliacao?.status === "aplicada" && onLinked) {
-            // Notify parent so it can refresh data (status advance happens via polling)
-            onLinked();
+        if (avaliacao?.status === "aplicada" && onLinked && !autoAdvancedRef.current) {
+            autoAdvancedRef.current = true;
+            // Don't auto-advance if we're just viewing — only on first link
+            // The parent already handles the auto-advance when necessary
         }
     }, [avaliacao?.status, onLinked]);
 
