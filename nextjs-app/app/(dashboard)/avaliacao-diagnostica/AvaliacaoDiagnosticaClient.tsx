@@ -1074,7 +1074,7 @@ export default function AvaliacaoDiagnosticaClient() {
                 )}
 
                 {/* Step 0: Config + Generate */}
-                {!resultadoFormatado && !gerando && nivelIdentificado === null && (
+                {!resultadoFormatado && !gerando && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                         {/* Plano de Ensino vinculado */}
                         {planoVinculado && (
@@ -1522,9 +1522,25 @@ export default function AvaliacaoDiagnosticaClient() {
                                                 const questao = data.questao || {};
                                                 questao._numero = i + 1;
                                                 questao._gabarito_esperado = gabaritos[i];
-                                                // Store full habilidade text from BNCC for display
-                                                if (data.habilidade?.habilidade) {
-                                                    questao._habilidadeTexto = data.habilidade.habilidade;
+                                                // Store full habilidade info from BNCC resolution
+                                                if (data.habilidade) {
+                                                    if (data.habilidade.habilidade) {
+                                                        questao._habilidadeTexto = data.habilidade.habilidade;
+                                                    }
+                                                    if (data.habilidade.codigo && !questao.habilidade_bncc_ref) {
+                                                        questao.habilidade_bncc_ref = data.habilidade.codigo;
+                                                        questao._habilidade = data.habilidade.codigo;
+                                                    }
+                                                    if (data.habilidade.unidade_tematica) {
+                                                        questao._unidadeTematica = data.habilidade.unidade_tematica;
+                                                    }
+                                                    if (data.habilidade.objeto_conhecimento) {
+                                                        questao._objetoConhecimento = data.habilidade.objeto_conhecimento;
+                                                    }
+                                                }
+                                                // Fallback: store habilidade from the generation queue
+                                                if (!questao._habilidadeTexto && fila[i]) {
+                                                    questao._habilidadeTexto = fila[i];
                                                 }
                                                 // Store instrucao_aplicacao_professor into instrucao_professor
                                                 if (questao.instrucao_aplicacao_professor && !questao.instrucao_professor) {
@@ -2303,14 +2319,28 @@ export default function AvaliacaoDiagnosticaClient() {
                                             ) : (
                                                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                                                     {/* Habilidade BNCC texto completo */}
-                                                    {habTexto && (
+                                                    {(habTexto || q._unidadeTematica) && (
                                                         <div style={{
-                                                            padding: "6px 10px", borderRadius: 8,
+                                                            padding: "8px 12px", borderRadius: 8,
                                                             background: "rgba(99,102,241,.03)",
                                                             border: "1px solid rgba(99,102,241,.08)",
-                                                            fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5,
+                                                            fontSize: 11, color: "var(--text-muted)", lineHeight: 1.6,
                                                         }}>
-                                                            📚 <strong>Habilidade:</strong> {habTexto}
+                                                            {q._unidadeTematica && (
+                                                                <div style={{ display: "flex", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
+                                                                    <span style={{ fontSize: 10, fontWeight: 700, color: "#818cf8", padding: "1px 6px", borderRadius: 4, background: "rgba(99,102,241,.08)" }}>
+                                                                        {q._unidadeTematica}
+                                                                    </span>
+                                                                    {q._objetoConhecimento && (
+                                                                        <span style={{ fontSize: 10, color: "#a855f7" }}>
+                                                                            → {q._objetoConhecimento}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                            {habTexto && (
+                                                                <div>📚 <strong>Habilidade:</strong> {habTexto}</div>
+                                                            )}
                                                         </div>
                                                     )}
 
