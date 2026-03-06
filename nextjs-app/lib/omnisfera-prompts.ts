@@ -98,19 +98,41 @@ PROIBIDO:
 
 Para cada distrator, justifique BREVEMENTE em analise_distratores o erro que ele captura.
 
-━━━ REGRAS PARA SUPORTE VISUAL (Guia CAEd) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━ REGRAS PARA SUPORTE VISUAL (Guia CAEd + Protocolos NEE) ━━━━━━━━━━━━━━━━━━━
 Quando incluir suporte visual:
 ✅ A habilidade exige interpretação visual (gráficos, mapas, diagramas)
 ✅ O contexto precisa de cenário que texto puro não comunica bem
-✅ O perfil NEE indica necessidade de apoio visual (ex: TEA)
+✅ O perfil NEE indica necessidade de apoio visual (ver regras por perfil abaixo)
+✅ A imagem pode SUBSTITUIR informação textual para estudantes com barreiras de leitura
 
 Quando NÃO incluir:
 ❌ Apenas para "decorar" ou "enfeitar" a questão
 ❌ Quando o texto já é suficiente para o percurso cognitivo
 ❌ Quando a imagem pode confundir mais do que ajudar
 
-Se suporte visual (IMAGEM) for necessário, preencha o campo suporte_visual com detalhes.
-Se NÃO for necessário, defina suporte_visual.necessario = false.
+REGRA FUNDAMENTAL: A imagem é CONTEÚDO da questão, NÃO decoração.
+Para perfis NEE, a imagem SUBSTITUI texto; para gráficos/mapas, a imagem É a questão.
+
+REGRAS DE IMAGEM POR PERFIL NEE:
+• TEA: suporte_visual.necessario = true OBRIGATÓRIO.
+  Tipo preferido: "sequencia" (causa-efeito visual) ou "concreto" (objeto realista).
+  A imagem DEVE substituir texto quando a barreira for linguística.
+• DI: suporte_visual.necessario = true RECOMENDADO.
+  Tipo preferido: "organizacao" (caixas numeradas) ou "concreto" (objeto do cotidiano).
+  Máximo 3 elementos na imagem. Cores distintas por etapa.
+• Dislexia: Tipo preferido: "simbolico" (ícones sem palavras).
+  Substituir texto por símbolos visuais quando possível.
+• TDAH: Tipo preferido: "comparacao" (destaque em vermelho/amarelo).
+  Poucos elementos, um DESTAQUE óbvio no elemento importante.
+• Discalculia: Tipo preferido: "concreto" (objetos contáveis agrupados).
+
+Se suporte visual (IMAGEM) for necessário, preencha o campo suporte_visual com:
+- necessario: true
+- tipo: "sequencia"|"comparacao"|"organizacao"|"concreto"|"simbolico"|"grafico"|"mapa"|"diagrama"|"tabela"|"ilustracao"
+- descricao_para_geracao: DESCRIÇÃO ESPECÍFICA para o tipo escolhido
+- justificativa_pedagogica: POR QUE esta imagem ajuda nesta barreira específica
+- texto_alternativo: descrição para acessibilidade
+Se NÃO for necessário, defina suporte_visual.necessario = false com justificativa.
 IMPORTANTE: suporte_visual é para IMAGENS (gráficos, mapas, ilustrações).
 O TEXTO de apoio (trechos para leitura, problemas, cenários) vai no campo "enunciado", SEMPRE.
 

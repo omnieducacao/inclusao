@@ -2,6 +2,7 @@ import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError, type EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { determinarTipoImagem, gerarInstrucaoImagemParaPrompt } from "@/lib/avaliacao-imagens";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
 import {
     buildContextoAluno,
@@ -86,6 +87,7 @@ export async function POST(req: Request) {
     const alerta_nee = (body.alerta_nee as string) || "";
     const instrucao_uso_diagnostica = (body.instrucao_uso_diagnostica as string) || "";
     const nivel_omnisfera_estimado = (body.nivel_omnisfera_estimado as number) ?? 1;
+    const barreiras_ativas = (body.barreiras_ativas as Record<string, boolean>) || {};
     const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine as string || "")
         ? (body.engine as EngineId)
         : "red";
@@ -143,6 +145,15 @@ export async function POST(req: Request) {
     const perfil = mapDiagnosticoToPerfilNEE(diagnostico_aluno);
     const regraNEE = REGRAS_NEE[perfil] || REGRAS_NEE.SEM_NEE;
 
+    // ── Decisão de imagem baseada em barreiras do PEI ────────
+    const decisaoImagem = determinarTipoImagem({
+        perfilNEE: perfil,
+        barreirasAtivas: barreiras_ativas,
+        habilidadeCodigo: hab.codigo,
+        habilidadeDescricao: hab.habilidade,
+    });
+    const instrucaoImagem = gerarInstrucaoImagemParaPrompt(decisaoImagem);
+
     const dificuldadeMap: Record<string, string> = {
         facil: `Nível fácil — suporte simples, distratores mais óbvios, verbo cognitivo básico (identificar, reconhecer)`,
         medio: `Nível médio — suporte moderado, distratores plausíveis, verbo cognitivo intermediário (comparar, classificar)`,
@@ -188,6 +199,8 @@ ESTRUTURA OBRIGATÓRIA (Guia CAEd/UFJF):
    - 3 distratores baseados em erros cognitivos reais
 4. SUPORTE_VISUAL: SÓ para imagens (gráficos, ilustrações, mapas). O TEXTO vai no enunciado.
 
+${instrucaoImagem}
+
 ## SCHEMA DE SAÍDA (JSON obrigatório — retorne SOMENTE este JSON):
 {
   "id": "Q${numero_questao}",
@@ -197,9 +210,10 @@ ESTRUTURA OBRIGATÓRIA (Guia CAEd/UFJF):
   "suporte_visual": {
     "necessario": true | false,
     "justificativa": "string — por que é ou não necessário",
-    "tipo": "grafico | mapa | diagrama | tabela | ilustracao | fotografia | null",
-    "descricao_para_geracao": "string detalhada para gerar a imagem | null",
-    "texto_alternativo": "string — acessibilidade | null"
+    "tipo": "sequencia | comparacao | organizacao | concreto | simbolico | grafico | mapa | diagrama | tabela | ilustracao | fotografia | null",
+    "descricao_para_geracao": "string ESPECÍFICA e DETALHADA para gerar esta imagem — incluir cores, disposição, quantidade de elementos | null",
+    "texto_alternativo": "string — acessibilidade | null",
+    "justificativa_pedagogica": "string — POR QUE esta imagem ajuda nesta barreira específica | null"
   },
   "alternativas": { "A": "string", "B": "string", "C": "string", "D": "string" },
   "gabarito": "${gabarito_definido}",

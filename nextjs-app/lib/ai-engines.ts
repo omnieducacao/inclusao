@@ -156,25 +156,44 @@ export async function chatCompletionText(
     return result;
   }
 
-  // Blue (Kimi / OpenRouter)
+  // Blue (Kimi / OpenRouter) — with auto-fallback to Red
   if (engine === "blue") {
     if (!apiKey) throw new Error("Configure OPENROUTER_API_KEY ou KIMI_API_KEY no ambiente.");
     const useOpenRouter = apiKey.startsWith("sk-or-");
-    const baseUrl = useOpenRouter ? "https://openrouter.ai/api/v1" : (getEnv("OPENROUTER_BASE_URL") || "https://api.moonshot.ai/v1");
-    const model = getEnv("KIMI_MODEL") || (useOpenRouter ? "moonshotai/kimi-k2.5" : "kimi-k2-turbo-preview");
-    const OpenAI = (await import("openai")).default;
-    const client = new OpenAI({ apiKey, baseURL: baseUrl });
-    const resp = await client.chat.completions.create({
-      model,
-      messages: messages as Parameters<typeof client.chat.completions.create>[0]["messages"],
-      temperature: temp,
-    });
-    const result = (resp.choices[0]?.message?.content || "").trim();
-    if (shouldTrack && result) {
-      const { trackAIUsage } = await import("./tracking");
-      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
+    const baseUrl = useOpenRouter
+      ? "https://openrouter.ai/api/v1"
+      : (getEnv("OPENROUTER_BASE_URL") || "https://api.moonshot.cn/v1");
+    const model = getEnv("KIMI_MODEL")
+      || (useOpenRouter ? "moonshotai/kimi-k2.5" : "kimi-k2-0724");
+
+    try {
+      const OpenAI = (await import("openai")).default;
+      const client = new OpenAI({ apiKey, baseURL: baseUrl });
+      const resp = await client.chat.completions.create({
+        model,
+        messages: messages as Parameters<typeof client.chat.completions.create>[0]["messages"],
+        temperature: temp,
+        max_tokens: options?.max_tokens || 4096,
+      });
+      const result = (resp.choices[0]?.message?.content || "").trim();
+
+      if (!result || result.length < 10) {
+        throw new Error("Resposta vazia ou inválida do Kimi K2");
+      }
+
+      if (shouldTrack && result) {
+        const { trackAIUsage } = await import("./tracking");
+        trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
+      }
+      return result;
+    } catch (err) {
+      console.error("OmniBlue falhou, ativando fallback para OmniRed:", err instanceof Error ? err.message : err);
+      // Fallback automático para OmniRed (DeepSeek)
+      return await chatCompletionText("red", messages, {
+        ...options,
+        temperature: temp,
+      });
     }
-    return result;
   }
 
   // Green (Claude) — requer @anthropic-ai/sdk
