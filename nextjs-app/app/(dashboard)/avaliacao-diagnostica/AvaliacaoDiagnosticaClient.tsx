@@ -16,6 +16,8 @@ import { PageHero } from "@/components/PageHero";
 import { OmniLoader } from "@/components/OmniLoader";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
+import { determinarTipoImagem } from "@/lib/avaliacao-imagens";
+import { mapDiagnosticoToPerfilNEE, REGRAS_NEE } from "@/lib/omnisfera-prompts";
 import type { EngineId } from "@/lib/ai-engines";
 
 const ENGINE_OPTIONS: { id: EngineId; label: string; color: string }[] = [
@@ -433,7 +435,28 @@ export default function AvaliacaoDiagnosticaClient() {
         fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}&serie=${serieNameAnterior}`)
             .then(r => r.json())
             .then(data => {
-                setMatrizHabs(data.habilidades || []);
+                const habs = data.habilidades || [];
+                if (habs.length > 0) {
+                    setMatrizHabs(habs);
+                } else {
+                    // Fallback: buscar BNCC do ano atual quando o ano anterior não tem dados
+                    const serieAtual = `EF${gradeNum}`;
+                    fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}&serie=${serieAtual}`)
+                        .then(r2 => r2.json())
+                        .then(d2 => {
+                            const habs2 = d2.habilidades || [];
+                            if (habs2.length > 0) {
+                                setMatrizHabs(habs2);
+                            } else {
+                                // Último fallback: buscar só por disciplina, sem filtro de série
+                                fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}`)
+                                    .then(r3 => r3.json())
+                                    .then(d3 => setMatrizHabs((d3.habilidades || []).slice(0, 30)))
+                                    .catch(() => { });
+                            }
+                        })
+                        .catch(() => { });
+                }
             })
             .catch(() => { });
     }, [loadExistingAvaliacao, momentoDiagnostica]);
@@ -851,6 +874,149 @@ export default function AvaliacaoDiagnosticaClient() {
                         <div style={{ color: "var(--text-secondary)" }}>{neeAlert}</div>
                     </div>
                 )}
+
+                {/* ── Orientação Pedagógica NEE — Explicação das escolhas automáticas ── */}
+                {selectedAluno?.diagnostico && (() => {
+                    const perfil = mapDiagnosticoToPerfilNEE(selectedAluno.diagnostico);
+                    if (perfil === "SEM_NEE") return null;
+
+                    const barreirasFlat = flattenBarreiras(selectedAluno.barreiras_selecionadas);
+                    const barreirasAtivas = Object.entries(barreirasFlat).filter(([, v]) => v).map(([k]) => k);
+                    const decisaoImagem = determinarTipoImagem({
+                        perfilNEE: perfil,
+                        barreirasAtivas: barreirasFlat,
+                    });
+
+                    const regrasNEE = REGRAS_NEE[perfil];
+                    const regrasLinhas = regrasNEE
+                        ? regrasNEE.split("\n").filter(l => l.startsWith("- ")).map(l => l.slice(2))
+                        : [];
+
+                    const perfilLabels: Record<string, { label: string; emoji: string; cor: string }> = {
+                        TEA: { label: "Transtorno do Espectro Autista", emoji: "🧩", cor: "#6366f1" },
+                        DI: { label: "Deficiência Intelectual", emoji: "🧠", cor: "#0ea5e9" },
+                        ALTAS_HABILIDADES: { label: "Altas Habilidades/Superdotação", emoji: "⭐", cor: "#f59e0b" },
+                        TRANSTORNO_APRENDIZAGEM: { label: "Transtorno de Aprendizagem", emoji: "📖", cor: "#10b981" },
+                    };
+                    const info = perfilLabels[perfil] || { label: perfil, emoji: "📋", cor: "#94a3b8" };
+
+                    return (
+                        <details style={{ marginBottom: 16, borderRadius: 14, overflow: "hidden", border: `2px solid ${info.cor}25`, background: `${info.cor}06` }}>
+                            <summary style={{
+                                padding: "14px 18px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10,
+                                fontWeight: 700, fontSize: 14, color: info.cor,
+                                background: `${info.cor}0a`,
+                            }}>
+                                <span style={{ fontSize: 20 }}>{info.emoji}</span>
+                                Por que a avaliação será assim? — {info.label}
+                                <span style={{
+                                    marginLeft: "auto", fontSize: 10, padding: "3px 10px", borderRadius: 20,
+                                    background: `${info.cor}15`, color: info.cor, fontWeight: 700,
+                                }}>
+                                    {barreirasAtivas.length > 0 ? `${barreirasAtivas.length} barreira(s)` : "perfil geral"}
+                                </span>
+                            </summary>
+                            <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
+
+                                {/* ── Perfil do Estudante ── */}
+                                <div style={{
+                                    padding: "12px 16px", borderRadius: 10,
+                                    background: "var(--bg-primary)", border: "1px solid var(--border-default)",
+                                }}>
+                                    <div style={{ fontWeight: 700, fontSize: 12, color: info.cor, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                        {info.emoji} Perfil identificado: {info.label}
+                                    </div>
+                                    <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, lineHeight: 1.6 }}>
+                                        {perfil === "TEA" && `Como ${selectedAluno.name} tem diagnóstico de TEA, a avaliação precisa de adaptações específicas para garantir que meça a habilidade curricular — e não a capacidade de interpretação social ou linguística. A Omnisfera aplicará linguagem literal, alternativas paralelas e suporte visual em todas as questões.`}
+                                        {perfil === "DI" && `Como ${selectedAluno.name} tem diagnóstico de DI, a avaliação será ajustada ao nível de referência do PEI (não ao ano de matrícula). Enunciados serão mais curtos, com vocabulário acessível e micro-etapas quando necessário. O professor receberá instruções para oferecer versão com material concreto.`}
+                                        {perfil === "ALTAS_HABILIDADES" && `Como ${selectedAluno.name} tem perfil de Altas Habilidades/Superdotação, a avaliação priorizará questões de nível cognitivo superior (Avaliar e Criar na taxonomia de Bloom). As questões incluirão conexões interdisciplinares e enriquecimento, não apenas aceleração.`}
+                                        {perfil === "TRANSTORNO_APRENDIZAGEM" && `Como ${selectedAluno.name} tem diagnóstico de ${selectedAluno.diagnostico}, a avaliação separará a habilidade-alvo da habilidade-instrumento. Instruções ao professor incluirão alternativa de resposta oral. ${selectedAluno.diagnostico?.toLowerCase().includes("tdah") ? "Para TDAH, questões terão tempo máximo de 5 minutos cada." : "Para dislexia, fonte mínima de 12pt e espaçamento amplo serão indicados."}`}
+                                    </p>
+                                </div>
+
+                                {/* ── Barreiras do PEI ── */}
+                                {barreirasAtivas.length > 0 && (
+                                    <div style={{
+                                        padding: "12px 16px", borderRadius: 10,
+                                        background: "rgba(239,68,68,.04)", border: "1px solid rgba(239,68,68,.15)",
+                                    }}>
+                                        <div style={{ fontWeight: 700, fontSize: 12, color: "#ef4444", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                            🚧 Barreiras identificadas no PEI
+                                        </div>
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                            {barreirasAtivas.map((b, i) => (
+                                                <span key={i} style={{
+                                                    padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                                                    background: "rgba(239,68,68,.08)", color: "#dc2626",
+                                                    border: "1px solid rgba(239,68,68,.15)",
+                                                }}>
+                                                    {b}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "8px 0 0", lineHeight: 1.5 }}>
+                                            Estas barreiras foram mapeadas no PEI pelo profissional AEE. A IA ajustará a abordagem das questões para não avaliar competências comprometidas pelas barreiras, e sim a habilidade curricular em si.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* ── Decisão de Imagens ── */}
+                                <div style={{
+                                    padding: "12px 16px", borderRadius: 10,
+                                    background: decisaoImagem.necessario ? "rgba(99,102,241,.04)" : "rgba(16,185,129,.04)",
+                                    border: decisaoImagem.necessario ? "1px solid rgba(99,102,241,.15)" : "1px solid rgba(16,185,129,.15)",
+                                }}>
+                                    <div style={{
+                                        fontWeight: 700, fontSize: 12, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px",
+                                        color: decisaoImagem.necessario ? "#6366f1" : "#10b981",
+                                    }}>
+                                        🖼️ {decisaoImagem.necessario ? "Imagens obrigatórias" : "Imagens opcionais"} nesta avaliação
+                                    </div>
+                                    <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, lineHeight: 1.6 }}>
+                                        <strong>Motivo:</strong> {decisaoImagem.justificativa}
+                                    </p>
+                                    {decisaoImagem.tipo && (
+                                        <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "6px 0 0", lineHeight: 1.5 }}>
+                                            <strong>Tipo recomendado:</strong> {decisaoImagem.tipo} — {decisaoImagem.descricaoPrompt?.split(".")[0]}.
+                                        </p>
+                                    )}
+                                    {decisaoImagem.prioridadeVisual === "obrigatoria" && (
+                                        <div style={{
+                                            marginTop: 8, padding: "6px 10px", borderRadius: 6,
+                                            background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.2)",
+                                            fontSize: 11, fontWeight: 600, color: "#f59e0b",
+                                        }}>
+                                            ⚡ Por isso a quantidade de imagens será ajustada automaticamente para {decisaoImagem.prioridadeVisual === "obrigatoria" ? "TODAS as questões" : "questões selecionadas"}.
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* ── Regras que a IA seguirá ── */}
+                                {regrasLinhas.length > 0 && (
+                                    <div style={{
+                                        padding: "12px 16px", borderRadius: 10,
+                                        background: "rgba(14,165,233,.04)", border: "1px solid rgba(14,165,233,.15)",
+                                    }}>
+                                        <div style={{ fontWeight: 700, fontSize: 12, color: "#0ea5e9", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                            🤖 O que a IA fará diferente nesta prova
+                                        </div>
+                                        <ul style={{ margin: 0, paddingLeft: 16, listStyleType: "none" }}>
+                                            {regrasLinhas.map((regra, i) => (
+                                                <li key={i} style={{
+                                                    fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.7,
+                                                    padding: "2px 0",
+                                                }}>
+                                                    <span style={{ color: "#0ea5e9", fontWeight: 700, marginRight: 6 }}>→</span>
+                                                    {regra}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        </details>
+                    );
+                })()}
                 {Boolean(instrucaoDiag) && (
                     <div style={{
                         padding: "14px 18px", borderRadius: 12,
