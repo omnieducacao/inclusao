@@ -6,7 +6,7 @@ import {
     Sparkles, GraduationCap, ChevronDown, ChevronRight,
     Trash2, Edit3, Copy,
 } from "lucide-react";
-import { OmniLoader } from "@/components/OmniLoader";
+import { useAILoading } from "@/hooks/useAILoading";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -188,6 +188,7 @@ function BloomObjectives({ selected, onToggle }: { selected: string[]; onToggle:
 // ─── Editor ───────────────────────────────────────────────────────────────────
 
 export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
+    const { start: aiLoadingStart, stop: aiLoadingStop } = useAILoading();
     const [bncc, setBncc] = useState<BnccEstrutura | null>(null);
     const [bnccLoading, setBnccLoading] = useState(false);
     const [componenteSel, setComponenteSel] = useState(componente);
@@ -348,6 +349,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
     const gerarSugestaoIA = useCallback(async () => {
         if (form.habilidades_bncc.length === 0) return;
         setIaLoading(true);
+        aiLoadingStart("red", "plano_curso");
         try {
             const res = await fetch("/api/pei/plano-ensino/sugestao-ia", {
                 method: "POST", headers: { "Content-Type": "application/json" },
@@ -370,8 +372,8 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                 }));
             }
         } catch { /* silent */ }
-        finally { setIaLoading(false); }
-    }, [form.habilidades_bncc, form.habilidades_descricoes, componenteSel, unidadeSel, objetoSel, serie]);
+        finally { setIaLoading(false); aiLoadingStop(); }
+    }, [form.habilidades_bncc, form.habilidades_descricoes, componenteSel, unidadeSel, objetoSel, serie, aiLoadingStart, aiLoadingStop]);
 
     // ─── Delete ──────────────────────────────────────────────────────────
 
@@ -429,7 +431,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Overlay: ícone Omnisfera + motor trabalhando ao gerar sugestão IA */}
-            {iaLoading && <OmniLoader engine="red" variant="overlay" module="plano_curso" />}
+            {/* AI Loading é controlado via useAILoading (AILoadingOverlay global) */}
 
             {/* Header */}
             <div className="bg-[linear-gradient(135deg,#0ea5e9_0%,#0284c7_100%)] rounded-2xl p-5 text-white shadow-premium relative overflow-hidden">
