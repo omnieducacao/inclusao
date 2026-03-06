@@ -882,7 +882,7 @@ h6 {
 }
 
 .omni-logo-spin {
-  animation: logo-spin 45s linear infinite;
+  animation: logo-spin 1.5s linear infinite;
 }
 
 /* ─── AI Loading: Fast Spin ─── */
