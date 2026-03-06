@@ -214,6 +214,26 @@ export async function GET() {
         });
     });
 
+    // Helper: extrair campos gerais do PEI (sem conteúdo de outras disciplinas)
+    function extractPeiGeral(peiData: Record<string, unknown>): Record<string, unknown> {
+        // Campos que compõem o PEI geral (PEI 1)
+        const geralKeys = [
+            'fase_pei', 'diagnostico', 'potencialidades', 'barreiras',
+            'barreiras_selecionadas', 'nivel_suporte', 'nivel_suporte_detalhes',
+            'estrategias_acesso', 'estrategias_ensino', 'estrategias_avaliacao',
+            'objetivos', 'metas', 'recursos_ta', 'articulacao',
+            'habilidades_bncc_selecionadas', 'habilidades_bncc_validadas',
+            'bncc_ei_objetivos', 'dimensoes_nee',
+            'observacoes_gerais', 'parecer_especialista',
+            'data_elaboracao', 'data_revisao', 'responsavel',
+        ];
+        const geral: Record<string, unknown> = {};
+        for (const key of geralKeys) {
+            if (peiData[key] !== undefined) geral[key] = peiData[key];
+        }
+        return geral;
+    }
+
     // Agrupar disciplinas por estudante
     const alunosMap = new Map<string, {
         id: string;
@@ -225,6 +245,7 @@ export async function GET() {
         habilidades_bncc: unknown[];
         bncc_ei_objetivos: string[];
         barreiras_selecionadas: Record<string, Record<string, boolean>>;
+        pei_geral: Record<string, unknown>;
         disciplinas: Array<{
             id: string;
             disciplina: string;
@@ -255,6 +276,7 @@ export async function GET() {
                 habilidades_bncc: (peiData.habilidades_bncc_validadas || peiData.habilidades_bncc_selecionadas || []) as unknown[],
                 bncc_ei_objetivos: (peiData.bncc_ei_objetivos || []) as string[],
                 barreiras_selecionadas: (peiData.barreiras_selecionadas || {}) as Record<string, Record<string, boolean>>,
+                pei_geral: extractPeiGeral(peiData),
                 disciplinas: [],
             });
         }
@@ -290,6 +312,7 @@ export async function GET() {
             habilidades_bncc: (peiData.habilidades_bncc_validadas || peiData.habilidades_bncc_selecionadas || []) as unknown[],
             bncc_ei_objetivos: (peiData.bncc_ei_objetivos || []) as string[],
             barreiras_selecionadas: (peiData.barreiras_selecionadas || {}) as Record<string, Record<string, boolean>>,
+            pei_geral: extractPeiGeral(peiData),
             disciplinas: [] as Array<{
                 id: string;
                 disciplina: string;

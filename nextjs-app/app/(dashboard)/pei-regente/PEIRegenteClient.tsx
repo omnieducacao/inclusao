@@ -9,6 +9,7 @@ import {
 import { OmniLoader } from "@/components/OmniLoader";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
+import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { OnboardingPanel, OnboardingResetButton } from "@/components/OnboardingPanel";
 import { ESCALA_OMNISFERA, FASE_STATUS_LABELS, type NivelOmnisfera, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
 
@@ -36,6 +37,8 @@ interface Aluno {
     habilidades_bncc: Array<{ codigo?: string; disciplina?: string; habilidade?: string; unidade_tematica?: string; objeto_conhecimento?: string;[key: string]: unknown }>;
     bncc_ei_objetivos: string[];
     disciplinas: AlunoDisc[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pei_geral?: Record<string, any>;
 }
 
 interface DataResponse {
@@ -310,6 +313,32 @@ export function PEIRegenteClient() {
                                     PEI por Disciplina — {selectedDisc.disciplina}
                                 </h3>
                             </div>
+
+                            {/* ── PEI Geral (PEI 1) — expandível ── */}
+                            {selectedAluno.pei_geral && Object.keys(selectedAluno.pei_geral).length > 1 && (
+                                <details className="rounded-xl overflow-hidden" style={{
+                                    border: '1.5px solid rgba(99,102,241,.2)',
+                                    background: 'rgba(99,102,241,.03)',
+                                }}>
+                                    <summary className="px-5 py-3.5 cursor-pointer flex items-center gap-2" style={{ background: 'rgba(99,102,241,.06)' }}>
+                                        <FileText className="w-4 h-4" style={{ color: '#818cf8' }} />
+                                        <span className="text-sm font-bold" style={{ color: '#818cf8' }}>
+                                            PEI Geral do Estudante
+                                        </span>
+                                        <span className="text-[10px] ml-auto px-2 py-0.5 rounded-full font-bold" style={{
+                                            background: 'rgba(99,102,241,.12)', color: '#818cf8',
+                                        }}>
+                                            Informações gerais
+                                        </span>
+                                    </summary>
+                                    <div className="px-2 pb-4 pt-2">
+                                        <PEISummaryPanel
+                                            peiData={selectedAluno.pei_geral}
+                                            studentName={selectedAluno.name}
+                                        />
+                                    </div>
+                                </details>
+                            )}
 
                             {/* ── BNCC do Especialista (read-only) ── */}
                             {selectedAluno.habilidades_bncc?.length > 0 && (
