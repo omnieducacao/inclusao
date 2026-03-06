@@ -63,7 +63,7 @@ export async function findUserByEmail(email: string): Promise<FindUserResult | n
       "id, workspace_id, nome, email, telefone, can_estudantes, can_pei, can_pei_professor, can_paee, can_hub, can_diario, can_avaliacao, can_gestao, link_type, terms_accepted"
     )
     .eq("email", emailVal)
-    .neq("active", false)
+    .or("active.is.null,active.eq.true")
     .maybeSingle();
 
   if (member) {
@@ -141,7 +141,7 @@ export async function verifyMemberPassword(
     .select("password_hash")
     .eq("workspace_id", workspaceId)
     .eq("email", (email || "").trim().toLowerCase())
-    .neq("active", false)
+    .or("active.is.null,active.eq.true")
     .maybeSingle();
 
   // Security fix: do NOT allow login if member has no password set
