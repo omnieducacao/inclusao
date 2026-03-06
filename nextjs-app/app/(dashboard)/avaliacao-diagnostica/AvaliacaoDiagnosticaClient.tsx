@@ -1279,30 +1279,47 @@ export default function AvaliacaoDiagnosticaClient() {
                             )}
                         </div>
 
-                        {/* Links rápidos: Matriz completa + Manual */}
-                        <div style={{ display: "flex", gap: 8 }}>
-                            <button
-                                onClick={() => { setSelectedAluno(null); setSelectedDisc(null); setActiveTab("matriz"); }}
-                                style={{
-                                    flex: 1, padding: "10px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600,
-                                    background: "rgba(99,102,241,.04)", color: "#818cf8",
-                                    border: "1px solid rgba(99,102,241,.12)", cursor: "pointer",
-                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                                }}
-                            >
-                                <Grid3X3 size={14} /> Ver Matriz Completa
-                            </button>
-                            <button
-                                onClick={() => { setSelectedAluno(null); setSelectedDisc(null); setActiveTab("manual"); }}
-                                style={{
-                                    flex: 1, padding: "10px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600,
-                                    background: "rgba(245,158,11,.04)", color: "#f59e0b",
-                                    border: "1px solid rgba(245,158,11,.12)", cursor: "pointer",
-                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                                }}
-                            >
-                                <BookMarked size={14} /> Manual de Aplicação
-                            </button>
+                        {/* Painéis de consulta inline: Matriz completa + Manual */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            {/* Matriz Completa — expandível */}
+                            <div className={cardS} style={{ border: "1px solid rgba(99,102,241,.12)" }}>
+                                <button
+                                    onClick={() => setShowMatrix(prev => !prev)}
+                                    className={`${headerS} w-full cursor-pointer border-none`}
+                                    style={{
+                                        background: "rgba(99,102,241,.04)",
+                                        justifyContent: "space-between", display: "flex",
+                                    }}
+                                >
+                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                        <Grid3X3 size={14} style={{ color: "#818cf8" }} />
+                                        <span style={{ fontWeight: 700, fontSize: 13, color: "#818cf8" }}>Matriz de Referência Completa</span>
+                                    </div>
+                                    {showMatrix ? <ChevronUp size={14} style={{ color: "#818cf8" }} /> : <ChevronDown size={14} style={{ color: "#818cf8" }} />}
+                                </button>
+                                {showMatrix && (
+                                    <div className={bodyS} style={{ maxHeight: 400, overflowY: "auto" }}>
+                                        <MatrizReferenciaPanel />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Manual de Aplicação — expandível */}
+                            <details style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(245,158,11,.12)", background: "var(--bg-secondary, rgba(15,23,42,.4))" }}>
+                                <summary style={{
+                                    padding: "12px 16px", cursor: "pointer",
+                                    display: "flex", alignItems: "center", gap: 6,
+                                    background: "rgba(245,158,11,.04)",
+                                    listStyle: "none",
+                                }}>
+                                    <BookMarked size={14} style={{ color: "#f59e0b" }} />
+                                    <span style={{ fontWeight: 700, fontSize: 13, color: "#f59e0b" }}>Manual de Aplicação</span>
+                                    <ChevronDown size={14} style={{ color: "#f59e0b", marginLeft: "auto" }} />
+                                </summary>
+                                <div style={{ maxHeight: 400, overflowY: "auto", padding: "0 16px 16px" }}>
+                                    <ManualAplicacaoPanel />
+                                </div>
+                            </details>
                         </div>
 
                         {/* Configuração da Geração */}
