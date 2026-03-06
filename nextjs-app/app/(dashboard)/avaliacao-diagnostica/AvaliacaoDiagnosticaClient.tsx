@@ -337,9 +337,60 @@ export default function AvaliacaoDiagnosticaClient() {
             if (avs.length > 0) {
                 const av = avs[0];
                 if (av.nivel_omnisfera_identificado != null) setNivelIdentificado(av.nivel_omnisfera_identificado);
+                setAvaliacaoSalvaId(av.id);
+
+                // Restore questions from questoes_geradas
+                const qg = av.questoes_geradas;
+                if (qg) {
+                    let questoesArr: Record<string, any>[] = [];
+
+                    if (typeof qg === 'object' && !Array.isArray(qg)) {
+                        if (qg.questoes && Array.isArray(qg.questoes)) {
+                            questoesArr = qg.questoes;
+                        } else if (qg.raw_response) {
+                            // Try parsing raw_response
+                            try {
+                                const cleaned = String(qg.raw_response).replace(/```(?:json)?\s*([\s\S]*?)```/, "$1").trim();
+                                const parsed = JSON.parse(cleaned);
+                                if (parsed?.questoes) questoesArr = parsed.questoes;
+                            } catch { /* fallback: set formatted text from raw */ }
+
+                            if (questoesArr.length === 0) {
+                                setResultadoFormatado(String(qg.raw_response));
+                                setValidadoFormatado(true);
+                            }
+                        }
+                    } else if (typeof qg === 'string') {
+                        try {
+                            const cleaned = qg.replace(/```(?:json)?\s*([\s\S]*?)```/, "$1").trim();
+                            const parsed = JSON.parse(cleaned);
+                            if (parsed?.questoes) questoesArr = parsed.questoes;
+                        } catch {
+                            setResultadoFormatado(qg);
+                            setValidadoFormatado(true);
+                        }
+                    }
+
+                    if (questoesArr.length > 0) {
+                        setQuestoesIndividuais(questoesArr);
+                        setProgressoGeracao({ atual: questoesArr.length, total: questoesArr.length, status: 'concluido' });
+                        // Rebuild formatted text
+                        rebuildResultadoFormatado(questoesArr, {});
+                        setValidadoFormatado(true);
+                    }
+                }
+
+                // Restore saved responses if any
+                if (av.resultados?.respostas) {
+                    setRespostasAluno(av.resultados.respostas);
+                    setShowGabarito(true);
+                }
+                if (av.resultados?.analise) {
+                    setAnaliseResultado(av.resultados.analise);
+                }
             }
         } catch { /* silent */ }
-    }, []);
+    }, [rebuildResultadoFormatado]);
 
     // ─── Select student + discipline ────────────────────────────────────
 
