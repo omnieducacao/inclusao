@@ -119,25 +119,22 @@ export function AILoadingOverlay() {
 
     return (
         <div
-            className={`fixed inset-0 z-[9999] flex items-center justify-center transition-all duration-300 ${state.isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
+            className={`fixed inset-0 z-9999 flex items-center justify-center transition-all duration-300 ${state.isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
             style={{ backgroundColor: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(4px)" }}
         >
             <div className="flex flex-col items-center gap-6 max-w-lg px-8">
                 {/* Logo girando */}
-                <div className="relative">
-                    {/* Base logo (slow spin) */}
-                    <div className="omni-logo-spin opacity-30">
-                        <Image
-                            src="/omni_icone.png"
-                            alt=""
-                            width={72}
-                            height={72}
-                            className="object-contain"
-                        />
-                    </div>
-                    {/* Fast-spinning logo overlay */}
-                    <div className="absolute inset-0 omni-logo-spin-fast">
+                <div className="relative flex items-center justify-center" style={{ width: 88, height: 88 }}>
+                    {/* Glow ring */}
+                    <div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                            background: `radial-gradient(circle, ${engineInfo.gradient.includes("red") ? "rgba(239,68,68,.15)" : engineInfo.gradient.includes("blue") ? "rgba(59,130,246,.15)" : engineInfo.gradient.includes("emerald") ? "rgba(16,185,129,.15)" : "rgba(148,163,184,.1)"} 0%, transparent 70%)`,
+                        }}
+                    />
+                    {/* Single spinning logo */}
+                    <div className="omni-logo-spin">
                         <Image
                             src="/omni_icone.png"
                             alt=""
