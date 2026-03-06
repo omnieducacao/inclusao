@@ -63,11 +63,51 @@ export async function GET(req: Request) {
         let filtered = bncc;
 
         if (disciplina) {
-            const dLow = disciplina.toLowerCase();
-            filtered = filtered.filter(h =>
-                h.disciplina.toLowerCase().includes(dLow) ||
-                dLow.includes(h.disciplina.toLowerCase())
-            );
+            // Normalize discipline names: professors use common names, BNCC uses formal names
+            const DISC_ALIASES: Record<string, string[]> = {
+                "Língua Portuguesa": ["português", "lingua portuguesa", "port", "lp", "l. portuguesa"],
+                "Língua Inglesa": ["inglês", "ingles", "lingua inglesa", "english", "l. inglesa"],
+                "Matemática": ["matemática", "matematica", "mat", "math"],
+                "Ciências": ["ciências", "ciencias", "ciência", "ciencia"],
+                "História": ["história", "historia", "hist"],
+                "Geografia": ["geografia", "geo"],
+                "Arte": ["arte", "artes"],
+                "Educação Física": ["educação física", "educacao fisica", "ed. física", "ed fisica", "ed. fisica"],
+            };
+
+            const dLow = disciplina.toLowerCase().trim();
+            // Remove accents for fuzzy matching
+            const dNorm = dLow.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+            // Find BNCC discipline names that match
+            const matchingBnccNames: string[] = [];
+            for (const [bnccName, aliases] of Object.entries(DISC_ALIASES)) {
+                const bnccLow = bnccName.toLowerCase();
+                const bnccNorm = bnccLow.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                if (
+                    bnccLow === dLow ||
+                    bnccNorm === dNorm ||
+                    aliases.some(a => a === dLow || a === dNorm) ||
+                    bnccLow.includes(dLow) ||
+                    dLow.includes(bnccLow)
+                ) {
+                    matchingBnccNames.push(bnccName);
+                }
+            }
+
+            if (matchingBnccNames.length > 0) {
+                filtered = filtered.filter(h =>
+                    matchingBnccNames.some(name => h.disciplina === name)
+                );
+            } else {
+                // Fallback: accent-insensitive fuzzy match directly on BNCC data
+                filtered = filtered.filter(h => {
+                    const hLow = h.disciplina.toLowerCase();
+                    const hNorm = hLow.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    return hLow.includes(dLow) || dLow.includes(hLow) ||
+                        hNorm.includes(dNorm) || dNorm.includes(hNorm);
+                });
+            }
         }
         if (ano) {
             filtered = filtered.filter(h => h.ano.includes(ano));
