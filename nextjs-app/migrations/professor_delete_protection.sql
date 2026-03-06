@@ -2,7 +2,7 @@
 -- Migration: Proteção de dados pedagógicos ao excluir professor
 -- Executar no Supabase SQL Editor
 -- ============================================================
--- Problema: professor_regente_id em 3 tabelas usa RESTRICT (default),
+-- Problema: professor_regente_id em tabelas pedagógicas usa RESTRICT (default),
 -- impedindo a exclusão de professores com dados pedagógicos.
 -- 
 -- Solução: ON DELETE SET NULL — ao excluir o professor, os registros
@@ -11,12 +11,14 @@
 -- ============================================================
 
 -- ─── 1. pei_disciplinas.professor_regente_id → SET NULL ──────────────────────
+-- Primeiro garantir que a coluna existe
+ALTER TABLE pei_disciplinas
+  ADD COLUMN IF NOT EXISTS professor_regente_id UUID;
+
 DO $$
 BEGIN
-  -- Drop FK existente (pode ter nomes diferentes dependendo de quando foi criada)
   ALTER TABLE pei_disciplinas
     DROP CONSTRAINT IF EXISTS pei_disciplinas_professor_regente_id_fkey;
-  -- Recriar com ON DELETE SET NULL
   ALTER TABLE pei_disciplinas
     ADD CONSTRAINT pei_disciplinas_professor_regente_id_fkey
     FOREIGN KEY (professor_regente_id) REFERENCES workspace_members(id) ON DELETE SET NULL;
@@ -25,6 +27,10 @@ BEGIN
 END $$;
 
 -- ─── 2. planos_ensino.professor_regente_id → SET NULL ────────────────────────
+-- Primeiro garantir que a coluna existe
+ALTER TABLE planos_ensino
+  ADD COLUMN IF NOT EXISTS professor_regente_id UUID;
+
 DO $$
 BEGIN
   ALTER TABLE planos_ensino
@@ -37,6 +43,10 @@ BEGIN
 END $$;
 
 -- ─── 3. avaliacoes_diagnosticas.professor_regente_id → SET NULL ──────────────
+-- Primeiro garantir que a coluna existe
+ALTER TABLE avaliacoes_diagnosticas
+  ADD COLUMN IF NOT EXISTS professor_regente_id UUID;
+
 DO $$
 BEGIN
   ALTER TABLE avaliacoes_diagnosticas
@@ -52,20 +62,13 @@ END $$;
 -- Como usamos ON DELETE SET NULL, o campo professor_regente_id vira NULL,
 -- mas o professor_regente_nome (texto) permanece, garantindo que o PEI
 -- ainda saiba qual professor criou os dados originalmente.
--- Verificar que a coluna professor_regente_nome existe em pei_disciplinas:
 ALTER TABLE pei_disciplinas
   ADD COLUMN IF NOT EXISTS professor_regente_nome TEXT;
 
--- Garantir que planos_ensino também tem o campo de nome:
 ALTER TABLE planos_ensino
   ADD COLUMN IF NOT EXISTS professor_regente_nome TEXT;
 
--- ─── 5. Verificação: listar registros que seriam afetados ────────────────────
--- (apenas consulta, não altera dados)
--- SELECT 
---   wm.id, wm.nome,
---   (SELECT COUNT(*) FROM pei_disciplinas WHERE professor_regente_id = wm.id) as pei_count,
---   (SELECT COUNT(*) FROM planos_ensino WHERE professor_regente_id = wm.id) as planos_count,
---   (SELECT COUNT(*) FROM avaliacoes_diagnosticas WHERE professor_regente_id = wm.id) as aval_count
--- FROM workspace_members wm
--- WHERE wm.active = true;
+-- ─── 5. Índices para busca por professor ─────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_pei_disciplinas_regente ON pei_disciplinas(professor_regente_id);
+CREATE INDEX IF NOT EXISTS idx_planos_ensino_regente ON planos_ensino(professor_regente_id);
+CREATE INDEX IF NOT EXISTS idx_aval_diag_regente ON avaliacoes_diagnosticas(professor_regente_id);
