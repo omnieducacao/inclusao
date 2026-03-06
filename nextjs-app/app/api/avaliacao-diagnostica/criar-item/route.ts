@@ -60,6 +60,7 @@ function loadBncc(): BnccHabilidade[] {
  *   plano_ensino_contexto?: string
  *   alerta_nee?: string
  *   instrucao_uso_diagnostica?: string
+ *   feedback_professor?: string             — feedback do professor para regeneração
  *   engine?: EngineId
  */
 export async function POST(req: Request) {
@@ -88,6 +89,7 @@ export async function POST(req: Request) {
     const instrucao_uso_diagnostica = (body.instrucao_uso_diagnostica as string) || "";
     const nivel_omnisfera_estimado = (body.nivel_omnisfera_estimado as number) ?? 1;
     const barreiras_ativas = (body.barreiras_ativas as Record<string, boolean>) || {};
+    const feedback_professor = (body.feedback_professor as string) || "";
     const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine as string || "")
         ? (body.engine as EngineId)
         : "red";
@@ -238,6 +240,13 @@ ${instrucaoImagem}
     }
     if (instrucao_uso_diagnostica) {
         finalUser += `\n\n--- INSTRUÇÃO DE USO DIAGNÓSTICA ---\n${instrucao_uso_diagnostica}`;
+    }
+    if (feedback_professor) {
+        finalUser += `\n\n━━━ ATENÇÃO: AJUSTE SOLICITADO PELO PROFESSOR ━━━
+${feedback_professor}
+
+Você DEVE gerar uma questão DIFERENTE da anterior, corrigindo o problema apontado.
+Mantendo a mesma habilidade BNCC, gabarito na letra ${gabarito_definido} e nível de dificuldade.`;
     }
 
     const engineErr = getEngineError(engine);
