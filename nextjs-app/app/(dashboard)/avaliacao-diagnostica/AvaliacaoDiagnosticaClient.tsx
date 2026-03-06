@@ -49,6 +49,20 @@ function extractSaebLevel(competencia: string): string | null {
 
 type ChecklistAdaptacao = Record<string, boolean>;
 
+/** Flatten nested PEI barreiras (domain→barrier→bool) into flat map (barrier→true) */
+function flattenBarreiras(barreiras?: Record<string, Record<string, boolean>>): Record<string, boolean> {
+    if (!barreiras) return {};
+    const flat: Record<string, boolean> = {};
+    for (const domain of Object.values(barreiras)) {
+        if (domain && typeof domain === 'object') {
+            for (const [key, val] of Object.entries(domain)) {
+                if (val === true) flat[key] = true;
+            }
+        }
+    }
+    return flat;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Aluno {
@@ -57,6 +71,7 @@ interface Aluno {
     grade: string;
     class_group: string;
     diagnostico: string;
+    barreiras_selecionadas?: Record<string, Record<string, boolean>>;
     disciplinas: {
         id: string;
         disciplina: string;
@@ -1324,6 +1339,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                                         plano_ensino_contexto: planoVinculado?.conteudo,
                                                         alerta_nee: neeAlert || '',
                                                         instrucao_uso_diagnostica: instrucaoDiag || '',
+                                                        barreiras_ativas: flattenBarreiras(selectedAluno.barreiras_selecionadas),
                                                         engine: engineSel,
                                                     }),
                                                 });

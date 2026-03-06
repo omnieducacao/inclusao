@@ -224,6 +224,7 @@ export async function GET() {
         fase_pei: string;
         habilidades_bncc: unknown[];
         bncc_ei_objetivos: string[];
+        barreiras_selecionadas: Record<string, Record<string, boolean>>;
         disciplinas: Array<{
             id: string;
             disciplina: string;
@@ -253,6 +254,7 @@ export async function GET() {
                 fase_pei: (peiData.fase_pei as string) || "fase_1",
                 habilidades_bncc: (peiData.habilidades_bncc_validadas || peiData.habilidades_bncc_selecionadas || []) as unknown[],
                 bncc_ei_objetivos: (peiData.bncc_ei_objetivos || []) as string[],
+                barreiras_selecionadas: (peiData.barreiras_selecionadas || {}) as Record<string, Record<string, boolean>>,
                 disciplinas: [],
             });
         }
@@ -287,6 +289,7 @@ export async function GET() {
             fase_pei: (peiData.fase_pei as string) || "fase_1",
             habilidades_bncc: (peiData.habilidades_bncc_validadas || peiData.habilidades_bncc_selecionadas || []) as unknown[],
             bncc_ei_objetivos: (peiData.bncc_ei_objetivos || []) as string[],
+            barreiras_selecionadas: (peiData.barreiras_selecionadas || {}) as Record<string, Record<string, boolean>>,
             disciplinas: [] as Array<{
                 id: string;
                 disciplina: string;
