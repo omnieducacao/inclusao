@@ -133,8 +133,8 @@ export function AILoadingOverlay() {
                             background: `radial-gradient(circle, ${engineInfo.gradient.includes("red") ? "rgba(239,68,68,.15)" : engineInfo.gradient.includes("blue") ? "rgba(59,130,246,.15)" : engineInfo.gradient.includes("emerald") ? "rgba(16,185,129,.15)" : "rgba(148,163,184,.1)"} 0%, transparent 70%)`,
                         }}
                     />
-                    {/* Single spinning logo */}
-                    <div className="omni-logo-spin">
+                    {/* Single spinning logo — fast to show activity */}
+                    <div className="omni-logo-spin-fast">
                         <Image
                             src="/omni_icone.png"
                             alt=""

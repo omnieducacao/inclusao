@@ -882,12 +882,12 @@ h6 {
 }
 
 .omni-logo-spin {
-  animation: logo-spin 1.5s linear infinite;
+  animation: logo-spin 45s linear infinite;
 }
 
-/* ─── AI Loading: Fast Spin ─── */
+/* ─── AI Loading: Fast Spin (overlay + navbar when AI active) ─── */
 .omni-logo-spin-fast {
-  animation: logo-spin 0.8s linear infinite;
+  animation: logo-spin 1.5s linear infinite;
 }
 
 /* ─── AI Loading: Indeterminate Bar ─── */
