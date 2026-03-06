@@ -6,6 +6,7 @@ import {
   deactivateMember,
   reactivateMember,
   deleteMember,
+  getMemberPedagogicalImpact,
   getClassAssignments,
   getStudentLinks,
 } from "@/lib/members";
@@ -56,6 +57,10 @@ export async function PATCH(
     ]);
     return NextResponse.json({ assignments, student_ids: studentIds });
   }
+  if (action === "impact") {
+    const impact = await getMemberPedagogicalImpact(id);
+    return NextResponse.json(impact);
+  }
 
   const result = await updateMember(id, {
     nome: body.nome,
@@ -99,8 +104,12 @@ export async function DELETE(
     return NextResponse.json({ error: "ID obrigatório" }, { status: 400 });
   }
 
-  const ok = await deleteMember(id);
-  return ok
-    ? NextResponse.json({ ok: true })
-    : NextResponse.json({ error: "Erro ao excluir" }, { status: 500 });
+  const result = await deleteMember(id);
+  if (!result.ok) {
+    return NextResponse.json(
+      { error: result.error || "Erro ao excluir. Verifique se não há dados vinculados." },
+      { status: 500 }
+    );
+  }
+  return NextResponse.json({ ok: true });
 }

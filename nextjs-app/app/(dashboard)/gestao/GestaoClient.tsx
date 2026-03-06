@@ -742,33 +742,123 @@ function MemberCard({
         ? "Por turma"
         : "Por tutor";
 
+  const [impactData, setImpactData] = useState<{ pei_disciplinas: number; planos_ensino: number; avaliacoes_diagnosticas: number; total: number } | null>(null);
+  const [loadingImpact, setLoadingImpact] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // Fetch impact when delete confirmation is shown
+  useEffect(() => {
+    if (confirmDelId === member.id && !impactData && !loadingImpact) {
+      setLoadingImpact(true);
+      fetch(`/api/members/${member.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "impact" }),
+      })
+        .then(r => r.json())
+        .then(d => setImpactData(d))
+        .catch(() => { })
+        .finally(() => setLoadingImpact(false));
+    }
+  }, [confirmDelId, member.id, impactData, loadingImpact]);
+
   if (confirmDelId === member.id) {
+    const hasData = impactData && impactData.total > 0;
     return (
-      <TableRow className="bg-amber-50">
+      <TableRow className={hasData ? "bg-amber-50" : "bg-red-50"}>
         <TableCell colSpan={4}>
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-2">
-            <p className="text-amber-800 font-medium text-sm">Excluir permanentemente? O email será liberado.</p>
+          <div className="py-3 space-y-3">
+            <p className="font-semibold text-sm text-slate-800">
+              Excluir {member.nome}?
+            </p>
+
+            {loadingImpact && (
+              <p className="text-xs text-slate-500 animate-pulse">Verificando dados vinculados...</p>
+            )}
+
+            {hasData && (
+              <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 space-y-2">
+                <p className="text-xs font-semibold text-amber-800">
+                  ⚠️ Este professor possui dados pedagógicos vinculados:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {impactData!.pei_disciplinas > 0 && (
+                    <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">
+                      📋 {impactData!.pei_disciplinas} disciplina(s) PEI
+                    </span>
+                  )}
+                  {impactData!.planos_ensino > 0 && (
+                    <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">
+                      📝 {impactData!.planos_ensino} plano(s) de ensino
+                    </span>
+                  )}
+                  {impactData!.avaliacoes_diagnosticas > 0 && (
+                    <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">
+                      📊 {impactData!.avaliacoes_diagnosticas} avaliação(ões) diagnóstica(s)
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-amber-700">
+                  Esses registros serão <strong>preservados</strong> (o PEI continua funcionando),
+                  mas a referência ao professor será removida.
+                  <br />
+                  💡 <strong>Recomendação:</strong> prefira <em>desativar</em> em vez de excluir.
+                </p>
+              </div>
+            )}
+
+            {!hasData && !loadingImpact && (
+              <p className="text-xs text-slate-600">
+                Nenhum dado pedagógico vinculado. O email será liberado.
+              </p>
+            )}
+
             <div className="flex gap-2">
               <Button
                 variant="danger"
                 size="sm"
+                disabled={deleting || loadingImpact}
                 onClick={async () => {
+                  setDeleting(true);
                   const res = await fetch(`/api/members/${member.id}`, { method: "DELETE" });
                   if (!res.ok) {
                     const d = await res.json();
                     onError(d.error || "Erro ao excluir.");
+                    setDeleting(false);
                     return;
                   }
                   setConfirmDelId(null);
                   onAction();
                 }}
               >
-                Sim, excluir
+                {deleting ? "Excluindo..." : hasData ? "Excluir mesmo assim" : "Sim, excluir"}
               </Button>
+              {hasData && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={async () => {
+                    const res = await fetch(`/api/members/${member.id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ action: "deactivate" }),
+                    });
+                    if (!res.ok) {
+                      const d = await res.json();
+                      onError(d.error || "Erro ao desativar.");
+                      return;
+                    }
+                    setConfirmDelId(null);
+                    onAction();
+                  }}
+                >
+                  <Pause size={14} /> Desativar (recomendado)
+                </Button>
+              )}
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setConfirmDelId(null)}
+                onClick={() => { setConfirmDelId(null); setImpactData(null); }}
               >
                 Cancelar
               </Button>

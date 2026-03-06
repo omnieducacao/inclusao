@@ -283,10 +283,80 @@ export async function reactivateMember(memberId: string): Promise<boolean> {
   return !error;
 }
 
-export async function deleteMember(memberId: string): Promise<boolean> {
+export async function getMemberPedagogicalImpact(memberId: string): Promise<{
+  pei_disciplinas: number;
+  planos_ensino: number;
+  avaliacoes_diagnosticas: number;
+  total: number;
+  memberName: string;
+}> {
   const sb = getSupabase();
+
+  // Get member name
+  const { data: member } = await sb
+    .from("workspace_members")
+    .select("nome")
+    .eq("id", memberId)
+    .single();
+
+  const [peiRes, planosRes, avalRes] = await Promise.all([
+    sb.from("pei_disciplinas").select("id", { count: "exact", head: true }).eq("professor_regente_id", memberId),
+    sb.from("planos_ensino").select("id", { count: "exact", head: true }).eq("professor_regente_id", memberId),
+    sb.from("avaliacoes_diagnosticas").select("id", { count: "exact", head: true }).eq("professor_regente_id", memberId),
+  ]);
+
+  const pei = peiRes.count || 0;
+  const planos = planosRes.count || 0;
+  const aval = avalRes.count || 0;
+
+  return {
+    pei_disciplinas: pei,
+    planos_ensino: planos,
+    avaliacoes_diagnosticas: aval,
+    total: pei + planos + aval,
+    memberName: member?.nome || "Professor",
+  };
+}
+
+export async function deleteMember(memberId: string): Promise<{ ok: boolean; error?: string }> {
+  const sb = getSupabase();
+
+  // 1. Get member name before deleting (to preserve in pedagogical records)
+  const { data: member } = await sb
+    .from("workspace_members")
+    .select("nome")
+    .eq("id", memberId)
+    .single();
+
+  const memberName = member?.nome || "Professor Removido";
+
+  // 2. Preserve professor name in pedagogical records before deletion
+  //    (ON DELETE SET NULL will clear professor_regente_id, but professor_regente_nome stays)
+  await Promise.all([
+    sb.from("pei_disciplinas")
+      .update({ professor_regente_nome: memberName })
+      .eq("professor_regente_id", memberId)
+      .is("professor_regente_nome", null),
+    sb.from("planos_ensino")
+      .update({ professor_regente_nome: memberName })
+      .eq("professor_regente_id", memberId),
+    // avaliacoes_diagnosticas may not have professor_regente_nome column
+  ]);
+
+  // 3. Clean up assignment tables (these don't need preservation)
+  await Promise.all([
+    sb.from("teacher_assignments").delete().eq("workspace_member_id", memberId),
+    sb.from("teacher_student_links").delete().eq("workspace_member_id", memberId),
+  ]);
+
+  // 4. Delete the member (ON DELETE SET NULL will handle professor_regente_id in PEI tables)
   const { error } = await sb.from("workspace_members").delete().eq("id", memberId);
-  return !error;
+  if (error) {
+    console.error("deleteMember error:", error);
+    return { ok: false, error: error.message };
+  }
+
+  return { ok: true };
 }
 
 export async function getClassAssignments(memberId: string): Promise<
