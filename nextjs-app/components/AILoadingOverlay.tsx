@@ -44,6 +44,26 @@ const MODULE_PHRASES: Record<string, string[]> = {
         "Analisando evidências de progresso...",
         "Calculando indicadores de evolução...",
     ],
+    diagnostica: [
+        "Criando questões diagnósticas...",
+        "Analisando habilidades selecionadas...",
+        "Calibrando ao nível Omnisfera...",
+        "Gerando itens com distratores pedagógicos...",
+        "Ajustando complexidade cognitiva...",
+        "Finalizando a avaliação adaptada...",
+    ],
+    pei_regente: [
+        "Cruzando PEI com plano de ensino...",
+        "Gerando adaptações para sua disciplina...",
+        "Construindo a Ponte Pedagógica...",
+        "Alinhando objetivos individualizados...",
+    ],
+    pgi: [
+        "Analisando dimensionamento da escola...",
+        "Gerando ações prioritárias...",
+        "Estruturando o plano inclusivo...",
+        "Sugerindo estratégias de gestão...",
+    ],
     default: [
         "Processando solicitação...",
         "Analisando contexto pedagógico...",

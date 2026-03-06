@@ -912,7 +912,6 @@ function CriarDoZero({
       >
         {loading ? <><OmniLoader engine={engine} size={16} /> Gerando…</> : "Gerar atividade"}
       </button>
-      {loading && <OmniLoader engine={engine} variant="overlay" module={eiMode ? "hub" : "hub_questoes"} />}
       {erro && <div className="text-red-600 text-sm">{erro}</div>}
       {resultado && (
         <div className="space-y-4">

@@ -396,7 +396,6 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
               </>
             )}
           </button>
-          {gerandoAcoes && <OmniLoader engine={engine} variant="overlay" module="hub" />}
         </div>
       )}
 

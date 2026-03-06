@@ -14,6 +14,7 @@ import {
 import { OnboardingPanel } from "@/components/OnboardingPanel";
 import { PageHero } from "@/components/PageHero";
 import { OmniLoader } from "@/components/OmniLoader";
+import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import type { EngineId } from "@/lib/ai-engines";
 
@@ -461,6 +462,7 @@ export default function AvaliacaoDiagnosticaClient() {
     const salvarAvaliacao = async () => {
         if (!selectedAluno || !selectedDisc || !resultadoFormatado) return;
         setSalvandoAvaliacao(true);
+        aiLoadingStart("green", "diagnostica");
         try {
             const usarPlanoProfessor = momentoDiagnostica === "decorrer_ano" && planoVinculado;
             const habilidadesParaSalvar = usarPlanoProfessor && planoVinculado?.habilidades_bncc?.length
@@ -484,6 +486,7 @@ export default function AvaliacaoDiagnosticaClient() {
             }
         } catch { /* silent */ }
         setSalvandoAvaliacao(false);
+        aiLoadingStop();
     };
 
     // ─── Analisar Respostas + Calcular Nível + Resultado Qualitativo ─────
@@ -648,6 +651,7 @@ export default function AvaliacaoDiagnosticaClient() {
     const gerarPerfil = async () => {
         if (!selectedAluno) return;
         setGerandoPerfil(true);
+        aiLoadingStart("red", "diagnostica");
         setPerfilError(null);
         try {
             const dims = Object.entries(dimensoesAvaliadas)
@@ -676,7 +680,7 @@ export default function AvaliacaoDiagnosticaClient() {
         } catch (err) {
             console.error("Erro ao gerar perfil:", err);
             setPerfilError(err instanceof Error ? err.message : "Erro ao gerar perfil");
-        } finally { setGerandoPerfil(false); }
+        } finally { setGerandoPerfil(false); aiLoadingStop(); }
     };
 
     // ─── Generate Estratégias Práticas ───────────────────────────────────
@@ -684,6 +688,7 @@ export default function AvaliacaoDiagnosticaClient() {
     const gerarEstrategias = async () => {
         if (!selectedAluno) return;
         setGerandoEstrategias(true);
+        aiLoadingStart("red", "diagnostica");
         try {
             const dimsComDificuldade = Object.entries(dimensoesAvaliadas)
                 .filter(([, val]) => val.nivel <= 2)
@@ -708,7 +713,7 @@ export default function AvaliacaoDiagnosticaClient() {
             if (data.estrategias) setEstrategiasGeradas(data.estrategias as Record<string, unknown>);
         } catch (err) {
             console.error("Erro ao gerar estratégias:", err);
-        } finally { setGerandoEstrategias(false); }
+        } finally { setGerandoEstrategias(false); aiLoadingStop(); }
     };
 
     // ─── Generate avaliação ─────────────────────────────────────────────
@@ -745,14 +750,7 @@ export default function AvaliacaoDiagnosticaClient() {
     if (selectedAluno && selectedDisc) {
         return (
             <div style={{ width: "100%" }}>
-                {/* Overlay Omnisfera: ícone girando + motor (gerar itens, salvar, perfil, estratégias) */}
-                {(gerando || salvandoAvaliacao || gerandoPerfil || gerandoEstrategias) && (
-                    <OmniLoader
-                        engine={salvandoAvaliacao ? "green" : "red"}
-                        variant="overlay"
-                        module="diagnostica"
-                    />
-                )}
+                {/* Overlay Omnisfera é controlado via aiLoadingStart/Stop (AILoadingOverlay global) */}
 
                 {/* Breadcrumb */}
                 <div style={{
@@ -1267,6 +1265,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                 <button onClick={async () => {
                                     if (!selectedAluno || !selectedDisc) return;
                                     setGerando(true);
+                                    aiLoadingStart(engineSel, "diagnostica");
                                     setResultadoFormatado(null);
                                     setMapaImagensResultado({});
                                     setValidadoFormatado(false);
@@ -1437,6 +1436,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                         setProgressoGeracao(p => ({ ...p, status: 'erro' }));
                                     }
                                     setGerando(false);
+                                    aiLoadingStop();
                                 }} disabled={gerando} style={{
                                     width: "100%", padding: "16px 24px", borderRadius: 12,
                                     background: gerando ? "#94a3b8" : "linear-gradient(135deg, #6366f1, #818cf8)",

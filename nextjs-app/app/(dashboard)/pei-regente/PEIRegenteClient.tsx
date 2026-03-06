@@ -7,6 +7,7 @@ import {
     Sparkles, School, ExternalLink, Target, Trash2, RotateCcw,
 } from "lucide-react";
 import { OmniLoader } from "@/components/OmniLoader";
+import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
 import { OnboardingPanel, OnboardingResetButton } from "@/components/OnboardingPanel";
 import { ESCALA_OMNISFERA, FASE_STATUS_LABELS, type NivelOmnisfera, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
@@ -414,6 +415,7 @@ export function PEIRegenteClient() {
                                     onClick={async () => {
                                         if (!selectedAluno) return;
                                         setGerandoAdaptacao(true);
+                                        aiLoadingStart("red", "pei_regente");
                                         try {
                                             const res = await fetch("/api/pei/adaptar-plano", {
                                                 method: "POST",
@@ -463,6 +465,7 @@ export function PEIRegenteClient() {
                                             }
                                         } catch { /* silent */ }
                                         setGerandoAdaptacao(false);
+                                        aiLoadingStop();
                                     }}
                                     disabled={gerandoAdaptacao}
                                     className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50"
@@ -475,7 +478,6 @@ export function PEIRegenteClient() {
                                     )}
                                     {gerandoAdaptacao ? "Gerando adaptações..." : "Sugerir Adaptações com IA"}
                                 </button>
-                                {gerandoAdaptacao && <OmniLoader engine="red" variant="overlay" module="pei_regente" />}
 
                                 {/* Result */}
                                 {adaptacaoSugestao && (
