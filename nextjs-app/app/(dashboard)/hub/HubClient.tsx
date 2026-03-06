@@ -466,7 +466,32 @@ function CriarDoZero({
           tipo_questao: tipoQuestao,
           qtd_imagens: usarImagens ? qtdImagens : 0,
           checklist_adaptacao: Object.keys(checklist).length > 0 ? checklist : undefined,
-          estudante: student ? { nome: student.name, serie: student.grade, hiperfoco: (student.pei_data as Record<string, unknown>)?.hiperfoco, perfil: ((student.pei_data as Record<string, unknown>)?.ia_sugestao as string)?.slice(0, 800) || undefined } : undefined,
+          estudante: student ? (() => {
+            const pd = (student.pei_data || {}) as Record<string, unknown>;
+            // Build structured PEI context for AI
+            const barreiras = pd.barreiras_selecionadas as Record<string, Record<string, boolean>> | undefined;
+            const barreirasTexto = barreiras ? Object.entries(barreiras)
+              .flatMap(([cat, items]) => Object.entries(items).filter(([, v]) => v).map(([item]) => `${cat}: ${item}`))
+              .slice(0, 10).join("; ") : "";
+
+            // Ponte Pedagógica (discipline-specific adaptations if available)
+            const pontePedagogica = pd.ponte_pedagogica as Record<string, unknown> | undefined;
+
+            return {
+              nome: student.name,
+              serie: student.grade,
+              hiperfoco: pd.hiperfoco || pd.interesses || undefined,
+              perfil: (pd.ia_sugestao as string)?.slice(0, 800) || undefined,
+              // Structured PEI data for richer AI context
+              nivel_suporte: pd.nivel_suporte || undefined,
+              barreiras: barreirasTexto || undefined,
+              estrategias_acesso: pd.estrategias_acesso || undefined,
+              estrategias_ensino: pd.estrategias_ensino || undefined,
+              estrategias_avaliacao: pd.estrategias_avaliacao || undefined,
+              potencialidades: pd.potencialidades || undefined,
+              ponte_pedagogica: pontePedagogica || undefined,
+            };
+          })() : undefined,
         }),
       });
       const data = await res.json();

@@ -40,6 +40,28 @@ export async function POST(req: Request) {
     : "";
   const perfilPei = estudante.perfil || estudante.ia_sugestao || "";
 
+  // Build structured PEI context for enriched AI understanding
+  const peiContextParts: string[] = [];
+  if (estudante.nivel_suporte) peiContextParts.push(`Nível de suporte: ${estudante.nivel_suporte}`);
+  if (estudante.barreiras) peiContextParts.push(`Barreiras identificadas: ${estudante.barreiras}`);
+  if (estudante.potencialidades) peiContextParts.push(`Potencialidades: ${String(estudante.potencialidades).slice(0, 300)}`);
+  if (estudante.estrategias_acesso) peiContextParts.push(`Estratégias de acesso: ${String(estudante.estrategias_acesso).slice(0, 300)}`);
+  if (estudante.estrategias_ensino) peiContextParts.push(`Estratégias de ensino: ${String(estudante.estrategias_ensino).slice(0, 300)}`);
+  if (estudante.estrategias_avaliacao) peiContextParts.push(`Estratégias de avaliação: ${String(estudante.estrategias_avaliacao).slice(0, 300)}`);
+
+  // Ponte Pedagógica (discipline-specific adaptations from PEI Regente)
+  if (estudante.ponte_pedagogica) {
+    const pp = estudante.ponte_pedagogica;
+    if (pp.resumo_adaptacao) peiContextParts.push(`Adaptação por disciplina: ${String(pp.resumo_adaptacao).slice(0, 400)}`);
+    if (pp.objetivos_individualizados) peiContextParts.push(`Objetivos individualizados: ${String(pp.objetivos_individualizados).slice(0, 400)}`);
+    if (pp.metodologia_adaptada) peiContextParts.push(`Metodologia adaptada: ${String(pp.metodologia_adaptada).slice(0, 300)}`);
+    if (pp.habilidades_prioritarias?.length) peiContextParts.push(`Habilidades prioritárias: ${(pp.habilidades_prioritarias as string[]).slice(0, 5).join("; ")}`);
+  }
+
+  const peiStructured = peiContextParts.length > 0
+    ? `\n\nCONTEXTO PEI COMPLETO DO ESTUDANTE:\n${peiContextParts.join("\n")}`
+    : "";
+
   const habParaPrompt = eiMode ? eiObjetivos : habilidades;
 
   // Usar prompt do arquivo separado (idêntico ao Streamlit)
@@ -59,7 +81,7 @@ export async function POST(req: Request) {
 
   // Adicionar contexto do estudante se disponível
   const promptCompleto = ctxEstudante
-    ? `${prompt}\n\n${ctxEstudante}`
+    ? `${prompt}\n\n${ctxEstudante}${peiStructured}`
     : prompt;
 
   const wsId = session?.simulating_workspace_id || session?.workspace_id;
@@ -80,7 +102,7 @@ export async function POST(req: Request) {
         description: estudante.nome ? `Atividade para ${estudante.nome}${estudante.serie ? `, ${estudante.serie}` : ""}` : `Atividade: ${assunto || "BNCC"}`,
         engine,
         metadata: { assunto, qtd_questoes: qtdQuestoes, tipo_questao: tipoQuestao },
-      }).catch(() => {});
+      }).catch(() => { });
     }
     return NextResponse.json({ texto });
   } catch (err) {
