@@ -1230,10 +1230,6 @@ function PlanoAulaDua({
   const [unidadeSel, setUnidadeSel] = useState("");
   const [objetoSel, setObjetoSel] = useState("");
   const [habilidadesSel, setHabilidadesSel] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [resultado, setResultado] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-  const [validado, setValidado] = useState(false);
   const [loadingMapa, setLoadingMapa] = useState<"html" | null>(null);
   const [mapaHtml, setMapaHtml] = useState<string | null>(null);
   const [mapaErro, setMapaErro] = useState<string | null>(null);
@@ -1242,10 +1238,17 @@ function PlanoAulaDua({
   const hiperfoco = (peiData.hiperfoco as string) || (peiData.interesses as string) || "";
   const serieAluno = student?.grade || "";
 
+  const temBnccPreenchida = habilidadesSel.length > 0;
+
+  const hub = useHubGenerate({
+    endpoint: "/api/hub/plano-aula",
+    engine,
+    validate: () => (!assunto.trim() && !temBnccPreenchida) ? "Informe o assunto ou selecione habilidades BNCC." : null,
+  });
+  const { loading, resultado, erro, validado, setValidado, setResultado } = hub;
+
   useEffect(() => {
-    if (serieAluno) {
-      setSerie(serieAluno);
-    }
+    if (serieAluno) setSerie(serieAluno);
   }, [serieAluno]);
 
   useEffect(() => {
@@ -1273,48 +1276,21 @@ function PlanoAulaDua({
         ? Object.values(discDataP.porUnidade || {}).flatMap((v) => Object.values(v.porObjeto || {}).flatMap((habList) => (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)))
         : Object.entries(componentes).flatMap(([disc, habs]) => (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`));
 
-  const temBnccPreenchida = habilidadesSel.length > 0;
-
-  const gerar = async () => {
-    if (!assunto.trim() && !temBnccPreenchida) {
-      setErro("Informe o assunto ou selecione habilidades BNCC.");
-      return;
-    }
-    setLoading(true);
-    setErro(null);
-    setResultado(null);
-    setValidado(false);
-    aiLoadingStart(engine || "green", "hub");
-    try {
-      const res = await fetch("/api/hub/plano-aula", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          materia,
-          assunto: assunto.trim() || undefined,
-          duracao_minutos: duracao,
-          metodologia,
-          tecnica: metodologia === "Metodologia Ativa" && tecnicaAtiva ? tecnicaAtiva : undefined,
-          qtd_alunos: qtdAlunos,
-          recursos: recursos.length > 0 ? recursos : undefined,
-          habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
-          unidade_tematica: unidadeSel || undefined,
-          objeto_conhecimento: objetoSel || undefined,
-          estudante: student
-            ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 500) || undefined }
-            : undefined,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao gerar");
-      setResultado(data.texto || "");
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao gerar plano.");
-    } finally {
-      setLoading(false);
-      aiLoadingStop();
-    }
-  };
+  const gerar = () => hub.gerar({
+    materia,
+    assunto: assunto.trim() || undefined,
+    duracao_minutos: duracao,
+    metodologia,
+    tecnica: metodologia === "Metodologia Ativa" && tecnicaAtiva ? tecnicaAtiva : undefined,
+    qtd_alunos: qtdAlunos,
+    recursos: recursos.length > 0 ? recursos : undefined,
+    habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
+    unidade_tematica: unidadeSel || undefined,
+    objeto_conhecimento: objetoSel || undefined,
+    estudante: student
+      ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 500) || undefined }
+      : undefined,
+  });
 
   return (
     <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
@@ -2393,17 +2369,20 @@ function RoteiroIndividual({
   const [unidadeSel, setUnidadeSel] = useState("");
   const [objetoSel, setObjetoSel] = useState("");
   const [habilidadesSel, setHabilidadesSel] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [resultado, setResultado] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-  const [validado, setValidado] = useState(false);
+
+  const temBnccPreenchida = habilidadesSel.length > 0;
+
+  const hub = useHubGenerate({
+    endpoint: "/api/hub/roteiro",
+    engine,
+    validate: () => (!assunto.trim() && !temBnccPreenchida) ? "Informe o assunto ou selecione habilidades BNCC." : null,
+  });
+  const { loading, resultado, erro, validado, setValidado, setResultado } = hub;
 
   const serieAluno = student?.grade || "";
 
   useEffect(() => {
-    if (serieAluno) {
-      setSerie(serieAluno);
-    }
+    if (serieAluno) setSerie(serieAluno);
   }, [serieAluno]);
 
   useEffect(() => {
@@ -2416,10 +2395,7 @@ function RoteiroIndividual({
         setComponentes(d.ano_atual || d || {});
         setEstruturaBncc(e.disciplinas ? e : null);
       })
-      .catch(() => {
-        setComponentes({});
-        setEstruturaBncc(null);
-      });
+      .catch(() => { setComponentes({}); setEstruturaBncc(null); });
   }, [serie]);
 
   const discData = estruturaBncc?.porDisciplina?.[componenteSel];
@@ -2442,43 +2418,18 @@ function RoteiroIndividual({
           (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
         );
 
-  const temBnccPreenchida = habilidadesSel.length > 0;
-
-  const gerar = async () => {
-    if (!assunto.trim() && !temBnccPreenchida) {
-      setErro("Informe o assunto ou selecione habilidades BNCC.");
-      return;
-    }
-    setLoading(true);
-    setErro(null);
-    setResultado(null);
-    setValidado(false);
-    aiLoadingStart(engine || "green", "hub");
-    try {
-      const peiData = student?.pei_data || {};
-      const res = await fetch("/api/hub/roteiro", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          aluno: { nome: student?.name, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 500), hiperfoco: (peiData.hiperfoco as string) || "Geral" },
-          materia,
-          assunto: assunto.trim() || undefined,
-          ano: serieAluno || serie || undefined,
-          habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
-          unidade_tematica: unidadeSel || undefined,
-          objeto_conhecimento: objetoSel || undefined,
-          engine,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao gerar");
-      setResultado(data.texto || "");
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao gerar roteiro.");
-    } finally {
-      setLoading(false);
-      aiLoadingStop();
-    }
+  const gerar = () => {
+    const peiData = student?.pei_data || {};
+    hub.gerar({
+      aluno: { nome: student?.name, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 500), hiperfoco: (peiData.hiperfoco as string) || "Geral" },
+      materia,
+      assunto: assunto.trim() || undefined,
+      ano: serieAluno || serie || undefined,
+      habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
+      unidade_tematica: unidadeSel || undefined,
+      objeto_conhecimento: objetoSel || undefined,
+      engine,
+    });
   };
 
   return (
@@ -2651,17 +2602,19 @@ function DinamicaInclusiva({
   const [unidadeSel, setUnidadeSel] = useState("");
   const [objetoSel, setObjetoSel] = useState("");
   const [habilidadesSel, setHabilidadesSel] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [resultado, setResultado] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-  const [validado, setValidado] = useState(false);
 
   const serieAluno = student?.grade || "";
+  const temBnccPreenchida = habilidadesSel.length > 0;
+
+  const hub = useHubGenerate({
+    endpoint: "/api/hub/dinamica",
+    engine,
+    validate: () => (!assunto.trim() && !temBnccPreenchida) ? "Informe o assunto ou selecione habilidades BNCC." : null,
+  });
+  const { loading, resultado, erro, validado, setValidado, setResultado } = hub;
 
   useEffect(() => {
-    if (serieAluno) {
-      setSerie(serieAluno);
-    }
+    if (serieAluno) setSerie(serieAluno);
   }, [serieAluno]);
 
   useEffect(() => {
@@ -2674,10 +2627,7 @@ function DinamicaInclusiva({
         setComponentes(d.ano_atual || d || {});
         setEstruturaBncc(e.disciplinas ? e : null);
       })
-      .catch(() => {
-        setComponentes({});
-        setEstruturaBncc(null);
-      });
+      .catch(() => { setComponentes({}); setEstruturaBncc(null); });
   }, [serie]);
 
   const discDataD = estruturaBncc?.porDisciplina?.[componenteSel];
@@ -2700,46 +2650,21 @@ function DinamicaInclusiva({
           (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
         );
 
-  const temBnccPreenchida = habilidadesSel.length > 0;
-
-  const gerar = async () => {
-    if (!assunto.trim() && !temBnccPreenchida) {
-      setErro("Informe o assunto ou selecione habilidades BNCC.");
-      return;
-    }
-    setLoading(true);
-    setErro(null);
-    setResultado(null);
-    setValidado(false);
-    aiLoadingStart(engine || "green", "hub");
-    try {
-      const peiData = student?.pei_data || {};
-      const materiaFinal = componenteSel || materia;
-      const res = await fetch("/api/hub/dinamica", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          aluno: { nome: student?.name, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 800) || undefined, hiperfoco: (peiData.hiperfoco as string) || "Geral" },
-          materia: materiaFinal,
-          assunto: assunto.trim() || undefined,
-          qtd_alunos: qtdAlunos,
-          caracteristicas_turma: caracteristicas || undefined,
-          ano: serieAluno || serie || undefined,
-          habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
-          unidade_tematica: unidadeSel || undefined,
-          objeto_conhecimento: objetoSel || undefined,
-          engine,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao gerar");
-      setResultado(data.texto || "");
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao gerar dinâmica.");
-    } finally {
-      setLoading(false);
-      aiLoadingStop();
-    }
+  const gerar = () => {
+    const peiData = student?.pei_data || {};
+    const materiaFinal = componenteSel || materia;
+    hub.gerar({
+      aluno: { nome: student?.name, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 800) || undefined, hiperfoco: (peiData.hiperfoco as string) || "Geral" },
+      materia: materiaFinal,
+      assunto: assunto.trim() || undefined,
+      qtd_alunos: qtdAlunos,
+      caracteristicas_turma: caracteristicas || undefined,
+      ano: serieAluno || serie || undefined,
+      habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
+      unidade_tematica: unidadeSel || undefined,
+      objeto_conhecimento: objetoSel || undefined,
+      engine,
+    });
   };
 
   return (
