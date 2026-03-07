@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ToastProvider } from "@/components/ToastProvider";
 
 export const metadata: Metadata = {
   title: "Omnisfera — Inclusão Educacional",
@@ -16,6 +17,10 @@ const themeScript = `
         theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       }
       document.documentElement.setAttribute('data-theme', theme);
+      var hc = localStorage.getItem('omnisfera-high-contrast');
+      if (hc === 'true' || (!hc && window.matchMedia('(prefers-contrast: more)').matches)) {
+        document.documentElement.classList.add('high-contrast');
+      }
     } catch(e) {}
   })();
 `;
@@ -37,7 +42,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" }}>
         <ThemeProvider>
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>
