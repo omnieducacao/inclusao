@@ -1,7 +1,7 @@
 # 📋 Próximas Sessões — Roadmap Omnisfera
 
-**Criado:** 06/03/2026 · **Atualizado:** 07/03/2026
-**Status atual:** 37 itens concluídos | 8 itens pendentes | 713 testes (0 falhas)
+**Criado:** 06/03/2026 · **Atualizado:** 07/03/2026 (madrugada)
+**Status atual:** 38 itens concluídos | 7 itens pendentes | 713 testes (0 falhas)
 
 ---
 
@@ -18,6 +18,7 @@
 | 5+ | **usePEIData hook** — PEIClient: 5,691→5,263 (-428 linhas) |
 | 5+ | **useHubGenerate hook** — 8/12 tools wired (-176 linhas) |
 | 5+ | **Hub decompose** — 5 tools extraídos (PapoDeMestre, RotinaAvd, InclusaoBrincar, EstudioVisual) |
+| **C3** | **Hub decompose COMPLETO** — 12/12 tools extraídos, HubClient: 3,604→252 linhas (-93%) |
 | 6+ | **66 test files → 713 tests** (era 514 → +199 novos, 0 falhas) |
 
 ---
@@ -200,29 +201,25 @@ app/(dashboard)/pei/components/
 
 ---
 
-#### 📌 Sessão C3 — Refatorar HubClient.tsx
-**Estimativa:** 1-2 sessões · **Risco:** 🔴 Alto
+#### ~~📌 Sessão C3 — Refatorar HubClient.tsx~~ ✅ CONCLUÍDA
+**Resultado:** HubClient.tsx de 3,604 → **252 linhas** (meta era < 400)
 
-**O que fazer:**
+**Componentes extraídos (11 arquivos):**
 ```
 app/(dashboard)/hub/components/
-├── HubToolGrid.tsx           → Grid de 14 ferramentas
-├── HubCriarDoZero.tsx        → Criar atividade (lines 275-993)
-├── HubCriarItens.tsx         → Criar itens INEP (lines 995-1025)
-├── HubPlanoAulaDua.tsx       → Plano de Aula (lines 1232-1657)
-├── HubAdaptarProva.tsx       → Adaptar Prova (lines 1937-2440)
-├── HubAdaptarAtividade.tsx   → Adaptar Atividade (lines 3181-3778)
-├── HubEstudioVisual.tsx      → Estúdio Visual (lines 2953-3179)
-├── HubRoteiroIndividual.tsx  → Roteiro (lines 2442-2696)
-└── HubDinamicaInclusiva.tsx  → Dinâmica (lines 2698-2951)
+├── HubCriarDoZero.tsx        (739 linhas)
+├── HubAdaptarAtividade.tsx   (608 linhas)
+├── HubAdaptarProva.tsx       (521 linhas)
+├── HubPlanoAulaDua.tsx       (328 linhas)
+├── HubRoteiroIndividual.tsx  (239 linhas)
+├── HubDinamicaInclusiva.tsx  (239 linhas)
+├── HubEstudioVisual.tsx      (205 linhas)
+├── HubPapoDeMestre.tsx       (143 linhas)
+├── HubRotinaAvd.tsx          (124 linhas)
+├── HubInclusaoBrincar.tsx    (113 linhas)
+└── HubCriarItens.tsx          (29 linhas)
 ```
-
-**Meta:** HubClient.tsx de 3.785 → < 400 linhas
-
-**Critério de aceite:**
-- [ ] Container < 400 linhas
-- [ ] 8+ sub-componentes
-- [ ] Todas as ferramentas funcionam (testar cada uma)
+**Shared types:** `hub-types.ts` (113 linhas) — StudentFull, EngineId, EstruturaBncc, ChecklistAdaptacao, constants
 
 ---
 
