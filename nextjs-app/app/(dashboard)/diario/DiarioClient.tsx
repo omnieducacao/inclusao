@@ -298,11 +298,11 @@ function FiltrosTab({ students, registros }: { students: Student[]; registros: R
             />
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Modalidade</label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3 mt-1">
                 {MODALIDADES.map((m) => (
-                  <label key={m.value} className="flex items-center gap-2 text-sm bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
-                    <input
-                      type="checkbox"
+                  <div key={m.value} className="bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
+                    <Checkbox
+                      label={m.label}
                       checked={filtroModalidade.includes(m.value)}
                       onChange={(e) => {
                         if (e.target.checked) {
@@ -311,10 +311,8 @@ function FiltrosTab({ students, registros }: { students: Student[]; registros: R
                           setFiltroModalidade(filtroModalidade.filter((v) => v !== m.value));
                         }
                       }}
-                      className="w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500"
                     />
-                    {m.label}
-                  </label>
+                  </div>
                 ))}
               </div>
             </div>
@@ -495,17 +493,14 @@ function NovoRegistroTab({
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Engajamento (1-5): <span className="text-rose-600 font-bold">{engajamento}</span></label>
-              <input
-                type="range"
-                min={1}
-                max={5}
-                value={engajamento}
-                onChange={(e) => setEngajamento(Number(e.target.value))}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-600"
-              />
-            </div>
+            <Slider
+              label="Engajamento (1-5)"
+              min={1}
+              max={5}
+              value={engajamento}
+              onChange={(e) => setEngajamento(Number(e.target.value))}
+              color="#e11d48"
+            />
             <Select
               label="Nível de dificuldade"
               options={NIVEL_DIFICULDADE}
@@ -518,19 +513,17 @@ function NovoRegistroTab({
             <label className="block text-sm font-semibold text-slate-700 mb-3">Competências trabalhadas</label>
             <div className="flex flex-wrap gap-3">
               {COMPETENCIAS.map((c) => (
-                <label key={c} className="flex items-center gap-2 text-sm bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
-                  <input
-                    type="checkbox"
+                <div key={c} className="bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
+                  <Checkbox
+                    label={c}
                     checked={competencias.includes(c)}
                     onChange={(e) =>
                       setCompetencias((prev) =>
                         e.target.checked ? [...prev, c] : prev.filter((x) => x !== c)
                       )
                     }
-                    className="w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500"
                   />
-                  {c}
-                </label>
+                </div>
               ))}
             </div>
           </div>
@@ -572,20 +565,14 @@ function NovoRegistroTab({
           </div>
 
           {/* Notificação Regente */}
-          <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 mt-6 mb-2">
-            <input
-              type="checkbox"
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start mt-6 mb-2">
+            <Checkbox
               id="alertaRegente"
+              label="⚠️ Sinalizar Evolução Crítica (Aviso Regente)"
+              description="Marque esta opção se houve um evento importante nesta sessão que o Professor Regente deve saber imediatamente (ex: mudança de comportamento severa, pico de engajamento, colapso sensorial). O aviso ficará visível no PEI por 30 dias."
               checked={alertaRegente}
               onChange={(e) => setAlertaRegente(e.target.checked)}
-              className="mt-1 w-4 h-4 text-red-600 border-red-300 rounded focus:ring-red-500 cursor-pointer"
             />
-            <label htmlFor="alertaRegente" className="flex flex-col cursor-pointer">
-              <span className="text-sm font-bold text-red-900">⚠️ Sinalizar Evolução Crítica (Aviso Regente)</span>
-              <span className="text-xs text-red-700 mt-1 leading-relaxed">
-                Marque esta opção se houve um evento importante nesta sessão que o Professor Regente deve saber imediatamente (ex: mudança de comportamento severa, pico de engajamento, colapso sensorial). O aviso ficará visível no PEI por 30 dias.
-              </span>
-            </label>
           </div>
 
           <div className="pt-2">

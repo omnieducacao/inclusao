@@ -265,7 +265,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
         </div>
       ) : (
         <div className="divide-y divide-(--omni-border-default)">
-          {filtered.map((s) => {
+          {filtered.map((s, idx) => {
             const peiData = (s.pei_data || {}) as Record<string, unknown>;
             const paeeCiclos = Array.isArray(s.paee_ciclos) ? s.paee_ciclos : [];
             const temRelatorio = Boolean((peiData?.ia_sugestao as string)?.trim());
@@ -278,7 +278,8 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
             return (
               <div
                 key={s.id}
-                className="border-b border-(--omni-border-default) last:border-b-0"
+                className="border-b border-(--omni-border-default) last:border-b-0 animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
+                style={{ animationDelay: `${Math.min(idx * 40, 400)}ms` }}
               >
                 {/* Header do estudante */}
                 <div className="p-4 hover:bg-(--omni-bg-secondary) transition-colors">
@@ -361,7 +362,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
 
                 {/* Conteúdo expandido */}
                 {isExpanded && (
-                  <div className="px-4 pb-4 pt-0 bg-(--omni-bg-secondary) border-t border-(--omni-border-default)">
+                  <div className="px-4 pb-4 pt-0 bg-(--omni-bg-secondary) border-t border-(--omni-border-default) animate-in slide-in-from-top-2 fade-in duration-200">
                     {isConfirmingDelete ? (
                       <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                         <div className="flex items-start gap-2 mb-3">

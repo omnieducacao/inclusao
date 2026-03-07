@@ -223,10 +223,11 @@ export function GestaoClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activeMembers.map((m) => (
+                {activeMembers.map((m, idx) => (
                   <MemberCard
                     key={m.id}
                     member={m}
+                    index={idx}
                     editingId={editingId}
                     confirmDelId={confirmDelId}
                     setEditingId={setEditingId}
@@ -265,10 +266,11 @@ export function GestaoClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activeFamily.map((f) => (
+                {activeFamily.map((f, idx) => (
                   <FamilyCard
                     key={f.id}
                     responsavel={f}
+                    index={idx}
                     onAction={loadData}
                     onError={(err) => setMessage({ type: "err", text: err })}
                   />
@@ -298,18 +300,19 @@ export function GestaoClient({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {inactiveMembers.map((m) => (
+                  {inactiveMembers.map((m, idx) => (
                     <InactiveMemberCard
                       key={m.id}
                       member={m}
+                      index={idx}
                       confirmDelId={confirmDelId}
                       setConfirmDelId={setConfirmDelId}
                       onAction={loadData}
                       onError={(err) => setMessage({ type: "err", text: err })}
                     />
                   ))}
-                  {inactiveFamily.map((f) => (
-                    <TableRow key={f.id} className="bg-slate-50/50">
+                  {inactiveFamily.map((f, idx) => (
+                    <TableRow key={f.id} className="bg-slate-50/50 animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both" style={{ animationDelay: `${Math.min(idx * 40, 400)}ms` }}>
                       <TableCell>
                         <p className="font-medium text-(--omni-text-primary)">
                           <Heart className="w-4 h-4 inline mr-1 text-amber-500" />
@@ -723,6 +726,7 @@ function NovoUsuarioForm({
 
 function MemberCard({
   member,
+  index,
   editingId,
   confirmDelId,
   setEditingId,
@@ -731,6 +735,7 @@ function MemberCard({
   onError,
 }: {
   member: WorkspaceMember;
+  index: number;
   editingId: string | null;
   confirmDelId: string | null;
   setEditingId: (id: string | null) => void;
@@ -894,7 +899,10 @@ function MemberCard({
   }
 
   return (
-    <TableRow>
+    <TableRow
+      className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
+      style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
+    >
       <TableCell className="align-top">
         <div className="flex items-center gap-3">
           <div className="hidden auto-cols-auto md:block">
@@ -1292,12 +1300,14 @@ function EditarUsuarioForm({
 
 function InactiveMemberCard({
   member,
+  index,
   confirmDelId,
   setConfirmDelId,
   onAction,
   onError,
 }: {
   member: WorkspaceMember;
+  index: number;
   confirmDelId: string | null;
   setConfirmDelId: (id: string | null) => void;
   onAction: () => void;
@@ -1341,7 +1351,10 @@ function InactiveMemberCard({
   }
 
   return (
-    <TableRow className="bg-slate-50/50">
+    <TableRow
+      className="bg-slate-50/50 animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
+      style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
+    >
       <TableCell className="align-top">
         <p className="font-medium text-(--omni-text-primary)">
           <User className="w-4 h-4 inline mr-1" />
@@ -1646,15 +1659,20 @@ function NovoFamiliaForm({
    ═══════════════════════════════════════════════════ */
 function FamilyCard({
   responsavel,
+  index,
   onAction,
   onError,
 }: {
   responsavel: FamilyResponsavel;
+  index: number;
   onAction: () => void;
   onError: (err: string) => void;
 }) {
   return (
-    <TableRow>
+    <TableRow
+      className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
+      style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
+    >
       <TableCell className="align-top">
         <div className="flex items-center gap-3">
           <div className="hidden auto-cols-auto md:block">

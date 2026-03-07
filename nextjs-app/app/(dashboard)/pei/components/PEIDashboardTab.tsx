@@ -514,93 +514,97 @@ export function DashboardTab({
       </Card>
 
       {/* Exportação - Movido para antes dos cards */}
-      <div className="mb-6">
-        <h4 className="text-base font-semibold text-slate-800 mb-4">📤 Exportação e Sincronização</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div>
-            <p className="text-xs text-slate-600 mb-2">📄 PDF Dados</p>
-            <PeiExportPdfButton peiData={peiData} />
-          </div>
-          <div>
-            <p className="text-xs text-slate-600 mb-2">📋 PDF Oficial (IA)</p>
-            <PeiExportPdfOficialButton peiData={peiData} />
-          </div>
-          <div>
-            <p className="text-xs text-slate-600 mb-2">📝 Word</p>
-            <PeiExportDocxButton peiData={peiData} />
-          </div>
-          <div>
-            <p className="text-xs text-slate-600 mb-2">💾 JSON</p>
-            <a
-              href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
-              download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.json`}
-              className="flex justify-center items-center h-10 w-full px-4 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 text-sm font-semibold transition-all shadow-sm"
-            >
-              Baixar JSON
-            </a>
-          </div>
-          <div>
-            <p className="text-xs text-slate-600 mb-2">☁️ {isEditing ? "Atualizar PEI" : "Criar Novo Estudante"}</p>
-            {peiData.nome ? (
-              isEditing ? (
-                <Button
-                  variant="primary"
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 focus-visible:ring-emerald-500"
-                  onClick={onUpdate}
-                  disabled={saving}
-                  loading={saving}
-                >
-                  <Download className="w-4 h-4" />
-                  Atualizar PEI
-                </Button>
+      <Card variant="glass" className="mb-6">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">📤 Exportação e Sincronização</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div>
+              <p className="text-xs text-slate-600 mb-2">📄 PDF Dados</p>
+              <PeiExportPdfButton peiData={peiData} />
+            </div>
+            <div>
+              <p className="text-xs text-slate-600 mb-2">📋 PDF Oficial (IA)</p>
+              <PeiExportPdfOficialButton peiData={peiData} />
+            </div>
+            <div>
+              <p className="text-xs text-slate-600 mb-2">📝 Word</p>
+              <PeiExportDocxButton peiData={peiData} />
+            </div>
+            <div>
+              <p className="text-xs text-slate-600 mb-2">💾 JSON</p>
+              <a
+                href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
+                download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.json`}
+                className="flex justify-center items-center h-10 w-full px-4 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 text-sm font-semibold transition-all shadow-sm"
+              >
+                Baixar JSON
+              </a>
+            </div>
+            <div>
+              <p className="text-xs text-slate-600 mb-2">☁️ {isEditing ? "Atualizar PEI" : "Criar Novo Estudante"}</p>
+              {peiData.nome ? (
+                isEditing ? (
+                  <Button
+                    variant="primary"
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 focus-visible:ring-emerald-500"
+                    onClick={onUpdate}
+                    disabled={saving}
+                    loading={saving}
+                  >
+                    <Download className="w-4 h-4" />
+                    Atualizar PEI
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    className="w-full bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-500"
+                    onClick={onSave}
+                    disabled={saving}
+                    loading={saving}
+                  >
+                    <Download className="w-4 h-4" />
+                    Criar Estudante
+                  </Button>
+                )
               ) : (
-                <Button
-                  variant="primary"
-                  className="w-full bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-500"
-                  onClick={onSave}
-                  disabled={saving}
-                  loading={saving}
-                >
-                  <Download className="w-4 h-4" />
-                  Criar Estudante
-                </Button>
-              )
-            ) : (
-              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-                <p className="text-xs text-amber-800">Preencha o nome na aba Estudante</p>
-              </div>
-            )}
+                <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                  <p className="text-xs text-amber-800">Preencha o nome na aba Estudante</p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-        {!peiData.ia_sugestao && (
-          <p className="text-xs text-slate-500 mt-4">
-            💡 Gere o Plano na aba <strong>Consultoria IA</strong> para incluir o planejamento pedagógico detalhado no documento.
-          </p>
-        )}
+          {!peiData.ia_sugestao && (
+            <p className="text-xs text-slate-500 mt-4">
+              💡 Gere o Plano na aba <strong>Consultoria IA</strong> para incluir o planejamento pedagógico detalhado no documento.
+            </p>
+          )}
 
-        {/* Status de Envio — link para aba Regentes */}
-        {(peiData as Record<string, unknown>).fase_pei === "fase_2" ? (
-          <div className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{
-            background: "rgba(16,185,129,.06)", border: "1px solid rgba(16,185,129,.2)",
-          }}>
-            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <span className="text-sm font-semibold text-emerald-700">✅ PEI enviado aos Professores Regentes</span>
-              <p className="text-xs text-slate-500 mt-0.5">Gerencie os vínculos na aba <strong>Regentes</strong>.</p>
+          {/* Status de Envio — link para aba Regentes */}
+          {(peiData as Record<string, unknown>).fase_pei === "fase_2" ? (
+            <div className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{
+              background: "rgba(16,185,129,.06)", border: "1px solid rgba(16,185,129,.2)",
+            }}>
+              <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-semibold text-emerald-700">✅ PEI enviado aos Professores Regentes</span>
+                <p className="text-xs text-slate-500 mt-0.5">Gerencie os vínculos na aba <strong>Regentes</strong>.</p>
+              </div>
             </div>
-          </div>
-        ) : currentStudentId && (
-          <div className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{
-            background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.2)",
-          }}>
-            <Send className="w-4 h-4 text-indigo-500 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <span className="text-xs text-indigo-700 font-medium">PEI ainda não foi enviado aos professores regentes.</span>
-              <p className="text-xs text-slate-500 mt-0.5">Vá até a aba <strong>Regentes</strong> para vincular.</p>
+          ) : currentStudentId && (
+            <div className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{
+              background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.2)",
+            }}>
+              <Send className="w-4 h-4 text-indigo-500 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <span className="text-xs text-indigo-700 font-medium">PEI ainda não foi enviado aos professores regentes.</span>
+                <p className="text-xs text-slate-500 mt-0.5">Vá até a aba <strong>Regentes</strong> para vincular.</p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </CardContent>
+      </Card>
 
       <hr className="my-6" />
 
@@ -662,79 +666,85 @@ export function DashboardTab({
 
       {/* Checklist LBI expandido (abaixo dos KPIs) */}
       {showLbiChecklist && (
-        <div className="mt-2 p-4 rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200">
-          <div className="flex items-center justify-between mb-3">
-            <h5 className="text-sm font-bold text-slate-700">📋 Checklist Compliance LBI (Lei 13.146/2015)</h5>
-            <button onClick={() => setShowLbiChecklist(false)} className="text-xs text-slate-400 hover:text-slate-600">Fechar ✕</button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {lbiChecks.map((c) => (
-              <div key={c.label} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ${c.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-                <span>{c.ok ? "✅" : "❌"}</span>
-                {c.label}
-              </div>
-            ))}
-          </div>
-          <div className="mt-2 text-[10px] text-slate-400 text-right">
-            {lbiPct}% de conformidade • Clique no card para fechar
-          </div>
-        </div>
-      )}
-
-      {/* Evolução na escala Omnisfera (Avaliação Processual) */}
-      <div className="p-4 rounded-xl border border-emerald-200 bg-linear-to-br from-emerald-50/80 to-white">
-        <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-emerald-600" />
-          Evolução na escala Omnisfera
-        </h4>
-        <p className="text-xs text-slate-600 mb-3">
-          Registros bimestrais por disciplina (escala 0–4). Para registrar ou editar, use o módulo Avaliação Processual.
-        </p>
-        {!currentStudentId ? (
-          <p className="text-sm text-slate-500">Selecione um estudante para ver a evolução.</p>
-        ) : evolucaoProcessualLoading ? (
-          <div className="flex items-center gap-2 text-slate-500 text-sm">
-            <OmniLoader size={16} />
-            Carregando evolução...
-          </div>
-        ) : evolucaoProcessual && evolucaoProcessual.resumo.total_registros > 0 ? (
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {evolucaoProcessual.evolucao.map((e) => (
-                <div
-                  key={e.disciplina}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm shadow-sm"
-                >
-                  <span className="font-medium text-slate-800">{e.disciplina}</span>
-                  <span className="text-slate-500">
-                    {e.periodos.length} bim.{e.media_mais_recente != null ? ` · Média: ${e.media_mais_recente}` : ""}
-                  </span>
-                  {e.tendencia === "melhora" && <span title="Tendência: melhora"><TrendingUp className="w-4 h-4 text-emerald-600" /></span>}
-                  {e.tendencia === "regressao" && <span title="Tendência: atenção"><TrendingUp className="w-4 h-4 text-red-500 rotate-180" /></span>}
+        <Card variant="glass" className="mt-2 animate-in fade-in slide-in-from-top-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">📋 Checklist Compliance LBI (Lei 13.146/2015)</CardTitle>
+            <button onClick={() => setShowLbiChecklist(false)} className="text-xs text-slate-400 hover:text-[var(--omni-text-primary)] transition-colors">Fechar ✕</button>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {lbiChecks.map((c) => (
+                <div key={c.label} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ${c.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+                  <span>{c.ok ? "✅" : "❌"}</span>
+                  {c.label}
                 </div>
               ))}
             </div>
-            <Link
-              href={`/avaliacao-processual?student=${currentStudentId}`}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Abrir Avaliação Processual
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-sm text-slate-600">Nenhum registro de Avaliação Processual para este estudante.</p>
-            <Link
-              href={currentStudentId ? `/avaliacao-processual?student=${currentStudentId}` : "/avaliacao-processual"}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Abrir Avaliação Processual
-            </Link>
-          </div>
-        )}
-      </div>
+            <div className="mt-2 text-[10px] text-slate-400 text-right">
+              {lbiPct}% de conformidade • Clique no card para fechar
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Evolução na escala Omnisfera (Avaliação Processual) */}
+      <Card className="border-emerald-200/60 bg-linear-to-br from-emerald-50/50 to-white/50" variant="glass">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2 text-emerald-800">
+            <TrendingUp className="w-5 h-5 text-emerald-600" />
+            Evolução na escala Omnisfera
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-slate-600 mb-3">
+            Registros bimestrais por disciplina (escala 0–4). Para registrar ou editar, use o módulo Avaliação Processual.
+          </p>
+          {!currentStudentId ? (
+            <p className="text-sm text-slate-500">Selecione um estudante para ver a evolução.</p>
+          ) : evolucaoProcessualLoading ? (
+            <div className="flex items-center gap-2 text-slate-500 text-sm">
+              <OmniLoader size={16} />
+              Carregando evolução...
+            </div>
+          ) : evolucaoProcessual && evolucaoProcessual.resumo.total_registros > 0 ? (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {evolucaoProcessual.evolucao.map((e) => (
+                  <div
+                    key={e.disciplina}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm shadow-sm"
+                  >
+                    <span className="font-medium text-slate-800">{e.disciplina}</span>
+                    <span className="text-slate-500">
+                      {e.periodos.length} bim.{e.media_mais_recente != null ? ` · Média: ${e.media_mais_recente}` : ""}
+                    </span>
+                    {e.tendencia === "melhora" && <span title="Tendência: melhora"><TrendingUp className="w-4 h-4 text-emerald-600" /></span>}
+                    {e.tendencia === "regressao" && <span title="Tendência: atenção"><TrendingUp className="w-4 h-4 text-red-500 rotate-180" /></span>}
+                  </div>
+                ))}
+              </div>
+              <Link
+                href={`/avaliacao-processual?student=${currentStudentId}`}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Abrir Avaliação Processual
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm text-slate-600">Nenhum registro de Avaliação Processual para este estudante.</p>
+              <Link
+                href={currentStudentId ? `/avaliacao-processual?student=${currentStudentId}` : "/avaliacao-processual"}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Abrir Avaliação Processual
+              </Link>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Cards Principais — 2x2 Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -944,7 +954,7 @@ export function DashboardTab({
       {/* 🤖 INTELIGÊNCIA DO CASO                                      */}
       {/* ============================================================ */}
       <InteligenciaDoCaso peiData={peiData} />
-    </div>
+    </div >
   );
 }
 
