@@ -4,6 +4,7 @@ import { listStudents, getStudent, type Student } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { DiarioClient } from "./DiarioClient";
+import { Skeleton } from "@/components/Skeleton";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -67,7 +68,7 @@ export default async function DiarioPage({ searchParams }: Props) {
           desc="Registro de atendimentos e sessões AEE."
         />
 
-        <Suspense fallback={<div className="rounded-2xl bg-white animate-pulse min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }} />}>
+        <Suspense fallback={<Skeleton className="min-h-[200px] w-full rounded-2xl" />}>
           <DiarioClient
             students={students.map((s) => ({ id: s.id, name: s.name }))}
             studentId={studentId}

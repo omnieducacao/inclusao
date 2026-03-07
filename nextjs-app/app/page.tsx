@@ -14,6 +14,7 @@ import { SituationPanel } from "@/components/SituationPanel";
 import { OmnisferaFeed } from "@/components/OmnisferaFeed";
 import { OmniEducacaoSignature } from "@/components/Footer";
 import { SecurityAndAIPanel } from "@/components/SecurityAndAIPanel";
+import { Skeleton } from "@/components/Skeleton";
 
 export default async function RootPage() {
   const session = await getSession();
@@ -191,7 +192,7 @@ export default async function RootPage() {
           {/* ═════ LEFT COLUMN: Module Cards ═════ */}
           <div className="lg:col-span-7 space-y-6 stagger-children">
             {row1.length > 0 && (
-              <Suspense fallback={<div className="h-[100px] rounded-2xl animate-pulse" style={{ backgroundColor: 'var(--bg-secondary)', boxShadow: 'var(--shadow-sm)' }} />}>
+              <Suspense fallback={<Skeleton className="h-[100px] rounded-2xl w-full" />}>
                 <ModuleCardsLottie
                   modules={row1.map(({ permission, ...rest }) => rest)}
                   title="Módulos Principais"
@@ -204,7 +205,7 @@ export default async function RootPage() {
             )}
 
             {row2.length > 0 && (
-              <Suspense fallback={<div className="h-[100px] rounded-2xl animate-pulse" style={{ backgroundColor: 'var(--bg-secondary)', boxShadow: 'var(--shadow-sm)' }} />}>
+              <Suspense fallback={<Skeleton className="h-[100px] rounded-2xl w-full" />}>
                 <ModuleCardsLottie
                   modules={row2.map(({ permission, ...rest }) => rest)}
                   title="Acompanhamento e Referência"
@@ -217,7 +218,7 @@ export default async function RootPage() {
             )}
 
             {row3.length > 0 && (
-              <Suspense fallback={<div className="h-[100px] rounded-2xl animate-pulse" style={{ backgroundColor: 'var(--bg-secondary)', boxShadow: 'var(--shadow-sm)' }} />}>
+              <Suspense fallback={<Skeleton className="h-[100px] rounded-2xl w-full" />}>
                 <ModuleCardsLottie
                   modules={row3.map(({ permission, ...rest }) => rest)}
                   title="Configuração e Gestão"

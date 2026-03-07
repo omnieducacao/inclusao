@@ -5,6 +5,7 @@ import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { PAEEClient } from "./PAEEClient";
 import type { CicloPAEE } from "@/lib/paee";
+import { Skeleton } from "@/components/Skeleton";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -69,7 +70,7 @@ export default async function PAEEPage({ searchParams }: Props) {
           desc="Atendimento Educacional Especializado — Planeje e implemente estratégias de AEE para eliminação de barreiras"
         />
 
-        <Suspense fallback={<div className="rounded-2xl bg-(--omni-bg-primary) border border-(--omni-border-default) shadow-sm animate-pulse min-h-[200px]" />}>
+        <Suspense fallback={<Skeleton className="min-h-[200px] w-full rounded-2xl" />}>
           <PAEEClient
             students={students.map((s) => ({ id: s.id, name: s.name }))}
             studentId={studentId}

@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { listMembers, getWorkspaceMaster } from "@/lib/members";
 import { redirect } from "next/navigation";
+import { Skeleton } from "@/components/Skeleton";
 
 export default async function GestaoPage() {
   const session = await getSession();
@@ -29,7 +30,7 @@ export default async function GestaoPage() {
         title="Gestão de Usuários"
         desc="Membros e permissões do workspace."
       />
-      <Suspense fallback={<div className="rounded-2xl bg-white animate-pulse min-h-[200px]" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(226,232,240,0.6)' }} />}>
+      <Suspense fallback={<Skeleton className="min-h-[200px] w-full rounded-2xl" />}>
         <GestaoClient 
           initialMembers={membersData || []} 
           initialMaster={masterData || null} 
