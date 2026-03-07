@@ -1,7 +1,7 @@
 # 📋 Próximas Sessões — Roadmap Omnisfera
 
-**Criado:** 06/03/2026 · **Baseado em:** Execução do Plano de Ação (Sprints 0-6)
-**Status atual:** 24 itens concluídos | 13 itens pendentes | 514 testes (0 falhas)
+**Criado:** 06/03/2026 · **Atualizado:** 07/03/2026
+**Status atual:** 37 itens concluídos | 8 itens pendentes | 713 testes (0 falhas)
 
 ---
 
@@ -15,7 +15,10 @@
 | 3 | CSS utility classes + Semantic color variables (3 temas + HC) |
 | 4 | LGPD Audit Log + Student Export API |
 | 5 | PEI Helpers + HubResultPanel + StatusBadge + EmptyState |
-| 6 | 30 tests novos + fix auth.test (514/514 passing) |
+| 5+ | **usePEIData hook** — PEIClient: 5,691→5,263 (-428 linhas) |
+| 5+ | **useHubGenerate hook** — 8/12 tools wired (-176 linhas) |
+| 5+ | **Hub decompose** — 5 tools extraídos (PapoDeMestre, RotinaAvd, InclusaoBrincar, EstudioVisual) |
+| 6+ | **66 test files → 713 tests** (era 514 → +199 novos, 0 falhas) |
 
 ---
 
