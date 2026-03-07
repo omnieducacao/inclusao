@@ -177,7 +177,7 @@ export function PEIRegenteClient() {
 
     if (selectedAluno && selectedDisc && activeStep) {
         return (
-            <div className="rounded-2xl overflow-hidden bg-(--omni-bg-secondary) border border-(--omni-border-default)" style={{ position: 'relative' }}>
+            <div className="relative rounded-2xl overflow-hidden bg-(--omni-bg-secondary) border border-(--omni-border-default)">
                 {/* Toast notification */}
                 {toast && (
                     <div style={{
@@ -198,7 +198,7 @@ export function PEIRegenteClient() {
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         borderRadius: 14,
                     }}>
-                        <div style={{ textAlign: 'center' }}>
+                        <div>
                             <OmniLoader variant="card" />
                             <p style={{ color: '#fff', fontSize: 13, marginTop: 8, fontWeight: 600 }}>Avançando fase...</p>
                         </div>
@@ -208,14 +208,13 @@ export function PEIRegenteClient() {
                 <div className="px-6 py-4 flex items-center gap-3 border-b border-(--omni-border-default) bg-(--omni-bg-tertiary)">
                     <button
                         onClick={() => { setActiveStep(null); setSelectedDisc(null); }}
-                        className="p-1.5 rounded-lg transition-colors"
-                        style={{ color: 'var(--text-muted)' }}
+                        className="p-1.5 rounded-lg transition-colors" style={{ color: "var(--omni-text-muted)" }}
                         onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
                         onMouseLeave={e => (e.currentTarget.style.backgroundColor = '')}
                     >
                         <ArrowLeft size={18} />
                     </button>
-                    <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    <div className="text-sm" style={{ color: "var(--omni-text-muted)" }}>
                         <span>{selectedAluno.name}</span>
                         <span className="mx-2">›</span>
                         <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{selectedDisc.disciplina}</span>
@@ -309,7 +308,7 @@ export function PEIRegenteClient() {
                             {/* Título */}
                             <div className="flex items-center gap-2">
                                 <ClipboardCheck className="w-5 h-5" style={{ color: '#818cf8' }} />
-                                <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                <h3 className="text-lg font-semibold" style={{ color: "var(--omni-text-primary)" }}>
                                     PEI por Disciplina — {selectedDisc.disciplina}
                                 </h3>
                             </div>
@@ -380,11 +379,11 @@ export function PEIRegenteClient() {
                                                             background: 'rgba(56,161,105,.1)', color: '#38A169', fontSize: 10,
                                                         }}>{h.codigo}</span>
                                                     )}
-                                                    <span style={{ color: 'var(--text-secondary)' }}>
+                                                    <span style={{ color: "var(--omni-text-secondary)" }}>
                                                         {h.habilidade || h.objeto_conhecimento || String(h.codigo || `Habilidade ${i + 1}`)}
                                                     </span>
                                                     {h.disciplina && (
-                                                        <span className="shrink-0 text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                                                        <span className="shrink-0 text-[10px]" style={{ color: "var(--omni-text-muted)" }}>
                                                             {h.disciplina}
                                                         </span>
                                                     )}
@@ -434,7 +433,7 @@ export function PEIRegenteClient() {
                                         Ponte Pedagógica: Plano de Curso + Diagnóstica → PEI
                                     </h4>
                                 </div>
-                                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                                <p className="text-xs" style={{ color: "var(--omni-text-muted)" }}>
                                     A IA cruza o <strong>Plano de Curso da turma</strong> com o <strong>nível do estudante</strong> (Diagnóstica)
                                     e suas barreiras/potencialidades para sugerir adaptações individualizadas.
                                 </p>
@@ -564,7 +563,7 @@ export function PEIRegenteClient() {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                                <p className="text-sm" style={{ color: "var(--omni-text-secondary)" }}>
                                                     {String(adaptacaoSugestao.objetivos_individualizados)}
                                                 </p>
                                             </div>
@@ -589,7 +588,7 @@ export function PEIRegenteClient() {
                                                 border: '1px solid rgba(168,85,247,.15)',
                                             }}>
                                                 <p className="text-xs font-bold mb-1" style={{ color: '#a855f7' }}>📐 Metodologia Adaptada</p>
-                                                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                                <p className="text-sm" style={{ color: "var(--omni-text-secondary)" }}>
                                                     {String(adaptacaoSugestao.metodologia_adaptada)}
                                                 </p>
                                             </div>
@@ -602,7 +601,7 @@ export function PEIRegenteClient() {
                                                     <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(16,185,129,.05)', border: '1px solid rgba(16,185,129,.15)' }}>
                                                         <p className="text-xs font-bold mb-1" style={{ color: '#10b981' }}>♿ Acesso</p>
                                                         {(adaptacaoSugestao.estrategias_acesso as string[]).map((e: string, i: number) => (
-                                                            <p key={i} className="text-xs" style={{ color: 'var(--text-secondary)' }}>• {e}</p>
+                                                            <p key={i} className="text-xs" style={{ color: "var(--omni-text-secondary)" }}>• {e}</p>
                                                         ))}
                                                     </div>
                                                 )}
@@ -610,7 +609,7 @@ export function PEIRegenteClient() {
                                                     <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(99,102,241,.05)', border: '1px solid rgba(99,102,241,.15)' }}>
                                                         <p className="text-xs font-bold mb-1" style={{ color: '#6366f1' }}>📚 Ensino</p>
                                                         {(adaptacaoSugestao.estrategias_ensino as string[]).map((e: string, i: number) => (
-                                                            <p key={i} className="text-xs" style={{ color: 'var(--text-secondary)' }}>• {e}</p>
+                                                            <p key={i} className="text-xs" style={{ color: "var(--omni-text-secondary)" }}>• {e}</p>
                                                         ))}
                                                     </div>
                                                 )}
@@ -618,7 +617,7 @@ export function PEIRegenteClient() {
                                                     <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(245,158,11,.05)', border: '1px solid rgba(245,158,11,.15)' }}>
                                                         <p className="text-xs font-bold mb-1" style={{ color: '#f59e0b' }}>📝 Avaliação</p>
                                                         {(adaptacaoSugestao.estrategias_avaliacao as string[]).map((e: string, i: number) => (
-                                                            <p key={i} className="text-xs" style={{ color: 'var(--text-secondary)' }}>• {e}</p>
+                                                            <p key={i} className="text-xs" style={{ color: "var(--omni-text-secondary)" }}>• {e}</p>
                                                         ))}
                                                     </div>
                                                 )}
@@ -691,7 +690,7 @@ export function PEIRegenteClient() {
                                             <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(245,158,11,.05)', border: '1px solid rgba(245,158,11,.15)' }}>
                                                 <p className="text-xs font-bold mb-1" style={{ color: '#f59e0b' }}>⚠️ Alertas</p>
                                                 {(adaptacaoSugestao.alertas as string[]).map((a: string, i: number) => (
-                                                    <p key={i} className="text-xs" style={{ color: 'var(--text-muted)' }}>• {a}</p>
+                                                    <p key={i} className="text-xs" style={{ color: "var(--omni-text-muted)" }}>• {a}</p>
                                                 ))}
                                             </div>
                                         )}
@@ -704,7 +703,7 @@ export function PEIRegenteClient() {
                                 backgroundColor: 'var(--bg-tertiary)',
                                 border: '1px solid var(--border-default)',
                             }}>
-                                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                                <p className="text-xs" style={{ color: "var(--omni-text-muted)" }}>
                                     As adaptações sugeridas acima podem ser aplicadas no <strong>PEI completo do estudante</strong>,
                                     acessível pelo módulo PEI principal.
                                 </p>
@@ -746,16 +745,15 @@ export function PEIRegenteClient() {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setSelectedAluno(null)}
-                            className="p-1.5 rounded-lg transition-colors"
-                            style={{ color: 'var(--text-muted)' }}
+                            className="p-1.5 rounded-lg transition-colors" style={{ color: "var(--omni-text-muted)" }}
                             onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
                             onMouseLeave={e => (e.currentTarget.style.backgroundColor = '')}
                         >
                             <ArrowLeft size={18} />
                         </button>
                         <div>
-                            <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>{selectedAluno.name}</h3>
-                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                            <h3 className="font-bold" style={{ color: "var(--omni-text-primary)" }}>{selectedAluno.name}</h3>
+                            <p className="text-xs" style={{ color: "var(--omni-text-muted)" }}>
                                 {selectedAluno.grade} {selectedAluno.class_group && `— ${selectedAluno.class_group}`}
                                 {selectedAluno.diagnostico && ` · ${selectedAluno.diagnostico}`}
                             </p>
@@ -765,7 +763,7 @@ export function PEIRegenteClient() {
 
                 {/* Pipeline por disciplina */}
                 <div className="p-6 space-y-4">
-                    <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>
+                    <h4 className="text-sm font-semibold mb-2" style={{ color: "var(--omni-text-secondary)" }}>
                         Componentes Curriculares ({selectedAluno.disciplinas.length})
                     </h4>
 
@@ -788,10 +786,10 @@ export function PEIRegenteClient() {
                                     <div className="flex items-center gap-3">
                                         {step.icon}
                                         <div>
-                                            <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
+                                            <span className="font-bold text-sm" style={{ color: "var(--omni-text-primary)" }}>
                                                 {disc.disciplina}
                                             </span>
-                                            <span className="text-xs ml-2" style={{ color: 'var(--text-muted)' }}>
+                                            <span className="text-xs ml-2" style={{ color: "var(--omni-text-muted)" }}>
                                                 {disc.professor_regente_nome}
                                             </span>
                                         </div>
@@ -899,10 +897,10 @@ export function PEIRegenteClient() {
                             <BookOpen size={20} className="text-white" />
                         </div>
                         <div>
-                            <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                            <h3 className="font-bold" style={{ color: "var(--omni-text-primary)" }}>
                                 {data.professor.is_master ? "Visão Geral — Todos os Estudantes" : `Meus Estudantes`}
                             </h3>
-                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                            <p className="text-xs" style={{ color: "var(--omni-text-muted)" }}>
                                 {data.professor.name} · {data.alunos.length} estudante{data.alunos.length !== 1 ? "s" : ""} em Fase 2
                             </p>
                         </div>
@@ -949,10 +947,10 @@ export function PEIRegenteClient() {
                                         {aluno.name.split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase()}
                                     </div>
                                     <div>
-                                        <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
+                                        <span className="font-bold text-sm" style={{ color: "var(--omni-text-primary)" }}>
                                             {aluno.name}
                                         </span>
-                                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                                        <p className="text-xs" style={{ color: "var(--omni-text-muted)" }}>
                                             {aluno.grade} {aluno.class_group && `— ${aluno.class_group}`}
                                         </p>
                                     </div>
@@ -962,9 +960,9 @@ export function PEIRegenteClient() {
                                         <span className="text-xs font-bold" style={{ color: progress === 100 ? '#10b981' : 'var(--text-muted)' }}>
                                             {concluidas}/{totalDisc}
                                         </span>
-                                        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>disciplinas</p>
+                                        <p className="text-[10px]" style={{ color: "var(--omni-text-muted)" }}>disciplinas</p>
                                     </div>
-                                    <ChevronRight size={16} style={{ color: 'var(--text-muted)' }} />
+                                    <ChevronRight size={16} style={{ color: "var(--omni-text-muted)" }} />
                                 </div>
                             </div>
 
@@ -1122,8 +1120,7 @@ function FinalizarPeiDisciplinaButton({
                         <button
                             type="button"
                             onClick={() => setShowFeedback(false)}
-                            className="px-3 py-2 rounded-lg text-xs font-medium transition-colors"
-                            style={{ color: 'var(--text-muted)' }}
+                            className="px-3 py-2 rounded-lg text-xs font-medium transition-colors" style={{ color: "var(--omni-text-muted)" }}
                         >
                             Cancelar
                         </button>
