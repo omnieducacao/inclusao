@@ -2844,38 +2844,21 @@ function IlustracaoSection({ hiperfoco }: { hiperfoco: string }) {
   const [descricao, setDescricao] = useState("");
   const [usarHiperfoco, setUsarHiperfoco] = useState(!!hiperfoco);
   const [tema, setTema] = useState(hiperfoco);
-  const [loading, setLoading] = useState(false);
-  const [imagem, setImagem] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
-  const [validado, setValidado] = useState(false);
 
-  const gerar = async (refazer = false) => {
+  const hub = useHubGenerate({
+    endpoint: "/api/hub/estudio-imagem",
+    engine: "yellow",
+    validate: () => (!descricao.trim() && !usarHiperfoco) ? "Descreva a imagem ou use o hiperfoco." : null,
+    extractResult: (data) => (data.image as string) || "",
+  });
+  const { loading, erro, validado, setValidado } = hub;
+  const imagem = hub.resultado;
+
+  const gerar = (refazer = false) => {
     const prompt = (usarHiperfoco && tema ? `Tema da ilustração: ${tema}. ` : "") + (descricao || "Ilustração educacional") + ". Context: Education.";
-    if (!prompt.trim() || (!descricao.trim() && !usarHiperfoco)) {
-      setErro("Descreva a imagem ou use o hiperfoco.");
-      return;
-    }
-    setLoading(true);
-    setErro(null);
-    setValidado(false);
-    aiLoadingStart("yellow", "hub");
-    try {
-      const res = await fetch("/api/hub/estudio-imagem", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipo: "ilustracao", prompt, feedback: refazer ? feedback : undefined }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao gerar");
-      setImagem(data.image || null);
-      if (refazer) setFeedback("");
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao gerar imagem.");
-    } finally {
-      setLoading(false);
-      aiLoadingStop();
-    }
+    hub.gerar({ tipo: "ilustracao", prompt, feedback: refazer ? feedback : undefined })
+      .then(() => { if (refazer) setFeedback(""); });
   };
 
   return (
@@ -2949,37 +2932,20 @@ function IlustracaoSection({ hiperfoco }: { hiperfoco: string }) {
 
 function PictogramaCaaSection() {
   const [conceito, setConceito] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [imagem, setImagem] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
-  const [validado, setValidado] = useState(false);
 
-  const gerar = async (refazer = false) => {
-    if (!conceito.trim()) {
-      setErro("Informe o conceito.");
-      return;
-    }
-    setLoading(true);
-    setErro(null);
-    setValidado(false);
-    aiLoadingStart("yellow", "hub");
-    try {
-      const res = await fetch("/api/hub/estudio-imagem", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipo: "caa", prompt: conceito, feedback: refazer ? feedback : undefined }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao gerar");
-      setImagem(data.image || null);
-      if (refazer) setFeedback("");
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao gerar pictograma.");
-    } finally {
-      setLoading(false);
-      aiLoadingStop();
-    }
+  const hub = useHubGenerate({
+    endpoint: "/api/hub/estudio-imagem",
+    engine: "yellow",
+    validate: () => !conceito.trim() ? "Informe o conceito." : null,
+    extractResult: (data) => (data.image as string) || "",
+  });
+  const { loading, erro, validado, setValidado } = hub;
+  const imagem = hub.resultado;
+
+  const gerar = (refazer = false) => {
+    hub.gerar({ tipo: "caa", prompt: conceito, feedback: refazer ? feedback : undefined })
+      .then(() => { if (refazer) setFeedback(""); });
   };
 
   return (
