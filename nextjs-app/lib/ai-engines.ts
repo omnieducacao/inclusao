@@ -128,6 +128,7 @@ export async function chatCompletionText(
       max_tokens: options?.max_tokens || 4096,
     });
     const result = (resp.choices[0]?.message?.content || "").trim();
+    if (shouldCache && result) aiCache.set(engine, messages, result);
     if (shouldTrack && result) {
       const { trackAIUsage } = await import("./tracking");
       trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
@@ -149,6 +150,7 @@ export async function chatCompletionText(
       max_tokens: options?.max_tokens || 8192,
     });
     const result = (resp.choices[0]?.message?.content || "").trim();
+    if (shouldCache && result) aiCache.set(engine, messages, result);
     if (shouldTrack && result) {
       const { trackAIUsage } = await import("./tracking");
       trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
@@ -181,6 +183,7 @@ export async function chatCompletionText(
         throw new Error("Resposta vazia ou inválida do Kimi K2");
       }
 
+      if (shouldCache && result) aiCache.set(engine, messages, result);
       if (shouldTrack && result) {
         const { trackAIUsage } = await import("./tracking");
         trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
