@@ -35,6 +35,7 @@ export default function DiarioError({
                 </div>
                 <div className="flex items-center justify-center gap-3">
                     <button
+                aria-label="Tentar novamente"
                         onClick={reset}
                         className="px-5 py-2.5 bg-linear-to-r from-emerald-500 to-green-600 text-white text-sm font-semibold rounded-xl hover:from-emerald-600 hover:to-green-700 shadow-md transition-all"
                     >

@@ -61,6 +61,7 @@ export function AnnouncementBanner() {
                             <p className={`text-sm mt-0.5 opacity-80 ${config.text}`}>{a.message}</p>
                         </div>
                         <button
+                            aria-label="Fechar"
                             onClick={() => setDismissed((prev) => new Set([...prev, a.id]))}
                             className="text-slate-400 hover:text-slate-600 mt-0.5"
                         >

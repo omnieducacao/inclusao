@@ -335,6 +335,7 @@ function PasswordInput({ label, value, onChange, show, onToggle }: {
             onChange={e => onChange(e.target.value)}
             rightIcon={
                 <button
+                aria-label="Salvar perfil"
                     type="button"
                     onClick={onToggle}
                     className="focus:outline-none flex items-center justify-center p-1"

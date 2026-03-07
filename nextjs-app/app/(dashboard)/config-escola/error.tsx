@@ -35,6 +35,7 @@ export default function ConfigEscolaError({
                 </div>
                 <div className="flex items-center justify-center gap-3">
                     <button
+                aria-label="Tentar novamente"
                         onClick={reset}
                         className="px-5 py-2.5 bg-linear-to-r from-slate-500 to-slate-700 text-white text-sm font-semibold rounded-xl hover:from-slate-600 hover:to-slate-800 shadow-md transition-all"
                     >

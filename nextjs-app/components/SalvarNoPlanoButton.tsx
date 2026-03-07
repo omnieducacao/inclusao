@@ -67,6 +67,7 @@ export function SalvarNoPlanoButton({
   return (
     <>
       <button type="button" onClick={abrir} className={className}>
+          aria-label="Salvar"
         Salvar no Plano
       </button>
       {aberto && (
@@ -84,6 +85,7 @@ export function SalvarNoPlanoButton({
                 {planos.map((p) => (
                   <li key={p.id}>
                     <button
+                        aria-label="Salvar"
                       type="button"
                       onClick={() => salvar(p.id)}
                       disabled={salvando}

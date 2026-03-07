@@ -66,6 +66,7 @@ export default function GlobalError({
                     )}
                     <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
                         <button
+                aria-label="Tentar novamente"
                             onClick={reset}
                             style={{
                                 padding: "10px 20px",

@@ -79,6 +79,7 @@ export function GuidedTour({ onComplete }: { onComplete?: () => void }) {
                         <button
                             type="button"
                             onClick={skip}
+                            aria-label="Pular tour"
                             className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
                         >
                             Pular tour
@@ -96,6 +97,7 @@ export function GuidedTour({ onComplete }: { onComplete?: () => void }) {
                                 key={i}
                                 type="button"
                                 onClick={() => setCurrentStep(i)}
+                                aria-label={`Ir para passo ${i + 1}`}
                                 className={`w-2 h-2 rounded-full transition-all duration-300 ${i === currentStep
                                     ? "bg-blue-500 w-5"
                                     : i < currentStep
@@ -111,6 +113,7 @@ export function GuidedTour({ onComplete }: { onComplete?: () => void }) {
                         <button
                             type="button"
                             onClick={prev}
+                            aria-label="Passo anterior"
                             disabled={currentStep === 0}
                             className={`px-4 py-2.5 text-sm font-semibold rounded-xl transition-all ${currentStep === 0
                                 ? "text-slate-300 cursor-not-allowed"
@@ -122,6 +125,7 @@ export function GuidedTour({ onComplete }: { onComplete?: () => void }) {
                         <button
                             type="button"
                             onClick={next}
+                            aria-label="Próximo passo"
                             className="px-6 py-2.5 text-sm font-bold rounded-xl bg-linear-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all"
                         >
                             {isLast ? "Começar a usar! 🚀" : "Próximo →"}

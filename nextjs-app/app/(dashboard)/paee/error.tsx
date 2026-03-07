@@ -35,6 +35,7 @@ export default function PAEEError({
                 </div>
                 <div className="flex items-center justify-center gap-3">
                     <button
+                aria-label="Tentar novamente"
                         onClick={reset}
                         className="px-5 py-2.5 bg-linear-to-r from-violet-500 to-purple-600 text-white text-sm font-semibold rounded-xl hover:from-violet-600 hover:to-purple-700 shadow-md transition-all"
                     >

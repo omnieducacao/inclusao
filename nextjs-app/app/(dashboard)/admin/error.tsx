@@ -29,6 +29,7 @@ export default function AdminError({
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
+                aria-label="Tentar novamente"
             type="button"
             onClick={reset}
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"

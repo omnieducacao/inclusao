@@ -35,6 +35,7 @@ export default function InfosError({
                 </div>
                 <div className="flex items-center justify-center gap-3">
                     <button
+                aria-label="Tentar novamente"
                         onClick={reset}
                         className="px-5 py-2.5 bg-linear-to-r from-rose-500 to-pink-600 text-white text-sm font-semibold rounded-xl hover:from-rose-600 hover:to-pink-700 shadow-md transition-all"
                     >

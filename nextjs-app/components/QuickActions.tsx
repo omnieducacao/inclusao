@@ -374,6 +374,7 @@ export function QuickActions({ session }: QuickActionsProps) {
                 {/* Edit button */}
                 <button
                     onClick={() => setShowPicker((v) => !v)}
+                    aria-label="Ações rápidas"
                     className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
                     style={{
                         backgroundColor: showPicker
@@ -439,6 +440,7 @@ export function QuickActions({ session }: QuickActionsProps) {
                         </div>
                         <button
                             onClick={() => setShowPicker(false)}
+                            aria-label="Fechar ações rápidas"
                             className="p-1.5 rounded-lg transition-colors"
                             style={{ color: "var(--text-muted)" }}
                         >
@@ -471,6 +473,7 @@ export function QuickActions({ session }: QuickActionsProps) {
                                             <button
                                                 key={action.id}
                                                 onClick={() => togglePin(action.id)}
+                                                aria-label={`Fixar ${action.id}`}
                                                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 hover:scale-[1.01]"
                                                 style={{
                                                     backgroundColor: isPinned

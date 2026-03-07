@@ -46,6 +46,7 @@ export function SimulationBanner({ session }: { session: SessionPayload }) {
                 <button
                     onClick={handleEnd}
                     disabled={ending}
+                    aria-label="Sair da simulação"
                     className="flex items-center gap-2 px-4 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
                 >
                     {ending ? (

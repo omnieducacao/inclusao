@@ -272,6 +272,7 @@ export function PEIVersionHistory({
                                 </h3>
                             </div>
                             <button
+                                aria-label="Fechar"
                                 type="button"
                                 onClick={() => setOpen(false)}
                                 className="text-slate-400 hover:text-slate-600"
@@ -394,6 +395,7 @@ export function PEIVersionHistory({
                                                                     </button>
                                                                 )}
                                                                 <button
+                                                                    aria-label="Restaurar versão"
                                                                     type="button"
                                                                     onClick={() => handleRestore(originalIdx)}
                                                                     disabled={restoring !== null}

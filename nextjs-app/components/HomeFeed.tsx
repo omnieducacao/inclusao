@@ -253,6 +253,7 @@ export function HomeFeed() {
                         style={{ borderTop: "1px solid var(--border-default)" }}
                     >
                         <button
+                            aria-label="Expandir atividades recentes"
                             onClick={() => setExpanded((v) => !v)}
                             className="text-xs font-medium transition-colors"
                             style={{ color: "var(--text-link)" }}

@@ -89,6 +89,7 @@ export class SafeModuleWrapper extends React.Component<Props, State> {
                     )}
                     <button
                         onClick={this.handleReset}
+                        aria-label="Tentar novamente"
                         style={{
                             display: "inline-flex", alignItems: "center", gap: 6,
                             padding: "10px 20px", borderRadius: 10,

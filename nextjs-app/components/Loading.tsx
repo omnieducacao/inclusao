@@ -20,7 +20,7 @@ export function Loading({ text = "Carregando...", size = "md", fullScreen = fals
     : "flex items-center justify-center gap-2 py-4";
 
   return (
-    <div className={containerClasses} style={fullScreen ? { backgroundColor: 'var(--glass-bg-strong)' } : undefined}>
+    <div role="status" aria-live="polite" className={containerClasses} style={fullScreen ? { backgroundColor: 'var(--glass-bg-strong)' } : undefined}>
       <Loader2 className={`${sizeClasses[size]} animate-spin text-blue-600`} />
       {text && <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>{text}</span>}
     </div>

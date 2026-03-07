@@ -48,6 +48,7 @@ export function DocxDownloadButton({ texto, titulo, filename, mapaImagens, forma
     <button
       type="button"
       onClick={handleClick}
+      aria-label="Baixar DOCX"
       className={className ?? "px-3 py-1.5 text-sm bg-emerald-100 text-emerald-800 rounded-lg hover:bg-emerald-200"}
     >
       {children ?? "📄 Baixar DOCX"}

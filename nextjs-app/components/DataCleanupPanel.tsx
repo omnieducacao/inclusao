@@ -85,6 +85,7 @@ export function DataCleanupPanel() {
                 {/* Actions */}
                 <div className="flex gap-3">
                     <button
+                        aria-label="Executar limpeza"
                         onClick={() => runCleanup(true)}
                         disabled={loading}
                         className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all"
@@ -101,6 +102,7 @@ export function DataCleanupPanel() {
                     </button>
                     {report && totalOrphans > 0 && (
                         <button
+                            aria-label="Executar limpeza"
                             onClick={() => {
                                 if (confirm(`Limpar ${totalOrphans} itens órfãos? Esta ação não pode ser desfeita.`)) {
                                     runCleanup(false);

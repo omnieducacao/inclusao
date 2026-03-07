@@ -38,6 +38,7 @@ export function PEISummaryPanel({ peiData, studentName }: Props) {
   return (
     <div className="mb-6 rounded-lg border-2 border-sky-200 bg-linear-to-r from-sky-50 to-blue-50 shadow-sm">
       <button
+          aria-label="Expandir"
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between p-4 text-left hover:bg-sky-100/50 transition-colors rounded-t-lg"

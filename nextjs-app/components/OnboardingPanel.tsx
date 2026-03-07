@@ -96,6 +96,7 @@ export function OnboardingPanel({
 
                 {/* Close button */}
                 <button
+                    aria-label="Fechar"
                     onClick={dismiss}
                     style={{
                         position: "absolute", top: 14, right: 14,
@@ -207,6 +208,7 @@ export function OnboardingPanel({
                         Você pode rever este guia a qualquer momento
                     </span>
                     <button
+                        aria-label="Fechar"
                         onClick={dismiss}
                         style={{
                             padding: "10px 24px", borderRadius: 10,

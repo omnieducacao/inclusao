@@ -141,6 +141,7 @@ export function GlobalSearch() {
                     <input
                         ref={inputRef}
                         type="text"
+                        aria-label="Buscar estudantes ou membros"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={handleKeydown}
@@ -152,6 +153,7 @@ export function GlobalSearch() {
                     <button
                         type="button"
                         onClick={() => setOpen(false)}
+                        aria-label="Fechar busca"
                         className="text-xs px-2 py-1 rounded-md font-mono"
                         style={{ color: 'var(--text-muted)', backgroundColor: 'var(--bg-tertiary)' }}
                     >

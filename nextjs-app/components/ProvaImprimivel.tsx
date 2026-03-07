@@ -215,6 +215,7 @@ ${mostrarGabarito ? `
                 display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap",
             }}>
                 <button
+                    aria-label="Imprimir"
                     onClick={handlePrint}
                     style={{
                         display: "flex", alignItems: "center", gap: 6,

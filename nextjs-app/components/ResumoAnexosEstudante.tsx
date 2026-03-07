@@ -35,6 +35,7 @@ export function ResumoAnexosEstudante({
   return (
     <div className="mt-6 border border-slate-200 rounded-lg bg-white">
       <button
+            aria-label="Gerenciar anexos do estudante"
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50 transition-colors rounded-t-lg"

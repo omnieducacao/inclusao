@@ -321,6 +321,7 @@ export function PEIConsolidacao({ studentId, onExportar }: Props) {
                                             </button>
                                             <button
                                                 onClick={() => handleDevolver(discId)}
+                                                aria-label="Devolver para revisão"
                                                 disabled={sendingFeedback || !feedbackText.trim()}
                                                 style={{
                                                     padding: "6px 16px", borderRadius: 8, fontSize: 12, fontWeight: 700,
@@ -364,6 +365,7 @@ export function PEIConsolidacao({ studentId, onExportar }: Props) {
                     </div>
                     <button
                         onClick={onExportar}
+                        aria-label="Exportar consolidação"
                         style={{
                             padding: "10px 20px", borderRadius: 10,
                             background: "linear-gradient(135deg, #059669, #10b981)",

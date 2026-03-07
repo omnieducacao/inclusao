@@ -82,6 +82,7 @@ function PostCarousel({ images }: { images: string[] }) {
                         <button
                             type="button"
                             onClick={() => goTo(current - 1)}
+                            aria-label="Slide anterior"
                             className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
                             style={{ backgroundColor: "rgba(0,0,0,0.5)", color: "white", backdropFilter: "blur(4px)" }}
                         >
@@ -94,6 +95,7 @@ function PostCarousel({ images }: { images: string[] }) {
                         <button
                             type="button"
                             onClick={() => goTo(current + 1)}
+                            aria-label="Próximo slide"
                             className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
                             style={{ backgroundColor: "rgba(0,0,0,0.5)", color: "white", backdropFilter: "blur(4px)" }}
                         >
@@ -113,6 +115,7 @@ function PostCarousel({ images }: { images: string[] }) {
                             key={i}
                             type="button"
                             onClick={() => goTo(i)}
+                            aria-label={`Ir para slide ${i + 1}`}
                             className="rounded-full transition-all duration-200"
                             style={{
                                 width: i === current ? "16px" : "6px",

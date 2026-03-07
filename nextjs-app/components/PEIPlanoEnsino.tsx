@@ -198,7 +198,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                                         <span style={{ fontSize: 11, fontWeight: 700, color: "#818cf8", background: "rgba(99,102,241,.1)", padding: "2px 6px", borderRadius: 4 }}>
                                             {planoVinculado.habilidades_bncc?.length || 0} hab.
                                         </span>
-                                        <button onClick={() => setExpandedView(!expandedView)} type="button" style={{
+                                        <button onClick={() => setExpandedView(!expandedView)} type="button" aria-label={expandedView ? "Ocultar detalhes" : "Ver detalhes"} style={{
                                             marginLeft: "auto", display: "flex", alignItems: "center", gap: 4,
                                             padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
                                             border: "1px solid var(--border-default)", background: "transparent",

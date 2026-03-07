@@ -157,6 +157,7 @@ export function PEIFase2Regentes({ studentId, studentName, studentGrade, student
                     <button
                         onClick={onSave}
                         disabled={externalSaving}
+                        aria-label="Salvar plano"
                         style={{
                             marginTop: 12, padding: "10px 20px", borderRadius: 10,
                             background: "linear-gradient(135deg, #7c3aed, #8b5cf6)",
@@ -227,6 +228,7 @@ export function PEIFase2Regentes({ studentId, studentName, studentGrade, student
                             <button
                                 onClick={vincularTodos}
                                 disabled={sending}
+                                aria-label="Vincular todos os planos"
                                 style={{
                                     width: "100%", padding: "12px 20px", borderRadius: 12,
                                     background: "linear-gradient(135deg, #059669, #10b981)",
@@ -263,6 +265,7 @@ export function PEIFase2Regentes({ studentId, studentName, studentGrade, student
                         <button
                             onClick={vincularTodos}
                             disabled={sending}
+                            aria-label="Vincular todos os planos"
                             style={{
                                 padding: "6px 14px", borderRadius: 8,
                                 background: "rgba(16,185,129,.1)", border: "1px solid rgba(16,185,129,.2)",

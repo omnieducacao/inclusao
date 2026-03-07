@@ -54,6 +54,7 @@ export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnis
                         <button
                             key={n}
                             onClick={() => onSelect?.(n)}
+                            aria-label={`Selecionar nível ${n}`}
                             title={`${esc.label}: ${esc.descricao} | ${nq.label} (${nq.faixa})`}
                             style={{
                                 flex: 1, minWidth: 70, padding: "8px 6px", borderRadius: 10,

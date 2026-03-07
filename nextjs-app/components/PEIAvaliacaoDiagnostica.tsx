@@ -340,6 +340,7 @@ export function PEIAvaliacaoDiagnostica({
                     {/* Botão salvar resultados */}
                     {nivelIdentificado === null && Object.keys(respostas).length >= questoes.length && (
                         <button
+                            aria-label="Salvar"
                             onClick={salvarResultados}
                             disabled={salvando}
                             style={{

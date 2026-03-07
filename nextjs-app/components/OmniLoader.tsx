@@ -156,7 +156,7 @@ export function OmniLoader({
         // Inject styles lazily on first render (safe — runs during paint)
         if (typeof document !== "undefined") ensureStyles();
         return (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span role="status" aria-live="polite" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <OmniSpinner color={meta.color} size={size} />
                 {message && <span style={{ fontSize: 13 }}>{message}</span>}
             </span>

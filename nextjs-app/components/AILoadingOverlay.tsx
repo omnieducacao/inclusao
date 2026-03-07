@@ -123,7 +123,7 @@ export function AILoadingOverlay() {
                 }`}
             style={{ backgroundColor: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(4px)" }}
         >
-            <div className="flex flex-col items-center gap-6 max-w-lg px-8">
+            <div role="status" aria-live="assertive" className="flex flex-col items-center gap-6 max-w-lg px-8">
                 {/* Logo girando */}
                 <div className="relative flex items-center justify-center" style={{ width: 88, height: 88 }}>
                     {/* Glow ring */}
