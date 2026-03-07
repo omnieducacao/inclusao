@@ -1,7 +1,7 @@
 # 📋 Próximas Sessões — Roadmap Omnisfera
 
 **Criado:** 06/03/2026 · **Atualizado:** 07/03/2026 (manhã)
-**Status atual:** 44 itens concluídos | 1 item pendente | 713 testes (0 falhas)
+**Status atual:** 45 itens concluídos | 0 itens pendentes | 713 testes + 5 E2E specs
 
 ---
 
@@ -24,6 +24,8 @@
 | **C4** | **Diagnóstica p1** — 3 paineis extraídos (Gabarito+Matriz+Manual), 4,434→3,409 (-23%) |
 | **B1** | **Inline styles** — PEIRegenteClient migrado (var→classes), Estudantes+Gestao já OK |
 | **B2** | **Skeleton.tsx** já existia (5 variantes: base, text, card, row, list) |
+| **D2** | **AI Cache fix** — `aiCache.set()` adicionado a Orange/Red/Blue (estava só em Green/Yellow) |
+| **D1** | **Playwright E2E** — 2 novos specs (diagnostica + hub), total 5 specs, ~637 linhas |
 | 6+ | **66 test files → 713 tests** (era 514 → +199 novos, 0 falhas) |
 
 ---
