@@ -46,6 +46,12 @@ vi.mock("@/lib/supabase", () => ({
                     error: mockStudentData ? null : { message: "Not found" },
                   })
                 ),
+                maybeSingle: vi.fn(() =>
+                  Promise.resolve({
+                    data: mockStudentData,
+                    error: mockStudentData ? null : { message: "Not found" },
+                  })
+                ),
               })),
             })),
           })),

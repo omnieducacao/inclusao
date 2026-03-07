@@ -18,8 +18,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const { mockMaybeSingle, mockSingle, mockEq, mockFrom, mockCompareSync } = vi.hoisted(() => {
     const mockMaybeSingle = vi.fn();
     const mockSingle = vi.fn();
-    const mockEqRef = vi.fn(() => ({
+    const mockOr = vi.fn(() => ({
+        maybeSingle: mockMaybeSingle,
+    }));
+    const mockEqRef: ReturnType<typeof vi.fn> = vi.fn(() => ({
         eq: mockEqRef,
+        or: mockOr,
         maybeSingle: mockMaybeSingle,
         single: mockSingle,
     }));
@@ -334,15 +338,16 @@ describe("auth", () => {
             expect(result).toBe(true);
         });
 
-        it("verifica se member está ativo", async () => {
+        it("verifica filtros de workspace e email", async () => {
             mockMaybeSingle.mockResolvedValue({
                 data: { password_hash: "$2a$10$hash" },
             });
 
             await verifyMemberPassword("ws-123", "test@test.com", "senha");
 
-            // Verifica se o filtro active=true foi aplicado
-            expect(mockEq).toHaveBeenCalledWith("active", true);
+            // Verifica se os filtros corretos foram aplicados
+            expect(mockEq).toHaveBeenCalledWith("workspace_id", "ws-123");
+            expect(mockEq).toHaveBeenCalledWith("email", "test@test.com");
         });
     });
 
