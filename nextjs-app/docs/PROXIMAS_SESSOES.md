@@ -1,7 +1,7 @@
 # 📋 Próximas Sessões — Roadmap Omnisfera
 
 **Criado:** 06/03/2026 · **Atualizado:** 07/03/2026 (manhã)
-**Status atual:** 42 itens concluídos | 3 itens pendentes | 713 testes (0 falhas)
+**Status atual:** 44 itens concluídos | 1 item pendente | 713 testes (0 falhas)
 
 ---
 
@@ -22,6 +22,8 @@
 | **C1/C2** | **PEI decompose p1** — 3 tabs extraídos (Dashboard+Consultoria+BNCC), PEIClient: 5,264→2,563 (-51%) |
 | **C2** | **PEI decompose COMPLETO** — 10 tabs extraídos, PEIClient: 5,264→1,118 (-79%) |
 | **C4** | **Diagnóstica p1** — 3 paineis extraídos (Gabarito+Matriz+Manual), 4,434→3,409 (-23%) |
+| **B1** | **Inline styles** — PEIRegenteClient migrado (var→classes), Estudantes+Gestao já OK |
+| **B2** | **Skeleton.tsx** já existia (5 variantes: base, text, card, row, list) |
 | 6+ | **66 test files → 713 tests** (era 514 → +199 novos, 0 falhas) |
 
 ---
