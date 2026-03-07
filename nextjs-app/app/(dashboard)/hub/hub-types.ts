@@ -48,7 +48,16 @@ export type HubToolWithHiperfocoProps = HubToolProps & {
 };
 
 /** Checklist adaptação used by CriarDoZero, AdaptarProva, etc. */
-export type ChecklistAdaptacao = Record<string, boolean>;
+export type ChecklistAdaptacao = {
+    questoes_desafiadoras?: boolean;
+    compreende_instrucoes_complexas?: boolean;
+    instrucoes_passo_a_passo?: boolean;
+    dividir_em_etapas?: boolean;
+    paragrafos_curtos?: boolean;
+    dicas_apoio?: boolean;
+    compreende_figuras_linguagem?: boolean;
+    descricao_imagens?: boolean;
+};
 
 // ─── Constants ──────────────────────────────────────────────────────
 
