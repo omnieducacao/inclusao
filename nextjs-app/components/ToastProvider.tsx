@@ -149,7 +149,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 <div
                     aria-live="polite"
                     aria-label="Notificações"
-                    className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3"
+                    className="fixed bottom-6 right-6 z-9999 flex flex-col gap-3"
                     style={{ pointerEvents: "auto" }}
                 >
                     {toasts.map((t) => (

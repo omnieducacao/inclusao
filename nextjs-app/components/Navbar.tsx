@@ -350,7 +350,7 @@ function NavDropdown({ label, items, isActive, icon: Icon, lottieAnimation, path
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all block rounded-lg mx-2"
+                className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all rounded-lg mx-2"
                 style={{
                   color: isCurrentPage ? '#4285F4' : 'var(--omni-text-primary)',
                   backgroundColor: isCurrentPage ? 'rgba(66, 133, 244, 0.1)' : 'transparent',
@@ -501,7 +501,7 @@ function ProfileDropdown({
           <div className="py-1">
             <a
               href="/perfil"
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all text-left block"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all text-left"
               style={{
                 color: 'var(--omni-text-primary)',
               }}

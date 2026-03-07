@@ -285,7 +285,7 @@ export function NotificationBell() {
 
             {/* Announcement Modal */}
             {selectedAnnouncement && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
                         {/* Header */}
                         <div className={`${getAnnouncementConfig(selectedAnnouncement.type).bg} ${getAnnouncementConfig(selectedAnnouncement.type).border} border-b px-6 py-4 flex items-center gap-3`}>
