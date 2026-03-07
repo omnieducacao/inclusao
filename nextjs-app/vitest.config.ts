@@ -13,6 +13,7 @@ export default defineConfig({
     include: [
       "__tests__/unit/**/*.test.ts",
       "__tests__/integration/**/*.test.ts",
+      "__tests__/component/**/*.test.tsx",
     ],
     exclude: [
       "node_modules",
