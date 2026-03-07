@@ -14,6 +14,7 @@
  */
 
 import { describe, it, expect, vi } from "vitest";
+// @vitest-environment jsdom
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { EmptyState } from "@/components/EmptyState";

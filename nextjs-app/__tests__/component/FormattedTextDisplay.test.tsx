@@ -15,6 +15,7 @@
  */
 
 import { describe, it, expect } from "vitest";
+// @vitest-environment jsdom
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";

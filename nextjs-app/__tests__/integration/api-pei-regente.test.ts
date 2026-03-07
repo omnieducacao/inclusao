@@ -8,6 +8,11 @@
  * - Retorna lista vazia para professor sem alunos
  * - Retorna alunos com disciplinas e status
  * - Descriptografa nomes dos estudantes
+ *
+ * PATCH: Atualiza status do PEI por disciplina. (api/pei/disciplina)
+ * Cenários:
+ * - Valida status permitidos
+ * - Salva campos de fase e feedback
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -75,6 +80,9 @@ function createChainMock(data: unknown, error: unknown = null) {
     };
     const chain = {
         select: vi.fn(() => chain),
+        update: vi.fn(() => chain),
+        delete: vi.fn(() => chain),
+        insert: vi.fn(() => chain),
         eq: vi.fn(() => chain),
         in: vi.fn(() => chain),
         ilike: vi.fn(() => chain),
@@ -101,6 +109,8 @@ vi.mock("@/lib/supabase", () => ({
                     return createChainMock(mockStudents);
                 case "pei_regente_disciplinas":
                     return createChainMock(mockDisciplinas);
+                case "pei_disciplinas": // Adicionado para suportar PATCH /api/pei/disciplina e GET meus-alunos
+                    return createChainMock([{ id: "pd-1", student_id: "s1", disciplina: "Matemática", fase_status: "diagnostica" }]);
                 default:
                     return createChainMock(null);
             }
@@ -111,6 +121,7 @@ vi.mock("@/lib/supabase", () => ({
 // ─── Import after mocks ──────────────────────────────────────────────────────────
 
 import { GET } from "@/app/api/pei-regente/meus-alunos/route";
+import { PATCH } from "@/app/api/pei/disciplina/route";
 
 // ─── Tests ───────────────────────────────────────────────────────────────────────
 
@@ -152,3 +163,52 @@ describe("API /api/pei-regente/meus-alunos", () => {
         expect(response.status).toBe(401);
     });
 });
+
+describe("API /api/pei/disciplina (PATCH fase)", () => {
+    beforeEach(() => {
+        sessionToReturn = { ...defaultSession };
+        vi.clearAllMocks();
+    });
+
+    it("retorna 401 sem autenticação", async () => {
+        sessionToReturn = null;
+        const request = new Request("http://localhost/api/pei/disciplina", {
+            method: "PATCH",
+            body: JSON.stringify({ id: "123", fase_status: "concluido" })
+        });
+        const response = await PATCH(request);
+        expect(response.status).toBe(401);
+    });
+
+    it("retorna 400 sem id ou fase_status", async () => {
+        const request = new Request("http://localhost/api/pei/disciplina", {
+            method: "PATCH",
+            body: JSON.stringify({ id: "123" }) // missing fase_status
+        });
+        const response = await PATCH(request);
+        expect(response.status).toBe(400);
+    });
+
+    it("retorna 400 com fase_status inválido", async () => {
+        const request = new Request("http://localhost/api/pei/disciplina", {
+            method: "PATCH",
+            body: JSON.stringify({ id: "123", fase_status: "invalido" })
+        });
+        const response = await PATCH(request);
+        expect(response.status).toBe(400);
+    });
+
+    it("atualiza com sucesso uma fase válida", async () => {
+        const request = new Request("http://localhost/api/pei/disciplina", {
+            method: "PATCH",
+            body: JSON.stringify({ id: "pd-1", fase_status: "diagnostica", feedback_professor: "Tudo certo" })
+        });
+        const response = await PATCH(request);
+        expect(response.status).toBe(200);
+        const data = await response.json();
+        expect(data.ok).toBe(true);
+        // data.pei_disciplina refers to the resolved mock array in createChainMock
+        expect(Array.isArray(data.pei_disciplina)).toBe(true);
+    });
+});
+
