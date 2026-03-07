@@ -7,6 +7,8 @@ import {
     Trash2, Edit3, Copy,
 } from "lucide-react";
 import { useAILoading } from "@/hooks/useAILoading";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { AutoSaveIndicator } from "@/components/AutoSaveIndicator";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -210,6 +212,38 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
     const [error, setError] = useState("");
     const [iaLoading, setIaLoading] = useState(false);
     const [expandedBloco, setExpandedBloco] = useState<string | null>(null);
+
+    // ─── Auto-Save ───────────────────────────────────────────────────────
+    const autoSaveData = useMemo(() => ({
+        id: planoId,
+        componente,
+        serie,
+        bimestre: plano.bimestre,
+        blocos: plano.blocos,
+    }), [planoId, componente, serie, plano.bimestre, plano.blocos]);
+
+    const autoSave = useAutoSave(autoSaveData, async (data) => {
+        if (!data.blocos || data.blocos.length === 0) return;
+        const todasHabs = [...new Set(data.blocos.flatMap((b: SequenciaBloco) => b.habilidades_bncc))];
+        const res = await fetch("/api/plano-curso", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id: data.id || undefined,
+                componente: data.componente,
+                serie: data.serie,
+                conteudo: JSON.stringify({ blocos: data.blocos }),
+                habilidades_bncc: todasHabs,
+                bimestre: data.bimestre,
+            }),
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || "Erro ao auto-salvar");
+        }
+        const result = await res.json();
+        if (result.plano?.id && !planoId) setPlanoId(result.plano.id);
+    }, { debounceMs: 3000, enabled: !loading && !saving && plano.blocos.length > 0 });
 
     // ─── BNCC ───────────────────────────────────────────────────────────
 
@@ -435,6 +469,10 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
 
             {/* Header */}
             <div className="bg-[linear-gradient(135deg,#0ea5e9_0%,#0284c7_100%)] rounded-2xl p-5 text-white shadow-premium relative overflow-hidden">
+                {/* Auto-save indicator */}
+                <div style={{ position: "absolute", top: 8, right: 12, zIndex: 1 }}>
+                    <AutoSaveIndicator status={autoSave.status} lastSaved={autoSave.lastSaved} />
+                </div>
                 {/* Efeito de brilho sutíl no header */}
                 <div className="absolute inset-0 bg-white/5 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-size-[250%_250%,100%_100%] animate-aurora pointer-events-none" />
 

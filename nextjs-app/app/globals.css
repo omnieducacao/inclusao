@@ -2039,3 +2039,30 @@ h6 {
     border-color: var(--module-accent-light) !important;
   }
 }
+
+/* ─── Skeleton Shimmer Animation ──────────────────────────────────────────────── */
+
+@keyframes omni-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+:root {
+  --skeleton-bg: rgba(148, 163, 184, 0.12);
+  --skeleton-shimmer: rgba(255, 255, 255, 0.25);
+}
+
+.dark {
+  --skeleton-bg: rgba(148, 163, 184, 0.08);
+  --skeleton-shimmer: rgba(255, 255, 255, 0.06);
+}
+
+html.high-contrast {
+  --skeleton-bg: rgba(0, 0, 0, 0.15);
+  --skeleton-shimmer: rgba(255, 255, 255, 0.3);
+}
