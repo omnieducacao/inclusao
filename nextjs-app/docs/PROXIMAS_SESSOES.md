@@ -1,7 +1,7 @@
 # 📋 Próximas Sessões — Roadmap Omnisfera
 
-**Criado:** 06/03/2026 · **Atualizado:** 07/03/2026 (madrugada)
-**Status atual:** 40 itens concluídos | 5 itens pendentes | 713 testes (0 falhas)
+**Criado:** 06/03/2026 · **Atualizado:** 07/03/2026 (manhã)
+**Status atual:** 42 itens concluídos | 3 itens pendentes | 713 testes (0 falhas)
 
 ---
 
@@ -20,6 +20,8 @@
 | 5+ | **Hub decompose** — 5 tools extraídos (PapoDeMestre, RotinaAvd, InclusaoBrincar, EstudioVisual) |
 | **C3** | **Hub decompose COMPLETO** — 12/12 tools extraídos, HubClient: 3,604→252 linhas (-93%) |
 | **C1/C2** | **PEI decompose p1** — 3 tabs extraídos (Dashboard+Consultoria+BNCC), PEIClient: 5,264→2,563 (-51%) |
+| **C2** | **PEI decompose COMPLETO** — 10 tabs extraídos, PEIClient: 5,264→1,118 (-79%) |
+| **C4** | **Diagnóstica p1** — 3 paineis extraídos (Gabarito+Matriz+Manual), 4,434→3,409 (-23%) |
 | 6+ | **66 test files → 713 tests** (era 514 → +199 novos, 0 falhas) |
 
 ---
