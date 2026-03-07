@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
-import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import { usePEIData, TABS, calcularProgresso, getTabStatus } from "@/hooks/usePEIData";
+import type { TabId } from "@/hooks/usePEIData";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { PEIVersionHistory, createPEISnapshot } from "@/components/PEIVersionHistory";
 import { DiagnosticConditionalFields, LBIComplianceChecklist } from "@/components/PEIDiagnosticFields";
@@ -133,34 +133,7 @@ type HabilidadeBncc = {
   origem?: string;
 };
 
-type TabId =
-  | "inicio"
-  | "estudante"
-  | "evidencias"
-  | "rede"
-  | "mapeamento"
-  | "plano"
-  | "monitoramento"
-  | "bncc"
-  | "consultoria"
-  | "regentes"
-  | "consolidacao"
-  | "dashboard";
-
-const TABS: { id: TabId; label: string }[] = [
-  { id: "inicio", label: "Início" },
-  { id: "estudante", label: "Estudante" },
-  { id: "evidencias", label: "Evidências" },
-  { id: "rede", label: "Rede de Apoio" },
-  { id: "mapeamento", label: "Mapeamento" },
-  { id: "plano", label: "Plano de Ação" },
-  { id: "monitoramento", label: "Monitoramento" },
-  { id: "bncc", label: "BNCC" },
-  { id: "consultoria", label: "Consultoria IA" },
-  { id: "regentes", label: "Regentes" },
-  { id: "consolidacao", label: "Consolidação" },
-  { id: "dashboard", label: "Dashboard" },
-];
+// TabId and TABS imported from @/hooks/usePEIData
 
 type Props = {
   students: { id: string; name: string }[];
@@ -174,42 +147,42 @@ export function PEIClient({
   studentId,
   initialPeiData,
 }: Props) {
-  const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<TabId>("inicio");
-  const [peiData, setPeiData] = useState<PEIData>(initialPeiData as PEIData);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  // ─── Core PEI State (from extracted hook) ─────────────────────────
+  const pei = usePEIData({ students, studentId, initialPeiData });
+  const {
+    activeTab, setActiveTab,
+    peiData, setPeiData,
+    saving, saved,
+    selectedStudentId, setSelectedStudentId,
+    jsonPending, setJsonPending,
+    jsonFileName, setJsonFileName,
+    erroGlobal, setErroGlobal,
+    isLoadingRascunho, setIsLoadingRascunho,
+    studentPendingId, setStudentPendingId,
+    studentPendingName, setStudentPendingName,
+    cloudLoadIdRef, skipNextFetchRef,
+    updateField,
+    toggleChecklist,
+    addMedicamento,
+    removeMedicamento,
+    handleSave,
+    handleUpdate,
+    aplicarJson,
+    currentStudentId,
+    progresso,
+    tabStatuses,
+  } = pei;
+
+  // ─── Local-only state ─────────────────────────────────────────────
   const [privacyConsentAccepted, setPrivacyConsentAccepted] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(studentId || searchParams?.get("student") || null);
-  const [jsonPending, setJsonPending] = useState<PEIData | null>(null);
-  const [jsonFileName, setJsonFileName] = useState<string>("");
-  const [studentPendingId, setStudentPendingId] = useState<string | null>(null);
-  const [studentPendingName, setStudentPendingName] = useState<string>("");
-  const [erroGlobal, setErroGlobal] = useState<string | null>(null);
-  const [isLoadingRascunho, setIsLoadingRascunho] = useState(false);
   const [schoolClasses, setSchoolClasses] = useState<Array<{ id: string; class_group: string; grade_id: string; grades?: { name?: string; label?: string } }>>([]);
   const [schoolGrades, setSchoolGrades] = useState<Array<{ id: string; name: string; label?: string }>>([]);
-  const { markDirty, markClean } = useUnsavedChanges();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Check onboarding on mount
   useEffect(() => {
     if (!localStorage.getItem('onboarding_pei')) setShowOnboarding(true);
   }, []);
-
-  // Abrir aba da URL (ex: ?student=xxx&tab=consolidacao) para fluxo "Enviar para PEI geral e consolidar"
-  const tabFromUrl = searchParams?.get("tab");
-  useEffect(() => {
-    if (!tabFromUrl || !selectedStudentId) return;
-    const validTabs: TabId[] = ["inicio", "estudante", "evidencias", "rede", "mapeamento", "plano", "monitoramento", "bncc", "consultoria", "regentes", "consolidacao", "dashboard"];
-    if (validTabs.includes(tabFromUrl as TabId)) setActiveTab(tabFromUrl as TabId);
-  }, [tabFromUrl, selectedStudentId]);
-
-
-  // Ref para preservar o ID do estudante ao carregar do Supabase (via jsonPending)
-  const cloudLoadIdRef = useRef<string | null>(null);
-  // Ref para impedir que o useEffect de fetch re-busque após um load manual (via jsonPending)
-  const skipNextFetchRef = useRef(false);
 
   // Fetch school classes and grades for turma dropdown
   useEffect(() => {
@@ -227,7 +200,6 @@ export function PEIClient({
   const availableTurmas = React.useMemo(() => {
     const selectedSerie = peiData.serie || "";
     if (!selectedSerie || schoolGrades.length === 0 || schoolClasses.length === 0) return [];
-    // Find matching grade IDs
     const extractNum = (s: string) => (s.match(/\d+/) || [""])[0];
     const normalizeGrade = (s: string) => s.replace(/[ºª°m\s]/gi, "").toLowerCase();
     const numSerie = extractNum(selectedSerie);
@@ -239,9 +211,7 @@ export function PEIClient({
           normalizeGrade(selectedSerie).includes(normalizeGrade(g.name || g.label || ""));
       })
       .map(g => g.id);
-    // Filter classes by matching grades
     const filtered = schoolClasses.filter(c => matchingGradeIds.includes(c.grade_id));
-    // Unique class_groups
     const seen = new Set<string>();
     return filtered.filter(c => {
       if (seen.has(c.class_group)) return false;
@@ -250,121 +220,17 @@ export function PEIClient({
     });
   }, [peiData.serie, schoolGrades, schoolClasses]);
 
-  const currentStudentId = selectedStudentId;
-
-  function updateField<K extends keyof PEIData>(key: K, value: PEIData[K]) {
-    setPeiData((prev) => ({ ...prev, [key]: value }));
-    setSaved(false);
-    markDirty();
-  }
-
-  function toggleChecklist(key: string, label: string) {
-    setPeiData((prev) => {
-      const checklist = { ...(prev.checklist_evidencias || {}) };
-      checklist[label] = !checklist[label];
-      return { ...prev, checklist_evidencias: checklist };
-    });
-    setSaved(false);
-  }
-
-  function addMedicamento(nome: string, posologia: string, escola: boolean) {
-    if (!nome.trim()) return;
-    const lista = peiData.lista_medicamentos || [];
-    if (lista.some((m) => (m.nome || "").toLowerCase() === nome.trim().toLowerCase())) return;
-    setPeiData((prev) => ({
-      ...prev,
-      lista_medicamentos: [...(prev.lista_medicamentos || []), { nome: nome.trim(), posologia, escola }],
-    }));
-    setSaved(false);
-  }
-
-  function removeMedicamento(i: number) {
-    setPeiData((prev) => {
-      const lista = [...(prev.lista_medicamentos || [])];
-      lista.splice(i, 1);
-      return { ...prev, lista_medicamentos: lista };
-    });
-    setSaved(false);
-  }
-
-  // ==============================================================================
-  // FUNÇÕES DE PROGRESSO (equivalente ao Streamlit)
-  // ==============================================================================
-  function _isFilled(value: unknown): boolean {
-    if (value === null || value === undefined) return false;
-    if (typeof value === "string") return value.trim().length > 0;
-    if (Array.isArray(value)) return value.length > 0;
-    if (typeof value === "object") {
-      const obj = value as Record<string, unknown>;
-      return Object.keys(obj).length > 0 && Object.values(obj).some((v) => _isFilled(v));
-    }
-    return true;
-  }
-
-  function _abaOk(key: string): boolean {
-    const d = peiData;
-
-    if (key === "INICIO") {
-      return _isFilled(d.nome);
-    }
-
-    if (key === "ESTUDANTE") {
-      return _isFilled(d.nome) && _isFilled(d.serie) && _isFilled(d.turma);
-    }
-
-    if (key === "EVIDENCIAS") {
-      const chk = d.checklist_evidencias || {};
-      return Object.values(chk).some((v) => Boolean(v)) || _isFilled(d.orientacoes_especialistas);
-    }
-
-    if (key === "REDE") {
-      return _isFilled(d.rede_apoio) || _isFilled(d.orientacoes_especialistas) || _isFilled(d.orientacoes_por_profissional);
-    }
-
-    if (key === "MAPEAMENTO") {
-      const barreiras = d.barreiras_selecionadas || {};
-      const nBar = Object.values(barreiras).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
-      return _isFilled(d.hiperfoco) || _isFilled(d.potencias) || nBar > 0;
-    }
-
-    if (key === "PLANO") {
-      return _isFilled(d.estrategias_acesso) || _isFilled(d.estrategias_ensino) || _isFilled(d.estrategias_avaliacao) ||
-        _isFilled(d.outros_acesso) || _isFilled(d.outros_ensino);
-    }
-
-    if (key === "MONITORAMENTO") {
-      return _isFilled(d.monitoramento_data) && _isFilled(d.status_meta);
-    }
-
-    if (key === "IA") {
-      return _isFilled(d.ia_sugestao) && (d.status_validacao_pei === "revisao" || d.status_validacao_pei === "aprovado");
-    }
-
-    if (key === "DASH") {
-      return _isFilled(d.ia_sugestao);
-    }
-
-    return false;
-  }
-
-  function calcularProgresso(): number {
-    const checkpoints = ["ESTUDANTE", "EVIDENCIAS", "REDE", "MAPEAMENTO", "PLANO", "MONITORAMENTO", "IA", "DASH"];
-    const done = checkpoints.filter((k) => _abaOk(k)).length;
-    const total = checkpoints.length;
-    return total > 0 ? Math.round((done / total) * 100) : 0;
-  }
+  // ─── Local render helpers (use hook values) ────────────────────────
 
   function RenderProgresso() {
-    const p = Math.max(0, Math.min(100, calcularProgresso()));
-    // Cor única baseada no progresso (sem gradiente)
-    let barColor = '#FBBF24'; // Amarelo (0-49%)
-    if (p >= 50) barColor = '#60A5FA'; // Azul (50-99%)
-    if (p >= 100) barColor = '#34D399'; // Verde (100%)
+    const p = Math.max(0, Math.min(100, progresso));
+    let barColor = '#FBBF24';
+    if (p >= 50) barColor = '#60A5FA';
+    if (p >= 100) barColor = '#34D399';
 
     return (
       <div className="mb-4">
         <div className="relative w-full h-2 rounded-full overflow-hidden shadow-inner bg-(--omni-border-default)">
-          {/* Barra de progresso com animação - cor única */}
           <div
             className="absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-out shadow-sm"
             style={{
@@ -373,7 +239,6 @@ export function PEIClient({
               boxShadow: p > 0 ? `0 0 8px ${barColor}40` : 'none'
             }}
           >
-            {/* Efeito de brilho animado */}
             <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
           </div>
         </div>
@@ -381,116 +246,6 @@ export function PEIClient({
     );
   }
 
-  async function handleSave() {
-    // Criar um novo estudante com os dados do PEI
-    if (!peiData.nome || !peiData.nome.toString().trim()) {
-      alert("O nome do estudante é obrigatório. Preencha o campo 'Nome' na aba Estudante.");
-      return;
-    }
-
-    setSaving(true);
-    setErroGlobal(null);
-    try {
-      const res = await fetch("/api/students", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: peiData.nome.toString().trim(),
-          grade: peiData.serie || null,
-          class_group: peiData.turma || null,
-          diagnosis: peiData.diagnostico || null,
-          pei_data: peiData,
-          privacy_consent: true,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const novoEstudanteId = data.student?.id;
-
-        if (novoEstudanteId) {
-          // Atualizar o ID do estudante selecionado
-          setSelectedStudentId(novoEstudanteId);
-          // Atualizar a URL
-          const url = new URL(window.location.href);
-          url.searchParams.set("student", novoEstudanteId);
-          window.history.pushState({}, "", url.toString());
-
-          setSaved(true);
-          markClean();
-          setErroGlobal(null);
-          // Auto-create version snapshot
-          createPEISnapshot(novoEstudanteId, `Criação — ${new Date().toLocaleDateString("pt-BR")}`);
-          setTimeout(() => setSaved(false), 3000);
-          alert(`✅ Novo estudante "${peiData.nome}" criado e PEI salvo na nuvem com sucesso! ☁️`);
-        } else {
-          throw new Error("ID do estudante não retornado");
-        }
-      } else {
-        const contentType = res.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          const data = await res.json();
-          setErroGlobal(data.error || `Erro ao criar estudante (HTTP ${res.status})`);
-          alert(`Erro ao criar estudante: ${data.error || `HTTP ${res.status}`}`);
-        } else {
-          setErroGlobal(`Erro ao criar estudante (HTTP ${res.status})`);
-          alert(`Erro ao criar estudante: HTTP ${res.status}`);
-        }
-      }
-    } catch (err) {
-      const mensagem = err instanceof Error ? err.message : "Erro ao criar estudante";
-      setErroGlobal(mensagem);
-      console.error("Erro ao criar estudante:", err);
-      alert(`Erro ao criar estudante: ${mensagem}`);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  // Atualizar PEI de um estudante existente
-  async function handleUpdate() {
-    if (!selectedStudentId) return;
-    setSaving(true);
-    setErroGlobal(null);
-    try {
-      // Atualizar pei_data
-      const res = await fetch(`/api/students/${selectedStudentId}/pei-data`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pei_data: peiData }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `HTTP ${res.status}`);
-      }
-
-      // Também atualizar name, grade, class_group na tabela students
-      await fetch(`/api/students/${selectedStudentId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: peiData.nome?.toString().trim() || undefined,
-          grade: peiData.serie || undefined,
-          class_group: peiData.turma || undefined,
-          diagnosis: peiData.diagnostico || undefined,
-        }),
-      });
-
-      setSaved(true);
-      markClean();
-      createPEISnapshot(selectedStudentId, `Atualização — ${new Date().toLocaleDateString("pt-BR")}`);
-      setTimeout(() => setSaved(false), 3000);
-      alert(`✅ PEI de "${peiData.nome}" atualizado com sucesso! ☁️`);
-    } catch (err) {
-      const mensagem = err instanceof Error ? err.message : "Erro ao atualizar PEI";
-      setErroGlobal(mensagem);
-      alert(`Erro ao atualizar PEI: ${mensagem}`);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  // Componente de feedback de salvamento
   function SaveFeedback() {
     if (saving) {
       return (
@@ -509,187 +264,6 @@ export function PEIClient({
       );
     }
     return null;
-  }
-
-  if (students.length === 0) {
-    return (
-      <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-slate-200/60">
-        <p className="text-slate-600">
-          Nenhum estudante cadastrado. Crie um estudante em{" "}
-          <Link href="/estudantes" className="text-sky-600 hover:underline">
-            Estudantes
-          </Link>{" "}
-          ou no PEI do Streamlit.
-        </p>
-      </div>
-    );
-  }
-
-  // Carregar dados do estudante quando selecionado (apenas se não for modo rascunho)
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useEffect(() => {
-    // Não executar se estamos carregando como rascunho ou se temos studentPendingId
-    if (isLoadingRascunho) {
-      return;
-    }
-
-    if (studentPendingId) {
-      return;
-    }
-
-    // Não re-buscar se acabamos de fazer um load manual (Carregar do Supabase)
-    if (skipNextFetchRef.current) {
-      skipNextFetchRef.current = false;
-      return;
-    }
-
-    if (selectedStudentId && selectedStudentId !== studentId) {
-      setErroGlobal(null);
-
-      // Verificar se o estudante está na lista primeiro
-      const studentFromList = students.find((s) => s.id === selectedStudentId);
-      if (!studentFromList) {
-        setErroGlobal(null); // Não mostrar erro, apenas não fazer nada
-        return;
-      }
-
-      // Buscar dados do estudante selecionado
-      const url = `/api/students/${selectedStudentId}`;
-      fetch(url)
-        .then(async (res) => {
-          if (!res.ok) {
-            // Estudante está na lista mas não foi encontrado na API
-            // Isso é normal - pode não ter pei_data ainda
-            setPeiData({} as PEIData);
-            setSaved(false);
-            setErroGlobal(null);
-            return null;
-          }
-          try {
-            return await parseJsonResponse(res, url);
-          } catch (e) {
-            // Erro ao parsear JSON
-            setPeiData({} as PEIData);
-            setSaved(false);
-            setErroGlobal(null);
-            return null;
-          }
-        })
-        .then((data) => {
-          if (!data) {
-            // Já tratado acima
-            return;
-          }
-          if (data.pei_data) {
-            setPeiData(data.pei_data as PEIData);
-            setSaved(false);
-          } else {
-            // Estudante encontrado mas sem pei_data
-            setPeiData({} as PEIData);
-            setSaved(false);
-          }
-          setErroGlobal(null);
-        })
-        .catch((err) => {
-          // Erro de rede ou outro erro
-          console.error("Erro ao carregar dados do estudante:", err);
-          // Não mostrar erro se o estudante estiver na lista
-          // Apenas limpar dados
-          setPeiData({} as PEIData);
-          setSaved(false);
-          setErroGlobal(null);
-        });
-    }
-  }, [selectedStudentId, studentId, students, studentPendingId, isLoadingRascunho]);
-
-  // Debug: Monitorar mudanças em peiData
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useEffect(() => {
-  }, [peiData]);
-
-  // Aplicar JSON pendente automaticamente quando jsonPending mudar
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useEffect(() => {
-    if (jsonPending) {
-      // Usar setTimeout para garantir que o estado foi atualizado
-      setTimeout(() => {
-        setPeiData(jsonPending);
-        // Se carregamos do Supabase, preservar vínculo; senão (JSON local) limpar
-        if (cloudLoadIdRef.current) {
-          // Marcar para pular o próximo fetch — evita que o useEffect re-busque e sobrescreva
-          skipNextFetchRef.current = true;
-          setSelectedStudentId(cloudLoadIdRef.current);
-          cloudLoadIdRef.current = null;
-        } else {
-          setSelectedStudentId(null); // JSON local não cria vínculo com nuvem
-        }
-        setJsonPending(null);
-        setJsonFileName("");
-        setSaved(false);
-        setErroGlobal(null);
-
-        // Limpar parâmetro student da URL para modo rascunho
-        const url = new URL(window.location.href);
-        url.searchParams.delete("student");
-        window.history.pushState({}, "", url.toString());
-
-      }, 0);
-    }
-  }, [jsonPending]);
-
-  // Aplicar JSON pendente
-  function aplicarJson() {
-    if (jsonPending) {
-      setPeiData(jsonPending);
-      setSelectedStudentId(null); // JSON local não cria vínculo com nuvem
-      setJsonPending(null);
-      setJsonFileName("");
-      setSaved(false);
-      setErroGlobal(null);
-
-      // Limpar parâmetro student da URL para modo rascunho
-      const url = new URL(window.location.href);
-      url.searchParams.delete("student");
-      window.history.pushState({}, "", url.toString());
-    }
-  }
-
-  // Função para verificar status de cada aba
-  function getTabStatus(tabId: TabId): "complete" | "in-progress" | "empty" {
-    const d = peiData;
-
-    switch (tabId) {
-      case "inicio":
-        return _isFilled(d.nome) ? "complete" : "empty";
-      case "estudante":
-        return _isFilled(d.nome) && _isFilled(d.serie) && _isFilled(d.turma) ? "complete" : _isFilled(d.nome) ? "in-progress" : "empty";
-      case "evidencias":
-        const chk = d.checklist_evidencias || {};
-        const hasEvidencias = Object.values(chk).some((v) => v === true);
-        return hasEvidencias ? "complete" : "empty";
-      case "rede":
-        const rede = Array.isArray(d.rede_apoio) ? d.rede_apoio : [];
-        return rede.length > 0 ? "complete" : "empty";
-      case "mapeamento":
-        const barreiras = d.barreiras_selecionadas || {};
-        const hasBarreiras = Object.values(barreiras).some((arr) => Array.isArray(arr) && arr.length > 0);
-        return hasBarreiras ? "complete" : "empty";
-      case "plano":
-        const temEstrategias = _isFilled(d.estrategias_acesso) || _isFilled(d.estrategias_ensino) || _isFilled(d.estrategias_avaliacao) ||
-          _isFilled(d.outros_acesso) || _isFilled(d.outros_ensino);
-        return temEstrategias ? "complete" : "empty";
-      case "monitoramento":
-        return _isFilled(d.parecer_geral) ? "complete" : "empty";
-      case "bncc":
-        const habs = Array.isArray(d.habilidades_bncc_selecionadas) ? d.habilidades_bncc_selecionadas : [];
-        return habs.length > 0 ? "complete" : "empty";
-      case "consultoria":
-        return _isFilled(d.status_validacao_pei) && d.status_validacao_pei !== "rascunho" ? "complete" : "empty";
-      case "dashboard":
-        return calcularProgresso() >= 50 ? "complete" : calcularProgresso() > 0 ? "in-progress" : "empty";
-      default:
-        return "empty";
-    }
   }
 
   return (
@@ -720,7 +294,7 @@ export function PEIClient({
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
             <span className="text-xs font-semibold text-(--omni-text-secondary)">Progresso do PEI</span>
           </div>
-          <span className="text-sm font-bold text-(--omni-text-primary)">{calcularProgresso()}%</span>
+          <span className="text-sm font-bold text-(--omni-text-primary)">{progresso}%</span>
         </div>
         <RenderProgresso />
       </div>
@@ -746,7 +320,7 @@ export function PEIClient({
       {/* Navegação de Abas com Indicadores Visuais */}
       <div className="flex gap-1.5 p-1.5 rounded-2xl overflow-x-auto scrollbar-hide bg-(--omni-bg-tertiary) border border-(--omni-border-default)">
         {TABS.map((t) => {
-          const status = getTabStatus(t.id);
+          const status = tabStatuses[t.id];
           const isActive = activeTab === t.id;
 
           return (
@@ -1018,7 +592,7 @@ export function PEIClient({
                                   setStudentPendingId(null);
                                   setStudentPendingName("");
                                   setIsLoadingRascunho(false);
-                                  setSaved(false);
+                                  // Saved state is managed by the hook
                                   setErroGlobal(null);
 
                                   // Limpar parâmetro student da URL
@@ -1453,7 +1027,6 @@ export function PEIClient({
                 onDiagnostico={(v) => updateField("diagnostico", v)}
                 onMedicamentos={(meds) => {
                   setPeiData((prev) => ({ ...prev, lista_medicamentos: meds }));
-                  setSaved(false);
                 }}
               />
             </div>
