@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ClipboardList, FileText, Map, Trash2, ChevronDown, ChevronUp, X, AlertTriangle, Edit2, Save, XCircle } from "lucide-react";
+import { ClipboardList, FileText, Map, Trash2, ChevronDown, ChevronUp, X, AlertTriangle, Edit2, Save, XCircle, Download } from "lucide-react";
 import { ResponsaveisSection } from "@/components/ResponsaveisSection";
 import { Card, Button, EmptyState } from "@omni/ds";
 
@@ -37,6 +37,33 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
     diagnosis: string;
   } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState<string | null>(null);
+
+  async function handleExportar(studentId: string, studentName: string) {
+    setExporting(studentId);
+    try {
+      const res = await fetch(`/api/students/${studentId}/export`);
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Erro ao exportar dados.");
+        return;
+      }
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `dados_${studentName.replace(/\s+/g, "_").toLowerCase()}_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Erro ao exportar dados. Tente novamente.");
+    } finally {
+      setExporting(null);
+    }
+  }
 
   const filtered = useMemo(() => {
     if (!search.trim()) return students;
@@ -612,11 +639,21 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
                           </div>
                         )}
 
-                        {/* Botão excluir */}
-                        <div className="pt-2 border-t border-slate-200">
+                        {/* Ações: Exportar + Excluir */}
+                        <div className="pt-2 border-t border-slate-200 flex flex-wrap gap-2">
+                          <button
+                            onClick={() => handleExportar(s.id, s.name || "estudante")}
+                            disabled={exporting === s.id}
+                            aria-label={`Exportar dados de ${s.name || "estudante"}`}
+                            className="px-4 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 rounded-lg border border-sky-200 disabled:opacity-50 flex items-center gap-2"
+                          >
+                            <Download className="w-4 h-4" />
+                            {exporting === s.id ? "Exportando..." : "Exportar Dados (LGPD)"}
+                          </button>
                           <button
                             onClick={() => setConfirmDeleteId(s.id)}
                             disabled={deleting || isUpdating}
+                            aria-label={`Excluir estudante ${s.name || ""}`}
                             className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50 flex items-center gap-2"
                           >
                             <Trash2 className="w-4 h-4" />
