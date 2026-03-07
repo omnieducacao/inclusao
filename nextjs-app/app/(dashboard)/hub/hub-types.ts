@@ -66,3 +66,39 @@ export const TAXONOMIA_BLOOM: Record<string, string[]> = {
     "5. Avaliar": ["Argumentar", "Avaliar", "Defender", "Escolher", "Estimar", "Julgar", "Prever", "Selecionar", "Suportar", "Validar", "Valorizar"],
     "6. Criar": ["Compor", "Construir", "Criar", "Desenhar", "Desenvolver", "Formular", "Investigar", "Planejar", "Produzir", "Propor"],
 };
+
+// Metodologias para Plano de Aula
+export const METODOLOGIAS = [
+    "Aula Expositiva Dialogada",
+    "Metodologia Ativa",
+    "Aprendizagem Baseada em Problemas",
+    "Ensino Híbrido",
+    "Sala de Aula Invertida",
+    "Rotação por Estações",
+];
+
+// Técnicas Ativas (aparece quando "Metodologia Ativa" é selecionada)
+export const TECNICAS_ATIVAS = [
+    "Gamificação",
+    "Sala de Aula Invertida",
+    "Aprendizagem Baseada em Projetos (PBL)",
+    "Rotação por Estações",
+    "Peer Instruction",
+    "Estudo de Caso",
+    "Aprendizagem Cooperativa",
+];
+
+// Recursos disponíveis
+export const RECURSOS_DISPONIVEIS = [
+    "Quadro/Giz",
+    "Projetor/Datashow",
+    "Lousa Digital",
+    "Tablets/Celulares",
+    "Internet",
+    "Materiais Maker (Papel, Cola, etc)",
+    "Jogos de Tabuleiro",
+    "Laboratório",
+    "Material Dourado",
+    "Recursos de CAA",
+    "Vídeos Educativos",
+];
