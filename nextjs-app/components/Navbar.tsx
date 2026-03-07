@@ -286,6 +286,9 @@ function NavDropdown({ label, items, isActive, icon: Icon, lottieAnimation, path
     >
       <button
         type="button"
+        aria-label={`Menu ${label}`}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
         className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap shrink-0 ${isActive
           ? "text-white shadow-md"
           : "hover:shadow-sm"
@@ -442,6 +445,9 @@ function ProfileDropdown({
       {/* Profile trigger button */}
       <button
         type="button"
+        aria-label="Menu do perfil"
+        aria-expanded={isOpen}
+        aria-haspopup="true"
         className="flex items-center gap-3 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
       >
         <div className="hidden lg:flex flex-col items-end text-right">
@@ -514,6 +520,7 @@ function ProfileDropdown({
             <div className="mx-3 my-1 border-t" style={{ borderColor: 'var(--omni-border-default)' }} />
             <button
               onClick={onLogout}
+              aria-label="Sair da plataforma"
               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all text-left"
               style={{
                 color: 'var(--omni-text-primary)',
@@ -789,6 +796,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
                 <select
                   value={pathname}
                   onChange={(e) => router.push(e.target.value)}
+                  aria-label="Selecionar módulo"
                   className="text-sm px-3 py-2 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                   style={{ backgroundColor: 'var(--omni-bg-secondary)', color: 'var(--omni-text-primary)', borderColor: 'var(--omni-border-default)', border: '1px solid var(--omni-border-default)' }}
                 >
@@ -811,6 +819,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               className="flex items-center justify-center w-9 h-9 rounded-lg transition-all hover:scale-105"
               style={{ color: 'var(--omni-text-muted)', backgroundColor: 'var(--omni-bg-tertiary)', border: '1px solid var(--omni-border-default)' }}
               title="Buscar"
+              aria-label="Buscar na plataforma (Cmd+K)"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

@@ -530,24 +530,20 @@ export function PEIClient({
   useEffect(() => {
     // Não executar se estamos carregando como rascunho ou se temos studentPendingId
     if (isLoadingRascunho) {
-      console.log("useEffect ignorado - isLoadingRascunho está ativo");
       return;
     }
 
     if (studentPendingId) {
-      console.log("useEffect ignorado - studentPendingId está definido");
       return;
     }
 
     // Não re-buscar se acabamos de fazer um load manual (Carregar do Supabase)
     if (skipNextFetchRef.current) {
-      console.log("useEffect ignorado - skipNextFetchRef ativo (load manual recente)");
       skipNextFetchRef.current = false;
       return;
     }
 
     if (selectedStudentId && selectedStudentId !== studentId) {
-      console.log("useEffect executando para selectedStudentId:", selectedStudentId);
       setErroGlobal(null);
 
       // Verificar se o estudante está na lista primeiro
@@ -609,15 +605,12 @@ export function PEIClient({
   // Debug: Monitorar mudanças em peiData
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    console.log("🔍 peiData mudou. Campos:", Object.keys(peiData).length, "Chaves:", Object.keys(peiData).slice(0, 5));
   }, [peiData]);
 
   // Aplicar JSON pendente automaticamente quando jsonPending mudar
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     if (jsonPending) {
-      console.log("📥 jsonPending detectado, aplicando JSON...");
-      console.log("Campos no jsonPending:", Object.keys(jsonPending).length);
       // Usar setTimeout para garantir que o estado foi atualizado
       setTimeout(() => {
         setPeiData(jsonPending);
@@ -640,7 +633,6 @@ export function PEIClient({
         url.searchParams.delete("student");
         window.history.pushState({}, "", url.toString());
 
-        console.log("✅ JSON aplicado! peiData deve ter", Object.keys(jsonPending).length, "campos agora");
       }, 0);
     }
   }, [jsonPending]);
@@ -907,7 +899,6 @@ export function PEIClient({
                       currentId={studentPendingId || null}
                       placeholder="Selecione o estudante"
                       onChange={(id) => {
-                        console.log("StudentSelector onChange chamado com id:", id);
                         setErroGlobal(null);
                         if (id) {
                           // Verificar se o estudante está na lista primeiro
@@ -918,7 +909,6 @@ export function PEIClient({
                             return;
                           }
                           // Apenas armazenar como pendente - não carregar ainda
-                          console.log("Armazenando estudante como pendente:", studentFromList.name);
                           setStudentPendingId(id);
                           setStudentPendingName(studentFromList.name);
                           // Limpar URL
@@ -927,7 +917,6 @@ export function PEIClient({
                           window.history.pushState({}, "", url.toString());
                         } else {
                           // Limpar dados quando nenhum estudante está selecionado
-                          console.log("Limpando seleção de estudante");
                           setStudentPendingId(null);
                           setStudentPendingName("");
                           setErroGlobal(null);
@@ -951,13 +940,9 @@ export function PEIClient({
                             onClick={async (e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              console.log("=== BOTÃO CARREGAR CLICADO ===");
-                              console.log("studentPendingId:", studentPendingId);
-                              console.log("studentPendingName:", studentPendingName);
 
                               // Usar o valor atual diretamente
                               const idToLoad = studentPendingId;
-                              console.log("idToLoad:", idToLoad);
                               if (!idToLoad) {
                                 alert("Nenhum estudante selecionado");
                                 console.error("idToLoad está vazio!");
@@ -972,22 +957,16 @@ export function PEIClient({
                                 return;
                               }
 
-                              console.log("Buscando JSON do PEI do Supabase para estudante:", idToLoad);
-                              console.log("Estudante da lista:", studentFromList);
                               setIsLoadingRascunho(true);
                               try {
                                 // Tentar primeiro a API principal
                                 let apiUrl = `/api/students/${idToLoad}`;
-                                console.log("Tentando API principal:", apiUrl);
                                 let res = await fetch(apiUrl);
-                                console.log("Resposta da API principal:", res.status, res.ok);
 
                                 // Se falhar, tentar a rota alternativa que busca apenas pei_data
                                 if (!res.ok) {
-                                  console.log("API principal falhou, tentando rota alternativa...");
                                   apiUrl = `/api/students/${idToLoad}/pei-data`;
                                   res = await fetch(apiUrl);
-                                  console.log("Resposta da API alternativa:", res.status, res.ok);
                                 }
 
                                 if (!res.ok) {
@@ -1015,24 +994,15 @@ export function PEIClient({
                                 }
 
                                 const data = await res.json();
-                                console.log("✅ Dados recebidos da API:", data);
 
                                 // A rota alternativa retorna { pei_data: ... }, a principal retorna { pei_data: ..., id: ..., name: ... }
                                 // Pegar o pei_data de qualquer uma das rotas
                                 const peiDataJson = data.pei_data;
-                                console.log("Tem pei_data?", !!peiDataJson);
-                                console.log("Tipo pei_data:", typeof peiDataJson);
-                                console.log("pei_data é array?", Array.isArray(peiDataJson));
-                                console.log("pei_data keys:", peiDataJson && typeof peiDataJson === 'object' ? Object.keys(peiDataJson).length : 'N/A');
-                                console.log("Resposta completa keys:", Object.keys(data));
                                 if (peiDataJson && typeof peiDataJson === 'object') {
-                                  console.log("pei_data primeiros campos:", Object.keys(peiDataJson).slice(0, 15));
                                 }
 
                                 if (peiDataJson && typeof peiDataJson === 'object' && !Array.isArray(peiDataJson) && Object.keys(peiDataJson).length > 0) {
                                   const campos = Object.keys(peiDataJson);
-                                  console.log("✅ JSON encontrado no Supabase com", campos.length, "campos");
-                                  console.log("Primeiros campos:", campos.slice(0, 10));
 
                                   // Criar cópia profunda do JSON
                                   const jsonCopiado = JSON.parse(JSON.stringify(peiDataJson)) as PEIData;
@@ -1056,11 +1026,8 @@ export function PEIClient({
                                   url.searchParams.delete("student");
                                   window.history.pushState({}, "", url.toString());
 
-                                  console.log("✅ PEI carregado diretamente com", campos.length, "campos. StudentId:", idToLoad);
                                 } else {
                                   // Estudante encontrado mas sem pei_data
-                                  console.log("⚠️ Estudante encontrado mas sem pei_data no Supabase");
-                                  console.log("pei_data recebido:", peiDataJson);
                                   setErroGlobal("Estudante encontrado mas sem dados de PEI salvos no Supabase");
                                   alert("Estudante encontrado mas sem dados de PEI salvos.\n\nPreencha o PEI e use o botão 'Criar Novo Estudante' no Dashboard para salvar.");
                                   setStudentPendingId(null);

@@ -529,7 +529,6 @@ function CriarDoZero({
           while (!imagemGerada && tentativas < maxTentativas) {
             try {
               const prioridade = tentativas === 0 ? "BANCO" : "IA";
-              console.log(`🖼️ Gerando imagem ${i + 1}/${qtdImagens} para: "${termos[i]}" (${prioridade})`);
 
               const imgRes = await fetch("/api/hub/gerar-imagem", {
                 method: "POST",
@@ -553,14 +552,12 @@ function CriarDoZero({
                 if (base64 && base64.length > 100) {
                   mapa[i + 1] = base64;
                   imagemGerada = true;
-                  console.log(`  ✅ Imagem ${i + 1} gerada com sucesso (${Math.round(base64.length / 1024)}KB)`);
                 } else {
                   console.warn(`  ⚠️ Imagem ${i + 1} gerada mas base64 inválido (${base64?.length || 0} chars), tentando novamente...`);
                 }
               } else {
                 const errorMsg = imgData.error || "Resposta sem imagem";
                 if (tentativas === 0) {
-                  console.log(`  ⚠️ Unsplash não retornou imagem, tentando Gemini...`);
                 } else {
                   console.warn(`  ❌ Falha ao gerar imagem ${i + 1} com Gemini:`, errorMsg);
                 }
@@ -577,12 +574,10 @@ function CriarDoZero({
           }
         }
 
-        console.log(`📊 Total de imagens geradas: ${Object.keys(mapa).length} de ${qtdImagens} solicitadas`);
 
         // Se faltaram imagens, tentar gerar com termos genéricos
         if (Object.keys(mapa).length < qtdImagens) {
           const faltam = qtdImagens - Object.keys(mapa).length;
-          console.log(`⚠️ Faltam ${faltam} imagem(ns), tentando gerar com Gemini...`);
 
           for (let f = 0; f < faltam; f++) {
             const idx = Object.keys(mapa).length + 1;
@@ -603,7 +598,6 @@ function CriarDoZero({
 
                 if (base64 && base64.length > 100) {
                   mapa[idx] = base64;
-                  console.log(`  ✅ Imagem ${idx} gerada como fallback`);
                 }
               }
             } catch (error) {
@@ -3289,7 +3283,6 @@ function AdaptarAtividade({
       }
       // Depois atualizar a imagem recortada
       setImagemSeparadaCropped(f);
-      console.log("✅ Imagem separada recortada e cropper fechado");
     } catch (error) {
       console.error("Erro ao processar recorte de imagem separada:", error);
       setShowImagemSeparadaCropper(false);

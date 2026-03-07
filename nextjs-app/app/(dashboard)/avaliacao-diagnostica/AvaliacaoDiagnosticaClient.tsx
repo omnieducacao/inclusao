@@ -483,32 +483,26 @@ export default function AvaliacaoDiagnosticaClient() {
         const gradeAnterior = Math.max(gradeNum - 1, 1);
         const serieNameAnterior = `EF${gradeAnterior}`;
 
-        console.log('[Diagnóstica] Fetching matriz:', disciplina, 'serie:', serieNameAnterior, 'grade:', aluno.grade);
         fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}&serie=${serieNameAnterior}`)
             .then(r => r.json())
             .then(data => {
-                console.log('[Diagnóstica] Matriz result (ano anterior):', data.total, 'habs, source:', data.source);
                 const habs = data.habilidades || [];
                 if (habs.length > 0) {
                     setMatrizHabs(habs.slice(0, 40));
                 } else {
                     // Fallback: buscar BNCC do ano atual quando o ano anterior não tem dados
                     const serieAtual = `EF${gradeNum}`;
-                    console.log('[Diagnóstica] Fallback 1: serie atual', serieAtual);
                     fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}&serie=${serieAtual}`)
                         .then(r2 => r2.json())
                         .then(d2 => {
-                            console.log('[Diagnóstica] Fallback 1 result:', d2.total, 'habs, source:', d2.source);
                             const habs2 = d2.habilidades || [];
                             if (habs2.length > 0) {
                                 setMatrizHabs(habs2.slice(0, 40));
                             } else {
                                 // Último fallback: buscar só por disciplina, sem filtro de série
-                                console.log('[Diagnóstica] Fallback 2: sem série');
                                 fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(disciplina)}`)
                                     .then(r3 => r3.json())
                                     .then(d3 => {
-                                        console.log('[Diagnóstica] Fallback 2 result:', d3.total, 'habs, source:', d3.source);
                                         setMatrizHabs((d3.habilidades || []).slice(0, 40));
                                     })
                                     .catch(err => console.error('[Diagnóstica] Fallback 2 error:', err));
@@ -1230,11 +1224,9 @@ export default function AvaliacaoDiagnosticaClient() {
                                                 if (!selectedAluno || !selectedDisc) return;
                                                 const gradeNum = parseInt(selectedAluno.grade?.match(/\d+/)?.[0] || "6", 10);
                                                 // Try direct discipline fetch (no serie filter)
-                                                console.log('[Diagnóstica] Retry fetch matriz:', selectedDisc);
                                                 fetch(`/api/avaliacao-diagnostica/matriz?disciplina=${encodeURIComponent(selectedDisc)}`)
                                                     .then(r => r.json())
                                                     .then(data => {
-                                                        console.log('[Diagnóstica] Retry result:', data.total, 'habilidades, source:', data.source);
                                                         const habs = data.habilidades || [];
                                                         if (habs.length > 0) {
                                                             // Filter by grade if possible

@@ -72,6 +72,165 @@
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Focus (global) */
+  --focus-color: #3b82f6;
+  --focus-ring: 2px solid var(--focus-color);
+}
+
+/* ═══════════════════════════════════════════════════
+   Skip Link (Acessibilidade)
+   ═══════════════════════════════════════════════════ */
+.omni-skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  z-index: 99999;
+  padding: 12px 24px;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 0 0 8px 8px;
+  text-decoration: none;
+  transition: top 200ms;
+}
+
+.omni-skip-link:focus {
+  top: 0;
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════
+   Global Focus Indicators (Acessibilidade)
+   ═══════════════════════════════════════════════════ */
+*:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ═══════════════════════════════════════════════════
+   Alto Contraste — Modificador Transversal
+   Funciona com Light, Dark ou Notebook
+   WCAG AAA (7:1 contrast ratio)
+   ═══════════════════════════════════════════════════ */
+
+/* ─── Alto Contraste + Light/Notebook ─── */
+html.high-contrast:not([data-theme="dark"]) {
+  --text-primary: #000000;
+  --text-secondary: #1a1a1a;
+  --text-muted: #333333;
+  --text-inverse: #ffffff;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #ebebeb;
+  --bg-hover: #e0e0e0;
+  --border-default: #000000;
+  --border-strong: #333333;
+  --border-subtle: #666666;
+  --surface-0: #ffffff;
+  --surface-1: #f5f5f5;
+  --surface-2: #ebebeb;
+  --surface-3: #e0e0e0;
+  --glass-bg: #ffffff;
+  --glass-bg-strong: #ffffff;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.2);
+  --focus-color: #0050aa;
+  --focus-ring: 3px solid #0050aa;
+}
+
+/* ─── Alto Contraste + Dark ─── */
+html.high-contrast[data-theme="dark"] {
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-muted: #cccccc;
+  --text-inverse: #000000;
+  --bg-primary: #000000;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1a1a1a;
+  --bg-hover: #222222;
+  --border-default: #ffffff;
+  --border-strong: #cccccc;
+  --border-subtle: #888888;
+  --surface-0: #000000;
+  --surface-1: #111111;
+  --surface-2: #1a1a1a;
+  --surface-3: #222222;
+  --glass-bg: rgba(0, 0, 0, 0.95);
+  --glass-bg-strong: #000000;
+  --shadow-sm: 0 2px 4px rgba(255, 255, 255, 0.05);
+  --shadow-md: 0 4px 8px rgba(255, 255, 255, 0.08);
+  --focus-color: #FFD700;
+  --focus-ring: 3px solid #FFD700;
+}
+
+/* ─── Alto Contraste — Overrides globais ─── */
+html.high-contrast {
+
+  /* Remove decorações que reduzem contraste */
+  & * {
+    text-shadow: none !important;
+  }
+
+  /* Links sempre sublinhados */
+  & a:not(.omni-skip-link) {
+    text-decoration: underline !important;
+    text-underline-offset: 2px;
+  }
+
+  /* Bordas sólidas em todos os interativos */
+  & button,
+  & [role="button"],
+  & input,
+  & select,
+  & textarea {
+    border: 2px solid var(--border-default) !important;
+  }
+
+  /* Focus ring reforçado */
+  & *:focus-visible {
+    outline: var(--focus-ring) !important;
+    outline-offset: 2px !important;
+  }
+
+  /* Remove transparências que reduzem legibilidade */
+  & [style*="opacity: 0."] {
+    opacity: 1 !important;
+  }
+
+  /* Tamanho mínimo de fonte */
+  & p,
+  & span,
+  & li,
+  & td,
+  & th,
+  & label,
+  & dd,
+  & dt {
+    font-size: max(var(--font-size, inherit), 13px) !important;
+  }
+
+  /* Cards com borda visível */
+  & .rounded-xl,
+  & .rounded-2xl,
+  & .rounded-lg {
+    border: 2px solid var(--border-default) !important;
+  }
+
+  /* Badges com borda */
+  & .rounded-full[style] {
+    border: 1.5px solid var(--border-default) !important;
+  }
+
+  /* Glassmorphism desativado */
+  & [style*="backdrop-filter"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--bg-secondary) !important;
+  }
 }
 
 /* ─── Dark Theme ─── */

@@ -111,7 +111,6 @@ export async function GET() {
                             .from("pei_disciplinas")
                             .update({ professor_regente_id: memberIdResolved })
                             .in("id", idsToFix as string[]);
-                        console.log(`[meus-alunos] Auto-fixed ${idsToFix.length} pei_disciplinas with professor_regente_id for ${memberData.nome}`);
                     }
                 }
             }

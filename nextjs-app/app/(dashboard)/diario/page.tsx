@@ -38,10 +38,6 @@ export default async function DiarioPage({ searchParams }: Props) {
 
       if (fullData && fullData.workspace_id === workspaceId) {
         student = fullData as Student;
-        console.log("✅ Diario: Estudante encontrado sem filtro de workspace", {
-          studentId: student.id,
-          workspaceId: student.workspace_id
-        });
       } else {
         student = studentFromList;
         console.warn("⚠️ Diario: Usando dados básicos da lista", {
@@ -61,11 +57,6 @@ export default async function DiarioPage({ searchParams }: Props) {
       });
     }
   } else if (workspaceId && studentId && student) {
-    console.log("✅ Diario: Estudante encontrado", {
-      studentId: student.id,
-      studentName: student.name,
-      workspaceId: student.workspace_id
-    });
   }
 
   return (

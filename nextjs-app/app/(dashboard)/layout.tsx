@@ -29,13 +29,19 @@ export default async function DashboardLayout({
           background: `linear-gradient(135deg, var(--bg-gradient-from), var(--bg-gradient-via), var(--bg-gradient-to))`,
         }}
       >
+        {/* Skip link for keyboard navigation (a11y) */}
+        <a href="#main-content" className="omni-skip-link">
+          Pular para o conteúdo principal
+        </a>
         <SimulationBanner session={session} />
         <MemberSimulationBanner session={session} />
-        <Navbar session={session} />
-        <main className="w-full px-6 py-6 flex-1">{children}</main>
-        <div className="w-full px-6">
+        <nav aria-label="Navegação principal">
+          <Navbar session={session} />
+        </nav>
+        <main id="main-content" className="w-full px-6 py-6 flex-1">{children}</main>
+        <footer className="w-full px-6" role="contentinfo">
           <Footer />
-        </div>
+        </footer>
         <AIEnginesBadge />
         <AnnouncementModal />
       </div>

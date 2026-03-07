@@ -98,7 +98,7 @@ export function NotificationBell() {
             const res = await fetch("/api/admin/announcements");
             if (res.ok) {
                 const data = await res.json();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const announcement = data.announcements?.find((a: any) => a.id === announcementId);
                 if (announcement) {
                     setSelectedAnnouncement({
@@ -174,6 +174,9 @@ export function NotificationBell() {
                 onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'; }}
                 onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
                 title="Notificações"
+                aria-label={`Notificações${total > 0 ? ` (${total} pendentes)` : ''}`}
+                aria-expanded={open}
+                aria-haspopup="true"
             >
                 <Bell className="w-5 h-5" />
                 {total > 0 && (
@@ -201,6 +204,7 @@ export function NotificationBell() {
                             onClick={() => setOpen(false)}
                             className="hover:opacity-70 transition-opacity"
                             style={{ color: 'var(--text-muted)' }}
+                            aria-label="Fechar notificações"
                         >
                             <X className="w-4 h-4" />
                         </button>
@@ -268,6 +272,7 @@ export function NotificationBell() {
                                             }}
                                             className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-200 rounded"
                                             title="Dispensar notificação"
+                                            aria-label="Dispensar notificação"
                                         >
                                             <X className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
                                         </button>
@@ -291,6 +296,7 @@ export function NotificationBell() {
                             <button
                                 onClick={() => setSelectedAnnouncement(null)}
                                 className={`${getAnnouncementConfig(selectedAnnouncement.type).text} opacity-60 hover:opacity-100 transition-opacity`}
+                                aria-label="Fechar comunicado"
                             >
                                 <X className="w-5 h-5" />
                             </button>

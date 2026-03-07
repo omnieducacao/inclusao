@@ -126,7 +126,6 @@ export default async function RootPage() {
       const raw = configRow.value;
       cardCustomizations = typeof raw === "string" ? JSON.parse(raw) : raw as CardCustomization;
     }
-    console.log("[DEBUG] card_customizations:", JSON.stringify(cardCustomizations));
   } catch (err) {
     console.error("[RootPage] card_customizations load error:", err);
   }

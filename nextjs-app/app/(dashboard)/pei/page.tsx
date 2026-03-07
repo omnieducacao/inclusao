@@ -38,10 +38,6 @@ export default async function PEIPage({ searchParams }: Props) {
 
       if (fullData && fullData.workspace_id === workspaceId) {
         student = fullData as Student;
-        console.log("✅ PEI: Estudante encontrado sem filtro de workspace", {
-          studentId: student.id,
-          workspaceId: student.workspace_id
-        });
       } else {
         // Usar dados da lista mesmo assim
         student = studentFromList;
@@ -62,11 +58,6 @@ export default async function PEIPage({ searchParams }: Props) {
       });
     }
   } else if (workspaceId && studentId && student) {
-    console.log("✅ PEI: Estudante encontrado", {
-      studentId: student.id,
-      studentName: student.name,
-      workspaceId: student.workspace_id
-    });
   }
 
   const peiData = student?.pei_data

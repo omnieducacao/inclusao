@@ -393,7 +393,6 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                 if (!res.ok) {
                   console.error("Erro ao salvar paee_data:", await res.text());
                 } else {
-                  console.log("✅ paee_data salvo com sucesso");
                 }
               } catch (err) {
                 console.error("Erro ao salvar paee_data:", err);
@@ -770,11 +769,6 @@ function JornadaTab({
 
   // Log para debug
   useEffect(() => {
-    console.log("📋 Jornada - Conteúdos disponíveis:", {
-      barreiras: conteudoBarreiras ? `${conteudoBarreiras.length} chars` : "vazio",
-      plano: conteudoPlano ? `${conteudoPlano.length} chars` : "vazio",
-      tec: conteudoTec ? `${conteudoTec.length} chars` : "vazio",
-    });
   }, [conteudoBarreiras, conteudoPlano, conteudoTec]);
 
   // Chave única para esta jornada (por origem)
@@ -866,7 +860,6 @@ function JornadaTab({
           return;
         }
 
-        console.log(`✅ Usando conteúdo de ${nomeFonte}:`, `${textoFonte.length} caracteres`);
         body.texto_fonte = textoFonte;
         body.nome_fonte = nomeFonte;
       }
@@ -1900,7 +1893,6 @@ function PlanoHabilidadesTab({
   useEffect(() => {
     // Não sincronizar durante geração (evitar race condition)
     if (isGenerating) {
-      console.log("⏸️ Sincronização pausada durante geração");
       return;
     }
 
@@ -1910,15 +1902,10 @@ function PlanoHabilidadesTab({
 
     // Só atualizar se o conteúdo salvo for diferente E não estiver vazio
     if (conteudoSalvo && conteudoSalvo !== plano) {
-      console.log("🔄 Sincronizando plano do paeeData:", {
-        conteudoSalvoLength: conteudoSalvo.length,
-        planoLength: plano.length
-      });
       setPlano(conteudoSalvo);
     }
 
     if (statusSalvo && statusSalvo !== status) {
-      console.log("🔄 Sincronizando status do paeeData:", { statusSalvo, status });
       setStatus((statusSalvo as typeof status) || "rascunho");
     }
 
@@ -1938,7 +1925,6 @@ function PlanoHabilidadesTab({
     setIsGenerating(true); // Bloquear sincronização durante geração
     aiLoadingStart(engine || "red", "paee");
     try {
-      console.log("Gerando plano de habilidades...", { foco, engine });
       const res = await fetch("/api/paee/plano-habilidades", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1958,11 +1944,6 @@ function PlanoHabilidadesTab({
       }
 
       const data = await res.json();
-      console.log("Plano gerado com sucesso, salvando...", {
-        planoLength: data.plano?.length,
-        planoPreview: data.plano?.substring(0, 100)
-      });
-
       const planoTexto = (data.plano || "").trim();
 
       if (!planoTexto) {
@@ -1983,14 +1964,6 @@ function PlanoHabilidadesTab({
       // Depois atualizar estado local (para garantir sincronização)
       setPlano(planoTexto);
       setStatus("revisao");
-
-      console.log("✅ Estado atualizado:", {
-        planoLength: planoTexto.length,
-        status: "revisao",
-        paeeDataUpdated: !!novoPaeeData.conteudo_plano_habilidades,
-        planoPreview: planoTexto.substring(0, 100)
-      });
-
       // Salvar no Supabase e aguardar
       if (student?.id) {
         try {
@@ -2003,7 +1976,6 @@ function PlanoHabilidadesTab({
           if (!saveRes.ok) {
             console.error("Erro ao salvar plano no Supabase:", await saveRes.text());
           } else {
-            console.log("✅ Plano salvo no Supabase com sucesso");
           }
         } catch (saveErr) {
           console.error("Erro ao salvar plano:", saveErr);
@@ -2011,7 +1983,6 @@ function PlanoHabilidadesTab({
         }
       }
 
-      console.log("✅ Plano de habilidades gerado e disponível para jornada gamificada");
     } catch (e) {
       console.error("Erro ao gerar plano:", e);
       setErro(e instanceof Error ? e.message : "Erro ao gerar plano");
@@ -2106,11 +2077,6 @@ function PlanoHabilidadesTab({
                 <button
                   onClick={() => {
                     const conteudoSalvo = (paeeData.conteudo_plano_habilidades as string) || "";
-                    console.log("🔍 Debug - Tentando recarregar:", {
-                      conteudoSalvoLength: conteudoSalvo.length,
-                      planoLength: plano.length,
-                      paeeDataKeys: Object.keys(paeeData)
-                    });
                     if (conteudoSalvo) {
                       setPlano(conteudoSalvo);
                       setStatus("revisao");

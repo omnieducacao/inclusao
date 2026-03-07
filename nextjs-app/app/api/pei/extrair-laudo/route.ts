@@ -21,7 +21,6 @@ async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise
     throw new Error("PDF extraído mas texto muito curto ou vazio. O PDF pode ser uma imagem escaneada — tente enviar como imagem (foto/print).");
   }
 
-  console.log(`✅ PDF extraído: ${textoFinal.length} chars de ${data.numpages} páginas`);
   return textoFinal;
 }
 

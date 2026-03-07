@@ -8,12 +8,16 @@ interface ThemeContextType {
     theme: Theme;
     toggleTheme: () => void;
     isDark: boolean;
+    highContrast: boolean;
+    toggleHighContrast: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
     theme: "light",
     toggleTheme: () => { },
     isDark: false,
+    highContrast: false,
+    toggleHighContrast: () => { },
 });
 
 export function useTheme() {
@@ -21,27 +25,31 @@ export function useTheme() {
 }
 
 const STORAGE_KEY = "omnisfera-theme";
+const HC_STORAGE_KEY = "omnisfera-high-contrast";
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [theme, setTheme] = useState<Theme>("notebook");
+    const [highContrast, setHighContrast] = useState(false);
     const [mounted, setMounted] = useState(false);
 
-    // Initialize theme from localStorage or system preference
+    // Initialize theme + high contrast from localStorage
     useEffect(() => {
         let timer: NodeJS.Timeout;
         const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-        if (stored === "light" || stored === "dark" || stored === "notebook") {
-            timer = setTimeout(() => {
+        const hcStored = localStorage.getItem(HC_STORAGE_KEY);
+
+        timer = setTimeout(() => {
+            if (stored === "light" || stored === "dark" || stored === "notebook") {
                 setTheme(stored);
-                setMounted(true);
-            }, 0);
-        } else {
-            // Detect system preference
-            timer = setTimeout(() => {
+            } else {
                 setTheme("notebook");
-                setMounted(true);
-            }, 0);
-        }
+            }
+            if (hcStored === "true") {
+                setHighContrast(true);
+            }
+            setMounted(true);
+        }, 0);
+
         return () => clearTimeout(timer);
     }, []);
 
@@ -51,6 +59,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         document.documentElement.setAttribute("data-theme", theme);
         localStorage.setItem(STORAGE_KEY, theme);
     }, [theme, mounted]);
+
+    // Apply high contrast class to <html>
+    useEffect(() => {
+        if (!mounted) return;
+        document.documentElement.classList.toggle("high-contrast", highContrast);
+        localStorage.setItem(HC_STORAGE_KEY, String(highContrast));
+    }, [highContrast, mounted]);
 
     // Listen for system preference changes
     useEffect(() => {
@@ -65,6 +80,21 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         return () => mq.removeEventListener("change", handler);
     }, []);
 
+    // Listen for prefers-contrast: more (system-level high contrast)
+    useEffect(() => {
+        const mq = window.matchMedia("(prefers-contrast: more)");
+        if (mq.matches && !localStorage.getItem(HC_STORAGE_KEY)) {
+            setHighContrast(true);
+        }
+        const handler = (e: MediaQueryListEvent) => {
+            if (!localStorage.getItem(HC_STORAGE_KEY)) {
+                setHighContrast(e.matches);
+            }
+        };
+        mq.addEventListener("change", handler);
+        return () => mq.removeEventListener("change", handler);
+    }, []);
+
     const toggleTheme = useCallback(() => {
         setTheme((prev) => {
             if (prev === "notebook") return "light";
@@ -73,13 +103,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         });
     }, []);
 
+    const toggleHighContrast = useCallback(() => {
+        setHighContrast((prev) => !prev);
+    }, []);
+
     // Prevent flash of wrong theme
     if (!mounted) {
         return <>{children}</>;
     }
 
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === "dark" }}>
+        <ThemeContext.Provider value={{
+            theme,
+            toggleTheme,
+            isDark: theme === "dark",
+            highContrast,
+            toggleHighContrast,
+        }}>
             {children}
         </ThemeContext.Provider>
     );
