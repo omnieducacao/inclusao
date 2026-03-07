@@ -67,11 +67,21 @@ const LINK_OPTIONS: { value: "todos" | "turma" | "tutor"; label: string }[] = [
   { value: "tutor", label: "Por tutor (estudantes específicos)" },
 ];
 
-export function GestaoClient() {
-  const [members, setMembers] = useState<WorkspaceMember[]>([]);
-  const [familyResponsaveis, setFamilyResponsaveis] = useState<FamilyResponsavel[]>([]);
-  const [master, setMaster] = useState<WorkspaceMaster>(null);
-  const [loading, setLoading] = useState(true);
+
+export function GestaoClient({
+  initialMembers,
+  initialMaster,
+  initialFamily
+}: {
+  initialMembers: WorkspaceMember[];
+  initialMaster: WorkspaceMaster;
+  initialFamily: FamilyResponsavel[];
+}) {
+
+  const [members, setMembers] = useState<WorkspaceMember[]>(initialMembers);
+  const [familyResponsaveis, setFamilyResponsaveis] = useState<FamilyResponsavel[]>(initialFamily);
+  const [master, setMaster] = useState<WorkspaceMaster>(initialMaster);
+  const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDelId, setConfirmDelId] = useState<string | null>(null);
@@ -99,10 +109,6 @@ export function GestaoClient() {
       setLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
 
   const activeMembers = members.filter((m) => m.active);
   const inactiveMembers = members.filter((m) => !m.active);
