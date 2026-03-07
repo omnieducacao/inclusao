@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
+import { useHubGenerate } from "@/hooks/useHubGenerate";
 import { EngineSelector } from "@/components/EngineSelector";
 import { ImageCropper } from "@/components/ImageCropper";
 import { detectarNivelEnsino } from "@/lib/pei";
@@ -1080,49 +1081,24 @@ function PapoDeMestre({
   const [assunto, setAssunto] = useState("");
   const [temaTurma, setTemaTurma] = useState("");
   const [hiperfocoEditavel, setHiperfocoEditavel] = useState(hiperfoco);
-  const [loading, setLoading] = useState(false);
-  const [resultado, setResultado] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-  const [validado, setValidado] = useState(false);
 
-  // Atualizar hiperfoco editável quando o prop mudar (ex: mudança de estudante)
+  const hub = useHubGenerate({
+    endpoint: "/api/hub/papo-mestre",
+    engine,
+    validate: () => !assunto.trim() ? "Informe o assunto da aula." : null,
+  });
+  const { loading, resultado, erro, validado, setValidado, setResultado } = hub;
+
+  // Atualizar hiperfoco editável quando o prop mudar
   useEffect(() => {
     setHiperfocoEditavel(hiperfoco);
   }, [hiperfoco]);
 
-  const gerar = async () => {
-    if (!assunto.trim()) {
-      setErro("Informe o assunto da aula.");
-      return;
-    }
-    setLoading(true);
-    setErro(null);
-    setResultado(null);
-    setValidado(false);
-    aiLoadingStart(engine || "green", "hub");
-    try {
-      const res = await fetch("/api/hub/papo-mestre", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          materia,
-          assunto,
-          engine,
-          hiperfoco,
-          tema_turma: temaTurma || undefined,
-          nome_estudante: student?.name || "o estudante",
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao gerar");
-      setResultado(data.texto || "");
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao gerar conexões.");
-    } finally {
-      setLoading(false);
-      aiLoadingStop();
-    }
-  };
+  const gerar = () => hub.gerar({
+    materia, assunto, engine, hiperfoco: hiperfocoEditavel,
+    tema_turma: temaTurma || undefined,
+    nome_estudante: student?.name || "o estudante",
+  });
 
   return (
     <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
@@ -1680,45 +1656,24 @@ function RotinaAvdTool({
 }) {
   const [rotinaDetalhada, setRotinaDetalhada] = useState("");
   const [topicoFoco, setTopicoFoco] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [resultado, setResultado] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-  const [validado, setValidado] = useState(false);
   const [feedback, setFeedback] = useState("");
 
-  const gerar = async (refazer = false) => {
-    if (!rotinaDetalhada.trim()) {
-      setErro("Descreva a rotina da turma.");
-      return;
-    }
-    setLoading(true);
-    setErro(null);
-    setResultado(null);
-    setValidado(false);
-    aiLoadingStart(engine || "green", "hub");
-    try {
-      const peiData = student?.pei_data || {};
-      const res = await fetch("/api/hub/rotina-avd", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rotina_detalhada: rotinaDetalhada,
-          topico_foco: topicoFoco || undefined,
-          feedback: refazer ? feedback : undefined,
-          engine,
-          estudante: student ? { nome: student.name, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 300) } : undefined,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro");
-      setResultado(data.texto || "");
-      if (refazer) setFeedback("");
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro.");
-    } finally {
-      setLoading(false);
-      aiLoadingStop();
-    }
+  const hub = useHubGenerate({
+    endpoint: "/api/hub/rotina-avd",
+    engine,
+    validate: () => !rotinaDetalhada.trim() ? "Descreva a rotina da turma." : null,
+  });
+  const { loading, resultado, erro, validado, setValidado, setResultado } = hub;
+
+  const gerar = (refazer = false) => {
+    const peiData = student?.pei_data || {};
+    hub.gerar({
+      rotina_detalhada: rotinaDetalhada,
+      topico_foco: topicoFoco || undefined,
+      feedback: refazer ? feedback : undefined,
+      engine,
+      estudante: student ? { nome: student.name, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 300) } : undefined,
+    }).then(() => { if (refazer) setFeedback(""); });
   };
 
   return (
@@ -1820,43 +1775,22 @@ function InclusaoBrincarTool({
   const peiData = student?.pei_data || {};
   const hiperfoco = (peiData.hiperfoco as string) || "";
   const [tema, setTema] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [resultado, setResultado] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-  const [validado, setValidado] = useState(false);
   const [feedback, setFeedback] = useState("");
 
-  const gerar = async (refazer = false) => {
-    if (!tema.trim()) {
-      setErro("Informe o tema/momento.");
-      return;
-    }
-    setLoading(true);
-    setErro(null);
-    setResultado(null);
-    setValidado(false);
-    aiLoadingStart(engine || "green", "hub");
-    try {
-      const res = await fetch("/api/hub/inclusao-brincar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tema,
-          feedback: refazer ? feedback : undefined,
-          engine,
-          estudante: student ? { nome: student.name, hiperfoco, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 500) || undefined } : undefined,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro");
-      setResultado(data.texto || "");
-      if (refazer) setFeedback("");
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro.");
-    } finally {
-      setLoading(false);
-      aiLoadingStop();
-    }
+  const hub = useHubGenerate({
+    endpoint: "/api/hub/inclusao-brincar",
+    engine,
+    validate: () => !tema.trim() ? "Informe o tema/momento." : null,
+  });
+  const { loading, resultado, erro, validado, setValidado, setResultado } = hub;
+
+  const gerar = (refazer = false) => {
+    hub.gerar({
+      tema,
+      feedback: refazer ? feedback : undefined,
+      engine,
+      estudante: student ? { nome: student.name, hiperfoco, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 500) || undefined } : undefined,
+    }).then(() => { if (refazer) setFeedback(""); });
   };
 
   return (
