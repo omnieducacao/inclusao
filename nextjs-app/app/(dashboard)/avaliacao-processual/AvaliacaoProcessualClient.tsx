@@ -450,12 +450,7 @@ export default function AvaliacaoProcessualClient() {
                 </div>
 
                 {/* Tipo de período */}
-                <div style={{
-                    display: "flex", gap: 6, marginBottom: 10,
-                    padding: 4, borderRadius: 12,
-                    background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
-                }}>
+                <div className="flex gap-1.5 mb-2.5 p-1 rounded-xl bg-() border border-()">
                     {(["bimestral", "trimestral", "semestral"] as TipoPeriodo[]).map(tipo => (
                         <button
                             key={tipo}
@@ -464,15 +459,7 @@ export default function AvaliacaoProcessualClient() {
                                 setSelectedPeriodo(1);
                                 loadRegistro(selectedAluno.id, selectedDisc, 1);
                             }}
-                            style={{
-                                flex: 1, padding: "8px 10px", borderRadius: 10,
-                                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                                cursor: "pointer", fontSize: 12, fontWeight: 700,
-                                border: "none",
-                                background: tipoPeriodo === tipo ? "rgba(16,185,129,.12)" : "transparent",
-                                color: tipoPeriodo === tipo ? "#10b981" : "var(--text-muted, #94a3b8)",
-                                transition: "all .2s",
-                            }}
+                            className={`flex-1 px-2.5 py-2 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer text-xs font-bold border-none transition-all ${tipoPeriodo === tipo ? 'bg-emerald-500/10 text-emerald-500' : 'bg-transparent text-()'}`}
                         >
                             {PERIODOS[tipo].label}
                         </button>
@@ -480,12 +467,7 @@ export default function AvaliacaoProcessualClient() {
                 </div>
 
                 {/* Período selector */}
-                <div style={{
-                    display: "flex", gap: 6, marginBottom: 20,
-                    padding: 4, borderRadius: 12,
-                    background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
-                }}>
+                <div className="flex gap-1.5 mb-5 p-1 rounded-xl bg-() border border-()">
                     {PERIODOS[tipoPeriodo].periodos.map(p => (
                         <button
                             key={p.value}
@@ -493,15 +475,7 @@ export default function AvaliacaoProcessualClient() {
                                 setSelectedPeriodo(p.value);
                                 loadRegistro(selectedAluno.id, selectedDisc, p.value);
                             }}
-                            style={{
-                                flex: 1, padding: "10px 12px", borderRadius: 10,
-                                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                                cursor: "pointer", fontSize: 13, fontWeight: 700,
-                                border: "none",
-                                background: selectedPeriodo === p.value ? "linear-gradient(135deg, #059669, #10b981)" : "transparent",
-                                color: selectedPeriodo === p.value ? "#fff" : "var(--text-muted, #94a3b8)",
-                                transition: "all .2s",
-                            }}
+                            className={`flex-1 px-3 py-2.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer text-[13px] font-bold border-none transition-all ${selectedPeriodo === p.value ? 'bg-linear-to-br from-emerald-600 to-emerald-500 text-white' : 'bg-transparent text-()'}`}
                         >
                             <Calendar size={13} /> {p.label}
                         </button>
@@ -509,41 +483,30 @@ export default function AvaliacaoProcessualClient() {
                 </div>
 
                 {/* Summary card */}
-                <div style={{ display: "grid", gridTemplateColumns: diagBaseline ? "1fr 1fr 1fr 1fr" : "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
-                    <div className={`${cardS} p-4 text-center`} style={{
-                        background: "rgba(16,185,129,.04)",
-                    }}>
-                        <div style={{ fontSize: 24, fontWeight: 800, color: "#10b981" }}>{mediaHabs}</div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Média Omnisfera</div>
+                <div className={`grid gap-3 mb-5 ${diagBaseline ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                    <div className={`${cardS} p-4 text-center bg-emerald-500/5`}>
+                        <div className="text-2xl font-extrabold text-emerald-500">{mediaHabs}</div>
+                        <div className="text-[11px] text-()">Média Omnisfera</div>
                         {diagBaseline && (
-                            <div style={{
-                                fontSize: 10, fontWeight: 700, marginTop: 4,
-                                color: mediaHabs > diagBaseline.nivel ? "#10b981" : mediaHabs < diagBaseline.nivel ? "#ef4444" : "#94a3b8",
-                            }}>
+                            <div className={`text-[10px] font-bold mt-1 ${mediaHabs > diagBaseline.nivel ? 'text-emerald-500' : mediaHabs < diagBaseline.nivel ? 'text-red-500' : 'text-slate-400'}`}>
                                 {mediaHabs > diagBaseline.nivel ? "↗️ Progresso" : mediaHabs < diagBaseline.nivel ? "↘️ Atenção" : "→ Estável"}
                             </div>
                         )}
                     </div>
                     {diagBaseline && (
-                        <div className={`${cardS} p-4 text-center`} style={{
-                            background: "rgba(14,165,233,.04)",
-                        }}>
-                            <div style={{ fontSize: 24, fontWeight: 800, color: "#0ea5e9" }}>N{diagBaseline.nivel}</div>
-                            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Baseline Diag.</div>
-                            <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 2 }}>{diagBaseline.score}% score</div>
+                        <div className={`${cardS} p-4 text-center bg-sky-500/5`}>
+                            <div className="text-2xl font-extrabold text-sky-500">N{diagBaseline.nivel}</div>
+                            <div className="text-[11px] text-()">Baseline Diag.</div>
+                            <div className="text-[9px] text-() mt-0.5">{diagBaseline.score}% score</div>
                         </div>
                     )}
-                    <div className={`${cardS} p-4 text-center`} style={{
-                        background: "rgba(59,130,246,.04)",
-                    }}>
-                        <div style={{ fontSize: 24, fontWeight: 800, color: "#3b82f6" }}>{habilidades.length}</div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Habilidades</div>
+                    <div className={`${cardS} p-4 text-center bg-blue-500/5`}>
+                        <div className="text-2xl font-extrabold text-blue-500">{habilidades.length}</div>
+                        <div className="text-[11px] text-()">Habilidades</div>
                     </div>
-                    <div className={`${cardS} p-4 text-center`} style={{
-                        background: "rgba(99,102,241,.04)",
-                    }}>
-                        <div style={{ fontSize: 24, fontWeight: 800, color: "#818cf8" }}>{selectedPeriodo}º</div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{PERIODOS[tipoPeriodo].label.slice(0, -1)}</div>
+                    <div className={`${cardS} p-4 text-center bg-indigo-500/5`}>
+                        <div className="text-2xl font-extrabold text-indigo-400">{selectedPeriodo}º</div>
+                        <div className="text-[11px] text-()">{PERIODOS[tipoPeriodo].label.slice(0, -1)}</div>
                     </div>
                 </div>
 
@@ -552,54 +515,50 @@ export default function AvaliacaoProcessualClient() {
                     <div className={`${cardS} mb-5`}>
                         <button
                             onClick={() => setShowEvolucao(!showEvolucao)}
-                            className={`${headerS} w-full cursor-pointer justify-between border-none`}
-                            style={{
-                                background: "rgba(99,102,241,.05)",
-                            }}
+                            className={`${headerS} w-full cursor-pointer justify-between border-none bg-indigo-500/5`}
                         >
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <TrendingUp size={16} style={{ color: "#818cf8" }} />
-                                <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>Evolução ao Longo do Tempo</span>
+                            <div className="flex items-center gap-2">
+                                <TrendingUp size={16} className="text-indigo-400" />
+                                <span className="font-bold text-sm text-indigo-400">Evolução ao Longo do Tempo</span>
                                 {evolucao[0].tendencia && (
-                                    <span style={{
-                                        fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
-                                        background: evolucao[0].tendencia === "melhora" ? "rgba(16,185,129,.1)" : evolucao[0].tendencia === "regressao" ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
-                                        color: evolucao[0].tendencia === "melhora" ? "#10b981" : evolucao[0].tendencia === "regressao" ? "#f87171" : "#94a3b8",
-                                    }}>
+                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${evolucao[0].tendencia === "melhora" ? "bg-emerald-500/10 text-emerald-500" :
+                                        evolucao[0].tendencia === "regressao" ? "bg-red-500/10 text-red-500" :
+                                            "bg-slate-500/10 text-slate-400"
+                                        }`}>
                                         {evolucao[0].tendencia === "melhora" ? "↗ Progresso" : evolucao[0].tendencia === "regressao" ? "↘ Atenção" : "→ Estável"}
                                     </span>
                                 )}
                             </div>
-                            {showEvolucao ? <ChevronUp size={14} style={{ color: "#818cf8" }} /> : <ChevronDown size={14} style={{ color: "#818cf8" }} />}
+                            {showEvolucao ? <ChevronUp size={14} className="text-indigo-400" /> : <ChevronDown size={14} className="text-indigo-400" />}
                         </button>
                         {showEvolucao && (
                             <div className={bodyS}>
                                 {evolucao.map(evo => (
-                                    <div key={evo.disciplina} style={{ marginBottom: 16 }}>
-                                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 10 }}>
+                                    <div key={evo.disciplina} className="mb-4">
+                                        <div className="text-xs font-semibold text-() mb-2.5">
                                             {evo.disciplina}
                                         </div>
-                                        <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 100, padding: "0 4px" }}>
+                                        <div className="flex items-end gap-2 h-[100px] px-1">
                                             {evo.periodos.map((p, i) => {
                                                 const val = p.media_nivel ?? 0;
                                                 const height = Math.max((val / 4) * 80, 4);
                                                 const nc = val >= 3 ? "#10b981" : val >= 2 ? "#3b82f6" : val >= 1 ? "#fbbf24" : "#f87171";
                                                 return (
-                                                    <div key={p.bimestre} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                                                        <span style={{ fontSize: 11, fontWeight: 700, color: nc }}>{val}</span>
+                                                    <div key={p.bimestre} className="flex-1 flex flex-col items-center gap-1">
+                                                        <span className="text-[11px] font-bold" style={{ color: nc }}>{val}</span>
                                                         <div style={{
                                                             width: "100%", maxWidth: 40, height, borderRadius: 6,
                                                             background: `linear-gradient(180deg, ${nc}, ${nc}88)`,
                                                             transition: "height .3s ease",
                                                         }} />
-                                                        <span style={{ fontSize: 9, color: "var(--text-muted)", textAlign: "center" }}>
+                                                        <span className="text-[9px] text-() text-center">
                                                             {p.bimestre}º
                                                         </span>
                                                         {i > 0 && evo.periodos[i - 1].media_nivel !== null && p.media_nivel !== null && (
-                                                            <span style={{
-                                                                fontSize: 8, fontWeight: 700,
-                                                                color: (p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "#10b981" : (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "#f87171" : "#94a3b8",
-                                                            }}>
+                                                            <span className={`text-[8px] font-bold ${(p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "text-emerald-500" :
+                                                                (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "text-red-500" :
+                                                                    "text-slate-400"
+                                                                }`}>
                                                                 {(p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "▲" : (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "▼" : "="}
                                                             </span>
                                                         )}
@@ -608,9 +567,9 @@ export default function AvaliacaoProcessualClient() {
                                             })}
                                         </div>
                                         {/* Scale reference */}
-                                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, padding: "0 4px" }}>
+                                        <div className="flex justify-between mt-1.5 px-1">
                                             {[0, 1, 2, 3, 4].map(n => (
-                                                <span key={n} style={{ fontSize: 8, color: "var(--text-muted)", opacity: 0.5 }}>N{n}</span>
+                                                <span key={n} className="text-[8px] text-() opacity-50">N{n}</span>
                                             ))}
                                         </div>
                                     </div>
@@ -622,24 +581,14 @@ export default function AvaliacaoProcessualClient() {
 
                 {/* Diagnóstica baseline context */}
                 {diagBaseline && (
-                    <div style={{
-                        display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
-                        borderRadius: 10, marginBottom: 12,
-                        background: "rgba(14,165,233,.05)", border: "1px solid rgba(14,165,233,.15)",
-                    }}>
-                        <div style={{
-                            width: 28, height: 28, borderRadius: "50%", display: "flex",
-                            alignItems: "center", justifyContent: "center",
-                            background: "linear-gradient(135deg, #0284c7, #0ea5e9)",
-                            color: "#fff", fontSize: 13, fontWeight: 800,
-                        }}>{diagBaseline.nivel}</div>
-                        <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg mb-3 bg-sky-500/5 border border-sky-500/15">
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center bg-linear-to-br from-sky-600 to-sky-500 text-white text-[13px] font-extrabold shrink-0">
+                            {diagBaseline.nivel}
+                        </div>
+                        <div className="text-xs text-()">
                             Linha de base <strong>Diagnóstica</strong> ({diagBaseline.disciplina}): Nível {diagBaseline.nivel} · {diagBaseline.score}% score
                         </div>
-                        <div style={{
-                            marginLeft: "auto", fontSize: 10, fontWeight: 700,
-                            color: mediaHabs > diagBaseline.nivel ? "#10b981" : mediaHabs < diagBaseline.nivel ? "#ef4444" : "#94a3b8",
-                        }}>
+                        <div className={`ml-auto text-[10px] font-bold ${mediaHabs > diagBaseline.nivel ? 'text-emerald-500' : mediaHabs < diagBaseline.nivel ? 'text-red-500' : 'text-slate-400'}`}>
                             {mediaHabs > diagBaseline.nivel ? "↗️ Progrediu" : mediaHabs < diagBaseline.nivel ? "↘️ Regrediu" : "→ Mesma faixa"}
                         </div>
                     </div>
@@ -647,14 +596,14 @@ export default function AvaliacaoProcessualClient() {
 
                 {/* Habilidades list */}
                 <div className={`${cardS} mb-5`}>
-                    <div className={headerS} style={{ background: "rgba(16,185,129,.05)" }}>
-                        <BookOpen size={16} style={{ color: "#10b981" }} />
-                        <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>
+                    <div className={`${headerS} bg-emerald-500/5`}>
+                        <BookOpen size={16} className="text-emerald-500" />
+                        <span className="font-bold text-sm text-emerald-500">
                             {habSource === "plano_curso_professor" ? "Habilidades do Plano de Curso" :
                                 habSource === "matriz_referencia" ? "Habilidades da Matriz de Referência" :
                                     "Habilidades BNCC"}
                         </span>
-                        <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "auto" }}>
+                        <span className="text-[11px] text-() ml-auto">
                             Avalie cada habilidade na escala 0-4
                         </span>
                     </div>
@@ -663,36 +612,27 @@ export default function AvaliacaoProcessualClient() {
                             const colors = NIVEL_COLORS[hab.nivel_atual] || NIVEL_COLORS[0];
                             const expanded = expandedHab === hab.codigo_bncc;
                             return (
-                                <div key={hab.codigo_bncc + idx} style={{
-                                    padding: "12px 14px", borderRadius: 10, marginBottom: 8,
-                                    border: `1px solid ${colors.border}`,
-                                    background: colors.bg,
-                                    transition: "all .2s",
-                                }}>
-                                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                                                <span style={{
-                                                    fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4,
-                                                    background: "rgba(99,102,241,.1)", color: "#818cf8", flexShrink: 0,
-                                                }}>{hab.codigo_bncc}</span>
+                                <div key={hab.codigo_bncc + idx} className="px-3.5 py-3 rounded-lg mb-2 transition-all" style={{ border: `1px solid ${colors.border}`, background: colors.bg }}>
+                                    <div className="flex items-start justify-between gap-2.5">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-1.5 mb-1.5">
+                                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 shrink-0">
+                                                    {hab.codigo_bncc}
+                                                </span>
                                                 {hab.nivel_anterior !== null && hab.nivel_anterior !== hab.nivel_atual && (
-                                                    <span style={{
-                                                        fontSize: 10, fontWeight: 600, display: "flex", alignItems: "center", gap: 2,
-                                                        color: hab.nivel_atual > hab.nivel_anterior ? "#10b981" : "#f87171", flexShrink: 0,
-                                                    }}>
+                                                    <span className={`text-[10px] font-semibold flex items-center gap-0.5 shrink-0 ${hab.nivel_atual > hab.nivel_anterior ? 'text-emerald-500' : 'text-red-400'}`}>
                                                         <TrendingUp size={10} />
                                                         {hab.nivel_anterior} → {hab.nivel_atual}
                                                     </span>
                                                 )}
                                             </div>
-                                            <div style={{ fontSize: 13, color: "var(--text-primary, #e2e8f0)", lineHeight: 1.5 }}>
+                                            <div className="text-[13px] text-() leading-relaxed">
                                                 {hab.descricao}
                                             </div>
                                         </div>
 
                                         {/* Nivel buttons */}
-                                        <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                                        <div className="flex gap-1 shrink-0">
                                             {([0, 1, 2, 3, 4] as NivelOmnisfera[]).map(n => {
                                                 const nc = NIVEL_COLORS[n];
                                                 const selected = hab.nivel_atual === n;
@@ -701,15 +641,8 @@ export default function AvaliacaoProcessualClient() {
                                                         key={n}
                                                         onClick={() => setNivel(idx, n)}
                                                         title={ESCALA_OMNISFERA[n]?.label}
-                                                        style={{
-                                                            width: 32, height: 32, borderRadius: 8,
-                                                            display: "flex", alignItems: "center", justifyContent: "center",
-                                                            cursor: "pointer", fontSize: 13, fontWeight: 800,
-                                                            border: selected ? `2px solid ${nc.text}` : "1px solid var(--border-default, rgba(148,163,184,.12))",
-                                                            background: selected ? nc.bg : "transparent",
-                                                            color: selected ? nc.text : "var(--text-muted, #94a3b8)",
-                                                            transition: "all .15s",
-                                                        }}
+                                                        className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer text-[13px] font-extrabold transition-all border ${selected ? 'border-transparent' : 'border-() bg-transparent text-()'}`}
+                                                        style={selected ? { background: nc.bg, color: nc.text, border: `2px solid ${nc.text}` } : {}}
                                                     >
                                                         {n}
                                                     </button>
@@ -719,11 +652,7 @@ export default function AvaliacaoProcessualClient() {
 
                                         <button
                                             onClick={() => setExpandedHab(expanded ? null : hab.codigo_bncc)}
-                                            style={{
-                                                display: "flex", alignItems: "center", padding: 4,
-                                                border: "none", background: "transparent",
-                                                color: "var(--text-muted)", cursor: "pointer", flexShrink: 0,
-                                            }}
+                                            className="flex items-center p-1 border-none bg-transparent text-() cursor-pointer shrink-0"
                                         >
                                             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                                         </button>
@@ -731,14 +660,14 @@ export default function AvaliacaoProcessualClient() {
 
                                     {/* Expanded observation */}
                                     {expanded && (
-                                        <div style={{ marginTop: 10 }}>
+                                        <div className="mt-2.5">
                                             {/* Rubrica guide */}
                                             <RubricaOmnisfera
                                                 nivelAtual={hab.nivel_atual}
                                                 onSelect={(n) => setNivel(idx, n)}
                                                 compact
                                             />
-                                            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, marginTop: 10 }}>
+                                            <div className="text-[11px] font-semibold text-() mb-1 mt-2.5">
                                                 Observação do professor:
                                             </div>
                                             <textarea
@@ -746,18 +675,9 @@ export default function AvaliacaoProcessualClient() {
                                                 onChange={(e) => setObsHab(idx, e.target.value)}
                                                 placeholder="Descreva o que observou..."
                                                 rows={2}
-                                                style={{
-                                                    width: "100%", padding: "8px 10px", borderRadius: 8,
-                                                    border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                                                    background: "var(--bg-primary, rgba(2,6,23,.3))",
-                                                    color: "var(--text-primary)", fontSize: 12, resize: "vertical",
-                                                    fontFamily: "inherit",
-                                                }}
+                                                className="w-full px-2.5 py-2 rounded-lg border border-() bg-() text-() text-xs resize-y font-inherit"
                                             />
-                                            <div style={{
-                                                fontSize: 10, color: "var(--text-muted)", marginTop: 4,
-                                                display: "flex", alignItems: "center", gap: 4,
-                                            }}>
+                                            <div className="text-[10px] text-() mt-1 flex items-center gap-1">
                                                 <BarChart3 size={10} />
                                                 {ESCALA_OMNISFERA[hab.nivel_atual]?.label} — {ESCALA_OMNISFERA[hab.nivel_atual]?.descricao}
                                             </div>
@@ -772,8 +692,8 @@ export default function AvaliacaoProcessualClient() {
                 {/* Observação geral */}
                 <div className={`${cardS} mb-5`}>
                     <div className={headerS}>
-                        <Activity size={16} style={{ color: "var(--text-muted)" }} />
-                        <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>Observação Geral</span>
+                        <Activity size={16} className="text-()" />
+                        <span className="font-bold text-sm text-()">Observação Geral</span>
                     </div>
                     <div className={bodyS}>
                         <textarea
@@ -781,40 +701,22 @@ export default function AvaliacaoProcessualClient() {
                             onChange={(e) => setObservacaoGeral(e.target.value)}
                             placeholder={`Percepções gerais sobre o estudante neste ${PERIODOS[tipoPeriodo].label.toLowerCase().slice(0, -1)}...`}
                             rows={3}
-                            style={{
-                                width: "100%", padding: "10px 12px", borderRadius: 8,
-                                border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                                background: "var(--bg-primary, rgba(2,6,23,.3))",
-                                color: "var(--text-primary)", fontSize: 13, resize: "vertical",
-                                fontFamily: "inherit",
-                            }}
+                            className="w-full px-3 py-2.5 rounded-lg border border-() bg-() text-() text-[13px] resize-y font-inherit"
                         />
                     </div>
                 </div>
 
                 {/* Save button */}
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+                <div className="flex justify-end gap-3">
                     {salvou && (
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#10b981", fontSize: 13, fontWeight: 600 }}>
+                        <div className="flex items-center gap-1.5 text-emerald-500 text-[13px] font-semibold">
                             ✓ Salvo com sucesso
                         </div>
                     )}
                     <button
                         onClick={salvar}
                         disabled={salvando || habilidades.length === 0}
-                        style={{
-                            padding: "12px 24px", borderRadius: 10,
-                            display: "flex", alignItems: "center", gap: 8,
-                            cursor: salvando ? "not-allowed" : "pointer",
-                            fontSize: 14, fontWeight: 700,
-                            border: "none",
-                            background: salvando
-                                ? "var(--bg-tertiary)"
-                                : "linear-gradient(135deg, #059669, #10b981)",
-                            color: "#fff",
-                            transition: "all .2s",
-                            opacity: habilidades.length === 0 ? 0.5 : 1,
-                        }}
+                        className={`px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm font-bold border-none transition-all ${salvando ? 'bg-() cursor-not-allowed' : 'bg-linear-to-br from-emerald-600 to-emerald-500'} text-white ${habilidades.length === 0 ? 'opacity-50' : 'opacity-100'}`}
                     >
                         {salvando ? <OmniLoader engine="green" size={16} /> : <Save size={16} />}
                         {salvando ? "Salvando..." : "Salvar Avaliação"}
@@ -825,16 +727,7 @@ export default function AvaliacaoProcessualClient() {
                         <button
                             onClick={gerarRelatorio}
                             disabled={gerandoRelatorio}
-                            style={{
-                                padding: "12px 24px", borderRadius: 10,
-                                display: "flex", alignItems: "center", gap: 8,
-                                cursor: gerandoRelatorio ? "not-allowed" : "pointer",
-                                fontSize: 14, fontWeight: 700,
-                                border: "none",
-                                background: gerandoRelatorio ? "var(--bg-tertiary)" : "linear-gradient(135deg, #7c3aed, #a855f7)",
-                                color: "#fff", transition: "all .2s",
-                                boxShadow: "0 4px 16px rgba(168,85,247,.2)",
-                            }}
+                            className={`px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm font-bold border-none transition-all shadow-[0_4px_16px_rgba(168,85,247,0.2)] text-white ${gerandoRelatorio ? 'bg-() cursor-not-allowed' : 'bg-linear-to-br from-purple-600 to-purple-500'}`}
                         >
                             {gerandoRelatorio ? <OmniLoader engine="red" size={16} /> : <FileText size={16} />}
                             {gerandoRelatorio ? "Gerando..." : "Gerar Relatório IA"}
@@ -858,15 +751,7 @@ export default function AvaliacaoProcessualClient() {
                             setGerandoIntegrado(false);
                         }}
                         disabled={gerandoIntegrado}
-                        style={{
-                            padding: "12px 24px", borderRadius: 10,
-                            display: "flex", alignItems: "center", gap: 8,
-                            cursor: gerandoIntegrado ? "not-allowed" : "pointer",
-                            fontSize: 14, fontWeight: 700,
-                            border: "none",
-                            background: gerandoIntegrado ? "var(--bg-tertiary)" : "linear-gradient(135deg, #0ea5e9, #38bdf8)",
-                            color: "#fff", transition: "all .2s",
-                        }}
+                        className={`px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm font-bold border-none transition-all text-white ${gerandoIntegrado ? 'bg-() cursor-not-allowed' : 'bg-linear-to-br from-sky-500 to-sky-400'}`}
                     >
                         {gerandoIntegrado ? <OmniLoader engine="red" size={16} /> : <BarChart3 size={16} />}
                         {gerandoIntegrado ? "Carregando..." : relatorioIntegrado ? (showIntegrado ? "Ocultar Integrado" : "Ver Integrado") : "Relatório Integrado"}
@@ -875,53 +760,44 @@ export default function AvaliacaoProcessualClient() {
 
                 {/* AI Report output */}
                 {relatorio && showRelatorio && (
-                    <div className={`${cardS} mt-5`} style={{ border: "1.5px solid rgba(168,85,247,.2)" }}>
+                    <div className={`${cardS} mt-5 border-[1.5px] border-purple-500/20`}>
                         <button
                             onClick={() => setShowRelatorio(!showRelatorio)}
-                            className={`${headerS} w-full cursor-pointer justify-between border-none`}
-                            style={{
-                                background: "rgba(168,85,247,.05)",
-                            }}
+                            className={`${headerS} w-full cursor-pointer justify-between border-none bg-purple-500/5`}
                         >
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <Sparkles size={16} style={{ color: "#a855f7" }} />
-                                <span style={{ fontWeight: 700, fontSize: 14, color: "#a855f7" }}>
+                            <div className="flex items-center gap-2">
+                                <Sparkles size={16} className="text-purple-500" />
+                                <span className="font-bold text-sm text-purple-500">
                                     {String(relatorio.titulo || "Relatório de Evolução")}
                                 </span>
                                 {Boolean(relatorio.tendencia_geral) && (
-                                    <span style={{
-                                        fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
-                                        background: relatorio.tendencia_geral === "melhora" ? "rgba(16,185,129,.1)" : relatorio.tendencia_geral === "regressao" ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
-                                        color: relatorio.tendencia_geral === "melhora" ? "#10b981" : relatorio.tendencia_geral === "regressao" ? "#f87171" : "#94a3b8",
-                                    }}>
+                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${relatorio.tendencia_geral === "melhora" ? "bg-emerald-500/10 text-emerald-500" :
+                                        relatorio.tendencia_geral === "regressao" ? "bg-red-500/10 text-red-500" :
+                                            "bg-slate-500/10 text-slate-400"
+                                        }`}>
                                         {relatorio.tendencia_geral === "melhora" ? "↗ Melhora" : relatorio.tendencia_geral === "regressao" ? "↘ Atenção" : "→ Estável"}
                                     </span>
                                 )}
                             </div>
-                            <ChevronUp size={14} style={{ color: "#a855f7" }} />
+                            <ChevronUp size={14} className="text-purple-500" />
                         </button>
                         <div className={bodyS}>
                             {Boolean(relatorio.periodo_analisado) && (
-                                <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8 }}>
+                                <div className="text-[11px] text-() mb-2">
                                     Período: {String(relatorio.periodo_analisado)}
                                 </div>
                             )}
                             {Boolean(relatorio.resumo_evolucao) && (
-                                <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5, marginTop: 0, marginBottom: 14 }}>
+                                <p className="text-[13px] text-() leading-relaxed mt-0 mb-3.5">
                                     {String(relatorio.resumo_evolucao)}
                                 </p>
                             )}
 
                             {/* Pontos de destaque */}
                             {Array.isArray(relatorio.pontos_destaque) && (relatorio.pontos_destaque as Array<{ tipo: string; texto: string }>).length > 0 && (
-                                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
+                                <div className="flex flex-col gap-1.5 mb-3.5">
                                     {(relatorio.pontos_destaque as Array<{ tipo: string; texto: string }>).map((p, i) => (
-                                        <div key={i} style={{
-                                            padding: "8px 12px", borderRadius: 8, fontSize: 12,
-                                            background: p.tipo === "positivo" ? "rgba(16,185,129,.05)" : "rgba(245,158,11,.05)",
-                                            border: `1px solid ${p.tipo === "positivo" ? "rgba(16,185,129,.12)" : "rgba(245,158,11,.12)"}`,
-                                            color: "var(--text-secondary)",
-                                        }}>
+                                        <div key={i} className={`px-3 py-2 rounded-lg text-xs text-() border ${p.tipo === "positivo" ? "bg-emerald-500/5 border-emerald-500/10" : "bg-amber-500/5 border-amber-500/10"}`}>
                                             {p.tipo === "positivo" ? "✅" : "⚠️"} {p.texto}
                                         </div>
                                     ))}
@@ -930,23 +806,17 @@ export default function AvaliacaoProcessualClient() {
 
                             {/* Ações sugeridas */}
                             {Array.isArray(relatorio.acoes_sugeridas) && (relatorio.acoes_sugeridas as Array<{ acao: string; justificativa: string; prioridade: string }>).length > 0 && (
-                                <div style={{ marginBottom: 14 }}>
-                                    <div style={{ fontSize: 12, fontWeight: 700, color: "#a855f7", marginBottom: 8 }}>🎯 Ações Sugeridas</div>
+                                <div className="mb-3.5">
+                                    <div className="text-xs font-bold text-purple-500 mb-2">🎯 Ações Sugeridas</div>
                                     {(relatorio.acoes_sugeridas as Array<{ acao: string; justificativa: string; prioridade: string }>).map((a, i) => (
-                                        <div key={i} style={{
-                                            padding: "10px 14px", borderRadius: 10, marginBottom: 6,
-                                            background: "var(--bg-primary, rgba(2,6,23,.2))",
-                                            border: "1px solid var(--border-default, rgba(148,163,184,.1))",
-                                        }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                                                <span style={{
-                                                    fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 4, textTransform: "uppercase",
-                                                    background: a.prioridade === "alta" ? "rgba(239,68,68,.1)" : a.prioridade === "media" ? "rgba(245,158,11,.1)" : "rgba(148,163,184,.1)",
-                                                    color: a.prioridade === "alta" ? "#f87171" : a.prioridade === "media" ? "#fbbf24" : "#94a3b8",
-                                                }}>{a.prioridade}</span>
+                                        <div key={i} className="px-3.5 py-2.5 rounded-lg mb-1.5 bg-() border border-()">
+                                            <div className="flex items-center gap-1.5 mb-1">
+                                                <span className={`text-[9px] font-bold px-1.5 py-px rounded uppercase ${a.prioridade === "alta" ? "bg-red-500/10 text-red-400" : a.prioridade === "media" ? "bg-amber-500/10 text-amber-400" : "bg-slate-500/10 text-slate-400"}`}>
+                                                    {a.prioridade}
+                                                </span>
                                             </div>
-                                            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>{a.acao}</div>
-                                            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{a.justificativa}</div>
+                                            <div className="text-xs font-semibold text-() mb-0.5">{a.acao}</div>
+                                            <div className="text-[11px] text-()">{a.justificativa}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -954,11 +824,7 @@ export default function AvaliacaoProcessualClient() {
 
                             {/* Nota para PEI */}
                             {Boolean(relatorio.nota_para_pei) && (
-                                <div style={{
-                                    padding: "10px 14px", borderRadius: 10,
-                                    background: "rgba(59,130,246,.05)", border: "1px solid rgba(59,130,246,.12)",
-                                    fontSize: 12, color: "#60a5fa",
-                                }}>
+                                <div className="px-3.5 py-2.5 rounded-lg bg-blue-500/5 border border-blue-500/10 text-xs text-blue-400">
                                     📝 <strong>Nota para o PEI:</strong> {String(relatorio.nota_para_pei)}
                                 </div>
                             )}
@@ -1028,12 +894,7 @@ export default function AvaliacaoProcessualClient() {
                                     w.document.close();
                                     setTimeout(() => w.print(), 300);
                                 }}
-                                style={{
-                                    padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600,
-                                    cursor: "pointer", border: "1px solid rgba(14,165,233,.3)",
-                                    background: "rgba(14,165,233,.08)", color: "#0ea5e9",
-                                    display: "flex", alignItems: "center", gap: 4,
-                                }}
+                                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer border border-sky-500/30 bg-sky-500/10 text-sky-500 flex items-center gap-1"
                             >
                                 <Printer size={12} /> Exportar PDF
                             </button>
@@ -1041,22 +902,15 @@ export default function AvaliacaoProcessualClient() {
                         <div className={bodyS}>
                             {/* Diagnóstica baseline */}
                             {relatorioIntegrado.diagnostico_baseline?.nivel_omnisfera != null && (
-                                <div style={{
-                                    padding: "12px 16px", borderRadius: 10, marginBottom: 14,
-                                    background: "rgba(14,165,233,.05)", border: "1px solid rgba(14,165,233,.15)",
-                                    display: "flex", alignItems: "center", gap: 12,
-                                }}>
-                                    <div style={{
-                                        width: 40, height: 40, borderRadius: "50%", display: "flex",
-                                        alignItems: "center", justifyContent: "center",
-                                        background: "linear-gradient(135deg, #0284c7, #0ea5e9)",
-                                        color: "#fff", fontSize: 18, fontWeight: 800,
-                                    }}>{relatorioIntegrado.diagnostico_baseline.nivel_omnisfera}</div>
+                                <div className="px-4 py-3 rounded-xl mb-3.5 bg-sky-500/5 border border-sky-500/15 flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-linear-to-br from-sky-600 to-sky-500 text-white text-lg font-extrabold shrink-0">
+                                        {relatorioIntegrado.diagnostico_baseline.nivel_omnisfera}
+                                    </div>
                                     <div>
-                                        <div style={{ fontSize: 13, fontWeight: 700, color: "#0ea5e9" }}>
+                                        <div className="text-[13px] font-bold text-sky-500">
                                             Linha de Base — Nível {relatorioIntegrado.diagnostico_baseline.nivel_omnisfera}
                                         </div>
-                                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                        <div className="text-[11px] text-() mt-0.5">
                                             Via Diagnóstica · {relatorioIntegrado.diagnostico_baseline.status}
                                         </div>
                                     </div>
@@ -1064,47 +918,42 @@ export default function AvaliacaoProcessualClient() {
                             )}
 
                             {/* Overall trend */}
-                            <div style={{ display: "flex", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
-                                <div style={{
-                                    flex: 1, minWidth: 120, padding: "10px 14px", borderRadius: 10,
-                                    background: relatorioIntegrado.tendencia_geral === "melhora" ? "rgba(16,185,129,.06)" : relatorioIntegrado.tendencia_geral === "regressao" ? "rgba(239,68,68,.06)" : "rgba(148,163,184,.06)",
-                                    border: `1px solid ${relatorioIntegrado.tendencia_geral === "melhora" ? "rgba(16,185,129,.2)" : relatorioIntegrado.tendencia_geral === "regressao" ? "rgba(239,68,68,.2)" : "rgba(148,163,184,.15)"}`,
-                                    textAlign: "center",
-                                }}>
-                                    <div style={{ fontSize: 22, fontWeight: 800, color: relatorioIntegrado.tendencia_geral === "melhora" ? "#10b981" : relatorioIntegrado.tendencia_geral === "regressao" ? "#ef4444" : "#94a3b8" }}>
+                            <div className="flex gap-3 mb-3.5 flex-wrap">
+                                <div className={`flex-1 min-w-[120px] px-3.5 py-2.5 rounded-xl text-center border
+                                    ${relatorioIntegrado.tendencia_geral === "melhora" ? "bg-emerald-500/5 border-emerald-500/20" :
+                                        relatorioIntegrado.tendencia_geral === "regressao" ? "bg-red-500/5 border-red-500/20" :
+                                            "bg-slate-500/5 border-slate-500/15"}`}>
+                                    <div className={`text-[22px] font-extrabold ${relatorioIntegrado.tendencia_geral === "melhora" ? "text-emerald-500" :
+                                        relatorioIntegrado.tendencia_geral === "regressao" ? "text-red-500" : "text-slate-400"}`}>
                                         {relatorioIntegrado.tendencia_geral === "melhora" ? "↗" : relatorioIntegrado.tendencia_geral === "regressao" ? "↘" : "→"}
                                     </div>
-                                    <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>Tendência Geral</div>
+                                    <div className="text-[11px] font-semibold text-() mt-0.5">Tendência Geral</div>
                                 </div>
-                                <div style={{ flex: 1, minWidth: 120, padding: "10px 14px", borderRadius: 10, background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.15)", textAlign: "center" }}>
-                                    <div style={{ fontSize: 22, fontWeight: 800, color: "#6366f1" }}>{relatorioIntegrado.registros_processual || 0}</div>
-                                    <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>Registros</div>
+                                <div className="flex-1 min-w-[120px] px-3.5 py-2.5 rounded-xl bg-indigo-500/5 border border-indigo-500/15 text-center">
+                                    <div className="text-[22px] font-extrabold text-indigo-500">{relatorioIntegrado.registros_processual || 0}</div>
+                                    <div className="text-[11px] font-semibold text-() mt-0.5">Registros</div>
                                 </div>
-                                <div style={{ flex: 1, minWidth: 120, padding: "10px 14px", borderRadius: 10, background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.15)", textAlign: "center" }}>
-                                    <div style={{ fontSize: 22, fontWeight: 800, color: "#f59e0b" }}>{(relatorioIntegrado.alertas_regressao || []).length}</div>
-                                    <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>Alertas</div>
+                                <div className="flex-1 min-w-[120px] px-3.5 py-2.5 rounded-xl bg-amber-500/5 border border-amber-500/15 text-center">
+                                    <div className="text-[22px] font-extrabold text-amber-500">{(relatorioIntegrado.alertas_regressao || []).length}</div>
+                                    <div className="text-[11px] font-semibold text-() mt-0.5">Alertas</div>
                                 </div>
                             </div>
 
                             {/* Evolution per habilidade */}
                             {(relatorioIntegrado.evolucao_por_habilidade || []).length > 0 && (
-                                <div style={{ marginBottom: 14 }}>
-                                    <div style={{ fontSize: 12, fontWeight: 700, color: "#0ea5e9", marginBottom: 8 }}>📈 Evolução por Habilidade</div>
+                                <div className="mb-3.5">
+                                    <div className="text-xs font-bold text-sky-500 mb-2">📈 Evolução por Habilidade</div>
                                     {(relatorioIntegrado.evolucao_por_habilidade as Array<{ codigo: string; descricao: string; nivel_inicial: number; nivel_atual: number; delta: number; tendencia: string }>).map((e, i) => (
-                                        <div key={i} style={{
-                                            display: "flex", alignItems: "center", gap: 10, padding: "8px 12px",
-                                            borderRadius: 8, marginBottom: 4,
-                                            background: e.tendencia === "regressao" ? "rgba(239,68,68,.04)" : "transparent",
-                                            border: `1px solid ${e.tendencia === "regressao" ? "rgba(239,68,68,.12)" : "var(--border-default, rgba(148,163,184,.08))"}`,
-                                        }}>
-                                            <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: "rgba(99,102,241,.1)", color: "#818cf8", flexShrink: 0 }}>{e.codigo}</span>
-                                            <span style={{ flex: 1, fontSize: 12, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.descricao.slice(0, 60)}</span>
-                                            <span style={{ fontSize: 12, color: "var(--text-muted)", flexShrink: 0 }}>{e.nivel_inicial} → {e.nivel_atual}</span>
-                                            <span style={{
-                                                fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6, flexShrink: 0,
-                                                background: e.tendencia === "melhora" ? "rgba(16,185,129,.1)" : e.tendencia === "regressao" ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
-                                                color: e.tendencia === "melhora" ? "#10b981" : e.tendencia === "regressao" ? "#ef4444" : "#94a3b8",
-                                            }}>{e.delta > 0 ? `+${e.delta}` : e.delta}</span>
+                                        <div key={i} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg mb-1 border ${e.tendencia === "regressao" ? "bg-red-500/5 border-red-500/10" : "bg-transparent border-()"}`}>
+                                            <span className="text-[10px] font-bold px-1.5 py-px rounded bg-indigo-500/10 text-indigo-400 shrink-0">{e.codigo}</span>
+                                            <span className="flex-1 text-xs text-() py-0.5 line-clamp-1">{e.descricao}</span>
+                                            <span className="text-xs text-() shrink-0">{e.nivel_inicial} → {e.nivel_atual}</span>
+                                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md shrink-0
+                                                ${e.tendencia === "melhora" ? "bg-emerald-500/10 text-emerald-500" :
+                                                    e.tendencia === "regressao" ? "bg-red-500/10 text-red-500" :
+                                                        "bg-slate-500/10 text-slate-400"}`}>
+                                                {e.delta > 0 ? `+${e.delta}` : e.delta}
+                                            </span>
                                         </div>
                                     ))}
                                 </div>
@@ -1113,15 +962,11 @@ export default function AvaliacaoProcessualClient() {
                             {/* Regression alerts */}
                             {(relatorioIntegrado.alertas_regressao || []).length > 0 && (
                                 <div>
-                                    <div style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b", marginBottom: 8 }}>⚠️ Alertas de Regressão</div>
+                                    <div className="text-xs font-bold text-amber-500 mb-2">⚠️ Alertas de Regressão</div>
                                     {(relatorioIntegrado.alertas_regressao as Array<{ codigo: string; descricao: string; de: number; para: number; descricao_nivel: string }>).map((a, i) => (
-                                        <div key={i} style={{
-                                            padding: "10px 14px", borderRadius: 10, marginBottom: 6,
-                                            background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.15)",
-                                            fontSize: 12, color: "var(--text-secondary)",
-                                        }}>
+                                        <div key={i} className="px-3.5 py-2.5 rounded-xl mb-1.5 bg-amber-500/5 border border-amber-500/15 text-xs text-()">
                                             ⚠️ <strong>{a.codigo}</strong>: nível {a.de} → {a.para} ({a.descricao_nivel})
-                                            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{a.descricao.slice(0, 100)}</div>
+                                            <div className="text-[11px] text-() mt-0.5 py-0.5 line-clamp-1">{a.descricao}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -1163,51 +1008,42 @@ export default function AvaliacaoProcessualClient() {
             />
 
             {/* Link to Diagnóstica */}
-            <div style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "10px 16px", borderRadius: 10, marginBottom: 20,
-                background: "rgba(37,99,235,.05)", border: "1px solid rgba(37,99,235,.15)",
-            }}>
-                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+            <div className="flex items-center justify-between px-4 py-2.5 rounded-xl mb-5 bg-blue-500/5 border border-blue-500/15">
+                <span className="text-xs text-()">
                     📋 Precisa fazer a avaliação diagnóstica inicial?
                 </span>
-                <a href="/avaliacao-diagnostica" style={{
-                    fontSize: 12, fontWeight: 700, color: "#3b82f6", textDecoration: "none",
-                }}>Ir para Diagnóstica →</a>
+                <a href="/avaliacao-diagnostica" className="text-xs font-bold text-blue-500 no-underline hover:underline">
+                    Ir para Diagnóstica →
+                </a>
             </div>
 
             {/* Empty state */}
             {alunos.length === 0 && (
                 <div className={`${cardS} text-center px-5 py-10`}>
-                    <Users size={48} style={{ margin: "0 auto 12px", color: "var(--text-muted)", opacity: 0.3 }} />
-                    <h3 style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
+                    <Users size={48} className="mx-auto mb-3 text-() opacity-30" />
+                    <h3 className="m-0 mb-1.5 text-[15px] font-bold text-()">
                         Nenhum estudante encontrado
                     </h3>
-                    <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>
+                    <p className="m-0 text-[13px] text-()">
                         Estudantes em Fase 2 do PEI aparecerão aqui.
                     </p>
                 </div>
             )}
 
             {/* Student cards */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div className="flex flex-col gap-3">
                 {alunos.map(aluno => (
                     <div key={aluno.id} className={cardS}>
                         <div className={`${headerS} justify-between`}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                <div style={{
-                                    width: 36, height: 36, borderRadius: "50%", display: "flex",
-                                    alignItems: "center", justifyContent: "center",
-                                    background: "linear-gradient(135deg, #059669, #10b981)",
-                                    color: "#fff", fontSize: 12, fontWeight: 800,
-                                }}>
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-9 h-9 rounded-full flex items-center justify-center bg-linear-to-br from-emerald-600 to-emerald-500 text-white text-xs font-extrabold">
                                     {aluno.name.split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase()}
                                 </div>
                                 <div>
-                                    <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary, #e2e8f0)" }}>
+                                    <div className="font-bold text-sm text-()">
                                         {aluno.name}
                                     </div>
-                                    <div style={{ fontSize: 12, color: "var(--text-muted, #94a3b8)" }}>
+                                    <div className="text-xs text-()">
                                         {aluno.grade} {aluno.class_group && `— ${aluno.class_group}`}
                                         {aluno.diagnostico && ` · ${aluno.diagnostico}`}
                                     </div>
@@ -1216,28 +1052,19 @@ export default function AvaliacaoProcessualClient() {
                         </div>
 
                         {/* Discipline buttons */}
-                        <div className={`${bodyS} flex flex-wrap gap-2`}>
+                        <div className={`${bodyS} flex flex-wrap gap-2 pt-3`}>
                             {aluno.disciplinas.map(disc => (
                                 <button
                                     key={disc.id}
                                     onClick={() => openProcessual(aluno, disc.disciplina)}
-                                    style={{
-                                        padding: "8px 14px", borderRadius: 10,
-                                        display: "flex", alignItems: "center", gap: 6,
-                                        cursor: "pointer", fontSize: 13, fontWeight: 600,
-                                        border: "1px solid var(--border-default, rgba(148,163,184,.12))",
-                                        background: "var(--bg-primary, rgba(2,6,23,.3))",
-                                        color: "var(--text-secondary, #cbd5e1)",
-                                        transition: "all .2s",
-                                    }}
+                                    className="px-3.5 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer text-[13px] font-semibold border border-() bg-() text-() transition-all hover:bg-()"
                                 >
                                     <Activity size={14} />
                                     {disc.disciplina}
                                     {disc.nivel_omnisfera !== null && (
-                                        <span style={{
-                                            fontSize: 10, fontWeight: 800, padding: "1px 6px", borderRadius: 4,
-                                            background: "rgba(16,185,129,.12)", color: "#10b981",
-                                        }}>N{disc.nivel_omnisfera}</span>
+                                        <span className="text-[10px] font-extrabold px-1.5 py-px rounded bg-emerald-500/10 text-emerald-500">
+                                            N{disc.nivel_omnisfera}
+                                        </span>
                                     )}
                                 </button>
                             ))}

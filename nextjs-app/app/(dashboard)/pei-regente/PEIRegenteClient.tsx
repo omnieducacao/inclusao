@@ -50,20 +50,20 @@ interface DataResponse {
 
 const STEP_COLORS: Record<FaseStatusPEIDisciplina, { bg: string; border: string; text: string; icon: React.ReactNode }> = {
     plano_ensino: {
-        bg: "rgba(245,158,11,.08)", border: "rgba(245,158,11,.3)",
-        text: "#f59e0b", icon: <FileText size={16} style={{ color: "#f59e0b" }} />,
+        bg: "bg-amber-500/10", border: "border-amber-500/30",
+        text: "text-amber-500", icon: <FileText size={16} className="text-amber-500" />,
     },
     diagnostica: {
-        bg: "rgba(59,130,246,.08)", border: "rgba(59,130,246,.3)",
-        text: "#3b82f6", icon: <Brain size={16} style={{ color: "#3b82f6" }} />,
+        bg: "bg-blue-500/10", border: "border-blue-500/30",
+        text: "text-blue-500", icon: <Brain size={16} className="text-blue-500" />,
     },
     pei_disciplina: {
-        bg: "rgba(139,92,246,.08)", border: "rgba(139,92,246,.3)",
-        text: "#8b5cf6", icon: <ClipboardCheck size={16} style={{ color: "#8b5cf6" }} />,
+        bg: "bg-violet-500/10", border: "border-violet-500/30",
+        text: "text-violet-500", icon: <ClipboardCheck size={16} className="text-violet-500" />,
     },
     concluido: {
-        bg: "rgba(16,185,129,.08)", border: "rgba(16,185,129,.3)",
-        text: "#10b981", icon: <CheckCircle2 size={16} style={{ color: "#10b981" }} />,
+        bg: "bg-emerald-500/10", border: "border-emerald-500/30",
+        text: "text-emerald-500", icon: <CheckCircle2 size={16} className="text-emerald-500" />,
     },
 };
 
@@ -180,27 +180,16 @@ export function PEIRegenteClient() {
             <div className="relative rounded-2xl overflow-hidden bg-(--omni-bg-secondary) border border-(--omni-border-default)">
                 {/* Toast notification */}
                 {toast && (
-                    <div style={{
-                        position: 'absolute', top: 12, right: 12, zIndex: 50,
-                        padding: '10px 18px', borderRadius: 10,
-                        background: 'rgba(16,185,129,.15)', border: '1px solid rgba(16,185,129,.3)',
-                        color: '#10b981', fontSize: 13, fontWeight: 600,
-                        animation: 'fadeIn .3s ease',
-                    }}>
+                    <div className="absolute top-3 right-3 z-50 px-4 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-[13px] font-bold animate-fade-in">
                         {toast}
                     </div>
                 )}
                 {/* Transitioning overlay */}
                 {transitioning && (
-                    <div style={{
-                        position: 'absolute', inset: 0, zIndex: 40,
-                        background: 'rgba(0,0,0,.3)', backdropFilter: 'blur(2px)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        borderRadius: 14,
-                    }}>
-                        <div>
+                    <div className="absolute inset-0 z-40 bg-black/30 backdrop-blur-[2px] flex items-center justify-center rounded-2xl">
+                        <div className="text-center">
                             <OmniLoader variant="card" />
-                            <p style={{ color: '#fff', fontSize: 13, marginTop: 8, fontWeight: 600 }}>Avançando fase...</p>
+                            <p className="text-white text-[13px] mt-2 font-bold">Avançando fase...</p>
                         </div>
                     </div>
                 )}
@@ -208,18 +197,16 @@ export function PEIRegenteClient() {
                 <div className="px-6 py-4 flex items-center gap-3 border-b border-(--omni-border-default) bg-(--omni-bg-tertiary)">
                     <button
                         onClick={() => { setActiveStep(null); setSelectedDisc(null); }}
-                        className="p-1.5 rounded-lg transition-colors" style={{ color: "var(--omni-text-muted)" }}
-                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
-                        onMouseLeave={e => (e.currentTarget.style.backgroundColor = '')}
+                        className="p-1.5 rounded-lg transition-colors text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
                     >
                         <ArrowLeft size={18} />
                     </button>
-                    <div className="text-sm" style={{ color: "var(--omni-text-muted)" }}>
+                    <div className="text-sm text-slate-500 dark:text-slate-400">
                         <span>{selectedAluno.name}</span>
                         <span className="mx-2">›</span>
-                        <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{selectedDisc.disciplina}</span>
+                        <span className="text-slate-800 dark:text-slate-200 font-semibold">{selectedDisc.disciplina}</span>
                         <span className="mx-2">›</span>
-                        <span style={{ color: STEP_COLORS[selectedDisc.fase_status]?.text || '#94a3b8' }}>
+                        <span className={STEP_COLORS[selectedDisc.fase_status]?.text || 'text-slate-400'}>
                             {activeStep === "plano" ? "Plano de Ensino"
                                 : activeStep === "diagnostica" ? "Avaliação Diagnóstica"
                                     : "PEI Disciplina"}
@@ -229,11 +216,9 @@ export function PEIRegenteClient() {
 
                 <div className="p-6">
                     {activeStep === "plano" && !selectedAluno.grade && (
-                        <div className="mb-4 p-3 rounded-lg flex items-center gap-2" style={{
-                            background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.2)',
-                        }}>
-                            <AlertTriangle size={16} style={{ color: '#f59e0b', flexShrink: 0 }} />
-                            <p className="text-xs" style={{ color: '#f59e0b' }}>
+                        <div className="mb-4 p-3 rounded-lg flex items-center gap-2 bg-amber-500/10 border border-amber-500/20">
+                            <AlertTriangle size={16} className="text-amber-500 shrink-0" />
+                            <p className="text-xs text-amber-500">
                                 <strong>Atenção:</strong> A série/ano do estudante não está cadastrada.
                                 O plano será buscado com valor padrão. Atualize o cadastro do estudante para resultados mais precisos.
                             </p>
@@ -307,26 +292,21 @@ export function PEIRegenteClient() {
                         <div className="space-y-6">
                             {/* Título */}
                             <div className="flex items-center gap-2">
-                                <ClipboardCheck className="w-5 h-5" style={{ color: '#818cf8' }} />
-                                <h3 className="text-lg font-semibold" style={{ color: "var(--omni-text-primary)" }}>
+                                <ClipboardCheck className="w-5 h-5 text-indigo-400" />
+                                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
                                     PEI por Disciplina — {selectedDisc.disciplina}
                                 </h3>
                             </div>
 
                             {/* ── PEI Geral (PEI 1) — expandível ── */}
                             {selectedAluno.pei_geral && Object.keys(selectedAluno.pei_geral).length > 1 && (
-                                <details className="rounded-xl overflow-hidden" style={{
-                                    border: '1.5px solid rgba(99,102,241,.2)',
-                                    background: 'rgba(99,102,241,.03)',
-                                }}>
-                                    <summary className="px-5 py-3.5 cursor-pointer flex items-center gap-2" style={{ background: 'rgba(99,102,241,.06)' }}>
-                                        <FileText className="w-4 h-4" style={{ color: '#818cf8' }} />
-                                        <span className="text-sm font-bold" style={{ color: '#818cf8' }}>
+                                <details className="rounded-xl overflow-hidden border-[1.5px] border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-colors">
+                                    <summary className="px-5 py-3.5 cursor-pointer flex items-center gap-2 bg-indigo-500/10">
+                                        <FileText className="w-4 h-4 text-indigo-400" />
+                                        <span className="text-sm font-bold text-indigo-400">
                                             PEI Geral do Estudante
                                         </span>
-                                        <span className="text-[10px] ml-auto px-2 py-0.5 rounded-full font-bold" style={{
-                                            background: 'rgba(99,102,241,.12)', color: '#818cf8',
-                                        }}>
+                                        <span className="text-[10px] ml-auto px-2 py-0.5 rounded-full font-bold bg-indigo-500/15 text-indigo-400">
                                             Informações gerais
                                         </span>
                                     </summary>
@@ -341,18 +321,13 @@ export function PEIRegenteClient() {
 
                             {/* ── BNCC do Especialista (read-only) ── */}
                             {selectedAluno.habilidades_bncc?.length > 0 && (
-                                <details className="rounded-xl overflow-hidden" style={{
-                                    border: '1px solid rgba(56,161,105,.2)',
-                                    background: 'rgba(56,161,105,.03)',
-                                }}>
-                                    <summary className="px-5 py-3 cursor-pointer flex items-center gap-2" style={{ background: 'rgba(56,161,105,.06)' }}>
-                                        <BookOpen className="w-4 h-4" style={{ color: '#38A169' }} />
-                                        <span className="text-sm font-bold" style={{ color: '#38A169' }}>
+                                <details className="rounded-xl overflow-hidden border border-green-600/20 bg-green-600/5 hover:bg-green-600/10 transition-colors">
+                                    <summary className="px-5 py-3 cursor-pointer flex items-center gap-2 bg-green-600/10">
+                                        <BookOpen className="w-4 h-4 text-green-600" />
+                                        <span className="text-sm font-bold text-green-600">
                                             Habilidades BNCC (selecionadas pelo Especialista)
                                         </span>
-                                        <span className="text-[10px] ml-auto px-2 py-0.5 rounded-full font-bold" style={{
-                                            background: 'rgba(56,161,105,.12)', color: '#38A169',
-                                        }}>
+                                        <span className="text-[10px] ml-auto px-2 py-0.5 rounded-full font-bold bg-green-600/15 text-green-600">
                                             {(() => {
                                                 const disc = selectedDisc.disciplina.toLowerCase();
                                                 const filtered = selectedAluno.habilidades_bncc.filter(h =>
@@ -369,21 +344,15 @@ export function PEIRegenteClient() {
                                             const disc = selectedDisc.disciplina.toLowerCase();
                                             const isMyDisc = !h.disciplina || h.disciplina.toLowerCase().includes(disc);
                                             return (
-                                                <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{
-                                                    background: isMyDisc ? 'rgba(56,161,105,.06)' : 'transparent',
-                                                    border: isMyDisc ? '1px solid rgba(56,161,105,.15)' : '1px solid transparent',
-                                                    opacity: isMyDisc ? 1 : 0.5,
-                                                }}>
+                                                <div key={i} className={`flex items-start gap-2 p-2 rounded-lg text-xs ${isMyDisc ? 'bg-green-600/10 border border-green-600/15 opacity-100' : 'bg-transparent border-transparent opacity-50'}`}>
                                                     {h.codigo && (
-                                                        <span className="font-bold shrink-0 px-1.5 py-0.5 rounded" style={{
-                                                            background: 'rgba(56,161,105,.1)', color: '#38A169', fontSize: 10,
-                                                        }}>{h.codigo}</span>
+                                                        <span className="font-bold shrink-0 px-1.5 py-0.5 rounded bg-green-600/10 text-green-600 text-[10px]">{h.codigo}</span>
                                                     )}
-                                                    <span style={{ color: "var(--omni-text-secondary)" }}>
+                                                    <span className="text-slate-500 dark:text-slate-400">
                                                         {h.habilidade || h.objeto_conhecimento || String(h.codigo || `Habilidade ${i + 1}`)}
                                                     </span>
                                                     {h.disciplina && (
-                                                        <span className="shrink-0 text-[10px]" style={{ color: "var(--omni-text-muted)" }}>
+                                                        <span className="shrink-0 text-[10px] text-slate-400">
                                                             {h.disciplina}
                                                         </span>
                                                     )}
@@ -396,18 +365,13 @@ export function PEIRegenteClient() {
 
                             {/* EI Objetivos */}
                             {selectedAluno.bncc_ei_objetivos?.length > 0 && (
-                                <details className="rounded-xl overflow-hidden" style={{
-                                    border: '1px solid rgba(66,153,225,.2)',
-                                    background: 'rgba(66,153,225,.03)',
-                                }}>
-                                    <summary className="px-5 py-3 cursor-pointer flex items-center gap-2" style={{ background: 'rgba(66,153,225,.06)' }}>
-                                        <BookOpen className="w-4 h-4" style={{ color: '#4299e1' }} />
-                                        <span className="text-sm font-bold" style={{ color: '#4299e1' }}>
+                                <details className="rounded-xl overflow-hidden border border-sky-500/20 bg-sky-500/5 hover:bg-sky-500/10 transition-colors">
+                                    <summary className="px-5 py-3 cursor-pointer flex items-center gap-2 bg-sky-500/10">
+                                        <BookOpen className="w-4 h-4 text-sky-500" />
+                                        <span className="text-sm font-bold text-sky-500">
                                             Objetivos EI (BNCC — Campos de Experiência)
                                         </span>
-                                        <span className="text-[10px] ml-auto px-2 py-0.5 rounded-full font-bold" style={{
-                                            background: 'rgba(66,153,225,.12)', color: '#4299e1',
-                                        }}>
+                                        <span className="text-[10px] ml-auto px-2 py-0.5 rounded-full font-bold bg-sky-500/15 text-sky-500">
                                             {selectedAluno.bncc_ei_objetivos.length}
                                         </span>
                                     </summary>
@@ -496,8 +460,7 @@ export function PEIRegenteClient() {
                                         aiLoadingStop();
                                     }}
                                     disabled={gerandoAdaptacao}
-                                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50"
-                                    style={{ background: gerandoAdaptacao ? '#94a3b8' : 'linear-gradient(135deg, #0ea5e9, #3b82f6)' }}
+                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 ${gerandoAdaptacao ? 'bg-slate-400' : 'bg-gradient-to-br from-sky-500 to-blue-500'}`}
                                 >
                                     {gerandoAdaptacao ? <OmniLoader engine="red" size={14} /> : (
                                         <>
@@ -513,57 +476,37 @@ export function PEIRegenteClient() {
                                         {/* Meta badges */}
                                         <div className="flex gap-2 flex-wrap">
                                             {adaptacaoMeta?.nivel_diag != null && (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold"
-                                                    style={{ backgroundColor: 'rgba(14,165,233,.1)', color: '#0ea5e9' }}>
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold bg-sky-500/10 text-sky-500">
                                                     📊 Nível Diagnóstica: {adaptacaoMeta.nivel_diag}
                                                 </span>
                                             )}
-                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold"
-                                                style={{
-                                                    backgroundColor: adaptacaoMeta?.plano_encontrado ? 'rgba(16,185,129,.1)' : 'rgba(245,158,11,.1)',
-                                                    color: adaptacaoMeta?.plano_encontrado ? '#10b981' : '#f59e0b',
-                                                }}>
+                                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${adaptacaoMeta?.plano_encontrado ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
                                                 📚 Plano de Curso: {adaptacaoMeta?.plano_encontrado ? "✅ Encontrado" : "⚠️ Não encontrado"}
                                             </span>
                                         </div>
 
                                         {/* Resumo */}
                                         {adaptacaoSugestao.resumo_adaptacao && (
-                                            <div className="p-3 rounded-lg text-sm" style={{
-                                                backgroundColor: 'var(--bg-primary)',
-                                                border: '1px solid rgba(14,165,233,.15)',
-                                                color: 'var(--text-secondary)',
-                                            }}>
+                                            <div className="p-3 rounded-lg text-sm bg-[var(--bg-primary)] border border-sky-500/15 text-[var(--text-secondary)]">
                                                 {String(adaptacaoSugestao.resumo_adaptacao)}
                                             </div>
                                         )}
 
                                         {/* Objetivos individualizados + Rubrica */}
                                         {adaptacaoSugestao.objetivos_individualizados && (
-                                            <div className="p-3 rounded-lg" style={{
-                                                backgroundColor: 'rgba(59,130,246,.05)',
-                                                border: '1px solid rgba(59,130,246,.15)',
-                                            }}>
+                                            <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/15">
                                                 <div className="flex items-center justify-between mb-2">
-                                                    <p className="text-xs font-bold" style={{ color: '#3b82f6' }}>
+                                                    <p className="text-xs font-bold text-blue-500">
                                                         <Target className="w-3 h-3 inline mr-1" />
                                                         Objetivos Individualizados
                                                     </p>
                                                     {adaptacaoMeta?.nivel_diag != null && (
-                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold"
-                                                            style={{
-                                                                background: adaptacaoMeta.nivel_diag >= 3 ? 'rgba(16,185,129,.12)'
-                                                                    : adaptacaoMeta.nivel_diag >= 2 ? 'rgba(59,130,246,.12)'
-                                                                        : 'rgba(245,158,11,.12)',
-                                                                color: adaptacaoMeta.nivel_diag >= 3 ? '#10b981'
-                                                                    : adaptacaoMeta.nivel_diag >= 2 ? '#3b82f6'
-                                                                        : '#f59e0b',
-                                                            }}>
+                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${adaptacaoMeta.nivel_diag >= 3 ? 'bg-emerald-500/10 text-emerald-500' : adaptacaoMeta.nivel_diag >= 2 ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'}`}>
                                                             N{adaptacaoMeta.nivel_diag} — {ESCALA_OMNISFERA[adaptacaoMeta.nivel_diag as NivelOmnisfera]?.label || ''}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-sm" style={{ color: "var(--omni-text-secondary)" }}>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">
                                                     {String(adaptacaoSugestao.objetivos_individualizados)}
                                                 </p>
                                             </div>
@@ -573,8 +516,7 @@ export function PEIRegenteClient() {
                                         {(adaptacaoSugestao.habilidades_prioritarias || []).length > 0 && (
                                             <div className="flex flex-wrap gap-1.5">
                                                 {(adaptacaoSugestao.habilidades_prioritarias as string[]).map((h: string, i: number) => (
-                                                    <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold"
-                                                        style={{ backgroundColor: 'rgba(99,102,241,.08)', color: '#818cf8', border: '1px solid rgba(99,102,241,.15)' }}>
+                                                    <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                                                         🎯 {h}
                                                     </span>
                                                 ))}
@@ -583,12 +525,9 @@ export function PEIRegenteClient() {
 
                                         {/* Metodologia */}
                                         {adaptacaoSugestao.metodologia_adaptada && (
-                                            <div className="p-3 rounded-lg" style={{
-                                                backgroundColor: 'rgba(168,85,247,.05)',
-                                                border: '1px solid rgba(168,85,247,.15)',
-                                            }}>
-                                                <p className="text-xs font-bold mb-1" style={{ color: '#a855f7' }}>📐 Metodologia Adaptada</p>
-                                                <p className="text-sm" style={{ color: "var(--omni-text-secondary)" }}>
+                                            <div className="p-3 rounded-lg bg-purple-500/5 border border-purple-500/15">
+                                                <p className="text-xs font-bold mb-1 text-purple-500">📐 Metodologia Adaptada</p>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">
                                                     {String(adaptacaoSugestao.metodologia_adaptada)}
                                                 </p>
                                             </div>
@@ -598,26 +537,26 @@ export function PEIRegenteClient() {
                                         {(adaptacaoSugestao.estrategias_acesso?.length || adaptacaoSugestao.estrategias_ensino?.length || adaptacaoSugestao.estrategias_avaliacao?.length) && (
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                                 {adaptacaoSugestao.estrategias_acesso?.length > 0 && (
-                                                    <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(16,185,129,.05)', border: '1px solid rgba(16,185,129,.15)' }}>
-                                                        <p className="text-xs font-bold mb-1" style={{ color: '#10b981' }}>♿ Acesso</p>
+                                                    <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/15">
+                                                        <p className="text-xs font-bold mb-1 text-emerald-500">♿ Acesso</p>
                                                         {(adaptacaoSugestao.estrategias_acesso as string[]).map((e: string, i: number) => (
-                                                            <p key={i} className="text-xs" style={{ color: "var(--omni-text-secondary)" }}>• {e}</p>
+                                                            <p key={i} className="text-xs text-slate-500 dark:text-slate-400">• {e}</p>
                                                         ))}
                                                     </div>
                                                 )}
                                                 {adaptacaoSugestao.estrategias_ensino?.length > 0 && (
-                                                    <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(99,102,241,.05)', border: '1px solid rgba(99,102,241,.15)' }}>
-                                                        <p className="text-xs font-bold mb-1" style={{ color: '#6366f1' }}>📚 Ensino</p>
+                                                    <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/15">
+                                                        <p className="text-xs font-bold mb-1 text-indigo-500">📚 Ensino</p>
                                                         {(adaptacaoSugestao.estrategias_ensino as string[]).map((e: string, i: number) => (
-                                                            <p key={i} className="text-xs" style={{ color: "var(--omni-text-secondary)" }}>• {e}</p>
+                                                            <p key={i} className="text-xs text-slate-500 dark:text-slate-400">• {e}</p>
                                                         ))}
                                                     </div>
                                                 )}
                                                 {adaptacaoSugestao.estrategias_avaliacao?.length > 0 && (
-                                                    <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(245,158,11,.05)', border: '1px solid rgba(245,158,11,.15)' }}>
-                                                        <p className="text-xs font-bold mb-1" style={{ color: '#f59e0b' }}>📝 Avaliação</p>
+                                                    <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/15">
+                                                        <p className="text-xs font-bold mb-1 text-amber-500">📝 Avaliação</p>
                                                         {(adaptacaoSugestao.estrategias_avaliacao as string[]).map((e: string, i: number) => (
-                                                            <p key={i} className="text-xs" style={{ color: "var(--omni-text-secondary)" }}>• {e}</p>
+                                                            <p key={i} className="text-xs text-slate-500 dark:text-slate-400">• {e}</p>
                                                         ))}
                                                     </div>
                                                 )}
@@ -629,8 +568,7 @@ export function PEIRegenteClient() {
                                                 href={`/pei?studentId=${selectedAluno.id}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all"
-                                                style={{ background: 'linear-gradient(135deg, #059669, #10b981)', display: 'inline-flex' }}
+                                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all bg-gradient-to-br from-emerald-600 to-emerald-500 inline-flex"
                                             >
                                                 <ExternalLink className="w-4 h-4" />
                                                 Abrir PEI completo e aplicar estratégias
@@ -665,18 +603,7 @@ export function PEIRegenteClient() {
                                                     setTimeout(() => setVersionSaveStatus('idle'), 3000);
                                                 }}
                                                 disabled={versionSaveStatus === 'saving'}
-                                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
-                                                style={{
-                                                    backgroundColor: versionSaveStatus === 'saved' ? 'rgba(16,185,129,.1)'
-                                                        : versionSaveStatus === 'error' ? 'rgba(239,68,68,.1)'
-                                                            : 'rgba(99,102,241,.08)',
-                                                    color: versionSaveStatus === 'saved' ? '#10b981'
-                                                        : versionSaveStatus === 'error' ? '#f87171'
-                                                            : '#818cf8',
-                                                    border: versionSaveStatus === 'saved' ? '1px solid rgba(16,185,129,.2)'
-                                                        : versionSaveStatus === 'error' ? '1px solid rgba(239,68,68,.2)'
-                                                            : '1px solid rgba(99,102,241,.15)',
-                                                }}
+                                                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${versionSaveStatus === 'saved' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : versionSaveStatus === 'error' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/15'}`}
                                             >
                                                 {versionSaveStatus === 'saving' ? '⏳ Salvando...'
                                                     : versionSaveStatus === 'saved' ? '✅ Versão salva!'
@@ -687,10 +614,10 @@ export function PEIRegenteClient() {
 
                                         {/* Alerts */}
                                         {(adaptacaoSugestao.alertas || []).length > 0 && (
-                                            <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(245,158,11,.05)', border: '1px solid rgba(245,158,11,.15)' }}>
-                                                <p className="text-xs font-bold mb-1" style={{ color: '#f59e0b' }}>⚠️ Alertas</p>
+                                            <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/15">
+                                                <p className="text-xs font-bold mb-1 text-amber-500">⚠️ Alertas</p>
                                                 {(adaptacaoSugestao.alertas as string[]).map((a: string, i: number) => (
-                                                    <p key={i} className="text-xs" style={{ color: "var(--omni-text-muted)" }}>• {a}</p>
+                                                    <p key={i} className="text-xs text-slate-500 dark:text-slate-400">• {a}</p>
                                                 ))}
                                             </div>
                                         )}
@@ -699,11 +626,8 @@ export function PEIRegenteClient() {
                             </div>
 
                             {/* Info about full PEI */}
-                            <div className="p-4 rounded-lg text-center" style={{
-                                backgroundColor: 'var(--bg-tertiary)',
-                                border: '1px solid var(--border-default)',
-                            }}>
-                                <p className="text-xs" style={{ color: "var(--omni-text-muted)" }}>
+                            <div className="p-4 rounded-lg text-center bg-slate-50 border border-[var(--border-default)] dark:bg-slate-800/50">
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
                                     As adaptações sugeridas acima podem ser aplicadas no <strong>PEI completo do estudante</strong>,
                                     acessível pelo módulo PEI principal.
                                 </p>
@@ -711,8 +635,7 @@ export function PEIRegenteClient() {
                                     href={`/pei?studentId=${selectedAluno.id}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold transition-colors"
-                                    style={{ color: '#818cf8' }}
+                                    className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold transition-colors text-indigo-500 hover:text-indigo-600"
                                 >
                                     <ExternalLink size={12} /> Ir para PEI completo
                                 </a>
@@ -728,32 +651,25 @@ export function PEIRegenteClient() {
 
     if (selectedAluno) {
         return (
-            <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)', position: 'relative' }}>
+            <div className="rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-[var(--border-default)] relative">
                 {/* Toast notification */}
                 {toast && (
-                    <div style={{
-                        position: 'absolute', top: 12, right: 12, zIndex: 50,
-                        padding: '10px 18px', borderRadius: 10,
-                        background: 'rgba(16,185,129,.15)', border: '1px solid rgba(16,185,129,.3)',
-                        color: '#10b981', fontSize: 13, fontWeight: 600,
-                    }}>
+                    <div className="absolute top-3 right-3 z-50 px-4 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-[13px] font-bold">
                         {toast}
                     </div>
                 )}
                 {/* Header do aluno */}
-                <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border-default)', backgroundColor: 'var(--bg-tertiary)' }}>
+                <div className="px-6 py-4 flex items-center justify-between border-b border-[var(--border-default)] bg-slate-50 dark:bg-slate-800/50">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setSelectedAluno(null)}
-                            className="p-1.5 rounded-lg transition-colors" style={{ color: "var(--omni-text-muted)" }}
-                            onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
-                            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '')}
+                            className="p-1.5 rounded-lg transition-colors text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700"
                         >
                             <ArrowLeft size={18} />
                         </button>
                         <div>
-                            <h3 className="font-bold" style={{ color: "var(--omni-text-primary)" }}>{selectedAluno.name}</h3>
-                            <p className="text-xs" style={{ color: "var(--omni-text-muted)" }}>
+                            <h3 className="font-bold text-slate-800 dark:text-slate-200">{selectedAluno.name}</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
                                 {selectedAluno.grade} {selectedAluno.class_group && `— ${selectedAluno.class_group}`}
                                 {selectedAluno.diagnostico && ` · ${selectedAluno.diagnostico}`}
                             </p>
@@ -763,7 +679,7 @@ export function PEIRegenteClient() {
 
                 {/* Pipeline por disciplina */}
                 <div className="p-6 space-y-4">
-                    <h4 className="text-sm font-semibold mb-2" style={{ color: "var(--omni-text-secondary)" }}>
+                    <h4 className="text-sm font-semibold mb-2 text-slate-500 dark:text-slate-400">
                         Componentes Curriculares ({selectedAluno.disciplinas.length})
                     </h4>
 
@@ -778,18 +694,17 @@ export function PEIRegenteClient() {
                         return (
                             <div
                                 key={disc.id}
-                                className="rounded-xl overflow-hidden transition-all"
-                                style={{ border: `1px solid ${step.border}`, backgroundColor: step.bg }}
+                                className={`rounded-xl overflow-hidden transition-all border ${step.border} ${step.bg}`}
                             >
                                 {/* Header da disciplina */}
                                 <div className="px-5 py-3.5 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         {step.icon}
                                         <div>
-                                            <span className="font-bold text-sm" style={{ color: "var(--omni-text-primary)" }}>
+                                            <span className="font-bold text-sm text-slate-800 dark:text-slate-200">
                                                 {disc.disciplina}
                                             </span>
-                                            <span className="text-xs ml-2" style={{ color: "var(--omni-text-muted)" }}>
+                                            <span className="text-xs ml-2 text-slate-500 dark:text-slate-400">
                                                 {disc.professor_regente_nome}
                                             </span>
                                         </div>
@@ -798,8 +713,7 @@ export function PEIRegenteClient() {
                                     {/* Badge nível */}
                                     <div className="flex items-center gap-2">
                                         {disc.nivel_omnisfera !== null && (
-                                            <span className="text-xs font-bold px-2.5 py-1 rounded-full"
-                                                style={{ backgroundColor: 'rgba(99,102,241,.12)', color: '#818cf8' }}>
+                                            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400">
                                                 N{disc.nivel_omnisfera} — {ESCALA_OMNISFERA[disc.nivel_omnisfera as NivelOmnisfera]?.label || ""}
                                             </span>
                                         )}
@@ -817,10 +731,7 @@ export function PEIRegenteClient() {
                                                         fetchData();
                                                     } catch { /* silent */ }
                                                 }}
-                                                className="p-1.5 rounded-lg transition-all"
-                                                style={{ color: 'var(--text-muted)', opacity: 0.5 }}
-                                                onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#ef4444'; }}
-                                                onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                                                className="p-1.5 rounded-lg transition-all text-slate-400 hover:text-red-500 opacity-50 hover:opacity-100"
                                             >
                                                 <RotateCcw size={14} />
                                             </button>
@@ -834,25 +745,13 @@ export function PEIRegenteClient() {
                                         <React.Fragment key={s.key}>
                                             <button
                                                 onClick={() => { setSelectedDisc(disc); setActiveStep(s.key); }}
-                                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
-                                                style={{
-                                                    backgroundColor: s.done
-                                                        ? 'rgba(16,185,129,.12)'
-                                                        : s.active
-                                                            ? 'rgba(99,102,241,.12)'
-                                                            : 'var(--bg-tertiary)',
-                                                    color: s.done ? '#10b981' : s.active ? '#818cf8' : 'var(--text-muted)',
-                                                    border: s.active ? '1px solid rgba(99,102,241,.3)' : '1px solid var(--border-default)',
-                                                    cursor: 'pointer',
-                                                }}
-                                                onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
-                                                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+                                                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-85 ${s.done ? 'bg-emerald-500/10 text-emerald-500 border border-transparent' : s.active ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/30' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 border border-[var(--border-default)]'}`}
                                             >
                                                 {s.done ? <CheckCircle2 size={13} /> : i === 0 ? <FileText size={13} /> : i === 1 ? <Brain size={13} /> : <ClipboardCheck size={13} />}
                                                 {s.label}
                                             </button>
                                             {i < steps.length - 1 && (
-                                                <ChevronRight size={14} style={{ color: 'var(--text-muted)', opacity: 0.4 }} />
+                                                <ChevronRight size={14} className="text-slate-400 opacity-40 ml-1 mr-1" />
                                             )}
                                         </React.Fragment>
                                     ))}
@@ -907,8 +806,7 @@ export function PEIRegenteClient() {
                     </div>
                     <button
                         onClick={fetchData}
-                        className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors"
-                        style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-muted)', border: '1px solid var(--border-default)' }}
+                        className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors bg-[var(--bg-tertiary)] text-[var(--text-muted)] border border-[var(--border-default)] hover:bg-[var(--bg-hover)]"
                     >
                         Atualizar
                     </button>
@@ -926,43 +824,30 @@ export function PEIRegenteClient() {
                         <div
                             key={aluno.id}
                             onClick={() => setSelectedAluno(aluno)}
-                            className="rounded-xl p-4 cursor-pointer transition-all"
-                            style={{
-                                backgroundColor: 'var(--bg-primary)',
-                                border: '1px solid var(--border-default)',
-                            }}
-                            onMouseEnter={e => {
-                                e.currentTarget.style.borderColor = 'rgba(16,185,129,.4)';
-                                e.currentTarget.style.boxShadow = '0 2px 12px rgba(16,185,129,.08)';
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.borderColor = 'var(--border-default)';
-                                e.currentTarget.style.boxShadow = '';
-                            }}
+                            className="rounded-xl p-4 cursor-pointer transition-all bg-[var(--bg-primary)] border border-[var(--border-default)] hover:border-emerald-500/40 hover:shadow-[0_2px_12px_rgba(16,185,129,.08)]"
                         >
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                                        style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
+                                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold bg-gradient-to-br from-indigo-500 to-violet-500">
                                         {aluno.name.split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase()}
                                     </div>
                                     <div>
-                                        <span className="font-bold text-sm" style={{ color: "var(--omni-text-primary)" }}>
+                                        <span className="font-bold text-sm text-[var(--omni-text-primary)]">
                                             {aluno.name}
                                         </span>
-                                        <p className="text-xs" style={{ color: "var(--omni-text-muted)" }}>
+                                        <p className="text-xs text-[var(--omni-text-muted)]">
                                             {aluno.grade} {aluno.class_group && `— ${aluno.class_group}`}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="text-right">
-                                        <span className="text-xs font-bold" style={{ color: progress === 100 ? '#10b981' : 'var(--text-muted)' }}>
+                                        <span className={`text-xs font-bold ${progress === 100 ? 'text-emerald-500' : 'text-[var(--text-muted)]'}`}>
                                             {concluidas}/{totalDisc}
                                         </span>
-                                        <p className="text-[10px]" style={{ color: "var(--omni-text-muted)" }}>disciplinas</p>
+                                        <p className="text-[10px] text-[var(--omni-text-muted)]">disciplinas</p>
                                     </div>
-                                    <ChevronRight size={16} style={{ color: "var(--omni-text-muted)" }} />
+                                    <ChevronRight size={16} className="text-[var(--omni-text-muted)]" />
                                 </div>
                             </div>
 
@@ -973,8 +858,7 @@ export function PEIRegenteClient() {
                                     return (
                                         <span
                                             key={d.id}
-                                            className="text-[10px] font-semibold px-2 py-0.5 rounded-md"
-                                            style={{ backgroundColor: stepColor.bg, color: stepColor.text, border: `1px solid ${stepColor.border}` }}
+                                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${stepColor.border} ${stepColor.bg} ${stepColor.text}`}
                                             title={`${d.disciplina}: ${FASE_STATUS_LABELS[d.fase_status]}`}
                                         >
                                             {d.disciplina.length > 12 ? d.disciplina.slice(0, 10) + "…" : d.disciplina}
@@ -1058,8 +942,7 @@ function FinalizarPeiDisciplinaButton({
                 href={`/pei?student=${studentId}&tab=consolidacao`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all"
-                style={{ background: "linear-gradient(135deg, #7c3aed, #8b5cf6)", display: "inline-flex" }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all bg-gradient-to-br from-violet-600 to-violet-500 inline-flex"
             >
                 <ExternalLink className="w-4 h-4" />
                 Enviar para PEI geral e consolidar
@@ -1075,21 +958,14 @@ function FinalizarPeiDisciplinaButton({
                     type="button"
                     onClick={() => setShowFeedback(true)}
                     disabled={finalizando || !adaptacaoSugestao}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50"
-                    style={{
-                        background: finalizando ? "#94a3b8" : "linear-gradient(135deg, #059669, #10b981)",
-                        display: "inline-flex",
-                    }}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 inline-flex ${finalizando ? 'bg-slate-400' : 'bg-gradient-to-br from-emerald-600 to-emerald-500'}`}
                 >
                     <CheckCircle2 size={14} />
                     Finalizar e devolver ao especialista
                 </button>
             ) : (
-                <div className="p-4 rounded-xl space-y-3" style={{
-                    border: '2px solid rgba(16,185,129,.2)',
-                    background: 'rgba(16,185,129,.03)',
-                }}>
-                    <p className="text-xs font-bold" style={{ color: '#059669' }}>
+                <div className="p-4 rounded-xl space-y-3 border-2 border-emerald-500/20 bg-emerald-500/5">
+                    <p className="text-xs font-bold text-emerald-600">
                         📝 Devolutiva para o Especialista (opcional)
                     </p>
                     <textarea
@@ -1183,24 +1059,21 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
     }
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="flex flex-col gap-4">
             {/* Header */}
-            <div style={{
-                background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
-                borderRadius: 14, padding: "18px 22px", color: "#fff",
-            }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div className="rounded-2xl p-4 md:px-5 md:py-4.5 text-white bg-gradient-to-br from-blue-600 to-blue-700">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
                         <Brain size={22} />
                         <div>
-                            <h4 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Avaliação Diagnóstica — {disciplina}</h4>
-                            <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
+                            <h4 className="m-0 text-[17px] font-bold">Avaliação Diagnóstica — {disciplina}</h4>
+                            <p className="m-0 text-xs opacity-85">
                                 {studentName} · Vincule uma avaliação aplicada no módulo Avaliação Diagnóstica
                             </p>
                         </div>
                     </div>
                     {avaliacao?.status === "aplicada" && (
-                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "#bbf7d0" }}>
+                        <span className="flex items-center gap-1 text-xs font-bold text-green-200">
                             <CheckCircle2 size={14} /> Aplicada
                         </span>
                     )}
@@ -1209,20 +1082,15 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
 
             {/* Resultado vinculado */}
             {avaliacao?.status === "aplicada" && avaliacao.nivel !== null && (
-                <div style={{
-                    display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
-                    borderRadius: 14, background: "rgba(16,185,129,.08)", border: "1.5px solid rgba(16,185,129,.3)",
-                }}>
-                    <div style={{
-                        width: 48, height: 48, borderRadius: "50%", display: "flex", alignItems: "center",
-                        justifyContent: "center", background: "linear-gradient(135deg, #059669, #10b981)",
-                        color: "#fff", fontSize: 20, fontWeight: 800,
-                    }}>{avaliacao.nivel}</div>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, fontSize: 15, color: "#10b981" }}>
+                <div className="flex items-center gap-3.5 px-5 py-4 rounded-2xl bg-emerald-500/10 border-[1.5px] border-emerald-500/30">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-emerald-600 to-emerald-500 text-white text-xl font-extrabold">
+                        {avaliacao.nivel}
+                    </div>
+                    <div className="flex-1">
+                        <div className="font-bold text-[15px] text-emerald-500">
                             Nível Omnisfera: {avaliacao.nivel} — {ESCALA_OMNISFERA[avaliacao.nivel as NivelOmnisfera]?.label}
                         </div>
-                        <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                             {avaliacao.questoes} questões · {new Date(avaliacao.updated_at).toLocaleDateString("pt-BR")}
                         </div>
                     </div>
@@ -1231,23 +1099,14 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
 
             {/* Status: gerada mas não aplicada */}
             {avaliacao && avaliacao.status !== "aplicada" && (
-                <div style={{
-                    padding: "16px 20px", borderRadius: 14,
-                    background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.2)",
-                    display: "flex", alignItems: "center", justifyContent: "space-between",
-                }}>
+                <div className="px-5 py-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                        <div style={{ fontWeight: 700, fontSize: 14, color: "#f59e0b" }}>Avaliação gerada, pendente de aplicação</div>
-                        <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>
+                        <div className="font-bold text-sm text-amber-500">Avaliação gerada, pendente de aplicação</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                             {avaliacao.questoes} questões · Aplique no módulo Avaliação Diagnóstica
                         </div>
                     </div>
-                    <a href={`/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&fromPEI=true`} style={{
-                        display: "flex", alignItems: "center", gap: 6,
-                        padding: "8px 16px", borderRadius: 10, fontSize: 13, fontWeight: 700,
-                        background: "linear-gradient(135deg, #f59e0b, #d97706)",
-                        color: "#fff", textDecoration: "none",
-                    }}>
+                    <a href={`/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&fromPEI=true`} className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold bg-gradient-to-br from-amber-500 to-amber-600 text-white transition-opacity hover:opacity-90">
                         <ExternalLink size={14} /> Aplicar
                     </a>
                 </div>
@@ -1255,24 +1114,15 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
 
             {/* Nenhuma avaliação */}
             {!avaliacao && (
-                <div style={{
-                    textAlign: "center", padding: "32px 20px",
-                    borderRadius: 14, border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                    background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                }}>
-                    <Brain size={40} style={{ margin: "0 auto 12px", color: "var(--text-muted)", opacity: 0.3 }} />
-                    <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 4px" }}>
+                <div className="text-center px-5 py-8 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-secondary)]">
+                    <Brain size={40} className="mx-auto mb-3 text-slate-400 opacity-30" />
+                    <p className="text-sm font-semibold text-[var(--omni-text-primary)] mb-1">
                         Nenhuma avaliação diagnóstica encontrada
                     </p>
-                    <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 16px" }}>
+                    <p className="text-xs text-[var(--omni-text-muted)] mb-4">
                         Gere e aplique uma avaliação no módulo <strong>Avaliação Diagnóstica</strong> para {studentName} em {disciplina}.
                     </p>
-                    <a href={`/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&fromPEI=true`} style={{
-                        display: "inline-flex", alignItems: "center", gap: 8,
-                        padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 700,
-                        background: "linear-gradient(135deg, #2563eb, #3b82f6)",
-                        color: "#fff", textDecoration: "none",
-                    }}>
+                    <a href={`/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&fromPEI=true`} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-br from-blue-600 to-blue-500 text-white transition-opacity hover:opacity-90">
                         <ExternalLink size={16} /> Ir para Avaliação Diagnóstica
                     </a>
                 </div>
