@@ -11,6 +11,7 @@ import { PEIFase2Regentes } from "@/components/PEIFase2Regentes";
 import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
 import { PEIAvaliacaoDiagnostica } from "@/components/PEIAvaliacaoDiagnostica";
 import { PEIConsolidacao } from "@/components/PEIConsolidacao";
+import { Card, CardHeader, CardTitle, CardContent, Button } from "@omni/ds";
 
 import { NivelSuporteRange } from "./NivelSuporteRange";
 import { BarreirasDominio } from "./BarreirasDominio";
@@ -101,6 +102,7 @@ export function DashboardTab({
   onUpdate,
   isEditing,
   saving,
+  dailyLogs,
 }: {
   peiData: PEIData;
   currentStudentId: string | null;
@@ -109,6 +111,7 @@ export function DashboardTab({
   onUpdate: () => void;
   isEditing: boolean;
   saving: boolean;
+  dailyLogs?: any[];
 }) {
   const [showLbiChecklist, setShowLbiChecklist] = React.useState(false);
 
@@ -247,23 +250,65 @@ export function DashboardTab({
 
   return (
     <div className="space-y-6">
+      {/* Sistema de Aviso Automático G2 */}
+      {(() => {
+        if (!dailyLogs || dailyLogs.length === 0) return null;
+
+        const trintaDiasAtras = new Date();
+        trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
+
+        const alertasRecentes = dailyLogs.filter(log => {
+          if (!log.alerta_regente) return false;
+          if (!log.data_sessao) return false;
+          const dataLog = new Date(log.data_sessao);
+          return dataLog >= trintaDiasAtras;
+        });
+
+        if (alertasRecentes.length === 0) return null;
+
+        return (
+          <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-start gap-3 w-full shadow-sm animate-in fade-in slide-in-from-top-4">
+            <div className="p-2 bg-red-100/80 rounded-full shrink-0">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-red-900 leading-tight">
+                Atenção: Evolução Crítica no AEE
+              </h3>
+              <p className="text-sm text-red-800 mt-1">
+                O Especialista AEE sinalizou <strong>{alertasRecentes.length} registro(s)</strong> no Diário de Bordo como crítico(s) nos últimos 30 dias. Recomendamos consultar as notas do Diário de Bordo para alinhamento pedagógico imediato.
+              </p>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="flex items-center gap-2 mb-4">
         <FileDown className="w-5 h-5 text-sky-600" />
         <h3 className="text-lg font-semibold text-slate-800">Dashboard e Exportação</h3>
       </div>
 
-      {/* CSS Customizado */}
+      {/* CSS Customizado (Modernizado para Violeta do PEI) */}
       <style jsx>{`
         .dash-hero {
-          background: linear-gradient(135deg, #0F52BA 0%, #062B61 100%);
-          border-radius: 16px;
-          padding: 22px 25px;
+          background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+          border-radius: var(--omni-radius-lg, 16px);
+          padding: 24px 28px;
           color: white;
-          margin-bottom: 16px;
+          margin-bottom: 24px;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          box-shadow: 0 4px 16px rgba(15, 82, 186, 0.2);
+          box-shadow: var(--omni-shadow-md);
+          position: relative;
+          overflow: hidden;
+        }
+        .dash-hero::after {
+          content: "";
+          position: absolute;
+          top: 0; right: 0; bottom: 0; left: 0;
+          background: radial-gradient(circle at top right, rgba(255,255,255,0.1) 0%, transparent 60%);
+          pointer-events: none;
         }
         .apple-avatar {
           width: 52px;
@@ -391,16 +436,17 @@ export function DashboardTab({
           display: flex;
           justify-content: space-between;
           font-size: 0.75rem;
-          margin-bottom: 2px;
+          margin-bottom: 4px;
           font-weight: 600;
           color: #475569;
         }
         .dna-bar-bg {
           width: 100%;
-          height: 6px;
-          background-color: #e2e8f0;
-          border-radius: 3px;
+          height: 8px;
+          background-color: #f1f5f9;
+          border-radius: 4px;
           overflow: hidden;
+          box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
         }
         .dna-bar-fill {
           height: 100%;
@@ -452,16 +498,20 @@ export function DashboardTab({
       </div>
 
       {/* Compliance LBI - Checklist retrátil */}
-      <details className="mb-6 rounded-xl border border-slate-200 bg-white overflow-hidden">
-        <summary className="px-4 py-3 cursor-pointer select-none flex items-center gap-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-          <span>📋</span>
-          <span>Checklist Compliance LBI (Lei 13.146/2015)</span>
-          <span className="ml-auto text-xs text-slate-400">clique para expandir</span>
-        </summary>
-        <div className="px-4 pb-4">
-          <LBIComplianceChecklist peiData={peiData} />
-        </div>
-      </details>
+      <Card variant="default" className="mb-6 overflow-hidden">
+        <details className="group">
+          <summary className="px-5 py-4 cursor-pointer select-none flex items-center justify-between text-sm font-semibold text-slate-800 hover:bg-slate-50 border-b border-transparent group-open:border-slate-100 transition-colors">
+            <span className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-violet-600" />
+              Checklist Compliance LBI (Lei 13.146/2015)
+            </span>
+            <span className="text-xs text-slate-400 font-normal">clique para expandir</span>
+          </summary>
+          <CardContent className="pt-3 pb-5 bg-slate-50/30">
+            <LBIComplianceChecklist peiData={peiData} />
+          </CardContent>
+        </details>
+      </Card>
 
       {/* Exportação - Movido para antes dos cards */}
       <div className="mb-6">
@@ -484,7 +534,7 @@ export function DashboardTab({
             <a
               href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
               download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.json`}
-              className="block w-full px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-center text-sm"
+              className="flex justify-center items-center h-10 w-full px-4 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 text-sm font-semibold transition-all shadow-sm"
             >
               Baixar JSON
             </a>
@@ -493,45 +543,31 @@ export function DashboardTab({
             <p className="text-xs text-slate-600 mb-2">☁️ {isEditing ? "Atualizar PEI" : "Criar Novo Estudante"}</p>
             {peiData.nome ? (
               isEditing ? (
-                <button
+                <Button
+                  variant="primary"
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 focus-visible:ring-emerald-500"
                   onClick={onUpdate}
                   disabled={saving}
-                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-60 flex items-center justify-center gap-2 text-sm"
+                  loading={saving}
                 >
-                  {saving ? (
-                    <>
-                      <OmniLoader size={16} />
-                      Atualizando…
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4" />
-                      Atualizar PEI
-                    </>
-                  )}
-                </button>
+                  <Download className="w-4 h-4" />
+                  Atualizar PEI
+                </Button>
               ) : (
-                <button
+                <Button
+                  variant="primary"
+                  className="w-full bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-500"
                   onClick={onSave}
                   disabled={saving}
-                  className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60 flex items-center justify-center gap-2 text-sm"
+                  loading={saving}
                 >
-                  {saving ? (
-                    <>
-                      <OmniLoader size={16} />
-                      Criando estudante…
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4" />
-                      Criar Novo Estudante
-                    </>
-                  )}
-                </button>
+                  <Download className="w-4 h-4" />
+                  Criar Estudante
+                </Button>
               )
             ) : (
               <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-                <p className="text-xs text-amber-800">Preencha o nome do estudante na aba Estudante para salvar</p>
+                <p className="text-xs text-amber-800">Preencha o nome na aba Estudante</p>
               </div>
             )}
           </div>

@@ -3,10 +3,9 @@ import React, { useState, useEffect } from "react";
 import { Save, Plus, Trash2, Edit2, Play, Pause, FileText, Download, Target, Calendar, CheckCircle2, ChevronDown, ChevronRight, MessageSquare, AlertTriangle, Users, BookOpen, Layout, Settings, Sparkles, Loader2, ArrowRight, Map, Search } from 'lucide-react';
 import type { StudentFull } from "../lib/paee-types";
 import type { CicloPAEE, MetaPei } from "@/lib/paee";
-import { getSupabase } from "@/lib/supabase";
 import { LottieIcon } from "@/components/LottieIcon";
 
-import { Card } from "@omni/ds";
+import { Card, Select, Textarea, Button } from "@omni/ds";
 import { EngineSelector } from "@/components/EngineSelector";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
@@ -151,13 +150,14 @@ export function ArticulacaoTab({
       </div>
 
       {status !== "rascunho" && (
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           onClick={limpar}
-          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
-        </button>
+        </Button>
       )}
 
       {status === "rascunho" ? (
@@ -165,48 +165,51 @@ export function ArticulacaoTab({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Frequência no AEE</label>
-              <select
+              <Select
                 value={frequencia}
                 onChange={(e) => setFrequencia(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-              >
-                <option value="1x/sem">1x/sem</option>
-                <option value="2x/sem">2x/sem</option>
-                <option value="3x/sem">3x/sem</option>
-                <option value="Diário">Diário</option>
-              </select>
+                className="w-full"
+                options={[
+                  { value: "1x/sem", label: "1x/sem" },
+                  { value: "2x/sem", label: "2x/sem" },
+                  { value: "3x/sem", label: "3x/sem" },
+                  { value: "Diário", label: "Diário" }
+                ]}
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Turno</label>
-              <select
+              <Select
                 value={turno}
                 onChange={(e) => setTurno(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-              >
-                <option value="Manhã">Manhã</option>
-                <option value="Tarde">Tarde</option>
-                <option value="Integral">Integral</option>
-              </select>
+                className="w-full"
+                options={[
+                  { value: "Manhã", label: "Manhã" },
+                  { value: "Tarde", label: "Tarde" },
+                  { value: "Integral", label: "Integral" }
+                ]}
+              />
             </div>
           </div>
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Trabalho Desenvolvido no AEE
             </label>
-            <textarea
+            <Textarea
               value={acoes}
               onChange={(e) => setAcoes(e.target.value)}
               placeholder="Descreva as principais ações, estratégias e recursos utilizados no AEE..."
               rows={6}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              className="w-full"
             />
           </div>
           <EngineSelector value={engine} onChange={setEngine} />
-          <button
+          <Button
             type="button"
+            variant="primary"
             onClick={() => gerar()}
             disabled={loading || !acoes.trim()}
-            className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="flex items-center gap-2"
           >
             {loading ? (
               <>
@@ -219,39 +222,39 @@ export function ArticulacaoTab({
                 📄 Gerar Documento
               </>
             )}
-          </button>
+          </Button>
           {erro && <p className="text-red-600 text-sm">{erro}</p>}
         </div>
       ) : status === "revisao" ? (
         <div className="space-y-4">
           <FormattedTextDisplay texto={documento} titulo="Documento de Articulação Gerado" />
           <div className="flex gap-2 flex-wrap">
-            <button
+            <Button
               type="button"
+              className="bg-green-600 text-white border-0 hover:bg-green-700"
               onClick={() => {
                 setStatus("aprovado");
                 updateField("status_documento_articulacao", "aprovado");
               }}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
               ✅ Validar e Finalizar
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              className="bg-amber-600 text-white border-0 hover:bg-amber-700"
               onClick={() => {
                 setStatus("ajustando");
               }}
-              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
             >
               🔄 Solicitar Ajustes
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
               onClick={limpar}
-              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
             >
               🗑️ Descartar e Regenerar
-            </button>
+            </Button>
             <PdfDownloadButton
               text={documento}
               filename={`Documento_Articulacao_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}
@@ -271,33 +274,33 @@ export function ArticulacaoTab({
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Descreva os ajustes necessários:
             </label>
-            <textarea
+            <Textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="Ex.: Incluir mais detalhes sobre estratégias de generalização, focar em orientações práticas..."
               rows={4}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              className="w-full"
             />
           </div>
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="primary"
               onClick={() => gerar(feedback)}
               disabled={loading || !feedback.trim()}
-              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
             >
               {loading ? "Aplicando ajustes..." : "🔄 Gerar Novamente com Ajustes"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => {
                 setStatus("revisao");
                 setFeedback("");
               }}
-              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
             >
               ↩️ Cancelar Ajustes
-            </button>
+            </Button>
           </div>
           {erro && <p className="text-red-600 text-sm">{erro}</p>}
         </div>
@@ -308,16 +311,16 @@ export function ArticulacaoTab({
           </div>
           <FormattedTextDisplay texto={documento} titulo="Documento de Articulação Final" />
           <div className="flex gap-2 flex-wrap">
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => {
                 setStatus("revisao");
                 updateField("status_documento_articulacao", "revisao");
               }}
-              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
             >
               ✏️ Editar Novamente
-            </button>
+            </Button>
             <PdfDownloadButton
               text={documento}
               filename={`Documento_Articulacao_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}

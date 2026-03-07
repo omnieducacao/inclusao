@@ -22,6 +22,7 @@ import type { EngineId } from "@/lib/ai-engines";
 import { GabaritoRespostasPanel } from "./components/GabaritoRespostasPanel";
 import { MatrizReferenciaPanel } from "./components/MatrizReferenciaPanel";
 import { ManualAplicacaoPanel } from "./components/ManualAplicacaoPanel";
+import { Card, CardHeader, CardTitle, CardContent, Button, Input, Select, Textarea } from "@omni/ds";
 
 const ENGINE_OPTIONS: { id: EngineId; label: string; color: string }[] = [
     { id: "red", label: "OmniRed (DeepSeek)", color: "#ef4444" },
@@ -109,9 +110,7 @@ interface BlocoPlano {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const cardS = "rounded-[14px] border border-(--omni-border-default) bg-(--omni-bg-secondary) overflow-hidden";
-const headerS = "flex items-center gap-2 px-4 py-3 border-b border-(--omni-border-default) bg-(--omni-bg-tertiary)";
-const bodyS = "p-4";
+
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
 
@@ -1134,15 +1133,11 @@ export default function AvaliacaoDiagnosticaClient() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                         {/* Plano de Ensino vinculado */}
                         {planoVinculado && (
-                            <div className={cardS} style={{
-                                border: "1.5px solid rgba(14,165,233,.3)",
-                            }}>
+                            <Card variant="default" style={{ border: "1.5px solid rgba(14,165,233,.3)" }}>
                                 <button
                                     onClick={() => setShowMatrix(!showMatrix)}
-                                    className={`${headerS} w-full cursor-pointer justify-between border-none`}
-                                    style={{
-                                        background: "rgba(14,165,233,.05)",
-                                    }}
+                                    className="flex items-center gap-2 px-4 py-3 w-full cursor-pointer justify-between border-none"
+                                    style={{ background: "rgba(14,165,233,.05)" }}
                                 >
                                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                         <FileText size={16} style={{ color: "#0ea5e9" }} />
@@ -1166,7 +1161,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                     </div>
                                 </button>
                                 {showMatrix && (
-                                    <div className={bodyS}>
+                                    <CardContent className="p-4" style={{ borderTop: "1px solid var(--omni-border-default)" }}>
                                         {planoVinculado.habilidades_bncc && planoVinculado.habilidades_bncc.length > 0 && (
                                             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
                                                 {planoVinculado.habilidades_bncc.map((h, i) => (
@@ -1179,9 +1174,9 @@ export default function AvaliacaoDiagnosticaClient() {
                                                 <div style={{ fontWeight: 700, fontSize: 12, color: "var(--text-primary)" }}>{bloco.titulo || `Bloco ${i + 1}`}</div>
                                             </div>
                                         ))}
-                                    </div>
+                                    </CardContent>
                                 )}
-                            </div>
+                            </Card>
                         )}
 
                         {!planoVinculado && (
@@ -1200,19 +1195,19 @@ export default function AvaliacaoDiagnosticaClient() {
                         )}
 
                         {/* Habilidades da Matriz BNCC — sempre visível */}
-                        <div className={cardS} style={{ border: "1.5px solid rgba(99,102,241,.2)" }}>
-                            <div className={headerS} style={{ background: "rgba(99,102,241,.05)", justifyContent: "space-between" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <Layers size={16} style={{ color: "#818cf8" }} />
-                                    <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>Habilidades BNCC para Avaliação</span>
-                                </div>
+                        <Card variant="default" style={{ border: "1.5px solid rgba(99,102,241,.2)" }}>
+                            <CardHeader className="flex flex-row items-center justify-between pb-3" style={{ background: "rgba(99,102,241,.05)" }}>
+                                <CardTitle className="text-sm flex items-center gap-2 m-0 text-indigo-500">
+                                    <Layers size={16} />
+                                    Habilidades BNCC para Avaliação
+                                </CardTitle>
                                 {matrizHabs.length > 0 && (
                                     <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
                                         {habsSelecionadas.length} de {matrizHabs.length} selecionadas
                                     </span>
                                 )}
-                            </div>
-                            <div className={`${bodyS} max-h-[320px] overflow-y-auto`}>
+                            </CardHeader>
+                            <CardContent className="max-h-[320px] overflow-y-auto p-0 m-0">
                                 {matrizHabs.length === 0 ? (
                                     /* Loading / empty state */
                                     <div style={{ padding: "20px 0", textAlign: "center" }}>
@@ -1316,26 +1311,23 @@ export default function AvaliacaoDiagnosticaClient() {
                                         </div>
                                     </>
                                 )}
-                            </div>
+                            </CardContent>
                             {matrizHabs.length > 0 && (
                                 <div style={{ padding: "8px 16px", borderTop: "1px solid var(--border-default, rgba(148,163,184,.08))", display: "flex", gap: 8 }}>
                                     <button onClick={() => setHabsSelecionadas(matrizHabs.map(h => h.habilidade))} style={{ fontSize: 11, color: "#818cf8", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>Selecionar todas</button>
                                     <button onClick={() => setHabsSelecionadas([])} style={{ fontSize: 11, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>Limpar</button>
                                 </div>
                             )}
-                        </div>
+                        </Card>
 
                         {/* Painéis de consulta inline: Matriz completa + Manual */}
                         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                             {/* Matriz Completa — expandível */}
-                            <div className={cardS} style={{ border: "1px solid rgba(99,102,241,.12)" }}>
+                            <Card variant="default" style={{ border: "1px solid rgba(99,102,241,.12)" }}>
                                 <button
                                     onClick={() => setShowMatrix(prev => !prev)}
-                                    className={`${headerS} w-full cursor-pointer border-none`}
-                                    style={{
-                                        background: "rgba(99,102,241,.04)",
-                                        justifyContent: "space-between", display: "flex",
-                                    }}
+                                    className="flex items-center gap-2 px-4 py-3 w-full cursor-pointer justify-between border-none"
+                                    style={{ background: "rgba(99,102,241,.04)" }}
                                 >
                                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                         <Grid3X3 size={14} style={{ color: "#818cf8" }} />
@@ -1344,11 +1336,11 @@ export default function AvaliacaoDiagnosticaClient() {
                                     {showMatrix ? <ChevronUp size={14} style={{ color: "#818cf8" }} /> : <ChevronDown size={14} style={{ color: "#818cf8" }} />}
                                 </button>
                                 {showMatrix && (
-                                    <div className={bodyS} style={{ maxHeight: 400, overflowY: "auto" }}>
+                                    <CardContent className="p-4" style={{ maxHeight: 400, overflowY: "auto", borderTop: "1px solid var(--omni-border-default)" }}>
                                         <MatrizReferenciaPanel />
-                                    </div>
+                                    </CardContent>
                                 )}
-                            </div>
+                            </Card>
 
                             {/* Manual de Aplicação — expandível */}
                             <details style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(245,158,11,.12)", background: "var(--bg-secondary, rgba(15,23,42,.4))" }}>
@@ -1369,12 +1361,14 @@ export default function AvaliacaoDiagnosticaClient() {
                         </div>
 
                         {/* Configuração da Geração */}
-                        <div className={cardS}>
-                            <div className={headerS} style={{ background: "rgba(37,99,235,.05)" }}>
-                                <Sparkles size={16} style={{ color: "#3b82f6" }} />
-                                <span style={{ fontWeight: 700, fontSize: 14, color: "#3b82f6" }}>Configurar Avaliação</span>
-                            </div>
-                            <div className={`${bodyS} flex flex-col gap-3.5`}>
+                        <Card variant="premium">
+                            <CardHeader className="pb-2" style={{ background: "rgba(37,99,235,.05)" }}>
+                                <CardTitle className="text-sm flex items-center gap-2 m-0 text-blue-500">
+                                    <Sparkles size={16} />
+                                    <span style={{ fontWeight: 700 }}>Configurar Avaliação</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex flex-col gap-3.5 p-4 pt-4">
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                                     <div>
                                         <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4, display: "block" }}>Quantidade de Questões</label>
@@ -1813,802 +1807,804 @@ export default function AvaliacaoDiagnosticaClient() {
                                         </div>
                                     </div>
                                 )}
-                            </div>
+                            </CardContent>
 
                             {/* Overlay já exibido no topo da view quando gerando/salvando/perfil/estratégias */}
-                        </div>
+                        </Card>
                     </div>
-                )}
+                )
+                }
 
                 {/* Formatted result (Hub-style) */}
-                {resultadoFormatado && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                        {!validadoFormatado && (
-                            <div style={{ display: "flex", gap: 8 }}>
-                                <button onClick={salvarAvaliacao} disabled={salvandoAvaliacao} style={{
-                                    padding: "8px 16px", borderRadius: 8, border: "none", cursor: salvandoAvaliacao ? "wait" : "pointer",
-                                    background: salvandoAvaliacao ? "#94a3b8" : "linear-gradient(135deg, #059669, #10b981)",
-                                    color: "#fff", fontSize: 13, fontWeight: 700,
-                                    display: "flex", alignItems: "center", gap: 6,
-                                }}>
-                                    {salvandoAvaliacao ? <OmniLoader size={14} /> : <Save size={14} />}
-                                    {salvandoAvaliacao ? "Salvando..." : "Validar e Salvar Avaliação"}
-                                </button>
-                                <button onClick={() => { setResultadoFormatado(null); setValidadoFormatado(false); }} style={{
-                                    padding: "8px 16px", borderRadius: 8, cursor: "pointer",
-                                    background: "transparent", color: "var(--text-muted)",
-                                    border: "1px solid var(--border-default, rgba(148,163,184,.15))", fontSize: 13,
-                                }}>
-                                    🗑️ Descartar
-                                </button>
-                            </div>
-                        )}
-                        {validadoFormatado && (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                                <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(16,185,129,.08)", border: "1px solid rgba(16,185,129,.2)", color: "#10b981", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
-                                    <CheckCircle2 size={14} /> AVALIAÇÃO SALVA — Imprima, aplique e lance as respostas abaixo
+                {
+                    resultadoFormatado && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                            {!validadoFormatado && (
+                                <div style={{ display: "flex", gap: 8 }}>
+                                    <button onClick={salvarAvaliacao} disabled={salvandoAvaliacao} style={{
+                                        padding: "8px 16px", borderRadius: 8, border: "none", cursor: salvandoAvaliacao ? "wait" : "pointer",
+                                        background: salvandoAvaliacao ? "#94a3b8" : "linear-gradient(135deg, #059669, #10b981)",
+                                        color: "#fff", fontSize: 13, fontWeight: 700,
+                                        display: "flex", alignItems: "center", gap: 6,
+                                    }}>
+                                        {salvandoAvaliacao ? <OmniLoader size={14} /> : <Save size={14} />}
+                                        {salvandoAvaliacao ? "Salvando..." : "Validar e Salvar Avaliação"}
+                                    </button>
+                                    <button onClick={() => { setResultadoFormatado(null); setValidadoFormatado(false); }} style={{
+                                        padding: "8px 16px", borderRadius: 8, cursor: "pointer",
+                                        background: "transparent", color: "var(--text-muted)",
+                                        border: "1px solid var(--border-default, rgba(148,163,184,.15))", fontSize: 13,
+                                    }}>
+                                        🗑️ Descartar
+                                    </button>
                                 </div>
-                                {/* Toggle gabarito */}
-                                <button onClick={() => setShowGabarito(!showGabarito)} style={{
-                                    padding: "12px 18px", borderRadius: 10, border: "2px solid rgba(99,102,241,.2)",
-                                    background: showGabarito ? "rgba(99,102,241,.08)" : "transparent",
-                                    color: "#818cf8", fontSize: 14, fontWeight: 700, cursor: "pointer",
-                                    display: "flex", alignItems: "center", gap: 8,
-                                }}>
-                                    <ClipboardList size={16} />
-                                    {showGabarito ? "Ocultar Gabarito" : "📋 Lançar Respostas do Estudante"}
-                                </button>
-                            </div>
-                        )}
-
-                        {/* ── Gabarito de Respostas ──────────────────────────── */}
-                        {showGabarito && validadoFormatado && (() => {
-                            const questoes = extrairQuestoes(resultadoFormatado || "");
-                            const totalQ = questoes.length || qtdQuestoes;
-                            return (
-                                <div className={cardS} style={{
-                                    border: "2px solid rgba(99,102,241,.2)",
-                                    background: "rgba(99,102,241,.02)",
-                                }}>
-                                    <div className={headerS} style={{ background: "rgba(99,102,241,.05)" }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                            <ClipboardList size={16} style={{ color: "#818cf8" }} />
-                                            <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>
-                                                Gabarito — Respostas do Estudante
-                                            </span>
-                                        </div>
-                                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                                            {Object.keys(respostasAluno).length} de {totalQ} respondidas
-                                        </span>
+                            )}
+                            {validadoFormatado && (
+                                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                    <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(16,185,129,.08)", border: "1px solid rgba(16,185,129,.2)", color: "#10b981", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                                        <CheckCircle2 size={14} /> AVALIAÇÃO SALVA — Imprima, aplique e lance as respostas abaixo
                                     </div>
-                                    <div className={`${bodyS} flex flex-col gap-2.5`}>
-                                        {Array.from({ length: totalQ }, (_, i) => {
-                                            const qKey = `q${i + 1}`;
-                                            const marcada = respostasAluno[qKey];
-                                            const gabCorreto = questoes[i]?.gabarito;
-                                            const temAnalise = !!analiseResultado;
-                                            return (
-                                                <div key={i} style={{
-                                                    display: "flex", alignItems: "center", gap: 10,
-                                                    padding: "8px 12px", borderRadius: 8,
-                                                    background: temAnalise && marcada
-                                                        ? (marcada === gabCorreto ? "rgba(16,185,129,.06)" : "rgba(239,68,68,.06)")
-                                                        : "transparent",
-                                                    border: temAnalise && marcada
-                                                        ? `1px solid ${marcada === gabCorreto ? "rgba(16,185,129,.2)" : "rgba(239,68,68,.2)"}`
-                                                        : "1px solid var(--border-default, rgba(148,163,184,.1))",
-                                                }}>
-                                                    <span style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", minWidth: 32 }}>
-                                                        Q{i + 1}
-                                                    </span>
-                                                    {["A", "B", "C", "D"].map(alt => {
-                                                        const isSelected = marcada === alt;
-                                                        const isCorrect = temAnalise && alt === gabCorreto;
-                                                        const isWrong = temAnalise && isSelected && alt !== gabCorreto;
-                                                        return (
-                                                            <button
-                                                                key={alt}
-                                                                onClick={() => {
-                                                                    if (analiseResultado) return; // Locked after analysis
-                                                                    setRespostasAluno(prev => ({ ...prev, [qKey]: alt }));
-                                                                }}
-                                                                style={{
-                                                                    width: 36, height: 36, borderRadius: 8,
-                                                                    border: isSelected
-                                                                        ? `2px solid ${isWrong ? "#ef4444" : isCorrect ? "#10b981" : "#818cf8"}`
-                                                                        : isCorrect ? "2px solid #10b981" : "1px solid var(--border-default, rgba(148,163,184,.15))",
-                                                                    background: isSelected
-                                                                        ? (isWrong ? "rgba(239,68,68,.1)" : isCorrect ? "rgba(16,185,129,.1)" : "rgba(99,102,241,.1)")
-                                                                        : isCorrect ? "rgba(16,185,129,.06)" : "transparent",
-                                                                    color: isSelected
-                                                                        ? (isWrong ? "#ef4444" : isCorrect ? "#10b981" : "#818cf8")
-                                                                        : isCorrect ? "#10b981" : "var(--text-secondary, #94a3b8)",
-                                                                    fontWeight: 700, fontSize: 13,
-                                                                    cursor: analiseResultado ? "default" : "pointer",
-                                                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                                                    transition: "all .15s",
-                                                                }}
-                                                            >
-                                                                {alt}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                    {temAnalise && marcada && (
-                                                        <span style={{ fontSize: 12, marginLeft: 4 }}>
-                                                            {marcada === gabCorreto ? "✅" : `❌ (${gabCorreto})`}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
+                                    {/* Toggle gabarito */}
+                                    <button onClick={() => setShowGabarito(!showGabarito)} style={{
+                                        padding: "12px 18px", borderRadius: 10, border: "2px solid rgba(99,102,241,.2)",
+                                        background: showGabarito ? "rgba(99,102,241,.08)" : "transparent",
+                                        color: "#818cf8", fontSize: 14, fontWeight: 700, cursor: "pointer",
+                                        display: "flex", alignItems: "center", gap: 8,
+                                    }}>
+                                        <ClipboardList size={16} />
+                                        {showGabarito ? "Ocultar Gabarito" : "📋 Lançar Respostas do Estudante"}
+                                    </button>
+                                </div>
+                            )}
 
-                                        {/* Actions */}
-                                        {!analiseResultado ? (
-                                            <button
-                                                onClick={analisarRespostas}
-                                                disabled={analisando || Object.keys(respostasAluno).length === 0}
-                                                style={{
-                                                    width: "100%", padding: "14px 20px", borderRadius: 10,
-                                                    background: analisando ? "#94a3b8" : "linear-gradient(135deg, #6366f1, #818cf8)",
-                                                    color: "#fff", border: "none", fontSize: 14, fontWeight: 700,
-                                                    cursor: analisando ? "wait" : "pointer",
-                                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                                                    opacity: Object.keys(respostasAluno).length === 0 ? 0.5 : 1,
-                                                }}
-                                            >
-                                                {analisando ? <OmniLoader engine="red" size={16} /> : <BarChart3 size={16} />}
-                                                {analisando ? "Analisando..." : "Salvar e Analisar Respostas"}
-                                            </button>
-                                        ) : (
-                                            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
-                                                {/* Score + Level */}
-                                                <div style={{
-                                                    display: "flex", gap: 12, flexWrap: "wrap",
-                                                }}>
-                                                    <div style={{
-                                                        flex: 1, minWidth: 120, padding: "14px 16px", borderRadius: 10,
-                                                        background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.15)",
-                                                        textAlign: "center",
+                            {/* ── Gabarito de Respostas ──────────────────────────── */}
+                            {showGabarito && validadoFormatado && (() => {
+                                const questoes = extrairQuestoes(resultadoFormatado || "");
+                                const totalQ = questoes.length || qtdQuestoes;
+                                return (
+                                    <Card variant="default" style={{
+                                        border: "2px solid rgba(99,102,241,.2)",
+                                        background: "rgba(99,102,241,.02)",
+                                    }}>
+                                        <CardHeader className="pb-3" style={{ background: "rgba(99,102,241,.05)" }}>
+                                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                                                <CardTitle className="text-sm flex items-center gap-2 m-0 text-indigo-500">
+                                                    <ClipboardList size={16} />
+                                                    Gabarito — Respostas do Estudante
+                                                </CardTitle>
+                                                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                                    {Object.keys(respostasAluno).length} de {totalQ} respondidas
+                                                </span>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="flex flex-col gap-2.5 p-4">
+                                            {Array.from({ length: totalQ }, (_, i) => {
+                                                const qKey = `q${i + 1}`;
+                                                const marcada = respostasAluno[qKey];
+                                                const gabCorreto = questoes[i]?.gabarito;
+                                                const temAnalise = !!analiseResultado;
+                                                return (
+                                                    <div key={i} style={{
+                                                        display: "flex", alignItems: "center", gap: 10,
+                                                        padding: "8px 12px", borderRadius: 8,
+                                                        background: temAnalise && marcada
+                                                            ? (marcada === gabCorreto ? "rgba(16,185,129,.06)" : "rgba(239,68,68,.06)")
+                                                            : "transparent",
+                                                        border: temAnalise && marcada
+                                                            ? `1px solid ${marcada === gabCorreto ? "rgba(16,185,129,.2)" : "rgba(239,68,68,.2)"}`
+                                                            : "1px solid var(--border-default, rgba(148,163,184,.1))",
                                                     }}>
-                                                        <div style={{ fontSize: 28, fontWeight: 800, color: "#818cf8" }}>
-                                                            {analiseResultado.score}%
-                                                        </div>
-                                                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                                                            {analiseResultado.acertos}/{analiseResultado.total} acertos
-                                                        </div>
+                                                        <span style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", minWidth: 32 }}>
+                                                            Q{i + 1}
+                                                        </span>
+                                                        {["A", "B", "C", "D"].map(alt => {
+                                                            const isSelected = marcada === alt;
+                                                            const isCorrect = temAnalise && alt === gabCorreto;
+                                                            const isWrong = temAnalise && isSelected && alt !== gabCorreto;
+                                                            return (
+                                                                <button
+                                                                    key={alt}
+                                                                    onClick={() => {
+                                                                        if (analiseResultado) return; // Locked after analysis
+                                                                        setRespostasAluno(prev => ({ ...prev, [qKey]: alt }));
+                                                                    }}
+                                                                    style={{
+                                                                        width: 36, height: 36, borderRadius: 8,
+                                                                        border: isSelected
+                                                                            ? `2px solid ${isWrong ? "#ef4444" : isCorrect ? "#10b981" : "#818cf8"}`
+                                                                            : isCorrect ? "2px solid #10b981" : "1px solid var(--border-default, rgba(148,163,184,.15))",
+                                                                        background: isSelected
+                                                                            ? (isWrong ? "rgba(239,68,68,.1)" : isCorrect ? "rgba(16,185,129,.1)" : "rgba(99,102,241,.1)")
+                                                                            : isCorrect ? "rgba(16,185,129,.06)" : "transparent",
+                                                                        color: isSelected
+                                                                            ? (isWrong ? "#ef4444" : isCorrect ? "#10b981" : "#818cf8")
+                                                                            : isCorrect ? "#10b981" : "var(--text-secondary, #94a3b8)",
+                                                                        fontWeight: 700, fontSize: 13,
+                                                                        cursor: analiseResultado ? "default" : "pointer",
+                                                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                                                        transition: "all .15s",
+                                                                    }}
+                                                                >
+                                                                    {alt}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                        {temAnalise && marcada && (
+                                                            <span style={{ fontSize: 12, marginLeft: 4 }}>
+                                                                {marcada === gabCorreto ? "✅" : `❌ (${gabCorreto})`}
+                                                            </span>
+                                                        )}
                                                     </div>
+                                                );
+                                            })}
+
+                                            {/* Actions */}
+                                            {!analiseResultado ? (
+                                                <button
+                                                    onClick={analisarRespostas}
+                                                    disabled={analisando || Object.keys(respostasAluno).length === 0}
+                                                    style={{
+                                                        width: "100%", padding: "14px 20px", borderRadius: 10,
+                                                        background: analisando ? "#94a3b8" : "linear-gradient(135deg, #6366f1, #818cf8)",
+                                                        color: "#fff", border: "none", fontSize: 14, fontWeight: 700,
+                                                        cursor: analisando ? "wait" : "pointer",
+                                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                                        opacity: Object.keys(respostasAluno).length === 0 ? 0.5 : 1,
+                                                    }}
+                                                >
+                                                    {analisando ? <OmniLoader engine="red" size={16} /> : <BarChart3 size={16} />}
+                                                    {analisando ? "Analisando..." : "Salvar e Analisar Respostas"}
+                                                </button>
+                                            ) : (
+                                                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+                                                    {/* Score + Level */}
                                                     <div style={{
-                                                        flex: 1, minWidth: 120, padding: "14px 16px", borderRadius: 10,
-                                                        background: `rgba(${analiseResultado.nivel >= 3 ? "16,185,129" : analiseResultado.nivel >= 2 ? "245,158,11" : "239,68,68"},.06)`,
-                                                        border: `1px solid rgba(${analiseResultado.nivel >= 3 ? "16,185,129" : analiseResultado.nivel >= 2 ? "245,158,11" : "239,68,68"},.15)`,
-                                                        textAlign: "center",
+                                                        display: "flex", gap: 12, flexWrap: "wrap",
                                                     }}>
                                                         <div style={{
-                                                            fontSize: 28, fontWeight: 800,
-                                                            color: analiseResultado.nivel >= 3 ? "#10b981" : analiseResultado.nivel >= 2 ? "#f59e0b" : "#ef4444",
+                                                            flex: 1, minWidth: 120, padding: "14px 16px", borderRadius: 10,
+                                                            background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.15)",
+                                                            textAlign: "center",
                                                         }}>
-                                                            N{analiseResultado.nivel}
-                                                        </div>
-                                                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                                                            {ESCALA_OMNISFERA[analiseResultado.nivel as NivelOmnisfera]?.label || ""}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Habilidades */}
-                                                {analiseResultado.hab_dominadas?.length > 0 && (
-                                                    <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.15)" }}>
-                                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981" }}>✅ Habilidades Dominadas</span>
-                                                        <div style={{ marginTop: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
-                                                            {(analiseResultado.hab_dominadas as string[]).map((h: string, i: number) => (
-                                                                <span key={i} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,.1)", color: "#10b981", fontWeight: 600 }}>{h}</span>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {analiseResultado.hab_desenvolvimento?.length > 0 && (
-                                                    <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.15)" }}>
-                                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b" }}>🔄 Em Desenvolvimento</span>
-                                                        <div style={{ marginTop: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
-                                                            {(analiseResultado.hab_desenvolvimento as string[]).map((h: string, i: number) => (
-                                                                <span key={i} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(245,158,11,.1)", color: "#f59e0b", fontWeight: 600 }}>{h}</span>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Distratores */}
-                                                {analiseResultado.distratores?.length > 0 && (
-                                                    <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(239,68,68,.04)", border: "1px solid rgba(239,68,68,.12)" }}>
-                                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#ef4444" }}>🔍 Análise de Distratores</span>
-                                                        <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 4 }}>
-                                                            {(analiseResultado.distratores as { questao: number; marcada: string; correta: string; habilidade: string }[]).map((d, i) => (
-                                                                <div key={i} style={{ fontSize: 11, color: "var(--text-secondary)" }}>
-                                                                    <strong>Q{d.questao}</strong>: marcou <strong style={{ color: "#ef4444" }}>{d.marcada}</strong>, correto era <strong style={{ color: "#10b981" }}>{d.correta}</strong>
-                                                                    {d.habilidade && <span style={{ color: "var(--text-muted)" }}> — {d.habilidade}</span>}
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* ── Phase 4: Qualitative Analysis Panel ── */}
-                                                {analiseResultado.qualitativo && (() => {
-                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                    const qual = analiseResultado.qualitativo as Record<string, any>;
-                                                    const nivelColors: Record<string, { bg: string; border: string; text: string; emoji: string }> = {
-                                                        avancado: { bg: "rgba(16,185,129,.06)", border: "rgba(16,185,129,.2)", text: "#10b981", emoji: "🌟" },
-                                                        adequado: { bg: "rgba(59,130,246,.06)", border: "rgba(59,130,246,.2)", text: "#3b82f6", emoji: "✅" },
-                                                        razoavel: { bg: "rgba(245,158,11,.06)", border: "rgba(245,158,11,.2)", text: "#f59e0b", emoji: "🔄" },
-                                                        em_processo: { bg: "rgba(239,68,68,.06)", border: "rgba(239,68,68,.2)", text: "#ef4444", emoji: "📌" },
-                                                    };
-                                                    const nv = nivelColors[qual.nivel_desempenho] || nivelColors.em_processo;
-                                                    const grupoColors: Record<string, { bg: string; border: string; text: string }> = {
-                                                        defasagem: { bg: "rgba(239,68,68,.05)", border: "rgba(239,68,68,.15)", text: "#ef4444" },
-                                                        intermediario: { bg: "rgba(245,158,11,.05)", border: "rgba(245,158,11,.15)", text: "#f59e0b" },
-                                                        avancado: { bg: "rgba(16,185,129,.05)", border: "rgba(16,185,129,.15)", text: "#10b981" },
-                                                    };
-                                                    const gc = grupoColors[qual.grupo_sugerido] || grupoColors.intermediario;
-
-                                                    return (
-                                                        <>
-                                                            {/* Separator */}
-                                                            <div style={{ margin: "8px 0", borderTop: "1px dashed rgba(148,163,184,.15)" }} />
-
-                                                            {/* Performance Level */}
-                                                            <div style={{
-                                                                padding: "12px 14px", borderRadius: 10,
-                                                                background: nv.bg, border: `1px solid ${nv.border}`,
-                                                            }}>
-                                                                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                                                                    <span style={{ fontSize: 16 }}>{nv.emoji}</span>
-                                                                    <span style={{ fontSize: 12, fontWeight: 700, color: nv.text, textTransform: "capitalize" }}>
-                                                                        Nível de Desempenho: {(qual.nivel_desempenho as string).replace("_", " ")}
-                                                                    </span>
-                                                                </div>
-                                                                <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
-                                                                    {qual.descricao_nivel}
-                                                                </p>
+                                                            <div style={{ fontSize: 28, fontWeight: 800, color: "#818cf8" }}>
+                                                                {analiseResultado.score}%
                                                             </div>
-
-                                                            {/* Grouping Suggestion */}
-                                                            <div style={{
-                                                                padding: "12px 14px", borderRadius: 10,
-                                                                background: gc.bg, border: `1px solid ${gc.border}`,
-                                                            }}>
-                                                                <span style={{ fontSize: 12, fontWeight: 700, color: gc.text }}>
-                                                                    👥 Agrupamento Sugerido: {(qual.grupo_sugerido as string).charAt(0).toUpperCase() + (qual.grupo_sugerido as string).slice(1)}
-                                                                </span>
-                                                                <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: "4px 0 0", lineHeight: 1.5 }}>
-                                                                    {qual.descricao_grupo}
-                                                                </p>
+                                                            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                                                {analiseResultado.acertos}/{analiseResultado.total} acertos
                                                             </div>
+                                                        </div>
+                                                        <div style={{
+                                                            flex: 1, minWidth: 120, padding: "14px 16px", borderRadius: 10,
+                                                            background: `rgba(${analiseResultado.nivel >= 3 ? "16,185,129" : analiseResultado.nivel >= 2 ? "245,158,11" : "239,68,68"},.06)`,
+                                                            border: `1px solid rgba(${analiseResultado.nivel >= 3 ? "16,185,129" : analiseResultado.nivel >= 2 ? "245,158,11" : "239,68,68"},.15)`,
+                                                            textAlign: "center",
+                                                        }}>
+                                                            <div style={{
+                                                                fontSize: 28, fontWeight: 800,
+                                                                color: analiseResultado.nivel >= 3 ? "#10b981" : analiseResultado.nivel >= 2 ? "#f59e0b" : "#ef4444",
+                                                            }}>
+                                                                N{analiseResultado.nivel}
+                                                            </div>
+                                                            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                                                {ESCALA_OMNISFERA[analiseResultado.nivel as NivelOmnisfera]?.label || ""}
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                                            {/* Competency Map */}
-                                                            {qual.mapa_competencias && (
-                                                                <div style={{
-                                                                    padding: "12px 14px", borderRadius: 10,
-                                                                    background: "rgba(99,102,241,.04)", border: "1px solid rgba(99,102,241,.12)",
-                                                                }}>
-                                                                    <span style={{ fontSize: 12, fontWeight: 700, color: "#818cf8" }}>🗺️ Mapa de Competências</span>
-                                                                    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
-                                                                        {(qual.mapa_competencias.dominadas as string[])?.length > 0 && (
-                                                                            <div>
-                                                                                <span style={{ fontSize: 10, fontWeight: 600, color: "#10b981" }}>✅ Dominadas:</span>
-                                                                                <div style={{ marginTop: 2, display: "flex", gap: 4, flexWrap: "wrap" }}>
-                                                                                    {(qual.mapa_competencias.dominadas as string[]).map((h: string, i: number) => (
-                                                                                        <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(16,185,129,.1)", color: "#10b981", fontWeight: 600 }}>{h}</span>
-                                                                                    ))}
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
-                                                                        {(qual.mapa_competencias.em_desenvolvimento as string[])?.length > 0 && (
-                                                                            <div>
-                                                                                <span style={{ fontSize: 10, fontWeight: 600, color: "#f59e0b" }}>🔄 Em desenvolvimento:</span>
-                                                                                <div style={{ marginTop: 2, display: "flex", gap: 4, flexWrap: "wrap" }}>
-                                                                                    {(qual.mapa_competencias.em_desenvolvimento as string[]).map((h: string, i: number) => (
-                                                                                        <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(245,158,11,.1)", color: "#f59e0b", fontWeight: 600 }}>{h}</span>
-                                                                                    ))}
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
-                                                                        {(qual.mapa_competencias.nao_demonstradas as string[])?.length > 0 && (
-                                                                            <div>
-                                                                                <span style={{ fontSize: 10, fontWeight: 600, color: "#94a3b8" }}>⬜ Não demonstradas:</span>
-                                                                                <div style={{ marginTop: 2, display: "flex", gap: 4, flexWrap: "wrap" }}>
-                                                                                    {(qual.mapa_competencias.nao_demonstradas as string[]).map((h: string, i: number) => (
-                                                                                        <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(148,163,184,.08)", color: "#94a3b8", fontWeight: 600 }}>{h}</span>
-                                                                                    ))}
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
+                                                    {/* Habilidades */}
+                                                    {analiseResultado.hab_dominadas?.length > 0 && (
+                                                        <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.15)" }}>
+                                                            <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981" }}>✅ Habilidades Dominadas</span>
+                                                            <div style={{ marginTop: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                                                {(analiseResultado.hab_dominadas as string[]).map((h: string, i: number) => (
+                                                                    <span key={i} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,.1)", color: "#10b981", fontWeight: 600 }}>{h}</span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {analiseResultado.hab_desenvolvimento?.length > 0 && (
+                                                        <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.15)" }}>
+                                                            <span style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b" }}>🔄 Em Desenvolvimento</span>
+                                                            <div style={{ marginTop: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                                                {(analiseResultado.hab_desenvolvimento as string[]).map((h: string, i: number) => (
+                                                                    <span key={i} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(245,158,11,.1)", color: "#f59e0b", fontWeight: 600 }}>{h}</span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Distratores */}
+                                                    {analiseResultado.distratores?.length > 0 && (
+                                                        <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(239,68,68,.04)", border: "1px solid rgba(239,68,68,.12)" }}>
+                                                            <span style={{ fontSize: 11, fontWeight: 700, color: "#ef4444" }}>🔍 Análise de Distratores</span>
+                                                            <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 4 }}>
+                                                                {(analiseResultado.distratores as { questao: number; marcada: string; correta: string; habilidade: string }[]).map((d, i) => (
+                                                                    <div key={i} style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                                                                        <strong>Q{d.questao}</strong>: marcou <strong style={{ color: "#ef4444" }}>{d.marcada}</strong>, correto era <strong style={{ color: "#10b981" }}>{d.correta}</strong>
+                                                                        {d.habilidade && <span style={{ color: "var(--text-muted)" }}> — {d.habilidade}</span>}
                                                                     </div>
-                                                                </div>
-                                                            )}
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
 
-                                                            {/* Mediation */}
-                                                            {qual.mediacao_sugerida && (
+                                                    {/* ── Phase 4: Qualitative Analysis Panel ── */}
+                                                    {analiseResultado.qualitativo && (() => {
+                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                        const qual = analiseResultado.qualitativo as Record<string, any>;
+                                                        const nivelColors: Record<string, { bg: string; border: string; text: string; emoji: string }> = {
+                                                            avancado: { bg: "rgba(16,185,129,.06)", border: "rgba(16,185,129,.2)", text: "#10b981", emoji: "🌟" },
+                                                            adequado: { bg: "rgba(59,130,246,.06)", border: "rgba(59,130,246,.2)", text: "#3b82f6", emoji: "✅" },
+                                                            razoavel: { bg: "rgba(245,158,11,.06)", border: "rgba(245,158,11,.2)", text: "#f59e0b", emoji: "🔄" },
+                                                            em_processo: { bg: "rgba(239,68,68,.06)", border: "rgba(239,68,68,.2)", text: "#ef4444", emoji: "📌" },
+                                                        };
+                                                        const nv = nivelColors[qual.nivel_desempenho] || nivelColors.em_processo;
+                                                        const grupoColors: Record<string, { bg: string; border: string; text: string }> = {
+                                                            defasagem: { bg: "rgba(239,68,68,.05)", border: "rgba(239,68,68,.15)", text: "#ef4444" },
+                                                            intermediario: { bg: "rgba(245,158,11,.05)", border: "rgba(245,158,11,.15)", text: "#f59e0b" },
+                                                            avancado: { bg: "rgba(16,185,129,.05)", border: "rgba(16,185,129,.15)", text: "#10b981" },
+                                                        };
+                                                        const gc = grupoColors[qual.grupo_sugerido] || grupoColors.intermediario;
+
+                                                        return (
+                                                            <>
+                                                                {/* Separator */}
+                                                                <div style={{ margin: "8px 0", borderTop: "1px dashed rgba(148,163,184,.15)" }} />
+
+                                                                {/* Performance Level */}
                                                                 <div style={{
                                                                     padding: "12px 14px", borderRadius: 10,
-                                                                    background: "rgba(139,92,246,.04)", border: "1px solid rgba(139,92,246,.12)",
+                                                                    background: nv.bg, border: `1px solid ${nv.border}`,
                                                                 }}>
-                                                                    <span style={{ fontSize: 12, fontWeight: 700, color: "#8b5cf6" }}>🎯 Mediação Pedagógica (Como chegar lá?)</span>
-                                                                    <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: "6px 0 0", lineHeight: 1.6, whiteSpace: "pre-line" }}>
-                                                                        {qual.mediacao_sugerida}
+                                                                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                                                                        <span style={{ fontSize: 16 }}>{nv.emoji}</span>
+                                                                        <span style={{ fontSize: 12, fontWeight: 700, color: nv.text, textTransform: "capitalize" }}>
+                                                                            Nível de Desempenho: {(qual.nivel_desempenho as string).replace("_", " ")}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
+                                                                        {qual.descricao_nivel}
                                                                     </p>
                                                                 </div>
-                                                            )}
 
-                                                            {/* Pedagogical Disclaimer */}
-                                                            {qual.aviso_hipotese && (
+                                                                {/* Grouping Suggestion */}
                                                                 <div style={{
-                                                                    padding: "8px 12px", borderRadius: 8,
-                                                                    background: "rgba(245,158,11,.04)", border: "1px solid rgba(245,158,11,.12)",
-                                                                    fontSize: 10, color: "#f59e0b", lineHeight: 1.5,
+                                                                    padding: "12px 14px", borderRadius: 10,
+                                                                    background: gc.bg, border: `1px solid ${gc.border}`,
                                                                 }}>
-                                                                    {qual.aviso_hipotese}
+                                                                    <span style={{ fontSize: 12, fontWeight: 700, color: gc.text }}>
+                                                                        👥 Agrupamento Sugerido: {(qual.grupo_sugerido as string).charAt(0).toUpperCase() + (qual.grupo_sugerido as string).slice(1)}
+                                                                    </span>
+                                                                    <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: "4px 0 0", lineHeight: 1.5 }}>
+                                                                        {qual.descricao_grupo}
+                                                                    </p>
                                                                 </div>
-                                                            )}
-                                                        </>
-                                                    );
-                                                })()}{/* /Phase 4 */}
-                                            </div>
-                                        )}
+
+                                                                {/* Competency Map */}
+                                                                {qual.mapa_competencias && (
+                                                                    <div style={{
+                                                                        padding: "12px 14px", borderRadius: 10,
+                                                                        background: "rgba(99,102,241,.04)", border: "1px solid rgba(99,102,241,.12)",
+                                                                    }}>
+                                                                        <span style={{ fontSize: 12, fontWeight: 700, color: "#818cf8" }}>🗺️ Mapa de Competências</span>
+                                                                        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                                                                            {(qual.mapa_competencias.dominadas as string[])?.length > 0 && (
+                                                                                <div>
+                                                                                    <span style={{ fontSize: 10, fontWeight: 600, color: "#10b981" }}>✅ Dominadas:</span>
+                                                                                    <div style={{ marginTop: 2, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                                                                        {(qual.mapa_competencias.dominadas as string[]).map((h: string, i: number) => (
+                                                                                            <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(16,185,129,.1)", color: "#10b981", fontWeight: 600 }}>{h}</span>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
+                                                                            {(qual.mapa_competencias.em_desenvolvimento as string[])?.length > 0 && (
+                                                                                <div>
+                                                                                    <span style={{ fontSize: 10, fontWeight: 600, color: "#f59e0b" }}>🔄 Em desenvolvimento:</span>
+                                                                                    <div style={{ marginTop: 2, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                                                                        {(qual.mapa_competencias.em_desenvolvimento as string[]).map((h: string, i: number) => (
+                                                                                            <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(245,158,11,.1)", color: "#f59e0b", fontWeight: 600 }}>{h}</span>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
+                                                                            {(qual.mapa_competencias.nao_demonstradas as string[])?.length > 0 && (
+                                                                                <div>
+                                                                                    <span style={{ fontSize: 10, fontWeight: 600, color: "#94a3b8" }}>⬜ Não demonstradas:</span>
+                                                                                    <div style={{ marginTop: 2, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                                                                        {(qual.mapa_competencias.nao_demonstradas as string[]).map((h: string, i: number) => (
+                                                                                            <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(148,163,184,.08)", color: "#94a3b8", fontWeight: 600 }}>{h}</span>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Mediation */}
+                                                                {qual.mediacao_sugerida && (
+                                                                    <div style={{
+                                                                        padding: "12px 14px", borderRadius: 10,
+                                                                        background: "rgba(139,92,246,.04)", border: "1px solid rgba(139,92,246,.12)",
+                                                                    }}>
+                                                                        <span style={{ fontSize: 12, fontWeight: 700, color: "#8b5cf6" }}>🎯 Mediação Pedagógica (Como chegar lá?)</span>
+                                                                        <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: "6px 0 0", lineHeight: 1.6, whiteSpace: "pre-line" }}>
+                                                                            {qual.mediacao_sugerida}
+                                                                        </p>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Pedagogical Disclaimer */}
+                                                                {qual.aviso_hipotese && (
+                                                                    <div style={{
+                                                                        padding: "8px 12px", borderRadius: 8,
+                                                                        background: "rgba(245,158,11,.04)", border: "1px solid rgba(245,158,11,.12)",
+                                                                        fontSize: 10, color: "#f59e0b", lineHeight: 1.5,
+                                                                    }}>
+                                                                        {qual.aviso_hipotese}
+                                                                    </div>
+                                                                )}
+                                                            </>
+                                                        );
+                                                    })()}{/* /Phase 4 */}
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })()}
+                            {/* ── Card-based Question Display ── */}
+                            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                                {/* Header with download buttons */}
+                                <div style={{
+                                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                                    padding: "12px 16px", borderRadius: 10,
+                                    background: "rgba(99,102,241,.05)", border: "1px solid rgba(99,102,241,.15)",
+                                }}>
+                                    <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>
+                                        📝 Prova Gerada — {questoesIndividuais.length} questões
+                                    </span>
+                                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#818cf8", cursor: "pointer", background: "rgba(99,102,241,.08)", padding: "3px 8px", borderRadius: 6 }}>
+                                            <input type="checkbox" checked={formatoInclusivo} onChange={e => setFormatoInclusivo(e.target.checked)} style={{ accentColor: "#6366f1" }} />
+                                            ♿ Inclusivo
+                                        </label>
+                                        <DocxDownloadButton
+                                            texto={resultadoFormatado}
+                                            titulo="Avaliação Diagnóstica"
+                                            filename={`Avaliacao_${selectedDisc || ""}_${new Date().toISOString().slice(0, 10)}.docx`}
+                                            mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
+                                            formatoInclusivo={formatoInclusivo}
+                                        />
+                                        <PdfDownloadButton
+                                            text={resultadoFormatado}
+                                            filename={`Avaliacao_${selectedDisc || ""}_${new Date().toISOString().slice(0, 10)}.pdf`}
+                                            title="Avaliação Diagnóstica"
+                                            formatoInclusivo={formatoInclusivo}
+                                        />
                                     </div>
                                 </div>
-                            );
-                        })()}
-                        {/* ── Card-based Question Display ── */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                            {/* Header with download buttons */}
-                            <div style={{
-                                display: "flex", alignItems: "center", justifyContent: "space-between",
-                                padding: "12px 16px", borderRadius: 10,
-                                background: "rgba(99,102,241,.05)", border: "1px solid rgba(99,102,241,.15)",
-                            }}>
-                                <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>
-                                    📝 Prova Gerada — {questoesIndividuais.length} questões
-                                </span>
-                                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                                    <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#818cf8", cursor: "pointer", background: "rgba(99,102,241,.08)", padding: "3px 8px", borderRadius: 6 }}>
-                                        <input type="checkbox" checked={formatoInclusivo} onChange={e => setFormatoInclusivo(e.target.checked)} style={{ accentColor: "#6366f1" }} />
-                                        ♿ Inclusivo
-                                    </label>
-                                    <DocxDownloadButton
-                                        texto={resultadoFormatado}
-                                        titulo="Avaliação Diagnóstica"
-                                        filename={`Avaliacao_${selectedDisc || ""}_${new Date().toISOString().slice(0, 10)}.docx`}
-                                        mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
-                                        formatoInclusivo={formatoInclusivo}
-                                    />
-                                    <PdfDownloadButton
-                                        text={resultadoFormatado}
-                                        filename={`Avaliacao_${selectedDisc || ""}_${new Date().toISOString().slice(0, 10)}.pdf`}
-                                        title="Avaliação Diagnóstica"
-                                        formatoInclusivo={formatoInclusivo}
-                                    />
-                                </div>
-                            </div>
 
-                            {/* ── Individual Question Cards ── */}
-                            {questoesIndividuais.map((q, idx) => {
-                                const qNum = q._numero || idx + 1;
-                                const imgUrl = mapaImagensResultado[qNum] || q._imagemUrl;
-                                const hab = q.habilidade_bncc_ref || q._habilidade || '';
-                                const habTexto = q._habilidadeTexto || q.habilidade_texto || '';
-                                const analiseDistratores = q.analise_distratores as Record<string, string> | undefined;
-                                const sv = q.suporte_visual;
-                                const isError = Boolean(q._erro);
-                                const isRegenerating = q._refazendo || false;
-                                const isRegeneratingImg = q._regeneratingImage || false;
-                                const feedbackKey = `_feedbackRefazer_${qNum}`;
-                                const showFeedback = q._showFeedbackRefazer || false;
+                                {/* ── Individual Question Cards ── */}
+                                {questoesIndividuais.map((q, idx) => {
+                                    const qNum = q._numero || idx + 1;
+                                    const imgUrl = mapaImagensResultado[qNum] || q._imagemUrl;
+                                    const hab = q.habilidade_bncc_ref || q._habilidade || '';
+                                    const habTexto = q._habilidadeTexto || q.habilidade_texto || '';
+                                    const analiseDistratores = q.analise_distratores as Record<string, string> | undefined;
+                                    const sv = q.suporte_visual;
+                                    const isError = Boolean(q._erro);
+                                    const isRegenerating = q._refazendo || false;
+                                    const isRegeneratingImg = q._regeneratingImage || false;
+                                    const feedbackKey = `_feedbackRefazer_${qNum}`;
+                                    const showFeedback = q._showFeedbackRefazer || false;
 
-                                return (
-                                    <div key={qNum} style={{
-                                        borderRadius: 14, overflow: "hidden",
-                                        border: isError
-                                            ? "2px solid rgba(239,68,68,.3)"
-                                            : "2px solid var(--border-default, rgba(148,163,184,.1))",
-                                        background: "var(--bg-primary, #fff)",
-                                        transition: "all .2s ease",
-                                    }}>
-                                        {/* ── Card Header: número + habilidade ── */}
-                                        <div style={{
-                                            display: "flex", alignItems: "center", justifyContent: "space-between",
-                                            padding: "10px 16px",
-                                            background: isError ? "rgba(239,68,68,.06)" : "rgba(99,102,241,.04)",
-                                            borderBottom: "1px solid var(--border-default, rgba(148,163,184,.08))",
+                                    return (
+                                        <div key={qNum} style={{
+                                            borderRadius: 14, overflow: "hidden",
+                                            border: isError
+                                                ? "2px solid rgba(239,68,68,.3)"
+                                                : "2px solid var(--border-default, rgba(148,163,184,.1))",
+                                            background: "var(--bg-primary, #fff)",
+                                            transition: "all .2s ease",
                                         }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                                <span style={{
-                                                    width: 30, height: 30, borderRadius: "50%", display: "flex",
-                                                    alignItems: "center", justifyContent: "center",
-                                                    background: isError ? "rgba(239,68,68,.12)" : "rgba(99,102,241,.12)",
-                                                    color: isError ? "#ef4444" : "#6366f1",
-                                                    fontWeight: 800, fontSize: 14,
-                                                }}>{qNum}</span>
-                                                {hab && (
-                                                    <span style={{
-                                                        padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700,
-                                                        background: "rgba(99,102,241,.08)", color: "#6366f1",
-                                                        border: "1px solid rgba(99,102,241,.15)",
-                                                    }}>{hab}</span>
-                                                )}
-                                                {q.nivel_bloom && (
-                                                    <span style={{
-                                                        padding: "2px 7px", borderRadius: 5, fontSize: 9, fontWeight: 700,
-                                                        background: "rgba(168,85,247,.08)", color: "#a855f7",
-                                                        border: "1px solid rgba(168,85,247,.15)",
-                                                    }}>{q.nivel_bloom}</span>
-                                                )}
-                                                {q.gabarito && (
-                                                    <span style={{
-                                                        padding: "3px 8px", borderRadius: 6, fontSize: 10, fontWeight: 800,
-                                                        background: "rgba(16,185,129,.1)", color: "#10b981",
-                                                        border: "1px solid rgba(16,185,129,.2)",
-                                                    }}>Gabarito: {q.gabarito}</span>
-                                                )}
-                                            </div>
-                                            <div style={{ display: "flex", gap: 6 }}>
-                                                {/* Refazer button */}
-                                                <button
-                                                    onClick={() => {
-                                                        q._showFeedbackRefazer = !q._showFeedbackRefazer;
-                                                        setQuestoesIndividuais([...questoesIndividuais]);
-                                                    }}
-                                                    style={{
-                                                        fontSize: 11, padding: "4px 10px", borderRadius: 6,
-                                                        border: "1px solid rgba(245,158,11,.25)", background: "rgba(245,158,11,.06)",
-                                                        color: "#f59e0b", cursor: "pointer", fontWeight: 600,
-                                                        display: "flex", alignItems: "center", gap: 4,
-                                                    }}
-                                                >
-                                                    🔄 Refazer
-                                                </button>
-                                                {/* Gerar/Regenerar Imagem */}
-                                                <button
-                                                    onClick={async () => {
-                                                        q._regeneratingImage = true;
-                                                        setQuestoesIndividuais([...questoesIndividuais]);
-                                                        try {
-                                                            const imgPrompt = sv?.descricao_para_geracao
-                                                                || `Ilustração educacional clara para questão de ${selectedDisc} sobre: ${q.enunciado?.slice(0, 120) || hab}`;
-                                                            const r = await fetch("/api/avaliacao-diagnostica/gerar-imagem", {
-                                                                method: "POST",
-                                                                headers: { "Content-Type": "application/json" },
-                                                                body: JSON.stringify({
-                                                                    tipo: sv?.tipo || 'ilustracao',
-                                                                    descricao: imgPrompt,
-                                                                    texto_alternativo: sv?.texto_alternativo || imgPrompt,
-                                                                    disciplina: selectedDisc,
-                                                                    serie: selectedAluno?.grade || '',
-                                                                }),
-                                                            });
-                                                            if (r.ok) {
-                                                                const d = await r.json();
-                                                                if (d.imageUrl) {
-                                                                    const newMapa = { ...mapaImagensResultado, [qNum]: d.imageUrl };
-                                                                    setMapaImagensResultado(newMapa);
-                                                                    rebuildResultadoFormatado(questoesIndividuais, newMapa);
-                                                                }
-                                                            }
-                                                        } catch { /* silent */ }
-                                                        q._regeneratingImage = false;
-                                                        setQuestoesIndividuais([...questoesIndividuais]);
-                                                    }}
-                                                    disabled={isRegeneratingImg}
-                                                    style={{
-                                                        fontSize: 11, padding: "4px 10px", borderRadius: 6,
-                                                        border: "1px solid rgba(99,102,241,.2)", background: "rgba(99,102,241,.06)",
-                                                        color: "#818cf8", cursor: isRegeneratingImg ? "wait" : "pointer", fontWeight: 600,
-                                                        display: "flex", alignItems: "center", gap: 4,
-                                                    }}
-                                                >
-                                                    {isRegeneratingImg ? "⏳ Gerando..." : imgUrl ? "🖼️ Refazer Imagem" : "🖼️ Gerar Imagem"}
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* ── Feedback para Refazer ── */}
-                                        {showFeedback && (
+                                            {/* ── Card Header: número + habilidade ── */}
                                             <div style={{
-                                                padding: "12px 16px", background: "rgba(245,158,11,.04)",
-                                                borderBottom: "1px solid rgba(245,158,11,.15)",
-                                                display: "flex", flexDirection: "column", gap: 8,
+                                                display: "flex", alignItems: "center", justifyContent: "space-between",
+                                                padding: "10px 16px",
+                                                background: isError ? "rgba(239,68,68,.06)" : "rgba(99,102,241,.04)",
+                                                borderBottom: "1px solid var(--border-default, rgba(148,163,184,.08))",
                                             }}>
-                                                <label style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b" }}>
-                                                    💬 O que precisa mudar nesta questão?
-                                                </label>
-                                                <textarea
-                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                    value={(q as any)[feedbackKey] || ''}
-                                                    onChange={e => {
-                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                        (q as any)[feedbackKey] = e.target.value;
-                                                        setQuestoesIndividuais([...questoesIndividuais]);
-                                                    }}
-                                                    placeholder="Ex: A imagem mostra ciclo da borracha, mas a questão é sobre ciclo do açúcar..."
-                                                    rows={2}
-                                                    style={{
-                                                        width: "100%", padding: "8px 12px", borderRadius: 8,
-                                                        border: "1px solid rgba(245,158,11,.25)", background: "rgba(245,158,11,.03)",
-                                                        fontSize: 13, resize: "vertical", color: "var(--text-primary)",
-                                                        outline: "none",
-                                                    }}
-                                                />
+                                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                                    <span style={{
+                                                        width: 30, height: 30, borderRadius: "50%", display: "flex",
+                                                        alignItems: "center", justifyContent: "center",
+                                                        background: isError ? "rgba(239,68,68,.12)" : "rgba(99,102,241,.12)",
+                                                        color: isError ? "#ef4444" : "#6366f1",
+                                                        fontWeight: 800, fontSize: 14,
+                                                    }}>{qNum}</span>
+                                                    {hab && (
+                                                        <span style={{
+                                                            padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700,
+                                                            background: "rgba(99,102,241,.08)", color: "#6366f1",
+                                                            border: "1px solid rgba(99,102,241,.15)",
+                                                        }}>{hab}</span>
+                                                    )}
+                                                    {q.nivel_bloom && (
+                                                        <span style={{
+                                                            padding: "2px 7px", borderRadius: 5, fontSize: 9, fontWeight: 700,
+                                                            background: "rgba(168,85,247,.08)", color: "#a855f7",
+                                                            border: "1px solid rgba(168,85,247,.15)",
+                                                        }}>{q.nivel_bloom}</span>
+                                                    )}
+                                                    {q.gabarito && (
+                                                        <span style={{
+                                                            padding: "3px 8px", borderRadius: 6, fontSize: 10, fontWeight: 800,
+                                                            background: "rgba(16,185,129,.1)", color: "#10b981",
+                                                            border: "1px solid rgba(16,185,129,.2)",
+                                                        }}>Gabarito: {q.gabarito}</span>
+                                                    )}
+                                                </div>
                                                 <div style={{ display: "flex", gap: 6 }}>
+                                                    {/* Refazer button */}
                                                     <button
-                                                        onClick={async () => {
-                                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                            const feedback = (q as any)[feedbackKey] || '';
-                                                            q._refazendo = true;
-                                                            q._showFeedbackRefazer = false;
+                                                        onClick={() => {
+                                                            q._showFeedbackRefazer = !q._showFeedbackRefazer;
                                                             setQuestoesIndividuais([...questoesIndividuais]);
-
-                                                            try {
-                                                                const res = await fetch("/api/avaliacao-diagnostica/criar-item", {
-                                                                    method: "POST",
-                                                                    headers: { "Content-Type": "application/json" },
-                                                                    body: JSON.stringify({
-                                                                        habilidade_codigo: hab || selectedDisc,
-                                                                        disciplina: selectedDisc,
-                                                                        serie: selectedAluno?.grade || '',
-                                                                        gabarito_definido: q.gabarito || q._gabarito_esperado || '',
-                                                                        nivel_dificuldade: q.nivel_dificuldade || 'medio',
-                                                                        numero_questao: qNum,
-                                                                        total_questoes: questoesIndividuais.length,
-                                                                        diagnostico_aluno: selectedAluno?.diagnostico || '',
-                                                                        nome_aluno: selectedAluno?.name || 'o estudante',
-                                                                        nivel_omnisfera_estimado: nivelIdentificado ?? 1,
-                                                                        plano_ensino_contexto: planoVinculado?.conteudo,
-                                                                        alerta_nee: neeAlert || '',
-                                                                        instrucao_uso_diagnostica: instrucaoDiag || '',
-                                                                        barreiras_ativas: flattenBarreiras(selectedAluno?.barreiras_selecionadas),
-                                                                        engine: engineSel,
-                                                                        feedback_professor: feedback
-                                                                            ? `O PROFESSOR PEDIU AJUSTE: ${feedback}. A questão anterior era sobre "${(q.enunciado || '').slice(0, 200)}". CORRIJA conforme o pedido.`
-                                                                            : undefined,
-                                                                    }),
-                                                                });
-                                                                const data = await res.json();
-                                                                if (res.ok && data.questao) {
-                                                                    const novaQ = data.questao;
-                                                                    novaQ._numero = qNum;
-                                                                    novaQ._gabarito_esperado = q._gabarito_esperado || q.gabarito;
-
-                                                                    // Replace question in array
-                                                                    const newQs = [...questoesIndividuais];
-                                                                    newQs[idx] = novaQ;
-                                                                    setQuestoesIndividuais(newQs);
-
-                                                                    // Rebuild text
-                                                                    rebuildResultadoFormatado(newQs, mapaImagensResultado);
-
-                                                                    // Auto-generate image if needed
-                                                                    const newSv = novaQ.suporte_visual;
-                                                                    if (newSv?.necessario && newSv?.descricao_para_geracao) {
-                                                                        novaQ._regeneratingImage = true;
-                                                                        setQuestoesIndividuais([...newQs]);
-                                                                        try {
-                                                                            const imgRes = await fetch("/api/avaliacao-diagnostica/gerar-imagem", {
-                                                                                method: "POST",
-                                                                                headers: { "Content-Type": "application/json" },
-                                                                                body: JSON.stringify({
-                                                                                    tipo: newSv.tipo || 'ilustracao',
-                                                                                    descricao: newSv.descricao_para_geracao,
-                                                                                    texto_alternativo: newSv.texto_alternativo || newSv.descricao_para_geracao,
-                                                                                    disciplina: selectedDisc,
-                                                                                    serie: selectedAluno?.grade || '',
-                                                                                }),
-                                                                            });
-                                                                            if (imgRes.ok) {
-                                                                                const imgData = await imgRes.json();
-                                                                                if (imgData.imageUrl) {
-                                                                                    const nm = { ...mapaImagensResultado, [qNum]: imgData.imageUrl };
-                                                                                    setMapaImagensResultado(nm);
-                                                                                    rebuildResultadoFormatado(newQs, nm);
-                                                                                }
-                                                                            }
-                                                                        } catch { /* silent */ }
-                                                                        novaQ._regeneratingImage = false;
-                                                                        setQuestoesIndividuais([...newQs]);
-                                                                    }
-                                                                } else {
-                                                                    q._refazendo = false;
-                                                                    setQuestoesIndividuais([...questoesIndividuais]);
-                                                                }
-                                                            } catch {
-                                                                q._refazendo = false;
-                                                                setQuestoesIndividuais([...questoesIndividuais]);
-                                                            }
                                                         }}
-                                                        disabled={isRegenerating}
                                                         style={{
-                                                            padding: "6px 14px", borderRadius: 6, border: "none",
-                                                            background: isRegenerating ? "#94a3b8" : "linear-gradient(135deg, #f59e0b, #fbbf24)",
-                                                            color: "#fff", fontSize: 12, fontWeight: 700, cursor: isRegenerating ? "wait" : "pointer",
+                                                            fontSize: 11, padding: "4px 10px", borderRadius: 6,
+                                                            border: "1px solid rgba(245,158,11,.25)", background: "rgba(245,158,11,.06)",
+                                                            color: "#f59e0b", cursor: "pointer", fontWeight: 600,
                                                             display: "flex", alignItems: "center", gap: 4,
                                                         }}
                                                     >
-                                                        {isRegenerating ? <OmniLoader size={12} /> : <Sparkles size={12} />}
-                                                        {isRegenerating ? "Regenerando..." : "Regenerar Questão"}
+                                                        🔄 Refazer
                                                     </button>
+                                                    {/* Gerar/Regenerar Imagem */}
                                                     <button
-                                                        onClick={() => {
-                                                            q._showFeedbackRefazer = false;
+                                                        onClick={async () => {
+                                                            q._regeneratingImage = true;
+                                                            setQuestoesIndividuais([...questoesIndividuais]);
+                                                            try {
+                                                                const imgPrompt = sv?.descricao_para_geracao
+                                                                    || `Ilustração educacional clara para questão de ${selectedDisc} sobre: ${q.enunciado?.slice(0, 120) || hab}`;
+                                                                const r = await fetch("/api/avaliacao-diagnostica/gerar-imagem", {
+                                                                    method: "POST",
+                                                                    headers: { "Content-Type": "application/json" },
+                                                                    body: JSON.stringify({
+                                                                        tipo: sv?.tipo || 'ilustracao',
+                                                                        descricao: imgPrompt,
+                                                                        texto_alternativo: sv?.texto_alternativo || imgPrompt,
+                                                                        disciplina: selectedDisc,
+                                                                        serie: selectedAluno?.grade || '',
+                                                                    }),
+                                                                });
+                                                                if (r.ok) {
+                                                                    const d = await r.json();
+                                                                    if (d.imageUrl) {
+                                                                        const newMapa = { ...mapaImagensResultado, [qNum]: d.imageUrl };
+                                                                        setMapaImagensResultado(newMapa);
+                                                                        rebuildResultadoFormatado(questoesIndividuais, newMapa);
+                                                                    }
+                                                                }
+                                                            } catch { /* silent */ }
+                                                            q._regeneratingImage = false;
                                                             setQuestoesIndividuais([...questoesIndividuais]);
                                                         }}
+                                                        disabled={isRegeneratingImg}
                                                         style={{
-                                                            padding: "6px 14px", borderRadius: 6,
-                                                            border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                                                            background: "transparent", color: "var(--text-muted)", fontSize: 12, cursor: "pointer",
+                                                            fontSize: 11, padding: "4px 10px", borderRadius: 6,
+                                                            border: "1px solid rgba(99,102,241,.2)", background: "rgba(99,102,241,.06)",
+                                                            color: "#818cf8", cursor: isRegeneratingImg ? "wait" : "pointer", fontWeight: 600,
+                                                            display: "flex", alignItems: "center", gap: 4,
                                                         }}
                                                     >
-                                                        Cancelar
+                                                        {isRegeneratingImg ? "⏳ Gerando..." : imgUrl ? "🖼️ Refazer Imagem" : "🖼️ Gerar Imagem"}
                                                     </button>
                                                 </div>
                                             </div>
-                                        )}
 
-                                        {/* ── Card Body: conteúdo da questão ── */}
-                                        <div style={{ padding: "14px 18px" }}>
-                                            {isError ? (
-                                                <div style={{ color: "#ef4444", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
-                                                    <AlertTriangle size={14} /> Erro ao gerar: {q._erro}
-                                                </div>
-                                            ) : isRegenerating ? (
-                                                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "20px 0", justifyContent: "center", color: "#818cf8", fontSize: 13 }}>
-                                                    <OmniLoader size={18} /> Regenerando questão {qNum}...
-                                                </div>
-                                            ) : (
-                                                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                                                    {/* Habilidade BNCC texto completo */}
-                                                    {(habTexto || q._unidadeTematica) && (
-                                                        <div style={{
-                                                            padding: "8px 12px", borderRadius: 8,
-                                                            background: "rgba(99,102,241,.03)",
-                                                            border: "1px solid rgba(99,102,241,.08)",
-                                                            fontSize: 11, color: "var(--text-muted)", lineHeight: 1.6,
-                                                        }}>
-                                                            {q._unidadeTematica && (
-                                                                <div style={{ display: "flex", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
-                                                                    <span style={{ fontSize: 10, fontWeight: 700, color: "#818cf8", padding: "1px 6px", borderRadius: 4, background: "rgba(99,102,241,.08)" }}>
-                                                                        {q._unidadeTematica}
-                                                                    </span>
-                                                                    {q._objetoConhecimento && (
-                                                                        <span style={{ fontSize: 10, color: "#a855f7" }}>
-                                                                            → {q._objetoConhecimento}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                            {habTexto && (
-                                                                <div>📚 <strong>Habilidade:</strong> {habTexto}</div>
-                                                            )}
-                                                        </div>
-                                                    )}
+                                            {/* ── Feedback para Refazer ── */}
+                                            {showFeedback && (
+                                                <div style={{
+                                                    padding: "12px 16px", background: "rgba(245,158,11,.04)",
+                                                    borderBottom: "1px solid rgba(245,158,11,.15)",
+                                                    display: "flex", flexDirection: "column", gap: 8,
+                                                }}>
+                                                    <label style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b" }}>
+                                                        💬 O que precisa mudar nesta questão?
+                                                    </label>
+                                                    <textarea
+                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                        value={(q as any)[feedbackKey] || ''}
+                                                        onChange={e => {
+                                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                            (q as any)[feedbackKey] = e.target.value;
+                                                            setQuestoesIndividuais([...questoesIndividuais]);
+                                                        }}
+                                                        placeholder="Ex: A imagem mostra ciclo da borracha, mas a questão é sobre ciclo do açúcar..."
+                                                        rows={2}
+                                                        style={{
+                                                            width: "100%", padding: "8px 12px", borderRadius: 8,
+                                                            border: "1px solid rgba(245,158,11,.25)", background: "rgba(245,158,11,.03)",
+                                                            fontSize: 13, resize: "vertical", color: "var(--text-primary)",
+                                                            outline: "none",
+                                                        }}
+                                                    />
+                                                    <div style={{ display: "flex", gap: 6 }}>
+                                                        <button
+                                                            onClick={async () => {
+                                                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                                const feedback = (q as any)[feedbackKey] || '';
+                                                                q._refazendo = true;
+                                                                q._showFeedbackRefazer = false;
+                                                                setQuestoesIndividuais([...questoesIndividuais]);
 
-                                                    {/* Enunciado */}
-                                                    {q.enunciado && (
-                                                        <p style={{ fontSize: 14, lineHeight: 1.7, color: "var(--text-primary)", margin: 0 }}>
-                                                            {q.enunciado}
-                                                        </p>
-                                                    )}
+                                                                try {
+                                                                    const res = await fetch("/api/avaliacao-diagnostica/criar-item", {
+                                                                        method: "POST",
+                                                                        headers: { "Content-Type": "application/json" },
+                                                                        body: JSON.stringify({
+                                                                            habilidade_codigo: hab || selectedDisc,
+                                                                            disciplina: selectedDisc,
+                                                                            serie: selectedAluno?.grade || '',
+                                                                            gabarito_definido: q.gabarito || q._gabarito_esperado || '',
+                                                                            nivel_dificuldade: q.nivel_dificuldade || 'medio',
+                                                                            numero_questao: qNum,
+                                                                            total_questoes: questoesIndividuais.length,
+                                                                            diagnostico_aluno: selectedAluno?.diagnostico || '',
+                                                                            nome_aluno: selectedAluno?.name || 'o estudante',
+                                                                            nivel_omnisfera_estimado: nivelIdentificado ?? 1,
+                                                                            plano_ensino_contexto: planoVinculado?.conteudo,
+                                                                            alerta_nee: neeAlert || '',
+                                                                            instrucao_uso_diagnostica: instrucaoDiag || '',
+                                                                            barreiras_ativas: flattenBarreiras(selectedAluno?.barreiras_selecionadas),
+                                                                            engine: engineSel,
+                                                                            feedback_professor: feedback
+                                                                                ? `O PROFESSOR PEDIU AJUSTE: ${feedback}. A questão anterior era sobre "${(q.enunciado || '').slice(0, 200)}". CORRIJA conforme o pedido.`
+                                                                                : undefined,
+                                                                        }),
+                                                                    });
+                                                                    const data = await res.json();
+                                                                    if (res.ok && data.questao) {
+                                                                        const novaQ = data.questao;
+                                                                        novaQ._numero = qNum;
+                                                                        novaQ._gabarito_esperado = q._gabarito_esperado || q.gabarito;
 
-                                                    {/* Comando */}
-                                                    {q.comando && (
-                                                        <p style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", margin: "4px 0", fontStyle: "italic" }}>
-                                                            {q.comando}
-                                                        </p>
-                                                    )}
+                                                                        // Replace question in array
+                                                                        const newQs = [...questoesIndividuais];
+                                                                        newQs[idx] = novaQ;
+                                                                        setQuestoesIndividuais(newQs);
 
-                                                    {/* Imagem inline */}
-                                                    {imgUrl && (
-                                                        <div style={{
-                                                            display: "flex", justifyContent: "center", padding: "8px 0",
-                                                        }}>
-                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                            <img
-                                                                src={imgUrl}
-                                                                alt={sv?.texto_alternativo || `Imagem Q${qNum}`}
-                                                                style={{
-                                                                    maxWidth: "100%", maxHeight: 280, borderRadius: 10,
-                                                                    border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                                                                    objectFit: "contain",
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    )}
+                                                                        // Rebuild text
+                                                                        rebuildResultadoFormatado(newQs, mapaImagensResultado);
 
-                                                    {/* Alternativas + Distratores */}
-                                                    {q.alternativas && (
-                                                        <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
-                                                            {Object.entries(q.alternativas as Record<string, string>).map(([letra, texto]) => {
-                                                                const isCorrect = letra === q.gabarito;
-                                                                const distratorInfo = analiseDistratores?.[letra];
-                                                                return (
-                                                                    <div key={letra} style={{
-                                                                        display: "flex", flexDirection: "column",
-                                                                        padding: "8px 12px", borderRadius: 8,
-                                                                        background: isCorrect ? "rgba(16,185,129,.06)" : "transparent",
-                                                                        border: isCorrect ? "1px solid rgba(16,185,129,.2)" : "1px solid var(--border-default, rgba(148,163,184,.08))",
-                                                                    }}>
-                                                                        <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                                                                            <span style={{
-                                                                                fontWeight: isCorrect ? 800 : 600, fontSize: 13,
-                                                                                color: isCorrect ? "#10b981" : "var(--text-primary)",
-                                                                                minWidth: 20,
-                                                                            }}>
-                                                                                {letra})
-                                                                            </span>
-                                                                            <span style={{
-                                                                                fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6,
-                                                                                fontWeight: isCorrect ? 600 : 400, flex: 1,
-                                                                            }}>
-                                                                                {texto}
-                                                                            </span>
-                                                                            {isCorrect && (
-                                                                                <CheckCircle2 size={14} style={{ color: "#10b981", flexShrink: 0, marginTop: 3 }} />
-                                                                            )}
-                                                                        </div>
-                                                                        {/* Análise do distrator — visível para o professor */}
-                                                                        {distratorInfo && (
-                                                                            <div style={{
-                                                                                marginTop: 4, marginLeft: 28,
-                                                                                fontSize: 10, lineHeight: 1.4,
-                                                                                color: isCorrect ? "#059669" : "#94a3b8",
-                                                                                fontStyle: "italic",
-                                                                            }}>
-                                                                                {isCorrect ? "✅ Resposta correta" : `⚡ ${distratorInfo}`}
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
-
-                                                    {/* Justificativa Pedagógica */}
-                                                    {q.justificativa_pedagogica && (
-                                                        <div style={{
-                                                            marginTop: 6, padding: "8px 12px", borderRadius: 8,
-                                                            background: "rgba(99,102,241,.04)",
-                                                            border: "1px solid rgba(99,102,241,.1)",
-                                                            fontSize: 12, color: "var(--text-muted)", fontStyle: "italic", lineHeight: 1.5,
-                                                        }}>
-                                                            💡 {q.justificativa_pedagogica}
-                                                        </div>
-                                                    )}
-
-                                                    {/* Instrução Professor */}
-                                                    {q.instrucao_professor && (
-                                                        <div style={{
-                                                            padding: "8px 12px", borderRadius: 8,
-                                                            background: "rgba(245,158,11,.04)",
-                                                            border: "1px solid rgba(245,158,11,.12)",
-                                                            fontSize: 12, color: "#b45309", lineHeight: 1.5,
-                                                        }}>
-                                                            👩‍🏫 <strong>Para o professor:</strong> {q.instrucao_professor}
-                                                        </div>
-                                                    )}
+                                                                        // Auto-generate image if needed
+                                                                        const newSv = novaQ.suporte_visual;
+                                                                        if (newSv?.necessario && newSv?.descricao_para_geracao) {
+                                                                            novaQ._regeneratingImage = true;
+                                                                            setQuestoesIndividuais([...newQs]);
+                                                                            try {
+                                                                                const imgRes = await fetch("/api/avaliacao-diagnostica/gerar-imagem", {
+                                                                                    method: "POST",
+                                                                                    headers: { "Content-Type": "application/json" },
+                                                                                    body: JSON.stringify({
+                                                                                        tipo: newSv.tipo || 'ilustracao',
+                                                                                        descricao: newSv.descricao_para_geracao,
+                                                                                        texto_alternativo: newSv.texto_alternativo || newSv.descricao_para_geracao,
+                                                                                        disciplina: selectedDisc,
+                                                                                        serie: selectedAluno?.grade || '',
+                                                                                    }),
+                                                                                });
+                                                                                if (imgRes.ok) {
+                                                                                    const imgData = await imgRes.json();
+                                                                                    if (imgData.imageUrl) {
+                                                                                        const nm = { ...mapaImagensResultado, [qNum]: imgData.imageUrl };
+                                                                                        setMapaImagensResultado(nm);
+                                                                                        rebuildResultadoFormatado(newQs, nm);
+                                                                                    }
+                                                                                }
+                                                                            } catch { /* silent */ }
+                                                                            novaQ._regeneratingImage = false;
+                                                                            setQuestoesIndividuais([...newQs]);
+                                                                        }
+                                                                    } else {
+                                                                        q._refazendo = false;
+                                                                        setQuestoesIndividuais([...questoesIndividuais]);
+                                                                    }
+                                                                } catch {
+                                                                    q._refazendo = false;
+                                                                    setQuestoesIndividuais([...questoesIndividuais]);
+                                                                }
+                                                            }}
+                                                            disabled={isRegenerating}
+                                                            style={{
+                                                                padding: "6px 14px", borderRadius: 6, border: "none",
+                                                                background: isRegenerating ? "#94a3b8" : "linear-gradient(135deg, #f59e0b, #fbbf24)",
+                                                                color: "#fff", fontSize: 12, fontWeight: 700, cursor: isRegenerating ? "wait" : "pointer",
+                                                                display: "flex", alignItems: "center", gap: 4,
+                                                            }}
+                                                        >
+                                                            {isRegenerating ? <OmniLoader size={12} /> : <Sparkles size={12} />}
+                                                            {isRegenerating ? "Regenerando..." : "Regenerar Questão"}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                q._showFeedbackRefazer = false;
+                                                                setQuestoesIndividuais([...questoesIndividuais]);
+                                                            }}
+                                                            style={{
+                                                                padding: "6px 14px", borderRadius: 6,
+                                                                border: "1px solid var(--border-default, rgba(148,163,184,.15))",
+                                                                background: "transparent", color: "var(--text-muted)", fontSize: 12, cursor: "pointer",
+                                                            }}
+                                                        >
+                                                            Cancelar
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             )}
+
+                                            {/* ── Card Body: conteúdo da questão ── */}
+                                            <div style={{ padding: "14px 18px" }}>
+                                                {isError ? (
+                                                    <div style={{ color: "#ef4444", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+                                                        <AlertTriangle size={14} /> Erro ao gerar: {q._erro}
+                                                    </div>
+                                                ) : isRegenerating ? (
+                                                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "20px 0", justifyContent: "center", color: "#818cf8", fontSize: 13 }}>
+                                                        <OmniLoader size={18} /> Regenerando questão {qNum}...
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                                                        {/* Habilidade BNCC texto completo */}
+                                                        {(habTexto || q._unidadeTematica) && (
+                                                            <div style={{
+                                                                padding: "8px 12px", borderRadius: 8,
+                                                                background: "rgba(99,102,241,.03)",
+                                                                border: "1px solid rgba(99,102,241,.08)",
+                                                                fontSize: 11, color: "var(--text-muted)", lineHeight: 1.6,
+                                                            }}>
+                                                                {q._unidadeTematica && (
+                                                                    <div style={{ display: "flex", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
+                                                                        <span style={{ fontSize: 10, fontWeight: 700, color: "#818cf8", padding: "1px 6px", borderRadius: 4, background: "rgba(99,102,241,.08)" }}>
+                                                                            {q._unidadeTematica}
+                                                                        </span>
+                                                                        {q._objetoConhecimento && (
+                                                                            <span style={{ fontSize: 10, color: "#a855f7" }}>
+                                                                                → {q._objetoConhecimento}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                                {habTexto && (
+                                                                    <div>📚 <strong>Habilidade:</strong> {habTexto}</div>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Enunciado */}
+                                                        {q.enunciado && (
+                                                            <p style={{ fontSize: 14, lineHeight: 1.7, color: "var(--text-primary)", margin: 0 }}>
+                                                                {q.enunciado}
+                                                            </p>
+                                                        )}
+
+                                                        {/* Comando */}
+                                                        {q.comando && (
+                                                            <p style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", margin: "4px 0", fontStyle: "italic" }}>
+                                                                {q.comando}
+                                                            </p>
+                                                        )}
+
+                                                        {/* Imagem inline */}
+                                                        {imgUrl && (
+                                                            <div style={{
+                                                                display: "flex", justifyContent: "center", padding: "8px 0",
+                                                            }}>
+                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                <img
+                                                                    src={imgUrl}
+                                                                    alt={sv?.texto_alternativo || `Imagem Q${qNum}`}
+                                                                    style={{
+                                                                        maxWidth: "100%", maxHeight: 280, borderRadius: 10,
+                                                                        border: "1px solid var(--border-default, rgba(148,163,184,.15))",
+                                                                        objectFit: "contain",
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        )}
+
+                                                        {/* Alternativas + Distratores */}
+                                                        {q.alternativas && (
+                                                            <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
+                                                                {Object.entries(q.alternativas as Record<string, string>).map(([letra, texto]) => {
+                                                                    const isCorrect = letra === q.gabarito;
+                                                                    const distratorInfo = analiseDistratores?.[letra];
+                                                                    return (
+                                                                        <div key={letra} style={{
+                                                                            display: "flex", flexDirection: "column",
+                                                                            padding: "8px 12px", borderRadius: 8,
+                                                                            background: isCorrect ? "rgba(16,185,129,.06)" : "transparent",
+                                                                            border: isCorrect ? "1px solid rgba(16,185,129,.2)" : "1px solid var(--border-default, rgba(148,163,184,.08))",
+                                                                        }}>
+                                                                            <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                                                                                <span style={{
+                                                                                    fontWeight: isCorrect ? 800 : 600, fontSize: 13,
+                                                                                    color: isCorrect ? "#10b981" : "var(--text-primary)",
+                                                                                    minWidth: 20,
+                                                                                }}>
+                                                                                    {letra})
+                                                                                </span>
+                                                                                <span style={{
+                                                                                    fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6,
+                                                                                    fontWeight: isCorrect ? 600 : 400, flex: 1,
+                                                                                }}>
+                                                                                    {texto}
+                                                                                </span>
+                                                                                {isCorrect && (
+                                                                                    <CheckCircle2 size={14} style={{ color: "#10b981", flexShrink: 0, marginTop: 3 }} />
+                                                                                )}
+                                                                            </div>
+                                                                            {/* Análise do distrator — visível para o professor */}
+                                                                            {distratorInfo && (
+                                                                                <div style={{
+                                                                                    marginTop: 4, marginLeft: 28,
+                                                                                    fontSize: 10, lineHeight: 1.4,
+                                                                                    color: isCorrect ? "#059669" : "#94a3b8",
+                                                                                    fontStyle: "italic",
+                                                                                }}>
+                                                                                    {isCorrect ? "✅ Resposta correta" : `⚡ ${distratorInfo}`}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Justificativa Pedagógica */}
+                                                        {q.justificativa_pedagogica && (
+                                                            <div style={{
+                                                                marginTop: 6, padding: "8px 12px", borderRadius: 8,
+                                                                background: "rgba(99,102,241,.04)",
+                                                                border: "1px solid rgba(99,102,241,.1)",
+                                                                fontSize: 12, color: "var(--text-muted)", fontStyle: "italic", lineHeight: 1.5,
+                                                            }}>
+                                                                💡 {q.justificativa_pedagogica}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Instrução Professor */}
+                                                        {q.instrucao_professor && (
+                                                            <div style={{
+                                                                padding: "8px 12px", borderRadius: 8,
+                                                                background: "rgba(245,158,11,.04)",
+                                                                border: "1px solid rgba(245,158,11,.12)",
+                                                                fontSize: 12, color: "#b45309", lineHeight: 1.5,
+                                                            }}>
+                                                                👩‍🏫 <strong>Para o professor:</strong> {q.instrucao_professor}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
+                            <button onClick={() => { setResultadoFormatado(null); setValidadoFormatado(false); setQuestoesIndividuais([]); }} style={{
+                                padding: "10px 18px", borderRadius: 10,
+                                background: "transparent", color: "var(--text-muted, #94a3b8)",
+                                border: "1px solid var(--border-default, rgba(148,163,184,.15))",
+                                cursor: "pointer", fontSize: 13, textAlign: "center",
+                            }}>
+                                Gerar nova prova
+                            </button>
                         </div>
-                        <button onClick={() => { setResultadoFormatado(null); setValidadoFormatado(false); setQuestoesIndividuais([]); }} style={{
-                            padding: "10px 18px", borderRadius: 10,
-                            background: "transparent", color: "var(--text-muted, #94a3b8)",
-                            border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                            cursor: "pointer", fontSize: 13, textAlign: "center",
-                        }}>
-                            Gerar nova prova
-                        </button>
-                    </div>
-                )
+                    )
                 }
 
                 {
@@ -2628,10 +2624,10 @@ export default function AvaliacaoDiagnosticaClient() {
                 {/* ─── CAMADA B: Cognitivo-Funcional ──────────────────── */}
                 {
                     nivelIdentificado !== null && dimensoesNEE.length > 0 && (
-                        <div className={`${cardS} mb-5`}>
+                        <Card variant="default" className="mb-5">
                             <button
                                 onClick={() => setShowCamadaB(!showCamadaB)}
-                                className={`${headerS} w-full cursor-pointer justify-between border-none`}
+                                className="flex items-center gap-2 px-4 py-3 w-full cursor-pointer justify-between border-none"
                                 style={{
                                     background: "rgba(168,85,247,.05)",
                                 }}
@@ -2649,7 +2645,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                 {showCamadaB ? <ChevronUp size={14} style={{ color: "#a855f7" }} /> : <ChevronDown size={14} style={{ color: "#a855f7" }} />}
                             </button>
                             {showCamadaB && (
-                                <div className={bodyS}>
+                                <CardContent className="p-4" style={{ borderTop: "1px solid var(--omni-border-default)" }}>
                                     <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 0, marginBottom: 12 }}>
                                         Avalie cada dimensão cognitivo-funcional com base na sua observação.
                                         Específicas para o perfil <strong>{selectedAluno.diagnostico}</strong>.
@@ -2711,9 +2707,9 @@ export default function AvaliacaoDiagnosticaClient() {
                                             </div>
                                         );
                                     })}
-                                </div>
+                                </CardContent>
                             )}
-                        </div>
+                        </Card>
                     )
                 }
 
@@ -2791,12 +2787,14 @@ export default function AvaliacaoDiagnosticaClient() {
                 {/* ─── Perfil de Funcionamento Output ─────────────────── */}
                 {
                     perfilGerado && (
-                        <div className={`${cardS} mb-5`} style={{ border: "1.5px solid rgba(168,85,247,.2)" }}>
-                            <div className={headerS} style={{ background: "rgba(168,85,247,.05)" }}>
-                                <Sparkles size={16} style={{ color: "#a855f7" }} />
-                                <span style={{ fontWeight: 700, fontSize: 14, color: "#a855f7" }}>Perfil de Funcionamento</span>
-                            </div>
-                            <div className={bodyS}>
+                        <Card variant="default" className="mb-5" style={{ border: "1.5px solid rgba(168,85,247,.2)" }}>
+                            <CardHeader className="pb-3" style={{ background: "rgba(168,85,247,.05)" }}>
+                                <CardTitle className="text-sm flex items-center gap-2 m-0 text-fuchsia-500">
+                                    <Sparkles size={16} />
+                                    Perfil de Funcionamento
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-4 pt-4">
                                 {Boolean(perfilGerado.resumo_geral) && (
                                     <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5, marginTop: 0, marginBottom: 12 }}>
                                         {String(perfilGerado.resumo_geral)}
@@ -2828,20 +2826,22 @@ export default function AvaliacaoDiagnosticaClient() {
                                         ))}
                                     </div>
                                 )}
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
                     )
                 }
 
                 {/* ─── Estratégias Práticas Output ────────────────────── */}
                 {
                     estrategiasGeradas && (
-                        <div className={`${cardS} mb-5`} style={{ border: "1.5px solid rgba(16,185,129,.2)" }}>
-                            <div className={headerS} style={{ background: "rgba(16,185,129,.05)" }}>
-                                <Target size={16} style={{ color: "#10b981" }} />
-                                <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>Estratégias Práticas</span>
-                            </div>
-                            <div className={bodyS}>
+                        <Card variant="default" className="mb-5" style={{ border: "1.5px solid rgba(16,185,129,.2)" }}>
+                            <CardHeader className="pb-3" style={{ background: "rgba(16,185,129,.05)" }}>
+                                <CardTitle className="text-sm flex items-center gap-2 m-0 text-emerald-500">
+                                    <Target size={16} />
+                                    Estratégias Práticas
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-4 pt-4">
                                 {Array.isArray(estrategiasGeradas.estrategias) && (
                                     <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
                                         {(estrategiasGeradas.estrategias as Array<Record<string, string>>).map((est, i) => (
@@ -2883,18 +2883,18 @@ export default function AvaliacaoDiagnosticaClient() {
                                         ))}
                                     </div>
                                 )}
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
                     )
                 }
 
                 {/* ─── Processual Data Feed ──────────────────────────── */}
                 {
                     evolucaoProcessual.length > 0 && evolucaoProcessual[0]?.periodos?.length > 0 && (
-                        <div className={`${cardS} mb-5`}>
+                        <Card variant="default" className="mb-5">
                             <button
                                 onClick={() => setShowProcessual(!showProcessual)}
-                                className={`${headerS} w-full cursor-pointer justify-between border-none`}
+                                className="flex items-center gap-2 px-4 py-3 w-full cursor-pointer justify-between border-none"
                                 style={{
                                     background: "rgba(16,185,129,.05)",
                                 }}
@@ -2923,7 +2923,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                 {showProcessual ? <ChevronUp size={14} style={{ color: "#10b981" }} /> : <ChevronDown size={14} style={{ color: "#10b981" }} />}
                             </button>
                             {showProcessual && (
-                                <div className={bodyS}>
+                                <CardContent className="p-4" style={{ borderTop: "1px solid var(--omni-border-default)" }}>
                                     <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 0, marginBottom: 12 }}>
                                         Evolução registrada na Avaliação Processual — dados integrados automaticamente.
                                     </p>
@@ -2975,9 +2975,9 @@ export default function AvaliacaoDiagnosticaClient() {
                                     }}>
                                         <Activity size={12} /> Ver Avaliação Processual completa →
                                     </a>
-                                </div>
+                                </CardContent>
                             )}
-                        </div>
+                        </Card>
                     )
                 }
 
@@ -2993,25 +2993,27 @@ export default function AvaliacaoDiagnosticaClient() {
                             const diagColor = diagLevel >= 3 ? "#10b981" : diagLevel >= 2 ? "#3b82f6" : diagLevel >= 1 ? "#fbbf24" : "#f87171";
                             const procColor = procLevel >= 3 ? "#10b981" : procLevel >= 2 ? "#3b82f6" : procLevel >= 1 ? "#fbbf24" : "#f87171";
                             return (
-                                <div className={`${cardS} mb-5`} style={{
+                                <Card variant="default" className="mb-5" style={{
                                     border: `1.5px solid ${delta > 0 ? "rgba(16,185,129,.2)" : delta < 0 ? "rgba(239,68,68,.15)" : "rgba(148,163,184,.12)"}`,
                                 }}>
-                                    <div className={headerS} style={{
+                                    <CardHeader className="pb-3" style={{
                                         background: delta > 0 ? "rgba(16,185,129,.03)" : delta < 0 ? "rgba(239,68,68,.03)" : "rgba(148,163,184,.03)",
                                     }}>
-                                        <TrendingUp size={16} style={{ color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8" }} />
-                                        <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>
-                                            Diagnóstica vs Processual
-                                        </span>
-                                        <span style={{
-                                            fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 6,
-                                            background: delta > 0 ? "rgba(16,185,129,.1)" : delta < 0 ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
-                                            color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8",
-                                        }}>
-                                            {delta > 0 ? `↗ +${delta.toFixed(1)}` : delta < 0 ? `↘ ${delta.toFixed(1)}` : "→ 0"}
-                                        </span>
-                                    </div>
-                                    <div className={bodyS}>
+                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                                            <CardTitle className="text-sm flex items-center gap-2 m-0 text-(--text-primary)">
+                                                <TrendingUp size={16} style={{ color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8" }} />
+                                                Diagnóstica vs Processual
+                                            </CardTitle>
+                                            <span style={{
+                                                fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 6,
+                                                background: delta > 0 ? "rgba(16,185,129,.1)" : delta < 0 ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
+                                                color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8",
+                                            }}>
+                                                {delta > 0 ? `↗ +${delta.toFixed(1)}` : delta < 0 ? `↘ ${delta.toFixed(1)}` : "→ 0"}
+                                            </span>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-4 pt-4">
                                         <div style={{ display: "flex", gap: 24, alignItems: "flex-end" }}>
                                             {/* Diagnostic bar */}
                                             <div style={{ flex: 1, textAlign: "center" }}>
@@ -3079,8 +3081,8 @@ export default function AvaliacaoDiagnosticaClient() {
                                                     "O estudante mantém o mesmo nível da avaliação diagnóstica. Avalie se novas estratégias podem impulsionar a evolução."
                                             }
                                         </div>
-                                    </div>
-                                </div>
+                                    </CardContent>
+                                </Card>
                             );
                         })()
                     )
@@ -3263,12 +3265,13 @@ export default function AvaliacaoDiagnosticaClient() {
             {activeTab === "estudantes" && (
                 <>
                     {/* Seletor de momento — início do fluxo */}
-                    <div className={`${cardS} mb-4`} style={{ border: "1px solid rgba(99,102,241,.2)" }}>
-                        <div className={headerS} style={{ background: "rgba(99,102,241,.04)" }}>
-                            <Calendar size={16} style={{ color: "#818cf8" }} />
-                            <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>Momento da avaliação</span>
-                        </div>
-                        <div className={`${bodyS} flex flex-col gap-2.5`}>
+                    <Card variant="default" className="mb-4" style={{ border: "1px solid rgba(99,102,241,.2)" }}>
+                        <CardHeader className="pb-3" style={{ background: "rgba(99,102,241,.04)" }}>
+                            <CardTitle className="text-sm flex items-center gap-2 m-0 text-indigo-500">
+                                <Calendar size={16} /> Momento da avaliação
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-2.5 p-4">
                             <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>
                                 A avaliação diagnóstica verifica habilidades do <strong>ano anterior</strong>. No início do ano use a matriz de referência; no decorrer do ano você pode usar o plano de ensino que criou.
                             </p>
@@ -3298,12 +3301,12 @@ export default function AvaliacaoDiagnosticaClient() {
                                     </div>
                                 </label>
                             </div>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
 
                     {/* Empty state */}
                     {alunos.length === 0 && (
-                        <div className={`${cardS} text-center px-5 py-10`}>
+                        <Card variant="default" className="text-center px-5 py-10 border-dashed">
                             <Users size={48} style={{ margin: "0 auto 12px", color: "var(--text-muted)", opacity: 0.3 }} />
                             <h3 style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
                                 Nenhum estudante encontrado
@@ -3311,7 +3314,7 @@ export default function AvaliacaoDiagnosticaClient() {
                             <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>
                                 Estudantes em Fase 2 do PEI aparecerão aqui.
                             </p>
-                        </div>
+                        </Card>
                     )}
 
                     {/* Student cards */}
@@ -3321,8 +3324,8 @@ export default function AvaliacaoDiagnosticaClient() {
                             const avaliadasCompletas = aluno.disciplinas.filter(d => d.avaliacao_status === "aplicada").length;
 
                             return (
-                                <div key={aluno.id} className={cardS}>
-                                    <div className={`${headerS} justify-between`}>
+                                <Card variant="default" key={aluno.id} className="mb-0 overflow-hidden">
+                                    <div className="p-4 py-3 flex items-center justify-between border-b border-(--omni-border-default) bg-(--omni-surface-elevated)">
                                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                             <div style={{
                                                 width: 36, height: 36, borderRadius: "50%", display: "flex",
@@ -3354,7 +3357,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                     </div>
 
                                     {/* Discipline buttons */}
-                                    <div className={`${bodyS} flex flex-wrap gap-2`}>
+                                    <CardContent className="flex flex-wrap gap-2 p-4">
                                         {aluno.disciplinas.map(disc => {
                                             const applied = disc.avaliacao_status === "aplicada";
                                             const hasAvaliacao = disc.has_avaliacao;
@@ -3396,8 +3399,8 @@ export default function AvaliacaoDiagnosticaClient() {
                                                 </button>
                                             );
                                         })}
-                                    </div>
-                                </div>
+                                    </CardContent>
+                                </Card>
                             );
                         })}
                     </div>

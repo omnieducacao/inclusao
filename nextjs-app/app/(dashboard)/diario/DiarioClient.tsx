@@ -5,8 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { StudentSelector } from "@/components/StudentSelector";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
+import { useStudentMutation } from "@/hooks/useStudentMutation";
 import { getColorClasses } from "@/lib/colors";
-import { Card } from "@omni/ds";
+import { Card, CardHeader, CardTitle, CardContent, Input, Textarea, Select, Button, Checkbox, Slider } from "@omni/ds";
 import { OmniLoader } from "@/components/OmniLoader";
 import { Filter, Plus, List, BarChart3, Settings, Download, FileText, Sparkles } from "lucide-react";
 import {
@@ -39,6 +40,7 @@ type RegistroDiario = {
   observacoes?: string;
   proximos_passos?: string;
   encaminhamentos?: string;
+  alerta_regente?: boolean;
   criado_em?: string;
   atualizado_em?: string;
   students?: { name?: string; grade?: string; class_group?: string };
@@ -85,6 +87,7 @@ function fmtData(s: string | undefined): string {
 function DiarioClientInner({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
   const currentId = studentId || searchParams?.get("student") || null;
+  const { updateDiario } = useStudentMutation();
   const [activeTab, setActiveTab] = useState<TabId>("novo");
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [refreshKey, setRefreshKey] = useState(0);
@@ -115,13 +118,8 @@ function DiarioClientInner({ students, studentId, student }: Props) {
           } else lista.push(novo);
         }
 
-        const res = await fetch(`/ api / students / ${student.id}/diario`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ daily_logs: lista }),
-        });
-        const data = await res.json();
-        if (data.ok) {
+        const data = await updateDiario(student.id, { daily_logs: lista });
+        if (data && data.ok) {
           setRefreshKey((k) => k + 1);
           window.location.reload();
           return true;
@@ -138,17 +136,12 @@ function DiarioClientInner({ students, studentId, student }: Props) {
     async (registroId: string) => {
       if (!student?.id) return false;
       const lista = registros.filter((r) => r.registro_id !== registroId);
-      const res = await fetch(`/api/students/${student.id}/diario`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ daily_logs: lista }),
-      });
-      const data = await res.json();
-      if (data.ok) {
+      const data = await updateDiario(student.id, { daily_logs: lista });
+      if (data && data.ok) {
         setRefreshKey((k) => k + 1);
         window.location.reload();
       }
-      return !!data.ok;
+      return !!(data && data.ok);
     },
     [student, registros]
   );
@@ -277,91 +270,91 @@ function FiltrosTab({ students, registros }: { students: Student[]; registros: R
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <h3 className="text-xl font-bold text-slate-900 mb-4">🔍 Filtros</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Estudante</label>
-            <select
+      <Card variant="default">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl flex items-center gap-2">🔍 Filtros</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Select
+              label="Estudante"
               value={filtroAluno}
               onChange={(e) => setFiltroAluno(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg"
-            >
-              <option value="Todos">Todos</option>
-              {students.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Período</label>
-            <select
+              options={[
+                { value: "Todos", label: "Todos" },
+                ...students.map(s => ({ value: s.id, label: s.name }))
+              ]}
+            />
+            <Select
+              label="Período"
               value={filtroPeriodo}
               onChange={(e) => setFiltroPeriodo(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg"
-            >
-              <option value="Todos">Todos</option>
-              <option value="Últimos 7 dias">Últimos 7 dias</option>
-              <option value="Últimos 30 dias">Últimos 30 dias</option>
-              <option value="Este mês">Este mês</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Modalidade</label>
-            <div className="flex flex-wrap gap-2">
-              {MODALIDADES.map((m) => (
-                <label key={m.value} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={filtroModalidade.includes(m.value)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setFiltroModalidade([...filtroModalidade, m.value]);
-                      } else {
-                        setFiltroModalidade(filtroModalidade.filter((v) => v !== m.value));
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  {m.label}
-                </label>
-              ))}
+              options={[
+                { value: "Todos", label: "Todos" },
+                { value: "Últimos 7 dias", label: "Últimos 7 dias" },
+                { value: "Últimos 30 dias", label: "Últimos 30 dias" },
+                { value: "Este mês", label: "Este mês" },
+              ]}
+            />
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Modalidade</label>
+              <div className="flex flex-wrap gap-2">
+                {MODALIDADES.map((m) => (
+                  <label key={m.value} className="flex items-center gap-2 text-sm bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={filtroModalidade.includes(m.value)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFiltroModalidade([...filtroModalidade, m.value]);
+                        } else {
+                          setFiltroModalidade(filtroModalidade.filter((v) => v !== m.value));
+                        }
+                      }}
+                      className="w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500"
+                    />
+                    {m.label}
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <h3 className="text-xl font-bold text-slate-900 mb-4">📊 Estatísticas</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-slate-50 rounded-lg">
-            <div className="text-2xl font-bold text-rose-600">{registrosFiltrados.length}</div>
-            <div className="text-sm text-slate-600">Total de Registros</div>
-          </div>
-          <div className="text-center p-4 bg-slate-50 rounded-lg">
-            <div className="text-2xl font-bold text-rose-600">
-              {Math.round(registrosFiltrados.reduce((acc, r) => acc + (r.duracao_minutos || 0), 0) / 60)}
+      <Card variant="default">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl flex items-center gap-2">📊 Estatísticas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="text-2xl font-bold text-rose-600">{registrosFiltrados.length}</div>
+              <div className="text-sm text-slate-600 mt-1">Total de Registros</div>
             </div>
-            <div className="text-sm text-slate-600">Horas de Atendimento</div>
-          </div>
-          <div className="text-center p-4 bg-slate-50 rounded-lg">
-            <div className="text-2xl font-bold text-rose-600">
-              {registrosFiltrados.length > 0
-                ? (registrosFiltrados.reduce((acc, r) => acc + (r.engajamento_aluno || 0), 0) / registrosFiltrados.length).toFixed(1)
-                : "0"}
+            <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="text-2xl font-bold text-rose-600">
+                {Math.round(registrosFiltrados.reduce((acc, r) => acc + (r.duracao_minutos || 0), 0) / 60)}
+              </div>
+              <div className="text-sm text-slate-600 mt-1">Horas de Atend.</div>
             </div>
-            <div className="text-sm text-slate-600">Engajamento Médio</div>
-          </div>
-          <div className="text-center p-4 bg-slate-50 rounded-lg">
-            <div className="text-2xl font-bold text-rose-600">
-              {new Set(registrosFiltrados.map((r) => r.student_id).filter(Boolean)).size}
+            <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="text-2xl font-bold text-rose-600">
+                {registrosFiltrados.length > 0
+                  ? (registrosFiltrados.reduce((acc, r) => acc + (r.engajamento_aluno || 0), 0) / registrosFiltrados.length).toFixed(1)
+                  : "0"}
+              </div>
+              <div className="text-sm text-slate-600 mt-1">Engajamento Médio</div>
             </div>
-            <div className="text-sm text-slate-600">Estudantes Atendidos</div>
+            <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="text-2xl font-bold text-rose-600">
+                {new Set(registrosFiltrados.map((r) => r.student_id).filter(Boolean)).size}
+              </div>
+              <div className="text-sm text-slate-600 mt-1">Estudantes</div>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -390,6 +383,7 @@ function NovoRegistroTab({
   const [observacoes, setObservacoes] = useState("");
   const [proximosPassos, setProximosPassos] = useState("");
   const [encaminhamentos, setEncaminhamentos] = useState("");
+  const [alertaRegente, setAlertaRegente] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -413,6 +407,7 @@ function NovoRegistroTab({
       observacoes,
       proximos_passos: proximosPassos,
       encaminhamentos,
+      alerta_regente: alertaRegente,
     };
     const ok = await onSave(reg);
     if (ok) {
@@ -425,135 +420,188 @@ function NovoRegistroTab({
       setObservacoes("");
       setProximosPassos("");
       setEncaminhamentos("");
+      setAlertaRegente(false);
     }
     setSaving(false);
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-      <h3 className="text-xl font-bold text-slate-900 mb-4">➕ Nova Sessão de AEE</h3>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Data da sessão *</label>
-            <input
+    <Card variant="default">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl flex items-center gap-2">
+          <span>➕</span> Nova Sessão de AEE
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Input
+              label="Data da sessão *"
               type="date"
               value={dataSessao}
               onChange={(e) => setDataSessao(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              required
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Duração (min)</label>
-            <input
+            <Input
+              label="Duração (min)"
               type="number"
               min={15}
               max={240}
               step={15}
               value={duracao}
               onChange={(e) => setDuracao(Number(e.target.value))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+            <Select
+              label="Modalidade"
+              options={MODALIDADES}
+              value={modalidade}
+              onChange={(e) => setModalidade(e.target.value)}
             />
           </div>
+
+          <Textarea
+            label="Atividade principal *"
+            value={atividade}
+            onChange={(e) => setAtividade(e.target.value)}
+            rows={3}
+            required
+            placeholder="Descreva a atividade..."
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Textarea
+              label="Objetivos trabalhados *"
+              value={objetivos}
+              onChange={(e) => setObjetivos(e.target.value)}
+              rows={3}
+              required
+              placeholder="Quais objetivos?"
+            />
+            <Textarea
+              label="Estratégias utilizadas *"
+              value={estrategias}
+              onChange={(e) => setEstrategias(e.target.value)}
+              rows={3}
+              required
+              placeholder="Ex: Modelagem, dicas visuais..."
+            />
+          </div>
+
+          <Input
+            label="Recursos e materiais"
+            value={recursos}
+            onChange={(e) => setRecursos(e.target.value)}
+            placeholder="Tablets, jogos..."
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Engajamento (1-5): <span className="text-rose-600 font-bold">{engajamento}</span></label>
+              <input
+                type="range"
+                min={1}
+                max={5}
+                value={engajamento}
+                onChange={(e) => setEngajamento(Number(e.target.value))}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-600"
+              />
+            </div>
+            <Select
+              label="Nível de dificuldade"
+              options={NIVEL_DIFICULDADE}
+              value={nivelDificuldade}
+              onChange={(e) => setNivelDificuldade(e.target.value)}
+            />
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Modalidade</label>
-            <select value={modalidade} onChange={(e) => setModalidade(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
-              {MODALIDADES.map((m) => (
-                <option key={m.value} value={m.value}>{m.label}</option>
+            <label className="block text-sm font-semibold text-slate-700 mb-3">Competências trabalhadas</label>
+            <div className="flex flex-wrap gap-3">
+              {COMPETENCIAS.map((c) => (
+                <label key={c} className="flex items-center gap-2 text-sm bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={competencias.includes(c)}
+                    onChange={(e) =>
+                      setCompetencias((prev) =>
+                        e.target.checked ? [...prev, c] : prev.filter((x) => x !== c)
+                      )
+                    }
+                    className="w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500"
+                  />
+                  {c}
+                </label>
               ))}
-            </select>
+            </div>
           </div>
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Atividade principal *</label>
-          <textarea value={atividade} onChange={(e) => setAtividade(e.target.value)} rows={3} required className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Descreva a atividade..." />
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Textarea
+              label="Pontos positivos"
+              value={pontosPositivos}
+              onChange={(e) => setPontosPositivos(e.target.value)}
+              rows={2}
+            />
+            <Textarea
+              label="Dificuldades identificadas"
+              value={dificuldades}
+              onChange={(e) => setDificuldades(e.target.value)}
+              rows={2}
+            />
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Objetivos trabalhados *</label>
-            <textarea value={objetivos} onChange={(e) => setObjetivos(e.target.value)} rows={3} required className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Quais objetivos?" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Estratégias utilizadas *</label>
-            <textarea value={estrategias} onChange={(e) => setEstrategias(e.target.value)} rows={3} required className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Ex: Modelagem, dicas visuais..." />
-          </div>
-        </div>
+          <Textarea
+            label="Observações gerais"
+            value={observacoes}
+            onChange={(e) => setObservacoes(e.target.value)}
+            rows={2}
+          />
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Recursos e materiais</label>
-          <input type="text" value={recursos} onChange={(e) => setRecursos(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Tablets, jogos..." />
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Textarea
+              label="Próximos passos"
+              value={proximosPassos}
+              onChange={(e) => setProximosPassos(e.target.value)}
+              rows={2}
+            />
+            <Input
+              label="Encaminhamentos"
+              value={encaminhamentos}
+              onChange={(e) => setEncaminhamentos(e.target.value)}
+            />
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Engajamento (1-5)</label>
-            <input type="range" min={1} max={5} value={engajamento} onChange={(e) => setEngajamento(Number(e.target.value))} className="w-full" />
-            <span className="text-sm text-slate-500">{engajamento}</span>
+          {/* Notificação Regente */}
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 mt-6 mb-2">
+            <input
+              type="checkbox"
+              id="alertaRegente"
+              checked={alertaRegente}
+              onChange={(e) => setAlertaRegente(e.target.checked)}
+              className="mt-1 w-4 h-4 text-red-600 border-red-300 rounded focus:ring-red-500 cursor-pointer"
+            />
+            <label htmlFor="alertaRegente" className="flex flex-col cursor-pointer">
+              <span className="text-sm font-bold text-red-900">⚠️ Sinalizar Evolução Crítica (Aviso Regente)</span>
+              <span className="text-xs text-red-700 mt-1 leading-relaxed">
+                Marque esta opção se houve um evento importante nesta sessão que o Professor Regente deve saber imediatamente (ex: mudança de comportamento severa, pico de engajamento, colapso sensorial). O aviso ficará visível no PEI por 30 dias.
+              </span>
+            </label>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Nível de dificuldade</label>
-            <select value={nivelDificuldade} onChange={(e) => setNivelDificuldade(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
-              {NIVEL_DIFICULDADE.map((n) => (
-                <option key={n.value} value={n.value}>{n.label}</option>
-              ))}
-            </select>
-          </div>
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Competências trabalhadas</label>
-          <div className="flex flex-wrap gap-2">
-            {COMPETENCIAS.map((c) => (
-              <label key={c} className="flex items-center gap-1 text-sm">
-                <input
-                  type="checkbox"
-                  checked={competencias.includes(c)}
-                  onChange={(e) =>
-                    setCompetencias((prev) =>
-                      e.target.checked ? [...prev, c] : prev.filter((x) => x !== c)
-                    )
-                  }
-                />
-                {c}
-              </label>
-            ))}
+          <div className="pt-2">
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-600"
+              disabled={saving}
+              loading={saving}
+            >
+              Salvar registro
+            </Button>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Pontos positivos</label>
-            <textarea value={pontosPositivos} onChange={(e) => setPontosPositivos(e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Dificuldades identificadas</label>
-            <textarea value={dificuldades} onChange={(e) => setDificuldades(e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Observações gerais</label>
-          <textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Próximos passos</label>
-            <textarea value={proximosPassos} onChange={(e) => setProximosPassos(e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Encaminhamentos</label>
-            <input type="text" value={encaminhamentos} onChange={(e) => setEncaminhamentos(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-          </div>
-        </div>
-
-        <button type="submit" disabled={saving} className="px-4 py-2 bg-rose-600 text-white rounded-lg disabled:opacity-50">
-          {saving ? "Salvando…" : "Salvar registro"}
-        </button>
-      </form>
-    </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -569,44 +617,52 @@ function ListaTab({
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-slate-900">📋 Lista de Registros</h3>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setViewMode("lista")}
-              className={`px-3 py-1 text-sm rounded-lg ${viewMode === "lista" ? "bg-rose-600 text-white" : "bg-slate-100 text-slate-700"
-                }`}
-            >
-              Lista
-            </button>
-            <button
-              onClick={() => setViewMode("timeline")}
-              className={`px-3 py-1 text-sm rounded-lg ${viewMode === "timeline" ? "bg-rose-600 text-white" : "bg-slate-100 text-slate-700"
-                }`}
-            >
-              Timeline
-            </button>
+      <Card variant="default">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl flex items-center gap-2">📋 Lista de Registros</CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === "lista" ? "primary" : "secondary"}
+                size="sm"
+                className={viewMode === "lista" ? "bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-600" : ""}
+                onClick={() => setViewMode("lista")}
+              >
+                Lista
+              </Button>
+              <Button
+                variant={viewMode === "timeline" ? "primary" : "secondary"}
+                size="sm"
+                className={viewMode === "timeline" ? "bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-600" : ""}
+                onClick={() => setViewMode("timeline")}
+              >
+                Timeline
+              </Button>
+            </div>
           </div>
-        </div>
-        {registros.length === 0 ? (
-          <Card className="text-(--omni-text-muted)">
-            Nenhum registro ainda. Preencha o formulário acima para criar o primeiro.
-          </Card>
-        ) : viewMode === "lista" ? (
-          <div className="space-y-3">
-            {registros.map((r, i) => (
-              <RegistroCard
-                key={r.registro_id || `temp-${i}`}
-                registro={r}
-                onDelete={() => r.registro_id && onDelete(r.registro_id)}
-              />
-            ))}
-          </div>
-        ) : (
-          <TimelineView registros={registros} onDelete={onDelete} />
-        )}
-      </div>
+        </CardHeader>
+        <CardContent>
+          {registros.length === 0 ? (
+            <div className="text-(--omni-text-muted) p-4 text-center border-2 border-dashed border-slate-200 rounded-xl mt-4">
+              Nenhum registro ainda. Preencha o formulário acima para criar o primeiro.
+            </div>
+          ) : viewMode === "lista" ? (
+            <div className="space-y-3 mt-4">
+              {registros.map((r, i) => (
+                <RegistroCard
+                  key={r.registro_id || `temp-${i}`}
+                  registro={r}
+                  onDelete={() => r.registro_id && onDelete(r.registro_id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="mt-6">
+              <TimelineView registros={registros} onDelete={onDelete} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -882,10 +938,14 @@ function RelatoriosTab({ registros, student }: { registros: RegistroDiario[]; st
 
   if (registros.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <h3 className="text-xl font-bold text-slate-900 mb-4">📊 Relatórios e Análises</h3>
-        <p className="text-slate-600">Nenhum dado disponível para gerar relatórios.</p>
-      </div>
+      <Card variant="default">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">📊 Relatórios e Análises</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-slate-600">Nenhum dado disponível para gerar relatórios.</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -909,173 +969,204 @@ function RelatoriosTab({ registros, student }: { registros: RegistroDiario[]; st
   return (
     <div className="space-y-6">
       {/* Gráfico: Atendimentos por Mês */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <h3 className="text-xl font-bold text-slate-900 mb-4">📅 Atendimentos por Mês</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={dadosPorMes} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis
-              dataKey="mes"
-              angle={-45}
-              textAnchor="end"
-              height={80}
-              tick={{ fontSize: 12, fill: "#64748b" }}
-            />
-            <YAxis tick={{ fontSize: 12, fill: "#64748b" }} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "white",
-                border: "1px solid #e2e8f0",
-                borderRadius: "8px",
-                padding: "8px 12px",
-              }}
-              formatter={(value: number) => [`${value} atendimentos`, "Quantidade"]}
-            />
-            <Bar dataKey="atendimentos" fill="#ef4444" radius={[8, 8, 0, 0]} animationDuration={800} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      <Card variant="default">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">📅 Atendimentos por Mês</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="pt-4 h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dadosPorMes} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis
+                  dataKey="mes"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  tick={{ fontSize: 12, fill: "#64748b" }}
+                />
+                <YAxis tick={{ fontSize: 12, fill: "#64748b" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "white",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                  }}
+                  formatter={(value: number) => [`${value} atendimentos`, "Quantidade"]}
+                />
+                <Bar dataKey="atendimentos" fill="#ef4444" radius={[8, 8, 0, 0]} animationDuration={800} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Gráfico: Distribuição por Modalidade (Pizza) */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-          <h3 className="text-xl font-bold text-slate-900 mb-4">📊 Distribuição por Modalidade</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={dadosPorModalidade}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ modalidade, quantidade, percent }) =>
-                  `${modalidade}: ${quantidade} (${(percent * 100).toFixed(0)}%)`
-                }
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="quantidade"
-                animationDuration={800}
-              >
-                {dadosPorModalidade.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={coresModalidade[index % coresModalidade.length]} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "white",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "8px",
-                  padding: "8px 12px",
-                }}
-                formatter={(value: number) => [`${value} atendimentos`, "Quantidade"]}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <Card variant="default">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl">📊 Distribuição por Modalidade</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="pt-4 h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={dadosPorModalidade}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ modalidade, quantidade, percent }) =>
+                      `${modalidade}: ${quantidade} (${(percent * 100).toFixed(0)}%)`
+                    }
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="quantidade"
+                    animationDuration={800}
+                  >
+                    {dadosPorModalidade.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={coresModalidade[index % coresModalidade.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "white",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      padding: "8px 12px",
+                    }}
+                    formatter={(value: number) => [`${value} atendimentos`, "Quantidade"]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Gráfico: Top 10 Competências */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-          <h3 className="text-xl font-bold text-slate-900 mb-4">🎯 Top 10 Competências Trabalhadas</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={dadosTopCompetencias}
-              layout="vertical"
-              margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis type="number" tick={{ fontSize: 12, fill: "#64748b" }} />
-              <YAxis
-                dataKey="competencia"
-                type="category"
-                width={90}
-                tick={{ fontSize: 11, fill: "#64748b" }}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "white",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "8px",
-                  padding: "8px 12px",
-                }}
-                formatter={(value: number) => [`${value} vezes`, "Frequência"]}
-              />
-              <Bar dataKey="quantidade" fill="#3b82f6" radius={[0, 8, 8, 0]} animationDuration={800} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <Card variant="default">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl">🎯 Top 10 Competências Trabalhadas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="pt-4 h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={dadosTopCompetencias}
+                  layout="vertical"
+                  margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis type="number" tick={{ fontSize: 12, fill: "#64748b" }} />
+                  <YAxis
+                    dataKey="competencia"
+                    type="category"
+                    width={90}
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "white",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      padding: "8px 12px",
+                    }}
+                    formatter={(value: number) => [`${value} vezes`, "Frequência"]}
+                  />
+                  <Bar dataKey="quantidade" fill="#3b82f6" radius={[0, 8, 8, 0]} animationDuration={800} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Gráfico: Evolução do Engajamento (Linha) */}
       {engajamentoTempo.length > 1 && (
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-          <h3 className="text-xl font-bold text-slate-900 mb-4">📈 Evolução do Engajamento</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={engajamentoTempo} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis
-                dataKey="data"
-                tick={{ fontSize: 12, fill: "#64748b" }}
-                angle={-45}
-                textAnchor="end"
-                height={80}
-              />
-              <YAxis
-                domain={[0, 5]}
-                tick={{ fontSize: 12, fill: "#64748b" }}
-                label={{ value: "Engajamento (1-5)", angle: -90, position: "insideLeft", style: { fill: "#64748b" } }}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "white",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "8px",
-                  padding: "8px 12px",
-                }}
-                formatter={(value: number) => [`${value}/5`, "Engajamento"]}
-              />
-              <Line
-                type="monotone"
-                dataKey="engajamento"
-                stroke="#22c55e"
-                strokeWidth={3}
-                dot={{ fill: "#22c55e", r: 5 }}
-                activeDot={{ r: 7 }}
-                animationDuration={800}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        <Card variant="default">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl">📈 Evolução do Engajamento</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="pt-4 h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={engajamentoTempo} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis
+                    dataKey="data"
+                    tick={{ fontSize: 12, fill: "#64748b" }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis
+                    domain={[0, 5]}
+                    tick={{ fontSize: 12, fill: "#64748b" }}
+                    label={{ value: "Engajamento (1-5)", angle: -90, position: "insideLeft", style: { fill: "#64748b" } }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "white",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      padding: "8px 12px",
+                    }}
+                    formatter={(value: number) => [`${value}/5`, "Engajamento"]}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="engajamento"
+                    stroke="#22c55e"
+                    strokeWidth={3}
+                    dot={{ fill: "#22c55e", r: 5 }}
+                    activeDot={{ r: 7 }}
+                    animationDuration={800}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* 🤖 Análise IA */}
       <AnaliseIADiario registros={registros} student={student} />
 
       {/* Exportação */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <h3 className="text-xl font-bold text-slate-900 mb-4">💾 Exportar Dados</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
-            onClick={exportarCSV}
-            className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Exportar CSV
-          </button>
-          <button
-            onClick={exportarJSON}
-            className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
-          >
-            <FileText className="w-4 h-4" />
-            Exportar JSON
-          </button>
-          <button
-            onClick={gerarRelatorio}
-            className="px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2"
-          >
-            <BarChart3 className="w-4 h-4" />
-            Relatório Resumido
-          </button>
-        </div>
-      </div>
+      <Card variant="default">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">💾 Exportar Dados</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            <Button
+              variant="primary"
+              onClick={exportarCSV}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              <Download className="w-4 h-4" />
+              Exportar CSV
+            </Button>
+            <Button
+              variant="primary"
+              onClick={exportarJSON}
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              <FileText className="w-4 h-4" />
+              Exportar JSON
+            </Button>
+            <Button
+              variant="primary"
+              onClick={gerarRelatorio}
+              className="w-full bg-purple-600 hover:bg-purple-700"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Relatório Resumido
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -1132,106 +1223,107 @@ function ConfiguracoesTab() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <h3 className="text-xl font-bold text-slate-900 mb-4">⚙️ Configurações do Diário</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h4 className="font-semibold text-slate-800">Configurações de Registro</h4>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Duração Padrão (minutos)</label>
-              <input
+      <Card variant="default">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">⚙️ Configurações do Diário</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+            <div className="space-y-6">
+              <h4 className="font-semibold text-slate-800 border-b border-slate-100 pb-2">Opções Padrão</h4>
+
+              <Input
+                label="Duração Padrão (minutos)"
                 type="number"
                 min={15}
                 max={120}
                 step={15}
                 value={duracaoPadrao}
                 onChange={(e) => setDuracaoPadrao(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Modalidade Padrão</label>
-              <select
+
+              <Select
+                label="Modalidade Padrão"
                 value={modalidadePadrao}
                 onChange={(e) => setModalidadePadrao(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
-              >
-                {MODALIDADES.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Competências Padrão</label>
-              <div className="flex flex-wrap gap-2">
-                {COMPETENCIAS.map((c) => (
-                  <label key={c} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={competenciasPadrao.includes(c)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setCompetenciasPadrao([...competenciasPadrao, c]);
-                        } else {
-                          setCompetenciasPadrao(competenciasPadrao.filter((x) => x !== c));
-                        }
-                      }}
-                      className="rounded"
-                    />
-                    <span className="capitalize">{c}</span>
-                  </label>
-                ))}
+                options={MODALIDADES}
+              />
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Competências Padrão</label>
+                <div className="flex flex-wrap gap-2">
+                  {COMPETENCIAS.map((c) => (
+                    <label key={c} className="flex items-center gap-2 text-sm bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={competenciasPadrao.includes(c)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setCompetenciasPadrao([...competenciasPadrao, c]);
+                          } else {
+                            setCompetenciasPadrao(competenciasPadrao.filter((x) => x !== c));
+                          }
+                        }}
+                        className="w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500"
+                      />
+                      <span className="capitalize">{c}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={notificacoes}
+                    onChange={(e) => setNotificacoes(e.target.checked)}
+                    className="w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500"
+                  />
+                  <span className="text-sm font-medium text-slate-700">Receber lembretes de registro contínuo</span>
+                </label>
               </div>
             </div>
-            <div>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={notificacoes}
-                  onChange={(e) => setNotificacoes(e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm text-slate-700">Receber lembretes de registro</span>
-              </label>
+
+            <div className="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                <span className="text-xl">💡</span> Ajuda e Boas Práticas
+              </h4>
+              <div className="text-sm text-slate-600 space-y-4 leading-relaxed">
+                <p>Nesta área, você pode definir os valores padrão que virão preenchidos automaticamente num <strong>Novo Registro</strong>, garantindo mais agilidade no dia a dia.</p>
+
+                <div>
+                  <strong className="text-slate-800 block mb-1">Guia de Uso do Diário:</strong>
+                  <ul className="list-disc list-inside space-y-1.5 marker:text-rose-400">
+                    <li><strong className="text-slate-700">Novo Registro:</strong> Preencha todos os campos obrigatórios (*) para criar o documento probatório.</li>
+                    <li><strong className="text-slate-700">Aviso Regente:</strong> Use o alerta no fim do registro apenas para eventos críticos.</li>
+                    <li><strong className="text-slate-700">Relatórios:</strong> Exporte um dossiê robusto usando JSON ou Relatório Resumido para apresentar na coordenação.</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="space-y-4">
-            <h4 className="font-semibold text-slate-800">Ajuda</h4>
-            <div className="text-sm text-slate-600 space-y-2">
-              <p><strong>Guia de Uso do Diário de Bordo:</strong></p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li><strong>Novo Registro:</strong> Preencha todos os campos obrigatórios (*) para criar um registro</li>
-                <li><strong>Lista de Registros:</strong> Visualize, filtre e gerencie todos os registros</li>
-                <li><strong>Relatórios:</strong> Acompanhe métricas e gere análises</li>
-                <li><strong>Configurações:</strong> Personalize o comportamento do sistema</li>
-              </ul>
-              <p className="mt-4"><strong>Dicas:</strong></p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>Use tags e competências para facilitar buscas</li>
-                <li>Exporte regularmente seus dados</li>
-                <li>Mantenha observações detalhadas para acompanhamento longitudinal</li>
-              </ul>
-            </div>
+
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-100">
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              loading={saving}
+              variant="primary"
+              className="bg-blue-600 hover:bg-blue-700 justify-center w-full sm:w-auto"
+            >
+              💾 Salvar Configurações
+            </Button>
+            <Button
+              onClick={handleReset}
+              variant="secondary"
+              className="justify-center w-full sm:w-auto"
+            >
+              🔄 Restaurar Padrões
+            </Button>
           </div>
-        </div>
-        <div className="mt-6 flex gap-4">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-          >
-            {saving ? "Salvando..." : "💾 Salvar Configurações"}
-          </button>
-          <button
-            onClick={handleReset}
-            className="px-6 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center gap-2"
-          >
-            🔄 Restaurar Padrões
-          </button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -1285,52 +1377,51 @@ function AnaliseIADiario({ registros, student }: { registros: RegistroDiario[]; 
   if (registros.length < 2) return null;
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-violet-600" />
-          Análise IA dos Registros
-        </h3>
-        <button
-          type="button"
-          onClick={gerar}
-          disabled={loading}
-          className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-60 flex items-center gap-2 text-sm transition-colors"
-        >
-          {loading ? (
-            <>
-              <OmniLoader size={16} />
-              Analisando padrões...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4" />
-              Analisar com IA
-            </>
-          )}
-        </button>
-      </div>
-      <p className="text-sm text-slate-500 mb-4">
-        A IA analisa os registros e identifica tendências de engajamento, competências em progresso, alertas e recomendações práticas.
-      </p>
-      {erro && <p className="text-red-600 text-sm mb-3">❌ {erro}</p>}
-      {resultado && (
-        <div className="p-5 rounded-xl bg-linear-to-br from-violet-50 to-slate-50 border border-violet-200">
-          <div className="flex justify-end mb-2">
-            <button
-              type="button"
-              onClick={() => navigator.clipboard.writeText(resultado)}
-              className="px-3 py-1 text-xs bg-violet-100 text-violet-700 rounded hover:bg-violet-200 transition-colors"
-            >
-              📋 Copiar
-            </button>
-          </div>
-          <div className="prose prose-sm prose-violet max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap">
-            {resultado}
-          </div>
+    <Card variant="premium">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-violet-600" />
+            Análise IA dos Registros
+          </CardTitle>
+          <Button
+            type="button"
+            onClick={gerar}
+            disabled={loading}
+            loading={loading}
+            variant="module"
+            moduleColor="violet"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            {!loading && <Sparkles className="w-4 h-4" />}
+            {loading ? "Analisando..." : "Analisar com IA"}
+          </Button>
         </div>
-      )}
-    </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-slate-500 mb-4 mt-2">
+          A IA analisa os registros e identifica tendências de engajamento, competências em progresso, alertas e recomendações práticas.
+        </p>
+        {erro && <p className="text-red-600 text-sm mb-3">❌ {erro}</p>}
+        {resultado && (
+          <div className="p-5 rounded-xl bg-linear-to-br from-violet-50 to-slate-50 border border-violet-200">
+            <div className="flex justify-end mb-2">
+              <button
+                type="button"
+                onClick={() => navigator.clipboard.writeText(resultado)}
+                className="px-3 py-1 text-xs bg-violet-100 text-violet-700 rounded hover:bg-violet-200 transition-colors"
+              >
+                📋 Copiar
+              </button>
+            </div>
+            <div className="prose prose-sm prose-violet max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap">
+              {resultado}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

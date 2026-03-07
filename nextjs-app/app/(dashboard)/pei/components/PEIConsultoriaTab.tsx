@@ -54,14 +54,18 @@ function formatarTextoConsultoria(texto: string): React.ReactNode {
 }
 
 
+import type { Student } from "@/lib/students";
+
 export function ConsultoriaTab({
   peiData,
   updateField,
   serie,
+  student,
 }: {
   peiData: PEIData;
   updateField: <K extends keyof PEIData>(key: K, value: PEIData[K]) => void;
   serie: string;
+  student?: Student | null;
 }) {
   const [engine, setEngine] = useState<EngineId>((peiData.consultoria_engine as EngineId) || "red");
   const [loading, setLoading] = useState(false);
@@ -104,7 +108,10 @@ export function ConsultoriaTab({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          studentId: student?.id || undefined,
           peiData,
+          paeeData: student?.paee_data || undefined,
+          dailyLogs: student?.daily_logs || undefined,
           engine,
           modo_pratico: modoPratico,
           feedback: feedback || undefined,

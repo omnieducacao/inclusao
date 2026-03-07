@@ -3,10 +3,9 @@ import React, { useState, useEffect } from "react";
 import { Save, Plus, Trash2, Edit2, Play, Pause, FileText, Download, Target, Calendar, CheckCircle2, ChevronDown, ChevronRight, MessageSquare, AlertTriangle, Users, BookOpen, Layout, Settings, Sparkles, Loader2, ArrowRight, Map, Search } from 'lucide-react';
 import type { StudentFull } from "../lib/paee-types";
 import type { CicloPAEE, MetaPei } from "@/lib/paee";
-import { getSupabase } from "@/lib/supabase";
 import { LottieIcon } from "@/components/LottieIcon";
 
-import { Card } from "@omni/ds";
+import { Card, Input, Textarea, Select, Button, Checkbox } from "@omni/ds";
 import { EngineSelector } from "@/components/EngineSelector";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { gerarPdfJornada } from "@/lib/paee-pdf-export";
@@ -296,30 +295,26 @@ export function JornadaTab({
       </div>
 
       {status !== "rascunho" && (
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           onClick={limpar}
-          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
-        </button>
+        </Button>
       )}
 
       {status === "rascunho" ? (
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">Gerar jornada a partir de:</label>
-            <select
+            <Select
               value={origemSelecionada}
               onChange={(e) => setOrigemSelecionada(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
-            >
-              {opcoesOrigem.map((op) => (
-                <option key={op.value} value={op.value}>
-                  {op.label}
-                </option>
-              ))}
-            </select>
+              className="w-full"
+              options={opcoesOrigem}
+            />
           </div>
 
           {origemSelecionada === "ciclo" && cicloExecucao && (
@@ -343,12 +338,12 @@ export function JornadaTab({
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Preferência de estilo (opcional)
             </label>
-            <input
+            <Input
               type="text"
               value={estilo}
               onChange={(e) => setEstilo(e.target.value)}
               placeholder="Ex: super-heróis, exploração, futebol..."
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              className="w-full"
             />
           </div>
 
@@ -358,14 +353,15 @@ export function JornadaTab({
             <strong>Como funciona:</strong> O assistente transforma o conteúdo da aba escolhida em uma missão gamificada para o estudante e a família. O texto final não inclui diagnósticos — apenas desafios e conquistas.
           </p>
 
-          <button
+          <Button
             type="button"
+            variant="primary"
             onClick={() => gerar()}
             disabled={loading || (origemSelecionada === "ciclo" && !cicloExecucao)}
-            className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed w-full"
+            className="w-full"
           >
             {loading ? "⏳ Criando missão..." : "✨ Criar Roteiro Gamificado"}
-          </button>
+          </Button>
           {erro && <p className="text-red-600 text-sm">{erro}</p>}
         </div>
       ) : status === "revisao" ? (
@@ -386,24 +382,22 @@ export function JornadaTab({
             </p>
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={usarHiperfocoTema}
                   onChange={(e) => {
                     setUsarHiperfocoTema(e.target.checked);
                     if (e.target.checked) setTemaMapa(hiperfoco);
                   }}
-                  className="rounded"
                 />
                 <span>Usar hiperfoco do estudante como tema do mapa mental (nó central)</span>
               </label>
               {usarHiperfocoTema && (
-                <input
+                <Input
                   type="text"
                   value={temaMapa}
                   onChange={(e) => setTemaMapa(e.target.value)}
                   placeholder="Ex: dinossauros, espaço, música..."
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                  className="w-full"
                 />
               )}
             </div>
@@ -417,20 +411,22 @@ export function JornadaTab({
                     className="max-w-full rounded-lg"
                   />
                 </div>
-                <button
+                <Button
                   type="button"
+                  variant="primary"
                   onClick={downloadMapaPNG}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm hover:bg-violet-700 transition-colors"
+                  className="inline-flex items-center gap-2 text-sm"
                 >
                   📥 Baixar PNG do Mapa Mental
-                </button>
+                </Button>
               </div>
             )}
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={gerarMapaMental}
               disabled={mapaLoading || !texto.trim()}
-              className="px-4 py-2 bg-violet-100 text-violet-800 rounded-lg text-sm hover:bg-violet-200 disabled:opacity-50 flex items-center gap-2"
+              className="flex items-center gap-2"
             >
               {mapaLoading ? "⏳ Gerando ilustração..." : (
                 <>
@@ -438,28 +434,28 @@ export function JornadaTab({
                   Gerar mapa mental do roteiro
                 </>
               )}
-            </button>
+            </Button>
             {mapaErro && <p className="text-red-600 text-sm">{mapaErro}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <button
+            <Button
               type="button"
+              className="bg-green-600 text-white border-0 hover:bg-green-700"
               onClick={() => {
                 setStatus("aprovado");
                 updateField("status", "aprovado");
               }}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
               ✅ Aprovar Missão
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              className="bg-amber-600 text-white border-0 hover:bg-amber-700"
               onClick={() => setStatus("ajustando")}
-              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
             >
               🔄 Solicitar Ajustes
-            </button>
+            </Button>
           </div>
         </div>
       ) : status === "ajustando" ? (
@@ -469,33 +465,33 @@ export function JornadaTab({
           </div>
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">O que ajustar?</label>
-            <textarea
+            <Textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="Ex: mais curto, linguagem infantil..."
               rows={4}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              className="w-full"
             />
           </div>
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="primary"
               onClick={() => gerar(feedback)}
               disabled={loading || !feedback.trim()}
-              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
             >
               {loading ? "⏳ Reescrevendo..." : "🔄 Gerar Novamente com Ajustes"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => {
                 setStatus("revisao");
                 setFeedback("");
               }}
-              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
             >
               ↩️ Voltar
-            </button>
+            </Button>
           </div>
           {erro && <p className="text-red-600 text-sm">{erro}</p>}
         </div>
@@ -507,14 +503,14 @@ export function JornadaTab({
 
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">Edição final (opcional)</label>
-            <textarea
+            <Textarea
               value={texto}
               onChange={(e) => {
                 setTexto(e.target.value);
                 updateField("texto", e.target.value);
               }}
               rows={12}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono"
+              className="w-full font-mono"
             />
           </div>
 
@@ -522,24 +518,22 @@ export function JornadaTab({
             <div className="text-sm font-semibold text-slate-700">Mapa mental do roteiro</div>
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={usarHiperfocoTema}
                   onChange={(e) => {
                     setUsarHiperfocoTema(e.target.checked);
                     if (e.target.checked) setTemaMapa(hiperfoco);
                   }}
-                  className="rounded"
                 />
                 <span>Usar hiperfoco do estudante como tema do mapa mental (nó central)</span>
               </label>
               {usarHiperfocoTema && (
-                <input
+                <Input
                   type="text"
                   value={temaMapa}
                   onChange={(e) => setTemaMapa(e.target.value)}
                   placeholder="Ex: dinossauros, espaço, música..."
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                  className="w-full"
                 />
               )}
             </div>
@@ -553,20 +547,22 @@ export function JornadaTab({
                     className="max-w-full rounded-lg"
                   />
                 </div>
-                <button
+                <Button
                   type="button"
+                  variant="primary"
                   onClick={downloadMapaPNG}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm hover:bg-violet-700 transition-colors"
+                  className="inline-flex items-center gap-2 text-sm"
                 >
                   📥 Baixar PNG do Mapa Mental
-                </button>
+                </Button>
               </div>
             )}
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={gerarMapaMental}
               disabled={mapaLoading || !texto.trim()}
-              className="px-4 py-2 bg-violet-100 text-violet-800 rounded-lg text-sm hover:bg-violet-200 disabled:opacity-50 flex items-center gap-2"
+              className="flex items-center gap-2"
             >
               {mapaLoading ? "⏳ Gerando ilustração..." : (
                 <>
@@ -574,25 +570,26 @@ export function JornadaTab({
                   Gerar mapa mental do roteiro
                 </>
               )}
-            </button>
+            </Button>
             {mapaErro && <p className="text-red-600 text-sm">{mapaErro}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <button
+            <Button
               type="button"
+              variant="primary"
               onClick={() => gerarPdfJornada(texto, student.name)}
-              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-2"
             >
               📄 Baixar PDF da Jornada
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              className="bg-slate-600 text-white border-0 hover:bg-slate-700 flex items-center justify-center gap-2"
               onClick={downloadCSV}
-              className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 flex items-center justify-center gap-2"
             >
               📊 Baixar CSV (importar no Sheets)
-            </button>
+            </Button>
           </div>
         </div>
       )}

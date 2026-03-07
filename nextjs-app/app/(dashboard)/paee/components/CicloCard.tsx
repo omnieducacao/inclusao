@@ -6,7 +6,7 @@ import type { CicloPAEE, MetaPei } from "@/lib/paee";
 import { getSupabase } from "@/lib/supabase";
 import { LottieIcon } from "@/components/LottieIcon";
 
-import { Card } from "@omni/ds";
+import { Card, Button } from "@omni/ds";
 import { EngineSelector } from "@/components/EngineSelector";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
@@ -98,17 +98,21 @@ export function CicloCard({
       </div>
       {onSalvar && (
         <div className="p-4 border-t border-slate-200 flex gap-2">
-          <button
+          <Button
             type="button"
+            variant="primary"
             onClick={onSalvar}
             disabled={saving}
-            className="px-4 py-2 bg-violet-600 text-white rounded-lg disabled:opacity-50"
           >
             {saving ? "Salvando…" : "Salvar na nuvem"}
-          </button>
-          <button type="button" onClick={onLimpar} className="px-4 py-2 border border-slate-200 rounded-lg">
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onLimpar}
+          >
             Limpar
-          </button>
+          </Button>
         </div>
       )}
     </div>

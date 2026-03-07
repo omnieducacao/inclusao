@@ -6,7 +6,7 @@ import type { CicloPAEE, MetaPei } from "@/lib/paee";
 import { getSupabase } from "@/lib/supabase";
 import { LottieIcon } from "@/components/LottieIcon";
 
-import { Card } from "@omni/ds";
+import { Card, Input, Textarea, Button, Checkbox } from "@omni/ds";
 import { EngineSelector } from "@/components/EngineSelector";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
@@ -55,12 +55,11 @@ export function FormExecucao({
         <div className="space-y-2 max-h-32 overflow-y-auto border border-slate-200 rounded-lg p-2">
           {metasPei.map((m: any) => (
             <label key={m.id} className="flex items-start gap-2">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={metasSel[m.id] ?? true}
                 onChange={(e) => setMetasSel((s: any) => ({ ...s, [m.id]: e.target.checked }))}
               />
-              <span className="text-sm">{m.tipo}: {m.descricao.slice(0, 60)}…</span>
+              <span className="text-sm cursor-pointer">{m.tipo}: {m.descricao.slice(0, 60)}…</span>
             </label>
           ))}
         </div>
@@ -68,24 +67,24 @@ export function FormExecucao({
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Data início</label>
-          <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="omni-input w-full" />
+          <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="w-full" />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Data fim</label>
-          <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className="w-full px-3 py-2 border rounded-lg" />
+          <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className="w-full" />
         </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Foco</label>
-        <input type="text" value={foco} onChange={(e) => setFoco(e.target.value)} className="omni-input w-full" />
+        <Input type="text" value={foco} onChange={(e) => setFoco(e.target.value)} className="w-full" />
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
-        <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={3} className="w-full px-3 py-2 border rounded-lg" />
+        <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={3} className="w-full" />
       </div>
-      <button type="submit" disabled={metasSelecionadas.length === 0} className="px-4 py-2 bg-violet-600 text-white rounded-lg disabled:opacity-50">
+      <Button type="submit" variant="primary" disabled={metasSelecionadas.length === 0} className="w-full sm:w-auto">
         Gerar preview
-      </button>
+      </Button>
     </form>
   );
 }

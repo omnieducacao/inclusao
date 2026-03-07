@@ -145,17 +145,22 @@ type HabilidadeBncc = {
 
 // TabId and TABS imported from @/hooks/usePEIData
 
+import type { Student } from "@/lib/students";
+
 type Props = {
   students: { id: string; name: string }[];
   studentId: string | null;
   studentName: string | null;
   initialPeiData: Record<string, unknown>;
+  initialStudent?: Student | null;
 };
 
 export function PEIClient({
   students,
   studentId,
+  studentName,
   initialPeiData,
+  initialStudent,
 }: Props) {
   // ─── Core PEI State (from extracted hook) ─────────────────────────
   const pei = usePEIData({ students, studentId, initialPeiData });
@@ -467,6 +472,7 @@ export function PEIClient({
               peiData={peiData}
               updateField={updateField}
               serie={peiData.serie || ""}
+              student={initialStudent}
             />
           </div>
         )}
@@ -499,6 +505,7 @@ export function PEIClient({
             onUpdate={handleUpdate}
             isEditing={!!selectedStudentId}
             saving={saving}
+            dailyLogs={(initialStudent?.daily_logs as any[]) || []}
           />
         )}
       </div>

@@ -138,6 +138,73 @@ test.describe("PEI-Professor Flow", () => {
         expect(overlayExists).toBe(false);
     });
 
+    // ─── G1: Dossiê Sintético (Consultoria) Tests ─────────────────────────
+
+    test("G1: Consultoria Pedagógica tab renders without crashing", async ({ authenticatedPage: page }) => {
+        await page.goto("/pei-regente");
+        await page.waitForTimeout(3000);
+
+        // Navigate into a student
+        const studentButton = page.locator("button").filter({ hasText: /[A-Z]/ }).first();
+        const hasStudents = await studentButton.isVisible().catch(() => false);
+
+        if (!hasStudents) {
+            test.skip(true, "No students available");
+            return;
+        }
+
+        await studentButton.click();
+        await page.waitForTimeout(1000);
+
+        // Navigate to "Consultoria Pedagógica" (G1 Integration)
+        const consultoriaTab = page.locator("button").filter({ hasText: /Consultoria/i }).first();
+        if (await consultoriaTab.isVisible()) {
+            await consultoriaTab.click();
+            await page.waitForTimeout(1000);
+
+            // Should show the title for Consultoria Pedagógica
+            await expect(page.locator("h3:has-text('Consultoria Pedagógica')").first()).toBeVisible();
+
+            // The main form or UI for the AI assistant should be present (not crashing)
+            await expect(page.locator("body")).not.toContainText("Error");
+            await expect(page.locator("body")).not.toContainText("undefined is not an object");
+        }
+    });
+
+    // ─── G2: Notificações Cruzadas Tests ──────────────────────────────────
+
+    test("G2: Dashboard safely receives dailyLogs and renders banner structure conditionally", async ({ authenticatedPage: page }) => {
+        await page.goto("/pei-regente");
+        await page.waitForTimeout(3000);
+
+        // Navigate into a student
+        const studentButton = page.locator("button").filter({ hasText: /[A-Z]/ }).first();
+        const hasStudents = await studentButton.isVisible().catch(() => false);
+
+        if (!hasStudents) {
+            test.skip(true, "No students available");
+            return;
+        }
+
+        await studentButton.click();
+        await page.waitForTimeout(1000);
+
+        // The Dashboard Tab should be visible by default (it's the main view in PEIPhase2Regentes usually)
+        // Ensure the prop drilling of `dailyLogs` didn't break the component
+        await expect(page.locator("body")).not.toContainText("dailyLogs is not defined");
+        await expect(page.locator("text=/Dashboard e Exportação|Exportar PEI/i").first()).toBeVisible();
+
+        // The banner itself may or may not be visible depending on the mock student's data.
+        // We ensure the page doesn't crash from reading `alerta_regente`.
+        const errorBanner = page.locator("text=Atenção: Evolução Crítica no AEE").first();
+        const isBannerVisible = await errorBanner.isVisible().catch(() => false);
+
+        // If it happens to be visible, it should contain the specific text structure
+        if (isBannerVisible) {
+            await expect(page.locator("text=Recomendamos consultar as notas do Diário de Bordo para alinhamento pedagógico").first()).toBeVisible();
+        }
+    });
+
     // ─── Toast Tests ──────────────────────────────────────────────────────
 
     test("toast notification container exists in pipeline view", async ({ authenticatedPage: page }) => {

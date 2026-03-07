@@ -79,6 +79,7 @@ export default async function PEIPage({ searchParams }: Props) {
             studentId={studentId}
             studentName={student?.name || null}
             initialPeiData={peiData}
+            initialStudent={student}
           />
         </Suspense>
       </div>

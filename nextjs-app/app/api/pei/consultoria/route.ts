@@ -3,6 +3,8 @@ import { parseBody, peiConsultoriaSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
+import { getSupabase } from "@/lib/supabase";
+import { getSession } from "@/lib/session";
 import {
   detectarNivelEnsino,
   carregarHabilidadesEFPorComponente,
@@ -35,7 +37,7 @@ type PEIDataPayload = {
   [key: string]: unknown;
 };
 
-function buildPrompt(dados: PEIDataPayload, modoPratico: boolean, feedback?: string): { system: string; user: string } {
+function buildPrompt(dados: PEIDataPayload, modoPratico: boolean, feedback?: string, dossieSintetico?: string): { system: string; user: string } {
   const evid = Object.entries(dados.checklist_evidencias || {})
     .filter(([, v]) => v)
     .map(([k]) => `- ${k.replace("?", "")}`)
@@ -123,7 +125,7 @@ ESTRATÉGIAS AVALIAÇÃO: ${(dados.estrategias_avaliacao || []).join(", ")}
 ORIENTAÇÕES ESPECIALISTAS: ${(dados.orientacoes_especialistas || "").slice(0, 500)}
 NÍVEL DE ALFABETIZAÇÃO: ${alfabetizacao}
 
-Crie um GUIA PRÁTICO para sala de aula com adaptações concretas baseadas em TODOS os dados acima.${promptFeedback}`;
+Crie um GUIA PRÁTICO para sala de aula com adaptações concretas baseadas em TODOS os dados acima.${promptFeedback}${dossieSintetico ? `\n\n${dossieSintetico}` : ""}`;
 
     return { system, user };
   }
@@ -198,7 +200,7 @@ EVIDÊNCIAS OBSERVADAS: ${evid || "Nenhuma"}
 BARREIRAS: ${barreirasTxt || "Não mapeadas"}
 ESTRATÉGIAS ACESSO: ${(dados.estrategias_acesso || []).join(", ")}
 ESTRATÉGIAS ENSINO: ${(dados.estrategias_ensino || []).join(", ")}
-ORIENTAÇÕES ESPECIALISTAS: ${(dados.orientacoes_especialistas || "").slice(0, 500)}${promptFeedback}`;
+ORIENTAÇÕES ESPECIALISTAS: ${(dados.orientacoes_especialistas || "").slice(0, 500)}${promptFeedback}${dossieSintetico ? `\n\n${dossieSintetico}` : ""}`;
 
     return { system, user };
   }
@@ -327,7 +329,7 @@ ${estratAvalTxt}
 ${orientacoesTxt}
 
 [LISTA DE HABILIDADES PERMITIDAS — cite SOMENTE estas, COPIANDO EXATAMENTE:]
-${habTxt || "(carregue do contexto BNCC do ano/série)"}${promptFeedback}`;
+${habTxt || "(carregue do contexto BNCC do ano/série)"}${promptFeedback}${dossieSintetico ? `\n\n${dossieSintetico}` : ""}`;
 
   return { system, user };
 }
@@ -363,7 +365,60 @@ export async function POST(req: Request) {
     );
   }
 
-  const { system, user } = buildPrompt(dados, modoPratico, feedback);
+  // --- MONTAGEM DO DOSSIÊ SINTÉTICO (G1) ---
+  const studentId = body.studentId as string | undefined;
+  const paeeData = body.paeeData as Record<string, unknown> | undefined;
+  const dailyLogs = body.dailyLogs as Record<string, unknown>[] | undefined;
+
+  let dossieSintetico = "";
+  try {
+    if (studentId) {
+      const session = await getSession();
+      if (session?.workspace_id) {
+        let txtDiag = "";
+        const sb = getSupabase();
+        const { data: avaliacoes } = await sb
+          .from("avaliacoes_diagnosticas")
+          .select("disciplina, nivel_omnisfera_identificado")
+          .eq("student_id", studentId)
+          .eq("workspace_id", session.workspace_id)
+          .not("nivel_omnisfera_identificado", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(3);
+
+        if (avaliacoes && avaliacoes.length > 0) {
+          txtDiag = "\nAVALIAÇÃO DIAGNÓSTICA OMNISFERA:\n" + avaliacoes.map((a: any) => {
+            return `- ${a.disciplina}: Nivel Identificado = ${a.nivel_omnisfera_identificado} (0 a 4)`;
+          }).join("\n");
+        }
+
+        let txtPaee = "";
+        if (paeeData) {
+          const barreirasTexto = paeeData.barreirasDetalhes ? String(paeeData.barreirasDetalhes).slice(0, 300) : "";
+          const tecTexto = paeeData.tec_assistiva ? String(paeeData.tec_assistiva).slice(0, 200) : "";
+          if (barreirasTexto || tecTexto) {
+            txtPaee = `\nPAEE (Especialista):\n${barreirasTexto ? `- Mapeamento de Barreiras: ${barreirasTexto}\n` : ""}${tecTexto ? `- Tecnologia Assistiva: ${tecTexto}\n` : ""}`;
+          }
+        }
+
+        let txtDiario = "";
+        if (dailyLogs && Array.isArray(dailyLogs) && dailyLogs.length > 0) {
+          const lastLogs = dailyLogs.slice(-5);
+          txtDiario = "\nDIÁRIO DE BORDO (Últimas 5 sessões):\n" + lastLogs.map((l: any) => {
+            return `- ${l.data_sessao || "Sem data"}: ${l.atividade_principal ? String(l.atividade_principal).slice(0, 100) : ""} (Engajamento: ${l.engajamento_aluno || "N/A"}/5)`;
+          }).join("\n");
+        }
+
+        if (txtPaee || txtDiario || txtDiag) {
+          dossieSintetico = `[CONTEXTO HISTÓRICO DO ESTUDANTE (Leitura Obrigatória para Consistência Técnica)]\nIncorpore as informações abaixo de forma subliminar nas estratégias do PEI, criando uma continuidade pedagógica perfeita de ponta a ponta.${txtDiag}${txtPaee}${txtDiario}\n[/CONTEXTO HISTÓRICO]`;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Dossiê Sintético (G1) abortado silenciosamente:", err);
+  }
+
+  const { system, user } = buildPrompt(dados, modoPratico, feedback, dossieSintetico);
 
   try {
     const texto = await chatCompletionText(

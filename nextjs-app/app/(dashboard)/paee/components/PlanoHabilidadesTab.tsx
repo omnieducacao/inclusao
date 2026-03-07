@@ -3,10 +3,9 @@ import React, { useState, useEffect } from "react";
 import { Save, Plus, Trash2, Edit2, Play, Pause, FileText, Download, Target, Calendar, CheckCircle2, ChevronDown, ChevronRight, MessageSquare, AlertTriangle, Users, BookOpen, Layout, Settings, Sparkles, Loader2, ArrowRight, Map, Search } from 'lucide-react';
 import type { StudentFull } from "../lib/paee-types";
 import type { CicloPAEE, MetaPei } from "@/lib/paee";
-import { getSupabase } from "@/lib/supabase";
 import { LottieIcon } from "@/components/LottieIcon";
 
-import { Card } from "@omni/ds";
+import { Card, Select, Textarea, Button } from "@omni/ds";
 import { EngineSelector } from "@/components/EngineSelector";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
@@ -124,24 +123,7 @@ export function PlanoHabilidadesTab({
       // Depois atualizar estado local (para garantir sincronização)
       setPlano(planoTexto);
       setStatus("revisao");
-      // Salvar no Supabase e aguardar
-      if (student?.id) {
-        try {
-          const saveRes = await fetch(`/api/students/${student.id}/paee`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ paee_data: novoPaeeData }),
-          });
 
-          if (!saveRes.ok) {
-            console.error("Erro ao salvar plano no Supabase:", await saveRes.text());
-          } else {
-          }
-        } catch (saveErr) {
-          console.error("Erro ao salvar plano:", saveErr);
-          // Não bloquear o fluxo, apenas logar o erro
-        }
-      }
 
     } catch (e) {
       console.error("Erro ao gerar plano:", e);
@@ -179,37 +161,34 @@ export function PlanoHabilidadesTab({
       </div>
 
       {status !== "rascunho" && (
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           onClick={limpar}
-          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
-        </button>
+        </Button>
       )}
 
       {status === "rascunho" ? (
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">Foco do Atendimento</label>
-            <select
+            <Select
               value={foco}
               onChange={(e) => setFoco(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-            >
-              {focosDisponiveis.map((f: any) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
-            </select>
+              className="w-full"
+              options={focosDisponiveis.map((f: string) => ({ value: f, label: f }))}
+            />
           </div>
           <EngineSelector value={engine} onChange={setEngine} />
-          <button
+          <Button
             type="button"
+            variant="primary"
             onClick={() => gerar()}
             disabled={loading}
-            className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="flex items-center gap-2"
           >
             {loading ? (
               <>
@@ -222,7 +201,7 @@ export function PlanoHabilidadesTab({
                 📋 Gerar Plano
               </>
             )}
-          </button>
+          </Button>
           {erro && <p className="text-red-600 text-sm">{erro}</p>}
         </div>
       ) : status === "revisao" ? (
@@ -234,7 +213,7 @@ export function PlanoHabilidadesTab({
                 <br />
                 <span className="text-xs">Status: {status} | Plano length: {plano?.length || 0} | Loading: {loading ? "sim" : "não"}</span>
                 <br />
-                <button
+                <Button
                   onClick={() => {
                     const conteudoSalvo = (paeeData.conteudo_plano_habilidades as string) || "";
                     if (conteudoSalvo) {
@@ -242,10 +221,11 @@ export function PlanoHabilidadesTab({
                       setStatus("revisao");
                     }
                   }}
-                  className="mt-2 px-3 py-1 bg-amber-600 text-white rounded text-xs"
+                  className="mt-2 text-xs bg-amber-600 text-white border-0 hover:bg-amber-700"
+                  size="sm"
                 >
                   🔄 Tentar Recarregar do paeeData
-                </button>
+                </Button>
               </p>
             </div>
           ) : (
@@ -257,32 +237,32 @@ export function PlanoHabilidadesTab({
             </>
           )}
           <div className="flex gap-2 flex-wrap">
-            <button
+            <Button
               type="button"
+              className="bg-green-600 text-white border-0 hover:bg-green-700"
               onClick={() => {
                 setStatus("aprovado");
                 updateField("status_plano_habilidades", "aprovado");
               }}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
               ✅ Validar e Finalizar
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              className="bg-amber-600 text-white border-0 hover:bg-amber-700"
               onClick={() => {
                 setStatus("ajustando");
               }}
-              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
             >
               🔄 Solicitar Ajustes
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
               onClick={limpar}
-              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
             >
               🗑️ Descartar e Regenerar
-            </button>
+            </Button>
             <PdfDownloadButton
               text={plano}
               filename={`Plano_Habilidades_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}
@@ -302,33 +282,33 @@ export function PlanoHabilidadesTab({
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Descreva os ajustes necessários:
             </label>
-            <textarea
+            <Textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="Ex.: Incluir mais detalhes sobre estratégias de ensino, focar em recursos práticos..."
               rows={4}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              className="w-full"
             />
           </div>
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="primary"
               onClick={() => gerar(feedback)}
               disabled={loading || !feedback.trim()}
-              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
             >
               {loading ? "Aplicando ajustes..." : "🔄 Gerar Novamente com Ajustes"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => {
                 setStatus("revisao");
                 setFeedback("");
               }}
-              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
             >
               ↩️ Cancelar Ajustes
-            </button>
+            </Button>
           </div>
           {erro && <p className="text-red-600 text-sm">{erro}</p>}
         </div>
@@ -339,16 +319,16 @@ export function PlanoHabilidadesTab({
           </div>
           <FormattedTextDisplay texto={plano} titulo="Plano de Habilidades Final" />
           <div className="flex gap-2 flex-wrap">
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => {
                 setStatus("revisao");
                 updateField("status_plano_habilidades", "revisao");
               }}
-              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
             >
               ✏️ Editar Novamente
-            </button>
+            </Button>
             <PdfDownloadButton
               text={plano}
               filename={`Plano_Habilidades_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}

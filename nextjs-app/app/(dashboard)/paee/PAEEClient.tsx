@@ -34,7 +34,8 @@ import { TecAssistivaTab } from "./components/TecAssistivaTab";
 import { ArticulacaoTab } from "./components/ArticulacaoTab";
 import { NivelSuporteRange } from "./components/NivelSuporteRange";
 
-import { Card } from "@omni/ds";
+import { useStudentMutation } from "@/hooks/useStudentMutation";
+import { Card, Button, Select } from "@omni/ds";
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {
@@ -57,6 +58,8 @@ type TabId = "mapear-barreiras" | "plano-habilidades" | "tec-assistiva" | "artic
 function PAEEClientInner({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
   const currentId = studentId || searchParams?.get("student") || null;
+  const mutation = useStudentMutation();
+  const savingCiclo = mutation.loading;
 
   const [activeTab, setActiveTab] = useState<TabId>("planejamento");
   const [cicloSelecionadoPlanejamento, setCicloSelecionadoPlanejamento] = useState<CicloPAEE | null>(null);
@@ -94,51 +97,38 @@ function PAEEClientInner({ students, studentId, student }: Props) {
   const saveCiclo = useCallback(
     async (ciclo: CicloPAEE) => {
       if (!student?.id) return false;
-      setSaving(true);
-      try {
-        const ciclosAtualizados = [...ciclos];
-        const cfg = ciclo.config_ciclo || {};
-        const cicloComId = { ...ciclo, ciclo_id: ciclo.ciclo_id || crypto.randomUUID() };
-        if (!ciclo.ciclo_id) {
-          cicloComId.criado_em = new Date().toISOString();
-          cicloComId.versao = 1;
-          ciclosAtualizados.push(cicloComId);
+      const ciclosAtualizados = [...ciclos];
+      const cfg = ciclo.config_ciclo || {};
+      const cicloComId = { ...ciclo, ciclo_id: ciclo.ciclo_id || crypto.randomUUID() };
+      if (!ciclo.ciclo_id) {
+        cicloComId.criado_em = new Date().toISOString();
+        cicloComId.versao = 1;
+        ciclosAtualizados.push(cicloComId);
+      } else {
+        const idx = ciclosAtualizados.findIndex((c) => c.ciclo_id === ciclo.ciclo_id);
+        if (idx >= 0) {
+          cicloComId.versao = (ciclosAtualizados[idx].versao || 1) + 1;
+          cicloComId.atualizado_em = new Date().toISOString();
+          ciclosAtualizados[idx] = cicloComId;
         } else {
-          const idx = ciclosAtualizados.findIndex((c) => c.ciclo_id === ciclo.ciclo_id);
-          if (idx >= 0) {
-            cicloComId.versao = (ciclosAtualizados[idx].versao || 1) + 1;
-            cicloComId.atualizado_em = new Date().toISOString();
-            ciclosAtualizados[idx] = cicloComId;
-          } else {
-            ciclosAtualizados.push(cicloComId);
-          }
+          ciclosAtualizados.push(cicloComId);
         }
-
-        const res = await fetch(`/api/students/${student.id}/paee`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            paee_ciclos: ciclosAtualizados,
-            planejamento_ativo: cicloComId.ciclo_id,
-            status_planejamento: cicloComId.status,
-            data_inicio_ciclo: cfg.data_inicio ?? null,
-            data_fim_ciclo: cfg.data_fim ?? null,
-          }),
-        });
-        const data = await res.json();
-        if (data.ok) {
-          setSaved(true);
-          setCicloPreview(null);
-          window.location.reload();
-          return true;
-        }
-      } catch (e) {
-        console.error("Erro ao salvar PAEE:", e);
       }
-      setSaving(false);
-      return false;
+
+      await mutation.updatePAEECiclos(student.id, {
+        paee_ciclos: ciclosAtualizados,
+        planejamento_ativo: cicloComId.ciclo_id,
+        status_planejamento: cicloComId.status,
+        data_inicio_ciclo: cfg.data_inicio ?? null,
+        data_fim_ciclo: cfg.data_fim ?? null,
+      }, () => {
+        setSaved(true);
+        setCicloPreview(null);
+        window.location.reload();
+      });
+      return true;
     },
-    [student?.id, ciclos]
+    [student?.id, ciclos, mutation]
   );
 
   const definirCicloAtivo = useCallback(
@@ -147,22 +137,16 @@ function PAEEClientInner({ students, studentId, student }: Props) {
       const ciclo = ciclos.find((c) => c.ciclo_id === cicloId);
       if (!ciclo) return false;
       const cfg = ciclo.config_ciclo || {};
-      const res = await fetch(`/api/students/${student.id}/paee`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          paee_ciclos: ciclos,
-          planejamento_ativo: cicloId,
-          status_planejamento: "ativo",
-          data_inicio_ciclo: cfg.data_inicio ?? null,
-          data_fim_ciclo: cfg.data_fim ?? null,
-        }),
-      });
-      const data = await res.json();
-      if (data.ok) window.location.reload();
-      return data.ok;
+      await mutation.updatePAEECiclos(student.id, {
+        paee_ciclos: ciclos,
+        planejamento_ativo: cicloId,
+        status_planejamento: "ativo",
+        data_inicio_ciclo: cfg.data_inicio ?? null,
+        data_fim_ciclo: cfg.data_fim ?? null,
+      }, () => window.location.reload());
+      return true;
     },
-    [student?.id, ciclos]
+    [student?.id, ciclos, mutation]
   );
 
   const gerarPreviewPlanejamento = useCallback(
@@ -488,37 +472,38 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                 </div>
               )}
               {ciclosPlanejamento.length > 0 && (
-                <select
+                <Select
                   value={cicloSelecionadoPlanejamento?.ciclo_id || ""}
                   onChange={(e) => {
                     const c = ciclosPlanejamento.find((x) => x.ciclo_id === e.target.value);
                     setCicloSelecionadoPlanejamento(c || null);
                     setCicloPreview(null);
                   }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                >
-                  <option value="">Selecione um ciclo</option>
-                  {ciclosPlanejamento.map((c) => {
-                    const [ic] = badgeStatus(c.status || "rascunho");
-                    const cfg = c.config_ciclo || {};
-                    return (
-                      <option key={c.ciclo_id} value={c.ciclo_id}>
-                        {ic} {cfg.foco_principal || "Ciclo"} • {fmtDataIso(cfg.data_inicio)} • v{c.versao || 1}
-                      </option>
-                    );
-                  })}
-                </select>
+                  className="w-full"
+                  options={[
+                    { value: "", label: "Selecione um ciclo" },
+                    ...ciclosPlanejamento.map((c) => {
+                      const [ic] = badgeStatus(c.status || "rascunho");
+                      const cfg = c.config_ciclo || {};
+                      return {
+                        value: String(c.ciclo_id),
+                        label: `${ic} ${cfg.foco_principal || "Ciclo"} • ${fmtDataIso(cfg.data_inicio)} • v${c.versao || 1}`
+                      };
+                    })
+                  ]}
+                />
               )}
               {ciclosPlanejamento.length > 0 && cicloSelecionadoPlanejamento?.ciclo_id && (
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     type="button"
+                    className="text-white border-0 bg-emerald-600 hover:bg-emerald-700 text-sm"
+                    size="sm"
                     onClick={() => definirCicloAtivo(cicloSelecionadoPlanejamento.ciclo_id!)}
-                    className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
                   >
                     Definir como ativo
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     disabled={relLoading}
                     onClick={async () => {
@@ -542,17 +527,18 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                         aiLoadingStop();
                       }
                     }}
-                    className="px-3 py-1.5 text-sm bg-linear-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 flex items-center gap-1.5"
+                    className="text-white border-0 bg-linear-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 flex items-center gap-1.5 text-sm"
+                    size="sm"
                   >
                     {relLoading ? "Gerando..." : "📊 Relatório do Ciclo"}
-                  </button>
+                  </Button>
                 </div>
               )}
               {relatorio && (
                 <div className="mt-4 p-5 rounded-xl bg-violet-50 border border-violet-200">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-bold text-violet-900 flex items-center gap-2">📊 Relatório do Ciclo</h4>
-                    <button type="button" onClick={() => setRelatorio(null)} className="text-xs text-violet-400 hover:text-violet-600">Fechar</button>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setRelatorio(null)} className="text-violet-400 hover:text-violet-600 hover:bg-violet-100">Fechar</Button>
                   </div>
                   <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap">{relatorio}</div>
                 </div>
@@ -615,34 +601,35 @@ function PAEEClientInner({ students, studentId, student }: Props) {
               </h3>
               {ciclosExecucao.length > 0 && (
                 <>
-                  <select
+                  <Select
                     value={cicloSelecionadoExecucao?.ciclo_id || ""}
                     onChange={(e) => {
                       const c = ciclosExecucao.find((x) => x.ciclo_id === e.target.value);
                       setCicloSelecionadoExecucao(c || null);
                       setCicloPreview(null);
                     }}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                  >
-                    <option value="">Selecione um ciclo</option>
-                    {ciclosExecucao.map((c) => {
-                      const cfg = c.config_ciclo || {};
-                      return (
-                        <option key={c.ciclo_id} value={c.ciclo_id}>
-                          {cfg.foco_principal || "Ciclo"} • {fmtDataIso(cfg.data_inicio)}
-                        </option>
-                      );
-                    })}
-                  </select>
+                    className="w-full"
+                    options={[
+                      { value: "", label: "Selecione um ciclo" },
+                      ...ciclosExecucao.map((c) => {
+                        const cfg = c.config_ciclo || {};
+                        return {
+                          value: String(c.ciclo_id),
+                          label: `${cfg.foco_principal || "Ciclo"} • ${fmtDataIso(cfg.data_inicio)}`
+                        };
+                      })
+                    ]}
+                  />
                   {cicloSelecionadoExecucao?.ciclo_id && (
                     <div className="flex gap-2 mt-2">
-                      <button
+                      <Button
                         type="button"
+                        className="text-white border-0 bg-emerald-600 hover:bg-emerald-700 text-sm"
+                        size="sm"
                         onClick={() => definirCicloAtivo(cicloSelecionadoExecucao.ciclo_id!)}
-                        className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
                       >
                         Definir como ativo
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </>

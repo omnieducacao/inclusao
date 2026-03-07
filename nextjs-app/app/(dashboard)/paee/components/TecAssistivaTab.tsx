@@ -3,10 +3,9 @@ import React, { useState, useEffect } from "react";
 import { Save, Plus, Trash2, Edit2, Play, Pause, FileText, Download, Target, Calendar, CheckCircle2, ChevronDown, ChevronRight, MessageSquare, AlertTriangle, Users, BookOpen, Layout, Settings, Sparkles, Loader2, ArrowRight, Map, Search, Puzzle } from 'lucide-react';
 import type { StudentFull } from "../lib/paee-types";
 import type { CicloPAEE, MetaPei } from "@/lib/paee";
-import { getSupabase } from "@/lib/supabase";
 import { LottieIcon } from "@/components/LottieIcon";
 
-import { Card } from "@omni/ds";
+import { Card, Input, Textarea, Button } from "@omni/ds";
 import { EngineSelector } from "@/components/EngineSelector";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
@@ -90,18 +89,7 @@ export function TecAssistivaTab({
       };
       onUpdate(novoPaeeData);
 
-      // Salvar no Supabase explicitamente
-      if (student?.id) {
-        try {
-          await fetch(`/api/students/${student.id}/paee`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ paee_data: novoPaeeData }),
-          });
-        } catch (saveErr) {
-          console.error("Erro ao salvar tec assistiva no Supabase:", saveErr);
-        }
-      }
+
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar sugestões");
     } finally {
@@ -138,33 +126,34 @@ export function TecAssistivaTab({
       </div>
 
       {status !== "rascunho" && (
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           onClick={limpar}
-          className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white/80 backdrop-blur-sm text-slate-700 border-2 border-slate-300 shadow-md hover:shadow-lg hover:bg-white hover:border-slate-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
         >
           Limpar / Abandonar
-        </button>
+        </Button>
       )}
 
       {status === "rascunho" ? (
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">Dificuldade Específica</label>
-            <input
-              type="text"
+            <Input
               value={dificuldade}
               onChange={(e) => setDificuldade(e.target.value)}
               placeholder="Ex: Dificuldade na escrita, comunicação, mobilidade, organização..."
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              className="w-full"
             />
           </div>
           <EngineSelector value={engine} onChange={setEngine} />
-          <button
+          <Button
             type="button"
+            variant="primary"
             onClick={() => gerar()}
             disabled={loading || !dificuldade.trim()}
-            className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="flex items-center gap-2"
           >
             {loading ? (
               <>
@@ -177,39 +166,39 @@ export function TecAssistivaTab({
                 🔧 Sugerir Recursos
               </>
             )}
-          </button>
+          </Button>
           {erro && <p className="text-red-600 text-sm">{erro}</p>}
         </div>
       ) : status === "revisao" ? (
         <div className="space-y-4">
           <FormattedTextDisplay texto={sugestoes} titulo="Sugestões de Tecnologia Assistiva Geradas" />
           <div className="flex gap-2 flex-wrap">
-            <button
+            <Button
               type="button"
+              className="bg-green-600 text-white border-0 hover:bg-green-700"
               onClick={() => {
                 setStatus("aprovado");
                 updateField("status_tecnologia_assistiva", "aprovado");
               }}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
               ✅ Validar e Finalizar
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              className="bg-amber-600 text-white border-0 hover:bg-amber-700"
               onClick={() => {
                 setStatus("ajustando");
               }}
-              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
             >
               🔄 Solicitar Ajustes
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
               onClick={limpar}
-              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
             >
               🗑️ Descartar e Regenerar
-            </button>
+            </Button>
             <PdfDownloadButton
               text={sugestoes}
               filename={`Tecnologia_Assistiva_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}
@@ -229,33 +218,33 @@ export function TecAssistivaTab({
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Descreva os ajustes necessários:
             </label>
-            <textarea
+            <Textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="Ex.: Incluir mais recursos de baixa tecnologia, focar em soluções práticas..."
               rows={4}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              className="w-full"
             />
           </div>
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="primary"
               onClick={() => gerar(feedback)}
               disabled={loading || !feedback.trim()}
-              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50"
             >
               {loading ? "Aplicando ajustes..." : "🔄 Gerar Novamente com Ajustes"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => {
                 setStatus("revisao");
                 setFeedback("");
               }}
-              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
             >
               ↩️ Cancelar Ajustes
-            </button>
+            </Button>
           </div>
           {erro && <p className="text-red-600 text-sm">{erro}</p>}
         </div>
@@ -266,16 +255,16 @@ export function TecAssistivaTab({
           </div>
           <FormattedTextDisplay texto={sugestoes} titulo="Sugestões de Tecnologia Assistiva Final" />
           <div className="flex gap-2 flex-wrap">
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => {
                 setStatus("revisao");
                 updateField("status_tecnologia_assistiva", "revisao");
               }}
-              className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50"
             >
               ✏️ Editar Novamente
-            </button>
+            </Button>
             <PdfDownloadButton
               text={sugestoes}
               filename={`Tecnologia_Assistiva_${student?.name?.replace(/\s+/g, "_") || "estudante"}.pdf`}

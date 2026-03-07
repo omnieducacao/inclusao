@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ClipboardList, FileText, Map, Trash2, ChevronDown, ChevronUp, X, AlertTriangle, Edit2, Save, XCircle, Download } from "lucide-react";
 import { ResponsaveisSection } from "@/components/ResponsaveisSection";
 import { Card, Button, EmptyState } from "@omni/ds";
+import { useStudentMutation } from "@/hooks/useStudentMutation";
 
 type Student = {
   id: string;
@@ -38,6 +39,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
   } | null>(null);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState<string | null>(null);
+  const mutation = useStudentMutation();
 
   async function handleExportar(studentId: string, studentName: string) {
     setExporting(studentId);
@@ -96,15 +98,9 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
 
     setDeleting(true);
     try {
-      const res = await fetch(`/api/students/${studentId}`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json();
-        alert(data.error || "Erro ao excluir estudante.");
-        return;
-      }
-      router.refresh();
+      await mutation.deleteStudent(studentId, () => router.refresh());
     } catch (err) {
-      alert("Erro ao excluir estudante. Tente novamente.");
+      alert(err instanceof Error ? err.message : "Erro ao excluir estudante. Tente novamente.");
       console.error(err);
     } finally {
       setDeleting(false);
@@ -123,20 +119,9 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
       peiNovo.ia_sugestao = "";
       peiNovo.status_validacao_pei = "rascunho";
 
-      const res = await fetch(`/api/students/${studentId}/pei-data`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pei_data: peiNovo }),
-      });
-
-      if (res.ok) {
-        router.refresh();
-      } else {
-        const data = await res.json();
-        alert(data.error || "Erro ao apagar relatórios.");
-      }
+      await mutation.updatePEIData(studentId, peiNovo, () => router.refresh());
     } catch (err) {
-      alert("Erro ao apagar relatórios. Tente novamente.");
+      alert(err instanceof Error ? err.message : "Erro ao apagar relatórios.");
       console.error(err);
     } finally {
       setUpdating(null);
@@ -154,20 +139,9 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
       peiNovo.ia_mapa_texto = "";
       peiNovo.status_validacao_game = "rascunho";
 
-      const res = await fetch(`/api/students/${studentId}/pei-data`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pei_data: peiNovo }),
-      });
-
-      if (res.ok) {
-        router.refresh();
-      } else {
-        const data = await res.json();
-        alert(data.error || "Erro ao apagar jornada.");
-      }
+      await mutation.updatePEIData(studentId, peiNovo, () => router.refresh());
     } catch (err) {
-      alert("Erro ao apagar jornada. Tente novamente.");
+      alert(err instanceof Error ? err.message : "Erro ao apagar jornada.");
       console.error(err);
     } finally {
       setUpdating(null);
@@ -194,28 +168,18 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
 
     setSaving(true);
     try {
-      const res = await fetch(`/api/students/${studentId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editForm.name.trim() || null,
-          grade: editForm.grade.trim() || null,
-          class_group: editForm.class_group.trim() || null,
-          diagnosis: editForm.diagnosis.trim() || null,
-        }),
+      await mutation.updateEstudante(studentId, {
+        name: editForm.name.trim() || null,
+        grade: editForm.grade.trim() || null,
+        class_group: editForm.class_group.trim() || null,
+        diagnosis: editForm.diagnosis.trim() || null,
+      }, () => {
+        setEditingId(null);
+        setEditForm(null);
+        router.refresh();
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        alert(data.error || "Erro ao salvar alterações.");
-        return;
-      }
-
-      setEditingId(null);
-      setEditForm(null);
-      router.refresh();
     } catch (err) {
-      alert("Erro ao salvar alterações. Tente novamente.");
+      alert(err instanceof Error ? err.message : "Erro ao salvar alterações.");
       console.error(err);
     } finally {
       setSaving(false);
@@ -229,20 +193,9 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
 
     setUpdating(studentId);
     try {
-      const res = await fetch(`/api/students/${studentId}/paee-ciclos`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paee_ciclos: [] }),
-      });
-
-      if (res.ok) {
-        router.refresh();
-      } else {
-        const data = await res.json();
-        alert(data.error || "Erro ao apagar ciclos.");
-      }
+      await mutation.updatePAEECiclos(studentId, { paee_ciclos: [] }, () => router.refresh());
     } catch (err) {
-      alert("Erro ao apagar ciclos. Tente novamente.");
+      alert(err instanceof Error ? err.message : "Erro ao apagar ciclos.");
       console.error(err);
     } finally {
       setUpdating(null);
