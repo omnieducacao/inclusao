@@ -153,16 +153,22 @@ export function PageHero({
 
   const defaultLottieAnimation = moduleLottieIcon[resolvedKey];
 
-  // Prefer 'pei_professor' in DB over purely 'pei-regente' for backward compatibility
-  const adminKeyPropSafe = adminKeyProp === "pei-regente" && serverConfig && serverConfig["pei_professor"] ? "pei_professor" : adminKeyProp;
-  const initialKey = adminKeyPropSafe || (route ? routeToAdminKey[route] : undefined) || (moduleKey ? moduleKeyToAdminKey[moduleKey] : undefined) || "";
+  const initialKey = adminKeyProp || (route ? routeToAdminKey[route] : undefined) || (moduleKey ? moduleKeyToAdminKey[moduleKey] : undefined) || "";
 
   // ─── Read admin customization from DB ──────────────────────────────────────
   const [adminIcon, setAdminIcon] = useState<string | null>(() => {
-    return serverConfig && initialKey ? (serverConfig[initialKey]?.icon || null) : null;
+    if (serverConfig && initialKey) {
+      const keySafe = serverConfig[initialKey] ? initialKey : initialKey === "pei-regente" && serverConfig["pei_professor"] ? "pei_professor" : initialKey;
+      return serverConfig[keySafe]?.icon || null;
+    }
+    return null;
   });
   const [adminColor, setAdminColor] = useState<string | null>(() => {
-    return serverConfig && initialKey ? (serverConfig[initialKey]?.heroColor || serverConfig[initialKey]?.color || null) : null;
+    if (serverConfig && initialKey) {
+      const keySafe = serverConfig[initialKey] ? initialKey : initialKey === "pei-regente" && serverConfig["pei_professor"] ? "pei_professor" : initialKey;
+      return serverConfig[keySafe]?.heroColor || serverConfig[keySafe]?.color || null;
+    }
+    return null;
   });
   const [isMounted, setIsMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -188,7 +194,7 @@ export function PageHero({
         if (data?.value) {
           try {
             const customs = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
-            const adminKeySafe = adminKey === "pei-regente" && customs["pei_professor"] ? "pei_professor" : adminKey;
+            const adminKeySafe = customs[adminKey] ? adminKey : adminKey === "pei-regente" && customs["pei_professor"] ? "pei_professor" : adminKey;
 
             if (customs[adminKeySafe]?.icon) {
               setAdminIcon(customs[adminKeySafe].icon);
@@ -257,7 +263,7 @@ export function PageHero({
     const effectiveDsColors = (resolvedKey in moduleColors)
       ? moduleColors[resolvedKey as ModuleKey]
       : moduleColors.omnisfera;
-    cardBg = isDark ? effectiveTheme.softDark : effectiveDsColors.bg;
+    cardBg = isNotebook ? effectiveDsColors.bgPastel : isDark ? effectiveTheme.softDark : effectiveDsColors.bg;
     softColor = isDark ? `${effectiveTheme.softDark}80` : effectiveDsColors.bgPastel;
     textColor = isNotebook ? effectiveDsColors.textPastel : isDark ? effectiveTheme.secondary : "#ffffff";
     accentColor = effectiveTheme.primary;
