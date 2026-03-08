@@ -461,7 +461,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-(--module-primary) rounded-full"></span>
+                <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
                 Histórico de ciclos de planejamento
               </h3>
               {cicloAtivoPlanejamento && (
@@ -531,7 +531,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                         aiLoadingStop();
                       }
                     }}
-                    className="text-white border-0 bg-(--module-primary) hover:bg-(--module-primary)/90 flex items-center gap-1.5 text-sm"
+                    className="text-white border-0 bg-(--module-primary) hover:brightness-110 flex items-center gap-1.5 text-sm"
                     size="sm"
                   >
                     {relLoading ? "Gerando..." : "📊 Relatório do Ciclo"}
@@ -550,7 +550,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
 
               <div className="pt-4 border-t border-(--module-primary)/20">
                 <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <span className="w-1 h-6 bg-(--module-primary) rounded-full"></span>
+                  <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
                   Gerar novo ciclo
                 </h3>
                 <FormPlanejamento
@@ -563,7 +563,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
 
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-(--module-primary) rounded-full"></span>
+                <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
                 Visualização
               </h3>
               {cicloParaVerPlanejamento ? (
@@ -600,7 +600,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-(--module-primary) rounded-full"></span>
+                <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
                 Histórico de ciclos de execução
               </h3>
               {ciclosExecucao.length > 0 && (
@@ -640,7 +640,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
               )}
               <div className="pt-4 border-t border-(--module-primary)/20">
                 <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <span className="w-1 h-6 bg-(--module-primary) rounded-full"></span>
+                  <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
                   Gerar ciclo de execução
                 </h3>
                 <FormExecucao metasPei={metasPei} onGerar={gerarPreviewExecucao} />
@@ -648,7 +648,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-(--module-primary) rounded-full"></span>
+                <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
                 Visualização
               </h3>
               {cicloParaVerExecucao ? (
