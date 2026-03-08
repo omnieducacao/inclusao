@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * PATCH /api/admin/instagram-feed/[id]
@@ -44,7 +45,7 @@ export async function PATCH(
         return NextResponse.json({ post: data });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-        console.error("[admin/instagram-feed/[id]] PATCH error:", err);
+        logger.error({ err: err }, "[admin/instagram-feed/[id]] PATCH error:");
         return NextResponse.json({ error: err.message || "Erro interno" }, { status: 500 });
     }
 }
@@ -95,7 +96,7 @@ export async function DELETE(
         return NextResponse.json({ ok: true });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-        console.error("[admin/instagram-feed/[id]] DELETE error:", err);
+        logger.error({ err: err }, "[admin/instagram-feed/[id]] DELETE error:");
         return NextResponse.json({ error: err.message || "Erro interno" }, { status: 500 });
     }
 }

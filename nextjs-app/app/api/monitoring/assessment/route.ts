@@ -3,6 +3,7 @@ import { parseBody, assessmentSchema } from "@/lib/validation";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { requirePermission } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error("monitoring_assessments insert:", error);
+      logger.error({ err: error }, "monitoring_assessments insert:");
       return NextResponse.json(
         { error: error.message || "Erro ao salvar avaliação" },
         { status: 500 }
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, id: data?.id });
   } catch (err) {
-    console.error("POST /api/monitoring/assessment:", err);
+    logger.error({ err: err }, "POST /api/monitoring/assessment:");
     return NextResponse.json(
       { error: "Erro interno ao salvar avaliação" },
       { status: 500 }

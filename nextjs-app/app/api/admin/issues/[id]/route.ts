@@ -2,6 +2,7 @@ import { parseBody, adminIssuePatchSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -43,13 +44,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       .single();
 
     if (error) {
-      console.error("Erro ao atualizar issue:", error);
+      logger.error({ err: error }, "Erro ao atualizar issue:");
       return NextResponse.json({ error: error.message || "Erro ao atualizar bug." }, { status: 500 });
     }
 
     return NextResponse.json({ issue: data });
   } catch (err) {
-    console.error("PATCH /api/admin/issues/[id]:", err);
+    logger.error({ err: err }, "PATCH /api/admin/issues/[id]:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao atualizar bug." },
       { status: 500 }

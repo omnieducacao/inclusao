@@ -14,6 +14,7 @@ import {
 } from "@/lib/omnisfera-prompts";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { logger } from "@/lib/logger";
 
 // ── Cache BNCC completa ──────────────────────────────────────
 
@@ -309,7 +310,7 @@ Mantendo a mesma habilidade BNCC, gabarito na letra ${gabarito_definido} e níve
             numero_questao,
         });
     } catch (err) {
-        console.error("Avaliação Diagnóstica criar-item:", err);
+        logger.error({ err: err }, "Avaliação Diagnóstica criar-item:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao gerar item diagnóstico." },
             { status: 500 }

@@ -4,6 +4,7 @@ import { listStudents } from "@/lib/students";
 import { getSupabase } from "@/lib/supabase";
 import { requirePermission } from "@/lib/permissions";
 import { parseBody, createStudentSchema } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   const session = await getSession();
@@ -18,7 +19,7 @@ export async function GET() {
     const students = await listStudents(session.workspace_id);
     return NextResponse.json(students);
   } catch (err) {
-    console.error("GET /api/students:", err);
+    logger.error({ err: err }, "GET /api/students:");
     return NextResponse.json(
       { error: "Erro ao carregar estudantes." },
       { status: 500 }
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.error("Erro ao criar estudante:", error);
+      logger.error({ err: error }, "Erro ao criar estudante:");
       return NextResponse.json(
         { error: error.message || "Erro ao criar estudante." },
         { status: 500 }
@@ -69,7 +70,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ student: data }, { status: 201 });
   } catch (err) {
-    console.error("POST /api/students:", err);
+    logger.error({ err: err }, "POST /api/students:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao criar estudante." },
       { status: 500 }

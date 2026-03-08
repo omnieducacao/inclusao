@@ -2,6 +2,7 @@ import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/notifications
@@ -191,7 +192,7 @@ export async function GET() {
                     }
                 }
             } catch (err) {
-                console.error("Error parsing announcements:", err);
+                logger.error({ err: err }, "Error parsing announcements:");
             }
         }
 
@@ -200,7 +201,7 @@ export async function GET() {
             total: notifications.length,
         });
     } catch (err) {
-        console.error("Notifications error:", err);
+        logger.error({ err: err }, "Notifications error:");
         return NextResponse.json({ error: "Erro ao carregar notificações" }, { status: 500 });
     }
 }

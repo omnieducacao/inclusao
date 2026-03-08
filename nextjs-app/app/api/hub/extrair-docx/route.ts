@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import mammoth from "mammoth";
 import { requireAuth } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const { error: authError } = await requireAuth(); if (authError) return authError;
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ texto, imagens });
   } catch (err) {
-    console.error("Extrair DOCX:", err);
+    logger.error({ err: err }, "Extrair DOCX:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao extrair." },
       { status: 500 }

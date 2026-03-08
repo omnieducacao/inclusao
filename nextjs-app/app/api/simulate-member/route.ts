@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession, createSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/simulate-member
@@ -108,7 +109,7 @@ export async function DELETE() {
 
         return NextResponse.json({ ok: true });
     } catch (err) {
-        console.error("End member simulation error:", err);
+        logger.error({ err: err }, "End member simulation error:");
         return NextResponse.json({ error: "Erro ao encerrar simulação." }, { status: 500 });
     }
 }

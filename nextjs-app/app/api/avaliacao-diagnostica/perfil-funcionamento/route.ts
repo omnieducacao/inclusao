@@ -6,6 +6,7 @@ import {
     buildPromptCompleto,
     templatePerfilFuncionamento,
 } from "@/lib/omnisfera-prompts";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
     const session = await getSession();
@@ -94,7 +95,7 @@ export async function POST(req: Request) {
             tipo: "perfil_funcionamento",
         });
     } catch (err: unknown) {
-        console.error("Erro ao gerar perfil de funcionamento:", err);
+        logger.error({ err: err }, "Erro ao gerar perfil de funcionamento:");
         return NextResponse.json({
             error: "Erro ao gerar perfil",
             detail: err instanceof Error ? err.message : String(err),

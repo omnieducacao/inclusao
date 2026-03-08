@@ -3,6 +3,7 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import { getSession, createSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 // POST: Start simulation — admin enters a school's workspace
 export async function POST(req: Request) {
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ ok: true, workspace_name: workspace.name });
     } catch (err) {
-        console.error("Simulate error:", err);
+        logger.error({ err: err }, "Simulate error:");
         return NextResponse.json({ error: "Erro ao iniciar simulação." }, { status: 500 });
     }
 }
@@ -88,7 +89,7 @@ export async function DELETE() {
 
         return NextResponse.json({ ok: true });
     } catch (err) {
-        console.error("End simulate error:", err);
+        logger.error({ err: err }, "End simulate error:");
         return NextResponse.json({ error: "Erro ao encerrar simulação." }, { status: 500 });
     }
 }

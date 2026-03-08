@@ -12,6 +12,7 @@ import {
 } from "@/lib/omnisfera-prompts";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { logger } from "@/lib/logger";
 
 // ── Cache BNCC completa ──────────────────────────────────────
 
@@ -212,7 +213,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ texto, questoes });
     } catch (err) {
-        console.error("Avaliação Diagnóstica criar-itens:", err);
+        logger.error({ err: err }, "Avaliação Diagnóstica criar-itens:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao gerar itens diagnósticos." },
             { status: 500 }

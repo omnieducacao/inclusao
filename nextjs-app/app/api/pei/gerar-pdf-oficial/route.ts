@@ -6,6 +6,7 @@ import { gerarPdfDocumentoOficial } from "@/lib/pei-pdf-oficial";
 import type { EngineId } from "@/lib/ai-engines";
 import { z } from "zod";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 // Schema próprio para este endpoint (aceita engine)
 const peiPdfOficialSchema = z.object({
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
             },
         });
     } catch (err) {
-        console.error("PEI gerar-pdf-oficial:", err);
+        logger.error({ err: err }, "PEI gerar-pdf-oficial:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao gerar documento oficial." },
             { status: 500 }

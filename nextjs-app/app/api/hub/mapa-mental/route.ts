@@ -5,6 +5,7 @@ import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "
 import { gerarPromptMapaMentalImagem, gerarPromptMapaMentalHtml } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeText } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
     const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -87,7 +88,7 @@ export async function POST(req: Request) {
             if (lastError) throw lastError;
             return NextResponse.json({ error: "Nenhum modelo Gemini disponível para geração de imagens." }, { status: 500 });
         } catch (err) {
-            console.error("Mapa mental imagem:", err);
+            logger.error({ err: err }, "Mapa mental imagem:");
             return NextResponse.json(
                 { error: err instanceof Error ? err.message : "Erro ao gerar mapa mental (imagem)." },
                 { status: 500 }
@@ -129,7 +130,7 @@ export async function POST(req: Request) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
                 lastError = err instanceof Error ? err : new Error(String(err));
-                console.warn(`Mapa mental HTML (${engine}):`, err);
+                logger.warn(`Mapa mental HTML (${engine}):`, err);
                 continue;
             }
         }

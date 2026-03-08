@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import * as fs from "fs";
 import * as path from "path";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/admin/flat-icons
@@ -28,7 +29,7 @@ export async function GET() {
 
         return NextResponse.json({ icons: files });
     } catch (err) {
-        console.error("[flat-icons] error:", err);
+        logger.error({ err: err }, "[flat-icons] error:");
         return NextResponse.json({ icons: [] });
     }
 }

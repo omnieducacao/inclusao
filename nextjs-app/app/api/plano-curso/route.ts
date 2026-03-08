@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/plano-curso?componente=xxx&serie=xxx
@@ -193,7 +194,7 @@ export async function DELETE(req: Request) {
 
     const { error } = await query;
     if (error) {
-        console.error("DELETE /api/plano-curso:", error);
+        logger.error({ err: error }, "DELETE /api/plano-curso:");
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/familia/medicacao?student_id=xxx
@@ -48,7 +49,7 @@ export async function GET(req: Request) {
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("[familia/medicacao] GET error:", error.message);
+            logger.error({ err: error.message }, "[familia/medicacao] GET error:");
             return NextResponse.json({ registros: [] });
         }
 
@@ -115,13 +116,13 @@ export async function POST(req: Request) {
             .single();
 
         if (insertError) {
-            console.error("[familia/medicacao] INSERT error:", insertError.message);
+            logger.error({ err: insertError.message }, "[familia/medicacao] INSERT error:");
             return NextResponse.json({ error: "Erro ao salvar registro." }, { status: 500 });
         }
 
         return NextResponse.json({ registro }, { status: 201 });
     } catch (err) {
-        console.error("[familia/medicacao] POST error:", err);
+        logger.error({ err: err }, "[familia/medicacao] POST error:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao registrar medicação." },
             { status: 500 }

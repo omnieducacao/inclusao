@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/admin/instagram-feed
@@ -24,7 +25,7 @@ export async function GET() {
         return NextResponse.json({ posts: data || [] });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-        console.error("[admin/instagram-feed] GET error:", err);
+        logger.error({ err: err }, "[admin/instagram-feed] GET error:");
         return NextResponse.json({ error: err.message || "Erro interno" }, { status: 500 });
     }
 }
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
                 });
 
             if (uploadError) {
-                console.error("[upload] Error:", uploadError);
+                logger.error({ err: uploadError }, "[upload] Error:");
                 throw new Error(`Erro no upload: ${uploadError.message}`);
             }
 
@@ -108,7 +109,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ post: data }, { status: 201 });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-        console.error("[admin/instagram-feed] POST error:", err);
+        logger.error({ err: err }, "[admin/instagram-feed] POST error:");
         return NextResponse.json({ error: err.message || "Erro interno" }, { status: 500 });
     }
 }

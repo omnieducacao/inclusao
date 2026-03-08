@@ -7,6 +7,7 @@ import { adaptarPromptProva } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
 import { saveHubGeneratedContent } from "@/lib/hub-tracking";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -70,7 +71,7 @@ export async function POST(req: Request) {
       );
     }
   } catch (err) {
-    console.error("Adaptar Prova parse:", err);
+    logger.error({ err: err }, "Adaptar Prova parse:");
     return NextResponse.json(
       { error: "Erro ao processar arquivo." },
       { status: 400 }
@@ -133,7 +134,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ analise, texto: atividade });
   } catch (err) {
-    console.error("Adaptar Prova IA:", err);
+    logger.error({ err: err }, "Adaptar Prova IA:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao adaptar." },
       { status: 500 }

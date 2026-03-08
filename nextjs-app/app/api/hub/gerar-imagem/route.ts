@@ -3,6 +3,7 @@ import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { gerarImagemInteligente, baixarImagemUrl } from "@/lib/hub-images";
 import { requireAuth } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_IMAGE); if (rl) return rl;
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
     // Já é base64
     return NextResponse.json({ image: urlOuBase64 });
   } catch (err) {
-    console.error("Erro ao gerar imagem:", err);
+    logger.error({ err: err }, "Erro ao gerar imagem:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao gerar imagem." },
       { status: 500 }

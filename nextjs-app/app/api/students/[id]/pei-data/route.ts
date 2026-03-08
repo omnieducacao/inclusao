@@ -2,6 +2,7 @@ import { parseBody, studentPatchDataSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * Rota alternativa para buscar apenas o pei_data de um estudante.
@@ -28,7 +29,7 @@ export async function GET(
     .maybeSingle();
 
   if (error) {
-    console.error("Erro ao buscar pei_data:", error);
+    logger.error({ err: error }, "Erro ao buscar pei_data:");
     return NextResponse.json(
       { error: "Erro ao buscar dados do PEI." },
       { status: 500 }
@@ -77,7 +78,7 @@ export async function PATCH(
     .eq("workspace_id", session.workspace_id);
 
   if (error) {
-    console.error("Erro ao atualizar pei_data:", error);
+    logger.error({ err: error }, "Erro ao atualizar pei_data:");
     return NextResponse.json(
       { error: "Erro ao atualizar dados do PEI." },
       { status: 500 }

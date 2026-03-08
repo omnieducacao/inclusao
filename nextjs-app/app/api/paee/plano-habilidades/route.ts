@@ -5,6 +5,7 @@ import { chatCompletionText } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ plano: restore(resultado) });
   } catch (error) {
-    console.error("Erro ao gerar plano de habilidades:", error);
+    logger.error({ err: error }, "Erro ao gerar plano de habilidades:");
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Erro ao gerar plano de habilidades." },
       { status: 500 }

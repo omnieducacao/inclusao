@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
     const session = await getSession();
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
         const { data: events, count, error } = await query;
 
         if (error) {
-            console.error("Audit query error:", error);
+            logger.error({ err: error }, "Audit query error:");
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ logs, total: count || 0, available_actions: actionsList });
     } catch (err) {
-        console.error("Audit log critical error:", err);
+        logger.error({ err: err }, "Audit log critical error:");
         return NextResponse.json({ error: "Erro interno ao buscar trilha de auditoria." }, { status: 500 });
     }
 }

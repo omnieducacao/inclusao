@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { requireAuthAndPermission } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/hub/salvar-no-plano
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
     .eq("workspace_id", wsId);
 
   if (updateErr) {
-    console.error("Erro ao salvar no plano:", updateErr);
+    logger.error({ err: updateErr }, "Erro ao salvar no plano:");
     return NextResponse.json({ error: "Erro ao salvar" }, { status: 500 });
   }
 

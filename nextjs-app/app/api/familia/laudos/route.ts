@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/familia/laudos?student_id=xxx
@@ -50,7 +51,7 @@ export async function GET(req: Request) {
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("[familia/laudos] GET error:", error.message);
+            logger.error({ err: error.message }, "[familia/laudos] GET error:");
             return NextResponse.json({ laudos: [] });
         }
 
@@ -136,13 +137,13 @@ export async function POST(req: Request) {
             .single();
 
         if (insertError) {
-            console.error("[familia/laudos] INSERT error:", insertError.message);
+            logger.error({ err: insertError.message }, "[familia/laudos] INSERT error:");
             return NextResponse.json({ error: "Erro ao salvar laudo." }, { status: 500 });
         }
 
         return NextResponse.json({ laudo }, { status: 201 });
     } catch (err) {
-        console.error("[familia/laudos] POST error:", err);
+        logger.error({ err: err }, "[familia/laudos] POST error:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao processar laudo." },
             { status: 500 }

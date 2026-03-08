@@ -2,6 +2,7 @@ import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, visionAdapt, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 const IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const PDF_TYPES = ["application/pdf"];
@@ -10,7 +11,7 @@ const PDF_TYPES = ["application/pdf"];
  * Extrai texto do PDF usando pdf-parse.
  */
 async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise<string> {
-   
+
   const pdfParseModule = await import("pdf-parse");
   const pdfParse = pdfParseModule.default || pdfParseModule;
 
@@ -68,9 +69,9 @@ export async function POST(req: Request) {
 
       try {
         raw = await visionAdapt(prompt, base64, mime);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (visionErr: any) {
-        console.error("Erro na visão:", visionErr);
+        logger.error({ err: visionErr }, "Erro na visão:");
         return NextResponse.json(
           { error: `Erro ao processar imagem: ${visionErr?.message || visionErr}` },
           { status: 500 }
@@ -105,7 +106,7 @@ export async function POST(req: Request) {
       try {
         textoPdf = await extractTextFromPdf(buf);
       } catch (err) {
-        console.error("Erro ao extrair texto do PDF:", err);
+        logger.error({ err: err }, "Erro ao extrair texto do PDF:");
         return NextResponse.json(
           { error: err instanceof Error ? err.message : "Não foi possível extrair texto do PDF." },
           { status: 400 }
@@ -117,7 +118,7 @@ export async function POST(req: Request) {
 
       try {
         raw = (await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.2 })).trim();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (apiErr: any) {
         const errorMsg = apiErr?.message || String(apiErr);
         if (errorMsg.includes("API key") || errorMsg.includes("401") || errorMsg.includes("Incorrect API key")) {
@@ -153,7 +154,7 @@ export async function POST(req: Request) {
     try {
       parsed = JSON.parse(jsonStr);
     } catch {
-      console.error("Erro ao fazer parse do JSON. Texto recebido:", raw.substring(0, 500));
+      logger.error({ data: raw.substring(0, 500) }, "Erro ao fazer parse do JSON. Texto recebido");
       const diagnosticoMatch = raw.match(/(?:diagnóstico|diagnostico)[\s:"]*([^",\n}]+)/i);
       parsed = {
         diagnostico: diagnosticoMatch ? diagnosticoMatch[1].trim() : "",
@@ -171,7 +172,7 @@ export async function POST(req: Request) {
         : [],
     });
   } catch (err) {
-    console.error("Erro extrair-laudo:", err);
+    logger.error({ err: err }, "Erro extrair-laudo:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao processar laudo." },
       { status: 500 }

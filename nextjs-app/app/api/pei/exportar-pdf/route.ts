@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { gerarPdfPei } from "@/lib/pei-pdf-export";
 import type { PEIData } from "@/lib/pei";
 import { requireAuth } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const { error: authError } = await requireAuth(); if (authError) return authError;
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (err) {
-    console.error("PEI exportar PDF:", err);
+    logger.error({ err: err }, "PEI exportar PDF:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao exportar PEI em PDF." },
       { status: 500 }

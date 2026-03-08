@@ -1,6 +1,7 @@
 import { parseBody, paeeMapaMentalSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const { error: authError } = await requireAuth(); if (authError) return authError;
@@ -104,7 +105,7 @@ ${roteiro}
     // Se chegou aqui, nenhum modelo funcionou
     throw lastError || new Error("Nenhum modelo de imagem disponível. Verifique se GEMINI_API_KEY está configurada corretamente.");
   } catch (err) {
-    console.error("Erro ao gerar mapa mental com Gemini:", err);
+    logger.error({ err: err }, "Erro ao gerar mapa mental com Gemini:");
     const errMsg = err instanceof Error ? err.message : String(err);
     if (errMsg.includes("API key not valid") || errMsg.includes("API_KEY_INVALID") || errMsg.includes("INVALID_ARGUMENT") || errMsg.includes("401")) {
       return NextResponse.json(

@@ -2,6 +2,7 @@ import { parseBody, adminPlatformConfigSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function GET(req: Request) {
   const session = await getSession();
@@ -21,13 +22,13 @@ export async function GET(req: Request) {
       .maybeSingle();
 
     if (error) {
-      console.error("Erro ao buscar platform_config:", error);
+      logger.error({ err: error }, "Erro ao buscar platform_config:");
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ value: data?.value || "" });
   } catch (err) {
-    console.error("GET /api/admin/platform-config:", err);
+    logger.error({ err: err }, "GET /api/admin/platform-config:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao buscar configuração." },
       { status: 500 }
@@ -58,13 +59,13 @@ export async function POST(req: Request) {
       .upsert({ key, value: String(value).trim() }, { onConflict: "key" });
 
     if (error) {
-      console.error("Erro ao salvar platform_config:", error);
+      logger.error({ err: error }, "Erro ao salvar platform_config:");
       return NextResponse.json({ error: error.message || "Erro ao salvar configuração." }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("POST /api/admin/platform-config:", err);
+    logger.error({ err: err }, "POST /api/admin/platform-config:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao salvar configuração." },
       { status: 500 }

@@ -5,6 +5,7 @@ import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "
 import { gerarPromptRoteiroAula } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
     const textoRaw = await chatCompletionText(engine, anonymized, { temperature: 0.7 });
     return NextResponse.json({ texto: restore(textoRaw) });
   } catch (e) {
-    console.error("Hub roteiro:", e);
+    logger.error({ err: e }, "Hub roteiro:");
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Erro ao gerar roteiro." },
       { status: 500 }

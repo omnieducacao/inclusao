@@ -2,6 +2,7 @@ import { parseBody, adminAnnouncementSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 const CONFIG_KEY = "announcements";
 
@@ -54,7 +55,7 @@ export async function GET(req: Request) {
 
         return NextResponse.json({ announcements });
     } catch (err) {
-        console.error("Announcements GET error:", err);
+        logger.error({ err: err }, "Announcements GET error:");
         return NextResponse.json({ error: "Erro ao buscar avisos." }, { status: 500 });
     }
 }
@@ -122,7 +123,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ ok: true, announcements });
     } catch (err) {
-        console.error("Announcements POST error:", err);
+        logger.error({ err: err }, "Announcements POST error:");
         return NextResponse.json({ error: "Erro ao salvar aviso." }, { status: 500 });
     }
 }

@@ -2,6 +2,7 @@ import { parseBody, adminWorkspaceCreateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   const session = await getSession();
@@ -14,7 +15,7 @@ export async function GET() {
     const { data, error } = await sb.from("workspaces").select("*").order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Erro ao listar workspaces:", error);
+      logger.error({ err: error }, "Erro ao listar workspaces:");
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -35,7 +36,7 @@ export async function GET() {
 
     return NextResponse.json({ workspaces });
   } catch (err) {
-    console.error("GET /api/admin/workspaces:", err);
+    logger.error({ err: err }, "GET /api/admin/workspaces:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao listar escolas." },
       { status: 500 }
@@ -93,13 +94,13 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.error("Erro ao criar workspace:", error);
+      logger.error({ err: error }, "Erro ao criar workspace:");
       return NextResponse.json({ error: error.message || "Erro ao criar escola." }, { status: 500 });
     }
 
     return NextResponse.json({ workspace: data, pin });
   } catch (err) {
-    console.error("POST /api/admin/workspaces:", err);
+    logger.error({ err: err }, "POST /api/admin/workspaces:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao criar escola." },
       { status: 500 }

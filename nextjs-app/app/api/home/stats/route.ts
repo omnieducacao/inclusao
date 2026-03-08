@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/home/stats
@@ -85,7 +86,7 @@ export async function GET() {
             },
         });
     } catch (err) {
-        console.error("Home stats error:", err);
+        logger.error({ err: err }, "Home stats error:");
         return NextResponse.json(
             { error: "Erro ao carregar estatísticas" },
             { status: 500 }

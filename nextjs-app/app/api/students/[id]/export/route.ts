@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logExport } from "@/lib/audit";
 import { decryptField } from "@/lib/encryption";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/students/[id]/export
@@ -130,7 +131,7 @@ export async function GET(
 
         return NextResponse.json(exportData);
     } catch (err) {
-        console.error("[export] Error exporting student data:", err);
+        logger.error({ err: err }, "[export] Error exporting student data:");
         return NextResponse.json({ error: "Erro ao exportar dados" }, { status: 500 });
     }
 }

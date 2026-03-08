@@ -4,6 +4,7 @@ import { getSupabase } from "@/lib/supabase";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
 import { ESCALA_OMNISFERA, NivelOmnisfera } from "@/lib/omnisfera-types";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/pei/adaptar-plano
@@ -247,7 +248,7 @@ AVALIAÇÃO: Observação Direta, Registro Escrito, Portfólio, Autoavaliação,
 
         return NextResponse.json({ error: "Resposta da IA não é JSON válido" }, { status: 500 });
     } catch (err) {
-        console.error("adaptar-plano error:", err);
+        logger.error({ err: err }, "adaptar-plano error:");
         return NextResponse.json({
             error: err instanceof Error ? err.message : "Erro ao gerar adaptações",
         }, { status: 500 });

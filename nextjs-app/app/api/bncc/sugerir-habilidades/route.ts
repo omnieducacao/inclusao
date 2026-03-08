@@ -4,6 +4,7 @@ import { chatCompletionText } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -99,7 +100,7 @@ ${textoLista}`;
 
     return NextResponse.json({ codigos, motivo });
   } catch (error) {
-    console.error("Erro ao sugerir habilidades:", error);
+    logger.error({ err: error }, "Erro ao sugerir habilidades:");
     return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }

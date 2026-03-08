@@ -5,6 +5,7 @@ import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import type { DimensionamentoPGI } from "@/lib/pgi";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -96,7 +97,7 @@ REGRAS:
 
     return NextResponse.json({ acoes });
   } catch (err) {
-    console.error("Erro ao gerar ações PGI:", err);
+    logger.error({ err: err }, "Erro ao gerar ações PGI:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao gerar ações." },
       { status: 500 }

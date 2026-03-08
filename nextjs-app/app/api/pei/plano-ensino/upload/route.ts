@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/pei/plano-ensino/upload
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
         });
 
     if (uploadError) {
-        console.error("[plano-ensino/upload] Storage error:", uploadError);
+        logger.error({ err: uploadError }, "[plano-ensino/upload] Storage error:");
         return NextResponse.json(
             { error: `Erro no upload: ${uploadError.message}` },
             { status: 500 }
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
         .single();
 
     if (dbError) {
-        console.error("[plano-ensino/upload] DB error:", dbError);
+        logger.error({ err: dbError }, "[plano-ensino/upload] DB error:");
         return NextResponse.json({ error: dbError.message }, { status: 500 });
     }
 

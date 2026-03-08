@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/familia/estudante/[id]
@@ -34,7 +35,7 @@ export async function GET(
     .maybeSingle();
 
   if (linkError) {
-    console.error("[familia/estudante] link query error:", linkError.message);
+    logger.error({ err: linkError.message }, "[familia/estudante] link query error:");
     return NextResponse.json({ error: "Erro ao verificar vínculo" }, { status: 500 });
   }
 
@@ -51,7 +52,7 @@ export async function GET(
     .maybeSingle();
 
   if (studentError) {
-    console.error("[familia/estudante] student query error:", studentError.message);
+    logger.error({ err: studentError.message }, "[familia/estudante] student query error:");
     return NextResponse.json({ error: "Erro ao buscar estudante" }, { status: 500 });
   }
 
@@ -77,7 +78,7 @@ export async function GET(
       .order("bimestre", { ascending: true });
     registros = (processualData || []) as typeof registros;
   } catch (err) {
-    console.warn("[familia/estudante] avaliacao_processual query failed (table may not exist):", err);
+    logger.warn({ err: err }, "[familia/estudante] avaliacao_processual query failed (table may not exist):");
   }
 
   const disciplinas = [...new Set(registros.map((r) => r.disciplina))];
@@ -93,7 +94,7 @@ export async function GET(
       .maybeSingle();
     ack = ackData;
   } catch (err) {
-    console.warn("[familia/estudante] family_pei_acknowledgments query failed (table may not exist):", err);
+    logger.warn({ err: err }, "[familia/estudante] family_pei_acknowledgments query failed (table may not exist):");
   }
 
   const evolucaoPorDisciplina = disciplinas.map((disc: string) => {

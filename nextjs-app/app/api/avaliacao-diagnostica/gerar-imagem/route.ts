@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/permissions";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { gerarImagemInteligente } from "@/lib/hub-images";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/avaliacao-diagnostica/gerar-imagem
@@ -114,7 +115,7 @@ export async function POST(req: Request) {
             prompt_usado: prompt.slice(0, 200),
         });
     } catch (err) {
-        console.error("Erro ao gerar imagem diagnóstica:", err);
+        logger.error({ err: err }, "Erro ao gerar imagem diagnóstica:");
         return NextResponse.json({
             error: err instanceof Error ? err.message : "Erro ao gerar imagem",
             fallback: true,

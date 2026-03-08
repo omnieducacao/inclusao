@@ -8,6 +8,7 @@ import {
   verifyFamilyPassword,
 } from "@/lib/auth";
 import { createSession } from "@/lib/session";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AUTH); if (rl) return rl;
@@ -88,7 +89,7 @@ export async function POST(req: Request) {
       redirect: found.role === "family" ? "/familia" : undefined,
     });
   } catch (err) {
-    console.error("Login error:", err);
+    logger.error({ err: err }, "Login error:");
     return NextResponse.json(
       { error: "Erro ao fazer login. Tente novamente." },
       { status: 500 }

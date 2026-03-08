@@ -5,6 +5,7 @@ import {
   objetivosEIPorIdadeCampo,
 } from "@/lib/bncc";
 import { requireAuth } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 export async function GET(req: Request) {
   const { error: authError } = await requireAuth(); if (authError) return authError;
@@ -24,7 +25,7 @@ export async function GET(req: Request) {
       objetivos,
     });
   } catch (err) {
-    console.error("BNCC EI:", err);
+    logger.error({ err: err }, "BNCC EI:");
     return NextResponse.json(
       { error: "Erro ao carregar BNCC EI." },
       { status: 500 }

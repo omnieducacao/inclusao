@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * GET  /api/avaliacao-processual/evolucao?studentId=X&disciplina=Y
@@ -117,7 +118,7 @@ export async function GET(req: Request) {
             },
         });
     } catch (err) {
-        console.error("Erro ao buscar evolução:", err);
+        logger.error({ err: err }, "Erro ao buscar evolução:");
         return NextResponse.json({
             evolucao: [],
             resumo: { total_registros: 0, media_geral: null, tendencia: "sem_dados", disciplinas: [] },

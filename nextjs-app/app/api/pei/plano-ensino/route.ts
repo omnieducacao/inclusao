@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/pei/plano-ensino
@@ -151,7 +152,7 @@ export async function POST(req: Request) {
             .single();
 
         if (error) {
-            console.error("POST /api/pei/plano-ensino (update):", error);
+            logger.error({ err: error }, "POST /api/pei/plano-ensino (update):");
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
         return NextResponse.json({ ok: true, plano: data });
@@ -165,7 +166,7 @@ export async function POST(req: Request) {
         .single();
 
     if (error) {
-        console.error("POST /api/pei/plano-ensino (create):", error);
+        logger.error({ err: error }, "POST /api/pei/plano-ensino (create):");
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -198,7 +199,7 @@ export async function DELETE(req: Request) {
         .eq("workspace_id", session.workspace_id);
 
     if (error) {
-        console.error("DELETE /api/pei/plano-ensino:", error);
+        logger.error({ err: error }, "DELETE /api/pei/plano-ensino:");
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 

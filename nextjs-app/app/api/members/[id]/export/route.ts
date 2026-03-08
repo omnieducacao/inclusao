@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function GET(
     req: Request,
@@ -78,7 +79,7 @@ export async function GET(
             },
         });
     } catch (err) {
-        console.error("Export data error:", err);
+        logger.error({ err: err }, "Export data error:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao exportar dados." },
             { status: 500 }

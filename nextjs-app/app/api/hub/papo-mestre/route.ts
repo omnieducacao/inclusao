@@ -5,6 +5,7 @@ import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "
 import { gerarPromptPapoMestre } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
     const textoRaw = await chatCompletionText(engine, anonymized, { temperature: 0.8 });
     return NextResponse.json({ texto: restore(textoRaw) });
   } catch (err) {
-    console.error("Hub papo-mestre:", err);
+    logger.error({ err: err }, "Hub papo-mestre:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao gerar conexões." },
       { status: 500 }

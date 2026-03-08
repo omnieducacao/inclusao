@@ -2,6 +2,7 @@ import { parseBody, peiVersionCreateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/pei/versions?studentId=xxx
@@ -127,7 +128,7 @@ export async function POST(req: Request) {
         .eq("workspace_id", session.workspace_id);
 
     if (error) {
-        console.error("Erro ao salvar versão:", error);
+        logger.error({ err: error }, "Erro ao salvar versão:");
         return NextResponse.json({ error: "Erro ao salvar versão" }, { status: 500 });
     }
 
@@ -176,7 +177,7 @@ export async function PATCH(req: Request) {
         .eq("workspace_id", session.workspace_id);
 
     if (error) {
-        console.error("Erro ao restaurar versão:", error);
+        logger.error({ err: error }, "Erro ao restaurar versão:");
         return NextResponse.json({ error: "Erro ao restaurar versão" }, { status: 500 });
     }
 

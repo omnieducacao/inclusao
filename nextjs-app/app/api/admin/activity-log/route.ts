@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
     const session = await getSession();
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
         const { data: events, count, error } = await query;
 
         if (error) {
-            console.error("Activity log error:", error);
+            logger.error({ err: error }, "Activity log error:");
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ logs, total: count || 0, event_types: uniqueTypes });
     } catch (err) {
-        console.error("Activity log error:", err);
+        logger.error({ err: err }, "Activity log error:");
         return NextResponse.json({ error: "Erro ao buscar logs." }, { status: 500 });
     }
 }

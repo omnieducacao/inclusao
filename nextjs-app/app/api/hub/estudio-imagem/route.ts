@@ -2,6 +2,7 @@ import { parseBody, hubEstudioImagemSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_IMAGE); if (rl) return rl;
@@ -102,7 +103,7 @@ CRITICAL: NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS. Just the v
 
     return NextResponse.json({ error: "Nenhum modelo Gemini disponível para geração de imagens." }, { status: 500 });
   } catch (err) {
-    console.error("Estudio imagem:", err);
+    logger.error({ err: err }, "Estudio imagem:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao gerar imagem." },
       { status: 500 }

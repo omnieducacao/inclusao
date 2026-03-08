@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/pei/avaliacao-diagnostica/salvar
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
         .single();
 
     if (error) {
-        console.error("POST /api/pei/avaliacao-diagnostica/salvar:", error);
+        logger.error({ err: error }, "POST /api/pei/avaliacao-diagnostica/salvar:");
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 

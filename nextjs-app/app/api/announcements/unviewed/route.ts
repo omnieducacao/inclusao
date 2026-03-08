@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/announcements/unviewed
@@ -83,7 +84,7 @@ export async function GET() {
 
         return NextResponse.json({ announcements: unviewedAnnouncements });
     } catch (err) {
-        console.error("Unviewed announcements error:", err);
+        logger.error({ err: err }, "Unviewed announcements error:");
         return NextResponse.json({ error: "Erro ao buscar avisos." }, { status: 500 });
     }
 }

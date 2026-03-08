@@ -5,6 +5,7 @@ import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
     const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -87,7 +88,7 @@ PLANO PEDAGÓGICO:\n${iaSugestao || "em construção"}`;
         const faqs = JSON.parse(jsonMatch[0]);
         return NextResponse.json({ faqs });
     } catch (err) {
-        console.error("PEI FAQ:", err);
+        logger.error({ err: err }, "PEI FAQ:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao gerar FAQ." },
             { status: 500 }

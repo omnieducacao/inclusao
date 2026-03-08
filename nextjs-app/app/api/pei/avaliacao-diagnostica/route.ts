@@ -13,6 +13,7 @@ import type {
     NivelOmnisfera,
     PerfilNEE,
 } from "@/lib/omnisfera-types";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/pei/avaliacao-diagnostica
@@ -241,13 +242,13 @@ export async function POST(req: Request) {
             .single();
 
         if (error) {
-            console.error("POST /api/pei/avaliacao-diagnostica (save):", error);
+            logger.error({ err: error }, "POST /api/pei/avaliacao-diagnostica (save):");
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
         return NextResponse.json({ ok: true, avaliacao });
     } catch (err) {
-        console.error("POST /api/pei/avaliacao-diagnostica (AI):", err);
+        logger.error({ err: err }, "POST /api/pei/avaliacao-diagnostica (AI):");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao gerar avaliação" },
             { status: 500 }
@@ -293,7 +294,7 @@ export async function PATCH(req: Request) {
         .single();
 
     if (error) {
-        console.error("PATCH /api/pei/avaliacao-diagnostica:", error);
+        logger.error({ err: error }, "PATCH /api/pei/avaliacao-diagnostica:");
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -321,7 +322,7 @@ export async function DELETE(req: Request) {
         .eq("workspace_id", session.workspace_id);
 
     if (error) {
-        console.error("DELETE /api/pei/avaliacao-diagnostica:", error);
+        logger.error({ err: error }, "DELETE /api/pei/avaliacao-diagnostica:");
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 

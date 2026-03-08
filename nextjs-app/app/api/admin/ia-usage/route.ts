@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false });
 
     if (iaError) {
-      console.error("Erro ao buscar ia_usage:", iaError);
+      logger.error({ err: iaError }, "Erro ao buscar ia_usage:");
       return NextResponse.json({ usage: [] });
     }
 
@@ -89,7 +90,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ usage: usageList });
   } catch (err) {
-    console.error("Erro ao buscar uso de IA:", err);
+    logger.error({ err: err }, "Erro ao buscar uso de IA:");
     return NextResponse.json({ error: "Erro ao buscar dados" }, { status: 500 });
   }
 }

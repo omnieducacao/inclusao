@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/search?q=query
@@ -88,7 +89,7 @@ export async function GET(req: NextRequest) {
             members: memberResults,
         });
     } catch (error) {
-        console.error("Search error:", error);
+        logger.error({ err: error }, "Search error:");
         return NextResponse.json({ error: "Erro na busca" }, { status: 500 });
     }
 }

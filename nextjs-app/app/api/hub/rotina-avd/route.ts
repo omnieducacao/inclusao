@@ -5,6 +5,7 @@ import { chatCompletionText, getEngineErrorWithWorkspace } from "@/lib/ai-engine
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -52,7 +53,7 @@ Use linguagem simples e prática. NÃO inclua diagnóstico ou CID.`;
     const textoRaw = await chatCompletionText(engine, anonymized, { temperature: 0.7 });
     return NextResponse.json({ texto: restore(textoRaw || "").trim() });
   } catch (e) {
-    console.error("Rotina AVD:", e);
+    logger.error({ err: e }, "Rotina AVD:");
     return NextResponse.json({ error: e instanceof Error ? e.message : "Erro." }, { status: 500 });
   }
 }

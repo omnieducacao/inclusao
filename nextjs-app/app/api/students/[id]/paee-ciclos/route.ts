@@ -2,6 +2,7 @@ import { parseBody, studentPatchDataSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function PATCH(
   req: Request,
@@ -32,7 +33,7 @@ export async function PATCH(
     .eq("workspace_id", session.workspace_id);
 
   if (error) {
-    console.error("Erro ao atualizar paee_ciclos:", error);
+    logger.error({ err: error }, "Erro ao atualizar paee_ciclos:");
     return NextResponse.json(
       { error: "Erro ao atualizar ciclos PAEE." },
       { status: 500 }

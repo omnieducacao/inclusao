@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/familia/ciencia-pei
@@ -70,7 +71,7 @@ export async function POST(req: Request) {
   });
 
   if (error) {
-    console.error("[ciencia-pei] Erro ao inserir:", error);
+    logger.error({ err: error }, "[ciencia-pei] Erro ao inserir:");
     return NextResponse.json({ error: "Erro ao registrar ciência" }, { status: 500 });
   }
 

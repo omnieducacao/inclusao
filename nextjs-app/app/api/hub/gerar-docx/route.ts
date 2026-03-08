@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { textToDocxBuffer } from "@/lib/docx-simples";
 import { docxComImagens } from "@/lib/docx-com-imagens";
 import { requireAuth } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const { error: authError } = await requireAuth(); if (authError) return authError;
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (err) {
-    console.error("gerar-docx:", err);
+    logger.error({ err: err }, "gerar-docx:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao gerar DOCX." },
       { status: 500 }

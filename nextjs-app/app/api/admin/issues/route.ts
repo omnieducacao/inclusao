@@ -2,6 +2,7 @@ import { parseBody, adminIssueCreateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function GET(req: Request) {
   const session = await getSession();
@@ -28,13 +29,13 @@ export async function GET(req: Request) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Erro ao listar issues:", error);
+      logger.error({ err: error }, "Erro ao listar issues:");
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ issues: data || [] });
   } catch (err) {
-    console.error("GET /api/admin/issues:", err);
+    logger.error({ err: err }, "GET /api/admin/issues:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao listar bugs." },
       { status: 500 }
@@ -78,13 +79,13 @@ export async function POST(req: Request) {
     const { data, error } = await sb.from("platform_issues").insert(payload).select().single();
 
     if (error) {
-      console.error("Erro ao criar issue:", error);
+      logger.error({ err: error }, "Erro ao criar issue:");
       return NextResponse.json({ error: error.message || "Erro ao registrar bug." }, { status: 500 });
     }
 
     return NextResponse.json({ issue: data });
   } catch (err) {
-    console.error("POST /api/admin/issues:", err);
+    logger.error({ err: err }, "POST /api/admin/issues:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao registrar bug." },
       { status: 500 }

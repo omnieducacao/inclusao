@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { chatCompletionText } from "@/lib/ai-engines";
 import { anonymizeText } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/avaliacao-processual/gerar-relatorio
@@ -98,7 +99,7 @@ RETORNE em JSON válido com esta estrutura exata:
 
         return NextResponse.json({ relatorio });
     } catch (err) {
-        console.error("Erro ao gerar relatório de evolução:", err);
+        logger.error({ err: err }, "Erro ao gerar relatório de evolução:");
 
         // Structured fallback
         const medias = periodos

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
       .limit(limit);
 
     if (eventsError) {
-      console.error("Erro ao buscar usage_events:", eventsError);
+      logger.error({ err: eventsError }, "Erro ao buscar usage_events:");
       return NextResponse.json({ 
         total: 0,
         by_type: [],
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
       recent,
     });
   } catch (err) {
-    console.error("Erro ao buscar métricas:", err);
+    logger.error({ err: err }, "Erro ao buscar métricas:");
     return NextResponse.json({ error: "Erro ao buscar dados" }, { status: 500 });
   }
 }

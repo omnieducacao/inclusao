@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/pei/plano-ensino/sugestao-ia
@@ -119,7 +120,7 @@ Responda APENAS em formato JSON válido, sem markdown:
 
         return NextResponse.json({ error: "Resposta inválida da IA" }, { status: 500 });
     } catch (err) {
-        console.error("Sugestão IA error:", err);
+        logger.error({ err: err }, "Sugestão IA error:");
         return NextResponse.json({
             sugestao: {
                 objetivos: ["Identificar", "Comparar", "Analisar"],

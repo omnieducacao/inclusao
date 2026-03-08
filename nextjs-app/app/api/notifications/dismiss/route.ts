@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/notifications/dismiss
@@ -45,13 +46,13 @@ export async function POST(request: Request) {
             });
 
         if (error) {
-            console.error("Error dismissing notification:", error);
+            logger.error({ err: error }, "Error dismissing notification:");
             return NextResponse.json({ error: "Erro ao dispensar notificação." }, { status: 500 });
         }
 
         return NextResponse.json({ ok: true });
     } catch (err) {
-        console.error("Dismiss notification error:", err);
+        logger.error({ err: err }, "Dismiss notification error:");
         return NextResponse.json({ error: "Erro ao dispensar notificação." }, { status: 500 });
     }
 }

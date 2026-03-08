@@ -8,6 +8,7 @@ import { comprimirArquivoImagem } from "@/lib/image-compression";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeText } from "@/lib/ai-anonymize";
 import { saveHubGeneratedContent } from "@/lib/hub-tracking";
+import { logger } from "@/lib/logger";
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
 const MAX_VISION_BYTES = 3 * 1024 * 1024; // 3MB (limite para APIs de visão)
@@ -91,7 +92,7 @@ export async function POST(req: Request) {
       imagemSeparadaBase64 = compressedBufferSep.toString("base64");
     }
   } catch (err) {
-    console.error("Adaptar Atividade parse:", err);
+    logger.error({ err: err }, "Adaptar Atividade parse:");
     return NextResponse.json(
       { error: "Erro ao processar imagem." },
       { status: 400 }
@@ -155,7 +156,7 @@ export async function POST(req: Request) {
         const result = await model.generateContent(contents);
         fullText = (result.response.text() || "").trim();
       } catch (geminiError) {
-        console.error("Erro ao usar Gemini com múltiplas imagens, tentando fallback OpenAI:", geminiError);
+        logger.error({ err: geminiError }, "Erro ao usar Gemini com múltiplas imagens, tentando fallback OpenAI:");
         // Fallback: usar OpenAI gpt-4o que também suporta múltiplas imagens
         const openaiKeyRaw = process.env.OPENAI_API_KEY || "";
         if (openaiKeyRaw.startsWith("sk-or-")) {
@@ -187,7 +188,7 @@ export async function POST(req: Request) {
             });
             fullText = (completion.choices[0]?.message?.content || "").trim();
           } catch (openaiError) {
-            console.error("Erro ao usar OpenAI como fallback:", openaiError);
+            logger.error({ err: openaiError }, "Erro ao usar OpenAI como fallback:");
             throw new Error(`Erro ao processar imagens: ${geminiError instanceof Error ? geminiError.message : String(geminiError)}`);
           }
         } else {
@@ -231,7 +232,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ analise, texto: atividade });
   } catch (err) {
-    console.error("Adaptar Atividade IA:", err);
+    logger.error({ err: err }, "Adaptar Atividade IA:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao adaptar." },
       { status: 500 }

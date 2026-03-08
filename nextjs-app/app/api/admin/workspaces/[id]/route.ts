@@ -2,6 +2,7 @@ import { parseBody, adminWorkspacePatchSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -45,13 +46,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       .single();
 
     if (error) {
-      console.error("Erro ao atualizar workspace:", error);
+      logger.error({ err: error }, "Erro ao atualizar workspace:");
       return NextResponse.json({ error: error.message || "Erro ao atualizar escola." }, { status: 500 });
     }
 
     return NextResponse.json({ workspace: data });
   } catch (err) {
-    console.error("PATCH /api/admin/workspaces/[id]:", err);
+    logger.error({ err: err }, "PATCH /api/admin/workspaces/[id]:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao atualizar escola." },
       { status: 500 }
@@ -75,13 +76,13 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const { error } = await sb.from("workspaces").delete().eq("id", id);
 
     if (error) {
-      console.error("Erro ao excluir workspace:", error);
+      logger.error({ err: error }, "Erro ao excluir workspace:");
       return NextResponse.json({ error: error.message || "Erro ao excluir escola." }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("DELETE /api/admin/workspaces/[id]:", err);
+    logger.error({ err: err }, "DELETE /api/admin/workspaces/[id]:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao excluir escola." },
       { status: 500 }

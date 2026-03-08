@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
     const session = await getSession();
@@ -77,7 +78,7 @@ export async function GET() {
             school_breakdown: schoolBreakdown.sort((a, b) => b.students - a.students),
         });
     } catch (err) {
-        console.error("Dashboard error:", err);
+        logger.error({ err: err }, "Dashboard error:");
         return NextResponse.json({ error: "Erro ao carregar dashboard." }, { status: 500 });
     }
 }

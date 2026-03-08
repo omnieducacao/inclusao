@@ -6,6 +6,7 @@ import type { EngineId } from "@/lib/ai-engines";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/paee/relatorio-ciclo
@@ -120,7 +121,7 @@ ${diarioResumo}`;
 
         return NextResponse.json({ texto: restore(texto || "").trim() });
     } catch (err) {
-        console.error("PAEE Relatório Ciclo:", err);
+        logger.error({ err: err }, "PAEE Relatório Ciclo:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao gerar relatório." },
             { status: 500 }

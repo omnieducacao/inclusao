@@ -6,6 +6,7 @@ import {
     buildPromptCompleto,
     templateEstrategiasPraticas,
 } from "@/lib/omnisfera-prompts";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
     const session = await getSession();
@@ -79,7 +80,7 @@ export async function POST(req: Request) {
             tipo: "estrategias_praticas",
         });
     } catch (err: unknown) {
-        console.error("Erro ao gerar estratégias práticas:", err);
+        logger.error({ err: err }, "Erro ao gerar estratégias práticas:");
         return NextResponse.json({
             error: "Erro ao gerar estratégias",
             detail: err instanceof Error ? err.message : String(err),

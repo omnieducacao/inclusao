@@ -7,6 +7,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function POST(
     req: Request,
@@ -51,7 +52,7 @@ export async function POST(
             .eq("id", id);
 
         if (updateError) {
-            console.error("Erro ao anonimizar membro:", updateError);
+            logger.error({ err: updateError }, "Erro ao anonimizar membro:");
             return NextResponse.json({ error: "Erro ao processar exclusão." }, { status: 500 });
         }
 
@@ -71,7 +72,7 @@ export async function POST(
             nota: "Registros de auditoria foram preservados conforme exigido por lei.",
         });
     } catch (err) {
-        console.error("Delete data error:", err);
+        logger.error({ err: err }, "Delete data error:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao processar exclusão." },
             { status: 500 }

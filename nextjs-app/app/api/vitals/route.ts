@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
     try {
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
         if (res.error) {
             // Em caso de erro (tabela não existente), podemos tratar sutilmente
             // Apenas emitir log, sem travar o Next client beacon
-            console.warn("API Vitals falhou ao persistir DB (tabela inexistente ou sem permissão):", res.error.message);
+            logger.warn({ err: res.error.message }, "API Vitals falhou ao persistir DB (tabela inexistente ou sem permissão):");
         }
 
         return NextResponse.json({ success: true });

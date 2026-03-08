@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { carregarHabilidadesEFPorComponente, carregarEstruturaEF } from "@/lib/bncc";
 import { requireAuth } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 export async function GET(req: Request) {
   const { error: authError } = await requireAuth(); if (authError) return authError;
@@ -16,7 +17,7 @@ export async function GET(req: Request) {
     const blocos = carregarHabilidadesEFPorComponente(serie);
     return NextResponse.json(blocos);
   } catch (err) {
-    console.error("BNCC EF:", err);
+    logger.error({ err: err }, "BNCC EF:");
     return NextResponse.json(
       { error: "Erro ao carregar BNCC EF." },
       { status: 500 }

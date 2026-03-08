@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/pei-professor/salvar
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
         .eq("id", existing.id);
 
     if (error) {
-        console.error("[pei-professor/salvar] error:", error.message);
+        logger.error({ err: error.message }, "[pei-professor/salvar] error:");
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 

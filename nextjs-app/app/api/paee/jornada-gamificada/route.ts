@@ -5,6 +5,7 @@ import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 type CicloPayload = {
   config_ciclo?: {
@@ -144,7 +145,7 @@ ${contexto}`;
     );
     return NextResponse.json({ texto: restore(texto || "").trim() });
   } catch (err) {
-    console.error("PAEE jornada gamificada:", err);
+    logger.error({ err: err }, "PAEE jornada gamificada:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao gerar jornada." },
       { status: 500 }

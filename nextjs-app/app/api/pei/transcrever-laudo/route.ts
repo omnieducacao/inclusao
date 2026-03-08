@@ -2,6 +2,7 @@ import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, visionAdapt, getEngineError, type EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 const IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const PDF_TYPES = ["application/pdf"];
@@ -70,7 +71,7 @@ export async function POST(req: Request) {
                 transcricao = await visionAdapt(prompt, base64, mime);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (visionErr: any) {
-                console.error("Erro na visão:", visionErr);
+                logger.error({ err: visionErr }, "Erro na visão:");
                 return NextResponse.json(
                     { error: `Erro ao processar imagem: ${visionErr?.message || visionErr}` },
                     { status: 500 }
@@ -82,7 +83,7 @@ export async function POST(req: Request) {
             try {
                 textoPdf = await extractTextFromPdf(buf);
             } catch (err) {
-                console.error("Erro ao extrair texto do PDF:", err);
+                logger.error({ err: err }, "Erro ao extrair texto do PDF:");
                 return NextResponse.json(
                     { error: err instanceof Error ? err.message : "Não foi possível extrair texto do PDF." },
                     { status: 400 }
@@ -122,7 +123,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ transcricao });
     } catch (err) {
-        console.error("Erro transcrever-laudo:", err);
+        logger.error({ err: err }, "Erro transcrever-laudo:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao transcrever documento." },
             { status: 500 }

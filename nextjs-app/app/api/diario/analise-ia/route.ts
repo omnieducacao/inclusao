@@ -5,6 +5,7 @@ import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 type RegistroResumo = {
     data_sessao?: string;
@@ -116,7 +117,7 @@ ${resumo}`;
         const texto = await chatCompletionText(engine, anonymized, { temperature: 0.5 });
         return NextResponse.json({ texto: restore(texto || "").trim() });
     } catch (err) {
-        console.error("Diário Análise IA:", err);
+        logger.error({ err: err }, "Diário Análise IA:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao analisar registros." },
             { status: 500 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import * as fs from "fs";
 import * as path from "path";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/admin/topbar-icons
@@ -29,7 +30,7 @@ export async function GET() {
 
         return NextResponse.json({ icons: files });
     } catch (err) {
-        console.error("[topbar-icons] error:", err);
+        logger.error({ err: err }, "[topbar-icons] error:");
         return NextResponse.json({ icons: [] });
     }
 }

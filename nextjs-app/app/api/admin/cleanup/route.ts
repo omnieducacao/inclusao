@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/admin/cleanup
@@ -179,7 +180,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ ok: true, report });
     } catch (err) {
-        console.error("[admin/cleanup] Error:", err);
+        logger.error({ err: err }, "[admin/cleanup] Error:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro interno" },
             { status: 500 }

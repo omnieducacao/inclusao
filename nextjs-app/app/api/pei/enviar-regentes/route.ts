@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * Match flexível entre a série do estudante (ex: "7º Ano (EFAF)") e o
@@ -138,7 +139,7 @@ export async function GET(req: Request) {
         .order("disciplina");
 
     if (error) {
-        console.error("GET /api/pei/enviar-regentes:", error);
+        logger.error({ err: error }, "GET /api/pei/enviar-regentes:");
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -310,7 +311,7 @@ export async function POST(req: Request) {
         .select();
 
     if (error) {
-        console.error("POST /api/pei/enviar-regentes:", error);
+        logger.error({ err: error }, "POST /api/pei/enviar-regentes:");
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -339,7 +340,7 @@ export async function DELETE(req: Request) {
         .eq("workspace_id", session.workspace_id);
 
     if (error) {
-        console.error("DELETE /api/pei/enviar-regentes:", error);
+        logger.error({ err: error }, "DELETE /api/pei/enviar-regentes:");
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 

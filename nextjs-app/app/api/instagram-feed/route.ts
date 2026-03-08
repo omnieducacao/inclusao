@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/instagram-feed
@@ -20,7 +21,7 @@ export async function GET() {
         return NextResponse.json({ posts: data || [] });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-        console.error("[instagram-feed] GET error:", err);
+        logger.error({ err: err }, "[instagram-feed] GET error:");
         return NextResponse.json({ posts: [] });
     }
 }

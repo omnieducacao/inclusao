@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { verifyPlatformAdmin } from "@/lib/auth";
 import { createSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AUTH); if (rl) return rl;
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
       usuario_nome: data?.nome || email,
     });
   } catch (err) {
-    console.error("Admin login error:", err);
+    logger.error({ err: err }, "Admin login error:");
     return NextResponse.json(
       { error: "Erro ao fazer login. Tente novamente." },
       { status: 500 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
     const session = await getSession();
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
         const { data: members, error } = await query.order("nome");
 
         if (error) {
-            console.error("Users error:", error);
+            logger.error({ err: error }, "Users error:");
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ users });
     } catch (err) {
-        console.error("Users error:", err);
+        logger.error({ err: err }, "Users error:");
         return NextResponse.json({ error: "Erro ao listar usuários." }, { status: 500 });
     }
 }
@@ -99,7 +100,7 @@ export async function PATCH(request: NextRequest) {
 
         return NextResponse.json({ ok: true });
     } catch (err) {
-        console.error("Toggle user error:", err);
+        logger.error({ err: err }, "Toggle user error:");
         return NextResponse.json({ error: "Erro ao atualizar usuário." }, { status: 500 });
     }
 }

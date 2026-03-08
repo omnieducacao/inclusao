@@ -5,6 +5,7 @@ import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
     const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -88,7 +89,7 @@ RELATÓRIO IA: ${((peiData.ia_sugestao as string) || "").slice(0, 600)}`;
         const mapa = JSON.parse(jsonMatch[0]);
         return NextResponse.json({ mapa });
     } catch (err) {
-        console.error("PEI Mapa Mental:", err);
+        logger.error({ err: err }, "PEI Mapa Mental:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao gerar mapa mental." },
             { status: 500 }

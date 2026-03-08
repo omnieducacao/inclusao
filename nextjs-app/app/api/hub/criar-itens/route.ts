@@ -6,6 +6,7 @@ import { criarPromptItensAvancado } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
 import { saveHubGeneratedContent } from "@/lib/hub-tracking";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
     const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
         }
         return NextResponse.json({ texto });
     } catch (err) {
-        console.error("Hub criar-itens:", err);
+        logger.error({ err: err }, "Hub criar-itens:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao gerar itens." },
             { status: 500 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import * as fs from "fs";
 import * as path from "path";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/admin/lottie-icons
@@ -43,7 +44,7 @@ export async function GET() {
 
         return NextResponse.json({ icons });
     } catch (err) {
-        console.error("[lottie-icons] error:", err);
+        logger.error({ err: err }, "[lottie-icons] error:");
         return NextResponse.json({ icons: [] });
     }
 }

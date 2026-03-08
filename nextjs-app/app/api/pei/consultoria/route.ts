@@ -12,6 +12,7 @@ import {
   objetivosEIPorIdadeCampo,
 } from "@/lib/bncc";
 import { requireAuth } from "@/lib/permissions";
+import { logger } from "@/lib/logger";
 
 type PEIDataPayload = {
   nome?: string;
@@ -415,7 +416,7 @@ export async function POST(req: Request) {
       }
     }
   } catch (err) {
-    console.warn("Dossiê Sintético (G1) abortado silenciosamente:", err);
+    logger.warn({ err: err }, "Dossiê Sintético (G1) abortado silenciosamente:");
   }
 
   const { system, user } = buildPrompt(dados, modoPratico, feedback, dossieSintetico);
@@ -431,7 +432,7 @@ export async function POST(req: Request) {
     );
     return NextResponse.json({ texto: (texto || "").trim() });
   } catch (err) {
-    console.error("PEI Consultoria IA:", err);
+    logger.error({ err: err }, "PEI Consultoria IA:");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro ao gerar relatório." },
       { status: 500 }

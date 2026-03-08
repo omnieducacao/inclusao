@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export async function GET(
   _req: Request,
@@ -44,12 +45,12 @@ export async function GET(
   if (error) {
     // Se o campo não existir, retornar false (precisa aceitar)
     if (error.code === "42703" || error.message?.includes("terms_accepted")) {
-      console.warn("Campo terms_accepted não existe na tabela. Retornando false.");
+      logger.warn("Campo terms_accepted não existe na tabela. Retornando false.");
       return NextResponse.json({
         terms_accepted: false,
       });
     }
-    console.error("Erro ao buscar termos aceitos:", error);
+    logger.error({ err: error }, "Erro ao buscar termos aceitos:");
     return NextResponse.json(
       { error: "Erro ao buscar informações." },
       { status: 500 }
@@ -121,11 +122,11 @@ export async function POST(
     if (error) {
       // Se o campo não existir, apenas logar e retornar sucesso (campo será criado depois)
       if (error.code === "42703" || error.message?.includes("terms_accepted")) {
-        console.warn("Campo terms_accepted não existe na tabela. Adicione o campo no Supabase.");
+        logger.warn("Campo terms_accepted não existe na tabela. Adicione o campo no Supabase.");
         // Retornar sucesso mesmo assim - o campo pode ser adicionado depois
         return NextResponse.json({ ok: true, warning: "Campo terms_accepted não existe. Adicione no Supabase." });
       }
-      console.error("Erro ao atualizar termos aceitos:", error);
+      logger.error({ err: error }, "Erro ao atualizar termos aceitos:");
       return NextResponse.json(
         { error: "Erro ao salvar aceite dos termos." },
         { status: 500 }
@@ -134,7 +135,7 @@ export async function POST(
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("Erro ao processar aceite de termos:", err);
+    logger.error({ err: err }, "Erro ao processar aceite de termos:");
     return NextResponse.json(
       { error: "Erro ao processar solicitação." },
       { status: 500 }

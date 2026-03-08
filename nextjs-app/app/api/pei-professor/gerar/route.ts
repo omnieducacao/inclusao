@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { chatCompletionText, type EngineId } from "@/lib/ai-engines";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/pei-professor/gerar
@@ -139,7 +140,7 @@ IMPORTANTE:
 
         return NextResponse.json({ pei_disciplina: parsed });
     } catch (err) {
-        console.error("[pei-professor/gerar] error:", err);
+        logger.error({ err: err }, "[pei-professor/gerar] error:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao gerar PEI" },
             { status: 500 }

@@ -5,6 +5,7 @@ import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
     const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -79,7 +80,7 @@ RESUMO DO PLANO:\n${iaSugestao || "plano em construção"}`;
         const texto = await chatCompletionText(engine, anonymized, { temperature: 0.7 });
         return NextResponse.json({ texto: restore(texto || "").trim() });
     } catch (err) {
-        console.error("PEI Resumo Família:", err);
+        logger.error({ err: err }, "PEI Resumo Família:");
         return NextResponse.json(
             { error: err instanceof Error ? err.message : "Erro ao gerar resumo." },
             { status: 500 }
