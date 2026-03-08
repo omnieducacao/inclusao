@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, type HTMLAttributes, type ReactNode } from "react";
+import { forwardRef, useEffect, useId, useRef, type HTMLAttributes, type ReactNode } from "react";
 import { cn } from "../../utils/cn";
 
 export type ModalProps = HTMLAttributes<HTMLDialogElement> & {
@@ -21,6 +21,7 @@ const sizeClasses = {
 const Modal = forwardRef<HTMLDialogElement, ModalProps>(
     ({ open, onClose, title, size = "md", showClose = true, children, className, ...props }, ref) => {
         const dialogRef = useRef<HTMLDialogElement | null>(null);
+        const titleId = useId();
 
         const setRef = (node: HTMLDialogElement | null) => {
             dialogRef.current = node;
@@ -46,6 +47,7 @@ const Modal = forwardRef<HTMLDialogElement, ModalProps>(
         return (
             <dialog
                 ref={setRef}
+                aria-labelledby={title ? titleId : undefined}
                 className={cn(
                     "p-0 rounded-2xl border border-(--omni-border-default) bg-(--omni-bg-secondary) text-(--omni-text-primary) shadow-[var(--omni-shadow-2xl)]",
                     "backdrop:bg-black/50 backdrop:backdrop-blur-md",
@@ -58,7 +60,7 @@ const Modal = forwardRef<HTMLDialogElement, ModalProps>(
             >
                 {(title || showClose) && (
                     <div className="flex items-center justify-between px-6 pt-5 pb-1">
-                        {title && <h2 className="text-lg font-bold tracking-tight">{title}</h2>}
+                        {title && <h2 id={titleId} className="text-lg font-bold tracking-tight">{title}</h2>}
                         {showClose && (
                             <button
                                 onClick={onClose}

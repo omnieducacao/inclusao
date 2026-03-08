@@ -125,11 +125,14 @@ export function GlobalSearch() {
 
     return (
         <div
-            className="fixed inset-0 z-[9997] flex items-start justify-center pt-[15vh]"
+            className="fixed inset-0 z-9997 flex items-start justify-center pt-[15vh]"
             style={{ backgroundColor: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(4px)" }}
             onClick={(e) => {
                 if (e.target === e.currentTarget) setOpen(false);
             }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Busca global"
         >
             <div
                 className="rounded-2xl shadow-2xl max-w-xl w-full mx-4 overflow-hidden animate-fade-in"

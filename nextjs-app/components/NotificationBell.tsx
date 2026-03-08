@@ -53,7 +53,7 @@ export function NotificationBell() {
         }
     }, [fetched]);
 
-    // Close on click outside
+    // Close on click outside or Escape key
     useEffect(() => {
         if (!open) return;
         function handleClick(e: MouseEvent) {
@@ -61,8 +61,18 @@ export function NotificationBell() {
                 setOpen(false);
             }
         }
+        function handleKeyDown(e: KeyboardEvent) {
+            if (e.key === "Escape") {
+                e.preventDefault();
+                setOpen(false);
+            }
+        }
         document.addEventListener("mousedown", handleClick);
-        return () => document.removeEventListener("mousedown", handleClick);
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("mousedown", handleClick);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
     }, [open]);
 
     const handleToggle = () => {

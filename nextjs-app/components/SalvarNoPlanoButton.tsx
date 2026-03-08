@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 type Plano = { id: string; disciplina: string; ano_serie: string; bimestre?: string };
 
@@ -23,6 +24,7 @@ export function SalvarNoPlanoButton({
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState(false);
+  const focusTrapRef = useFocusTrap<HTMLDivElement>(aberto, { onEscape: () => !salvando && setAberto(false) });
 
   const abrir = useCallback(async () => {
     setAberto(true);
@@ -72,8 +74,15 @@ export function SalvarNoPlanoButton({
       </button>
       {aberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => !salvando && setAberto(false)}>
-          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Salvar no Plano de Ensino</h3>
+          <div
+            ref={focusTrapRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="salvar-plano-title"
+            className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="salvar-plano-title" className="text-lg font-semibold text-slate-800 mb-4">Salvar no Plano de Ensino</h3>
             {loading && <p className="text-slate-600">Carregando planos…</p>}
             {erro && <p className="text-red-600 text-sm mb-3">{erro}</p>}
             {sucesso && <p className="text-emerald-600 text-sm mb-3">Salvo com sucesso!</p>}
