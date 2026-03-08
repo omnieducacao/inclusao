@@ -111,13 +111,13 @@ export function TecAssistivaTab({
     <Card padding="none" className="p-6">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
-          <Puzzle className="w-6 h-6 text-violet-600" />
+        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--module-primary-soft) to-(--module-primary)/10 flex items-center justify-center shrink-0">
+          <Puzzle className="w-6 h-6 text-(--module-primary)" />
         </div>
         <div className="flex-1">
           <h3 className="text-2xl font-black text-slate-900 mb-2">Tecnologia Assistiva</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            <strong className="text-violet-700">Recursos de Tecnologia Assistiva:</strong> A IA sugere recursos em 3 níveis
+            <strong className="text-(--module-primary)">Recursos de Tecnologia Assistiva:</strong> A IA sugere recursos em 3 níveis
             (Baixa, Média e Alta Tecnologia) para promover autonomia e participação do estudante. Cada sugestão inclui descrição,
             finalidade, como usar na prática, benefícios e onde encontrar/comprar. Esses recursos eliminam barreiras e ampliam
             as possibilidades de participação do estudante.

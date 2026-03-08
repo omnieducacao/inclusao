@@ -110,13 +110,13 @@ export function MapearBarreirasTab({
     <Card padding="none" className="p-6">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
-          <AlertTriangle className="w-6 h-6 text-violet-600" />
+        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--module-primary-soft) to-(--module-primary)/10 flex items-center justify-center shrink-0">
+          <AlertTriangle className="w-6 h-6 text-(--module-primary)" />
         </div>
         <div className="flex-1">
           <h3 className="text-2xl font-black text-slate-900 mb-2">Mapear Barreiras</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            <strong className="text-violet-700">Diagnóstico de Barreiras:</strong> Mapeie barreiras na aprendizagem (uso interno da equipe).
+            <strong className="text-(--module-primary)">Diagnóstico de Barreiras:</strong> Mapeie barreiras na aprendizagem (uso interno da equipe).
             O resultado ajuda a planejar estratégias; não será exposto ao estudante. A IA classifica as barreiras segundo a LBI
             (Lei Brasileira de Inclusão) em: <strong>Comunicacionais</strong>, <strong>Metodológicas</strong>,
             <strong> Atitudinais</strong>, <strong>Tecnológicas</strong> e <strong>Arquitetônicas</strong>.

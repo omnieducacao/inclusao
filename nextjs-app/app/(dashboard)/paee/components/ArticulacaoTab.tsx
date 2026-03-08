@@ -135,13 +135,13 @@ export function ArticulacaoTab({
     <Card padding="none" className="p-6">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
-          <Users className="w-6 h-6 text-violet-600" />
+        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--module-primary-soft) to-(--module-primary)/10 flex items-center justify-center shrink-0">
+          <Users className="w-6 h-6 text-(--module-primary)" />
         </div>
         <div className="flex-1">
           <h3 className="text-2xl font-black text-slate-900 mb-2">Articulação</h3>
           <p className="text-sm text-slate-600 leading-relaxed">
-            <strong className="text-violet-700">Documento de Articulação AEE ↔ Sala Regular:</strong> A IA gera uma carta formal
+            <strong className="text-(--module-primary)">Documento de Articulação AEE ↔ Sala Regular:</strong> A IA gera uma carta formal
             mas acolhedora que articula o trabalho desenvolvido no AEE com a sala regular. O documento inclui resumo das habilidades
             desenvolvidas, estratégias de generalização, orientações práticas, plano de ação conjunto e próximos passos.
             Este documento fortalece a colaboração entre AEE e sala de aula.
