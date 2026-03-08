@@ -10,7 +10,7 @@ export default function GlobalError({
     reset: () => void;
 }) {
     useEffect(() => {
-        console.error("[GlobalError]", error);
+        /* client-side */ console.error("[GlobalError]", error);
     }, [error]);
 
     return (

@@ -295,24 +295,24 @@ export function CriarDoZero({
                   mapa[i + 1] = base64;
                   imagemGerada = true;
                 } else {
-                  console.warn(`  ⚠️ Imagem ${i + 1} gerada mas base64 inválido (${base64?.length || 0} chars), tentando novamente...`);
+                  /* client-side */ console.warn(`  ⚠️ Imagem ${i + 1} gerada mas base64 inválido (${base64?.length || 0} chars), tentando novamente...`);
                 }
               } else {
                 const errorMsg = imgData.error || "Resposta sem imagem";
                 if (tentativas === 0) {
                 } else {
-                  console.warn(`  ❌ Falha ao gerar imagem ${i + 1} com Gemini:`, errorMsg);
+                  /* client-side */ console.warn(`  ❌ Falha ao gerar imagem ${i + 1} com Gemini:`, errorMsg);
                 }
               }
             } catch (error) {
-              console.error(`  ❌ Erro ao gerar imagem ${i + 1} (tentativa ${tentativas + 1}):`, error);
+              /* client-side */ console.error(`  ❌ Erro ao gerar imagem ${i + 1} (tentativa ${tentativas + 1}):`, error);
             }
 
             tentativas++;
           }
 
           if (!imagemGerada) {
-            console.warn(`  ⚠️ Não foi possível gerar imagem ${i + 1} após ${maxTentativas} tentativas`);
+            /* client-side */ console.warn(`  ⚠️ Não foi possível gerar imagem ${i + 1} após ${maxTentativas} tentativas`);
           }
         }
 
@@ -343,7 +343,7 @@ export function CriarDoZero({
                 }
               }
             } catch (error) {
-              console.error(`  ❌ Erro ao gerar imagem fallback ${idx}:`, error);
+              /* client-side */ console.error(`  ❌ Erro ao gerar imagem fallback ${idx}:`, error);
             }
           }
         }

@@ -36,7 +36,7 @@ export function InstagramFeedTab() {
         setPosts(data.posts || []);
       }
     } catch (err) {
-      console.error("Erro ao carregar feed:", err);
+      /* client-side */ console.error("Erro ao carregar feed:", err);
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,7 @@ export function InstagramFeedTab() {
         alert(`Erro: ${error.error || "Erro ao criar post"}`);
       }
     } catch (err) {
-      console.error("Erro ao criar post:", err);
+      /* client-side */ console.error("Erro ao criar post:", err);
       alert("Erro ao criar post.");
     } finally {
       setCreating(false);
@@ -118,7 +118,7 @@ export function InstagramFeedTab() {
       });
       if (res.ok) loadPosts();
     } catch (err) {
-      console.error("Erro:", err);
+      /* client-side */ console.error("Erro:", err);
     }
   }
 
@@ -130,7 +130,7 @@ export function InstagramFeedTab() {
       });
       if (res.ok) loadPosts();
     } catch (err) {
-      console.error("Erro:", err);
+      /* client-side */ console.error("Erro:", err);
     }
   }
 

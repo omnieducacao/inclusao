@@ -285,7 +285,7 @@ export function BNCCTab({
       const outras = tipo === "ano_atual" ? habilidadesAtuais.filter((h) => h.origem === "anos_anteriores") : [];
       updateField("habilidades_bncc_selecionadas", [...outras, ...novas]);
     } catch (error) {
-      console.error("Erro ao sugerir habilidades:", error);
+      /* client-side */ console.error("Erro ao sugerir habilidades:", error);
       alert(`Erro ao sugerir habilidades: ${error}`);
     } finally {
       if (tipo === "ano_atual") {

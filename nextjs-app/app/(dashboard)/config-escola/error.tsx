@@ -11,7 +11,7 @@ export default function ConfigEscolaError({
     reset: () => void;
 }) {
     useEffect(() => {
-        console.error("[ConfigEscolaError]", error);
+        /* client-side */ console.error("[ConfigEscolaError]", error);
     }, [error]);
 
     return (

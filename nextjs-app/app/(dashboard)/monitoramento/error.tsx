@@ -11,7 +11,7 @@ export default function MonitoramentoError({
     reset: () => void;
 }) {
     useEffect(() => {
-        console.error("[MonitoramentoError]", error);
+        /* client-side */ console.error("[MonitoramentoError]", error);
     }, [error]);
 
     return (

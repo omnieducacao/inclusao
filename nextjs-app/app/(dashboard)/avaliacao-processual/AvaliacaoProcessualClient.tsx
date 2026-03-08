@@ -379,7 +379,7 @@ export default function AvaliacaoProcessualClient() {
             const data = await res.json();
             if (data.relatorio) setRelatorio(data.relatorio);
         } catch (err) {
-            console.error("Erro ao gerar relatório:", err);
+            /* client-side */ console.error("Erro ao gerar relatório:", err);
         } finally { setGerandoRelatorio(false); }
     };
 

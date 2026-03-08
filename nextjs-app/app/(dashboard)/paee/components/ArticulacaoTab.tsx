@@ -108,10 +108,10 @@ export function ArticulacaoTab({
             body: JSON.stringify({ paee_data: novoPaeeData }),
           });
           if (!saveRes.ok) {
-            console.error("Erro ao salvar articulação no Supabase:", await saveRes.text());
+            /* client-side */ console.error("Erro ao salvar articulação no Supabase:", await saveRes.text());
           }
         } catch (saveErr) {
-          console.error("Erro ao salvar articulação:", saveErr);
+          /* client-side */ console.error("Erro ao salvar articulação:", saveErr);
         }
       }
     } catch (e) {

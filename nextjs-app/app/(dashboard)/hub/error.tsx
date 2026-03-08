@@ -11,7 +11,7 @@ export default function HubError({
     reset: () => void;
 }) {
     useEffect(() => {
-        console.error("[HubError]", error);
+        /* client-side */ console.error("[HubError]", error);
     }, [error]);
 
     return (

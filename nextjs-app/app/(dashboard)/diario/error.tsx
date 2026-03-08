@@ -11,7 +11,7 @@ export default function DiarioError({
     reset: () => void;
 }) {
     useEffect(() => {
-        console.error("[DiarioError]", error);
+        /* client-side */ console.error("[DiarioError]", error);
     }, [error]);
 
     return (

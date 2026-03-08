@@ -37,7 +37,7 @@ export function LogsTab({ workspaces }: { workspaces: Workspace[] }) {
         if (data.event_types) setEventTypes(data.event_types);
       }
     } catch (err) {
-      console.error("Erro ao carregar logs:", err);
+      /* client-side */ console.error("Erro ao carregar logs:", err);
     } finally {
       setLoading(false);
     }

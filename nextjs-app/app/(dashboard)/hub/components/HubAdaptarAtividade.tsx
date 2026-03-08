@@ -114,7 +114,7 @@ export function AdaptarAtividade({
       // Depois atualizar a imagem recortada
       setImagemSeparadaCropped(f);
     } catch (error) {
-      console.error("Erro ao processar recorte de imagem separada:", error);
+      /* client-side */ console.error("Erro ao processar recorte de imagem separada:", error);
       setShowImagemSeparadaCropper(false);
     }
   };
@@ -158,7 +158,7 @@ export function AdaptarAtividade({
       const res = await fetch("/api/hub/adaptar-atividade", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) {
-        console.error("Erro na API adaptar-atividade:", data);
+        /* client-side */ console.error("Erro na API adaptar-atividade:", data);
         throw new Error(data.error || "Erro ao adaptar");
       }
 
@@ -177,7 +177,7 @@ export function AdaptarAtividade({
             reader.readAsDataURL(imagemSeparadaParaEnvio);
           });
         } catch (err) {
-          console.error("Erro ao processar imagem separada:", err);
+          /* client-side */ console.error("Erro ao processar imagem separada:", err);
         }
       }
 
@@ -195,7 +195,7 @@ export function AdaptarAtividade({
             reader.readAsDataURL(croppedFile);
           });
         } catch (err) {
-          console.error("Erro ao processar imagem principal:", err);
+          /* client-side */ console.error("Erro ao processar imagem principal:", err);
         }
       }
 

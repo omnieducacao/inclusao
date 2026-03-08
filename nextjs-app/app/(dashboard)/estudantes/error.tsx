@@ -11,7 +11,7 @@ export default function EstudantesError({
     reset: () => void;
 }) {
     useEffect(() => {
-        console.error("[EstudantesError]", error);
+        /* client-side */ console.error("[EstudantesError]", error);
     }, [error]);
 
     return (

@@ -389,11 +389,11 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                   body: JSON.stringify({ paee_data: data }),
                 });
                 if (!res.ok) {
-                  console.error("Erro ao salvar paee_data:", await res.text());
+                  /* client-side */ console.error("Erro ao salvar paee_data:", await res.text());
                 } else {
                 }
               } catch (err) {
-                console.error("Erro ao salvar paee_data:", err);
+                /* client-side */ console.error("Erro ao salvar paee_data:", err);
               }
             }
           }}

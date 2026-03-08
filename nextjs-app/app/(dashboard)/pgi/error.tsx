@@ -11,7 +11,7 @@ export default function PGIError({
     reset: () => void;
 }) {
     useEffect(() => {
-        console.error("[PGIError]", error);
+        /* client-side */ console.error("[PGIError]", error);
     }, [error]);
 
     return (

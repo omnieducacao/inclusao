@@ -15,6 +15,7 @@ import { OmnisferaFeed } from "@/components/OmnisferaFeed";
 import { OmniEducacaoSignature } from "@/components/Footer";
 import { SecurityAndAIPanel } from "@/components/SecurityAndAIPanel";
 import { Skeleton } from "@/components/Skeleton";
+import { logger } from "@/lib/logger";
 
 export default async function RootPage() {
   const session = await getSession();
@@ -25,7 +26,7 @@ export default async function RootPage() {
   }
 
   if (!session.workspace_id && !session.is_platform_admin) {
-    console.error("[RootPage] Usuário sem workspace:", session);
+    logger.error({ session }, "[RootPage] Usuário sem workspace");
     redirect("/login?error=no_workspace");
     return null;
   }
@@ -109,7 +110,7 @@ export default async function RootPage() {
       }
     }
   } catch (err) {
-    console.error("[RootPage] KPI fetch error:", err);
+    logger.error({ err }, "[RootPage] KPI fetch error");
   }
 
   // ── Load card customizations from admin panel ──
@@ -128,7 +129,7 @@ export default async function RootPage() {
       cardCustomizations = typeof raw === "string" ? JSON.parse(raw) : raw as CardCustomization;
     }
   } catch (err) {
-    console.error("[RootPage] card_customizations load error:", err);
+    logger.error({ err }, "[RootPage] card_customizations load error");
   }
 
   // Helper to apply customization overrides to a module card

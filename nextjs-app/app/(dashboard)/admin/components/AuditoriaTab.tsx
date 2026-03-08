@@ -46,10 +46,10 @@ export function AuditoriaTab({ workspaces, isPlatformAdmin = false }: { workspac
                 setTotal(data.total || 0);
                 if (data.available_actions) setAvailableActions(data.available_actions);
             } else {
-                console.error("Erro na requisição da auditoria:", res.status);
+                /* client-side */ console.error("Erro na requisição da auditoria:", res.status);
             }
         } catch (err) {
-            console.error("Erro ao carregar log de auditoria LGPD:", err);
+            /* client-side */ console.error("Erro ao carregar log de auditoria LGPD:", err);
         } finally {
             setLoading(false);
         }

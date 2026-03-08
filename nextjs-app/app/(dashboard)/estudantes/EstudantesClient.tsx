@@ -116,7 +116,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
       await mutation.deleteStudent(studentId, () => router.refresh());
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erro ao excluir estudante. Tente novamente.");
-      console.error(err);
+      /* client-side */ console.error(err);
     } finally {
       setDeleting(false);
       setConfirmDeleteId(null);
@@ -137,7 +137,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
       await mutation.updatePEIData(studentId, peiNovo, () => router.refresh());
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erro ao apagar relatórios.");
-      console.error(err);
+      /* client-side */ console.error(err);
     } finally {
       setUpdating(null);
     }
@@ -157,7 +157,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
       await mutation.updatePEIData(studentId, peiNovo, () => router.refresh());
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erro ao apagar jornada.");
-      console.error(err);
+      /* client-side */ console.error(err);
     } finally {
       setUpdating(null);
     }
@@ -195,7 +195,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
       });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erro ao salvar alterações.");
-      console.error(err);
+      /* client-side */ console.error(err);
     } finally {
       setSaving(false);
     }
@@ -211,7 +211,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
       await mutation.updatePAEECiclos(studentId, { paee_ciclos: [] }, () => router.refresh());
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erro ao apagar ciclos.");
-      console.error(err);
+      /* client-side */ console.error(err);
     } finally {
       setUpdating(null);
     }

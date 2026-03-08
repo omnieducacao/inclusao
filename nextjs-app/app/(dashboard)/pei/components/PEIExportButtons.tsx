@@ -31,7 +31,7 @@ export function PeiExportPdfButton({ peiData }: { peiData: PEIData }) {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Erro ao exportar PDF:", err);
+      /* client-side */ console.error("Erro ao exportar PDF:", err);
       alert(err instanceof Error ? err.message : "Erro ao gerar PDF oficial");
     } finally {
       setLoading(false);
@@ -84,7 +84,7 @@ export function PeiExportPdfOficialButton({ peiData }: { peiData: PEIData }) {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Erro ao gerar PDF oficial:", err);
+      /* client-side */ console.error("Erro ao gerar PDF oficial:", err);
       alert(err instanceof Error ? err.message : "Erro ao gerar documento oficial");
     } finally {
       setLoading(false);
@@ -132,7 +132,7 @@ export function PeiExportDocxButton({ peiData }: { peiData: PEIData }) {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      console.error("Export PEI DOCX:", e);
+      /* client-side */ console.error("Export PEI DOCX:", e);
     } finally {
       setLoading(false);
     }

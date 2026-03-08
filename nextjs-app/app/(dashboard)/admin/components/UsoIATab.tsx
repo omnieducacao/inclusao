@@ -27,7 +27,7 @@ export function UsoIATab() {
         setUsage(data.usage || []);
       }
     } catch (err) {
-      console.error("Erro ao carregar uso de IA:", err);
+      /* client-side */ console.error("Erro ao carregar uso de IA:", err);
     } finally {
       setLoading(false);
     }

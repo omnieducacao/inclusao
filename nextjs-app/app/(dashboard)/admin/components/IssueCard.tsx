@@ -43,7 +43,7 @@ export function IssueCard({
         alert("Erro ao atualizar.");
       }
     } catch (err) {
-      console.error("Erro ao salvar:", err);
+      /* client-side */ console.error("Erro ao salvar:", err);
       alert("Erro ao salvar.");
     } finally {
       setSaving(false);

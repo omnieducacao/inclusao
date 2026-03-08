@@ -36,7 +36,7 @@ export function BugsTab() {
         setWorkspaces(data.workspaces || []);
       }
     } catch (err) {
-      console.error("Erro ao carregar escolas:", err);
+      /* client-side */ console.error("Erro ao carregar escolas:", err);
     }
   }
 
@@ -49,7 +49,7 @@ export function BugsTab() {
         setIssues(data.issues || []);
       }
     } catch (err) {
-      console.error("Erro ao carregar bugs:", err);
+      /* client-side */ console.error("Erro ao carregar bugs:", err);
     } finally {
       setLoading(false);
     }
@@ -88,7 +88,7 @@ export function BugsTab() {
         alert(`Erro: ${error.error || "Erro ao registrar bug"}`);
       }
     } catch (err) {
-      console.error("Erro ao registrar bug:", err);
+      /* client-side */ console.error("Erro ao registrar bug:", err);
       alert("Erro ao registrar bug.");
     } finally {
       setSubmitting(false);
@@ -109,7 +109,7 @@ export function BugsTab() {
         alert("Erro ao atualizar status.");
       }
     } catch (err) {
-      console.error("Erro ao atualizar status:", err);
+      /* client-side */ console.error("Erro ao atualizar status:", err);
       alert("Erro ao atualizar status.");
     }
   }

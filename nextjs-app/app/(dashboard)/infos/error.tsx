@@ -11,7 +11,7 @@ export default function InfosError({
     reset: () => void;
 }) {
     useEffect(() => {
-        console.error("[InfosError]", error);
+        /* client-side */ console.error("[InfosError]", error);
     }, [error]);
 
     return (

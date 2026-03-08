@@ -12,7 +12,7 @@ export default function AdminError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[Admin] Erro capturado:", error);
+    /* client-side */ console.error("[Admin] Erro capturado:", error);
   }, [error]);
 
   return (

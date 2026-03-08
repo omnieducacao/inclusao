@@ -69,7 +69,7 @@ export function WorkspaceCard({
         alert(`Erro: ${error.error || "Erro ao salvar"}`);
       }
     } catch (err) {
-      console.error("Erro ao salvar:", err);
+      /* client-side */ console.error("Erro ao salvar:", err);
       alert("Erro ao salvar.");
     } finally {
       setSaving(false);
@@ -87,7 +87,7 @@ export function WorkspaceCard({
         onRefresh();
       }
     } catch (err) {
-      console.error("Erro ao alterar status:", err);
+      /* client-side */ console.error("Erro ao alterar status:", err);
     }
   }
 
@@ -103,7 +103,7 @@ export function WorkspaceCard({
         alert("Erro ao excluir.");
       }
     } catch (err) {
-      console.error("Erro ao excluir:", err);
+      /* client-side */ console.error("Erro ao excluir:", err);
       alert("Erro ao excluir.");
     }
   }

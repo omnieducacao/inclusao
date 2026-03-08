@@ -32,7 +32,7 @@ export function UsuariosTab({ workspaces }: { workspaces: Workspace[] }) {
         setUsers(data.users || []);
       }
     } catch (err) {
-      console.error("Erro ao carregar usuários:", err);
+      /* client-side */ console.error("Erro ao carregar usuários:", err);
     } finally {
       setLoading(false);
     }

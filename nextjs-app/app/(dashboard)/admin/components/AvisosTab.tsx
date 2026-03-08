@@ -33,7 +33,7 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
         setAnnouncements(data.announcements || []);
       }
     } catch (err) {
-      console.error("Erro ao carregar avisos:", err);
+      /* client-side */ console.error("Erro ao carregar avisos:", err);
     } finally {
       setLoading(false);
     }

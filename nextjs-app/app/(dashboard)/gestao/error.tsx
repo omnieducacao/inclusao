@@ -11,7 +11,7 @@ export default function GestaoError({
     reset: () => void;
 }) {
     useEffect(() => {
-        console.error("[GestaoError]", error);
+        /* client-side */ console.error("[GestaoError]", error);
     }, [error]);
 
     return (

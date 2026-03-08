@@ -91,7 +91,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
         setError(`Erro ao carregar: ${res.status}. ${errorText.slice(0, 200)}`);
       }
     } catch (err) {
-      console.error("[AdminClient] Erro ao carregar escolas:", err);
+      /* client-side */ console.error("[AdminClient] Erro ao carregar escolas:", err);
       setError(err instanceof Error ? err.message : "Erro desconhecido");
     } finally {
       setLoading(false);
@@ -136,7 +136,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
         alert(`Erro: ${error.error || "Erro ao criar escola"}`);
       }
     } catch (err) {
-      console.error("Erro ao criar escola:", err);
+      /* client-side */ console.error("Erro ao criar escola:", err);
       alert("Erro ao criar escola.");
     } finally {
       setCreating(false);

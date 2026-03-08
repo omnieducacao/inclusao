@@ -11,7 +11,7 @@ export default function PEIError({
     reset: () => void;
 }) {
     useEffect(() => {
-        console.error("[PEIError]", error);
+        /* client-side */ console.error("[PEIError]", error);
     }, [error]);
 
     return (

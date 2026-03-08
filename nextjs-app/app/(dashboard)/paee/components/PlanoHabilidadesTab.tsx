@@ -126,7 +126,7 @@ export function PlanoHabilidadesTab({
 
 
     } catch (e) {
-      console.error("Erro ao gerar plano:", e);
+      /* client-side */ console.error("Erro ao gerar plano:", e);
       setErro(e instanceof Error ? e.message : "Erro ao gerar plano");
     } finally {
       setLoading(false);

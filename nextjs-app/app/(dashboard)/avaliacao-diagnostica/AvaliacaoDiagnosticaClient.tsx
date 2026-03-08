@@ -637,7 +637,7 @@ export default function AvaliacaoDiagnosticaClient({
                 setPerfilError(data.error);
             }
         } catch (err) {
-            console.error("Erro ao gerar perfil:", err);
+            /* client-side */ console.error("Erro ao gerar perfil:", err);
             setPerfilError(err instanceof Error ? err.message : "Erro ao gerar perfil");
         } finally { setGerandoPerfil(false); aiLoadingStop(); }
     };
@@ -671,7 +671,7 @@ export default function AvaliacaoDiagnosticaClient({
             const data = await res.json();
             if (data.estrategias) setEstrategiasGeradas(data.estrategias as Record<string, unknown>);
         } catch (err) {
-            console.error("Erro ao gerar estratégias:", err);
+            /* client-side */ console.error("Erro ao gerar estratégias:", err);
         } finally { setGerandoEstrategias(false); aiLoadingStop(); }
     };
 

@@ -152,7 +152,7 @@ export function JornadaTab({
           nomeFonte = "Tecnologia Assistiva";
         }
         if (!textoFonte || !textoFonte.trim()) {
-          console.error(`❌ Conteúdo não encontrado para ${nomeFonte}:`, {
+          /* client-side */ console.error(`❌ Conteúdo não encontrado para ${nomeFonte}:`, {
             origem: origemSelecionada,
             conteudoPlano: conteudoPlano ? `${conteudoPlano.length} chars` : "vazio",
             conteudoBarreiras: conteudoBarreiras ? `${conteudoBarreiras.length} chars` : "vazio",
@@ -257,7 +257,7 @@ export function JornadaTab({
           URL.revokeObjectURL(url);
         })
         .catch((err) => {
-          console.error("Erro ao baixar mapa mental:", err);
+          /* client-side */ console.error("Erro ao baixar mapa mental:", err);
           alert("Erro ao baixar imagem. Tente novamente.");
         });
       return;

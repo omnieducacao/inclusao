@@ -38,7 +38,7 @@ export function TermoTab() {
         }
       }
     } catch (err) {
-      console.error("Erro ao carregar termos:", err);
+      /* client-side */ console.error("Erro ao carregar termos:", err);
     } finally {
       setLoading(false);
     }
@@ -60,7 +60,7 @@ export function TermoTab() {
         alert(`Erro ao salvar: ${error.error || "Erro desconhecido"}`);
       }
     } catch (err) {
-      console.error("Erro ao salvar termos:", err);
+      /* client-side */ console.error("Erro ao salvar termos:", err);
       alert("Erro ao salvar termo.");
     } finally {
       setSaving(false);

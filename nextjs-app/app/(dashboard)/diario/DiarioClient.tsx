@@ -137,7 +137,7 @@ function DiarioClientInner({ students, studentId, student }: Props) {
           return true;
         }
       } catch (e) {
-        console.error(e);
+        /* client-side */ console.error(e);
       }
       return false;
     },
@@ -824,7 +824,7 @@ function ConfiguracoesTab() {
           setCompetenciasPadrao(config.competenciasPadrao || ["atenção", "memória"]);
           setNotificacoes(config.notificacoes !== false);
         } catch (e) {
-          console.error("Erro ao carregar configurações:", e);
+          /* client-side */ console.error("Erro ao carregar configurações:", e);
         }
       }, 0);
     }

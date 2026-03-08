@@ -11,7 +11,7 @@ export default function PAEEError({
     reset: () => void;
 }) {
     useEffect(() => {
-        console.error("[PAEEError]", error);
+        /* client-side */ console.error("[PAEEError]", error);
     }, [error]);
 
     return (
