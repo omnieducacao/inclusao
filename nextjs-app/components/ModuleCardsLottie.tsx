@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import type { Icon } from "phosphor-react";
 import { getModuleColors } from "@/lib/module-theme";
 import { LottieIcon } from "@/components/LottieIcon";
-import { ModuleCard } from "@omni/ds";
+import { ModuleCard, type ModuleKey } from "@omni/ds";
 import { useRouter } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
@@ -383,7 +383,7 @@ function ModuleCardWithLottie({
       />
       <ModuleCard
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        moduleKey={moduleColorKey as any}
+        moduleKey={moduleColorKey as ModuleKey}
         title={title}
         description={desc}
         badge={typeof badge === "string" ? badge : badge?.text}

@@ -158,7 +158,7 @@ export function OmnisferaFeed() {
                     Info: phosphor.Info,
                     Confetti: phosphor.Confetti,
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    BuildingOffice: (phosphor as any).BuildingOffice || phosphor.Buildings,
+                    BuildingOffice: (phosphor as unknown as Record<string, typeof phosphor.Buildings>).BuildingOffice || phosphor.Buildings,
                     Megaphone: phosphor.Megaphone,
                     ArrowSquareOut: phosphor.ArrowSquareOut,
                     Image: phosphor.Image,

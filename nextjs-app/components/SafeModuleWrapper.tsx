@@ -43,8 +43,9 @@ export class SafeModuleWrapper extends React.Component<Props, State> {
 
         // Optional: Report to monitoring service
         if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).__OMNI_ERROR_REPORTER) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (window as any).__OMNI_ERROR_REPORTER(error, errorInfo);
+            if (typeof window !== 'undefined' && '__OMNI_ERROR_REPORTER' in window) {
+                (window as Window & { __OMNI_ERROR_REPORTER?: (e: Error, i: React.ErrorInfo) => void }).__OMNI_ERROR_REPORTER?.(error, errorInfo);
+            }
         }
     }
 
