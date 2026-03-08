@@ -99,6 +99,9 @@ type PageHeroProps = {
   useLottie?: boolean;
   /** Explicit Lottie override (e.g., from home page customization) */
   lottieOverride?: string;
+  /** Config injected via Server Component to prevent FOUC */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  serverConfig?: Record<string, any>;
 };
 
 // Map admin COLOR_OPTIONS keys → hex (matches DS moduleColors)
@@ -124,6 +127,7 @@ export function PageHero({
   color,
   useLottie = true,
   lottieOverride: propLottieOverride,
+  serverConfig,
 }: PageHeroProps) {
   const { theme: themeMode } = useTheme();
   const isDark = themeMode === "dark";
@@ -149,9 +153,17 @@ export function PageHero({
 
   const defaultLottieAnimation = moduleLottieIcon[resolvedKey];
 
+  // Prefer 'pei_professor' in DB over purely 'pei-regente' for backward compatibility
+  const adminKeyPropSafe = adminKeyProp === "pei-regente" && serverConfig && serverConfig["pei_professor"] ? "pei_professor" : adminKeyProp;
+  const initialKey = adminKeyPropSafe || (route ? routeToAdminKey[route] : undefined) || (moduleKey ? moduleKeyToAdminKey[moduleKey] : undefined) || "";
+
   // ─── Read admin customization from DB ──────────────────────────────────────
-  const [adminIcon, setAdminIcon] = useState<string | null>(null);
-  const [adminColor, setAdminColor] = useState<string | null>(null);
+  const [adminIcon, setAdminIcon] = useState<string | null>(() => {
+    return serverConfig && initialKey ? (serverConfig[initialKey]?.icon || null) : null;
+  });
+  const [adminColor, setAdminColor] = useState<string | null>(() => {
+    return serverConfig && initialKey ? (serverConfig[initialKey]?.heroColor || serverConfig[initialKey]?.color || null) : null;
+  });
   const [isMounted, setIsMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -167,10 +179,8 @@ export function PageHero({
   useEffect(() => {
     setIsMounted(true);
 
-    const adminKey = adminKeyProp
-      || (route ? routeToAdminKey[route] : undefined)
-      || (moduleKey ? moduleKeyToAdminKey[moduleKey] : undefined);
-    if (!adminKey) return;
+    const adminKey = initialKey;
+    if (!adminKey || serverConfig) return; // Skip fetch if ServerConfig is provided
 
     fetch("/api/public/platform-config?key=card_customizations")
       .then(r => r.json())
@@ -178,11 +188,13 @@ export function PageHero({
         if (data?.value) {
           try {
             const customs = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
-            if (customs[adminKey]?.icon) {
-              setAdminIcon(customs[adminKey].icon);
+            const adminKeySafe = adminKey === "pei-regente" && customs["pei_professor"] ? "pei_professor" : adminKey;
+
+            if (customs[adminKeySafe]?.icon) {
+              setAdminIcon(customs[adminKeySafe].icon);
             }
             // heroColor is independent; fallback to color if not set
-            const hc = customs[adminKey]?.heroColor || customs[adminKey]?.color;
+            const hc = customs[adminKeySafe]?.heroColor || customs[adminKeySafe]?.color;
             if (hc) {
               setAdminColor(hc);
             }
@@ -190,7 +202,7 @@ export function PageHero({
         }
       })
       .catch(() => { /* silent */ });
-  }, [route, moduleKey, adminKeyProp]);
+  }, [initialKey, serverConfig]);
 
   // Priority: prop override > admin DB > default
   const lottieAnimation = propLottieOverride || adminIcon || defaultLottieAnimation;
@@ -228,6 +240,11 @@ export function PageHero({
       cardBg = `${adminHex}22`;
       softColor = `${adminHex}15`; // Even softer for background areas
       textColor = adminHex;
+    } else if (isNotebook) {
+      // No modo notebook, o bg do card assume a variante pastel, e o texto escurece
+      cardBg = hexToPastelBg(adminHex);
+      softColor = hexToPastelBg(adminHex);
+      textColor = hexToDarkenedText(adminHex);
     } else {
       cardBg = adminHex; // Hero stays saturated
       softColor = hexToPastelBg(adminHex); // But we export a pastel version for PAEE tabs
