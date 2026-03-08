@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import { getSession } from "@/lib/session";
-import { listStudents, getStudent, type Student } from "@/lib/students";
 import { listClasses, listGrades } from "@/lib/school";
 import { PEIClient } from "./PEIClient";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { Skeleton } from "@/components/Skeleton";
 import { getAdminConfig } from "@/lib/getAdminConfig";
+import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -16,55 +16,10 @@ export default async function PEIPage({ searchParams }: Props) {
   const params = await searchParams;
   const studentId = params.student || null;
 
-  const students = workspaceId ? await listStudents(workspaceId) : [];
-  let student =
-    workspaceId && studentId
-      ? await getStudent(workspaceId, studentId)
-      : null;
+  const { students, student } = await getStudentsWithFallback(workspaceId, studentId, "PEI");
 
   const initialClasses = workspaceId ? await listClasses(workspaceId) : [];
-  const initialGrades = await listGrades(); // Buscando para todas pois podem ter segmentos públicos
-
-  // Fallback: se estudante não foi encontrado mas está na lista, usar da lista
-  if (workspaceId && studentId && !student) {
-    const studentFromList = students.find((s) => s.id === studentId);
-    if (studentFromList) {
-      console.warn("⚠️ PEI: Estudante não encontrado por getStudent, mas encontrado na lista. Usando dados da lista.", {
-        workspaceId,
-        studentId,
-        studentName: studentFromList.name
-      });
-      // Buscar dados completos novamente sem filtro de workspace para debug
-      const sb = (await import("@/lib/supabase")).getSupabase();
-      const { data: fullData } = await sb
-        .from("students")
-        .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, paee_data, daily_logs, created_at")
-        .eq("id", studentId)
-        .maybeSingle();
-
-      if (fullData && fullData.workspace_id === workspaceId) {
-        student = fullData as Student;
-      } else {
-        // Usar dados da lista mesmo assim
-        student = studentFromList;
-        console.warn("⚠️ PEI: Usando dados básicos da lista (sem pei_data completo)", {
-          studentId: student.id,
-          fullDataWorkspaceId: fullData?.workspace_id,
-          sessionWorkspaceId: workspaceId
-        });
-      }
-    } else {
-      console.error("❌ PEI: Estudante não encontrado após getStudent e não está na lista", {
-        workspaceId,
-        studentId,
-        studentsCount: students.length,
-        studentIds: students.map((s) => s.id),
-        sessionWorkspaceId: session?.workspace_id,
-        sessionExists: !!session
-      });
-    }
-  } else if (workspaceId && studentId && student) {
-  }
+  const initialGrades = await listGrades();
 
   const peiData = student?.pei_data
     ? (student.pei_data as Record<string, unknown>)
