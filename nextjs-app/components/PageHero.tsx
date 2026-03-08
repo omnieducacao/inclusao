@@ -245,6 +245,24 @@ export function PageHero({
     accentColor = effectiveTheme.primary;
   }
 
+  // ─── Global CSS Variables Injection (Premium Theme Sync) ─────────────────────
+  // This allows sibling components (like PAEEClient) to read the exact 
+  // custom theme color defined by the admin, replacing hardcoded Tailwind colors.
+  useEffect(() => {
+    if (!isMounted) return;
+    const root = document.documentElement;
+    root.style.setProperty('--module-primary', accentColor);
+    root.style.setProperty('--module-primary-soft', cardBg);
+    root.style.setProperty('--module-text', textColor);
+
+    // Clear on unmount so navigation doesn't bleed colors
+    return () => {
+      root.style.removeProperty('--module-primary');
+      root.style.removeProperty('--module-primary-soft');
+      root.style.removeProperty('--module-text');
+    };
+  }, [accentColor, cardBg, textColor, isMounted]);
+
   // ─── Magnetic Hover Background Template (Hook) ─────────────────────
   // MUST be called before any early return to avoid React Error #310
   const magneticBg = useMotionTemplate`radial-gradient(600px circle at ${mouseX}px ${mouseY}px, ${accentColor}15, transparent 80%)`;

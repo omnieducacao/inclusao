@@ -275,18 +275,18 @@ export function JornadaTab({
     <Card padding="none" className="p-6">
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
-          <Map className="w-6 h-6 text-violet-600" />
+        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--module-primary-soft) to-(--module-primary)/10 flex items-center justify-center shrink-0">
+          <Map className="w-6 h-6 text-(--module-primary)" />
         </div>
         <div className="flex-1">
           <h3 className="text-2xl font-black text-slate-900 mb-2">Jornada Gamificada</h3>
           <p className="text-sm text-slate-600 leading-relaxed mb-3">
-            <strong className="text-violet-700">Missão do(a) {student.name}:</strong> Transforme o planejamento do AEE em uma
+            <strong className="text-(--module-primary)">Missão do(a) {student.name}:</strong> Transforme o planejamento do AEE em uma
             jornada gamificada motivadora para o estudante e a família. A IA cria um roteiro com linguagem de conquistas, missões
             e recompensas, sem incluir diagnósticos ou informações clínicas.
           </p>
-          <div className="p-3 bg-linear-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-lg">
-            <p className="text-sm text-violet-800">
+          <div className="p-3 bg-linear-to-r from-(--module-primary-soft) to-(--module-primary)/5 border border-(--module-primary)/20 rounded-lg">
+            <p className="text-sm text-(--module-text)">
               Cada aba do PAEE pode virar uma <strong>jornada gamificada</strong>. Escolha a <strong>origem</strong> na lista abaixo.
               ⚠️ O material gerado será entregue ao estudante — diagnósticos e dados clínicos não são incluídos.
             </p>
@@ -403,7 +403,7 @@ export function JornadaTab({
             </div>
             {mapaMental && (
               <div className="space-y-3">
-                <div className="border-2 border-violet-200 rounded-lg p-2 bg-white">
+                <div className="border-2 border-(--module-primary)/20 rounded-lg p-2 bg-white">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={mapaMental}
@@ -539,7 +539,7 @@ export function JornadaTab({
             </div>
             {mapaMental && (
               <div className="space-y-3">
-                <div className="border-2 border-violet-200 rounded-lg p-2 bg-white">
+                <div className="border-2 border-(--module-primary)/20 rounded-lg p-2 bg-white">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={mapaMental}

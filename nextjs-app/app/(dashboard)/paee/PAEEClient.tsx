@@ -35,6 +35,7 @@ import { ArticulacaoTab } from "./components/ArticulacaoTab";
 import { NivelSuporteRange } from "./components/NivelSuporteRange";
 
 import { useStudentMutation } from "@/hooks/useStudentMutation";
+import { useStudentRealtime } from "@/hooks/useStudentRealtime";
 import { Card, Button, Select } from "@omni/ds";
 
 type Student = { id: string; name: string };
@@ -60,6 +61,9 @@ function PAEEClientInner({ students, studentId, student }: Props) {
   const currentId = studentId || searchParams?.get("student") || null;
   const mutation = useStudentMutation();
   const savingCiclo = mutation.loading;
+
+  // Omni V5: Real-time Multi-User Subscription
+  useStudentRealtime(currentId);
 
   const [activeTab, setActiveTab] = useState<TabId>("planejamento");
   const [cicloSelecionadoPlanejamento, setCicloSelecionadoPlanejamento] = useState<CicloPAEE | null>(null);
@@ -124,7 +128,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
       }, () => {
         setSaved(true);
         setCicloPreview(null);
-        window.location.reload();
+        // O backend via Supabase Realtime emitirá o router.refresh() automático
       });
       return true;
     },
@@ -143,7 +147,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
         status_planejamento: "ativo",
         data_inicio_ciclo: cfg.data_inicio ?? null,
         data_fim_ciclo: cfg.data_fim ?? null,
-      }, () => window.location.reload());
+      }, () => { /* O backend via Supabase Realtime emitirá o router.refresh() automático */ });
       return true;
     },
     [student?.id, ciclos, mutation]
@@ -303,21 +307,21 @@ function PAEEClientInner({ students, studentId, student }: Props) {
 
       {/* Card de informações do estudante */}
       {student && (
-        <Card padding="none" className="p-6 bg-linear-to-br from-violet-50/80 to-purple-50/50 border-violet-200/40">
+        <Card padding="none" className="p-6 bg-(--module-primary-soft) border-(--module-primary)/10">
           <div className="space-y-1">
-            <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Nome</div>
+            <div className="text-xs font-bold text-(--module-primary) uppercase tracking-wider">Nome</div>
             <div className="font-bold text-slate-900 text-lg">{student.name}</div>
           </div>
           <div className="space-y-1">
-            <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Série</div>
+            <div className="text-xs font-bold text-(--module-primary) uppercase tracking-wider">Série</div>
             <div className="font-bold text-slate-800">{student.grade || "—"}</div>
           </div>
           <div className="space-y-1">
-            <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Diagnóstico</div>
+            <div className="text-xs font-bold text-(--module-primary) uppercase tracking-wider">Diagnóstico</div>
             <div className="font-semibold text-slate-800 truncate" title={diagnosis}>{diagnosis}</div>
           </div>
           <div className="space-y-1">
-            <div className="text-xs font-bold text-violet-600 uppercase tracking-wider">Hiperfoco</div>
+            <div className="text-xs font-bold text-(--module-primary) uppercase tracking-wider">Hiperfoco</div>
             <div className="font-semibold text-slate-800 truncate" title={hiperfoco}>{hiperfoco}</div>
           </div>
         </Card>
@@ -340,10 +344,10 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                   }`}
                 title={tab.desc}
               >
-                <Icon className={`w-4 h-4 ${isActive ? "text-violet-600" : "text-slate-400 group-hover:text-violet-500"}`} />
+                <Icon className={`w-4 h-4 ${isActive ? "text-(--module-primary)" : "text-slate-400 group-hover:text-(--module-primary)"}`} />
                 <span>{tab.label}</span>
                 {tab.badge && (
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? "bg-violet-500" : "bg-emerald-500"}`} title="Conteúdo gerado" />
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? "bg-(--module-primary)" : "bg-emerald-500"}`} title="Conteúdo gerado" />
                 )}
               </button>
             );
@@ -437,19 +441,19 @@ function PAEEClientInner({ students, studentId, student }: Props) {
         <Card padding="none" className="p-6">
           {/* Header da aba */}
           <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
-              <Search className="w-6 h-6 text-violet-600" />
+            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--module-primary-soft) to-(--module-primary)/10 flex items-center justify-center shrink-0">
+              <Search className="w-6 h-6 text-(--module-primary)" />
             </div>
             <div className="flex-1">
               <h3 className="text-2xl font-black text-slate-900 mb-2">Planejamento AEE</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                <strong className="text-violet-700">Documento de referência:</strong> Registro pedagógico do ciclo de atendimento
+                <strong className="text-(--module-primary)">Documento de referência:</strong> Registro pedagógico do ciclo de atendimento
                 com objetivos, período, recursos e cronograma geral em <strong>fases</strong> (visão macro). Este documento serve
                 {/* eslint-disable-next-line react/no-unescaped-entities */}
                 {/* eslint-disable-next-line react/no-unescaped-entities */}
                 como referência para o planejamento geral do AEE. Use "Definir como ciclo ativo" para referência em outras abas.
               </p>
-              <p className="text-xs text-violet-600 mt-3 font-medium bg-violet-50 px-3 py-2 rounded-lg border border-violet-200">
+              <p className="text-xs text-(--module-primary) mt-3 font-medium bg-(--module-primary-soft) px-3 py-2 rounded-lg border border-(--module-primary)/20">
                 💡 Para metas SMART, acompanhamento por semanas e Jornada Gamificada, use a aba <strong>Execução e Metas SMART</strong>.
               </p>
             </div>
@@ -457,7 +461,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+                <span className="w-1 h-6 bg-(--module-primary) rounded-full"></span>
                 Histórico de ciclos de planejamento
               </h3>
               {cicloAtivoPlanejamento && (
@@ -527,7 +531,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                         aiLoadingStop();
                       }
                     }}
-                    className="text-white border-0 bg-linear-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 flex items-center gap-1.5 text-sm"
+                    className="text-white border-0 bg-(--module-primary) hover:bg-(--module-primary)/90 flex items-center gap-1.5 text-sm"
                     size="sm"
                   >
                     {relLoading ? "Gerando..." : "📊 Relatório do Ciclo"}
@@ -535,18 +539,18 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                 </div>
               )}
               {relatorio && (
-                <div className="mt-4 p-5 rounded-xl bg-violet-50 border border-violet-200">
+                <div className="mt-4 p-5 rounded-xl bg-(--module-primary-soft) border border-(--module-primary)/20">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-bold text-violet-900 flex items-center gap-2">📊 Relatório do Ciclo</h4>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setRelatorio(null)} className="text-violet-400 hover:text-violet-600 hover:bg-violet-100">Fechar</Button>
+                    <h4 className="font-bold text-(--module-text) flex items-center gap-2">📊 Relatório do Ciclo</h4>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setRelatorio(null)} className="text-(--module-primary)/70 hover:text-(--module-primary) hover:bg-(--module-primary-soft)">Fechar</Button>
                   </div>
                   <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap">{relatorio}</div>
                 </div>
               )}
 
-              <div className="pt-4 border-t border-violet-200">
+              <div className="pt-4 border-t border-(--module-primary)/20">
                 <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+                  <span className="w-1 h-6 bg-(--module-primary) rounded-full"></span>
                   Gerar novo ciclo
                 </h3>
                 <FormPlanejamento
@@ -559,7 +563,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
 
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+                <span className="w-1 h-6 bg-(--module-primary) rounded-full"></span>
                 Visualização
               </h3>
               {cicloParaVerPlanejamento ? (
@@ -578,17 +582,17 @@ function PAEEClientInner({ students, studentId, student }: Props) {
         <Card padding="none" className="p-6">
           {/* Header da aba */}
           <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
-              <Target className="w-6 h-6 text-violet-600" />
+            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--module-primary-soft) to-(--module-primary)/10 flex items-center justify-center shrink-0">
+              <Target className="w-6 h-6 text-(--module-primary)" />
             </div>
             <div className="flex-1">
               <h3 className="text-2xl font-black text-slate-900 mb-2">Execução e Metas SMART</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                <strong className="text-violet-700">Norteador operacional:</strong> Plano de execução e acompanhamento com metas
+                <strong className="text-(--module-primary)">Norteador operacional:</strong> Plano de execução e acompanhamento com metas
                 desdobradas em SMART, ações por <strong>semana</strong> e registro do que foi cumprido. Este ciclo alimenta a
                 <strong> Jornada Gamificada</strong> do estudante e serve como guia prático para a execução do trabalho no AEE.
               </p>
-              <p className="text-xs text-violet-600 mt-3 font-medium bg-violet-50 px-3 py-2 rounded-lg border border-violet-200">
+              <p className="text-xs text-(--module-primary) mt-3 font-medium bg-(--module-primary-soft) px-3 py-2 rounded-lg border border-(--module-primary)/20">
                 💡 Para documento de planejamento geral (objetivos, período, recursos, cronograma em fases), use a aba <strong>Planejamento AEE</strong>.
               </p>
             </div>
@@ -596,7 +600,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+                <span className="w-1 h-6 bg-(--module-primary) rounded-full"></span>
                 Histórico de ciclos de execução
               </h3>
               {ciclosExecucao.length > 0 && (
@@ -634,9 +638,9 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                   )}
                 </>
               )}
-              <div className="pt-4 border-t border-violet-200">
+              <div className="pt-4 border-t border-(--module-primary)/20">
                 <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+                  <span className="w-1 h-6 bg-(--module-primary) rounded-full"></span>
                   Gerar ciclo de execução
                 </h3>
                 <FormExecucao metasPei={metasPei} onGerar={gerarPreviewExecucao} />
@@ -644,7 +648,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
+                <span className="w-1 h-6 bg-(--module-primary) rounded-full"></span>
                 Visualização
               </h3>
               {cicloParaVerExecucao ? (
