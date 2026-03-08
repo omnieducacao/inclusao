@@ -1081,7 +1081,7 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
                     <div className="flex items-center gap-2.5">
                         <Brain size={22} />
                         <div>
-                            <h4 className="m-0 text-[17px] font-bold">Avaliação Diagnóstica — {disciplina}</h4>
+                            <h4 className="m-0 text-lg font-bold">Avaliação Diagnóstica — {disciplina}</h4>
                             <p className="m-0 text-xs opacity-85">
                                 {studentName} · Vincule uma avaliação aplicada no módulo Avaliação Diagnóstica
                             </p>
@@ -1102,7 +1102,7 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
                         {avaliacao.nivel}
                     </div>
                     <div className="flex-1">
-                        <div className="font-bold text-[15px] text-emerald-500">
+                        <div className="font-bold omni-body text-emerald-500">
                             Nível Omnisfera: {avaliacao.nivel} — {ESCALA_OMNISFERA[avaliacao.nivel as NivelOmnisfera]?.label}
                         </div>
                         <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">

@@ -317,7 +317,7 @@ function ModuleCardWithLottie({
     return (
       <Link
         href={href}
-        className="group relative block rounded-2xl transition-all duration-500 shadow-sm hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 opacity-100 aspect-square"
+        className="group relative block rounded-2xl transition-all duration-500 shadow-premium hover:shadow-premium-lg hover:scale-[1.01] hover:-translate-y-0.5 opacity-100 aspect-square"
         style={{ backgroundColor: colors.bg, border: '1px solid var(--border-default)' }}
       >
         {badge && (() => {
@@ -333,7 +333,7 @@ function ModuleCardWithLottie({
           const s = badgeStyles[badgeInfo.variant] || badgeStyles.green;
           return (
             <span
-              className="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold text-white rounded-full z-10"
+              className="absolute top-2 right-2 px-2 py-0.5 omni-label-xs font-bold text-white rounded-full z-10"
               style={{ background: s.bg, boxShadow: s.shadow }}
             >
               {badgeInfo.text}
@@ -342,7 +342,7 @@ function ModuleCardWithLottie({
         })()}
         <div className="flex flex-col items-center justify-center text-center h-full p-4 gap-3">
           <div
-            className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl"
+            className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-premium-lg"
           >
             <Icon
               className="w-7 h-7 transition-all duration-300"
@@ -480,7 +480,7 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
           <div className="w-5 h-5 bg-purple-200 rounded-lg animate-pulse" />
           Conhecimento e Referência
         </h2>
-        <div className="h-40 bg-white rounded-2xl animate-pulse" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} />
+        <div className="h-40 bg-white rounded-2xl animate-pulse shadow-premium" />
       </div>
     );
   }
@@ -549,7 +549,7 @@ export function IntelligenceModuleCard({ href, title, desc }: IntelligenceModule
                   {title}
                 </span>
               </div>
-              <p className="text-[13px] text-slate-600 leading-relaxed">
+              <p className="omni-body-sm text-slate-600 leading-relaxed">
                 {desc}
               </p>
               <div className="mt-4 flex items-center gap-2 text-sm font-bold group-hover:gap-3 transition-all" style={{ color: getModuleColors('gestao', isDark).icon }}>

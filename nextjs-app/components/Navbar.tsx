@@ -191,7 +191,7 @@ function NavItemWithLottie({ item, isActive, iconOverride, pillColorOverride }: 
   // Evitar crash se ícone não carregou (ex.: admin com ShieldCheckered)
   if (!Icon) {
     return (
-      <Link href={item.href} className="px-3.5 py-2 rounded-xl text-[13px] font-semibold text-slate-500">
+      <Link href={item.href} className="px-3.5 py-2 rounded-xl omni-body-sm font-semibold text-slate-500">
         <span>{item.label}</span>
       </Link>
     );
@@ -202,7 +202,7 @@ function NavItemWithLottie({ item, isActive, iconOverride, pillColorOverride }: 
       href={item.href}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap shrink-0 ${isActive
+      className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl omni-body-sm font-semibold whitespace-nowrap shrink-0 ${isActive
         ? "text-white shadow-md"
         : "hover:shadow-sm"
         }`}
@@ -291,7 +291,7 @@ function NavDropdown({ label, items, isActive, icon: Icon, lottieAnimation, path
         aria-label={`Menu ${label}`}
         aria-expanded={isOpen}
         aria-haspopup="true"
-        className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-semibold whitespace-nowrap shrink-0 ${isActive
+        className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl omni-body-sm font-semibold whitespace-nowrap shrink-0 ${isActive
           ? "text-white shadow-md"
           : "hover:shadow-sm"
           }`}
@@ -352,7 +352,7 @@ function NavDropdown({ label, items, isActive, icon: Icon, lottieAnimation, path
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all rounded-lg mx-2"
+                className="flex items-center gap-2.5 px-4 py-2.5 omni-body-sm font-medium transition-all rounded-lg mx-2"
                 style={{
                   color: isCurrentPage ? '#4285F4' : 'var(--omni-text-primary)',
                   backgroundColor: isCurrentPage ? 'rgba(66, 133, 244, 0.1)' : 'transparent',
@@ -453,7 +453,7 @@ function ProfileDropdown({
         className="flex items-center gap-3 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
       >
         <div className="hidden lg:flex flex-col items-end text-right">
-          <span className="text-[13px] font-semibold leading-tight" style={{ color: 'var(--omni-text-primary)' }}>
+          <span className="omni-body-sm font-semibold leading-tight" style={{ color: 'var(--omni-text-primary)' }}>
             {session?.usuario_nome ?? "Admin"}
           </span>
           <span className="text-[11px] font-medium" style={{ color: 'var(--omni-text-muted)' }}>
@@ -491,7 +491,7 @@ function ProfileDropdown({
         >
           {/* User info */}
           <div className="px-4 py-2.5 border-b" style={{ borderColor: 'var(--omni-border-default)' }}>
-            <div className="text-[13px] font-semibold" style={{ color: 'var(--omni-text-primary)' }}>
+            <div className="omni-body-sm font-semibold" style={{ color: 'var(--omni-text-primary)' }}>
               {session?.usuario_nome ?? "Admin"}
             </div>
             <div className="text-[11px]" style={{ color: 'var(--omni-text-muted)' }}>
@@ -503,7 +503,7 @@ function ProfileDropdown({
           <div className="py-1">
             <a
               href="/perfil"
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all text-left"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 omni-body-sm font-medium transition-all text-left"
               style={{
                 color: 'var(--omni-text-primary)',
               }}
@@ -523,7 +523,7 @@ function ProfileDropdown({
             <button
               onClick={onLogout}
               aria-label="Sair da plataforma"
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium transition-all text-left"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 omni-body-sm font-medium transition-all text-left"
               style={{
                 color: 'var(--omni-text-primary)',
               }}
@@ -597,7 +597,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
 
   // Skeleton navbar during SSR
   const navSkeleton = (
-    <header className="glass-strong sticky top-0 z-50" style={{ boxShadow: 'var(--omni-shadow-xs)', borderBottom: '1px solid var(--omni-border-default)', overflow: 'visible' }}>
+    <header className="glass-strong sticky top-0 z-50 shadow-premium" style={{ borderBottom: '1px solid var(--omni-border-default)', overflow: 'visible' }}>
       <div className="max-w-[1920px] mx-auto px-5" style={{ overflow: 'visible' }}>
         <div className="flex items-center h-[68px]" style={{ overflow: 'visible' }}>
           <Link href="/" className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group shrink-0">
@@ -667,7 +667,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   const flatItems = items.filter((i: NavItem) => !allGroupedPaths.includes(i.href));
 
   return (
-    <header className="glass-strong sticky top-0 z-50" style={{ boxShadow: 'var(--omni-shadow-xs)', borderBottom: '1px solid var(--omni-border-default)', overflow: 'visible' }}>
+    <header className="glass-strong sticky top-0 z-50 shadow-premium" style={{ borderBottom: '1px solid var(--omni-border-default)', overflow: 'visible' }}>
       <div className="max-w-[1920px] mx-auto px-5" style={{ overflow: 'visible' }}>
         {/* LAYOUT: Logo (esquerda) | Nav (centro, flex-1) | Busca+Ícones (direita) | Perfil (extrema direita) */}
         <div className="flex items-center h-[68px]" style={{ overflow: 'visible' }}>
