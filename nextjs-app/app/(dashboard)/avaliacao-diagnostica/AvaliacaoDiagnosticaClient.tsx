@@ -29,90 +29,13 @@ import type { EngineId } from "@/lib/ai-engines";
 import { AlternativaItem } from "./components/AlternativaItem";
 import { BadgeInfo } from "./components/BadgeInfo";
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Select, Textarea } from "@omni/ds";
+import type { Aluno, PlanoVinculado, BlocoPlano, ChecklistAdaptacao } from "./types";
+import { ENGINE_OPTIONS, TAXONOMIA_BLOOM, SAEB_TO_BLOOM } from "./types";
+import { extractSaebLevel, flattenBarreiras, extrairQuestoes } from "./utils";
 
-const ENGINE_OPTIONS: { id: EngineId; label: string; color: string }[] = [
-    { id: "red", label: "OmniRed (DeepSeek)", color: "#ef4444" },
-    { id: "green", label: "OmniGreen (Claude)", color: "#10b981" },
-    { id: "blue", label: "OmniBlue (Kimi)", color: "#3b82f6" },
-    { id: "orange", label: "OmniOrange (GPT)", color: "#f59e0b" },
-];
-
-// Taxonomia de Bloom (reutilizada do Hub)
-const TAXONOMIA_BLOOM: Record<string, string[]> = {
-    "1. Lembrar": ["Citar", "Definir", "Identificar", "Listar", "Nomear", "Reconhecer", "Recordar"],
-    "2. Entender": ["Classificar", "Descrever", "Explicar", "Expressar", "Resumir", "Traduzir"],
-    "3. Aplicar": ["Aplicar", "Demonstrar", "Ilustrar", "Interpretar", "Operar", "Usar"],
-    "4. Analisar": ["Analisar", "Comparar", "Contrastar", "Diferenciar", "Distinguir", "Examinar"],
-    "5. Avaliar": ["Argumentar", "Avaliar", "Defender", "Julgar", "Selecionar", "Validar"],
-    "6. Criar": ["Compor", "Construir", "Criar", "Desenvolver", "Formular", "Propor"],
-};
-
-// Mapear domínio cognitivo SAEB → domínios Bloom correspondentes
-const SAEB_TO_BLOOM: Record<string, string[]> = {
-    "I": ["1. Lembrar", "2. Entender"],
-    "II": ["3. Aplicar", "4. Analisar"],
-    "III": ["5. Avaliar", "6. Criar"],
-};
-
-/** Extrai o nível SAEB (I, II, III) do campo competencia */
-function extractSaebLevel(competencia: string): string | null {
-    const m = competencia.match(/^(I{1,3})\s*[–\-—]/i);
-    return m ? m[1].toUpperCase() : null;
-}
-
-type ChecklistAdaptacao = Record<string, boolean>;
-
-/** Flatten nested PEI barreiras (domain→barrier→bool) into flat map (barrier→true) */
-function flattenBarreiras(barreiras?: Record<string, Record<string, boolean>>): Record<string, boolean> {
-    if (!barreiras) return {};
-    const flat: Record<string, boolean> = {};
-    for (const domain of Object.values(barreiras)) {
-        if (domain && typeof domain === 'object') {
-            for (const [key, val] of Object.entries(domain)) {
-                if (val === true) flat[key] = true;
-            }
-        }
-    }
-    return flat;
-}
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Aluno {
-    id: string;
-    name: string;
-    grade: string;
-    class_group: string;
-    diagnostico: string;
-    barreiras_selecionadas?: Record<string, Record<string, boolean>>;
-    disciplinas: {
-        id: string;
-        disciplina: string;
-        professor_regente_nome: string;
-        has_avaliacao: boolean;
-        nivel_omnisfera: number | null;
-        avaliacao_status: string;
-    }[];
-}
+// Types, constants, and utils imported from ./types and ./utils
 
 
-interface PlanoVinculado {
-    id: string;
-    disciplina: string;
-    ano_serie: string;
-    bimestre: string;
-    conteudo: string | null;
-    habilidades_bncc: string[] | null;
-}
-
-interface BlocoPlano {
-    titulo: string;
-    habilidades_bncc?: string[];
-    objetivos?: string[];
-    objetivos_livre?: string;
-    metodologia?: string[];
-    avaliacao?: string[];
-}
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
@@ -680,54 +603,7 @@ export default function AvaliacaoDiagnosticaClient({
         setAnalisando(false);
     };
 
-    // ─── Helper: extrair questões do markdown ou JSON ───────────────────
-    const extrairQuestoes = (texto: string): { gabarito: string; habilidade: string }[] => {
-        // 1) Try to parse as JSON first (AI sometimes returns JSON despite markdown prompt)
-        try {
-            const cleaned = texto.replace(/```(?:json)?\s*([\s\S]*?)```/, "$1").trim();
-            const parsed = JSON.parse(cleaned);
-            if (parsed?.questoes && Array.isArray(parsed.questoes)) {
-                return parsed.questoes.map((q: { gabarito?: string; habilidade_bncc_ref?: string }) => ({
-                    gabarito: (q.gabarito || "").toUpperCase(),
-                    habilidade: q.habilidade_bncc_ref || "",
-                }));
-            }
-        } catch { /* not JSON, continue to regex */ }
-
-        // 2) Multi-pattern regex extraction from markdown text
-        const questoes: { gabarito: string; habilidade: string }[] = [];
-
-        // Pattern A: "**Gabarito: X**" or "Gabarito: X" or "Resposta correta: X"
-        const gabRegex1 = /(?:\*{0,2})(?:gabarito|resposta\s*correta)(?:\*{0,2})\s*[:]\s*\*{0,2}\s*([A-Ea-e])\s*\*{0,2}/gi;
-        // Pattern B: "**GABARITO (letra X):**" or "GABARITO (X):"
-        const gabRegex2 = /GABARITO\s*\(\s*(?:letra\s+)?([A-Ea-e])\s*\)/gi;
-        // Pattern C: "alternativa correta: X" or "Resposta: X"
-        const gabRegex3 = /(?:alternativa\s*correta|resposta)\s*[:]\s*\*{0,2}\s*([A-Ea-e])\s*\*{0,2}/gi;
-
-        const habRegex = /(?:\*{0,2})(?:habilidade|BNCC|habilidade_bncc)(?:\*{0,2})\s*[:]\s*\*{0,2}\s*([^\n*]+)/gi;
-
-        const gabs: string[] = [];
-        const habs: string[] = [];
-        let m: RegExpExecArray | null;
-
-        // Try all gabarito patterns
-        while ((m = gabRegex1.exec(texto)) !== null) gabs.push(m[1].toUpperCase());
-        if (gabs.length === 0) {
-            while ((m = gabRegex2.exec(texto)) !== null) gabs.push(m[1].toUpperCase());
-        }
-        if (gabs.length === 0) {
-            while ((m = gabRegex3.exec(texto)) !== null) gabs.push(m[1].toUpperCase());
-        }
-
-        while ((m = habRegex.exec(texto)) !== null) habs.push(m[1].trim());
-
-        for (let i = 0; i < gabs.length; i++) {
-            // Clamp to A-D (UI only shows 4 options)
-            const g = gabs[i] === "E" ? "D" : gabs[i];
-            questoes.push({ gabarito: g, habilidade: habs[i] || "" });
-        }
-        return questoes;
-    };
+    // extrairQuestoes imported from ./utils
 
     // ─── Generate Perfil de Funcionamento ────────────────────────────────
 
