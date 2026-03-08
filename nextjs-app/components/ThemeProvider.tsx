@@ -149,11 +149,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         setDyslexiaFont((prev) => !prev);
     }, []);
 
-    // Prevent flash of wrong theme
-    if (!mounted) {
-        return <>{children}</>;
-    }
-
     return (
         <ThemeContext.Provider value={{
             theme,
@@ -166,7 +161,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             colorBlindMode,
             setColorBlindMode,
         }}>
-            {children}
+            {/* 
+                We always return the Provider so the React Tree structure is identical 
+                during SSR and CSR. This prevents massive re-mounts and Error 310 (Hook Mismatches).
+            */}
+            <div style={{ visibility: mounted ? "visible" : "hidden", display: "contents" }}>
+                {children}
+            </div>
         </ThemeContext.Provider>
     );
 }
