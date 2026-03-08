@@ -251,7 +251,7 @@ export function carregarEstruturaEF(serie: string): EstruturaBnccEF {
   if (!anoSerie || anoSerie.includes("EM")) return { disciplinas: [], porDisciplina: {} };
   const raw = loadBnccEF();
   if (!raw.length) {
-    console.warn("BNCC EF Estrutura: Nenhum dado carregado.");
+    logger.warn("BNCC EF Estrutura: Nenhum dado carregado.");
     return { disciplinas: [], porDisciplina: {} };
   }
   const porDisciplina: Record<string, Record<string, Record<string, { codigo: string; descricao: string; habilidade_completa: string }[]>>> = {};
@@ -315,13 +315,13 @@ export function loadBnccEM(): BnccEMRow[] {
   const path = join(DATA_DIR, "bncc_em.csv");
   try {
     if (!existsSync(path)) {
-      console.error(`BNCC EM: Arquivo não encontrado em ${path}`);
+      logger.error(`BNCC EM: Arquivo não encontrado em ${path}`);
       return [];
     }
     const content = readFileSync(path, "utf-8");
     const rows = parseCSV(content);
     const filtered = rows.filter((r) => getCell(r, "Habilidade"));
-    console.log(`BNCC EM: Carregadas ${filtered.length} linhas de ${rows.length} total`);
+    logger.info(`BNCC EM: Carregadas ${filtered.length} linhas de ${rows.length} total`);
     const result = filtered.map((r) => ({
       area: getCell(r, "Área de conhecimento", "Área", "Area"),
       componente: getCell(r, "Componente"),
@@ -332,7 +332,7 @@ export function loadBnccEM(): BnccEMRow[] {
     _cacheEM = result;
     return result;
   } catch (err) {
-    console.error("BNCC EM: Erro ao carregar arquivo:", err);
+    logger.error({ err }, "BNCC EM: Erro ao carregar arquivo");
     return [];
   }
 }

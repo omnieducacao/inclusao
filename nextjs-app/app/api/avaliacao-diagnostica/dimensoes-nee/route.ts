@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { getSession } from "@/lib/session";
 
 interface Dimensao {
     id: string;
@@ -29,6 +30,11 @@ function loadDimensoes(): PerfilData[] {
 }
 
 export async function GET(req: Request) {
+    const session = await getSession();
+    if (!session?.workspace_id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const perfil = searchParams.get("perfil"); // TEA, DI, TA, AH
 
