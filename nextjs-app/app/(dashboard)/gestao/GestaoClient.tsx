@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -18,7 +18,8 @@ import {
   Heart,
 } from "lucide-react";
 import { OmniLoader } from "@/components/OmniLoader";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell, Avatar, Badge, Button, Card, CardHeader, CardTitle, CardDescription, CardContent, DonutChart } from "@omni/ds";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { Select, Table, TableHeader, TableRow, TableHead, TableBody, TableCell, Avatar, Badge, Button, Card, CardHeader, CardTitle, CardDescription, CardContent, DonutChart, Input } from "@omni/ds";
 
 type WorkspaceMember = {
   id: string;
@@ -86,6 +87,23 @@ export function GestaoClient({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDelId, setConfirmDelId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  // === VIRTUALIZATION SETUP ===
+  const membersParentRef = useRef<HTMLDivElement>(null);
+  const membersVirtualizer = useVirtualizer({
+    count: members.length,
+    getScrollElement: () => membersParentRef.current,
+    estimateSize: () => 76,
+    overscan: 5,
+  });
+
+  const familyParentRef = useRef<HTMLDivElement>(null);
+  const familyVirtualizer = useVirtualizer({
+    count: familyResponsaveis.length,
+    getScrollElement: () => familyParentRef.current,
+    estimateSize: () => 76,
+    overscan: 5,
+  });
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -212,9 +230,9 @@ export function GestaoClient({
             </Link>
           </div>
         ) : (
-          <div className="rounded-xl border border-(--omni-border-default) overflow-hidden bg-white">
+          <div ref={membersParentRef} className="max-h-[500px] overflow-auto rounded-xl border border-(--omni-border-default) bg-white">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
                 <TableRow>
                   <TableHead>Usuário</TableHead>
                   <TableHead>Permissões</TableHead>
@@ -223,19 +241,38 @@ export function GestaoClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activeMembers.map((m, idx) => (
-                  <MemberCard
-                    key={m.id}
-                    member={m}
-                    index={idx}
-                    editingId={editingId}
-                    confirmDelId={confirmDelId}
-                    setEditingId={setEditingId}
-                    setConfirmDelId={setConfirmDelId}
-                    onAction={loadData}
-                    onError={(err) => setMessage({ type: "err", text: err })}
-                  />
-                ))}
+                {membersVirtualizer.getVirtualItems().length > 0 && membersVirtualizer.getVirtualItems()[0].start > 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} style={{ height: `${membersVirtualizer.getVirtualItems()[0].start}px`, padding: 0, border: 0 }} />
+                  </TableRow>
+                )}
+                {membersVirtualizer.getVirtualItems().map((vRow) => {
+                  const m = activeMembers[vRow.index];
+                  return (
+                    <MemberCard
+                      key={m.id}
+                      member={m}
+                      index={vRow.index}
+                      editingId={editingId}
+                      confirmDelId={confirmDelId}
+                      setEditingId={setEditingId}
+                      setConfirmDelId={setConfirmDelId}
+                      onAction={loadData}
+                      onError={(err) => setMessage({ type: "err", text: err })}
+                    />
+                  );
+                })}
+                {membersVirtualizer.getVirtualItems().length > 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      style={{
+                        height: `${membersVirtualizer.getTotalSize() - membersVirtualizer.getVirtualItems()[membersVirtualizer.getVirtualItems().length - 1].end}px`,
+                        padding: 0, border: 0
+                      }}
+                    />
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
@@ -255,9 +292,9 @@ export function GestaoClient({
             Nenhum responsável cadastrado. Use o formulário acima e selecione &quot;Família&quot; para criar.
           </p>
         ) : (
-          <div className="rounded-xl border border-(--omni-border-default) overflow-hidden bg-white">
+          <div ref={familyParentRef} className="max-h-[500px] overflow-auto rounded-xl border border-(--omni-border-default) bg-white">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
                 <TableRow>
                   <TableHead>Responsável</TableHead>
                   <TableHead>Tipo</TableHead>
@@ -266,15 +303,34 @@ export function GestaoClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activeFamily.map((f, idx) => (
-                  <FamilyCard
-                    key={f.id}
-                    responsavel={f}
-                    index={idx}
-                    onAction={loadData}
-                    onError={(err) => setMessage({ type: "err", text: err })}
-                  />
-                ))}
+                {familyVirtualizer.getVirtualItems().length > 0 && familyVirtualizer.getVirtualItems()[0].start > 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} style={{ height: `${familyVirtualizer.getVirtualItems()[0].start}px`, padding: 0, border: 0 }} />
+                  </TableRow>
+                )}
+                {familyVirtualizer.getVirtualItems().map((vRow) => {
+                  const f = activeFamily[vRow.index];
+                  return (
+                    <FamilyCard
+                      key={f.id}
+                      responsavel={f}
+                      index={vRow.index}
+                      onAction={loadData}
+                      onError={(err) => setMessage({ type: "err", text: err })}
+                    />
+                  );
+                })}
+                {familyVirtualizer.getVirtualItems().length > 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      style={{
+                        height: `${familyVirtualizer.getTotalSize() - familyVirtualizer.getVirtualItems()[familyVirtualizer.getVirtualItems().length - 1].end}px`,
+                        padding: 0, border: 0
+                      }}
+                    />
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
