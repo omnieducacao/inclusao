@@ -58,7 +58,7 @@ export function SecurityAndAIPanel({ engines = ["red", "blue", "green", "yellow"
                                     Segurança & Compliance Educacional
                                 </h3>
                                 <span
-                                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase"
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full omni-label-xs font-bold tracking-wide uppercase"
                                     style={{
                                         background: 'rgba(16,185,129,0.1)',
                                         color: '#059669',
@@ -84,7 +84,7 @@ export function SecurityAndAIPanel({ engines = ["red", "blue", "green", "yellow"
                                 ].map((badge) => (
                                     <span
                                         key={badge.label}
-                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg omni-label-xs font-semibold transition-all duration-200 hover:-translate-y-0.5"
                                         style={{
                                             background: '#f8fafc',
                                             color: '#475569',
@@ -127,7 +127,7 @@ export function SecurityAndAIPanel({ engines = ["red", "blue", "green", "yellow"
                                     Ecossistema Multi-Engines
                                 </h3>
                                 <span
-                                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
+                                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full omni-label-xs font-bold uppercase tracking-wide"
                                     style={{
                                         background: 'rgba(99,102,241,0.1)',
                                         color: '#6366f1',

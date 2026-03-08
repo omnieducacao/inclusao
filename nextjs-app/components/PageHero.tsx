@@ -99,6 +99,9 @@ type PageHeroProps = {
   useLottie?: boolean;
   /** Explicit Lottie override (e.g., from home page customization) */
   lottieOverride?: string;
+  /** Config injected via Server Component to prevent FOUC */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  serverConfig?: Record<string, any>;
 };
 
 // Map admin COLOR_OPTIONS keys → hex (matches DS moduleColors)
@@ -124,6 +127,7 @@ export function PageHero({
   color,
   useLottie = true,
   lottieOverride: propLottieOverride,
+  serverConfig,
 }: PageHeroProps) {
   const { theme: themeMode } = useTheme();
   const isDark = themeMode === "dark";
@@ -149,9 +153,15 @@ export function PageHero({
 
   const defaultLottieAnimation = moduleLottieIcon[resolvedKey];
 
+  const initialKey = adminKeyProp || (route ? routeToAdminKey[route] : undefined) || (moduleKey ? moduleKeyToAdminKey[moduleKey] : undefined) || "";
+
   // ─── Read admin customization from DB ──────────────────────────────────────
-  const [adminIcon, setAdminIcon] = useState<string | null>(null);
-  const [adminColor, setAdminColor] = useState<string | null>(null);
+  const [adminIcon, setAdminIcon] = useState<string | null>(() => {
+    return serverConfig && initialKey ? (serverConfig[initialKey]?.icon || null) : null;
+  });
+  const [adminColor, setAdminColor] = useState<string | null>(() => {
+    return serverConfig && initialKey ? (serverConfig[initialKey]?.heroColor || serverConfig[initialKey]?.color || null) : null;
+  });
   const [isMounted, setIsMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -167,10 +177,8 @@ export function PageHero({
   useEffect(() => {
     setIsMounted(true);
 
-    const adminKey = adminKeyProp
-      || (route ? routeToAdminKey[route] : undefined)
-      || (moduleKey ? moduleKeyToAdminKey[moduleKey] : undefined);
-    if (!adminKey) return;
+    const adminKey = initialKey;
+    if (!adminKey || serverConfig) return; // Skip fetch if ServerConfig is provided
 
     fetch("/api/public/platform-config?key=card_customizations")
       .then(r => r.json())
@@ -190,7 +198,7 @@ export function PageHero({
         }
       })
       .catch(() => { /* silent */ });
-  }, [route, moduleKey, adminKeyProp]);
+  }, [initialKey, serverConfig]);
 
   // Priority: prop override > admin DB > default
   const lottieAnimation = propLottieOverride || adminIcon || defaultLottieAnimation;

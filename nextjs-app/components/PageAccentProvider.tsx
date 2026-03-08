@@ -31,13 +31,22 @@ const ADMIN_COLOR_HEX: Record<string, string> = {
 type Props = {
     /** The admin key for this module (matches HOME_MODULES key) */
     adminKey: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    serverConfig?: Record<string, any>;
     children: React.ReactNode;
 };
 
-export function PageAccentProvider({ adminKey, children }: Props) {
-    const [accentHex, setAccentHex] = useState<string | null>(null);
+export function PageAccentProvider({ adminKey, serverConfig, children }: Props) {
+    const [accentHex, setAccentHex] = useState<string | null>(() => {
+        if (serverConfig) {
+            const colorKey = serverConfig[adminKey]?.heroColor || serverConfig[adminKey]?.color;
+            return colorKey && ADMIN_COLOR_HEX[colorKey] ? ADMIN_COLOR_HEX[colorKey] : null;
+        }
+        return null;
+    });
 
     useEffect(() => {
+        if (serverConfig) return; // Skip if injected by server
         fetch("/api/public/platform-config?key=card_customizations")
             .then(r => r.json())
             .then(data => {
@@ -53,7 +62,7 @@ export function PageAccentProvider({ adminKey, children }: Props) {
                 }
             })
             .catch(() => { /* silent */ });
-    }, [adminKey]);
+    }, [adminKey, serverConfig]);
 
     const style = accentHex
         ? {

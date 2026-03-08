@@ -130,7 +130,7 @@ function PostCarousel({ images }: { images: string[] }) {
             {/* Slide counter */}
             {images.length > 1 && (
                 <div
-                    className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                    className="absolute top-2 right-2 px-2 py-0.5 rounded-full omni-label-xs font-bold"
                     style={{ backgroundColor: "rgba(0,0,0,0.5)", color: "white" }}
                 >
                     {current + 1}/{images.length}
@@ -157,7 +157,7 @@ export function OmnisferaFeed() {
                 setIcons({
                     Info: phosphor.Info,
                     Confetti: phosphor.Confetti,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     BuildingOffice: (phosphor as any).BuildingOffice || phosphor.Buildings,
                     Megaphone: phosphor.Megaphone,
                     ArrowSquareOut: phosphor.ArrowSquareOut,
@@ -169,7 +169,7 @@ export function OmnisferaFeed() {
 
     if (loading) {
         return (
-            <div className="sidebar-glass-card overflow-hidden">
+            <div className="sidebar-glass-card shadow-premium-md overflow-hidden">
                 <div className="p-4">
                     <div className="h-4 w-32 rounded animate-pulse mb-3" style={{ backgroundColor: "var(--bg-tertiary)" }} />
                     <div className="rounded-xl animate-pulse" style={{ backgroundColor: "var(--bg-tertiary)", aspectRatio: "1/1" }} />
@@ -183,7 +183,7 @@ export function OmnisferaFeed() {
     const HeaderIcon = icons.Megaphone;
 
     return (
-        <div className="sidebar-glass-card overflow-hidden">
+        <div className="sidebar-glass-card shadow-premium-md overflow-hidden">
             {/* Header */}
             <div
                 className="px-5 py-3.5 flex items-center justify-between"
@@ -200,7 +200,7 @@ export function OmnisferaFeed() {
                     )}
                     Feed Omnisfera
                 </h3>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                <span className="omni-label-xs font-semibold px-2 py-0.5 rounded-full"
                     style={{ backgroundColor: "rgba(225, 48, 108, 0.1)", color: "#E1306C" }}>
                     {posts.length} post{posts.length !== 1 ? "s" : ""}
                 </span>
@@ -242,7 +242,7 @@ export function OmnisferaFeed() {
                                     <p className="text-[12px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
                                         {post.title || cat.label}
                                     </p>
-                                    <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                                    <p className="omni-label-xs" style={{ color: "var(--text-muted)" }}>
                                         {timeAgo(post.created_at)}
                                     </p>
                                 </div>

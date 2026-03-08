@@ -112,9 +112,9 @@ function emptyBloco(): SequenciaBloco {
 const cardC = "rounded-2xl border border-(--border-default) bg-white dark:bg-slate-900/40 overflow-hidden shadow-sm";
 const headerC = "flex items-center gap-2 px-5 py-3.5 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50 dark:bg-slate-800/30";
 const bodyC = "p-5";
-const labelC = "text-[13px] font-bold text-slate-600 dark:text-slate-400 mb-2 block";
+const labelC = "omni-body-sm font-bold text-slate-600 dark:text-slate-400 mb-2 block";
 const selectC = "w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all text-sm cursor-pointer font-sans shadow-sm";
-const textareaC = "w-full min-h-[60px] p-3.5 rounded-xl bg-white dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all text-[13px] leading-relaxed resize-y font-sans shadow-sm";
+const textareaC = "w-full min-h-[60px] p-3.5 rounded-xl bg-white dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all omni-body-sm leading-relaxed resize-y font-sans shadow-sm";
 
 // ─── Tag Selector ─────────────────────────────────────────────────────────────
 
@@ -474,7 +474,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                     <AutoSaveIndicator status={autoSave.status} lastSaved={autoSave.lastSaved} />
                 </div>
                 {/* Efeito de brilho sutíl no header */}
-                <div className="absolute inset-0 bg-white/5 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-size-[250%_250%,100%_100%] animate-aurora pointer-events-none" />
+                <div className="absolute inset-0 bg-white/5 animate-aurora pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
@@ -526,7 +526,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                             key={b}
                             onClick={() => setPlano(p => ({ ...p, bimestre: b }))}
                             type="button"
-                            className={`px-3.5 py-1.5 rounded-xl text-[13px] font-bold transition-all border active:scale-95 ${plano.bimestre === b ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 shadow-sm' : 'border-slate-200 dark:border-slate-700/50 text-slate-500 hover:border-slate-300 dark:hover:border-slate-600'}`}
+                            className={`px-3.5 py-1.5 rounded-xl omni-body-sm font-bold transition-all border active:scale-95 ${plano.bimestre === b ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 shadow-sm' : 'border-slate-200 dark:border-slate-700/50 text-slate-500 hover:border-slate-300 dark:hover:border-slate-600'}`}
                         >
                             {b}
                         </button>
@@ -601,7 +601,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                                 {form.habilidades_bncc.length > 0 && (
                                     <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 10px", borderRadius: 8, background: "rgba(14,165,233,.06)", border: "1px solid rgba(14,165,233,.15)" }}>
                                         {form.habilidades_bncc.map(c => (
-                                            <span key={c} onClick={() => setForm(prev => ({ ...prev, habilidades_bncc: prev.habilidades_bncc.filter(x => x !== c) }))} className="px-2.5 py-1 rounded-md text-[10px] font-bold text-white uppercase tracking-wider bg-linear-to-br from-sky-500 to-sky-600 cursor-pointer">{c} ✕</span>
+                                            <span key={c} onClick={() => setForm(prev => ({ ...prev, habilidades_bncc: prev.habilidades_bncc.filter(x => x !== c) }))} className="px-2.5 py-1 rounded-md omni-label-xs font-bold text-white uppercase tracking-wider bg-sky-500 cursor-pointer">{c} ✕</span>
                                         ))}
                                     </div>
                                 )}
@@ -634,14 +634,14 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
 
                     {/* Action buttons */}
                     <div className="flex gap-2 flex-wrap mt-4">
-                        <button onClick={gerarSugestaoIA} disabled={iaLoading || form.habilidades_bncc.length === 0} type="button" className={`btn-premium px-4 py-2.5 rounded-xl text-[13px] border-[1.5px] border-purple-500/50 hover:border-purple-500 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 ${(form.habilidades_bncc.length === 0 || iaLoading) ? 'opacity-50 cursor-not-allowed active:scale-100' : ''}`}>
+                        <button onClick={gerarSugestaoIA} disabled={iaLoading || form.habilidades_bncc.length === 0} type="button" className={`btn-premium px-4 py-2.5 rounded-xl omni-body-sm border-2 border-purple-500/50 hover:border-purple-500 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 ${(form.habilidades_bncc.length === 0 || iaLoading) ? 'opacity-50 cursor-not-allowed active:scale-100' : ''}`}>
                             {iaLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Sugestão IA
                         </button>
-                        <button onClick={addBloco} disabled={!canAddBloco} type="button" className={`btn-premium flex-1 px-4 py-2.5 rounded-xl text-[13px] hover:shadow-premium-lg ${canAddBloco ? 'btn-premium-primary bg-linear-to-br from-sky-500 to-sky-700 border-none' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 cursor-not-allowed opacity-70 border border-slate-300 dark:border-slate-700 active:scale-100'}`}>
+                        <button onClick={addBloco} disabled={!canAddBloco} type="button" className={`btn-premium flex-1 px-4 py-2.5 rounded-xl omni-body-sm hover:shadow-premium-lg ${canAddBloco ? 'btn-premium-primary bg-sky-600 hover:bg-sky-500 border-none' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 cursor-not-allowed opacity-70 border border-slate-300 dark:border-slate-700 active:scale-100'}`}>
                             <Plus size={16} strokeWidth={2.5} /> {editingIndex !== null ? "Salvar Bloco" : "Adicionar Bloco"}
                         </button>
                         {editingIndex !== null && (
-                            <button onClick={() => { setForm(emptyBloco()); setEditingIndex(null); }} type="button" className="btn-premium btn-premium-secondary px-4 py-2.5 rounded-xl text-[13px] hover:shadow-sm">Cancelar</button>
+                            <button onClick={() => { setForm(emptyBloco()); setEditingIndex(null); }} type="button" className="btn-premium btn-premium-secondary px-4 py-2.5 rounded-xl omni-body-sm hover:shadow-sm">Cancelar</button>
                         )}
                     </div>
                 </div>
@@ -727,7 +727,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                                     </div>
                                 );
                             })}
-                            <button onClick={salvar} disabled={saving || plano.blocos.length === 0} type="button" className={`btn-premium w-full mt-4 py-3.5 rounded-xl text-[15px] hover:shadow-premium-lg transition-all ${(saving || plano.blocos.length === 0) ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 cursor-not-allowed opacity-70 border border-slate-300 dark:border-slate-700 active:scale-100' : 'btn-premium-primary bg-linear-to-br from-sky-500 to-sky-700 border-none'}`}>
+                            <button onClick={salvar} disabled={saving || plano.blocos.length === 0} type="button" className={`btn-premium w-full mt-4 py-3.5 rounded-xl omni-body hover:shadow-premium-lg transition-all ${(saving || plano.blocos.length === 0) ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 cursor-not-allowed opacity-70 border border-slate-300 dark:border-slate-700 active:scale-100' : 'btn-premium-primary bg-sky-600 hover:bg-sky-500 border-none'}`}>
                                 {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                                 {saving ? "Salvando..." : `Salvar Plano (${plano.blocos.length} bloco${plano.blocos.length !== 1 ? "s" : ""})`}
                             </button>

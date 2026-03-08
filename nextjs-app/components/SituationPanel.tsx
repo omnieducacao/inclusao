@@ -123,7 +123,7 @@ export function SituationPanel() {
     const alertCount = notifications.filter((n) => n.severity === "alert" || n.severity === "warning").length;
 
     return (
-        <div className="sidebar-glass-card overflow-hidden">
+        <div className="sidebar-glass-card shadow-premium-md overflow-hidden">
             {/* ── Tab Bar ── */}
             <div
                 className="flex items-center gap-0 px-1 pt-1"
@@ -154,7 +154,7 @@ export function SituationPanel() {
                             {tab.label}
                             {tab.id === "alerts" && alertCount > 0 && (
                                 <span
-                                    className="ml-0.5 px-1.5 py-0 text-[10px] font-bold text-white rounded-full animate-pulse"
+                                    className="ml-0.5 px-1.5 py-0 omni-label-xs font-bold text-white rounded-full animate-pulse"
                                     style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)", fontSize: "9px", lineHeight: "16px", minWidth: "16px", textAlign: "center" }}
                                 >
                                     {alertCount}
@@ -187,7 +187,7 @@ function OverviewTab({ kpis, loading, icons }: { kpis: KPIs | null; loading: boo
         );
     }
 
-    if (!kpis) return <p className="text-[13px] text-center py-6" style={{ color: "var(--text-muted)" }}>Sem dados disponíveis</p>;
+    if (!kpis) return <p className="omni-body-sm text-center py-6" style={{ color: "var(--text-muted)" }}>Sem dados disponíveis</p>;
 
     const peiPercent = kpis.total_students > 0 ? Math.round((kpis.students_with_pei / kpis.total_students) * 100) : 0;
     const peiTotal = kpis.students_with_pei;
@@ -288,7 +288,7 @@ function AlertsTab({ notifications, loading, icons }: { notifications: Notificat
         return (
             <div className="text-center py-8">
                 {WarningIcon && <WarningIcon weight="duotone" style={{ width: "32px", height: "32px", color: "var(--text-muted)", margin: "0 auto 8px" }} />}
-                <p className="text-[13px] font-medium" style={{ color: "var(--text-muted)" }}>Nenhum alerta no momento</p>
+                <p className="omni-body-sm font-medium" style={{ color: "var(--text-muted)" }}>Nenhum alerta no momento</p>
                 <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>Bom trabalho! 🎉</p>
             </div>
         );
@@ -326,7 +326,7 @@ function AlertsTab({ notifications, loading, icons }: { notifications: Notificat
                                 {n.description}
                             </p>
                             {n.studentName && (
-                                <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-medium rounded-full" style={{ backgroundColor: "var(--bg-tertiary)", color: "var(--text-muted)" }}>
+                                <span className="inline-block mt-1 px-2 py-0.5 omni-label-xs font-medium rounded-full" style={{ backgroundColor: "var(--bg-tertiary)", color: "var(--text-muted)" }}>
                                     {n.studentName}
                                 </span>
                             )}
@@ -372,7 +372,7 @@ function LegislationTab({ icons }: { icons: Record<string, Icon> }) {
                             )}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-semibold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
+                            <p className="omni-body-sm font-semibold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
                                 {lei.nome}
                             </p>
                             <p className="text-[11px] mt-0.5 truncate" style={{ color: "var(--text-muted)" }}>
