@@ -5,9 +5,9 @@
 
 // Cores por módulo (usadas em ModuleCard, badges, glows)
 export const moduleColors = {
-    pei: { bg: "#7c3aed", text: "#ffffff", glow: "rgba(139, 92, 246, 0.25)", bgPastel: "#ede5fb", textPastel: "#5b21b6" },
-    paee: { bg: "#e11d48", text: "#ffffff", glow: "rgba(244, 63, 94, 0.25)", bgPastel: "#fce4ec", textPastel: "#9f1239" },
-    hub: { bg: "#0891b2", text: "#ffffff", glow: "rgba(6, 182, 212, 0.25)", bgPastel: "#e0f5f9", textPastel: "#0e7490" },
+    pei: { bg: "#6366f1", text: "#ffffff", glow: "rgba(99, 102, 241, 0.25)", bgPastel: "#e0e7ff", textPastel: "#4338ca" },
+    paee: { bg: "#f43f5e", text: "#ffffff", glow: "rgba(244, 63, 94, 0.25)", bgPastel: "#ffe4e6", textPastel: "#be123c" },
+    hub: { bg: "#14b8a6", text: "#ffffff", glow: "rgba(20, 184, 166, 0.25)", bgPastel: "#ccfbf1", textPastel: "#0f766e" },
     diario: { bg: "#059669", text: "#ffffff", glow: "rgba(16, 185, 129, 0.25)", bgPastel: "#dcfce7", textPastel: "#047857" },
     cursos: { bg: "#d97706", text: "#ffffff", glow: "rgba(245, 158, 11, 0.25)", bgPastel: "#fef3cd", textPastel: "#92400e" },
     ferramentas: { bg: "#2563eb", text: "#ffffff", glow: "rgba(59, 130, 246, 0.25)", bgPastel: "#dbeafe", textPastel: "#1d4ed8" },
@@ -115,9 +115,9 @@ export const gradients = {
     midnight: "linear-gradient(135deg, #080742, #5E72EB)",
     coral: "linear-gradient(135deg, #FF9090, #FDC094)",
     // Module-specific
-    peiGlow: "linear-gradient(135deg, #7c3aed, #a855f7)",
-    hubGlow: "linear-gradient(135deg, #0891b2, #06b6d4)",
+    peiGlow: "linear-gradient(135deg, #6366f1, #818cf8)",
+    hubGlow: "linear-gradient(135deg, #14b8a6, #2dd4bf)",
     diarioGlow: "linear-gradient(135deg, #059669, #10b981)",
-    paeeGlow: "linear-gradient(135deg, #e11d48, #f43f5e)",
+    paeeGlow: "linear-gradient(135deg, #f43f5e, #fb7185)",
     cursosGlow: "linear-gradient(135deg, #d97706, #f59e0b)",
 } as const;

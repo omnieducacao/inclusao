@@ -5,6 +5,7 @@ import { moduleTheme, getRouteTheme, type ModuleThemeKey } from "@/lib/module-th
 import { moduleColors, type ModuleKey } from "@omni/ds";
 import { LottieIcon } from "./LottieIcon";
 import { useTheme } from "./ThemeProvider";
+import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 
 // ─── Canonical Lottie icon per module ─────────────────────────────────────────
 
@@ -154,6 +155,15 @@ export function PageHero({
   const [isMounted, setIsMounted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent<HTMLDivElement>) {
+    const { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  }
+
   useEffect(() => {
     setIsMounted(true);
 
@@ -299,8 +309,8 @@ export function PageHero({
   }
 
   return (
-    <div
-      className="group rounded-2xl overflow-hidden transition-all duration-300 animate-fade-in-up"
+    <motion.div
+      className="group relative rounded-2xl overflow-hidden animate-fade-in-up"
       style={{
         backgroundColor: cardBg,
         boxShadow: isHovered
@@ -316,11 +326,23 @@ export function PageHero({
               : `0 4px 20px ${accentColor}15, 0 2px 8px rgba(0,0,0,0.05)`,
         ...(isNotebook ? { border: `1px solid ${notebookBorder}` } : {}),
       }}
+      onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      whileHover={{ scale: 1.01, y: -2 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
     >
+      {/* ── Magnetic Spotlight Hover Layer ── */}
+      <motion.div
+        className="pointer-events-none absolute -inset-px opacity-0 transition duration-300 group-hover:opacity-100"
+        style={{
+          background: useMotionTemplate`radial-gradient(600px circle at ${mouseX}px ${mouseY}px, ${accentColor}15, transparent 80%)`,
+          zIndex: 1
+        }}
+      />
+
       {/* Top accent bar — premium shimmer gradient */}
-      <div className="h-1 w-full" style={{ background: gradientLine }} />
+      <div className="h-1 w-full relative z-10" style={{ background: gradientLine }} />
 
       <div className="flex items-center gap-6 h-[120px] px-8 md:px-10">
         {/* Lottie icon — glass container */}
@@ -347,6 +369,6 @@ export function PageHero({
           </p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

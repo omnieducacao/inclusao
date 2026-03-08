@@ -686,10 +686,10 @@ export declare const gradients: {
     readonly lavender: "linear-gradient(135deg, #FA897B, #CCABD8)";
     readonly midnight: "linear-gradient(135deg, #080742, #5E72EB)";
     readonly coral: "linear-gradient(135deg, #FF9090, #FDC094)";
-    readonly peiGlow: "linear-gradient(135deg, #7c3aed, #a855f7)";
-    readonly hubGlow: "linear-gradient(135deg, #0891b2, #06b6d4)";
+    readonly peiGlow: "linear-gradient(135deg, #6366f1, #818cf8)";
+    readonly hubGlow: "linear-gradient(135deg, #14b8a6, #2dd4bf)";
     readonly diarioGlow: "linear-gradient(135deg, #059669, #10b981)";
-    readonly paeeGlow: "linear-gradient(135deg, #e11d48, #f43f5e)";
+    readonly paeeGlow: "linear-gradient(135deg, #f43f5e, #fb7185)";
     readonly cursosGlow: "linear-gradient(135deg, #d97706, #f59e0b)";
 };
 
@@ -1050,25 +1050,25 @@ export declare type ModuleCardProps = {
  */
 export declare const moduleColors: {
     readonly pei: {
-        readonly bg: "#7c3aed";
+        readonly bg: "#6366f1";
         readonly text: "#ffffff";
-        readonly glow: "rgba(139, 92, 246, 0.25)";
-        readonly bgPastel: "#ede5fb";
-        readonly textPastel: "#5b21b6";
+        readonly glow: "rgba(99, 102, 241, 0.25)";
+        readonly bgPastel: "#e0e7ff";
+        readonly textPastel: "#4338ca";
     };
     readonly paee: {
-        readonly bg: "#e11d48";
+        readonly bg: "#f43f5e";
         readonly text: "#ffffff";
         readonly glow: "rgba(244, 63, 94, 0.25)";
-        readonly bgPastel: "#fce4ec";
-        readonly textPastel: "#9f1239";
+        readonly bgPastel: "#ffe4e6";
+        readonly textPastel: "#be123c";
     };
     readonly hub: {
-        readonly bg: "#0891b2";
+        readonly bg: "#14b8a6";
         readonly text: "#ffffff";
-        readonly glow: "rgba(6, 182, 212, 0.25)";
-        readonly bgPastel: "#e0f5f9";
-        readonly textPastel: "#0e7490";
+        readonly glow: "rgba(20, 184, 166, 0.25)";
+        readonly bgPastel: "#ccfbf1";
+        readonly textPastel: "#0f766e";
     };
     readonly diario: {
         readonly bg: "#059669";

@@ -198,7 +198,7 @@ export function PEIRegenteClient() {
             <div className="relative rounded-2xl overflow-hidden bg-(--omni-bg-secondary) border border-(--omni-border-default)">
                 {/* Toast notification */}
                 {toast && (
-                    <div className="absolute top-3 right-3 z-50 px-4 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-[13px] font-bold animate-fade-in">
+                    <div className="absolute top-3 right-3 z-50 px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 omni-body font-bold animate-fade-in">
                         {toast}
                     </div>
                 )}
@@ -207,7 +207,7 @@ export function PEIRegenteClient() {
                     <div className="absolute inset-0 z-40 bg-black/30 backdrop-blur-[2px] flex items-center justify-center rounded-2xl">
                         <div className="text-center">
                             <OmniLoader variant="card" />
-                            <p className="text-white text-[13px] mt-2 font-bold">Avançando fase...</p>
+                            <p className="text-white omni-body mt-2 font-bold">Avançando fase...</p>
                         </div>
                     </div>
                 )}
@@ -324,7 +324,7 @@ export function PEIRegenteClient() {
                                         <span className="text-sm font-bold text-indigo-400">
                                             PEI Geral do Estudante
                                         </span>
-                                        <span className="text-[10px] ml-auto px-2 py-0.5 rounded-full font-bold bg-indigo-500/15 text-indigo-400">
+                                        <span className="omni-label-xs ml-auto px-2 py-0.5 rounded-full font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
                                             Informações gerais
                                         </span>
                                     </summary>
@@ -345,7 +345,7 @@ export function PEIRegenteClient() {
                                         <span className="text-sm font-bold text-green-600">
                                             Habilidades BNCC (selecionadas pelo Especialista)
                                         </span>
-                                        <span className="text-[10px] ml-auto px-2 py-0.5 rounded-full font-bold bg-green-600/15 text-green-600">
+                                        <span className="omni-label-xs ml-auto px-2 py-0.5 rounded-full font-bold bg-green-600/15 text-green-600">
                                             {(() => {
                                                 const disc = selectedDisc.disciplina.toLowerCase();
                                                 const filtered = selectedAluno.habilidades_bncc.filter(h =>
@@ -364,13 +364,13 @@ export function PEIRegenteClient() {
                                             return (
                                                 <div key={i} className={`flex items-start gap-2 p-2 rounded-lg text-xs ${isMyDisc ? 'bg-green-600/10 border border-green-600/15 opacity-100' : 'bg-transparent border-transparent opacity-50'}`}>
                                                     {h.codigo && (
-                                                        <span className="font-bold shrink-0 px-1.5 py-0.5 rounded bg-green-600/10 text-green-600 text-[10px]">{h.codigo}</span>
+                                                        <span className="font-bold shrink-0 px-1.5 py-0.5 rounded bg-green-600/10 text-green-600 omni-label-xs">{h.codigo}</span>
                                                     )}
                                                     <span className="text-slate-500 dark:text-slate-400">
                                                         {h.habilidade || h.objeto_conhecimento || String(h.codigo || `Habilidade ${i + 1}`)}
                                                     </span>
                                                     {h.disciplina && (
-                                                        <span className="shrink-0 text-[10px] text-slate-400">
+                                                        <span className="shrink-0 omni-label-xs text-slate-400">
                                                             {h.disciplina}
                                                         </span>
                                                     )}
@@ -389,7 +389,7 @@ export function PEIRegenteClient() {
                                         <span className="text-sm font-bold text-sky-500">
                                             Objetivos EI (BNCC — Campos de Experiência)
                                         </span>
-                                        <span className="text-[10px] ml-auto px-2 py-0.5 rounded-full font-bold bg-sky-500/15 text-sky-500">
+                                        <span className="omni-label-xs ml-auto px-2 py-0.5 rounded-full font-bold bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">
                                             {selectedAluno.bncc_ei_objetivos.length}
                                         </span>
                                     </summary>
@@ -475,7 +475,7 @@ export function PEIRegenteClient() {
                                         aiLoadingStop();
                                     }}
                                     disabled={gerandoAdaptacao}
-                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 ${gerandoAdaptacao ? 'bg-slate-400' : 'bg-gradient-to-br from-sky-500 to-blue-500'}`}
+                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 ${gerandoAdaptacao ? 'bg-slate-400' : 'bg-linear-to-br from-sky-500 to-blue-500'}`}
                                 >
                                     {gerandoAdaptacao ? <OmniLoader engine="red" size={14} /> : (
                                         <>
@@ -502,7 +502,7 @@ export function PEIRegenteClient() {
 
                                         {/* Resumo */}
                                         {adaptacaoSugestao.resumo_adaptacao && (
-                                            <div className="p-3 rounded-lg text-sm bg-[var(--bg-primary)] border border-sky-500/15 text-[var(--text-secondary)]">
+                                            <div className="p-3 rounded-lg text-sm bg-(--bg-primary) border border-sky-500/15 text-(--text-secondary)">
                                                 {String(adaptacaoSugestao.resumo_adaptacao)}
                                             </div>
                                         )}
@@ -516,7 +516,7 @@ export function PEIRegenteClient() {
                                                         Objetivos Individualizados
                                                     </p>
                                                     {adaptacaoMeta?.nivel_diag != null && (
-                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${adaptacaoMeta.nivel_diag >= 3 ? 'bg-emerald-500/10 text-emerald-500' : adaptacaoMeta.nivel_diag >= 2 ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full omni-label-xs font-bold ${adaptacaoMeta.nivel_diag >= 3 ? 'bg-emerald-500/10 text-emerald-500' : adaptacaoMeta.nivel_diag >= 2 ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'}`}>
                                                             N{adaptacaoMeta.nivel_diag} — {ESCALA_OMNISFERA[adaptacaoMeta.nivel_diag as NivelOmnisfera]?.label || ''}
                                                         </span>
                                                     )}
@@ -531,7 +531,7 @@ export function PEIRegenteClient() {
                                         {(adaptacaoSugestao.habilidades_prioritarias || []).length > 0 && (
                                             <div className="flex flex-wrap gap-1.5">
                                                 {(adaptacaoSugestao.habilidades_prioritarias as string[]).map((h: string, i: number) => (
-                                                    <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                                                    <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-md omni-label-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                                                         🎯 {h}
                                                     </span>
                                                 ))}
@@ -583,7 +583,7 @@ export function PEIRegenteClient() {
                                                 href={`/pei?studentId=${selectedAluno.id}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all bg-gradient-to-br from-emerald-600 to-emerald-500 inline-flex"
+                                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all bg-linear-to-br from-emerald-600 to-emerald-500"
                                             >
                                                 <ExternalLink className="w-4 h-4" />
                                                 Abrir PEI completo e aplicar estratégias
@@ -641,7 +641,7 @@ export function PEIRegenteClient() {
                             </div>
 
                             {/* Info about full PEI */}
-                            <div className="p-4 rounded-lg text-center bg-slate-50 border border-[var(--border-default)] dark:bg-slate-800/50">
+                            <div className="p-4 rounded-lg text-center bg-slate-50 border border-(--border-default) dark:bg-slate-800/50">
                                 <p className="text-xs text-slate-500 dark:text-slate-400">
                                     As adaptações sugeridas acima podem ser aplicadas no <strong>PEI completo do estudante</strong>,
                                     acessível pelo módulo PEI principal.
@@ -666,15 +666,15 @@ export function PEIRegenteClient() {
 
     if (selectedAluno) {
         return (
-            <div className="rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-[var(--border-default)] relative">
+            <div className="rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-(--border-default) relative">
                 {/* Toast notification */}
                 {toast && (
-                    <div className="absolute top-3 right-3 z-50 px-4 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-[13px] font-bold">
+                    <div className="absolute top-3 right-3 z-50 px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 omni-body font-bold">
                         {toast}
                     </div>
                 )}
                 {/* Header do aluno */}
-                <div className="px-6 py-4 flex items-center justify-between border-b border-[var(--border-default)] bg-slate-50 dark:bg-slate-800/50">
+                <div className="px-6 py-4 flex items-center justify-between border-b border-(--border-default) bg-slate-50 dark:bg-slate-800/50">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setSelectedAluno(null)}
@@ -760,7 +760,7 @@ export function PEIRegenteClient() {
                                         <React.Fragment key={s.key}>
                                             <button
                                                 onClick={() => { setSelectedDisc(disc); setActiveStep(s.key); }}
-                                                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-85 ${s.done ? 'bg-emerald-500/10 text-emerald-500 border border-transparent' : s.active ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/30' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 border border-[var(--border-default)]'}`}
+                                                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-85 ${s.done ? 'bg-emerald-500/10 text-emerald-500 border border-transparent' : s.active ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/30' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 border border-(--border-default)'}`}
                                             >
                                                 {s.done ? <CheckCircle2 size={13} /> : i === 0 ? <FileText size={13} /> : i === 1 ? <Brain size={13} /> : <ClipboardCheck size={13} />}
                                                 {s.label}
@@ -806,7 +806,7 @@ export function PEIRegenteClient() {
             <div className="px-6 py-4 border-b border-(--border-default) bg-(--bg-tertiary)">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-emerald-600 to-emerald-500">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-linear-to-br from-emerald-600 to-emerald-500">
                             <BookOpen size={20} className="text-white" />
                         </div>
                         <div>
@@ -820,7 +820,7 @@ export function PEIRegenteClient() {
                     </div>
                     <button
                         onClick={fetchData}
-                        className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors bg-[var(--bg-tertiary)] text-[var(--text-muted)] border border-[var(--border-default)] hover:bg-[var(--bg-hover)]"
+                        className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors bg-(--bg-tertiary) text-(--text-muted) border border-(--border-default) hover:bg-(--bg-hover)"
                     >
                         Atualizar
                     </button>
@@ -846,30 +846,30 @@ export function PEIRegenteClient() {
                             whileHover={{ scale: 1.01, y: -2 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setSelectedAluno(aluno)}
-                            className="rounded-xl p-4 cursor-pointer transition-all bg-[var(--bg-primary)] border border-[var(--border-default)] hover:border-emerald-500/40 hover:shadow-[0_2px_12px_rgba(16,185,129,.08)]"
+                            className="rounded-xl p-4 cursor-pointer transition-all bg-(--bg-primary) border border-(--border-default) hover:border-emerald-500/40 hover:shadow-[0_2px_12px_rgba(16,185,129,.08)]"
                         >
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold bg-gradient-to-br from-indigo-500 to-violet-500">
+                                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold bg-linear-to-br from-indigo-500 to-violet-500">
                                         {aluno.name.split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase()}
                                     </div>
                                     <div>
-                                        <span className="font-bold text-sm text-[var(--omni-text-primary)]">
+                                        <span className="font-bold text-sm text-(--omni-text-primary)">
                                             {aluno.name}
                                         </span>
-                                        <p className="text-xs text-[var(--omni-text-muted)]">
+                                        <p className="text-xs text-(--omni-text-muted)">
                                             {aluno.grade} {aluno.class_group && `— ${aluno.class_group}`}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="text-right">
-                                        <span className={`text-xs font-bold ${progress === 100 ? 'text-emerald-500' : 'text-[var(--text-muted)]'}`}>
+                                        <span className={`text-xs font-bold ${progress === 100 ? 'text-emerald-500' : 'text-(--text-muted)'}`}>
                                             {concluidas}/{totalDisc}
                                         </span>
-                                        <p className="text-[10px] text-[var(--omni-text-muted)]">disciplinas</p>
+                                        <p className="omni-label-xs text-(--omni-text-muted)">disciplinas</p>
                                     </div>
-                                    <ChevronRight size={16} className="text-[var(--omni-text-muted)]" />
+                                    <ChevronRight size={16} className="text-(--omni-text-muted)" />
                                 </div>
                             </div>
 
@@ -880,7 +880,7 @@ export function PEIRegenteClient() {
                                     return (
                                         <span
                                             key={d.id}
-                                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${stepColor.border} ${stepColor.bg} ${stepColor.text}`}
+                                            className={`omni-label-xs font-semibold px-2 py-0.5 rounded-md border ${stepColor.border} ${stepColor.bg} ${stepColor.text}`}
                                             title={`${d.disciplina}: ${FASE_STATUS_LABELS[d.fase_status]}`}
                                         >
                                             {d.disciplina.length > 12 ? d.disciplina.slice(0, 10) + "…" : d.disciplina}
@@ -964,7 +964,7 @@ function FinalizarPeiDisciplinaButton({
                 href={`/pei?student=${studentId}&tab=consolidacao`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all bg-gradient-to-br from-violet-600 to-violet-500 inline-flex"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all bg-linear-to-br from-violet-600 to-violet-500"
             >
                 <ExternalLink className="w-4 h-4" />
                 Enviar para PEI geral e consolidar
@@ -980,7 +980,7 @@ function FinalizarPeiDisciplinaButton({
                     type="button"
                     onClick={() => setShowFeedback(true)}
                     disabled={finalizando || !adaptacaoSugestao}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 inline-flex ${finalizando ? 'bg-slate-400' : 'bg-gradient-to-br from-emerald-600 to-emerald-500'}`}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 ${finalizando ? 'bg-slate-400' : 'bg-linear-to-br from-emerald-600 to-emerald-500'}`}
                 >
                     <CheckCircle2 size={14} />
                     Finalizar e devolver ao especialista
@@ -1019,7 +1019,7 @@ function FinalizarPeiDisciplinaButton({
                 </div>
             )}
             {erro && <span className="text-xs text-red-400">{erro}</span>}
-            <span className="text-[10px] text-slate-500">
+            <span className="omni-label-xs text-slate-500">
                 A adaptação será enviada ao especialista AEE para consolidação no PEI oficial.
             </span>
         </div>
@@ -1076,7 +1076,7 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
     return (
         <div className="flex flex-col gap-4">
             {/* Header */}
-            <div className="rounded-2xl p-4 md:px-5 md:py-4.5 text-white bg-gradient-to-br from-blue-600 to-blue-700">
+            <div className="rounded-2xl p-4 md:px-5 md:py-4.5 text-white bg-linear-to-br from-blue-600 to-blue-700">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                         <Brain size={22} />
@@ -1098,7 +1098,7 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
             {/* Resultado vinculado */}
             {avaliacao?.status === "aplicada" && avaliacao.nivel !== null && (
                 <div className="flex items-center gap-3.5 px-5 py-4 rounded-2xl bg-emerald-500/10 border-[1.5px] border-emerald-500/30">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-emerald-600 to-emerald-500 text-white text-xl font-extrabold">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-linear-to-br from-emerald-600 to-emerald-500 text-white text-xl font-extrabold">
                         {avaliacao.nivel}
                     </div>
                     <div className="flex-1">
@@ -1121,7 +1121,7 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
                             {avaliacao.questoes} questões · Aplique no módulo Avaliação Diagnóstica
                         </div>
                     </div>
-                    <a href={`/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&fromPEI=true`} className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-bold bg-gradient-to-br from-amber-500 to-amber-600 text-white transition-opacity hover:opacity-90">
+                    <a href={`/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&fromPEI=true`} className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl omni-body font-bold bg-linear-to-br from-amber-500 to-amber-600 text-white transition-opacity hover:opacity-90">
                         <ExternalLink size={14} /> Aplicar
                     </a>
                 </div>
@@ -1129,15 +1129,15 @@ function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina, onLin
 
             {/* Nenhuma avaliação */}
             {!avaliacao && (
-                <div className="text-center px-5 py-8 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-secondary)]">
+                <div className="text-center px-5 py-8 rounded-2xl border border-(--border-default) bg-(--bg-secondary)">
                     <Brain size={40} className="mx-auto mb-3 text-slate-400 opacity-30" />
-                    <p className="text-sm font-semibold text-[var(--omni-text-primary)] mb-1">
+                    <p className="text-sm font-semibold text-(--omni-text-primary) mb-1">
                         Nenhuma avaliação diagnóstica encontrada
                     </p>
-                    <p className="text-xs text-[var(--omni-text-muted)] mb-4">
+                    <p className="text-xs text-(--omni-text-muted) mb-4">
                         Gere e aplique uma avaliação no módulo <strong>Avaliação Diagnóstica</strong> para {studentName} em {disciplina}.
                     </p>
-                    <a href={`/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&fromPEI=true`} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-br from-blue-600 to-blue-500 text-white transition-opacity hover:opacity-90">
+                    <a href={`/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&fromPEI=true`} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-linear-to-br from-blue-600 to-blue-500 text-white transition-opacity hover:opacity-90">
                         <ExternalLink size={16} /> Ir para Avaliação Diagnóstica
                     </a>
                 </div>
