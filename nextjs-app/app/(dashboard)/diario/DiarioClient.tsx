@@ -6,6 +6,7 @@ import { StudentSelector } from "@/components/StudentSelector";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { useStudentMutation } from "@/hooks/useStudentMutation";
+import { useStudentRealtime } from "@/hooks/useStudentRealtime";
 import { getColorClasses } from "@/lib/colors";
 import { Card, CardHeader, CardTitle, CardContent, Input, Textarea, Select, Button, Checkbox, Slider } from "@omni/ds";
 import { OmniLoader } from "@/components/OmniLoader";
@@ -96,6 +97,10 @@ function DiarioClientInner({ students, studentId, student }: Props) {
   const currentId = studentId || searchParams?.get("student") || null;
   const { updateDiario } = useStudentMutation();
   const [activeTab, setActiveTab] = useState<TabId>("novo");
+
+  // Omni V5: Real-time Multi-User Subscription
+  useStudentRealtime(currentId);
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -128,7 +133,7 @@ function DiarioClientInner({ students, studentId, student }: Props) {
         const data = await updateDiario(student.id, { daily_logs: lista });
         if (data && data.ok) {
           setRefreshKey((k) => k + 1);
-          window.location.reload();
+          // O backend via Supabase Realtime emitirá o router.refresh() automático
           return true;
         }
       } catch (e) {

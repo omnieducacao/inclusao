@@ -35,6 +35,7 @@ import { ArticulacaoTab } from "./components/ArticulacaoTab";
 import { NivelSuporteRange } from "./components/NivelSuporteRange";
 
 import { useStudentMutation } from "@/hooks/useStudentMutation";
+import { useStudentRealtime } from "@/hooks/useStudentRealtime";
 import { Card, Button, Select } from "@omni/ds";
 
 type Student = { id: string; name: string };
@@ -60,6 +61,9 @@ function PAEEClientInner({ students, studentId, student }: Props) {
   const currentId = studentId || searchParams?.get("student") || null;
   const mutation = useStudentMutation();
   const savingCiclo = mutation.loading;
+
+  // Omni V5: Real-time Multi-User Subscription
+  useStudentRealtime(currentId);
 
   const [activeTab, setActiveTab] = useState<TabId>("planejamento");
   const [cicloSelecionadoPlanejamento, setCicloSelecionadoPlanejamento] = useState<CicloPAEE | null>(null);
@@ -124,7 +128,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
       }, () => {
         setSaved(true);
         setCicloPreview(null);
-        window.location.reload();
+        // O backend via Supabase Realtime emitirá o router.refresh() automático
       });
       return true;
     },
@@ -143,7 +147,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
         status_planejamento: "ativo",
         data_inicio_ciclo: cfg.data_inicio ?? null,
         data_fim_ciclo: cfg.data_fim ?? null,
-      }, () => window.location.reload());
+      }, () => { /* O backend via Supabase Realtime emitirá o router.refresh() automático */ });
       return true;
     },
     [student?.id, ciclos, mutation]
