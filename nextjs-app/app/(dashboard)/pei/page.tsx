@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { listStudents, getStudent, type Student } from "@/lib/students";
+import { listClasses, listGrades } from "@/lib/school";
 import { PEIClient } from "./PEIClient";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
@@ -19,6 +20,9 @@ export default async function PEIPage({ searchParams }: Props) {
     workspaceId && studentId
       ? await getStudent(workspaceId, studentId)
       : null;
+
+  const initialClasses = workspaceId ? await listClasses(workspaceId) : [];
+  const initialGrades = await listGrades(); // Buscando para todas pois podem ter segmentos públicos
 
   // Fallback: se estudante não foi encontrado mas está na lista, usar da lista
   if (workspaceId && studentId && !student) {
@@ -80,6 +84,8 @@ export default async function PEIPage({ searchParams }: Props) {
             studentName={student?.name || null}
             initialPeiData={peiData}
             initialStudent={student}
+            initialClasses={initialClasses as any}
+            initialGrades={initialGrades as any}
           />
         </Suspense>
       </div>

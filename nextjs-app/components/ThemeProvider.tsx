@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 
 type Theme = "light" | "dark" | "notebook";
+export type ColorBlindMode = "none" | "protanopia" | "deuteranopia" | "tritanopia";
 
 interface ThemeContextType {
     theme: Theme;
@@ -10,6 +11,10 @@ interface ThemeContextType {
     isDark: boolean;
     highContrast: boolean;
     toggleHighContrast: () => void;
+    dyslexiaFont: boolean;
+    toggleDyslexiaFont: () => void;
+    colorBlindMode: ColorBlindMode;
+    setColorBlindMode: (mode: ColorBlindMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
@@ -18,6 +23,10 @@ const ThemeContext = createContext<ThemeContextType>({
     isDark: false,
     highContrast: false,
     toggleHighContrast: () => { },
+    dyslexiaFont: false,
+    toggleDyslexiaFont: () => { },
+    colorBlindMode: "none",
+    setColorBlindMode: () => { },
 });
 
 export function useTheme() {
@@ -26,10 +35,14 @@ export function useTheme() {
 
 const STORAGE_KEY = "omnisfera-theme";
 const HC_STORAGE_KEY = "omnisfera-high-contrast";
+const DYS_STORAGE_KEY = "omnisfera-dyslexia";
+const CB_STORAGE_KEY = "omnisfera-colorblind";
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [theme, setTheme] = useState<Theme>("notebook");
     const [highContrast, setHighContrast] = useState(false);
+    const [dyslexiaFont, setDyslexiaFont] = useState(false);
+    const [colorBlindMode, setColorBlindMode] = useState<ColorBlindMode>("none");
     const [mounted, setMounted] = useState(false);
 
     // Initialize theme + high contrast from localStorage
@@ -37,6 +50,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         let timer: NodeJS.Timeout;
         const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
         const hcStored = localStorage.getItem(HC_STORAGE_KEY);
+        const dysStored = localStorage.getItem(DYS_STORAGE_KEY);
+        const cbStored = localStorage.getItem(CB_STORAGE_KEY) as ColorBlindMode | null;
 
         timer = setTimeout(() => {
             if (stored === "light" || stored === "dark" || stored === "notebook") {
@@ -46,6 +61,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             }
             if (hcStored === "true") {
                 setHighContrast(true);
+            }
+            if (dysStored === "true") {
+                setDyslexiaFont(true);
+            }
+            if (cbStored === "protanopia" || cbStored === "deuteranopia" || cbStored === "tritanopia") {
+                setColorBlindMode(cbStored);
             }
             setMounted(true);
         }, 0);
@@ -66,6 +87,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         document.documentElement.classList.toggle("high-contrast", highContrast);
         localStorage.setItem(HC_STORAGE_KEY, String(highContrast));
     }, [highContrast, mounted]);
+
+    // Apply dyslexia font to <html>
+    useEffect(() => {
+        if (!mounted) return;
+        document.documentElement.classList.toggle("dyslexia-font", dyslexiaFont);
+        localStorage.setItem(DYS_STORAGE_KEY, String(dyslexiaFont));
+    }, [dyslexiaFont, mounted]);
+
+    // Apply color blind modes
+    useEffect(() => {
+        if (!mounted) return;
+        document.documentElement.classList.remove("cb-protanopia", "cb-deuteranopia", "cb-tritanopia");
+        if (colorBlindMode !== "none") {
+            document.documentElement.classList.add(`cb-${colorBlindMode}`);
+        }
+        localStorage.setItem(CB_STORAGE_KEY, colorBlindMode);
+    }, [colorBlindMode, mounted]);
 
     // Listen for system preference changes
     useEffect(() => {
@@ -107,6 +145,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         setHighContrast((prev) => !prev);
     }, []);
 
+    const toggleDyslexiaFont = useCallback(() => {
+        setDyslexiaFont((prev) => !prev);
+    }, []);
+
     // Prevent flash of wrong theme
     if (!mounted) {
         return <>{children}</>;
@@ -119,6 +161,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             isDark: theme === "dark",
             highContrast,
             toggleHighContrast,
+            dyslexiaFont,
+            toggleDyslexiaFont,
+            colorBlindMode,
+            setColorBlindMode,
         }}>
             {children}
         </ThemeContext.Provider>

@@ -51,7 +51,7 @@ const Modal = forwardRef<HTMLDialogElement, ModalProps>(
                     "backdrop:bg-black/50 backdrop:backdrop-blur-md",
                     "w-full",
                     sizeClasses[size],
-                    "animate-[modal-in_250ms_cubic-bezier(0.16,1,0.3,1)]",
+                    "animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-bottom-2",
                     className
                 )}
                 {...props}

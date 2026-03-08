@@ -65,6 +65,44 @@ test.describe("PEI-Professor Flow", () => {
         }
     });
 
+    // ─── Accessibility & Preferences Tests ─────────────────────────────────
+
+    test("accessibility menu opens and applies dyslexia font class", async ({ authenticatedPage: page }) => {
+        // Go to home Dashboard
+        await page.goto("/pei-regente");
+        await page.waitForTimeout(3000);
+
+        // Find the accessibility options button in Navbar
+        const a11yButton = page.locator("button").filter({ hasText: /Menu de Acessibilidade e Aparência/i }).first();
+        const isVisible = await a11yButton.isVisible().catch(() => false);
+
+        if (!isVisible) {
+            test.skip(true, "Botão de acessibilidade não localizado no DOM.");
+            return;
+        }
+
+        // Click to open the Modal
+        await a11yButton.click();
+        await page.waitForTimeout(1000);
+
+        // Check if modal title appeared
+        await expect(page.locator("text=Aparência e Acessibilidade").first()).toBeVisible();
+
+        // Click on "Modo Dislexia" toggle/checkbox
+        const dyslexiaLabel = page.locator("text=Modo Dislexia").first();
+        await dyslexiaLabel.click();
+
+        // Wait for CSS class mutation to reach <html>
+        await page.waitForTimeout(500);
+
+        // The DOM element <html> should have class 'dyslexia-font'
+        const hasDyslexiaClass = await page.evaluate(() => document.documentElement.classList.contains("dyslexia-font"));
+        expect(hasDyslexiaClass).toBe(true);
+
+        // Close modal
+        await page.locator("button[aria-label='Fechar painel de acessibilidade']").first().click().catch(() => { });
+    });
+
     // ─── Pipeline UI Tests ────────────────────────────────────────────────
 
     test("discipline pipeline shows 3 phases", async ({ authenticatedPage: page }) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 import {
     BookOpen, Users, AlertTriangle, ChevronRight,
     FileText, Brain, ClipboardCheck, CheckCircle2, ArrowLeft,
@@ -65,6 +66,23 @@ const STEP_COLORS: Record<FaseStatusPEIDisciplina, { bg: string; border: string;
         bg: "bg-emerald-500/10", border: "border-emerald-500/30",
         text: "text-emerald-500", icon: <CheckCircle2 size={16} className="text-emerald-500" />,
     },
+};
+
+// ─── Variantes de Animação (Framer Motion) ───────────────────────────────────
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.05
+        }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
 };
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
@@ -387,17 +405,14 @@ export function PEIRegenteClient() {
                             )}
 
                             {/* ── Ponte Pedagógica: Plano de Curso + Diagnóstica → PEI ── */}
-                            <div className="p-5 rounded-xl space-y-4" style={{
-                                border: '2px solid rgba(14,165,233,.2)',
-                                background: 'linear-gradient(135deg, rgba(14,165,233,.04), rgba(59,130,246,.03))',
-                            }}>
+                            <div className="p-5 rounded-xl space-y-4 bg-sky-500/10 border border-sky-500/25">
                                 <div className="flex items-center gap-2">
-                                    <BookOpen className="w-4 h-4" style={{ color: '#0ea5e9' }} />
-                                    <h4 className="text-sm font-bold" style={{ color: '#0ea5e9' }}>
-                                        Ponte Pedagógica: Plano de Curso + Diagnóstica → PEI
+                                    <BookOpen className="w-4 h-4 text-sky-500" />
+                                    <h4 className="text-sm font-bold text-sky-500">
+                                        Metas do Bimestre para a Disciplina
                                     </h4>
                                 </div>
-                                <p className="text-xs" style={{ color: "var(--omni-text-muted)" }}>
+                                <p className="text-xs text-(--omni-text-muted)">
                                     A IA cruza o <strong>Plano de Curso da turma</strong> com o <strong>nível do estudante</strong> (Diagnóstica)
                                     e suas barreiras/potencialidades para sugerir adaptações individualizadas.
                                 </p>
@@ -767,10 +782,10 @@ export function PEIRegenteClient() {
     // ─── Lista de Alunos ──────────────────────────────────────────────────────
 
     return (
-        <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
+        <div className="rounded-2xl overflow-hidden bg-(--bg-secondary) border border-(--border-default)">
             {/* Onboarding Panel */}
             {showOnboarding && (
-                <div style={{ padding: '24px 24px 0' }}>
+                <div className="px-6 pt-6">
                     <OnboardingPanel
                         moduleKey="pei_regente"
                         moduleTitle="Bem-vindo ao PEI do Professor"
@@ -788,18 +803,17 @@ export function PEIRegenteClient() {
                 </div>
             )}
             {/* Header com info do professor */}
-            <div className="px-6 py-4" style={{ borderBottom: '1px solid var(--border-default)', backgroundColor: 'var(--bg-tertiary)' }}>
+            <div className="px-6 py-4 border-b border-(--border-default) bg-(--bg-tertiary)">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center"
-                            style={{ background: 'linear-gradient(135deg, #059669, #10b981)' }}>
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-emerald-600 to-emerald-500">
                             <BookOpen size={20} className="text-white" />
                         </div>
                         <div>
-                            <h3 className="font-bold" style={{ color: "var(--omni-text-primary)" }}>
+                            <h3 className="font-bold text-(--omni-text-primary)">
                                 {data.professor.is_master ? "Visão Geral — Todos os Estudantes" : `Meus Estudantes`}
                             </h3>
-                            <p className="text-xs" style={{ color: "var(--omni-text-muted)" }}>
+                            <p className="text-xs text-(--omni-text-muted)">
                                 {data.professor.name} · {data.alunos.length} estudante{data.alunos.length !== 1 ? "s" : ""} em Fase 2
                             </p>
                         </div>
@@ -813,16 +827,24 @@ export function PEIRegenteClient() {
                 </div>
             </div>
 
-            {/* Lista de alunos como cards */}
-            <div className="p-6 space-y-3">
+            {/* Lista de alunos como cards com orquestração do framer-motion */}
+            <motion.div
+                className="p-6 space-y-3"
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+            >
                 {data.alunos.map((aluno) => {
                     const totalDisc = aluno.disciplinas.length;
                     const concluidas = aluno.disciplinas.filter(d => d.fase_status === "concluido").length;
                     const progress = totalDisc > 0 ? Math.round((concluidas / totalDisc) * 100) : 0;
 
                     return (
-                        <div
+                        <motion.div
                             key={aluno.id}
+                            variants={itemVariants}
+                            whileHover={{ scale: 1.01, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
                             onClick={() => setSelectedAluno(aluno)}
                             className="rounded-xl p-4 cursor-pointer transition-all bg-[var(--bg-primary)] border border-[var(--border-default)] hover:border-emerald-500/40 hover:shadow-[0_2px_12px_rgba(16,185,129,.08)]"
                         >
@@ -866,10 +888,10 @@ export function PEIRegenteClient() {
                                     );
                                 })}
                             </div>
-                        </div>
+                        </motion.div>
                     );
                 })}
-            </div>
+            </motion.div>
         </div>
     );
 }
@@ -973,22 +995,15 @@ function FinalizarPeiDisciplinaButton({
                         onChange={(e) => setFeedbackProfessor(e.target.value)}
                         placeholder="Observações sobre o estudante nesta disciplina, dificuldades percebidas, sugestões de adaptação, etc."
                         rows={3}
-                        className="w-full p-3 rounded-lg text-sm resize-none"
-                        style={{
-                            backgroundColor: 'var(--bg-primary)',
-                            border: '1px solid var(--border-default)',
-                            color: 'var(--text-primary)',
-                        }}
+                        className="w-full p-3 rounded-lg text-sm resize-none bg-(--bg-primary) border border-(--border-default) text-(--text-primary)"
                     />
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
                             onClick={handleFinalizar}
                             disabled={finalizando}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50"
-                            style={{
-                                background: finalizando ? "#94a3b8" : "linear-gradient(135deg, #059669, #10b981)",
-                            }}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 ${finalizando ? "bg-slate-400" : "bg-linear-to-br from-emerald-600 to-emerald-500"
+                                }`}
                         >
                             {finalizando ? <OmniLoader engine="green" size={14} /> : <CheckCircle2 size={14} />}
                             {finalizando ? "Finalizando..." : "Confirmar e devolver"}
@@ -996,7 +1011,7 @@ function FinalizarPeiDisciplinaButton({
                         <button
                             type="button"
                             onClick={() => setShowFeedback(false)}
-                            className="px-3 py-2 rounded-lg text-xs font-medium transition-colors" style={{ color: "var(--omni-text-muted)" }}
+                            className="px-3 py-2 rounded-lg text-xs font-medium transition-colors text-(--omni-text-muted)"
                         >
                             Cancelar
                         </button>

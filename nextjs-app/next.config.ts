@@ -1,4 +1,28 @@
 import type { NextConfig } from "next";
+import withBundleAnalyzer from '@next/bundle-analyzer';
+import withPWAInit from "@ducanh2912/next-pwa";
+
+const withPWA = withPWAInit({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  // Fallback configurado para ir para /offline quando não tem rede e cache limpo
+  fallbacks: {
+    document: "/offline",
+  },
+  // Otimização para Supabase requests
+  workboxOptions: {
+    runtimeCaching: [
+      {
+        urlPattern: /^https:\/\/aaywrrpxciqbogjgifzy\.supabase\.co/,
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'supabase-cache',
+          expiration: { maxEntries: 50, maxAgeSeconds: 300 }
+        }
+      }
+    ]
+  }
+});
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -11,6 +35,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    optimizePackageImports: ['lucide-react', 'recharts', '@omni/ds'],
   },
   // Desabilitar cache em desenvolvimento para garantir atualizações
   onDemandEntries: {
@@ -62,4 +87,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+// Encadeia os wrappers (Analyzer + PWA)
+export default withAnalyzer(withPWA(nextConfig));

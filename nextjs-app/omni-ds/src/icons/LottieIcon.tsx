@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Player } from "@lordicon/react";
+import { useEffect, useRef, useState, lazy, Suspense, type CSSProperties } from "react";
+import type { Player as PlayerType } from "@lordicon/react";
+
+const Player = lazy(() => import("@lordicon/react").then((mod) => ({ default: mod.Player })));
 
 // ─── Cache singleton ───
 const jsonCache = new Map<string, object>();
@@ -169,7 +171,7 @@ export function LottieIcon({
     onReady,
     onComplete,
 }: LottieIconProps) {
-    const playerRef = useRef<Player>(null);
+    const playerRef = useRef<PlayerType>(null);
     const [iconData, setIconData] = useState<object | null>(preloaded ?? null);
     const [error, setError] = useState(false);
 
@@ -217,17 +219,19 @@ export function LottieIcon({
 
     return (
         <div className={className} style={boxStyle}>
-            <Player
-                ref={playerRef}
-                icon={processedIcon}
-                size={size}
-                colorize={colorize}
-                colors={colors}
-                state={state}
-                direction={direction}
-                onReady={onReady}
-                onComplete={onComplete}
-            />
+            <Suspense fallback={null}>
+                <Player
+                    ref={playerRef}
+                    icon={processedIcon}
+                    size={size}
+                    colorize={colorize}
+                    colors={colors}
+                    state={state}
+                    direction={direction}
+                    onReady={onReady}
+                    onComplete={onComplete}
+                />
+            </Suspense>
         </div>
     );
 }

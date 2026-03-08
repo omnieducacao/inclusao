@@ -22,6 +22,8 @@ import type { EngineId } from "@/lib/ai-engines";
 import { GabaritoRespostasPanel } from "./components/GabaritoRespostasPanel";
 import { MatrizReferenciaPanel } from "./components/MatrizReferenciaPanel";
 import { ManualAplicacaoPanel } from "./components/ManualAplicacaoPanel";
+import { AlternativaItem } from "./components/AlternativaItem";
+import { BadgeInfo } from "./components/BadgeInfo";
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Select, Textarea } from "@omni/ds";
 
 const ENGINE_OPTIONS: { id: EngineId; label: string; color: string }[] = [
@@ -114,10 +116,16 @@ interface BlocoPlano {
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
 
-export default function AvaliacaoDiagnosticaClient() {
-    const [loading, setLoading] = useState(true);
-    const [alunos, setAlunos] = useState<Aluno[]>([]);
-    const [professorName, setProfessorName] = useState("");
+export default function AvaliacaoDiagnosticaClient({
+    initialAlunos,
+    initialProfessorName
+}: {
+    initialAlunos?: Aluno[];
+    initialProfessorName?: string;
+}) {
+    const [loading, setLoading] = useState(false);
+    const [alunos, setAlunos] = useState<Aluno[]>(initialAlunos || []);
+    const [professorName, setProfessorName] = useState(initialProfessorName || "");
     const [error, setError] = useState("");
 
     const [activeTab, setActiveTab] = useState<"estudantes" | "matriz" | "manual" | "gabarito">("estudantes");
@@ -244,22 +252,7 @@ export default function AvaliacaoDiagnosticaClient() {
     }[]>([]);
     const [showProcessual, setShowProcessual] = useState(false);
 
-    // ─── Fetch students ─────────────────────────────────────────────────
-
-    const fetchAlunos = useCallback(async () => {
-        setLoading(true);
-        try {
-            const res = await fetch("/api/pei-regente/meus-alunos");
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-            setAlunos(data.alunos || []);
-            setProfessorName(data.professor?.name || "");
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Erro ao carregar");
-        } finally { setLoading(false); }
-    }, []);
-
-    useEffect(() => { fetchAlunos(); }, [fetchAlunos]);
+    // ─── Fetch students (removidos devido ao Shift Left para o Server) ─────────────────────────────────────────────────
 
     // Auto-select student + discipline when coming from PEI module
     useEffect(() => {
@@ -819,11 +812,11 @@ export default function AvaliacaoDiagnosticaClient() {
 
     if (error) {
         return (
-            <div style={{ padding: 40 }}>
+            <div className="omni-p-10">
                 <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#f87171", marginBottom: 12 }}>
                     <AlertTriangle size={20} /> <span style={{ fontWeight: 600 }}>{error}</span>
                 </div>
-                <button onClick={fetchAlunos} style={{
+                <button onClick={() => window.location.reload()} style={{
                     padding: "8px 16px", borderRadius: 8, border: "1px solid var(--border-default)",
                     background: "transparent", color: "var(--text-primary)", cursor: "pointer", fontSize: 13,
                 }}>Tentar novamente</button>
@@ -835,7 +828,7 @@ export default function AvaliacaoDiagnosticaClient() {
 
     if (selectedAluno && selectedDisc) {
         return (
-            <div style={{ width: "100%" }}>
+            <div className="w-full">
                 {/* Overlay Omnisfera é controlado via aiLoadingStart/Stop (AILoadingOverlay global) */}
 
                 {/* Breadcrumb */}
@@ -851,7 +844,7 @@ export default function AvaliacaoDiagnosticaClient() {
                     }}><ArrowLeft size={16} /></button>
                     <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
                         {selectedAluno.name} <span style={{ margin: "0 6px", opacity: .5 }}>›</span>
-                        <strong style={{ color: "var(--text-primary)" }}>{selectedDisc}</strong>
+                        <strong className="omni-text-primary">{selectedDisc}</strong>
                     </span>
                 </div>
 
@@ -860,13 +853,13 @@ export default function AvaliacaoDiagnosticaClient() {
                     background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
                     borderRadius: 14, padding: "20px 24px", color: "#fff", marginBottom: 20,
                 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                    <div className="omni-flex-row omni-gap-2.5 mb-2">
                         <Brain size={22} />
-                        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
+                        <h2 className="omni-m-0 omni-text-xl font-bold">
                             Avaliação Diagnóstica — {selectedDisc}
                         </h2>
                     </div>
-                    <p style={{ margin: 0, fontSize: 13, opacity: 0.9 }}>
+                    <p className="omni-m-0 omni-text-sm">
                         Estudante: <strong>{selectedAluno.name}</strong> · {selectedAluno.grade}
                         {selectedAluno.diagnostico && ` · ${selectedAluno.diagnostico}`}
                     </p>
@@ -917,7 +910,7 @@ export default function AvaliacaoDiagnosticaClient() {
                             }}>
                                 {step.done ? "✅ " : ""}{step.label}
                             </div>
-                            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                            <div className="omni-text-xs omni-text-muted">
                                 {step.desc}
                             </div>
                         </div>
@@ -934,7 +927,7 @@ export default function AvaliacaoDiagnosticaClient() {
                         <div style={{ fontWeight: 700, fontSize: 13, color: "#f59e0b", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                             ⚠️ Orientação para {selectedAluno?.diagnostico || "NEE"}
                         </div>
-                        <div style={{ color: "var(--text-secondary)" }}>{neeAlert}</div>
+                        <div className="omni-text-secondary">{neeAlert}</div>
                     </div>
                 )}
 
@@ -1089,7 +1082,7 @@ export default function AvaliacaoDiagnosticaClient() {
                         <div style={{ fontWeight: 700, fontSize: 13, color: "#3b82f6", marginBottom: 6 }}>
                             📋 Instrução de Uso
                         </div>
-                        <div style={{ color: "var(--text-secondary)" }}>{instrucaoDiag}</div>
+                        <div className="omni-text-secondary">{instrucaoDiag}</div>
                     </div>
                 )}
 
@@ -1130,7 +1123,7 @@ export default function AvaliacaoDiagnosticaClient() {
 
                 {/* Step 0: Config + Generate */}
                 {!resultadoFormatado && !gerando && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    <div className="omni-flex-col omni-gap-1">
                         {/* Plano de Ensino vinculado */}
                         {planoVinculado && (
                             <Card variant="default" style={{ border: "1.5px solid rgba(14,165,233,.3)" }}>
@@ -1139,14 +1132,14 @@ export default function AvaliacaoDiagnosticaClient() {
                                     className="flex items-center gap-2 px-4 py-3 w-full cursor-pointer justify-between border-none"
                                     style={{ background: "rgba(14,165,233,.05)" }}
                                 >
-                                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <div className="omni-flex-row omni-gap-2">
                                         <FileText size={16} style={{ color: "#0ea5e9" }} />
                                         <span style={{ fontWeight: 700, fontSize: 14, color: "#0ea5e9" }}>
                                             Plano de Curso — {planoVinculado.disciplina}
                                             {planoVinculado.ano_serie && <span style={{ fontWeight: 400, fontSize: 12, marginLeft: 6, opacity: .7 }}>({planoVinculado.ano_serie})</span>}
                                         </span>
                                     </div>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                    <div className="omni-flex-row omni-gap-6">
                                         <a
                                             href={`/plano-curso?id=${planoVinculado.id}`}
                                             onClick={e => e.stopPropagation()}
@@ -1253,7 +1246,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                                 No decorrer do ano com plano vinculado: a geração usará as habilidades do plano de ensino. Abaixo, matriz do ano anterior para referência.
                                             </p>
                                         ) : null}
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                        <div className="omni-flex-col omni-gap-1">
                                             {matrizHabs.map((h, i) => {
                                                 const selected = habsSelecionadas.includes(h.habilidade);
                                                 const codeMatch = h.habilidade.match(/^(EF\d+\w+\d+H?\d*|\(EF\d+\w+\d+\))/i);
@@ -1297,7 +1290,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                                         <div style={{ flex: 1 }}>
                                                             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                                                                 {code && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: "rgba(99,102,241,.1)", color: "#818cf8" }}>{code}</span>}
-                                                                <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{h.tema}</span>
+                                                                <span className="omni-text-xs omni-text-muted">{h.tema}</span>
                                                             </div>
                                                             <div style={{ fontSize: 12, color: "var(--text-primary)", marginTop: 2, lineHeight: 1.4 }}>
                                                                 {h.competencia && <span style={{ fontSize: 10, fontWeight: 600, color: "#a855f7", display: "block", marginBottom: 2 }}>{h.competencia}</span>}
@@ -1321,7 +1314,7 @@ export default function AvaliacaoDiagnosticaClient() {
                         </Card>
 
                         {/* Painéis de consulta inline: Matriz completa + Manual */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        <div className="omni-flex-col omni-gap-2">
                             {/* Matriz Completa — expandível */}
                             <Card variant="default" style={{ border: "1px solid rgba(99,102,241,.12)" }}>
                                 <button
@@ -1329,7 +1322,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                     className="flex items-center gap-2 px-4 py-3 w-full cursor-pointer justify-between border-none"
                                     style={{ background: "rgba(99,102,241,.04)" }}
                                 >
-                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                    <div className="omni-flex-row omni-gap-6">
                                         <Grid3X3 size={14} style={{ color: "#818cf8" }} />
                                         <span style={{ fontWeight: 700, fontSize: 13, color: "#818cf8" }}>Matriz de Referência Completa</span>
                                     </div>
@@ -1372,7 +1365,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                                     <div>
                                         <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4, display: "block" }}>Quantidade de Questões</label>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                        <div className="omni-flex-row omni-gap-10">
                                             <input
                                                 type="range"
                                                 min={4}
@@ -1424,7 +1417,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                     </div>
                                     <div>
                                         <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4, display: "block" }}>Tipo de Questão</label>
-                                        <div style={{ display: "flex", gap: 6 }}>
+                                        <div className="flex gap-1.5">
                                             {(["Objetiva", "Discursiva"] as const).map(t => (
                                                 <button
                                                     key={t}
@@ -1503,7 +1496,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                         <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>Incluir Imagens</span>
                                     </label>
                                     {usarImagens && (
-                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                        <div className="omni-flex-row omni-gap-2">
                                             <input
                                                 type="range" min={1} max={qtdQuestoes} value={qtdImagens}
                                                 onChange={e => setQtdImagens(Number(e.target.value))}
@@ -1818,7 +1811,7 @@ export default function AvaliacaoDiagnosticaClient() {
                 {/* Formatted result (Hub-style) */}
                 {
                     resultadoFormatado && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                        <div className="omni-flex-col omni-gap-14">
                             {!validadoFormatado && (
                                 <div style={{ display: "flex", gap: 8 }}>
                                     <button onClick={salvarAvaliacao} disabled={salvandoAvaliacao} style={{
@@ -1840,7 +1833,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                 </div>
                             )}
                             {validadoFormatado && (
-                                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                <div className="omni-flex-col omni-gap-3">
                                     <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(16,185,129,.08)", border: "1px solid rgba(16,185,129,.2)", color: "#10b981", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
                                         <CheckCircle2 size={14} /> AVALIAÇÃO SALVA — Imprima, aplique e lance as respostas abaixo
                                     </div>
@@ -2021,7 +2014,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                                                 {(analiseResultado.distratores as { questao: number; marcada: string; correta: string; habilidade: string }[]).map((d, i) => (
                                                                     <div key={i} style={{ fontSize: 11, color: "var(--text-secondary)" }}>
                                                                         <strong>Q{d.questao}</strong>: marcou <strong style={{ color: "#ef4444" }}>{d.marcada}</strong>, correto era <strong style={{ color: "#10b981" }}>{d.correta}</strong>
-                                                                        {d.habilidade && <span style={{ color: "var(--text-muted)" }}> — {d.habilidade}</span>}
+                                                                        {d.habilidade && <span className="omni-text-muted"> — {d.habilidade}</span>}
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -2155,7 +2148,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                 );
                             })()}
                             {/* ── Card-based Question Display ── */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                            <div className="omni-flex-col omni-gap-1">
                                 {/* Header with download buttons */}
                                 <div style={{
                                     display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -2210,55 +2203,27 @@ export default function AvaliacaoDiagnosticaClient() {
                                             transition: "all .2s ease",
                                         }}>
                                             {/* ── Card Header: número + habilidade ── */}
-                                            <div style={{
-                                                display: "flex", alignItems: "center", justifyContent: "space-between",
-                                                padding: "10px 16px",
-                                                background: isError ? "rgba(239,68,68,.06)" : "rgba(99,102,241,.04)",
-                                                borderBottom: "1px solid var(--border-default, rgba(148,163,184,.08))",
-                                            }}>
-                                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                                    <span style={{
-                                                        width: 30, height: 30, borderRadius: "50%", display: "flex",
-                                                        alignItems: "center", justifyContent: "center",
-                                                        background: isError ? "rgba(239,68,68,.12)" : "rgba(99,102,241,.12)",
-                                                        color: isError ? "#ef4444" : "#6366f1",
-                                                        fontWeight: 800, fontSize: 14,
-                                                    }}>{qNum}</span>
+                                            <div className={`flex items-center justify-between px-4 py-2.5 border-b border-[var(--border-default)] ${isError ? "bg-red-500/5" : "bg-indigo-500/5"}`}>
+                                                <div className="omni-flex-row omni-gap-10">
+                                                    <span className={`w-[30px] h-[30px] rounded-full flex items-center justify-center font-extrabold text-sm ${isError ? "bg-red-500/10 text-red-500" : "bg-indigo-500/10 text-indigo-500"}`}>{qNum}</span>
                                                     {hab && (
-                                                        <span style={{
-                                                            padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700,
-                                                            background: "rgba(99,102,241,.08)", color: "#6366f1",
-                                                            border: "1px solid rgba(99,102,241,.15)",
-                                                        }}>{hab}</span>
+                                                        <BadgeInfo variant="indigo">{hab}</BadgeInfo>
                                                     )}
                                                     {q.nivel_bloom && (
-                                                        <span style={{
-                                                            padding: "2px 7px", borderRadius: 5, fontSize: 9, fontWeight: 700,
-                                                            background: "rgba(168,85,247,.08)", color: "#a855f7",
-                                                            border: "1px solid rgba(168,85,247,.15)",
-                                                        }}>{q.nivel_bloom}</span>
+                                                        <BadgeInfo variant="purple">{q.nivel_bloom}</BadgeInfo>
                                                     )}
                                                     {q.gabarito && (
-                                                        <span style={{
-                                                            padding: "3px 8px", borderRadius: 6, fontSize: 10, fontWeight: 800,
-                                                            background: "rgba(16,185,129,.1)", color: "#10b981",
-                                                            border: "1px solid rgba(16,185,129,.2)",
-                                                        }}>Gabarito: {q.gabarito}</span>
+                                                        <BadgeInfo variant="emerald">Gabarito: {q.gabarito}</BadgeInfo>
                                                     )}
                                                 </div>
-                                                <div style={{ display: "flex", gap: 6 }}>
+                                                <div className="flex gap-1.5">
                                                     {/* Refazer button */}
                                                     <button
                                                         onClick={() => {
                                                             q._showFeedbackRefazer = !q._showFeedbackRefazer;
                                                             setQuestoesIndividuais([...questoesIndividuais]);
                                                         }}
-                                                        style={{
-                                                            fontSize: 11, padding: "4px 10px", borderRadius: 6,
-                                                            border: "1px solid rgba(245,158,11,.25)", background: "rgba(245,158,11,.06)",
-                                                            color: "#f59e0b", cursor: "pointer", fontWeight: 600,
-                                                            display: "flex", alignItems: "center", gap: 4,
-                                                        }}
+                                                        className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-md border border-amber-500/25 bg-amber-500/5 text-amber-500 font-semibold cursor-pointer"
                                                     >
                                                         🔄 Refazer
                                                     </button>
@@ -2294,12 +2259,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                                             setQuestoesIndividuais([...questoesIndividuais]);
                                                         }}
                                                         disabled={isRegeneratingImg}
-                                                        style={{
-                                                            fontSize: 11, padding: "4px 10px", borderRadius: 6,
-                                                            border: "1px solid rgba(99,102,241,.2)", background: "rgba(99,102,241,.06)",
-                                                            color: "#818cf8", cursor: isRegeneratingImg ? "wait" : "pointer", fontWeight: 600,
-                                                            display: "flex", alignItems: "center", gap: 4,
-                                                        }}
+                                                        className={`flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-md border border-indigo-500/20 bg-indigo-500/5 text-indigo-400 font-semibold ${isRegeneratingImg ? "cursor-wait" : "cursor-pointer"}`}
                                                     >
                                                         {isRegeneratingImg ? "⏳ Gerando..." : imgUrl ? "🖼️ Refazer Imagem" : "🖼️ Gerar Imagem"}
                                                     </button>
@@ -2308,11 +2268,7 @@ export default function AvaliacaoDiagnosticaClient() {
 
                                             {/* ── Feedback para Refazer ── */}
                                             {showFeedback && (
-                                                <div style={{
-                                                    padding: "12px 16px", background: "rgba(245,158,11,.04)",
-                                                    borderBottom: "1px solid rgba(245,158,11,.15)",
-                                                    display: "flex", flexDirection: "column", gap: 8,
-                                                }}>
+                                                <div className="flex flex-col gap-2 px-4 py-3 bg-amber-500/5 border-b border-amber-500/15">
                                                     <label style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b" }}>
                                                         💬 O que precisa mudar nesta questão?
                                                     </label>
@@ -2326,14 +2282,9 @@ export default function AvaliacaoDiagnosticaClient() {
                                                         }}
                                                         placeholder="Ex: A imagem mostra ciclo da borracha, mas a questão é sobre ciclo do açúcar..."
                                                         rows={2}
-                                                        style={{
-                                                            width: "100%", padding: "8px 12px", borderRadius: 8,
-                                                            border: "1px solid rgba(245,158,11,.25)", background: "rgba(245,158,11,.03)",
-                                                            fontSize: 13, resize: "vertical", color: "var(--text-primary)",
-                                                            outline: "none",
-                                                        }}
+                                                        className="w-full px-3 py-2 rounded-lg border border-amber-500/25 bg-amber-500/5 text-sm resize-y text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-amber-500/30"
                                                     />
-                                                    <div style={{ display: "flex", gap: 6 }}>
+                                                    <div className="flex gap-1.5">
                                                         <button
                                                             onClick={async () => {
                                                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -2420,12 +2371,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                                                 }
                                                             }}
                                                             disabled={isRegenerating}
-                                                            style={{
-                                                                padding: "6px 14px", borderRadius: 6, border: "none",
-                                                                background: isRegenerating ? "#94a3b8" : "linear-gradient(135deg, #f59e0b, #fbbf24)",
-                                                                color: "#fff", fontSize: 12, fontWeight: 700, cursor: isRegenerating ? "wait" : "pointer",
-                                                                display: "flex", alignItems: "center", gap: 4,
-                                                            }}
+                                                            className={`flex items-center gap-1 px-3 py-1.5 rounded-md border-none text-white text-xs font-bold ${isRegenerating ? "bg-slate-400 cursor-wait" : "bg-gradient-to-br from-amber-500 to-amber-400 cursor-pointer"}`}
                                                         >
                                                             {isRegenerating ? <OmniLoader size={12} /> : <Sparkles size={12} />}
                                                             {isRegenerating ? "Regenerando..." : "Regenerar Questão"}
@@ -2435,11 +2381,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                                                 q._showFeedbackRefazer = false;
                                                                 setQuestoesIndividuais([...questoesIndividuais]);
                                                             }}
-                                                            style={{
-                                                                padding: "6px 14px", borderRadius: 6,
-                                                                border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                                                                background: "transparent", color: "var(--text-muted)", fontSize: 12, cursor: "pointer",
-                                                            }}
+                                                            className="px-3 py-1.5 rounded-md border border-[var(--border-default)] bg-transparent text-[var(--text-muted)] text-xs cursor-pointer hover:bg-slate-500/5"
                                                         >
                                                             Cancelar
                                                         </button>
@@ -2458,7 +2400,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                                         <OmniLoader size={18} /> Regenerando questão {qNum}...
                                                     </div>
                                                 ) : (
-                                                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                                                    <div className="omni-flex-col omni-gap-10">
                                                         {/* Habilidade BNCC texto completo */}
                                                         {(habTexto || q._unidadeTematica) && (
                                                             <div style={{
@@ -2487,14 +2429,14 @@ export default function AvaliacaoDiagnosticaClient() {
 
                                                         {/* Enunciado */}
                                                         {q.enunciado && (
-                                                            <p style={{ fontSize: 14, lineHeight: 1.7, color: "var(--text-primary)", margin: 0 }}>
+                                                            <p className="text-sm leading-relaxed text-[var(--text-primary)] m-0">
                                                                 {q.enunciado}
                                                             </p>
                                                         )}
 
                                                         {/* Comando */}
                                                         {q.comando && (
-                                                            <p style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", margin: "4px 0", fontStyle: "italic" }}>
+                                                            <p className="text-[13px] font-bold text-[var(--text-primary)] my-1 italic">
                                                                 {q.comando}
                                                             </p>
                                                         )}
@@ -2519,47 +2461,18 @@ export default function AvaliacaoDiagnosticaClient() {
 
                                                         {/* Alternativas + Distratores */}
                                                         {q.alternativas && (
-                                                            <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 4 }}>
+                                                            <div className="flex flex-col gap-2 mt-2">
                                                                 {Object.entries(q.alternativas as Record<string, string>).map(([letra, texto]) => {
                                                                     const isCorrect = letra === q.gabarito;
                                                                     const distratorInfo = analiseDistratores?.[letra];
                                                                     return (
-                                                                        <div key={letra} style={{
-                                                                            display: "flex", flexDirection: "column",
-                                                                            padding: "8px 12px", borderRadius: 8,
-                                                                            background: isCorrect ? "rgba(16,185,129,.06)" : "transparent",
-                                                                            border: isCorrect ? "1px solid rgba(16,185,129,.2)" : "1px solid var(--border-default, rgba(148,163,184,.08))",
-                                                                        }}>
-                                                                            <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                                                                                <span style={{
-                                                                                    fontWeight: isCorrect ? 800 : 600, fontSize: 13,
-                                                                                    color: isCorrect ? "#10b981" : "var(--text-primary)",
-                                                                                    minWidth: 20,
-                                                                                }}>
-                                                                                    {letra})
-                                                                                </span>
-                                                                                <span style={{
-                                                                                    fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6,
-                                                                                    fontWeight: isCorrect ? 600 : 400, flex: 1,
-                                                                                }}>
-                                                                                    {texto}
-                                                                                </span>
-                                                                                {isCorrect && (
-                                                                                    <CheckCircle2 size={14} style={{ color: "#10b981", flexShrink: 0, marginTop: 3 }} />
-                                                                                )}
-                                                                            </div>
-                                                                            {/* Análise do distrator — visível para o professor */}
-                                                                            {distratorInfo && (
-                                                                                <div style={{
-                                                                                    marginTop: 4, marginLeft: 28,
-                                                                                    fontSize: 10, lineHeight: 1.4,
-                                                                                    color: isCorrect ? "#059669" : "#94a3b8",
-                                                                                    fontStyle: "italic",
-                                                                                }}>
-                                                                                    {isCorrect ? "✅ Resposta correta" : `⚡ ${distratorInfo}`}
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
+                                                                        <AlternativaItem
+                                                                            key={letra}
+                                                                            letra={letra}
+                                                                            texto={texto}
+                                                                            isCorrect={isCorrect}
+                                                                            distratorInfo={distratorInfo}
+                                                                        />
                                                                     );
                                                                 })}
                                                             </div>
@@ -2567,24 +2480,14 @@ export default function AvaliacaoDiagnosticaClient() {
 
                                                         {/* Justificativa Pedagógica */}
                                                         {q.justificativa_pedagogica && (
-                                                            <div style={{
-                                                                marginTop: 6, padding: "8px 12px", borderRadius: 8,
-                                                                background: "rgba(99,102,241,.04)",
-                                                                border: "1px solid rgba(99,102,241,.1)",
-                                                                fontSize: 12, color: "var(--text-muted)", fontStyle: "italic", lineHeight: 1.5,
-                                                            }}>
+                                                            <div className="mt-1.5 px-3 py-2 rounded-lg bg-indigo-500/5 border border-indigo-500/10 text-xs text-indigo-400 italic leading-snug">
                                                                 💡 {q.justificativa_pedagogica}
                                                             </div>
                                                         )}
 
                                                         {/* Instrução Professor */}
                                                         {q.instrucao_professor && (
-                                                            <div style={{
-                                                                padding: "8px 12px", borderRadius: 8,
-                                                                background: "rgba(245,158,11,.04)",
-                                                                border: "1px solid rgba(245,158,11,.12)",
-                                                                fontSize: 12, color: "#b45309", lineHeight: 1.5,
-                                                            }}>
+                                                            <div className="px-3 py-2 rounded-lg bg-amber-500/5 border border-amber-500/10 text-xs text-amber-700 leading-snug">
                                                                 👩‍🏫 <strong>Para o professor:</strong> {q.instrucao_professor}
                                                             </div>
                                                         )}
@@ -2632,7 +2535,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                     background: "rgba(168,85,247,.05)",
                                 }}
                             >
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <div className="omni-flex-row omni-gap-2">
                                     <Layers size={16} style={{ color: "#a855f7" }} />
                                     <span style={{ fontWeight: 700, fontSize: 14, color: "#a855f7" }}>
                                         Camada B — Avaliação Cognitivo-Funcional
@@ -2899,7 +2802,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                     background: "rgba(16,185,129,.05)",
                                 }}
                             >
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <div className="omni-flex-row omni-gap-2">
                                     <Activity size={16} style={{ color: "#10b981" }} />
                                     <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>
                                         Dados da Avaliação Processual
@@ -3096,7 +2999,7 @@ export default function AvaliacaoDiagnosticaClient() {
                             padding: "10px 16px", borderRadius: 10, marginBottom: 20,
                             background: "rgba(16,185,129,.04)", border: "1px solid rgba(16,185,129,.12)",
                         }}>
-                            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                            <span className="omni-text-sm omni-text-muted">
                                 📊 Acompanhe a evolução deste estudante ao longo do ano
                             </span>
                             <a href={`/avaliacao-processual${selectedAluno ? `?student=${selectedAluno.id}` : ""}`} style={{
@@ -3144,7 +3047,7 @@ export default function AvaliacaoDiagnosticaClient() {
                 padding: "10px 16px", borderRadius: 10, marginBottom: 20,
                 background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.15)",
             }}>
-                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                <span className="omni-text-sm omni-text-muted">
                     📊 Já fez a diagnóstica? Registre a evolução bimestral.
                 </span>
                 <a href="/avaliacao-processual" style={{
@@ -3318,7 +3221,7 @@ export default function AvaliacaoDiagnosticaClient() {
                     )}
 
                     {/* Student cards */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div className="omni-flex-col omni-gap-3">
                         {alunos.map(aluno => {
                             const totalDisc = aluno.disciplinas.length;
                             const avaliadasCompletas = aluno.disciplinas.filter(d => d.avaliacao_status === "aplicada").length;
@@ -3326,7 +3229,7 @@ export default function AvaliacaoDiagnosticaClient() {
                             return (
                                 <Card variant="default" key={aluno.id} className="mb-0 overflow-hidden">
                                     <div className="p-4 py-3 flex items-center justify-between border-b border-(--omni-border-default) bg-(--omni-surface-elevated)">
-                                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                        <div className="omni-flex-row omni-gap-10">
                                             <div style={{
                                                 width: 36, height: 36, borderRadius: "50%", display: "flex",
                                                 alignItems: "center", justifyContent: "center",
@@ -3352,7 +3255,7 @@ export default function AvaliacaoDiagnosticaClient() {
                                             }}>
                                                 {avaliadasCompletas}/{totalDisc}
                                             </span>
-                                            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>avaliações</div>
+                                            <div className="omni-text-xs omni-text-muted">avaliações</div>
                                         </div>
                                     </div>
 

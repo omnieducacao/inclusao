@@ -1,9 +1,12 @@
 @import 'tailwindcss';
+@plugin "tailwindcss-animate";
 @source "@omni/ds";
 @source "../app/**/*.{ts,tsx}";
 @source "../components/**/*.{ts,tsx}";
 @source "../lib/**/*.{ts,tsx}";
 @import "@omni/ds/src/theme/base.css";
+@import "@omni/ds/src/theme/animations.css";
+@import "./globals-utilities.css";
 @import "@omni/ds/src/theme/animations.css";
 /* ═══════════════════════════════════════════════════
    Omnisfera — Premium Design System
@@ -88,150 +91,6 @@
   --color-error-bg: rgba(239, 68, 68, 0.1);
   --color-info: #6366f1;
   --color-info-bg: rgba(99, 102, 241, 0.1);
-}
-
-/* ═══════════════════════════════════════════════════
-   Omnisfera Utility Classes
-   ═══════════════════════════════════════════════════ */
-
-/* ─── Cards ─── */
-.omni-card {
-  border-radius: var(--radius-lg);
-  padding: 18px 22px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition-base), border-color var(--transition-base);
-}
-
-.omni-card:hover {
-  box-shadow: var(--shadow-md);
-}
-
-.omni-card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--border-subtle);
-  margin-bottom: 14px;
-}
-
-.omni-card-compact {
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-}
-
-/* ─── Badges ─── */
-.omni-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 10px;
-  border-radius: 9999px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.omni-badge--success {
-  background: var(--color-success-bg);
-  color: var(--color-success);
-}
-
-.omni-badge--warning {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
-}
-
-.omni-badge--error {
-  background: var(--color-error-bg);
-  color: var(--color-error);
-}
-
-.omni-badge--info {
-  background: var(--color-info-bg);
-  color: var(--color-info);
-}
-
-/* ─── Typography ─── */
-.omni-text-xs {
-  font-size: 10px;
-  line-height: 1.4;
-}
-
-.omni-text-sm {
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.omni-text-base {
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.omni-text-lg {
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-.omni-text-xl {
-  font-size: 20px;
-  line-height: 1.3;
-}
-
-.omni-text-primary {
-  color: var(--text-primary);
-}
-
-.omni-text-secondary {
-  color: var(--text-secondary);
-}
-
-.omni-text-muted {
-  color: var(--text-muted);
-}
-
-/* ─── Buttons (base) ─── */
-.omni-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  border: none;
-}
-
-.omni-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.omni-btn--primary {
-  background: var(--color-primary);
-  color: white;
-}
-
-.omni-btn--primary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-}
-
-.omni-btn--ghost {
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-default);
-}
-
-.omni-btn--ghost:hover:not(:disabled) {
-  background: var(--bg-hover);
-  color: var(--text-primary);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -387,6 +246,57 @@ html.high-contrast {
     -webkit-backdrop-filter: none !important;
     background: var(--bg-secondary) !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════
+   Acessibilidade — Modo Dislexia (Lexend Font)
+   ═══════════════════════════════════════════════════ */
+html.dyslexia-font body {
+  font-family: 'Lexend', var(--font-primary) !important;
+  letter-spacing: 0.035em !important;
+  line-height: 1.6 !important;
+}
+
+html.dyslexia-font * {
+  font-family: 'Lexend', var(--font-primary) !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   Acessibilidade — Modificadores de Daltonismo
+   Ajusta a percepção de vermelho, verde e azul
+   ═══════════════════════════════════════════════════ */
+
+/* Protanopia (Vermelho cego) -> Shift vermelho para azul/magenta e verde para ouro */
+html.cb-protanopia {
+  --color-error: #5b21b6;
+  /* Roxo escuro ao invés de vermelho */
+  --color-error-bg: rgba(91, 33, 182, 0.15);
+  --color-success: #ca8a04;
+  /* Dourado ao invés de verde */
+  --color-success-bg: rgba(202, 138, 4, 0.15);
+  --color-primary: #2563eb;
+}
+
+/* Deuteranopia (Verde cego) -> Shift verde para azul claro/cyan e vermelho para marrom/laranja escuro */
+html.cb-deuteranopia {
+  --color-error: #9a3412;
+  /* Laranja queimado intenso */
+  --color-error-bg: rgba(154, 52, 18, 0.15);
+  --color-success: #0284c7;
+  /* Azul cerúleo ao invés de verde */
+  --color-success-bg: rgba(2, 132, 199, 0.15);
+}
+
+/* Tritanopia (Azul cego) -> Azul/Amarelo substituído por Vermelho/Turquesa focado */
+html.cb-tritanopia {
+  --color-primary: #be123c;
+  /* Rosa/Vermelho em vez de Azul */
+  --color-primary-hover: #9f1239;
+  --color-warning: #0d9488;
+  /* Teal/Turquesa no lugar do amarelo */
+  --color-warning-bg: rgba(13, 148, 136, 0.15);
+  --color-info: #be123c;
+  --focus-color: #be123c;
 }
 
 /* ─── Dark Theme ─── */
@@ -855,6 +765,9 @@ h6 {
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .animate-shimmer {
@@ -868,6 +781,9 @@ h6 {
 
 .animate-blob {
   animation: blob-move 12s ease-in-out infinite;
+  will-change: transform, filter;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .animate-pulse-soft {

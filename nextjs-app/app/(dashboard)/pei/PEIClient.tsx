@@ -153,6 +153,8 @@ type Props = {
   studentName: string | null;
   initialPeiData: Record<string, unknown>;
   initialStudent?: Student | null;
+  initialClasses: Array<{ id: string; class_group: string; grade_id: string; grades?: { name?: string; label?: string } }>;
+  initialGrades: Array<{ id: string; name: string; label?: string }>;
 };
 
 export function PEIClient({
@@ -161,6 +163,8 @@ export function PEIClient({
   studentName,
   initialPeiData,
   initialStudent,
+  initialClasses,
+  initialGrades,
 }: Props) {
   // ─── Core PEI State (from extracted hook) ─────────────────────────
   const pei = usePEIData({ students, studentId, initialPeiData });
@@ -190,25 +194,15 @@ export function PEIClient({
 
   // ─── Local-only state ─────────────────────────────────────────────
   const [privacyConsentAccepted, setPrivacyConsentAccepted] = useState(false);
-  const [schoolClasses, setSchoolClasses] = useState<Array<{ id: string; class_group: string; grade_id: string; grades?: { name?: string; label?: string } }>>([]);
-  const [schoolGrades, setSchoolGrades] = useState<Array<{ id: string; name: string; label?: string }>>([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Use the pre-fetched static data passed from Server Component
+  const schoolClasses = initialClasses || [];
+  const schoolGrades = initialGrades || [];
 
   // Check onboarding on mount
   useEffect(() => {
     if (!localStorage.getItem('onboarding_pei')) setShowOnboarding(true);
-  }, []);
-
-  // Fetch school classes and grades for turma dropdown
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/school/classes").then(r => r.json()).then(d => {
-        setSchoolClasses(d.classes || []);
-      }),
-      fetch("/api/school/grades").then(r => r.json()).then(d => {
-        setSchoolGrades(d.grades || []);
-      }),
-    ]).catch(() => { });
   }, []);
 
   // Compute available turmas for selected série

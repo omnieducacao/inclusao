@@ -19,6 +19,7 @@ import { AvisosTab } from "./components/AvisosTab";
 import { InstagramFeedTab } from "./components/InstagramFeedTab";
 import { AparenciaTab } from "./components/AparenciaTab";
 import { TopbarTab } from "./components/TopbarTab";
+import { AuditoriaTab } from "./components/AuditoriaTab";
 
 type Workspace = {
   id: string;
@@ -34,7 +35,7 @@ type Workspace = {
   created_at?: string;
 };
 
-type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "avisos" | "termo" | "bugs" | "instagram" | "aparencia" | "topbar";
+type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "auditoria" | "avisos" | "termo" | "bugs" | "instagram" | "aparencia" | "topbar";
 
 const SEGMENT_OPTIONS: Record<string, string> = {
   EI: "Educação Infantil",
@@ -174,6 +175,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
           { id: "uso-ia" as TabId, label: "📊 Uso de IAs" },
           { id: "dashboard" as TabId, label: "📈 Dashboard" },
           { id: "logs" as TabId, label: "📋 Logs" },
+          { id: "auditoria" as TabId, label: "🛡️ Auditoria (LGPD)" },
           { id: "avisos" as TabId, label: "📢 Avisos" },
           { id: "termo" as TabId, label: "📜 Termo" },
           { id: "bugs" as TabId, label: "🐛 Bugs" },
@@ -219,6 +221,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
       {activeTab === "usuarios" && <UsuariosTab workspaces={workspaces} />}
       {activeTab === "dashboard" && <EnhancedDashboardTab />}
       {activeTab === "logs" && <LogsTab workspaces={workspaces} />}
+      {activeTab === "auditoria" && <AuditoriaTab workspaces={workspaces} isPlatformAdmin={session.is_platform_admin} />}
       {activeTab === "avisos" && <AvisosTab workspaces={workspaces} />}
       {activeTab === "termo" && <TermoTab />}
       {activeTab === "bugs" && <BugsTab />}

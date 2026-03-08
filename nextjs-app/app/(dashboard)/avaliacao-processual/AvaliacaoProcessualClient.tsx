@@ -834,11 +834,11 @@ export default function AvaliacaoProcessualClient() {
 
                 {/* ── Integrated Report Panel ──────────────────────────────── */}
                 {relatorioIntegrado && showIntegrado && (
-                    <div id="relatorio-integrado-print" className={`${cardS} mt-5`} style={{ border: "1.5px solid rgba(14,165,233,.2)" }}>
-                        <div className={`${headerS} justify-between`} style={{ background: "rgba(14,165,233,.05)" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <BarChart3 size={16} style={{ color: "#0ea5e9" }} />
-                                <span style={{ fontWeight: 700, fontSize: 14, color: "#0ea5e9" }}>Relatório Integrado — Diagnóstica + Processual</span>
+                    <div id="relatorio-integrado-print" className={`${cardS} mt-5 border-[1.5px] border-sky-500/20`}>
+                        <div className={`${headerS} justify-between bg-sky-500/5`}>
+                            <div className="flex items-center gap-2">
+                                <BarChart3 size={16} className="text-sky-500" />
+                                <span className="font-bold text-sm text-sky-500">Relatório Integrado — Diagnóstica + Processual</span>
                             </div>
                             <button
                                 onClick={() => {

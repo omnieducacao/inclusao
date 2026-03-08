@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ClipboardList, FileText, Map, Trash2, ChevronDown, ChevronUp, X, AlertTriangle, Edit2, Save, XCircle, Download } from "lucide-react";
@@ -21,6 +22,22 @@ type Student = {
 type Props = {
   students: Student[];
   familyModuleEnabled?: boolean;
+};
+
+// ─── Variantes de Animação (Framer Motion) ───────────────────────────────────
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
 };
 
 export function EstudantesClient({ students, familyModuleEnabled = false }: Props) {
@@ -264,7 +281,12 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
           </button>
         </div>
       ) : (
-        <div className="divide-y divide-(--omni-border-default)">
+        <motion.div
+          className="divide-y divide-(--omni-border-default)"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
           {filtered.map((s, idx) => {
             const peiData = (s.pei_data || {}) as Record<string, unknown>;
             const paeeCiclos = Array.isArray(s.paee_ciclos) ? s.paee_ciclos : [];
@@ -276,10 +298,10 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
             const isUpdating = updating === s.id;
 
             return (
-              <div
+              <motion.div
                 key={s.id}
-                className="border-b border-(--omni-border-default) last:border-b-0 animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
-                style={{ animationDelay: `${Math.min(idx * 40, 400)}ms` }}
+                variants={itemVariants}
+                className="border-b border-(--omni-border-default) last:border-b-0 bg-(--omni-bg-primary)"
               >
                 {/* Header do estudante */}
                 <div className="p-4 hover:bg-(--omni-bg-secondary) transition-colors">
@@ -618,10 +640,10 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
                     )}
                   </div>
                 )}
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       )}
       {students.length > 0 && (
         <p className="p-3 text-xs text-slate-400 border-t border-slate-100">

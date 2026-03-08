@@ -33,23 +33,33 @@ export async function GET() {
             .eq("key", "announcements")
             .maybeSingle();
 
-        if (!configData?.value) {
-            return NextResponse.json({ announcements: [] });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let allAnnouncements: any[] = [];
+        if (configData?.value) {
+            try {
+                allAnnouncements = JSON.parse(configData.value);
+            } catch {
+                allAnnouncements = [];
+            }
         }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let allAnnouncements: any[] = [];
-        try {
-            allAnnouncements = JSON.parse(configData.value);
-        } catch {
-            return NextResponse.json({ announcements: [] });
-        }
+        // --- INJEÇÃO NATIVA DE SYSTEM DEPLOY (Release Notes Automáticas) ---
+        // Aqui garantimos a visibilidade das novas features estruturais
+        allAnnouncements.push({
+            id: "release-a11y-wcag-aaa-v1",
+            title: "Tornando a Educação Mais Inclusiva 💙",
+            message: "Acabamos de lançar as novas ferramentas avançadas de Acessibilidade da Omnisfera!\n\nVocê pode personalizar a interface diretamente no cabeçalho superior (ícone de Opções visuais). Lá você encontra acesso instantâneo ao:\n\n• Modo de Alto Contraste\n• Tipografia adaptada para Dislexia (Fonte Lexend)\n• Filtros de Correção de Daltonismo (Protanopia, Deuteranopia e Tritanopia)\n\nExperimente e ajuste a plataforma para o seu conforto visual absoluto!",
+            type: "info",
+            target: "all",
+            active: true
+        });
+        // ------------------------------------------------------------------
 
         const now = new Date().toISOString();
 
         // Filter to active, non-expired, relevant announcements
         const relevantAnnouncements = allAnnouncements.filter(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (a: any) =>
                 a.active &&
                 (a.target === "all" || a.target === workspaceId) &&
@@ -67,7 +77,7 @@ export async function GET() {
 
         // Return unviewed announcements
         const unviewedAnnouncements = relevantAnnouncements.filter(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (a: any) => !viewedIds.has(a.id)
         );
 
