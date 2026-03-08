@@ -166,7 +166,7 @@ export function ConsultoriaTab({
   return (
     <div className="space-y-4">
       {!serie ? (
-        <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+        <div role="alert" aria-live="assertive" className="p-4 rounded-lg bg-amber-50 border border-amber-200">
           <p className="text-amber-800 text-sm">
             ⚠️ Selecione a Série/Ano na aba <strong>Estudante</strong> para ativar o modo especialista.
           </p>
@@ -174,7 +174,7 @@ export function ConsultoriaTab({
       ) : (
         <>
           {/* Info box do segmento */}
-          <div className="p-4 rounded-lg border-l-4" style={{ backgroundColor: "#F7FAFC", borderLeftColor: segInfo.cor }}>
+          <div role="status" aria-live="polite" className="p-4 rounded-lg border-l-4" style={{ backgroundColor: "#F7FAFC", borderLeftColor: segInfo.cor }}>
             <p className="font-semibold mb-1" style={{ color: segInfo.cor }}>
               ℹ️ Modo Especialista: {segInfo.nome}
             </p>
@@ -337,7 +337,12 @@ export function ConsultoriaTab({
               <div>
                 <h4 className="text-base font-semibold text-slate-800 mb-3">📝 Revisão do Plano</h4>
                 <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 mb-3">
-                  <div className="prose prose-sm max-w-none whitespace-pre-wrap text-slate-700">
+                  <div
+                    role="region"
+                    aria-live="polite"
+                    aria-label="Sugestão de Plano Completa da Inteligência Artificial"
+                    className="prose prose-sm max-w-none whitespace-pre-wrap text-slate-700"
+                  >
                     {formatarTextoConsultoria((peiData.ia_sugestao || "").replace(/\[.*?\]/g, ""))}
                   </div>
                 </div>

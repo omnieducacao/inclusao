@@ -190,7 +190,7 @@ export function PEIAvaliacaoDiagnostica({
 
             {/* Nível já identificado */}
             {nivelIdentificado !== null && (
-                <div style={{
+                <div role="status" aria-live="polite" style={{
                     display: "flex", alignItems: "center", gap: 12, padding: "14px 18px",
                     borderRadius: 12, background: "rgba(16,185,129,.1)", border: "1px solid rgba(16,185,129,.3)",
                 }}>
@@ -236,7 +236,7 @@ export function PEIAvaliacaoDiagnostica({
             )}
 
             {error && (
-                <div style={{
+                <div role="alert" aria-live="assertive" style={{
                     display: "flex", alignItems: "center", gap: 8,
                     padding: "10px 14px", borderRadius: 8,
                     background: "rgba(239,68,68,.1)", color: "#f87171", fontSize: 13,
@@ -268,6 +268,7 @@ export function PEIAvaliacaoDiagnostica({
                                         padding: "14px 18px", cursor: "pointer",
                                         display: "flex", justifyContent: "space-between", alignItems: "center",
                                     }}
+                                    aria-expanded={isExpanded}
                                 >
                                     <span style={{ fontWeight: 600, fontSize: 14, color: "#e2e8f0" }}>
                                         Questão {idx + 1}
@@ -313,6 +314,7 @@ export function PEIAvaliacaoDiagnostica({
                                                             color: "#e2e8f0", cursor: nivelIdentificado !== null ? "default" : "pointer",
                                                             fontSize: 13, transition: "all .2s",
                                                         }}
+                                                        aria-pressed={selected}
                                                     >
                                                         <strong style={{ marginRight: 8 }}>{letra})</strong>
                                                         {q.alternativas[letra]}

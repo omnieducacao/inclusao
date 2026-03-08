@@ -270,11 +270,11 @@ export function NotificationBell() {
                                                 e.stopPropagation();
                                                 handleDismiss(n.id);
                                             }}
-                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-200 rounded"
+                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-200 rounded shrink-0 self-center"
                                             title="Dispensar notificação"
-                                            aria-label="Dispensar notificação"
+                                            aria-label={`Dispensar notificação: ${n.title}`}
                                         >
-                                            <X className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+                                            <X className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} aria-hidden="true" />
                                         </button>
                                     </div>
                                 </div>
