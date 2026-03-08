@@ -10,7 +10,14 @@ let supabaseClientInstance: ReturnType<typeof createClient> | null = null;
 
 export function getSupabaseBrowser() {
     if (!supabaseUrl || !supabaseAnonKey) {
-        console.warn("Missing public Supabase keys for browser client");
+        console.warn("Missing public Supabase keys for browser client. Falling back to dummy client to prevent React crashes.");
+        if (!supabaseClientInstance) {
+            supabaseClientInstance = createClient(
+                supabaseUrl || 'https://fallback.supabase.co',
+                supabaseAnonKey || 'fallback-key'
+            );
+        }
+        return supabaseClientInstance;
     }
 
     if (!supabaseClientInstance) {
