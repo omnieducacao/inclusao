@@ -20,53 +20,8 @@ import {
 import { OmniLoader } from "@/components/OmniLoader";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Select, Table, TableHeader, TableRow, TableHead, TableBody, TableCell, Avatar, Badge, Button, Card, CardHeader, CardTitle, CardDescription, CardContent, DonutChart, Input } from "@omni/ds";
-
-type WorkspaceMember = {
-  id: string;
-  nome: string;
-  email: string;
-  telefone?: string | null;
-  cargo?: string | null;
-  can_estudantes: boolean;
-  can_pei: boolean;
-  can_pei_professor: boolean;
-  can_paee: boolean;
-  can_hub: boolean;
-  can_diario: boolean;
-  can_avaliacao: boolean;
-  can_gestao: boolean;
-  link_type: "todos" | "turma" | "tutor";
-  active: boolean;
-};
-
-type FamilyResponsavel = {
-  id: string;
-  nome: string;
-  email: string;
-  telefone?: string | null;
-  parentesco?: string | null;
-  active: boolean;
-  created_at: string;
-};
-
-type WorkspaceMaster = { workspace_id: string; email: string; nome: string } | null;
-
-const PERM_LABELS: Record<string, string> = {
-  can_estudantes: "Estudantes",
-  can_pei: "PEI",
-  can_pei_professor: "PEI - Professor",
-  can_paee: "PAEE",
-  can_hub: "Hub",
-  can_diario: "Diário",
-  can_avaliacao: "Avaliação",
-  can_gestao: "Gestão",
-};
-
-const LINK_OPTIONS: { value: "todos" | "turma" | "tutor"; label: string }[] = [
-  { value: "todos", label: "Todos (coordenação/AEE)" },
-  { value: "turma", label: "Por turma" },
-  { value: "tutor", label: "Por tutor (estudantes específicos)" },
-];
+import type { WorkspaceMember, FamilyResponsavel, WorkspaceMaster } from "./types";
+import { PERM_LABELS, LINK_OPTIONS } from "./types";
 
 
 export function GestaoClient({
