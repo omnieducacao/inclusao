@@ -149,12 +149,12 @@ export function AparenciaTab() {
                       <div className="flex gap-1">
                         <div
                           className="w-8 h-8 rounded-lg border border-white shadow"
-                          style={{ backgroundColor: colorInfo?.hex || "#4285F4" }}
+                          style={{ background: colorInfo?.gradient || colorInfo?.hex || "#4285F4" }}
                           title="Cor do Card"
                         />
                         <div
                           className="w-8 h-8 rounded-lg border border-white shadow"
-                          style={{ backgroundColor: heroColorInfo?.hex || colorInfo?.hex || "#4285F4" }}
+                          style={{ background: heroColorInfo?.gradient || heroColorInfo?.hex || colorInfo?.gradient || colorInfo?.hex || "#4285F4" }}
                           title="Cor do Hero"
                         />
                       </div>
@@ -198,11 +198,11 @@ export function AparenciaTab() {
                                 ? "border-blue-500 scale-110 shadow-lg"
                                 : "border-transparent hover:border-slate-300"
                                 }`}
-                              style={{ backgroundColor: color.hex }}
+                              style={{ background: color.gradient || color.hex }}
                               title={color.label}
                             >
                               {currentColor === color.key && (
-                                <span className="text-white text-xs font-bold">✓</span>
+                                <span className="text-white text-xs font-bold drop-shadow-md">✓</span>
                               )}
                             </button>
                           ))}
@@ -221,11 +221,11 @@ export function AparenciaTab() {
                                 ? "border-blue-500 scale-110 shadow-lg"
                                 : "border-transparent hover:border-slate-300"
                                 }`}
-                              style={{ backgroundColor: color.hex }}
+                              style={{ background: color.gradient || color.hex }}
                               title={color.label}
                             >
                               {currentHeroColor === color.key && (
-                                <span className="text-white text-xs font-bold">✓</span>
+                                <span className="text-white text-xs font-bold drop-shadow-md">✓</span>
                               )}
                             </button>
                           ))}

@@ -29,17 +29,17 @@ export const FEED_CATEGORIES = [
 
 
 export const COLOR_OPTIONS = [
-  { key: "omnisfera", label: "Omnisfera (Sky Blue)", hex: "#0ea5e9" },
-  { key: "pei", label: "PEI (Roxo)", hex: "#7c3aed" },
-  { key: "paee", label: "PAEE (Rosa)", hex: "#e11d48" },
-  { key: "hub", label: "Hub (Ciano)", hex: "#0891b2" },
-  { key: "diario", label: "Diário (Verde)", hex: "#059669" },
-  { key: "monitoramento", label: "Monitoramento (Teal)", hex: "#0d9488" },
-  { key: "ferramentas", label: "Ferramentas (Azul)", hex: "#2563eb" },
-  { key: "gestao", label: "Gestão (Índigo)", hex: "#6366f1" },
-  { key: "cursos", label: "Config (Âmbar)", hex: "#d97706" },
-  { key: "pgi", label: "PGI (Violeta)", hex: "#8b5cf6" },
-  { key: "admin", label: "Admin (Slate)", hex: "#475569" },
+  { key: "omnisfera", label: "Omnisfera (Sky Blue)", hex: "#0ea5e9", gradient: "linear-gradient(135deg, #0ea5e9, #2563eb)" },
+  { key: "pei", label: "PEI (Roxo)", hex: "#7c3aed", gradient: "linear-gradient(135deg, #8b5cf6, #c026d3)" },
+  { key: "paee", label: "PAEE (Rosa)", hex: "#e11d48", gradient: "linear-gradient(135deg, #f43f5e, #db2777)" },
+  { key: "hub", label: "Hub (Ciano)", hex: "#0891b2", gradient: "linear-gradient(135deg, #06b6d4, #0d9488)" },
+  { key: "diario", label: "Diário (Verde)", hex: "#059669", gradient: "linear-gradient(135deg, #10b981, #16a34a)" },
+  { key: "monitoramento", label: "Monitoramento (Teal)", hex: "#0d9488", gradient: "linear-gradient(135deg, #14b8a6, #059669)" },
+  { key: "ferramentas", label: "Ferramentas (Azul)", hex: "#2563eb", gradient: "linear-gradient(135deg, #3b82f6, #4f46e5)" },
+  { key: "gestao", label: "Gestão (Índigo)", hex: "#6366f1", gradient: "linear-gradient(135deg, #6366f1, #7c3aed)" },
+  { key: "cursos", label: "Config (Âmbar)", hex: "#d97706", gradient: "linear-gradient(135deg, #f59e0b, #ea580c)" },
+  { key: "pgi", label: "PGI (Violeta)", hex: "#8b5cf6", gradient: "linear-gradient(135deg, #d946ef, #9333ea)" },
+  { key: "admin", label: "Admin (Slate)", hex: "#475569", gradient: "linear-gradient(135deg, #475569, #1e293b)" },
 ];
 
 export const DEFAULT_TOPBAR_ICONS = [
