@@ -49,6 +49,8 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
 
     return (
         <div
+            role="status"
+            aria-live="polite"
             className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-(--omni-bg-secondary) border border-(--omni-border-default) border-l-4 shadow-(--omni-shadow-lg) animate-slide-up ${borderColor}`}
             style={{ minWidth: 280, maxWidth: 420 }}
         >

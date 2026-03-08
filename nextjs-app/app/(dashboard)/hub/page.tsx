@@ -1,11 +1,15 @@
-import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
-import { HubClient } from "./HubClient";
 import { Skeleton } from "@/components/Skeleton";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
+import dynamic from "next/dynamic";
+
+const HubClient = dynamic(
+  () => import("./HubClient").then(mod => ({ default: mod.HubClient })),
+  { loading: () => <Skeleton className="min-h-[200px] w-full rounded-2xl" /> }
+);
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -54,25 +58,23 @@ export default async function HubPage({ searchParams }: Props) {
           desc="Adaptar provas, atividades, criar do zero e muito mais."
         />
 
-        <Suspense fallback={<Skeleton className="min-h-[200px] w-full rounded-2xl" />}>
-          <HubClient
-            students={students.map((s) => ({ id: s.id, name: s.name }))}
-            studentId={studentId}
-            student={
-              student
-                ? {
-                  id: student.id,
-                  name: student.name,
-                  grade: student.grade,
-                  pei_data: {
-                    ...((student.pei_data || {}) as Record<string, unknown>),
-                    ...(pontePedagogica ? { ponte_pedagogica: pontePedagogica } : {}),
-                  },
-                }
-                : null
-            }
-          />
-        </Suspense>
+        <HubClient
+          students={students.map((s) => ({ id: s.id, name: s.name }))}
+          studentId={studentId}
+          student={
+            student
+              ? {
+                id: student.id,
+                name: student.name,
+                grade: student.grade,
+                pei_data: {
+                  ...((student.pei_data || {}) as Record<string, unknown>),
+                  ...(pontePedagogica ? { ponte_pedagogica: pontePedagogica } : {}),
+                },
+              }
+              : null
+          }
+        />
       </div>
     </PageAccentProvider>
   );
