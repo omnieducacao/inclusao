@@ -7,6 +7,7 @@ import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { SafeModuleWrapper } from "@/components/SafeModuleWrapper";
 import { EstudantesClient } from "./EstudantesClient";
 import { Skeleton } from "@/components/Skeleton";
+import { getAdminConfig } from "@/lib/getAdminConfig";
 
 export default async function EstudantesPage() {
   const session = await getSession();
@@ -20,11 +21,13 @@ export default async function EstudantesPage() {
     familyModuleEnabled = Boolean((data as { family_module_enabled?: boolean } | null)?.family_module_enabled);
   }
 
+  const adminConfig = await getAdminConfig();
+
   return (
-    <PageAccentProvider adminKey="estudantes">
+    <PageAccentProvider adminKey="estudantes" serverConfig={adminConfig}>
       <div className="space-y-6">
         <PageHero
-          moduleKey="omnisfera"
+          moduleKey="omnisfera" serverConfig={adminConfig}
           title="Gestão de Estudantes"
           desc="Dados dos estudantes vinculados aos PEIs neste workspace."
         />

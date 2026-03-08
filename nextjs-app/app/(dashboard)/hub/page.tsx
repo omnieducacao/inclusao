@@ -6,6 +6,7 @@ import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { HubClient } from "./HubClient";
 import { Rocket } from "lucide-react";
 import { Skeleton } from "@/components/Skeleton";
+import { getAdminConfig } from "@/lib/getAdminConfig";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -91,10 +92,12 @@ export default async function HubPage({ searchParams }: Props) {
     }
   }
 
+  const adminConfig = await getAdminConfig();
+
   return (
-    <PageAccentProvider adminKey="hub">
+    <PageAccentProvider adminKey="hub" serverConfig={adminConfig}>
       <div className="space-y-6">
-        <PageHero moduleKey="hub"
+        <PageHero moduleKey="hub" serverConfig={adminConfig}
           title="Hub de Recursos"
           desc="Adaptar provas, atividades, criar do zero e muito mais."
         />

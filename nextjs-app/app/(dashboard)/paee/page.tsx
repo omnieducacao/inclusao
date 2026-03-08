@@ -6,6 +6,7 @@ import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { PAEEClient } from "./PAEEClient";
 import type { CicloPAEE } from "@/lib/paee";
 import { Skeleton } from "@/components/Skeleton";
+import { getAdminConfig } from "@/lib/getAdminConfig";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -62,10 +63,12 @@ export default async function PAEEPage({ searchParams }: Props) {
   } else if (workspaceId && studentId && student) {
   }
 
+  const adminConfig = await getAdminConfig();
+
   return (
-    <PageAccentProvider adminKey="paee">
+    <PageAccentProvider adminKey="paee" serverConfig={adminConfig}>
       <div className="space-y-6">
-        <PageHero moduleKey="paee"
+        <PageHero moduleKey="paee" serverConfig={adminConfig}
           title="Plano de Ação / PAEE"
           desc="Atendimento Educacional Especializado — Planeje e implemente estratégias de AEE para eliminação de barreiras"
         />

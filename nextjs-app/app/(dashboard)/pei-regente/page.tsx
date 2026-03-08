@@ -4,7 +4,7 @@ import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { SafeModuleWrapper } from "@/components/SafeModuleWrapper";
 import { PEIRegenteClient } from "./PEIRegenteClient";
-import { getSupabase } from "@/lib/supabase";
+import { getAdminConfig } from "@/lib/getAdminConfig";
 
 export default async function PEIRegentePage() {
     const session = await getSession();
@@ -17,21 +17,7 @@ export default async function PEIRegentePage() {
         );
     }
 
-    // Fetch admin config server-side to prevent FOUC (Flash of Unstyled Content)
-    const sb = getSupabase();
-    const { data: configData } = await sb
-        .from("platform_config")
-        .select("value")
-        .eq("key", "card_customizations")
-        .maybeSingle();
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let adminConfig: Record<string, any> | undefined = undefined;
-    if (configData?.value) {
-        try {
-            adminConfig = typeof configData.value === "string" ? JSON.parse(configData.value) : configData.value;
-        } catch { /* silent */ }
-    }
+    const adminConfig = await getAdminConfig();
 
     return (
         <PageAccentProvider adminKey="pei-regente" serverConfig={adminConfig}>

@@ -5,6 +5,7 @@ import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { MonitoramentoClient } from "./MonitoramentoClient";
 import { Skeleton } from "@/components/Skeleton";
+import { getAdminConfig } from "@/lib/getAdminConfig";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -60,10 +61,12 @@ export default async function MonitoramentoPage({ searchParams }: Props) {
   } else if (workspaceId && studentId && student) {
   }
 
+  const adminConfig = await getAdminConfig();
+
   return (
-    <PageAccentProvider adminKey="monitoramento">
+    <PageAccentProvider adminKey="monitoramento" serverConfig={adminConfig}>
       <div className="space-y-6">
-        <PageHero moduleKey="monitoramento"
+        <PageHero moduleKey="monitoramento" serverConfig={adminConfig}
           title="Evolução & Dados"
           desc="Indicadores, gráficos e relatórios de progresso dos estudantes."
         />

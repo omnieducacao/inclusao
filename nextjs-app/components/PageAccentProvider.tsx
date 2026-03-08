@@ -16,17 +16,8 @@ import { useEffect, useState } from "react";
  * avatar backgrounds, badge colors, section title icons, etc.
  */
 
-// Admin color keys → hex (matches DS moduleColors)
-const ADMIN_COLOR_HEX: Record<string, string> = {
-    omnisfera: "#0ea5e9", pei: "#7c3aed", paee: "#e11d48", hub: "#0891b2",
-    diario: "#059669", monitoramento: "#0d9488", ferramentas: "#2563eb",
-    gestao: "#6366f1", cursos: "#d97706", pgi: "#8b5cf6", admin: "#475569",
-    // Legacy keys (backwards compat)
-    sky: "#0ea5e9", blue: "#2563eb", teal: "#0d9488", green: "#059669",
-    cyan: "#0891b2", violet: "#7c3aed", rose: "#e11d48", amber: "#d97706",
-    slate: "#475569", presentation: "#8b5cf6", table: "#2563eb",
-    test: "#6366f1", reports: "#d97706",
-};
+// Admin color keys → hex (single source of truth)
+import { ADMIN_COLOR_HEX } from "@/lib/admin-colors";
 
 type Props = {
     /** The admin key for this module (matches HOME_MODULES key) */

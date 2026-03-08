@@ -52,7 +52,7 @@ export const DEFAULT_TOPBAR_ICONS = [
 export const HOME_MODULES = [
   { key: "estudantes", title: "Estudantes", defaultColor: "omnisfera", defaultIcon: "estudantes_flat" },
   { key: "pei", title: "Estratégias & PEI", defaultColor: "pei", defaultIcon: "pei_flat" },
-  { key: "pei-regente", title: "PEI - Professor", defaultColor: "monitoramento", defaultIcon: "pei_flat" },
+  { key: "pei-regente", title: "PEI - Professor", defaultColor: "pei", defaultIcon: "pei_flat" },
   { key: "plano-curso", title: "Plano de Curso", defaultColor: "omnisfera", defaultIcon: "central_inteligencia_flat" },
   { key: "avaliacao-diagnostica", title: "Avaliação Diagnóstica", defaultColor: "ferramentas", defaultIcon: "avaliacao_diagnostica_flat" },
   { key: "avaliacao-processual", title: "Avaliação Processual", defaultColor: "diario", defaultIcon: "dados_flat" },

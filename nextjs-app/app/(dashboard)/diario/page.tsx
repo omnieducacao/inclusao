@@ -5,6 +5,7 @@ import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { DiarioClient } from "./DiarioClient";
 import { Skeleton } from "@/components/Skeleton";
+import { getAdminConfig } from "@/lib/getAdminConfig";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -60,10 +61,12 @@ export default async function DiarioPage({ searchParams }: Props) {
   } else if (workspaceId && studentId && student) {
   }
 
+  const adminConfig = await getAdminConfig();
+
   return (
-    <PageAccentProvider adminKey="diario">
+    <PageAccentProvider adminKey="diario" serverConfig={adminConfig}>
       <div className="space-y-6">
-        <PageHero moduleKey="diario"
+        <PageHero moduleKey="diario" serverConfig={adminConfig}
           title="Diário de Bordo"
           desc="Registro de atendimentos e sessões AEE."
         />

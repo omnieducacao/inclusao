@@ -6,6 +6,7 @@ import { PEIClient } from "./PEIClient";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { Skeleton } from "@/components/Skeleton";
+import { getAdminConfig } from "@/lib/getAdminConfig";
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -69,10 +70,12 @@ export default async function PEIPage({ searchParams }: Props) {
     ? (student.pei_data as Record<string, unknown>)
     : {};
 
+  const adminConfig = await getAdminConfig();
+
   return (
-    <PageAccentProvider adminKey="pei">
+    <PageAccentProvider adminKey="pei" serverConfig={adminConfig}>
       <div className="space-y-6">
-        <PageHero moduleKey="pei"
+        <PageHero moduleKey="pei" serverConfig={adminConfig}
           title="Estratégias & PEI"
           desc="Plano Educacional Individual com objetivos, avaliações e acompanhamento."
         />
