@@ -153,7 +153,9 @@ export function PageHero({
 
   const defaultLottieAnimation = moduleLottieIcon[resolvedKey];
 
-  const initialKey = adminKeyProp || (route ? routeToAdminKey[route] : undefined) || (moduleKey ? moduleKeyToAdminKey[moduleKey] : undefined) || "";
+  // Prefer 'pei_professor' in DB over purely 'pei-regente' for backward compatibility
+  const adminKeyPropSafe = adminKeyProp === "pei-regente" && serverConfig && serverConfig["pei_professor"] ? "pei_professor" : adminKeyProp;
+  const initialKey = adminKeyPropSafe || (route ? routeToAdminKey[route] : undefined) || (moduleKey ? moduleKeyToAdminKey[moduleKey] : undefined) || "";
 
   // ─── Read admin customization from DB ──────────────────────────────────────
   const [adminIcon, setAdminIcon] = useState<string | null>(() => {
@@ -186,11 +188,13 @@ export function PageHero({
         if (data?.value) {
           try {
             const customs = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
-            if (customs[adminKey]?.icon) {
-              setAdminIcon(customs[adminKey].icon);
+            const adminKeySafe = adminKey === "pei-regente" && customs["pei_professor"] ? "pei_professor" : adminKey;
+
+            if (customs[adminKeySafe]?.icon) {
+              setAdminIcon(customs[adminKeySafe].icon);
             }
             // heroColor is independent; fallback to color if not set
-            const hc = customs[adminKey]?.heroColor || customs[adminKey]?.color;
+            const hc = customs[adminKeySafe]?.heroColor || customs[adminKeySafe]?.color;
             if (hc) {
               setAdminColor(hc);
             }
@@ -242,7 +246,7 @@ export function PageHero({
       softColor = hexToPastelBg(adminHex);
       textColor = hexToDarkenedText(adminHex);
     } else {
-      cardBg = adminHex; // Hero stays saturated in Light mode
+      cardBg = adminHex; // Hero stays saturated
       softColor = hexToPastelBg(adminHex); // But we export a pastel version for PAEE tabs
       textColor = "#ffffff";
     }

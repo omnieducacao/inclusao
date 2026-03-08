@@ -38,23 +38,26 @@ type Props = {
 
 export function PageAccentProvider({ adminKey, serverConfig, children }: Props) {
     const [accentHex, setAccentHex] = useState<string | null>(() => {
+        // Compatibility: check 'pei_professor' mapped to 'pei-regente'
         if (serverConfig) {
-            const colorKey = serverConfig[adminKey]?.heroColor || serverConfig[adminKey]?.color;
+            const adminKeySafe = serverConfig[adminKey] ? adminKey : adminKey === "pei-regente" && serverConfig["pei_professor"] ? "pei_professor" : adminKey;
+            const colorKey = serverConfig[adminKeySafe]?.heroColor || serverConfig[adminKeySafe]?.color;
             return colorKey && ADMIN_COLOR_HEX[colorKey] ? ADMIN_COLOR_HEX[colorKey] : null;
         }
         return null;
     });
 
     useEffect(() => {
-        if (serverConfig) return; // Skip if injected by server
+        if (serverConfig) return; // Skip logic se ja injetado!
         fetch("/api/public/platform-config?key=card_customizations")
             .then(r => r.json())
             .then(data => {
                 if (data?.value) {
                     try {
                         const customs = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
+                        const adminKeySafe = customs[adminKey] ? adminKey : adminKey === "pei-regente" && customs["pei_professor"] ? "pei_professor" : adminKey;
                         // Use heroColor if set, else color
-                        const colorKey = customs[adminKey]?.heroColor || customs[adminKey]?.color;
+                        const colorKey = customs[adminKeySafe]?.heroColor || customs[adminKeySafe]?.color;
                         if (colorKey && ADMIN_COLOR_HEX[colorKey]) {
                             setAccentHex(ADMIN_COLOR_HEX[colorKey]);
                         }
