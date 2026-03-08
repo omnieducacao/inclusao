@@ -223,14 +223,11 @@ export function PageHero({
 
   if (adminHex) {
     // Admin override with notebook/dark/light mode awareness
-    if (isNotebook) {
-      cardBg = hexToPastelBg(adminHex);
-      textColor = hexToDarkenedText(adminHex);
-    } else if (isDark) {
+    if (isDark) {
       cardBg = `${adminHex}22`;
       textColor = adminHex;
     } else {
-      cardBg = adminHex;
+      cardBg = hexToPastelBg(adminHex);
       textColor = "#ffffff";
     }
     accentColor = adminHex;
@@ -240,7 +237,7 @@ export function PageHero({
     const effectiveDsColors = (resolvedKey in moduleColors)
       ? moduleColors[resolvedKey as ModuleKey]
       : moduleColors.omnisfera;
-    cardBg = isNotebook ? effectiveDsColors.bgPastel : isDark ? effectiveTheme.softDark : effectiveDsColors.bg;
+    cardBg = isDark ? effectiveTheme.softDark : effectiveDsColors.bgPastel;
     textColor = isNotebook ? effectiveDsColors.textPastel : isDark ? effectiveTheme.secondary : "#ffffff";
     accentColor = effectiveTheme.primary;
   }
