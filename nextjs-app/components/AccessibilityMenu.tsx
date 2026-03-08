@@ -138,6 +138,7 @@ export function AccessibilityMenu() {
                                         ${colorBlindMode === "protanopia" ? "bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}
                                     `}
                                     aria-pressed={colorBlindMode === "protanopia"}
+                                    aria-label="Ativar modo protanopia (vermelho cego)"
                                 >
                                     <span className="font-medium">Protanopia</span>
                                     <span className="text-[10px] opacity-70">Vermelho Cego</span>
@@ -148,6 +149,7 @@ export function AccessibilityMenu() {
                                         ${colorBlindMode === "deuteranopia" ? "bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}
                                     `}
                                     aria-pressed={colorBlindMode === "deuteranopia"}
+                                    aria-label="Ativar modo deuteranopia (verde cego)"
                                 >
                                     <span className="font-medium">Deutera.</span>
                                     <span className="text-[10px] opacity-70">Verde Cego</span>
@@ -157,6 +159,8 @@ export function AccessibilityMenu() {
                                     className={`p-2 rounded-lg border text-sm flex flex-col items-center justify-center gap-1 transition-all
                                         ${colorBlindMode === "tritanopia" ? "bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}
                                     `}
+                                    aria-pressed={colorBlindMode === "tritanopia"}
+                                    aria-label="Ativar modo tritanopia (azul cego)"
                                 >
                                     <span className="font-medium">Tritanopia</span>
                                     <span className="text-[10px] opacity-70">Azul Cego</span>
@@ -165,7 +169,8 @@ export function AccessibilityMenu() {
                         </div>
                     </div>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }

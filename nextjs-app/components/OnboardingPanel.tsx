@@ -245,6 +245,7 @@ export function OnboardingResetButton({
                 onReset();
             }}
             title="Ver guia novamente"
+            aria-label="Ver guia novamente"
             style={{
                 display: "flex", alignItems: "center", gap: 4,
                 padding: "4px 10px", borderRadius: 8,

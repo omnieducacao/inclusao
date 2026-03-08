@@ -165,8 +165,8 @@ export function GlobalSearch() {
                 <div className="max-h-[50vh] overflow-y-auto">
                     {hasQuery && !hasResults && !loading && (
                         <div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                            {/* eslint-disable-next-line react/no-unescaped-entities */}
+                            {/* eslint-disable-next-line react/no-unescaped-entities */}
                             Nenhum resultado para "{query}"
                         </div>
                     )}
@@ -190,6 +190,7 @@ export function GlobalSearch() {
                                         key={result.id}
                                         type="button"
                                         onClick={() => navigate(result)}
+                                        aria-label={`Ir para PEI de ${result.name}`}
                                         className={`w-full text-left px-3 py-3 rounded-xl flex items-center gap-3 transition-colors ${selectedIndex === globalIdx
                                             ? "bg-blue-50 text-blue-800"
                                             : "hover:bg-slate-50 text-slate-700"
@@ -225,6 +226,7 @@ export function GlobalSearch() {
                                         key={result.id}
                                         type="button"
                                         onClick={() => navigate(result)}
+                                        aria-label={`Ir para gestão de ${result.name}`}
                                         className={`w-full text-left px-3 py-3 rounded-xl flex items-center gap-3 transition-colors ${selectedIndex === globalIdx
                                             ? "bg-blue-50 text-blue-800"
                                             : "hover:bg-slate-50 text-slate-700"

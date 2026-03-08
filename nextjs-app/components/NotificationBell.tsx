@@ -258,6 +258,7 @@ export function NotificationBell() {
                                                         );
                                                     }}
                                                     className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 font-semibold"
+                                                    aria-label={`Ir para ${n.type === "diario" ? "Diário" : "PEI"} de ${n.studentName || 'estudante'}`}
                                                 >
                                                     <ExternalLink className="w-3 h-3" />
                                                     Ir para {n.type === "diario" ? "Diário" : "PEI"}
@@ -314,6 +315,7 @@ export function NotificationBell() {
                             <button
                                 onClick={() => setSelectedAnnouncement(null)}
                                 className={`${getAnnouncementConfig(selectedAnnouncement.type).buttonBg} text-white px-6 py-2 rounded-lg font-medium transition-colors`}
+                                aria-label="Fechar comunicado"
                             >
                                 Fechar
                             </button>
