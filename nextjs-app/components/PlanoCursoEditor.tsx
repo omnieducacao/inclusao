@@ -468,7 +468,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
             {/* AI Loading é controlado via useAILoading (AILoadingOverlay global) */}
 
             {/* Header */}
-            <div className="bg-[linear-gradient(135deg,#0ea5e9_0%,#0284c7_100%)] rounded-2xl p-5 text-white shadow-premium relative overflow-hidden">
+            <div className="bg-linear-to-br from-sky-500 to-sky-600 rounded-2xl p-5 text-white shadow-premium relative overflow-hidden">
                 {/* Auto-save indicator */}
                 <div style={{ position: "absolute", top: 8, right: 12, zIndex: 1 }}>
                     <AutoSaveIndicator status={autoSave.status} lastSaved={autoSave.lastSaved} />
@@ -601,10 +601,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                                 {form.habilidades_bncc.length > 0 && (
                                     <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 10px", borderRadius: 8, background: "rgba(14,165,233,.06)", border: "1px solid rgba(14,165,233,.15)" }}>
                                         {form.habilidades_bncc.map(c => (
-                                            <span key={c} onClick={() => setForm(prev => ({ ...prev, habilidades_bncc: prev.habilidades_bncc.filter(x => x !== c) }))} style={{
-                                                padding: "2px 8px", borderRadius: 12, fontSize: 11, fontWeight: 700,
-                                                background: "rgba(14,165,233,.15)", color: "#38bdf8", cursor: "pointer",
-                                            }}>{c} ✕</span>
+                                            <span key={c} onClick={() => setForm(prev => ({ ...prev, habilidades_bncc: prev.habilidades_bncc.filter(x => x !== c) }))} className="px-2.5 py-1 rounded-md text-[10px] font-bold text-white uppercase tracking-wider bg-linear-to-br from-sky-500 to-sky-600 cursor-pointer">{c} ✕</span>
                                         ))}
                                     </div>
                                 )}
@@ -675,7 +672,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                                             width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", border: "none",
                                             background: "var(--bg-tertiary, rgba(15,23,42,.3))", cursor: "pointer", textAlign: "left",
                                         }}>
-                                            {isExpanded ? <ChevronDown size={14} style={{ color: "#0ea5e9" }} /> : <ChevronRight size={14} style={{ color: "var(--text-muted)" }} />}
+                                            {isExpanded ? <ChevronDown size={14} style={{ color: "var(--omni-primary, #0ea5e9)" }} /> : <ChevronRight size={14} style={{ color: "var(--text-muted)" }} />}
                                             <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary, #e2e8f0)", flex: 1 }}>
                                                 Bloco {index + 1}
                                                 {bloco.unidade_tematica && <span style={{ fontSize: 11, fontWeight: 500, color: "var(--text-muted, #94a3b8)", marginLeft: 8 }}>{bloco.unidade_tematica.slice(0, 40)}</span>}

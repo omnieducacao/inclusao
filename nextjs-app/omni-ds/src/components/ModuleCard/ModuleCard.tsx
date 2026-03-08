@@ -57,8 +57,8 @@ export function ModuleCard({
                 "transition-all duration-300 ease-out touch-manipulation active-scale overflow-hidden",
                 "min-h-[140px] w-full shadow-(--omni-shadow-elevated) ring-1 ring-white/10 dark:ring-white/5",
                 disabled && "opacity-50 cursor-not-allowed",
-                !disabled && "cursor-pointer hover:scale-[1.03] hover:-translate-y-1 hover:shadow-(--omni-shadow-2xl)",
-                active && "ring-2 ring-white/60 shadow-(--omni-shadow-xl) scale-[1.02]",
+                !disabled && "cursor-pointer hover:shadow-(--omni-shadow-2xl)",
+                active && "ring-2 ring-white/60 shadow-(--omni-shadow-xl)",
                 className
             )}
             style={{

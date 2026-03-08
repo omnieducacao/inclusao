@@ -8,6 +8,7 @@ import { LottieIcon } from "@omni/ds";
 import { ModuleCard } from "@omni/ds";
 import { useRouter } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
+import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 
 // Mapeamento de href para moduleKey válido no DS
 // Todos os valores devem ser chaves que existem no moduleColors do @omni/ds
@@ -277,6 +278,15 @@ function ModuleCardWithLottie({
   const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
 
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent<HTMLDivElement>) {
+    const { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  }
+
   // Garantir que só renderiza no cliente
   useEffect(() => {
     const timer = setTimeout(() => setIsMounted(true), 0);
@@ -352,11 +362,22 @@ function ModuleCardWithLottie({
   const lottieSize = compact ? 32 : 72;
 
   return (
-    <div
+    <motion.div
       className={`group relative block transition-all duration-300 ease-out stagger-item ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      whileHover={{ scale: 1.03, y: -4 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
     >
+      <motion.div
+        className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition duration-300 group-hover:opacity-100"
+        style={{
+          background: useMotionTemplate`radial-gradient(400px circle at ${mouseX}px ${mouseY}px, ${colors.icon}20, transparent 80%)`,
+          zIndex: 1
+        }}
+      />
       <ModuleCard
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         moduleKey={moduleColorKey as any}
@@ -406,7 +427,7 @@ function ModuleCardWithLottie({
           </div>
         }
       />
-    </div>
+    </motion.div>
   );
 }
 
