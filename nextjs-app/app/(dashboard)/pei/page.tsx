@@ -42,8 +42,8 @@ export default async function PEIPage({ searchParams }: Props) {
             studentName={student?.name || null}
             initialPeiData={peiData}
             initialStudent={student}
-            initialClasses={initialClasses as any}
-            initialGrades={initialGrades as any}
+            initialClasses={initialClasses as unknown as Parameters<typeof PEIClient>[0]["initialClasses"]}
+            initialGrades={initialGrades as unknown as Parameters<typeof PEIClient>[0]["initialGrades"]}
           />
         </Suspense>
       </div>

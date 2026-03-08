@@ -503,7 +503,7 @@ export function PEIClient({
             onUpdate={handleUpdate}
             isEditing={!!selectedStudentId}
             saving={saving}
-            dailyLogs={(initialStudent?.daily_logs as any[]) || []}
+            dailyLogs={(initialStudent?.daily_logs as unknown[]) || []}
           />
         )}
       </div>

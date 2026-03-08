@@ -151,7 +151,7 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Tipo</label>
                 <select
                   value={type}
-                  onChange={(e) => setType(e.target.value as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)}
+                  onChange={(e) => setType(e.target.value as "info" | "warning" | "alert")}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg"
                 >
                   <option value="info">ℹ️ Informativo</option>

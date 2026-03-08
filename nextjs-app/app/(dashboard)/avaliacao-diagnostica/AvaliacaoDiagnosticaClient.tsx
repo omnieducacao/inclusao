@@ -2277,11 +2277,9 @@ export default function AvaliacaoDiagnosticaClient({
                                                         💬 O que precisa mudar nesta questão?
                                                     </label>
                                                     <textarea
-                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                        value={(q as any)[feedbackKey] || ''}
+                                                        value={((q as Record<string, unknown>)[feedbackKey] as string) || ''}
                                                         onChange={e => {
-                                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                            (q as any)[feedbackKey] = e.target.value;
+                                                            (q as Record<string, unknown>)[feedbackKey] = e.target.value;
                                                             setQuestoesIndividuais([...questoesIndividuais]);
                                                         }}
                                                         placeholder="Ex: A imagem mostra ciclo da borracha, mas a questão é sobre ciclo do açúcar..."
@@ -2291,8 +2289,7 @@ export default function AvaliacaoDiagnosticaClient({
                                                     <div className="flex gap-1.5">
                                                         <button
                                                             onClick={async () => {
-                                                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                                const feedback = (q as any)[feedbackKey] || '';
+                                                                const feedback = ((q as Record<string, unknown>)[feedbackKey] as string) || '';
                                                                 q._refazendo = true;
                                                                 q._showFeedbackRefazer = false;
                                                                 setQuestoesIndividuais([...questoesIndividuais]);
