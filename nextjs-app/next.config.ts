@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
-    optimizePackageImports: ['lucide-react', 'recharts', '@omni/ds'],
+    optimizePackageImports: ['lucide-react', 'recharts', '@omni/ds', 'lottie-react', '@lordicon/react', 'jspdf', 'docx'],
   },
   // Desabilitar cache em desenvolvimento para garantir atualizações
   onDemandEntries: {

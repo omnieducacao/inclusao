@@ -2,18 +2,8 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { StudentSelector } from "@/components/StudentSelector";
-import { PapoDeMestre } from "./components/HubPapoDeMestre";
-import { RotinaAvdTool } from "./components/HubRotinaAvd";
-import { InclusaoBrincarTool } from "./components/HubInclusaoBrincar";
-import { EstudioVisual } from "./components/HubEstudioVisual";
-import { PlanoAulaDua } from "./components/HubPlanoAulaDua";
-import { RoteiroIndividual } from "./components/HubRoteiroIndividual";
-import { DinamicaInclusiva } from "./components/HubDinamicaInclusiva";
-import { CriarDoZero } from "./components/HubCriarDoZero";
-import { CriarItens } from "./components/HubCriarItens";
-import { AdaptarProva } from "./components/HubAdaptarProva";
-import { AdaptarAtividade } from "./components/HubAdaptarAtividade";
 import { detectarNivelEnsino } from "@/lib/pei";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { LottieIcon } from "@/components/LottieIcon";
@@ -33,6 +23,19 @@ import {
   GraduationCap,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+
+// Imports Dinâmicos (Lazy Loading para Code Splitting do Hub e redução de TTI)
+const PapoDeMestre = dynamic(() => import("./components/HubPapoDeMestre").then(mod => mod.PapoDeMestre));
+const RotinaAvdTool = dynamic(() => import("./components/HubRotinaAvd").then(mod => mod.RotinaAvdTool));
+const InclusaoBrincarTool = dynamic(() => import("./components/HubInclusaoBrincar").then(mod => mod.InclusaoBrincarTool));
+const EstudioVisual = dynamic(() => import("./components/HubEstudioVisual").then(mod => mod.EstudioVisual));
+const PlanoAulaDua = dynamic(() => import("./components/HubPlanoAulaDua").then(mod => mod.PlanoAulaDua));
+const RoteiroIndividual = dynamic(() => import("./components/HubRoteiroIndividual").then(mod => mod.RoteiroIndividual));
+const DinamicaInclusiva = dynamic(() => import("./components/HubDinamicaInclusiva").then(mod => mod.DinamicaInclusiva));
+const CriarDoZero = dynamic(() => import("./components/HubCriarDoZero").then(mod => mod.CriarDoZero));
+const CriarItens = dynamic(() => import("./components/HubCriarItens").then(mod => mod.CriarItens));
+const AdaptarProva = dynamic(() => import("./components/HubAdaptarProva").then(mod => mod.AdaptarProva));
+const AdaptarAtividade = dynamic(() => import("./components/HubAdaptarAtividade").then(mod => mod.AdaptarAtividade));
 
 type Student = { id: string; name: string };
 type StudentFull = Student & {

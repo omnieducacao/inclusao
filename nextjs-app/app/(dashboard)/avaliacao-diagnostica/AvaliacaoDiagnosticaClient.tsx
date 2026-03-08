@@ -2,9 +2,16 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { RubricaOmnisfera } from "@/components/RubricaOmnisfera";
+import dynamic from "next/dynamic";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
-import { DocxDownloadButton } from "@/components/DocxDownloadButton";
-import { PdfDownloadButton } from "@/components/PdfDownloadButton";
+
+// Extrações lazy (PDF, DOCX e Panels secundários)
+const DocxDownloadButton = dynamic(() => import("@/components/DocxDownloadButton").then(mod => mod.DocxDownloadButton));
+const PdfDownloadButton = dynamic(() => import("@/components/PdfDownloadButton").then(mod => mod.PdfDownloadButton));
+const GabaritoRespostasPanel = dynamic(() => import("./components/GabaritoRespostasPanel").then(mod => mod.GabaritoRespostasPanel));
+const MatrizReferenciaPanel = dynamic(() => import("./components/MatrizReferenciaPanel").then(mod => mod.MatrizReferenciaPanel));
+const ManualAplicacaoPanel = dynamic(() => import("./components/ManualAplicacaoPanel").then(mod => mod.ManualAplicacaoPanel));
+
 import {
     Brain, CheckCircle2, AlertTriangle,
     ChevronDown, ChevronUp, Sparkles, Save, ClipboardList, BarChart3,
@@ -19,9 +26,6 @@ import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import { determinarTipoImagem } from "@/lib/avaliacao-imagens";
 import { mapDiagnosticoToPerfilNEE, REGRAS_NEE } from "@/lib/omnisfera-prompts";
 import type { EngineId } from "@/lib/ai-engines";
-import { GabaritoRespostasPanel } from "./components/GabaritoRespostasPanel";
-import { MatrizReferenciaPanel } from "./components/MatrizReferenciaPanel";
-import { ManualAplicacaoPanel } from "./components/ManualAplicacaoPanel";
 import { AlternativaItem } from "./components/AlternativaItem";
 import { BadgeInfo } from "./components/BadgeInfo";
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Select, Textarea } from "@omni/ds";
