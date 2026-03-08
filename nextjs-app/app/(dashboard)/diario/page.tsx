@@ -1,11 +1,15 @@
-import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
-import { DiarioClient } from "./DiarioClient";
+import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/Skeleton";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
+
+const DiarioClient = dynamic(
+  () => import("./DiarioClient").then(mod => ({ default: mod.DiarioClient })),
+  { loading: () => <Skeleton className="min-h-[200px] w-full rounded-2xl" /> }
+);
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -26,22 +30,20 @@ export default async function DiarioPage({ searchParams }: Props) {
           desc="Registro de atendimentos e sessões AEE."
         />
 
-        <Suspense fallback={<Skeleton className="min-h-[200px] w-full rounded-2xl" />}>
-          <DiarioClient
-            students={students.map((s) => ({ id: s.id, name: s.name }))}
-            studentId={studentId}
-            student={
-              student
-                ? {
-                  id: student.id,
-                  name: student.name,
-                  grade: student.grade,
-                  daily_logs: (student.daily_logs || []) as Record<string, unknown>[],
-                }
-                : null
-            }
-          />
-        </Suspense>
+        <DiarioClient
+          students={students.map((s) => ({ id: s.id, name: s.name }))}
+          studentId={studentId}
+          student={
+            student
+              ? {
+                id: student.id,
+                name: student.name,
+                grade: student.grade,
+                daily_logs: (student.daily_logs || []) as Record<string, unknown>[],
+              }
+              : null
+          }
+        />
       </div>
     </PageAccentProvider>
   );

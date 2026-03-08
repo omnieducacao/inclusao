@@ -1,12 +1,16 @@
-import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
-import { PAEEClient } from "./PAEEClient";
+import dynamic from "next/dynamic";
 import type { CicloPAEE } from "@/lib/paee";
 import { Skeleton } from "@/components/Skeleton";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
+
+const PAEEClient = dynamic(
+  () => import("./PAEEClient").then(mod => ({ default: mod.PAEEClient })),
+  { loading: () => <Skeleton className="min-h-[200px] w-full rounded-2xl" /> }
+);
 
 type Props = { searchParams: Promise<{ student?: string }> };
 
@@ -27,26 +31,24 @@ export default async function PAEEPage({ searchParams }: Props) {
           desc="Atendimento Educacional Especializado — Planeje e implemente estratégias de AEE para eliminação de barreiras"
         />
 
-        <Suspense fallback={<Skeleton className="min-h-[200px] w-full rounded-2xl" />}>
-          <PAEEClient
-            students={students.map((s) => ({ id: s.id, name: s.name }))}
-            studentId={studentId}
-            student={
-              student
-                ? {
-                  id: student.id,
-                  name: student.name,
-                  grade: student.grade,
-                  diagnosis: student.diagnosis,
-                  pei_data: (student.pei_data || {}) as Record<string, unknown>,
-                  paee_ciclos: (student.paee_ciclos || []) as CicloPAEE[],
-                  planejamento_ativo: student.planejamento_ativo,
-                  paee_data: (student.paee_data || {}) as Record<string, unknown>,
-                }
-                : null
-            }
-          />
-        </Suspense>
+        <PAEEClient
+          students={students.map((s) => ({ id: s.id, name: s.name }))}
+          studentId={studentId}
+          student={
+            student
+              ? {
+                id: student.id,
+                name: student.name,
+                grade: student.grade,
+                diagnosis: student.diagnosis,
+                pei_data: (student.pei_data || {}) as Record<string, unknown>,
+                paee_ciclos: (student.paee_ciclos || []) as CicloPAEE[],
+                planejamento_ativo: student.planejamento_ativo,
+                paee_data: (student.paee_data || {}) as Record<string, unknown>,
+              }
+              : null
+          }
+        />
       </div>
     </PageAccentProvider>
   );
