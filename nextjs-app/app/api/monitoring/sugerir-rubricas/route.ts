@@ -114,7 +114,7 @@ ${diarioResumo}`;
             const cleaned = (texto || "").replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
             const rubricas = JSON.parse(cleaned);
             return NextResponse.json({ rubricas });
-        } catch {
+        } catch { /* expected fallback */
             return NextResponse.json({ texto: (texto || "").trim() });
         }
     } catch (err) {

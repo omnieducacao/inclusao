@@ -94,7 +94,7 @@ export async function trackAIUsage(
           source: source || null,
           credits_consumed: creditsConsumed,
         });
-      } catch {
+      } catch { /* expected fallback */
         // Tabela pode não existir ainda - ignorar erro
       }
     }
@@ -132,7 +132,7 @@ export async function trackAIFeedback(
         feedback_text: feedbackText || null,
         metadata: metadata || {},
       });
-    } catch {
+    } catch { /* expected fallback */
       // Tabela pode não existir ainda - ignorar erro
     }
 

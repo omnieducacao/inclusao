@@ -45,7 +45,7 @@ export async function saveHubGeneratedContent(params: SaveHubContentParams): Pro
       engine: params.engine || null,
       metadata: params.metadata || {},
     });
-  } catch {
+  } catch { /* expected fallback */
     // Tabela pode não existir ou erro de conexão — ignorar
   }
 }

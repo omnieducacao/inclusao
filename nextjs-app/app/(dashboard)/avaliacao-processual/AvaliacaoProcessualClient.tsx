@@ -260,7 +260,7 @@ export default function AvaliacaoProcessualClient() {
                 setHabilidades([]);
                 setHabSource("none");
             }
-        } catch {
+        } catch { /* expected fallback */
             setHabilidades([]);
             setHabSource("error");
         }

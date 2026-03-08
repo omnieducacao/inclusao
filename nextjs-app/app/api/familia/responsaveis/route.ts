@@ -70,7 +70,7 @@ export async function POST(req: Request) {
   let body: { nome: string; email: string; telefone?: string; parentesco?: string; senha: string; studentIds?: string[] };
   try {
     body = await req.json();
-  } catch {
+  } catch { /* expected fallback */
     return NextResponse.json({ error: "Body inválido" }, { status: 400 });
   }
 

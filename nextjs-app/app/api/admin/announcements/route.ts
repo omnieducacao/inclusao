@@ -38,7 +38,7 @@ export async function GET(req: Request) {
         let announcements: Announcement[] = [];
         try {
             announcements = data?.value ? JSON.parse(data.value) : [];
-        } catch {
+        } catch { /* expected fallback */
             announcements = [];
         }
 
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
         let announcements: Announcement[] = [];
         try {
             announcements = data?.value ? JSON.parse(data.value) : [];
-        } catch {
+        } catch { /* expected fallback */
             announcements = [];
         }
 

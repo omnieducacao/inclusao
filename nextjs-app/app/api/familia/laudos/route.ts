@@ -56,7 +56,7 @@ export async function GET(req: Request) {
         }
 
         return NextResponse.json({ laudos: laudos || [] });
-    } catch {
+    } catch { /* expected fallback */
         return NextResponse.json({ laudos: [] });
     }
 }

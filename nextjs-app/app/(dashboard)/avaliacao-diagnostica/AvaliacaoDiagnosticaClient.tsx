@@ -319,7 +319,7 @@ export default function AvaliacaoDiagnosticaClient({
                     setNeeAlert("");
                     setInstrucaoDiag("");
                 }
-            } catch {
+            } catch { /* expected fallback */
                 setNeeAlert("");
                 setInstrucaoDiag("");
             }
@@ -364,7 +364,7 @@ export default function AvaliacaoDiagnosticaClient({
                             const cleaned = qg.replace(/```(?:json)?\s*([\s\S]*?)```/, "$1").trim();
                             const parsed = JSON.parse(cleaned);
                             if (parsed?.questoes) questoesArr = parsed.questoes;
-                        } catch {
+                        } catch { /* expected fallback */
                             setResultadoFormatado(qg);
                             setValidadoFormatado(true);
                         }
@@ -2366,7 +2366,7 @@ export default function AvaliacaoDiagnosticaClient({
                                                                         q._refazendo = false;
                                                                         setQuestoesIndividuais([...questoesIndividuais]);
                                                                     }
-                                                                } catch {
+                                                                } catch { /* expected fallback */
                                                                     q._refazendo = false;
                                                                     setQuestoesIndividuais([...questoesIndividuais]);
                                                                 }

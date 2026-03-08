@@ -193,7 +193,7 @@ export async function docxComImagens(
               alignment: AlignmentType.CENTER,
             })
           );
-        } catch {
+        } catch { /* expected fallback */
           const placeholder = inclusive
             ? new Paragraph({
               alignment: AlignmentType.LEFT,

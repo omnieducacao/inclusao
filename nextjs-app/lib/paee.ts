@@ -186,7 +186,7 @@ export function fmtDataIso(d: string | undefined): string {
   try {
     const date = new Date(String(d).replace("Z", "+00:00"));
     return date.toLocaleDateString("pt-BR");
-  } catch {
+  } catch { /* expected fallback */
     return String(d);
   }
 }

@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     let body: Record<string, unknown>;
     try {
         body = await req.json();
-    } catch {
+    } catch { /* expected fallback */
         return NextResponse.json({ error: "Body inválido" }, { status: 400 });
     }
 
@@ -201,7 +201,7 @@ export async function POST(req: Request) {
             // Try direct JSON parse first
             const parsed = JSON.parse(texto);
             if (parsed.questoes) questoes = parsed;
-        } catch {
+        } catch { /* expected fallback */
             // Try to extract JSON block
             try {
                 const jsonMatch = texto.match(/\{[\s\S]*"questoes"[\s\S]*\}/);

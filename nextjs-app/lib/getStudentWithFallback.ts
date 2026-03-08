@@ -65,7 +65,7 @@ export async function getStudentsWithFallback(
         if (fullData && fullData.workspace_id === workspaceId) {
             return { students, student: fullData as Student };
         }
-    } catch {
+    } catch { /* expected fallback */
         // Silent — use list data as last resort
     }
 

@@ -140,7 +140,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
       } else if (!res.ok) {
         alert(json.error || "Erro ao registrar ciência.");
       }
-    } catch {
+    } catch { /* expected fallback */
       alert("Erro ao registrar ciência. Tente novamente.");
     } finally {
       setCienciaLoading(false);
@@ -284,7 +284,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
                 } else {
                   alert(json.error || "Erro ao enviar laudo.");
                 }
-              } catch {
+              } catch { /* expected fallback */
                 alert("Erro ao enviar laudo.");
               } finally {
                 setLaudoUploading(false);
@@ -427,7 +427,7 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
                     } else {
                       alert(json.error || "Erro ao salvar.");
                     }
-                  } catch {
+                  } catch { /* expected fallback */
                     alert("Erro ao salvar.");
                   } finally {
                     setMedSaving(false);

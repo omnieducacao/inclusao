@@ -104,7 +104,7 @@ export default function PerfilClient() {
             } else {
                 setMessage({ type: "error", text: data.error || "Erro ao alterar senha." });
             }
-        } catch {
+        } catch { /* expected fallback */
             setMessage({ type: "error", text: "Erro de conexão." });
         } finally {
             setSaving(false);

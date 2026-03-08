@@ -58,7 +58,7 @@ function hashPassword(plain: string): string | null {
   if (!plain || plain.length < 4) return null;
   try {
     return bcrypt.hashSync(plain, 10);
-  } catch {
+  } catch { /* expected fallback */
     return null;
   }
 }

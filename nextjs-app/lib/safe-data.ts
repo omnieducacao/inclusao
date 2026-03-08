@@ -31,7 +31,7 @@ export function safePeiData(raw: unknown): Record<string, unknown> {
     if (typeof raw === "string") {
         try {
             return JSON.parse(raw) || {};
-        } catch {
+        } catch { /* expected fallback */
             return {};
         }
     }

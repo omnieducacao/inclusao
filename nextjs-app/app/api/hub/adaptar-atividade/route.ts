@@ -63,7 +63,7 @@ export async function POST(req: Request) {
         if (["red", "blue", "green", "yellow", "orange"].includes(parsed.engine || "")) {
           engine = parsed.engine as EngineId;
         }
-      } catch {
+      } catch { /* expected fallback */
         // ignore
       }
     }

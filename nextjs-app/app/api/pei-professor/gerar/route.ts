@@ -126,7 +126,7 @@ IMPORTANTE:
             // Limpar possíveis markdown code blocks
             const cleaned = result.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
             parsed = JSON.parse(cleaned);
-        } catch {
+        } catch { /* expected fallback */
             // Se falhar, retornar como texto
             parsed = {
                 direcionamento: result,

@@ -87,7 +87,7 @@ function fmtData(s: string | undefined): string {
   if (!s) return "—";
   try {
     return new Date(s).toLocaleDateString("pt-BR");
-  } catch {
+  } catch { /* expected fallback */
     return String(s);
   }
 }

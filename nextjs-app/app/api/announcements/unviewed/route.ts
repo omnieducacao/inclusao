@@ -39,7 +39,7 @@ export async function GET() {
         if (configData?.value) {
             try {
                 allAnnouncements = JSON.parse(configData.value);
-            } catch {
+            } catch { /* expected fallback */
                 allAnnouncements = [];
             }
         }

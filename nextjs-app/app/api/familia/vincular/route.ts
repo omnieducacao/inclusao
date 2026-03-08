@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   let body: { family_responsible_id: string; student_id: string; acao: "vincular" | "desvincular" };
   try {
     body = await req.json();
-  } catch {
+  } catch { /* expected fallback */
     return NextResponse.json({ error: "Body inválido" }, { status: 400 });
   }
 

@@ -31,7 +31,7 @@ export function PGIClient() {
       const data = await res.json();
       setAcoes(data.acoes ?? []);
       setDimensionamento(data.dimensionamento ?? {});
-    } catch {
+    } catch { /* expected fallback */
       setAcoes([]);
       setDimensionamento({});
     } finally {
@@ -60,7 +60,7 @@ export function PGIClient() {
       }
       setAcoes(nextAcoes);
       if (nextDim) setDimensionamento(nextDim);
-    } catch {
+    } catch { /* expected fallback */
       setMessage({ type: "err", text: "Erro ao salvar." });
     }
   }

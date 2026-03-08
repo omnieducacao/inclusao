@@ -48,7 +48,7 @@ export async function POST(req: Request) {
         if (parsed.engine && ["red", "blue", "green", "yellow", "orange"].includes(parsed.engine)) {
           engine = parsed.engine;
         }
-      } catch {
+      } catch { /* expected fallback */
         // ignore
       }
     }

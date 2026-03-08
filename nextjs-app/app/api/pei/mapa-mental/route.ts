@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         if (body.engine && ["red", "blue", "green", "yellow", "orange"].includes(body.engine)) {
             engine = body.engine as EngineId;
         }
-    } catch {
+    } catch { /* expected fallback */
         return NextResponse.json({ error: "Corpo inválido." }, { status: 400 });
     }
 

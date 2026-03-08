@@ -64,7 +64,7 @@ function LoginForm() {
       }
       router.push(data.redirect || redirect);
       router.refresh();
-    } catch {
+    } catch { /* expected fallback */
       setError("Erro de conexão. Tente novamente.");
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ function LoginForm() {
       }
       router.push("/admin");
       router.refresh();
-    } catch {
+    } catch { /* expected fallback */
       setAdminError("Erro de conexão. Tente novamente.");
     } finally {
       setLoading(false);

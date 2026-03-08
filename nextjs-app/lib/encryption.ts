@@ -151,7 +151,7 @@ function decryptValue(value: unknown, fieldName: string): unknown {
     if (jsonFields.includes(fieldName)) {
         try {
             return JSON.parse(decrypted);
-        } catch {
+        } catch { /* expected fallback */
             return decrypted; // se não for JSON, retorna como string
         }
     }

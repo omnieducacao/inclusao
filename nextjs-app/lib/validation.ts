@@ -17,7 +17,7 @@ export async function parseBody<T>(
     let raw: unknown;
     try {
         raw = await req.json();
-    } catch {
+    } catch { /* expected fallback */
         return {
             error: NextResponse.json(
                 { error: "Payload inválido. Envie um JSON válido." },

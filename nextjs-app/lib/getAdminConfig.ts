@@ -26,7 +26,7 @@ export async function getAdminConfig(): Promise<Record<string, any> | undefined>
         if (data?.value) {
             return typeof data.value === "string" ? JSON.parse(data.value) : data.value;
         }
-    } catch {
+    } catch { /* expected fallback */
         // Silent — fallback to client-side fetch
     }
     return undefined;

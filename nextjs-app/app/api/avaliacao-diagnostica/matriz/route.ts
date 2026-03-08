@@ -34,7 +34,7 @@ function loadBncc(): BnccHab[] {
         try {
             const raw = readFileSync(join(process.cwd(), "data", "bncc_completa.json"), "utf-8");
             cachedBncc = JSON.parse(raw);
-        } catch {
+        } catch { /* expected fallback */
             cachedBncc = [];
         }
     }

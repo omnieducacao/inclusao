@@ -71,7 +71,7 @@ export async function POST(req: Request) {
                 clean = clean.slice(objStart, objEnd + 1);
             }
             result = JSON.parse(clean);
-        } catch {
+        } catch { /* expected fallback */
             result = { raw: aiResponse };
         }
 

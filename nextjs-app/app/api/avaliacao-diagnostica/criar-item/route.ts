@@ -71,7 +71,7 @@ export async function POST(req: Request) {
     let body: Record<string, unknown>;
     try {
         body = await req.json();
-    } catch {
+    } catch { /* expected fallback */
         return NextResponse.json({ error: "Body inválido" }, { status: 400 });
     }
 
@@ -292,7 +292,7 @@ Mantendo a mesma habilidade BNCC, gabarito na letra ${gabarito_definido} e níve
             // Try direct JSON parse
             const cleaned = texto.replace(/```(?:json)?\s*([\s\S]*?)```/, "$1").trim();
             questao = JSON.parse(cleaned);
-        } catch {
+        } catch { /* expected fallback */
             // Try to extract JSON object
             try {
                 const jsonMatch = texto.match(/\{[\s\S]*"id"[\s\S]*"gabarito"[\s\S]*\}/);

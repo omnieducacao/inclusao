@@ -54,7 +54,7 @@ export async function GET(req: Request) {
         }
 
         return NextResponse.json({ registros: registros || [] });
-    } catch {
+    } catch { /* expected fallback */
         return NextResponse.json({ registros: [] });
     }
 }

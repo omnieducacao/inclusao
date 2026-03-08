@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   let body: { student_id?: string };
   try {
     body = await req.json();
-  } catch {
+  } catch { /* expected fallback */
     return NextResponse.json({ error: "Payload inválido" }, { status: 400 });
   }
 

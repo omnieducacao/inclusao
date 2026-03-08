@@ -108,7 +108,7 @@ export function verifyPassword(plain: string, hash: string): boolean {
   if (!plain || !hash) return false;
   try {
     return bcrypt.compareSync(plain, hash);
-  } catch {
+  } catch { /* expected fallback */
     return false;
   }
 }

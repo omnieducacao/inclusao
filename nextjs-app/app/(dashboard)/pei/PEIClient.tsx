@@ -117,7 +117,7 @@ export function TransicaoAnoButton({ studentId, studentName }: { studentId: stri
       a.download = `Transicao_${(studentName || "Estudante").toString().replace(/\s+/g, "_")}_${ano}.json`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
+    } catch { /* expected fallback */
       alert("Erro ao gerar relatório. Tente novamente.");
     } finally {
       setLoading(false);

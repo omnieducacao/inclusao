@@ -68,7 +68,7 @@ export function ConfigEscolaClient() {
         await loadYears();
         await loadGrades();
         await loadWorkspaceConfig();
-      } catch {
+      } catch { /* expected fallback */
         setMessage({ type: "err", text: "Erro ao carregar dados." });
       } finally {
         setLoading(false);
@@ -258,7 +258,7 @@ export function ConfigEscolaClient() {
                   }
                   setFamilyModuleEnabled(val);
                   setMessage({ type: "ok", text: val ? "Módulo Família habilitado." : "Módulo Família desabilitado." });
-                } catch {
+                } catch { /* expected fallback */
                   setMessage({ type: "err", text: "Erro ao salvar." });
                 } finally {
                   setFamilyModuleSaving(false);
@@ -294,7 +294,7 @@ export function ConfigEscolaClient() {
                   }
                   setAllowAvaliacaoFase1(val);
                   setMessage({ type: "ok", text: val ? "Avaliação em Fase 1 habilitada." : "Avaliação em Fase 1 desabilitada." });
-                } catch {
+                } catch { /* expected fallback */
                   setMessage({ type: "err", text: "Erro ao salvar." });
                 } finally {
                   setAllowAvaliacaoFase1Saving(false);
@@ -352,7 +352,7 @@ function AddYearForm({
       setYear(new Date().getFullYear());
       setName("");
       onSuccess();
-    } catch {
+    } catch { /* expected fallback */
       onError("Erro de conexão.");
     } finally {
       setSaving(false);
@@ -515,7 +515,7 @@ function AddClassForm({
       }
       setClassGroup("A");
       onSuccess();
-    } catch {
+    } catch { /* expected fallback */
       onError("Erro de conexão.");
     } finally {
       setSaving(false);

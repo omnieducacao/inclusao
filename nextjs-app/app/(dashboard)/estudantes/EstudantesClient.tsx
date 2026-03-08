@@ -64,7 +64,7 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch {
+    } catch { /* expected fallback */
       alert("Erro ao exportar dados. Tente novamente.");
     } finally {
       setExporting(null);

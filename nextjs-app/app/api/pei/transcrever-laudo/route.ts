@@ -104,7 +104,7 @@ export async function POST(req: Request) {
 
                     try {
                         transcricao = (await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.1 })).trim();
-                    } catch {
+                    } catch { /* expected fallback */
                         // Fallback: retornar texto bruto em caso de erro da IA
                         transcricao = textoPdf;
                     }

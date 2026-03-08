@@ -219,7 +219,7 @@ export async function POST(req: Request) {
                 cleanResponse = jsonMatch[1];
             }
             questoesGeradas = JSON.parse(cleanResponse);
-        } catch {
+        } catch { /* expected fallback */
             // Se não for JSON válido, salvar como texto bruto
             questoesGeradas = { raw_response: aiResponse };
         }

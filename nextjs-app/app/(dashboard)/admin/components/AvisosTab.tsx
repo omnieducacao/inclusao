@@ -81,7 +81,7 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
         const data = await res.json();
         setAnnouncements(data.announcements || []);
       }
-    } catch {
+    } catch { /* expected fallback */
       alert("Erro ao alterar aviso.");
     }
   }
@@ -98,7 +98,7 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
         const data = await res.json();
         setAnnouncements(data.announcements || []);
       }
-    } catch {
+    } catch { /* expected fallback */
       alert("Erro ao excluir aviso.");
     }
   }

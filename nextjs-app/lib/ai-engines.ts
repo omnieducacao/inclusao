@@ -93,7 +93,7 @@ export async function getEngineErrorWithWorkspace(
       if (data && data.plan !== "robusto") {
         return "OmniGreen (Claude) está disponível apenas para o plano Robusto. Entre em contato com o administrador para migrar de plano.";
       }
-    } catch {
+    } catch { /* expected fallback */
       // Falha ao consultar — permitir (evitar bloquear por erro de DB)
     }
   }

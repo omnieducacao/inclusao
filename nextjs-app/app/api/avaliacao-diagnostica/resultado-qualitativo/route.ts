@@ -141,7 +141,7 @@ export async function POST(req: Request) {
     let body: Record<string, unknown>;
     try {
         body = await req.json();
-    } catch {
+    } catch { /* expected fallback */
         return NextResponse.json({ error: "Body inválido" }, { status: 400 });
     }
 

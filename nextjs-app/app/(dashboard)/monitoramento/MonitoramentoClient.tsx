@@ -59,7 +59,7 @@ function fmtData(s: string | undefined): string {
       month: "2-digit",
       year: "numeric",
     });
-  } catch {
+  } catch { /* expected fallback */
     return String(s);
   }
 }
@@ -143,7 +143,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
         setObservacao(r.resumo ? `${r.resumo}\n\nDetalhes: ${justifs}` : justifs);
         setMessage({ type: "ok", text: "Rubricas sugeridas pela IA! Revise antes de salvar." });
       }
-    } catch {
+    } catch { /* expected fallback */
       setMessage({ type: "err", text: "Erro ao sugerir rubricas." });
     } finally {
       setSugLoading(false);
@@ -218,7 +218,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
       }
       setMessage({ type: "ok", text: "Avaliação salva com sucesso!" });
       setObservacao("");
-    } catch {
+    } catch { /* expected fallback */
       setMessage({ type: "err", text: "Erro ao salvar. Tente novamente." });
     } finally {
       setSaving(false);

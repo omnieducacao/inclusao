@@ -74,7 +74,7 @@ export function GestaoClient({
       setMembers(membersData.members ?? []);
       setMaster(masterData.master ?? null);
       setFamilyResponsaveis(familyData.responsaveis ?? []);
-    } catch {
+    } catch { /* expected fallback */
       setMembers([]);
       setMaster(null);
       setFamilyResponsaveis([]);
@@ -393,7 +393,7 @@ function MasterSetupForm({
         return;
       }
       onSuccess();
-    } catch {
+    } catch { /* expected fallback */
       onError("Erro de conexão. Tente novamente.");
     } finally {
       setSaving(false);
@@ -553,7 +553,7 @@ function NovoUsuarioForm({
         return;
       }
       onSuccess();
-    } catch {
+    } catch { /* expected fallback */
       onError("Erro de conexão. Tente novamente.");
     } finally {
       setSaving(false);
@@ -1106,7 +1106,7 @@ function EditarUsuarioForm({
         return;
       }
       onSuccess();
-    } catch {
+    } catch { /* expected fallback */
       onError("Erro de conexão. Tente novamente.");
     } finally {
       setSaving(false);
@@ -1434,7 +1434,7 @@ function SimularButton({ memberId, memberName }: { memberId: string; memberName:
       } else {
         alert(data.error || "Erro ao simular.");
       }
-    } catch {
+    } catch { /* expected fallback */
       alert("Erro de conexão.");
     } finally {
       setLoading(false);
@@ -1569,7 +1569,7 @@ function NovoFamiliaForm({
         return;
       }
       onSuccess();
-    } catch {
+    } catch { /* expected fallback */
       onError("Erro de conexão. Tente novamente.");
     } finally {
       setSaving(false);
@@ -1743,7 +1743,7 @@ function SimularFamilyButton({
       } else {
         alert(data.error || "Erro ao simular.");
       }
-    } catch {
+    } catch { /* expected fallback */
       alert("Erro de conexão.");
     } finally {
       setLoading(false);

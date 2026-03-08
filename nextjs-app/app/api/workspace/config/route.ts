@@ -56,7 +56,7 @@ export async function PATCH(req: Request) {
   let body: { family_module_enabled?: boolean; allow_avaliacao_fase_1?: boolean };
   try {
     body = await req.json();
-  } catch {
+  } catch { /* expected fallback */
     return NextResponse.json({ error: "Body inválido" }, { status: 400 });
   }
 

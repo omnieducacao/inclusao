@@ -39,7 +39,7 @@ export default async function HubPage({ searchParams }: Props) {
           }
         }
       }
-    } catch {
+    } catch { /* expected fallback */
       // Silent — ponte pedagógica is optional
     }
   }

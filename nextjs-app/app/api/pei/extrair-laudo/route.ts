@@ -153,7 +153,7 @@ export async function POST(req: Request) {
 
     try {
       parsed = JSON.parse(jsonStr);
-    } catch {
+    } catch { /* expected fallback */
       logger.error({ data: raw.substring(0, 500) }, "Erro ao fazer parse do JSON. Texto recebido");
       const diagnosticoMatch = raw.match(/(?:diagnóstico|diagnostico)[\s:"]*([^",\n}]+)/i);
       parsed = {

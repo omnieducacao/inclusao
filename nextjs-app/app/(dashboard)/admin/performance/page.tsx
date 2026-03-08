@@ -24,7 +24,7 @@ export default async function PerformancePage() {
             .limit(100);
 
         if (data) initialVitals = data;
-    } catch {
+    } catch { /* expected fallback */
         // Silencioso se tabela não existir
     }
 

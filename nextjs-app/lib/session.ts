@@ -50,7 +50,7 @@ export async function getSession(): Promise<SessionPayload | null> {
   try {
     const { payload } = await jwtVerify(token, getSecret());
     return payload as unknown as SessionPayload;
-  } catch {
+  } catch { /* expected fallback */
     return null;
   }
 }

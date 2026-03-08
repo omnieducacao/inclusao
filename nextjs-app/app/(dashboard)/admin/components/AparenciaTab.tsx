@@ -73,7 +73,7 @@ export function AparenciaTab() {
       } else {
         alert("Erro ao salvar.");
       }
-    } catch {
+    } catch { /* expected fallback */
       alert("Erro de conexão.");
     } finally {
       setSaving(false);

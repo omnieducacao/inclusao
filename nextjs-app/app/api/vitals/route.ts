@@ -30,7 +30,7 @@ export async function POST(req: Request) {
         }
 
         return NextResponse.json({ success: true });
-    } catch {
+    } catch { /* expected fallback */
         // Fallback silencioso para não interromper navegação do usuário
         return NextResponse.json({ success: false }, { status: 500 });
     }

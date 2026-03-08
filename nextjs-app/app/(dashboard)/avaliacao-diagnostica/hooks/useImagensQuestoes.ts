@@ -46,7 +46,7 @@ export function useImagensQuestoes() {
                 return data.imageUrl;
             }
             return null;
-        } catch {
+        } catch { /* expected fallback */
             return null;
         } finally {
             setGerandoImagem(null);

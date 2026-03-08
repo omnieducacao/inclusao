@@ -29,7 +29,7 @@ export function SimulateButton({ workspaceId, workspaceName }: { workspaceId: st
         const data = await res.json().catch(() => ({}));
         alert(data.error || "Erro ao iniciar simulação.");
       }
-    } catch {
+    } catch { /* expected fallback */
       alert("Erro ao iniciar simulação.");
     } finally {
       setLoading(false);
