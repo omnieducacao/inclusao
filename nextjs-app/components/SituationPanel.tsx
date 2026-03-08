@@ -134,7 +134,7 @@ export function SituationPanel() {
                     const TabIcon = icons[tab.iconName];
                     return (
                         <button
-                aria-label="Minimizar painel"
+                            aria-label="Minimizar painel"
                             key={tab.id}
                             type="button"
                             onClick={() => setActiveTab(tab.id)}
@@ -208,7 +208,7 @@ function OverviewTab({ kpis, loading, icons }: { kpis: KPIs | null; loading: boo
                     return (
                         <div
                             key={card.label}
-                            className="relative rounded-xl px-4 py-3.5 overflow-hidden group transition-all duration-300 hover:scale-[1.03] hover:-translate-y-0.5"
+                            className="relative z-0 rounded-xl px-4 py-3.5 overflow-hidden group transition-all duration-300 hover:scale-[1.05] hover:z-10 hover:-translate-y-1"
                             style={{
                                 backgroundColor: "var(--bg-tertiary)",
                                 border: "1px solid var(--border-default)",
