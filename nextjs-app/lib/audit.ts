@@ -1,4 +1,5 @@
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 type AuditAction = "view" | "create" | "update" | "delete" | "export" | "login" | "logout";
 
@@ -46,7 +47,7 @@ export async function logAction(params: AuditParams): Promise<void> {
         });
     } catch (err) {
         // Audit should never break the main flow
-        console.error("[audit] Failed to log action:", err);
+        logger.error({ err }, "[audit] Failed to log action");
     }
 }
 

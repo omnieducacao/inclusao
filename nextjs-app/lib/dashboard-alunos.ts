@@ -1,6 +1,7 @@
 import { getSupabase } from "@/lib/supabase";
 import { decryptField } from "@/lib/encryption";
 import type { Session } from "@supabase/supabase-js";
+import { logger } from "@/lib/logger";
 
 /**
  * Retorna os estudantes vinculados ao professor logado,
@@ -107,7 +108,7 @@ export async function getAlunosRegente(session: any) {
     }
 
     if (discError) {
-        console.error("getAlunosRegente (disciplinas):", discError);
+        logger.error({ err: discError }, "getAlunosRegente (disciplinas)");
         throw new Error(discError.message);
     }
 

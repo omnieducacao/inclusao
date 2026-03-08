@@ -7,6 +7,7 @@
 
 import { aiCache } from "./ai-cache";
 import { getSupabase } from "./supabase";
+import { logger } from "@/lib/logger";
 
 export type EngineId = "red" | "blue" | "green" | "yellow" | "orange";
 
@@ -190,7 +191,7 @@ export async function chatCompletionText(
       }
       return result;
     } catch (err) {
-      console.error("OmniBlue falhou, ativando fallback para OmniRed:", err instanceof Error ? err.message : err);
+      logger.error({ err: err instanceof Error ? err : new Error(String(err)) }, "OmniBlue falhou, ativando fallback para OmniRed");
       // Fallback automático para OmniRed (DeepSeek)
       return await chatCompletionText("red", messages, {
         ...options,

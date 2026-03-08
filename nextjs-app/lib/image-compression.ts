@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logger";
+
 /**
  * Compressão de imagens para APIs de visão.
  * Baseado em services/hub_ia.py _comprimir_imagem_para_vision
@@ -31,10 +33,7 @@ export async function comprimirImagemParaVision(
     try {
       sharp = (await import("sharp")).default;
     } catch (importErr) {
-      console.warn(
-        "sharp não está instalado. Execute: npm install sharp\n" +
-        "A imagem será enviada sem compressão (pode falhar se muito grande)."
-      );
+      logger.warn("sharp não está instalado. A imagem será enviada sem compressão.");
       return imageBuffer;
     }
 
@@ -70,7 +69,7 @@ export async function comprimirImagemParaVision(
 
     return compressed;
   } catch (err) {
-    console.error("Erro ao comprimir imagem:", err);
+    logger.error({ err }, "Erro ao comprimir imagem");
     // Em caso de erro, retorna a imagem original
     return imageBuffer;
   }

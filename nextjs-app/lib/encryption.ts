@@ -13,6 +13,7 @@
  */
 
 import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
+import { logger } from "@/lib/logger";
 
 // ─── Configuração ────────────────────────────────────────────────
 const ALGORITHM = "aes-256-gcm";
@@ -88,7 +89,7 @@ export function decryptField(encrypted: string): string {
         const withoutPrefix = encrypted.slice(PREFIX.length);
         const parts = withoutPrefix.split(":");
         if (parts.length !== 3) {
-            console.warn("[encryption] Formato inválido, retornando vazio");
+            logger.warn("[encryption] Formato inválido, retornando vazio");
             return "";
         }
 
@@ -106,7 +107,7 @@ export function decryptField(encrypted: string): string {
         decrypted += decipher.final("utf8");
         return decrypted;
     } catch (err) {
-        console.error("[encryption] Erro ao descriptografar:", err);
+        logger.error({ err }, "[encryption] Erro ao descriptografar");
         return ""; // Falha silenciosa — evita expor dados corrompidos
     }
 }

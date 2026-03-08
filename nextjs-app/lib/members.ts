@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { getSupabase } from "./supabase";
+import { logger } from "@/lib/logger";
 
 export type WorkspaceMember = {
   id: string;
@@ -75,7 +76,7 @@ export async function listMembers(workspaceId: string): Promise<WorkspaceMember[
     .order("nome", { ascending: true });
 
   if (error) {
-    console.error("listMembers:", error);
+    logger.error({ err: error }, "listMembers");
     return [];
   }
   return (data || []) as WorkspaceMember[];
@@ -353,7 +354,7 @@ export async function deleteMember(memberId: string): Promise<{ ok: boolean; err
   // 4. Delete the member (ON DELETE SET NULL will handle professor_regente_id in PEI tables)
   const { error } = await sb.from("workspace_members").delete().eq("id", memberId);
   if (error) {
-    console.error("deleteMember error:", error);
+    logger.error({ err: error }, "deleteMember error");
     return { ok: false, error: error.message };
   }
 

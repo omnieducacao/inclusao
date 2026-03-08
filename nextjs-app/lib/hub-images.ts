@@ -4,6 +4,8 @@
  * Prioridade: BANCO (Unsplash) primeiro, depois IA (DALL-E/Gemini)
  */
 
+import { logger } from "@/lib/logger";
+
 /**
  * Busca imagem no Unsplash (banco de imagens)
  * Retorna URL da imagem ou null
@@ -29,7 +31,7 @@ export async function buscarImagemUnsplash(
       return data.results[0].urls?.regular || null;
     }
   } catch (error) {
-    console.error("Erro ao buscar imagem Unsplash:", error);
+    logger.error({ err: error }, "Erro ao buscar imagem Unsplash");
   }
 
   return null;
@@ -123,7 +125,7 @@ export async function gerarImagemInteligente(
         throw lastError;
       }
     } catch (error) {
-      console.error("Erro ao gerar imagem com Gemini:", error);
+      logger.error({ err: error }, "Erro ao gerar imagem com Gemini");
     }
 
     // Fallback para Unsplash se IA falhar
@@ -146,7 +148,7 @@ export async function baixarImagemUrl(url: string): Promise<string | null> {
     const resp = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
     if (!resp.ok) {
-      console.error(`Erro ao baixar imagem de ${url}: ${resp.status} ${resp.statusText}`);
+      logger.error(`Erro ao baixar imagem de ${url}: ${resp.status} ${resp.statusText}`);
       return null;
     }
 
@@ -158,7 +160,7 @@ export async function baixarImagemUrl(url: string): Promise<string | null> {
 
     return `data:${mimeType};base64,${base64}`;
   } catch (error) {
-    console.error("Erro ao baixar imagem:", error);
+    logger.error({ err: error }, "Erro ao baixar imagem");
     return null;
   }
 }

@@ -4,8 +4,9 @@
  */
 
 import { getSupabase } from "./supabase";
+import { logger } from "@/lib/logger";
 
-export type EventType = 
+export type EventType =
   | "page_view"
   | "login"
   | "ai_call"
@@ -57,7 +58,7 @@ export async function trackUsageEvent(
     });
   } catch (err) {
     // Falha silenciosa - não deve quebrar o fluxo principal
-    console.error("Erro ao registrar evento de uso:", err);
+    logger.error({ err }, "Erro ao registrar evento de uso");
   }
 }
 
@@ -98,7 +99,7 @@ export async function trackAIUsage(
       }
     }
   } catch (err) {
-    console.error("Erro ao registrar uso de IA:", err);
+    logger.error({ err }, "Erro ao registrar uso de IA");
   }
 }
 
@@ -148,7 +149,7 @@ export async function trackAIFeedback(
       },
     });
   } catch (err) {
-    console.error("Erro ao registrar feedback de IA:", err);
+    logger.error({ err }, "Erro ao registrar feedback de IA");
   }
 }
 
@@ -166,7 +167,7 @@ export async function trackPageView(
 
   const now = Date.now();
   const last = pageViewCache[pageName];
-  
+
   // Throttling: só registra se passou mais de 2 minutos desde a última visualização
   if (last && (now - last) < PAGE_VIEW_THROTTLE_MS) {
     return;

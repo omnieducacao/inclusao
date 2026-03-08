@@ -4,6 +4,7 @@
  */
 
 import { getSupabase } from "./supabase";
+import { logger } from "@/lib/logger";
 
 export const MODULE_KEYS = ["pei", "paee", "hub", "diario", "avaliacao"] as const;
 export type ModuleKey = typeof MODULE_KEYS[number];
@@ -53,7 +54,7 @@ export async function getEnabledModules(
     // Filtrar apenas módulos válidos
     return enabledModules.filter((m): m is ModuleKey => MODULE_KEYS.includes(m as ModuleKey));
   } catch (error) {
-    console.error("Erro ao buscar módulos habilitados:", error);
+    logger.error({ err: error }, "Erro ao buscar módulos habilitados");
     // Em caso de erro, retorna todos por padrão
     return [...MODULE_KEYS];
   }

@@ -1,5 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { redis } from "./redis";
+import { logger } from "@/lib/logger";
 
 // Global limiter: 100 requests per 10 seconds per IP (general navigation/health)
 export const globalRateLimit = new Ratelimit({
@@ -30,7 +31,7 @@ export async function checkRateLimit(ip: string, type: 'global' | 'ai' = 'global
         const limiter = type === 'ai' ? aiRateLimit : globalRateLimit;
         return await limiter.limit(ip);
     } catch (error) {
-        console.warn("[Upstash RateLimit Error - Falling Back to Open]:", error);
+        logger.warn({ err: error }, "[Upstash RateLimit Error - Falling Back to Open]");
         return { success: true, limit: 100, remaining: 100, reset: 0 };
     }
 }
