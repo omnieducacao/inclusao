@@ -281,6 +281,9 @@ function ModuleCardWithLottie({
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
+  // FIXED Error 310: Hoist useMotionTemplate above early returns to comply with Rules of Hooks
+  const backgroundTemplate = useMotionTemplate`radial-gradient(400px circle at ${mouseX}px ${mouseY}px, ${colors.icon}20, transparent 80%)`;
+
   function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent<HTMLDivElement>) {
     const { left, top } = currentTarget.getBoundingClientRect();
     mouseX.set(clientX - left);
@@ -374,7 +377,7 @@ function ModuleCardWithLottie({
       <motion.div
         className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition duration-300 group-hover:opacity-100"
         style={{
-          background: useMotionTemplate`radial-gradient(400px circle at ${mouseX}px ${mouseY}px, ${colors.icon}20, transparent 80%)`,
+          background: backgroundTemplate,
           zIndex: 1
         }}
       />
