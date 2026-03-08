@@ -245,6 +245,10 @@ export function PageHero({
     accentColor = effectiveTheme.primary;
   }
 
+  // ─── Magnetic Hover Background Template (Hook) ─────────────────────
+  // MUST be called before any early return to avoid React Error #310
+  const magneticBg = useMotionTemplate`radial-gradient(600px circle at ${mouseX}px ${mouseY}px, ${accentColor}15, transparent 80%)`;
+
   // Helper: lighten hex for gradient line contrast on saturated bg
   function hexLighten(hex: string, amount: number): string {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -336,7 +340,7 @@ export function PageHero({
       <motion.div
         className="pointer-events-none absolute -inset-px opacity-0 transition duration-300 group-hover:opacity-100"
         style={{
-          background: useMotionTemplate`radial-gradient(600px circle at ${mouseX}px ${mouseY}px, ${accentColor}15, transparent 80%)`,
+          background: magneticBg,
           zIndex: 1
         }}
       />
