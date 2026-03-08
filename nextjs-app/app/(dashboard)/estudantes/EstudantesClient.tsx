@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ClipboardList, FileText, Map, Trash2, ChevronDown, ChevronUp, X, AlertTriangle, Edit2, Save, XCircle, Download } from "lucide-react";
@@ -24,21 +25,7 @@ type Props = {
   familyModuleEnabled?: boolean;
 };
 
-// ─── Variantes de Animação (Framer Motion) ───────────────────────────────────
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
-};
+// Animações de Stagger foram desativadas para ganho absurdo de performance em listas grandes
 
 export function EstudantesClient({ students, familyModuleEnabled = false }: Props) {
   const router = useRouter();
@@ -95,6 +82,17 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
         (s.diagnosis || "").toLowerCase().includes(q)
     );
   }, [students, search]);
+
+  const parentRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: filtered.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: (index) => {
+      const studentId = filtered[index].id;
+      return expandedIds.has(studentId) ? 250 : 76;
+    },
+    overscan: 5,
+  });
 
   function toggleExpand(studentId: string) {
     setExpandedIds((prev) => {
@@ -281,369 +279,371 @@ export function EstudantesClient({ students, familyModuleEnabled = false }: Prop
           </button>
         </div>
       ) : (
-        <motion.div
-          className="divide-y divide-(--omni-border-default)"
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-        >
-          {filtered.map((s, idx) => {
-            const peiData = (s.pei_data || {}) as Record<string, unknown>;
-            const paeeCiclos = Array.isArray(s.paee_ciclos) ? s.paee_ciclos : [];
-            const temRelatorio = Boolean((peiData?.ia_sugestao as string)?.trim());
-            const temJornada = Boolean((peiData?.ia_mapa_texto as string)?.trim());
-            const nCiclos = paeeCiclos.length;
-            const isExpanded = expandedIds.has(s.id);
-            const isConfirmingDelete = confirmDeleteId === s.id;
-            const isUpdating = updating === s.id;
+        <div ref={parentRef} className="max-h-[750px] overflow-auto rounded-xl border border-(--omni-border-default) bg-(--omni-bg-primary)">
+          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+            {rowVirtualizer.getVirtualItems().map((vRow) => {
+              const s = filtered[vRow.index];
+              const peiData = (s.pei_data || {}) as Record<string, unknown>;
+              const paeeCiclos = Array.isArray(s.paee_ciclos) ? s.paee_ciclos : [];
+              const temRelatorio = Boolean((peiData?.ia_sugestao as string)?.trim());
+              const temJornada = Boolean((peiData?.ia_mapa_texto as string)?.trim());
+              const nCiclos = paeeCiclos.length;
+              const isExpanded = expandedIds.has(s.id);
+              const isConfirmingDelete = confirmDeleteId === s.id;
+              const isUpdating = updating === s.id;
 
-            return (
-              <motion.div
-                key={s.id}
-                variants={itemVariants}
-                className="border-b border-(--omni-border-default) last:border-b-0 bg-(--omni-bg-primary)"
-              >
-                {/* Header do estudante */}
-                <div className="p-4 hover:bg-(--omni-bg-secondary) transition-colors">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <button
-                        type="button"
-                        onClick={() => toggleExpand(s.id)}
-                        className="w-full text-left flex items-center justify-between gap-2 group"
-                      >
+              return (
+                <div
+                  key={s.id}
+                  data-index={vRow.index}
+                  ref={rowVirtualizer.measureElement}
+                  className="absolute top-0 left-0 w-full animate-in fade-in duration-300"
+                  style={{ transform: `translateY(${vRow.start}px)` }}
+                >
+                  <div className="border-b border-(--omni-border-default) last:border-b-0 bg-(--omni-bg-primary)">
+                    {/* Header do estudante */}
+                    <div className="p-4 hover:bg-(--omni-bg-secondary) transition-colors">
+                      <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <h3 className="font-semibold text-(--omni-text-primary) group-hover:text-sky-600 transition-colors">
-                            {s.name || "—"}
-                          </h3>
-                          <div className="flex gap-2 mt-1 flex-wrap">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100">
-                              {s.grade || "—"}
-                            </span>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                              {s.class_group || "—"}
-                            </span>
-                            {temRelatorio && (
-                              <span className="text-xs text-amber-600 inline-flex items-center gap-1">
-                                <FileText className="w-3 h-3" />
-                                PEI
-                              </span>
-                            )}
-                            {temJornada && (
-                              <span className="text-xs text-violet-600 inline-flex items-center gap-1">
-                                <Map className="w-3 h-3" />
-                                Jornada
-                              </span>
-                            )}
-                            {nCiclos > 0 && (
-                              <span className="text-xs text-(--omni-text-muted)">{nCiclos} ciclo(s) PAEE</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          {isExpanded ? (
-                            <ChevronUp className="w-5 h-5 text-(--omni-text-muted)" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5 text-(--omni-text-muted)" />
-                          )}
-                        </div>
-                      </button>
-                    </div>
-                    <div className="flex gap-2 shrink-0 flex-wrap items-center">
-                      <Link
-                        href={`/pei?student=${s.id}`}
-                        className="px-3 py-1.5 text-sm font-medium text-sky-600 hover:bg-sky-50 rounded-lg"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        PEI
-                      </Link>
-                      <Link
-                        href={`/paee?student=${s.id}`}
-                        className="px-3 py-1.5 text-sm font-medium text-violet-600 hover:bg-violet-50 rounded-lg"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        PAEE
-                      </Link>
-                      <Link
-                        href={`/diario?student=${s.id}`}
-                        className="px-3 py-1.5 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-lg"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Diário
-                      </Link>
-                      <Link
-                        href={`/monitoramento?student=${s.id}`}
-                        className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Monitoramento
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Conteúdo expandido */}
-                {isExpanded && (
-                  <div className="px-4 pb-4 pt-0 bg-(--omni-bg-secondary) border-t border-(--omni-border-default) animate-in slide-in-from-top-2 fade-in duration-200">
-                    {isConfirmingDelete ? (
-                      <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                        <div className="flex items-start gap-2 mb-3">
-                          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-semibold text-amber-800">Excluir {s.name}?</p>
-                            <p className="text-sm text-amber-700 mt-1">Esta ação <strong>não pode ser desfeita</strong>. Os seguintes dados serão removidos permanentemente:</p>
-                            <ul className="text-sm text-amber-700 mt-2 space-y-1 list-disc list-inside">
-                              <li>Dados do PEI (todas as fases e versões)</li>
-                              <li>PEI por disciplina (planos vinculados, adaptações IA)</li>
-                              <li>Avaliações diagnósticas (questões, gabaritos, nível)</li>
-                              {temRelatorio && <li>Relatório PEI (consultoria IA)</li>}
-                              {temJornada && <li>Jornada gamificada</li>}
-                              {nCiclos > 0 && <li>{nCiclos} ciclo(s) PAEE</li>}
-                            </ul>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
                           <button
-                            onClick={() => handleDelete(s.id)}
-                            disabled={deleting}
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm"
+                            type="button"
+                            onClick={() => toggleExpand(s.id)}
+                            className="w-full text-left flex items-center justify-between gap-2 group"
                           >
-                            {deleting ? "Excluindo..." : "Sim, excluir tudo"}
-                          </button>
-                          <button
-                            onClick={() => setConfirmDeleteId(null)}
-                            className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 text-sm"
-                          >
-                            Cancelar
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="mt-4 space-y-4">
-                        {/* Edição Inline de Campos Básicos */}
-                        {editingId === s.id ? (
-                          <div className="bg-white border border-sky-200 rounded-lg p-4 space-y-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-sm font-semibold text-slate-800">Editar dados do estudante</h4>
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => salvarEdicao(s.id)}
-                                  disabled={saving}
-                                  className="px-3 py-1.5 text-xs font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-lg disabled:opacity-50 flex items-center gap-1.5"
-                                >
-                                  <Save className="w-3.5 h-3.5" />
-                                  Salvar
-                                </button>
-                                <button
-                                  onClick={cancelarEdicao}
-                                  disabled={saving}
-                                  className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-300 disabled:opacity-50 flex items-center gap-1.5"
-                                >
-                                  <XCircle className="w-3.5 h-3.5" />
-                                  Cancelar
-                                </button>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-(--omni-text-primary) group-hover:text-sky-600 transition-colors">
+                                {s.name || "—"}
+                              </h3>
+                              <div className="flex gap-2 mt-1 flex-wrap">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100">
+                                  {s.grade || "—"}
+                                </span>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                  {s.class_group || "—"}
+                                </span>
+                                {temRelatorio && (
+                                  <span className="text-xs text-amber-600 inline-flex items-center gap-1">
+                                    <FileText className="w-3 h-3" />
+                                    PEI
+                                  </span>
+                                )}
+                                {temJornada && (
+                                  <span className="text-xs text-violet-600 inline-flex items-center gap-1">
+                                    <Map className="w-3 h-3" />
+                                    Jornada
+                                  </span>
+                                )}
+                                {nCiclos > 0 && (
+                                  <span className="text-xs text-(--omni-text-muted)">{nCiclos} ciclo(s) PAEE</span>
+                                )}
                               </div>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex items-center gap-2 shrink-0">
+                              {isExpanded ? (
+                                <ChevronUp className="w-5 h-5 text-(--omni-text-muted)" />
+                              ) : (
+                                <ChevronDown className="w-5 h-5 text-(--omni-text-muted)" />
+                              )}
+                            </div>
+                          </button>
+                        </div>
+                        <div className="flex gap-2 shrink-0 flex-wrap items-center">
+                          <Link
+                            href={`/pei?student=${s.id}`}
+                            className="px-3 py-1.5 text-sm font-medium text-sky-600 hover:bg-sky-50 rounded-lg"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            PEI
+                          </Link>
+                          <Link
+                            href={`/paee?student=${s.id}`}
+                            className="px-3 py-1.5 text-sm font-medium text-violet-600 hover:bg-violet-50 rounded-lg"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            PAEE
+                          </Link>
+                          <Link
+                            href={`/diario?student=${s.id}`}
+                            className="px-3 py-1.5 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-lg"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Diário
+                          </Link>
+                          <Link
+                            href={`/monitoramento?student=${s.id}`}
+                            className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Monitoramento
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Conteúdo expandido */}
+                    {isExpanded && (
+                      <div className="px-4 pb-4 pt-0 bg-(--omni-bg-secondary) border-t border-(--omni-border-default) animate-in slide-in-from-top-2 fade-in duration-200">
+                        {isConfirmingDelete ? (
+                          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                            <div className="flex items-start gap-2 mb-3">
+                              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                               <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Nome</label>
-                                <input
-                                  type="text"
-                                  value={editForm?.name || ""}
-                                  onChange={(e) => setEditForm({ ...editForm!, name: e.target.value })}
-                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                                  placeholder="Nome do estudante"
-                                />
+                                <p className="font-semibold text-amber-800">Excluir {s.name}?</p>
+                                <p className="text-sm text-amber-700 mt-1">Esta ação <strong>não pode ser desfeita</strong>. Os seguintes dados serão removidos permanentemente:</p>
+                                <ul className="text-sm text-amber-700 mt-2 space-y-1 list-disc list-inside">
+                                  <li>Dados do PEI (todas as fases e versões)</li>
+                                  <li>PEI por disciplina (planos vinculados, adaptações IA)</li>
+                                  <li>Avaliações diagnósticas (questões, gabaritos, nível)</li>
+                                  {temRelatorio && <li>Relatório PEI (consultoria IA)</li>}
+                                  {temJornada && <li>Jornada gamificada</li>}
+                                  {nCiclos > 0 && <li>{nCiclos} ciclo(s) PAEE</li>}
+                                </ul>
                               </div>
-                              <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Série</label>
-                                <input
-                                  type="text"
-                                  value={editForm?.grade || ""}
-                                  onChange={(e) => setEditForm({ ...editForm!, grade: e.target.value })}
-                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                                  placeholder="Ex: 1º ano, 2º ano"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Turma</label>
-                                <input
-                                  type="text"
-                                  value={editForm?.class_group || ""}
-                                  onChange={(e) => setEditForm({ ...editForm!, class_group: e.target.value })}
-                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                                  placeholder="Ex: A, B, C"
-                                />
-                              </div>
-                              <div className="md:col-span-2">
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Contexto (equipe)</label>
-                                <textarea
-                                  value={editForm?.diagnosis || ""}
-                                  onChange={(e) => setEditForm({ ...editForm!, diagnosis: e.target.value })}
-                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
-                                  placeholder="Diagnóstico ou contexto do estudante"
-                                  rows={3}
-                                />
-                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleDelete(s.id)}
+                                disabled={deleting}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm"
+                              >
+                                {deleting ? "Excluindo..." : "Sim, excluir tudo"}
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 text-sm"
+                              >
+                                Cancelar
+                              </button>
                             </div>
                           </div>
                         ) : (
-                          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-sm font-semibold text-slate-800">Dados básicos</h4>
-                              <button
-                                onClick={() => iniciarEdicao(s)}
-                                className="px-3 py-1.5 text-xs font-medium text-sky-600 hover:bg-sky-50 rounded-lg border border-sky-200 flex items-center gap-1.5"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                                Editar
-                              </button>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                              <div>
-                                <span className="text-slate-500">Nome:</span>
-                                <span className="ml-2 font-medium text-slate-800">{s.name || "—"}</span>
+                          <div className="mt-4 space-y-4">
+                            {/* Edição Inline de Campos Básicos */}
+                            {editingId === s.id ? (
+                              <div className="bg-white border border-sky-200 rounded-lg p-4 space-y-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="text-sm font-semibold text-slate-800">Editar dados do estudante</h4>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => salvarEdicao(s.id)}
+                                      disabled={saving}
+                                      className="px-3 py-1.5 text-xs font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-lg disabled:opacity-50 flex items-center gap-1.5"
+                                    >
+                                      <Save className="w-3.5 h-3.5" />
+                                      Salvar
+                                    </button>
+                                    <button
+                                      onClick={cancelarEdicao}
+                                      disabled={saving}
+                                      className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-300 disabled:opacity-50 flex items-center gap-1.5"
+                                    >
+                                      <XCircle className="w-3.5 h-3.5" />
+                                      Cancelar
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-xs font-medium text-slate-700 mb-1">Nome</label>
+                                    <input
+                                      type="text"
+                                      value={editForm?.name || ""}
+                                      onChange={(e) => setEditForm({ ...editForm!, name: e.target.value })}
+                                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                      placeholder="Nome do estudante"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-slate-700 mb-1">Série</label>
+                                    <input
+                                      type="text"
+                                      value={editForm?.grade || ""}
+                                      onChange={(e) => setEditForm({ ...editForm!, grade: e.target.value })}
+                                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                      placeholder="Ex: 1º ano, 2º ano"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-slate-700 mb-1">Turma</label>
+                                    <input
+                                      type="text"
+                                      value={editForm?.class_group || ""}
+                                      onChange={(e) => setEditForm({ ...editForm!, class_group: e.target.value })}
+                                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                      placeholder="Ex: A, B, C"
+                                    />
+                                  </div>
+                                  <div className="md:col-span-2">
+                                    <label className="block text-xs font-medium text-slate-700 mb-1">Contexto (equipe)</label>
+                                    <textarea
+                                      value={editForm?.diagnosis || ""}
+                                      onChange={(e) => setEditForm({ ...editForm!, diagnosis: e.target.value })}
+                                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
+                                      placeholder="Diagnóstico ou contexto do estudante"
+                                      rows={3}
+                                    />
+                                  </div>
+                                </div>
                               </div>
-                              <div>
-                                <span className="text-slate-500">Série:</span>
-                                <span className="ml-2 font-medium text-slate-800">{s.grade || "—"}</span>
+                            ) : (
+                              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="text-sm font-semibold text-slate-800">Dados básicos</h4>
+                                  <button
+                                    onClick={() => iniciarEdicao(s)}
+                                    className="px-3 py-1.5 text-xs font-medium text-sky-600 hover:bg-sky-50 rounded-lg border border-sky-200 flex items-center gap-1.5"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                    Editar
+                                  </button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                  <div>
+                                    <span className="text-slate-500">Nome:</span>
+                                    <span className="ml-2 font-medium text-slate-800">{s.name || "—"}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-500">Série:</span>
+                                    <span className="ml-2 font-medium text-slate-800">{s.grade || "—"}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-500">Turma:</span>
+                                    <span className="ml-2 font-medium text-slate-800">{s.class_group || "—"}</span>
+                                  </div>
+                                  {s.diagnosis && (
+                                    <div className="md:col-span-2">
+                                      <span className="text-slate-500">Contexto (equipe):</span>
+                                      <p className="mt-1 text-slate-700">{s.diagnosis}</p>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
+                            )}
+
+                            {/* Contexto (modo visualização - apenas se não estiver editando) */}
+                            {editingId !== s.id && s.diagnosis && (
                               <div>
-                                <span className="text-slate-500">Turma:</span>
-                                <span className="ml-2 font-medium text-slate-800">{s.class_group || "—"}</span>
+                                <p className="text-sm font-semibold text-slate-700 mb-1">Contexto (equipe):</p>
+                                <p className="text-sm text-slate-600">{s.diagnosis}</p>
                               </div>
-                              {s.diagnosis && (
-                                <div className="md:col-span-2">
-                                  <span className="text-slate-500">Contexto (equipe):</span>
-                                  <p className="mt-1 text-slate-700">{s.diagnosis}</p>
+                            )}
+
+                            {/* Responsáveis (Módulo Família) */}
+                            {familyModuleEnabled && (
+                              <ResponsaveisSection
+                                studentId={s.id}
+                                studentName={s.name || "—"}
+                                onRefresh={() => router.refresh()}
+                              />
+                            )}
+
+                            {/* O que está anexado */}
+                            <div>
+                              <p className="text-sm font-semibold text-slate-700 mb-2">O que está anexado</p>
+                              <div className="space-y-1 mb-3">
+                                {temRelatorio && (
+                                  <p className="text-sm text-slate-600 flex items-center gap-2">
+                                    <FileText className="w-4 h-4 text-amber-600" />
+                                    Relatório PEI (Consultoria IA)
+                                  </p>
+                                )}
+                                {temJornada && (
+                                  <p className="text-sm text-slate-600 flex items-center gap-2">
+                                    <Map className="w-4 h-4 text-violet-600" />
+                                    Jornada gamificada
+                                  </p>
+                                )}
+                                {nCiclos > 0 && (
+                                  <p className="text-sm text-slate-600 flex items-center gap-2">
+                                    <ClipboardList className="w-4 h-4 text-slate-600" />
+                                    Ciclos PAEE ({nCiclos})
+                                  </p>
+                                )}
+                                {!temRelatorio && !temJornada && nCiclos === 0 && (
+                                  <p className="text-xs text-slate-500 italic">Nenhum relatório ou jornada anexada ainda.</p>
+                                )}
+                              </div>
+
+                              {/* Botões para apagar */}
+                              {(temRelatorio || temJornada || nCiclos > 0) && (
+                                <div>
+                                  <p className="text-xs text-slate-500 mb-2">Apagar apenas relatórios ou jornada (sem excluir o estudante):</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {temRelatorio && (
+                                      <button
+                                        onClick={() => handleApagarRelatorios(s.id, peiData)}
+                                        disabled={isUpdating}
+                                        className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50"
+                                      >
+                                        Apagar relatórios
+                                      </button>
+                                    )}
+                                    {temJornada && (
+                                      <button
+                                        onClick={() => handleApagarJornada(s.id, peiData)}
+                                        disabled={isUpdating}
+                                        className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50"
+                                      >
+                                        Apagar jornada
+                                      </button>
+                                    )}
+                                    {nCiclos > 0 && (
+                                      <button
+                                        onClick={() => handleApagarCiclos(s.id)}
+                                        disabled={isUpdating}
+                                        className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50"
+                                      >
+                                        Apagar ciclos PAEE
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                             </div>
-                          </div>
-                        )}
 
-                        {/* Contexto (modo visualização - apenas se não estiver editando) */}
-                        {editingId !== s.id && s.diagnosis && (
-                          <div>
-                            <p className="text-sm font-semibold text-slate-700 mb-1">Contexto (equipe):</p>
-                            <p className="text-sm text-slate-600">{s.diagnosis}</p>
-                          </div>
-                        )}
-
-                        {/* Responsáveis (Módulo Família) */}
-                        {familyModuleEnabled && (
-                          <ResponsaveisSection
-                            studentId={s.id}
-                            studentName={s.name || "—"}
-                            onRefresh={() => router.refresh()}
-                          />
-                        )}
-
-                        {/* O que está anexado */}
-                        <div>
-                          <p className="text-sm font-semibold text-slate-700 mb-2">O que está anexado</p>
-                          <div className="space-y-1 mb-3">
-                            {temRelatorio && (
-                              <p className="text-sm text-slate-600 flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-amber-600" />
-                                Relatório PEI (Consultoria IA)
-                              </p>
-                            )}
-                            {temJornada && (
-                              <p className="text-sm text-slate-600 flex items-center gap-2">
-                                <Map className="w-4 h-4 text-violet-600" />
-                                Jornada gamificada
-                              </p>
-                            )}
-                            {nCiclos > 0 && (
-                              <p className="text-sm text-slate-600 flex items-center gap-2">
-                                <ClipboardList className="w-4 h-4 text-slate-600" />
-                                Ciclos PAEE ({nCiclos})
-                              </p>
-                            )}
-                            {!temRelatorio && !temJornada && nCiclos === 0 && (
-                              <p className="text-xs text-slate-500 italic">Nenhum relatório ou jornada anexada ainda.</p>
-                            )}
-                          </div>
-
-                          {/* Botões para apagar */}
-                          {(temRelatorio || temJornada || nCiclos > 0) && (
-                            <div>
-                              <p className="text-xs text-slate-500 mb-2">Apagar apenas relatórios ou jornada (sem excluir o estudante):</p>
-                              <div className="flex flex-wrap gap-2">
-                                {temRelatorio && (
-                                  <button
-                                    onClick={() => handleApagarRelatorios(s.id, peiData)}
-                                    disabled={isUpdating}
-                                    className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50"
-                                  >
-                                    Apagar relatórios
-                                  </button>
-                                )}
-                                {temJornada && (
-                                  <button
-                                    onClick={() => handleApagarJornada(s.id, peiData)}
-                                    disabled={isUpdating}
-                                    className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50"
-                                  >
-                                    Apagar jornada
-                                  </button>
-                                )}
-                                {nCiclos > 0 && (
-                                  <button
-                                    onClick={() => handleApagarCiclos(s.id)}
-                                    disabled={isUpdating}
-                                    className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50"
-                                  >
-                                    Apagar ciclos PAEE
-                                  </button>
-                                )}
+                            {/* PEI Data completa (visualização) */}
+                            {Object.keys(peiData).length > 0 && (
+                              <div>
+                                <p className="text-sm font-semibold text-slate-700 mb-2">Dados completos do PEI</p>
+                                <div className="bg-white border border-slate-200 rounded-lg p-4 max-h-96 overflow-y-auto">
+                                  <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono">
+                                    {JSON.stringify(peiData, null, 2)}
+                                  </pre>
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
+                            )}
 
-                        {/* PEI Data completa (visualização) */}
-                        {Object.keys(peiData).length > 0 && (
-                          <div>
-                            <p className="text-sm font-semibold text-slate-700 mb-2">Dados completos do PEI</p>
-                            <div className="bg-white border border-slate-200 rounded-lg p-4 max-h-96 overflow-y-auto">
-                              <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono">
-                                {JSON.stringify(peiData, null, 2)}
-                              </pre>
+                            {/* Ações: Exportar + Excluir */}
+                            <div className="pt-2 border-t border-slate-200 flex flex-wrap gap-2">
+                              <button
+                                onClick={() => handleExportar(s.id, s.name || "estudante")}
+                                disabled={exporting === s.id}
+                                aria-label={`Exportar dados de ${s.name || "estudante"}`}
+                                className="px-4 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 rounded-lg border border-sky-200 disabled:opacity-50 flex items-center gap-2"
+                              >
+                                <Download className="w-4 h-4" />
+                                {exporting === s.id ? "Exportando..." : "Exportar Dados (LGPD)"}
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(s.id)}
+                                disabled={deleting || isUpdating}
+                                aria-label={`Excluir estudante ${s.name || ""}`}
+                                className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50 flex items-center gap-2"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Excluir estudante
+                              </button>
                             </div>
                           </div>
                         )}
-
-                        {/* Ações: Exportar + Excluir */}
-                        <div className="pt-2 border-t border-slate-200 flex flex-wrap gap-2">
-                          <button
-                            onClick={() => handleExportar(s.id, s.name || "estudante")}
-                            disabled={exporting === s.id}
-                            aria-label={`Exportar dados de ${s.name || "estudante"}`}
-                            className="px-4 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 rounded-lg border border-sky-200 disabled:opacity-50 flex items-center gap-2"
-                          >
-                            <Download className="w-4 h-4" />
-                            {exporting === s.id ? "Exportando..." : "Exportar Dados (LGPD)"}
-                          </button>
-                          <button
-                            onClick={() => setConfirmDeleteId(s.id)}
-                            disabled={deleting || isUpdating}
-                            aria-label={`Excluir estudante ${s.name || ""}`}
-                            className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50 flex items-center gap-2"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Excluir estudante
-                          </button>
-                        </div>
                       </div>
                     )}
                   </div>
-                )}
-              </motion.div>
-            );
-          })}
-        </motion.div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
       {students.length > 0 && (
         <p className="p-3 text-xs text-slate-400 border-t border-slate-100">

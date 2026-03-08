@@ -26,9 +26,11 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   /* config options here */
-  // Configura o diretório raiz do Turbopack para evitar conflitos com lockfiles
   turbopack: {
     root: process.cwd(),
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
   },
   // Força o uso de localhost para evitar problemas de rede
   experimental: {

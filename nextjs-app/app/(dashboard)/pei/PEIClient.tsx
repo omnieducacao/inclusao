@@ -21,6 +21,7 @@ import { PEITabEvidencias } from "./components/PEITabEvidencias";
 import { PEITabRede } from "./components/PEITabRede";
 import { PEITabMapeamento } from "./components/PEITabMapeamento";
 import { PEITabPlano } from "./components/PEITabPlano";
+import { usePEIRealtime } from "@/hooks/usePEIRealtime";
 import { PEITabMonitoramento } from "./components/PEITabMonitoramento";
 
 // Helper para validar e parsear respostas JSON
@@ -204,6 +205,9 @@ export function PEIClient({
   useEffect(() => {
     if (!localStorage.getItem('onboarding_pei')) setShowOnboarding(true);
   }, []);
+
+  // Omni V5: Real-time Multi-User PEI Subscription
+  usePEIRealtime(currentStudentId);
 
   // Compute available turmas for selected série
   const availableTurmas = React.useMemo(() => {

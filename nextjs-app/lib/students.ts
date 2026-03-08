@@ -31,7 +31,7 @@ export async function listStudents(workspaceId: string): Promise<Student[]> {
   }
 
   const sb = getSupabase();
-  logger.debug("listStudents: buscando estudantes", { workspaceId });
+  logger.debug({ workspaceId }, "listStudents: buscando estudantes");
 
   const { data, error } = await sb
     .from("students")
@@ -40,18 +40,18 @@ export async function listStudents(workspaceId: string): Promise<Student[]> {
     .order("created_at", { ascending: false });
 
   if (error) {
-    logger.error("listStudents: erro ao buscar", {
+    logger.error({
       workspaceId,
       errorMessage: error.message,
       errorCode: error.code
-    });
+    }, "listStudents: erro ao buscar");
     return [];
   }
 
-  logger.debug("listStudents: encontrados", {
+  logger.debug({
     count: data?.length || 0,
     workspaceId
-  });
+  }, "listStudents: encontrados");
 
   // LGPD: descriptografar campos sensíveis
   const students = (data || []) as Student[];
@@ -76,7 +76,7 @@ export async function getStudent(
 
     const sb = getSupabase();
 
-    logger.debug("getStudent: buscando", { workspaceId, studentId });
+    logger.debug({ workspaceId, studentId }, "getStudent: buscando");
 
     // Normalizar IDs (remover espaços e garantir formato correto)
     const normalizedWorkspaceId = workspaceId.trim();
@@ -123,10 +123,10 @@ export async function getStudent(
         errorConstructor: error?.constructor?.name || "Unknown"
       };
 
-      logger.error("getStudent: erro ao buscar", {
+      logger.error({
         errorCode,
         errorMessage
-      });
+      }, "getStudent: erro ao buscar");
 
       return null;
     }
@@ -136,7 +136,7 @@ export async function getStudent(
       return null;
     }
 
-    logger.debug("getStudent: encontrado", { studentId: data.id });
+    logger.debug({ studentId: data.id }, "getStudent: encontrado");
 
     // LGPD: descriptografar campos sensíveis
     const student = data as Student;
@@ -171,7 +171,7 @@ export async function getStudent(
       errorStack: errorStack?.substring(0, 200) // Limitar tamanho do stack trace
     };
 
-    logger.error("getStudent: erro inesperado", { errorMessage });
+    logger.error({ errorMessage }, "getStudent: erro inesperado");
     return null;
   }
 }
@@ -300,10 +300,10 @@ export async function deleteStudent(
     .eq("workspace_id", workspaceId);
 
   if (error) {
-    logger.error("deleteStudent: erro", { workspaceId, studentId, errorCode: error.code });
+    logger.error({ workspaceId, studentId, errorCode: error.code }, "deleteStudent: erro");
     return { success: false, error: error.message };
   }
 
-  logger.debug("deleteStudent: estudante excluído", { studentId, workspaceId });
+  logger.debug({ studentId, workspaceId }, "deleteStudent: estudante excluído");
   return { success: true };
 }

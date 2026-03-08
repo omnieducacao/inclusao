@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import type { Icon } from "phosphor-react";
 import { getModuleColors } from "@/lib/module-theme";
-import { LottieIcon } from "@omni/ds";
+import { LottieIcon } from "@/components/LottieIcon";
 import { ModuleCard } from "@omni/ds";
 import { useRouter } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
