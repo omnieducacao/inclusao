@@ -236,8 +236,13 @@ export function PageHero({
       cardBg = `${adminHex}22`;
       softColor = `${adminHex}15`; // Even softer for background areas
       textColor = adminHex;
+    } else if (isNotebook) {
+      // No modo notebook, o bg do card assume a variante pastel, e o texto escurece
+      cardBg = hexToPastelBg(adminHex);
+      softColor = hexToPastelBg(adminHex);
+      textColor = hexToDarkenedText(adminHex);
     } else {
-      cardBg = adminHex; // Hero stays saturated
+      cardBg = adminHex; // Hero stays saturated in Light mode
       softColor = hexToPastelBg(adminHex); // But we export a pastel version for PAEE tabs
       textColor = "#ffffff";
     }
