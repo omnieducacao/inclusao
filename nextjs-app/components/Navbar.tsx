@@ -223,6 +223,7 @@ function NavItemWithLottie({ item, isActive, iconOverride, pillColorOverride }: 
           (e.currentTarget as HTMLElement).style.color = 'var(--omni-text-muted)';
         }
       }}
+      aria-current={isActive ? "page" : undefined}
       title={item.label}
     >
       {lottieAnimation ? (
@@ -674,6 +675,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
           {/* 1️⃣ LOGO - Sempre esquerda, nunca encolhe */}
           <Link
             href="/"
+            aria-label="Página Inicial da Omnisfera"
             className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group shrink-0"
           >
             <div className="flex items-center gap-2">
@@ -681,7 +683,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
                 <div className={`flex items-center justify-center group-hover:scale-105 transition-transform omni-logo-spin ${aiState.isLoading ? 'opacity-30' : ''}`}>
                   <Image
                     src={isDark ? "/logo-dark.png" : "/omni_icone.png"}
-                    alt="Omnisfera"
+                    alt="Símbolo Omnisfera"
                     width={36}
                     height={36}
                     className="object-contain"
@@ -820,8 +822,8 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
               className="flex items-center justify-center w-9 h-9 rounded-lg transition-all hover:scale-105"
               style={{ color: 'var(--omni-text-muted)', backgroundColor: 'var(--omni-bg-tertiary)', border: '1px solid var(--omni-border-default)' }}
-              title="Buscar"
-              aria-label="Buscar na plataforma (Cmd+K)"
+              aria-label="Buscar na plataforma (Atalho Command K)"
+              aria-keyshortcuts="Control+K Meta+K"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

@@ -159,6 +159,8 @@ export function AILoadingOverlay() {
                 <p
                     key={phraseIndex}
                     className="text-white/70 text-sm text-center animate-fade-in min-h-[20px]"
+                    aria-live="polite"
+                    aria-atomic="true"
                 >
                     {phrases[phraseIndex]}
                 </p>

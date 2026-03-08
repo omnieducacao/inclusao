@@ -266,7 +266,7 @@ export function PEIClient({
   function SaveFeedback() {
     if (saving) {
       return (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-2xl animate-slide-up">
+        <div role="status" aria-live="polite" className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-2xl animate-slide-up">
           <OmniLoader size={20} />
           <span className="font-medium">Salvando...</span>
         </div>
@@ -274,7 +274,7 @@ export function PEIClient({
     }
     if (saved) {
       return (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-emerald-600 text-white rounded-xl shadow-2xl animate-slide-up">
+        <div role="status" aria-live="polite" className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-emerald-600 text-white rounded-xl shadow-2xl animate-slide-up">
           <CheckCircle2 className="w-5 h-5" />
           <span className="font-medium">Salvo com sucesso!</span>
         </div>
@@ -318,7 +318,7 @@ export function PEIClient({
 
       {/* Mensagem de Erro Global */}
       {erroGlobal && (
-        <div className="mx-6 mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg flex items-start gap-3">
+        <div role="alert" aria-live="assertive" className="mx-6 mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg flex items-start gap-3">
           <AlertTriangle className="shrink-0 w-5 h-5 text-red-600 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-red-800 font-semibold text-sm">Erro ao processar</p>
