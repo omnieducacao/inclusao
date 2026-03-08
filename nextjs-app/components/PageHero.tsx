@@ -218,6 +218,7 @@ export function PageHero({
   }
 
   let cardBg: string;
+  let softColor: string;
   let textColor: string;
   let accentColor: string;
 
@@ -225,9 +226,11 @@ export function PageHero({
     // Admin override with notebook/dark/light mode awareness
     if (isDark) {
       cardBg = `${adminHex}22`;
+      softColor = `${adminHex}15`; // Even softer for background areas
       textColor = adminHex;
     } else {
-      cardBg = hexToPastelBg(adminHex);
+      cardBg = adminHex; // Hero stays saturated
+      softColor = hexToPastelBg(adminHex); // But we export a pastel version for PAEE tabs
       textColor = "#ffffff";
     }
     accentColor = adminHex;
@@ -237,7 +240,8 @@ export function PageHero({
     const effectiveDsColors = (resolvedKey in moduleColors)
       ? moduleColors[resolvedKey as ModuleKey]
       : moduleColors.omnisfera;
-    cardBg = isDark ? effectiveTheme.softDark : effectiveDsColors.bgPastel;
+    cardBg = isDark ? effectiveTheme.softDark : effectiveDsColors.bg;
+    softColor = isDark ? `${effectiveTheme.softDark}80` : effectiveDsColors.bgPastel;
     textColor = isNotebook ? effectiveDsColors.textPastel : isDark ? effectiveTheme.secondary : "#ffffff";
     accentColor = effectiveTheme.primary;
   }
@@ -249,7 +253,7 @@ export function PageHero({
     if (!isMounted) return;
     const root = document.documentElement;
     root.style.setProperty('--module-primary', accentColor);
-    root.style.setProperty('--module-primary-soft', cardBg);
+    root.style.setProperty('--module-primary-soft', softColor);
     root.style.setProperty('--module-text', textColor);
 
     // Clear on unmount so navigation doesn't bleed colors
@@ -258,7 +262,7 @@ export function PageHero({
       root.style.removeProperty('--module-primary-soft');
       root.style.removeProperty('--module-text');
     };
-  }, [accentColor, cardBg, textColor, isMounted]);
+  }, [accentColor, softColor, textColor, isMounted]);
 
   // ─── Magnetic Hover Background Template (Hook) ─────────────────────
   // MUST be called before any early return to avoid React Error #310
