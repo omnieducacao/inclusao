@@ -612,13 +612,13 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                     {/* Objectives */}
                     <div className={cardC}><div className={`${bodyC} flex flex-col gap-3`}>
                         <BloomObjectives selected={form.objetivos} onToggle={v => toggleFormTag("objetivos", v)} />
-                        <textarea placeholder="Ou escreva objetivos livres..." value={form.objetivos_livre} onChange={e => setForm(f => ({ ...f, objetivos_livre: e.target.value }))} className={`${textareaC} min-h-[50px]`} />
+                        <textarea aria-label="Objetivos livres" placeholder="Ou escreva objetivos livres..." value={form.objetivos_livre} onChange={e => setForm(f => ({ ...f, objetivos_livre: e.target.value }))} className={`${textareaC} min-h-[50px]`} />
                     </div></div>
 
                     {/* Methodology */}
                     <div className={cardC}><div className={`${bodyC} flex flex-col gap-2.5`}>
                         <TagSelector options={METODOLOGIAS} selected={form.metodologias} onToggle={v => toggleFormTag("metodologias", v)} label="Metodologia" color="#8b5cf6" />
-                        <textarea placeholder="Descreva como aplicar as metodologias neste contexto (a IA preenche automaticamente)..." value={form.metodologia_livre} onChange={e => setForm(f => ({ ...f, metodologia_livre: e.target.value }))} className={`${textareaC} min-h-[60px]`} />
+                        <textarea aria-label="Metodologia livre" placeholder="Descreva como aplicar as metodologias neste contexto (a IA preenche automaticamente)..." value={form.metodologia_livre} onChange={e => setForm(f => ({ ...f, metodologia_livre: e.target.value }))} className={`${textareaC} min-h-[60px]`} />
                     </div></div>
 
                     {/* Resources */}
@@ -629,7 +629,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                     {/* Evaluation */}
                     <div className={cardC}><div className={`${bodyC} flex flex-col gap-2.5`}>
                         <TagSelector options={AVALIACOES} selected={form.avaliacoes} onToggle={v => toggleFormTag("avaliacoes", v)} label="Avaliação" color="#ec4899" />
-                        <textarea placeholder="Detalhes adicionais..." value={form.avaliacao_livre} onChange={e => setForm(f => ({ ...f, avaliacao_livre: e.target.value }))} className={`${textareaC} min-h-[40px]`} />
+                        <textarea aria-label="Avaliação livre" placeholder="Detalhes adicionais..." value={form.avaliacao_livre} onChange={e => setForm(f => ({ ...f, avaliacao_livre: e.target.value }))} className={`${textareaC} min-h-[40px]`} />
                     </div></div>
 
                     {/* Action buttons */}
