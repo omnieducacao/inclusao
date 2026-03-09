@@ -14,7 +14,7 @@
 
 /* ─── Design Tokens ─── */
 :root {
-  --font-primary: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-primary: var(--font-jakarta), system-ui, -apple-system, sans-serif;
 
   /* Semantic Colors */
   --bg-primary: #f7f8fa;
@@ -295,13 +295,13 @@ html.high-contrast {
    Acessibilidade — Modo Dislexia (Lexend Font)
    ═══════════════════════════════════════════════════ */
 html.dyslexia-font body {
-  font-family: 'Lexend', var(--font-primary) !important;
+  font-family: var(--font-lexend), var(--font-primary) !important;
   letter-spacing: 0.035em !important;
   line-height: 1.6 !important;
 }
 
 html.dyslexia-font * {
-  font-family: 'Lexend', var(--font-primary) !important;
+  font-family: var(--font-lexend), var(--font-primary) !important;
 }
 
 /* ═══════════════════════════════════════════════════

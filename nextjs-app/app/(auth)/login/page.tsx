@@ -174,12 +174,13 @@ function LoginForm() {
 
             {/* Wordmark — large and proportional */}
             <Image
-              src="/omni_texto.png"
+              src="/omni_texto.webp"
               alt="Omnisfera"
               width={300}
               height={86}
               className="h-[86px] object-contain -mt-4"
               style={{ width: "auto", maxHeight: "86px", filter: 'var(--img-dark-invert, none)' }}
+              priority
             />
 
             {/* Tagline */}
@@ -249,7 +250,7 @@ function LoginForm() {
                   )}
                   <button
                     type="submit"
-                                aria-label="Entrar na plataforma"
+                    aria-label="Entrar na plataforma"
                     disabled={loading}
                     className="w-full py-3 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-60 disabled:hover:shadow-none transition-all duration-300 active:scale-[0.98]"
                   >

@@ -608,7 +608,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
               <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-[1.5px] border-white animate-pulse-soft" />
             </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={isDark ? "/omni_texto_branco.png" : "/omni_texto.png"} alt="Omnisfera" className="h-8 object-contain" style={{ width: 'auto', maxHeight: '32px' }} fetchPriority="high" />
+            <img src={isDark ? "/omni_texto_branco.webp" : "/omni_texto.webp"} alt="Omnisfera" className="h-8 object-contain" style={{ width: 'auto', maxHeight: '32px' }} fetchPriority="high" />
           </Link>
           {!hideMenu && (
             <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center px-4">
@@ -704,7 +704,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
                 <div className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 ${aiState.isLoading ? 'bg-amber-400' : 'bg-emerald-400'} rounded-full border-[1.5px] border-white animate-pulse-soft`} title={aiState.isLoading ? 'IA processando' : 'Sistema online'} />
               </div>
               <img
-                src={isDark ? "/omni_texto_branco.png" : "/omni_texto.png"}
+                src={isDark ? "/omni_texto_branco.webp" : "/omni_texto.webp"}
                 alt="Omnisfera"
                 className="h-8 object-contain"
                 style={{ width: 'auto', maxHeight: '32px' }}
