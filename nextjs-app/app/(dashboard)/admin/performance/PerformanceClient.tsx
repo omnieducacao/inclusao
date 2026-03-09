@@ -18,7 +18,7 @@ export default function PerformanceClient({ initialVitals }: { initialVitals: an
                 A tabela <code>web_vitals</code> pode ainda não estar criada no Supabase ou não recebeu dados nativos.
                 O Vercel Analytics já está rodando por baixo dos panos e você pode visualizar as métricas no dashboard da Vercel.
             </p>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", background: "rgba(59,130,246,.1)", color: "#3b82f6", borderRadius: 8, fontSize: 13, fontWeight: 500 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", background: "var(--color-primary-bg)", color: "var(--color-primary)", borderRadius: 8, fontSize: 13, fontWeight: 500 }}>
                 <Activity size={16} /> Monitoramento Ativo
             </div>
         </div>
@@ -36,7 +36,7 @@ export default function PerformanceClient({ initialVitals }: { initialVitals: an
                 <Card>
                     <CardHeader style={{ paddingBottom: 8 }}>
                         <CardTitle style={{ fontSize: 14, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 8 }}>
-                            <Clock size={16} style={{ color: "#10b981" }} /> FCP (First Contentful Paint)
+                            <Clock size={16} style={{ color: "var(--color-success)" }} /> FCP (First Contentful Paint)
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -48,7 +48,7 @@ export default function PerformanceClient({ initialVitals }: { initialVitals: an
                 <Card>
                     <CardHeader style={{ paddingBottom: 8 }}>
                         <CardTitle style={{ fontSize: 14, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 8 }}>
-                            <Activity size={16} style={{ color: "#3b82f6" }} /> LCP (Largest Contentful Paint)
+                            <Activity size={16} style={{ color: "var(--color-primary)" }} /> LCP (Largest Contentful Paint)
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -60,7 +60,7 @@ export default function PerformanceClient({ initialVitals }: { initialVitals: an
                 <Card>
                     <CardHeader style={{ paddingBottom: 8 }}>
                         <CardTitle style={{ fontSize: 14, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 8 }}>
-                            <AlertTriangle size={16} style={{ color: "#f59e0b" }} /> CLS (Cumulative Layout Shift)
+                            <AlertTriangle size={16} style={{ color: "var(--color-warning)" }} /> CLS (Cumulative Layout Shift)
                         </CardTitle>
                     </CardHeader>
                     <CardContent>

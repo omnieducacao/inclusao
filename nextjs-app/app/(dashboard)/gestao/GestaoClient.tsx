@@ -147,8 +147,8 @@ export function GestaoClient({
           <CardContent className="flex justify-center pb-6">
             <DonutChart
               segments={[
-                { label: "Ensino Regular", value: 340, color: "#94a3b8" },
-                { label: "Inclusão (PEI)", value: 45, color: "#6366f1" },
+                { label: "Ensino Regular", value: 340, color: "var(--text-muted)" },
+                { label: "Inclusão (PEI)", value: 45, color: "var(--color-info)" },
               ]}
               size={180}
             />

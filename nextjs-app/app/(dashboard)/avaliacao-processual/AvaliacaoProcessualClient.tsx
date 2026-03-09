@@ -661,7 +661,7 @@ export default function AvaliacaoProcessualClient() {
                         <button
                             onClick={gerarRelatorio}
                             disabled={gerandoRelatorio}
-                            className={`px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm font-bold border-none transition-all shadow-[0_4px_16px_rgba(168,85,247,0.2)] text-white ${gerandoRelatorio ? 'bg-() cursor-not-allowed' : 'bg-linear-to-br from-purple-600 to-purple-500'}`}
+                            className={`px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm font-bold border-none transition-all shadow-[0_4px_16px_"var(--color-accent-strong)"] text-white ${gerandoRelatorio ? 'bg-() cursor-not-allowed' : 'bg-linear-to-br from-purple-600 to-purple-500'}`}
                         >
                             {gerandoRelatorio ? <OmniLoader engine="red" size={16} /> : <FileText size={16} />}
                             {gerandoRelatorio ? "Gerando..." : "Gerar Relatório IA"}

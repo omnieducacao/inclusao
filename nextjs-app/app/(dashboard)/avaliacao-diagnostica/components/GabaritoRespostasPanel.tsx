@@ -181,14 +181,14 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
         return (
             <div>
                 <button onClick={() => setViewingReportId(null)} style={{
-                    background: "none", border: "none", cursor: "pointer", color: "#3b82f6",
+                    background: "none", border: "none", cursor: "pointer", color: "var(--color-primary)",
                     fontSize: 13, fontWeight: 600, marginBottom: 16, display: "flex", alignItems: "center", gap: 4,
                 }}>← Voltar às avaliações</button>
 
                 {/* ── 1. CABEÇALHO INSTITUCIONAL ── */}
                 <div style={{
                     background: "linear-gradient(135deg, #1e3a5f 0%, #1e40af 50%, #2563eb 100%)",
-                    borderRadius: 16, padding: "20px 24px", color: "#fff", marginBottom: 16,
+                    borderRadius: 16, padding: "20px 24px", color: "var(--text-inverse)", marginBottom: 16,
                 }}>
                     <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1.5, opacity: 0.7, marginBottom: 8 }}>
                         Relatório Consolidado — Avaliação Diagnóstica
@@ -206,33 +206,33 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                 {/* ── 2. RESUMO EXECUTIVO ── */}
                 <div style={{
                     borderRadius: 14, padding: "18px 22px", marginBottom: 16,
-                    background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                    background: "var(--bg-secondary)",
+                    border: "1px solid var(--border-default)",
                 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-                        <BarChart3 size={16} style={{ color: "#3b82f6" }} /> Resumo Executivo
+                        <BarChart3 size={16} style={{ color: "var(--color-primary)" }} /> Resumo Executivo
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginBottom: 14 }}>
-                        <div style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(16,185,129,.06)", textAlign: "center" }}>
-                            <div style={{ fontSize: 28, fontWeight: 900, color: "#10b981" }}>{score}%</div>
+                        <div style={{ padding: "14px 16px", borderRadius: 12, background: "var(--color-success-subtle)", textAlign: "center" }}>
+                            <div style={{ fontSize: 28, fontWeight: 900, color: "var(--color-success)" }}>{score}%</div>
                             <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>Score Global</div>
                         </div>
                         <div style={{ padding: "14px 16px", borderRadius: 12, background: `${NIVEL_COLORS[nivel]}10`, textAlign: "center" }}>
                             <div style={{ fontSize: 28, fontWeight: 900, color: NIVEL_COLORS[nivel] }}>N{nivel}</div>
                             <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{NIVEL_LABELS[nivel]}</div>
                         </div>
-                        <div style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(99,102,241,.06)", textAlign: "center" }}>
-                            <div style={{ fontSize: 28, fontWeight: 900, color: "#818cf8" }}>{acertos}/{total}</div>
+                        <div style={{ padding: "14px 16px", borderRadius: 12, background: "var(--color-info-subtle)", textAlign: "center" }}>
+                            <div style={{ fontSize: 28, fontWeight: 900, color: "var(--color-info)" }}>{acertos}/{total}</div>
                             <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>Acertos</div>
                         </div>
-                        <div style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(239,68,68,.06)", textAlign: "center" }}>
-                            <div style={{ fontSize: 28, fontWeight: 900, color: "#ef4444" }}>{distratores.length}</div>
+                        <div style={{ padding: "14px 16px", borderRadius: 12, background: "var(--color-error-subtle)", textAlign: "center" }}>
+                            <div style={{ fontSize: 28, fontWeight: 900, color: "var(--color-error)" }}>{distratores.length}</div>
                             <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>Distratores</div>
                         </div>
                     </div>
                     <div style={{
                         padding: "10px 14px", borderRadius: 8, fontSize: 12, lineHeight: 1.6,
-                        background: score >= 70 ? "rgba(16,185,129,.05)" : score >= 40 ? "rgba(245,158,11,.05)" : "rgba(239,68,68,.05)",
+                        background: score >= 70 ? "var(--color-success-subtle)" : score >= 40 ? "var(--color-warning-subtle)" : "var(--color-error-subtle)",
                         color: "var(--text-secondary)",
                     }}>
                         {score >= 70
@@ -247,11 +247,11 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                 {/* ── 3. MAPA DE PROFICIÊNCIA POR HABILIDADE ── */}
                 <div style={{
                     borderRadius: 14, padding: "18px 22px", marginBottom: 16,
-                    background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                    background: "var(--bg-secondary)",
+                    border: "1px solid var(--border-default)",
                 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-                        <Target size={16} style={{ color: "#8b5cf6" }} /> Mapa de Proficiência por Habilidade
+                        <Target size={16} style={{ color: "var(--color-accent)" }} /> Mapa de Proficiência por Habilidade
                     </div>
                     {allHabs.length === 0 ? (
                         <div style={{ fontSize: 12, color: "var(--text-muted)", padding: 12, textAlign: "center" }}>
@@ -270,7 +270,7 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                                             </span>
                                             <span style={{ fontSize: 11, fontWeight: 700, color }}>{ok ? "Dominada" : "Em desenvolvimento"}</span>
                                         </div>
-                                        <div style={{ height: 6, borderRadius: 3, background: "var(--bg-primary, rgba(148,163,184,.08))", overflow: "hidden" }}>
+                                        <div style={{ height: 6, borderRadius: 3, background: "var(--bg-primary, var(--color-muted-subtle))", overflow: "hidden" }}>
                                             <div style={{
                                                 width: `${ok ? 100 : 30}%`, height: "100%", borderRadius: 3,
                                                 background: `linear-gradient(90deg, ${color}88, ${color})`,
@@ -288,23 +288,23 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                 {distratores.length > 0 && (
                     <div style={{
                         borderRadius: 14, padding: "18px 22px", marginBottom: 16,
-                        background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                        border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                        background: "var(--bg-secondary)",
+                        border: "1px solid var(--border-default)",
                     }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-                            <AlertTriangle size={16} style={{ color: "#f59e0b" }} /> Análise de Distratores
+                            <AlertTriangle size={16} style={{ color: "var(--color-warning)" }} /> Análise de Distratores
                         </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                             {distratores.map((d: { questao: number; marcada: string; correta: string; habilidade: string }, i: number) => (
                                 <div key={i} style={{
                                     padding: "12px 14px", borderRadius: 10,
-                                    background: "rgba(239,68,68,.04)",
-                                    border: "1px solid rgba(239,68,68,.1)",
+                                    background: "var(--color-error-subtle)",
+                                    border: "1px solid var(--color-error-border)",
                                 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                                        <span style={{ fontWeight: 800, fontSize: 13, color: "#ef4444" }}>Q{d.questao}</span>
+                                        <span style={{ fontWeight: 800, fontSize: 13, color: "var(--color-error)" }}>Q{d.questao}</span>
                                         <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                                            Marcou <strong style={{ color: "#ef4444" }}>{d.marcada}</strong> · Correta: <strong style={{ color: "#10b981" }}>{d.correta}</strong>
+                                            Marcou <strong style={{ color: "var(--color-error)" }}>{d.marcada}</strong> · Correta: <strong style={{ color: "var(--color-success)" }}>{d.correta}</strong>
                                         </span>
                                     </div>
                                     {d.habilidade && (
@@ -324,11 +324,11 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                 {/* ── 5. DOMÍNIO COGNITIVO (BLOOM/SAEB) ── */}
                 <div style={{
                     borderRadius: 14, padding: "18px 22px", marginBottom: 16,
-                    background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                    background: "var(--bg-secondary)",
+                    border: "1px solid var(--border-default)",
                 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-                        <Layers size={16} style={{ color: "#6366f1" }} /> Domínio Cognitivo (SAEB)
+                        <Layers size={16} style={{ color: "var(--color-info)" }} /> Domínio Cognitivo (SAEB)
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                         {(["I", "II", "III"] as const).map(lvl => {
@@ -347,7 +347,7 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                                             {totalLvl > 0 ? `${pctLvl}% (${acertosLvl}/${totalLvl})` : "—"}
                                         </span>
                                     </div>
-                                    <div style={{ height: 8, borderRadius: 4, background: "var(--bg-primary, rgba(148,163,184,.08))", overflow: "hidden" }}>
+                                    <div style={{ height: 8, borderRadius: 4, background: "var(--bg-primary, var(--color-muted-subtle))", overflow: "hidden" }}>
                                         <div style={{
                                             width: `${pctLvl}%`, height: "100%", borderRadius: 4,
                                             background: `linear-gradient(90deg, ${barColor}88, ${barColor})`,
@@ -370,35 +370,35 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                 {/* ── 6. RECOMENDAÇÕES PEDAGÓGICAS ── */}
                 <div style={{
                     borderRadius: 14, padding: "18px 22px", marginBottom: 16,
-                    background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                    background: "var(--bg-secondary)",
+                    border: "1px solid var(--border-default)",
                 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-                        <BookOpen size={16} style={{ color: "#10b981" }} /> Recomendações Pedagógicas
+                        <BookOpen size={16} style={{ color: "var(--color-success)" }} /> Recomendações Pedagógicas
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                         {nivel <= 1 && (
-                            <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(239,68,68,.05)", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                                <strong style={{ color: "#ef4444" }}>🔴 Suporte Intensivo:</strong> Adaptar atividades com apoio visual e material concreto. Reduzir complexidade das tarefas. Utilizar dupla de trabalho com par tutor. Tempo adicional de +50%.
+                            <div style={{ padding: "10px 14px", borderRadius: 8, background: "var(--color-error-subtle)", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                                <strong style={{ color: "var(--color-error)" }}>🔴 Suporte Intensivo:</strong> Adaptar atividades com apoio visual e material concreto. Reduzir complexidade das tarefas. Utilizar dupla de trabalho com par tutor. Tempo adicional de +50%.
                             </div>
                         )}
                         {nivel === 2 && (
-                            <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(59,130,246,.05)", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                                <strong style={{ color: "#3b82f6" }}>🔵 Suporte Moderado:</strong> Manter adaptações com gradual retirada de apoio. Incluir atividades de nível II (aplicação). Rotina de exercícios com feedback imediato.
+                            <div style={{ padding: "10px 14px", borderRadius: 8, background: "var(--color-primary-subtle)", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                                <strong style={{ color: "var(--color-primary)" }}>🔵 Suporte Moderado:</strong> Manter adaptações com gradual retirada de apoio. Incluir atividades de nível II (aplicação). Rotina de exercícios com feedback imediato.
                             </div>
                         )}
                         {nivel >= 3 && (
-                            <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(16,185,129,.05)", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                                <strong style={{ color: "#10b981" }}>🟢 Aprofundamento:</strong> Propor desafios de nível III (análise/criação). Atividades de metacognição e autoavaliação. Estimular participação como par tutor.
+                            <div style={{ padding: "10px 14px", borderRadius: 8, background: "var(--color-success-subtle)", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                                <strong style={{ color: "var(--color-success)" }}>🟢 Aprofundamento:</strong> Propor desafios de nível III (análise/criação). Atividades de metacognição e autoavaliação. Estimular participação como par tutor.
                             </div>
                         )}
                         {habsDev.length > 0 && (
-                            <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(245,158,11,.05)", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                                <strong style={{ color: "#f59e0b" }}>📌 Habilidades para Reforço:</strong> {habsDev.join(", ")}
+                            <div style={{ padding: "10px 14px", borderRadius: 8, background: "var(--color-warning-subtle)", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                                <strong style={{ color: "var(--color-warning)" }}>📌 Habilidades para Reforço:</strong> {habsDev.join(", ")}
                             </div>
                         )}
-                        <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(99,102,241,.05)", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                            <strong style={{ color: "#818cf8" }}>🎯 Recurso Hub:</strong> Gere atividades personalizadas no Hub de Atividades, focando nas habilidades em desenvolvimento identificadas acima.
+                        <div style={{ padding: "10px 14px", borderRadius: 8, background: "var(--color-info-subtle)", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                            <strong style={{ color: "var(--color-info)" }}>🎯 Recurso Hub:</strong> Gere atividades personalizadas no Hub de Atividades, focando nas habilidades em desenvolvimento identificadas acima.
                         </div>
                     </div>
                 </div>
@@ -406,28 +406,28 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                 {/* ── 7. ENCAMINHAMENTOS ── */}
                 <div style={{
                     borderRadius: 14, padding: "18px 22px", marginBottom: 16,
-                    background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                    background: "var(--bg-secondary)",
+                    border: "1px solid var(--border-default)",
                 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-                        <Activity size={16} style={{ color: "#f59e0b" }} /> Encaminhamentos
+                        <Activity size={16} style={{ color: "var(--color-warning)" }} /> Encaminhamentos
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                        <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(139,92,246,.04)", border: "1px solid rgba(139,92,246,.1)" }}>
-                            <div style={{ fontSize: 11, fontWeight: 700, color: "#8b5cf6", marginBottom: 4 }}>Para o AEE</div>
+                        <div style={{ padding: "12px 14px", borderRadius: 10, background: "var(--color-accent-subtle)", border: "1px solid var(--color-accent-border)" }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-accent)", marginBottom: 4 }}>Para o AEE</div>
                             <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
                                 {nivel <= 1 ? "Alertar sobre barreiras identificadas. Revisar PEI com urgência." : "Monitorar evolução nas próximas avaliações processuais."}
                             </div>
                         </div>
-                        <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(37,99,235,.04)", border: "1px solid rgba(37,99,235,.1)" }}>
-                            <div style={{ fontSize: 11, fontWeight: 700, color: "#2563eb", marginBottom: 4 }}>Para o Professor</div>
+                        <div style={{ padding: "12px 14px", borderRadius: 10, background: "var(--color-primary-subtle)", border: "1px solid var(--color-primary-border)" }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-primary-hover)", marginBottom: 4 }}>Para o Professor</div>
                             <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
                                 {habsDev.length > 0 ? `Focar em: ${habsDev.slice(0, 3).join(", ")}` : "Manter estratégias atuais. Avançar para próximo nível cognitivo."}
                             </div>
                         </div>
                     </div>
-                    <div style={{ marginTop: 10, padding: "8px 12px", borderRadius: 8, background: "rgba(16,185,129,.04)", fontSize: 11, color: "var(--text-muted)" }}>
-                        📆 Prazo sugerido para reavaliação: <strong style={{ color: "#10b981" }}>Avaliação Processual do próximo bimestre</strong>
+                    <div style={{ marginTop: 10, padding: "8px 12px", borderRadius: 8, background: "var(--color-success-subtle)", fontSize: 11, color: "var(--text-muted)" }}>
+                        📆 Prazo sugerido para reavaliação: <strong style={{ color: "var(--color-success)" }}>Avaliação Processual do próximo bimestre</strong>
                     </div>
                 </div>
 
@@ -435,10 +435,10 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                 <div style={{
                     display: "flex", alignItems: "center", justifyContent: "space-between",
                     padding: "12px 18px", borderRadius: 12,
-                    background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.15)",
+                    background: "var(--color-success-subtle)", border: "1px solid var(--color-success-border)",
                 }}>
                     <span style={{ fontSize: 12, color: "var(--text-muted)" }}>📊 Acompanhe a evolução ao longo do ano</span>
-                    <a href={`/avaliacao-processual${avalReport?.student_id ? `?student=${avalReport.student_id}` : ""}`} style={{ fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none" }}>Ir para Processual →</a>
+                    <a href={`/avaliacao-processual${avalReport?.student_id ? `?student=${avalReport.student_id}` : ""}`} style={{ fontSize: 12, fontWeight: 700, color: "var(--color-success)", textDecoration: "none" }}>Ir para Processual →</a>
                 </div>
             </div>
         );
@@ -477,13 +477,13 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
         return (
             <div>
                 <button onClick={() => { setActiveAval(null); setRespostas({}); }} style={{
-                    background: "none", border: "none", cursor: "pointer", color: "#3b82f6",
+                    background: "none", border: "none", cursor: "pointer", color: "var(--color-primary)",
                     fontSize: 13, fontWeight: 600, marginBottom: 16, display: "flex", alignItems: "center", gap: 4,
                 }}>← Voltar às avaliações</button>
 
                 <div style={{
                     background: "linear-gradient(135deg, #6366f1, #818cf8)", borderRadius: 14,
-                    padding: "16px 20px", color: "#fff", marginBottom: 20,
+                    padding: "16px 20px", color: "var(--text-inverse)", marginBottom: 20,
                 }}>
                     <div style={{ fontSize: 16, fontWeight: 700 }}>📋 Gabarito — {avalAtiva.disciplina}</div>
                     <div style={{ fontSize: 13, opacity: 0.9 }}>
@@ -506,13 +506,13 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                                     <div key={i} style={{
                                         padding: "12px 14px", borderRadius: 10,
                                         background: respondida
-                                            ? marcada === gabCorreto ? "rgba(16,185,129,.06)" : "rgba(239,68,68,.06)"
-                                            : "var(--bg-secondary, rgba(15,23,42,.3))",
-                                        border: `1px solid ${respondida ? (marcada === gabCorreto ? "rgba(16,185,129,.2)" : "rgba(239,68,68,.2)") : "var(--border-default, rgba(148,163,184,.1))"}`,
+                                            ? marcada === gabCorreto ? "var(--color-success-subtle)" : "var(--color-error-subtle)"
+                                            : "var(--bg-secondary)",
+                                        border: `1px solid ${respondida ? (marcada === gabCorreto ? "var(--color-success-strong)" : "var(--color-error-strong)") : "var(--border-default, var(--color-muted-bg))"}`,
                                     }}>
                                         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                                            <span style={{ fontWeight: 800, fontSize: 13, color: "#818cf8" }}>Q{i + 1}</span>
-                                            {q.habilidade && <span style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, background: "rgba(99,102,241,.1)", color: "#818cf8" }}>{q.habilidade}</span>}
+                                            <span style={{ fontWeight: 800, fontSize: 13, color: "var(--color-info)" }}>Q{i + 1}</span>
+                                            {q.habilidade && <span style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, background: "var(--color-info-bg)", color: "var(--color-info)" }}>{q.habilidade}</span>}
                                             {respondida && (
                                                 <span style={{ marginLeft: "auto", fontSize: 12 }}>
                                                     {marcada === gabCorreto ? "✅" : "❌"}
@@ -533,10 +533,10 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                                                             cursor: "pointer", transition: "all .15s",
                                                             border: isSelected
                                                                 ? `2px solid ${isCorrect ? "#10b981" : "#ef4444"}`
-                                                                : showCorrect ? "2px solid rgba(16,185,129,.4)" : "1px solid var(--border-default, rgba(148,163,184,.12))",
+                                                                : showCorrect ? "2px solid var(--color-success-strong)" : "1px solid var(--border-default)",
                                                             background: isSelected
-                                                                ? isCorrect ? "rgba(16,185,129,.15)" : "rgba(239,68,68,.15)"
-                                                                : showCorrect ? "rgba(16,185,129,.08)" : "transparent",
+                                                                ? isCorrect ? "var(--color-success-border)" : "var(--color-error-border)"
+                                                                : showCorrect ? "var(--color-success-bg)" : "transparent",
                                                             color: isSelected
                                                                 ? isCorrect ? "#10b981" : "#ef4444"
                                                                 : showCorrect ? "#10b981" : "var(--text-muted)",
@@ -557,7 +557,7 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                                 width: "100%", padding: "14px 20px", borderRadius: 12, border: "none",
                                 cursor: analisando || respondidas === 0 ? "not-allowed" : "pointer",
                                 background: analisando || respondidas === 0 ? "#64748b" : "linear-gradient(135deg, #059669, #10b981)",
-                                color: "#fff", fontWeight: 700, fontSize: 14,
+                                color: "var(--text-inverse)", fontWeight: 700, fontSize: 14,
                                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                             }}
                         >
@@ -586,14 +586,14 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                 }} onClick={() => !excluindo && setConfirmDeleteId(null)}>
                     <div onClick={e => e.stopPropagation()} style={{
                         background: "var(--bg-primary, #0f172a)", borderRadius: 16,
-                        border: "1px solid rgba(239,68,68,.25)", padding: "24px 28px",
+                        border: "1px solid var(--color-error-strong)", padding: "24px 28px",
                         maxWidth: 420, width: "90%", boxShadow: "0 25px 50px rgba(0,0,0,.5)",
                     }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
                             <div style={{
                                 width: 40, height: 40, borderRadius: 10, display: "flex",
                                 alignItems: "center", justifyContent: "center",
-                                background: "rgba(239,68,68,.1)", color: "#ef4444",
+                                background: "var(--color-error-bg)", color: "var(--color-error)",
                             }}>
                                 <Trash2 size={20} />
                             </div>
@@ -612,7 +612,7 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                                 disabled={excluindo}
                                 style={{
                                     padding: "10px 20px", borderRadius: 10, cursor: "pointer",
-                                    border: "1px solid var(--border-default, rgba(148,163,184,.15))",
+                                    border: "1px solid var(--border-default, var(--color-muted-border))",
                                     background: "transparent", color: "var(--text-secondary, #cbd5e1)",
                                     fontWeight: 600, fontSize: 13,
                                 }}
@@ -623,7 +623,7 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                                 style={{
                                     padding: "10px 20px", borderRadius: 10, cursor: excluindo ? "not-allowed" : "pointer",
                                     border: "none", background: "linear-gradient(135deg, #dc2626, #ef4444)",
-                                    color: "#fff", fontWeight: 700, fontSize: 13,
+                                    color: "var(--text-inverse)", fontWeight: 700, fontSize: 13,
                                     display: "flex", alignItems: "center", gap: 6, opacity: excluindo ? 0.7 : 1,
                                 }}
                             >
@@ -642,8 +642,8 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                     return (
                         <div key={av.id} style={{
                             padding: "14px 18px", borderRadius: 12,
-                            background: "var(--bg-secondary, rgba(15,23,42,.3))",
-                            border: `1px solid ${isAplicada ? "rgba(16,185,129,.2)" : "var(--border-default, rgba(148,163,184,.1))"}`,
+                            background: "var(--bg-secondary)",
+                            border: `1px solid ${isAplicada ? "var(--color-success-strong)" : "var(--border-default, var(--color-muted-bg))"}`,
                             cursor: "pointer", transition: "all .15s",
                         }}
                             onClick={() => {
@@ -658,7 +658,7 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                 <div style={{
                                     width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-                                    background: isAplicada ? "rgba(16,185,129,.1)" : "rgba(99,102,241,.1)",
+                                    background: isAplicada ? "var(--color-success-bg)" : "var(--color-info-bg)",
                                     color: isAplicada ? "#10b981" : "#818cf8", fontWeight: 700, fontSize: 14,
                                 }}>
                                     {isAplicada ? "✅" : "📝"}
@@ -675,7 +675,7 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                     <span style={{
                                         padding: "3px 10px", borderRadius: 6, fontSize: 10, fontWeight: 700,
-                                        background: isAplicada ? "rgba(16,185,129,.1)" : "rgba(245,158,11,.1)",
+                                        background: isAplicada ? "var(--color-success-bg)" : "var(--color-warning-bg)",
                                         color: isAplicada ? "#10b981" : "#f59e0b",
                                     }}>
                                         {isAplicada ? "Analisada" : "Pendente"}
@@ -686,8 +686,8 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                                         style={{
                                             width: 28, height: 28, borderRadius: 6, border: "none",
                                             display: "flex", alignItems: "center", justifyContent: "center",
-                                            cursor: "pointer", background: "rgba(239,68,68,.08)",
-                                            color: "#ef4444", transition: "all .15s",
+                                            cursor: "pointer", background: "var(--color-error-bg)",
+                                            color: "var(--color-error)", transition: "all .15s",
                                         }}
                                     >
                                         <Trash2 size={13} />
@@ -698,16 +698,16 @@ export function GabaritoRespostasPanel({ alunos }: { alunos: any[] }) {
                             {/* Show analysis summary if available */}
                             {isAplicada && analise && (
                                 <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                                    <div style={{ padding: "6px 10px", borderRadius: 8, background: "rgba(16,185,129,.06)", textAlign: "center" }}>
-                                        <div style={{ fontSize: 18, fontWeight: 800, color: "#10b981" }}>{analise.score}%</div>
+                                    <div style={{ padding: "6px 10px", borderRadius: 8, background: "var(--color-success-subtle)", textAlign: "center" }}>
+                                        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-success)" }}>{analise.score}%</div>
                                         <div style={{ fontSize: 9, color: "var(--text-muted)" }}>Score</div>
                                     </div>
-                                    <div style={{ padding: "6px 10px", borderRadius: 8, background: "rgba(99,102,241,.06)", textAlign: "center" }}>
-                                        <div style={{ fontSize: 18, fontWeight: 800, color: "#818cf8" }}>N{analise.nivel}</div>
+                                    <div style={{ padding: "6px 10px", borderRadius: 8, background: "var(--color-info-subtle)", textAlign: "center" }}>
+                                        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-info)" }}>N{analise.nivel}</div>
                                         <div style={{ fontSize: 9, color: "var(--text-muted)" }}>Nível</div>
                                     </div>
-                                    <div style={{ padding: "6px 10px", borderRadius: 8, background: "rgba(239,68,68,.06)", textAlign: "center" }}>
-                                        <div style={{ fontSize: 18, fontWeight: 800, color: "#ef4444" }}>{analise.distratores?.length || 0}</div>
+                                    <div style={{ padding: "6px 10px", borderRadius: 8, background: "var(--color-error-subtle)", textAlign: "center" }}>
+                                        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-error)" }}>{analise.distratores?.length || 0}</div>
                                         <div style={{ fontSize: 9, color: "var(--text-muted)" }}>Erros</div>
                                     </div>
                                 </div>

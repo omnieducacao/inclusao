@@ -58,7 +58,7 @@ export function MatrizReferenciaPanel() {
             <div>
                 <button onClick={() => { setSelectedArea(null); setSelectedSerie(null); setHabilidades([]); }} style={{
                     display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8,
-                    border: "none", background: "rgba(99,102,241,.08)", color: "#818cf8", cursor: "pointer",
+                    border: "none", background: "var(--color-info-bg)", color: "var(--color-info)", cursor: "pointer",
                     fontSize: 13, fontWeight: 600, marginBottom: 14,
                 }}><ArrowLeft size={14} /> Voltar</button>
 
@@ -77,13 +77,12 @@ export function MatrizReferenciaPanel() {
                         {Object.entries(temas).map(([tema, items]) => (
                             <div key={tema} style={{
                                 borderRadius: 14, overflow: "hidden",
-                                border: "1px solid var(--border-default, rgba(148,163,184,.12))",
-                                background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                                border: "1px solid var(--border-default, var(--color-muted-border))",
+                                background: "var(--bg-secondary)",
                             }}>
                                 <div style={{
                                     padding: "10px 16px", fontWeight: 700, fontSize: 13, color,
-                                    borderBottom: "1px solid var(--border-default, rgba(148,163,184,.08))",
-                                    background: `${color}08`,
+                                    borderBottom: "1px solid var(--border-default)",
                                 }}>
                                     {tema} <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>({items.length})</span>
                                 </div>
@@ -95,7 +94,7 @@ export function MatrizReferenciaPanel() {
                                         return (
                                             <div key={i} style={{
                                                 padding: "12px 16px",
-                                                borderBottom: i < items.length - 1 ? "1px solid var(--border-default, rgba(148,163,184,.06))" : "none",
+                                                borderBottom: i < items.length - 1 ? "1px solid var(--border-default, var(--color-muted-subtle))" : "none",
                                             }}>
                                                 <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
                                                     {code && <span style={{
@@ -138,13 +137,13 @@ export function MatrizReferenciaPanel() {
                     <div key={a.area} style={{
                         borderRadius: 14, overflow: "hidden",
                         border: `1.5px solid ${color}30`,
-                        background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                        background: "var(--bg-secondary)",
                     }}>
                         <div style={{
                             display: "flex", alignItems: "center", justifyContent: "space-between",
                             padding: "14px 18px",
                             background: `${color}08`,
-                            borderBottom: "1px solid var(--border-default, rgba(148,163,184,.08))",
+                            borderBottom: "1px solid var(--border-default)",
                         }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                 <div style={{ width: 10, height: 10, borderRadius: "50%", background: color }} />

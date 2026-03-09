@@ -31,7 +31,7 @@ export function ManualAplicacaoPanel() {
             {/* Step-by-step manual */}
             <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                    <BookMarked size={18} style={{ color: "#3b82f6" }} />
+                    <BookMarked size={18} style={{ color: "var(--color-primary)" }} />
                     <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>Passo a Passo</h3>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -39,9 +39,9 @@ export function ManualAplicacaoPanel() {
                         <div key={step.passo} style={{
                             borderRadius: 12, overflow: "hidden",
                             border: expandedStep === step.passo
-                                ? "1.5px solid rgba(37,99,235,.3)"
-                                : "1px solid var(--border-default, rgba(148,163,184,.1))",
-                            background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                                ? "1.5px solid var(--color-primary-strong)"
+                                : "1px solid var(--border-default, var(--color-muted-bg))",
+                            background: "var(--bg-secondary)",
                         }}>
                             <button
                                 onClick={() => setExpandedStep(expandedStep === step.passo ? null : step.passo)}
@@ -49,7 +49,7 @@ export function ManualAplicacaoPanel() {
                                     display: "flex", alignItems: "center", gap: 10,
                                     width: "100%", padding: "12px 16px",
                                     border: "none", cursor: "pointer",
-                                    background: expandedStep === step.passo ? "rgba(37,99,235,.05)" : "transparent",
+                                    background: expandedStep === step.passo ? "var(--color-primary-subtle)" : "transparent",
                                     justifyContent: "space-between",
                                 }}
                             >
@@ -59,7 +59,7 @@ export function ManualAplicacaoPanel() {
                                         display: "flex", alignItems: "center", justifyContent: "center",
                                         fontSize: 12, fontWeight: 800,
                                         background: "linear-gradient(135deg, #2563eb, #3b82f6)",
-                                        color: "#fff",
+                                        color: "var(--text-inverse)",
                                     }}>{step.passo}</span>
                                     <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>{step.titulo}</span>
                                 </div>
@@ -78,7 +78,7 @@ export function ManualAplicacaoPanel() {
             {/* Escala de Proficiência Omnisfera */}
             <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                    <Target size={18} style={{ color: "#8b5cf6" }} />
+                    <Target size={18} style={{ color: "var(--color-accent)" }} />
                     <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>Escala de Proficiência Omnisfera</h3>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -92,7 +92,7 @@ export function ManualAplicacaoPanel() {
                                 width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
                                 display: "flex", alignItems: "center", justifyContent: "center",
                                 background: `linear-gradient(135deg, ${nivelColors[e.nivel]}, ${nivelColors[e.nivel]}cc)`,
-                                color: "#fff", fontSize: 18, fontWeight: 800,
+                                color: "var(--text-inverse)", fontSize: 18, fontWeight: 800,
                             }}>{e.nivel}</div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ fontWeight: 700, fontSize: 14, color: nivelColors[e.nivel] }}>
@@ -117,17 +117,17 @@ export function ManualAplicacaoPanel() {
             {Object.keys(adaptacoes).length > 0 && (
                 <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                        <Users size={18} style={{ color: "#10b981" }} />
+                        <Users size={18} style={{ color: "var(--color-success)" }} />
                         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>Adaptações por Perfil NEE</h3>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 10 }}>
                         {Object.entries(adaptacoes).map(([perfil, desc]) => (
                             <div key={perfil} style={{
                                 padding: "14px 16px", borderRadius: 12,
-                                border: "1px solid var(--border-default, rgba(148,163,184,.12))",
-                                background: "var(--bg-secondary, rgba(15,23,42,.4))",
+                                border: "1px solid var(--border-default)",
+                                background: "var(--bg-secondary)",
                             }}>
-                                <div style={{ fontWeight: 700, fontSize: 14, color: "#10b981", marginBottom: 6 }}>{perfil}</div>
+                                <div style={{ fontWeight: 700, fontSize: 14, color: "var(--color-success)", marginBottom: 6 }}>{perfil}</div>
                                 <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{desc}</div>
                             </div>
                         ))}

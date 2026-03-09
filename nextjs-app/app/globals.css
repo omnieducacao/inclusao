@@ -100,14 +100,40 @@
   /* ─── Semantic Colors ─── */
   --color-primary: #3b82f6;
   --color-primary-hover: #2563eb;
+
   --color-success: #10b981;
+  --color-success-subtle: rgba(16, 185, 129, 0.05);
   --color-success-bg: rgba(16, 185, 129, 0.1);
+  --color-success-border: rgba(16, 185, 129, 0.15);
+  --color-success-strong: rgba(16, 185, 129, 0.2);
+
   --color-warning: #f59e0b;
+  --color-warning-subtle: rgba(245, 158, 11, 0.05);
   --color-warning-bg: rgba(245, 158, 11, 0.1);
+  --color-warning-border: rgba(245, 158, 11, 0.15);
+  --color-warning-strong: rgba(245, 158, 11, 0.2);
+
   --color-error: #ef4444;
+  --color-error-subtle: rgba(239, 68, 68, 0.05);
   --color-error-bg: rgba(239, 68, 68, 0.1);
+  --color-error-border: rgba(239, 68, 68, 0.15);
+  --color-error-strong: rgba(239, 68, 68, 0.2);
+
   --color-info: #6366f1;
+  --color-info-subtle: rgba(99, 102, 241, 0.05);
   --color-info-bg: rgba(99, 102, 241, 0.1);
+  --color-info-border: rgba(99, 102, 241, 0.15);
+  --color-info-strong: rgba(99, 102, 241, 0.2);
+
+  --color-accent: #a855f7;
+  --color-accent-subtle: rgba(168, 85, 247, 0.05);
+  --color-accent-bg: rgba(168, 85, 247, 0.1);
+  --color-accent-border: rgba(168, 85, 247, 0.15);
+  --color-accent-strong: rgba(168, 85, 247, 0.2);
+
+  --color-muted-bg: rgba(148, 163, 184, 0.08);
+  --color-muted-border: rgba(148, 163, 184, 0.12);
+  --color-muted-strong: rgba(148, 163, 184, 0.15);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -372,14 +398,40 @@ html.cb-tritanopia {
 
   --color-primary: #60a5fa;
   --color-primary-hover: #3b82f6;
+
   --color-success: #34d399;
+  --color-success-subtle: rgba(52, 211, 153, 0.06);
   --color-success-bg: rgba(52, 211, 153, 0.15);
+  --color-success-border: rgba(52, 211, 153, 0.2);
+  --color-success-strong: rgba(52, 211, 153, 0.25);
+
   --color-warning: #fbbf24;
+  --color-warning-subtle: rgba(251, 191, 36, 0.06);
   --color-warning-bg: rgba(251, 191, 36, 0.15);
+  --color-warning-border: rgba(251, 191, 36, 0.2);
+  --color-warning-strong: rgba(251, 191, 36, 0.25);
+
   --color-error: #f87171;
+  --color-error-subtle: rgba(248, 113, 113, 0.06);
   --color-error-bg: rgba(248, 113, 113, 0.15);
+  --color-error-border: rgba(248, 113, 113, 0.2);
+  --color-error-strong: rgba(248, 113, 113, 0.25);
+
   --color-info: #818cf8;
+  --color-info-subtle: rgba(129, 140, 248, 0.06);
   --color-info-bg: rgba(129, 140, 248, 0.15);
+  --color-info-border: rgba(129, 140, 248, 0.2);
+  --color-info-strong: rgba(129, 140, 248, 0.25);
+
+  --color-accent: #c084fc;
+  --color-accent-subtle: rgba(192, 132, 252, 0.06);
+  --color-accent-bg: rgba(192, 132, 252, 0.15);
+  --color-accent-border: rgba(192, 132, 252, 0.2);
+  --color-accent-strong: rgba(192, 132, 252, 0.25);
+
+  --color-muted-bg: rgba(100, 116, 139, 0.1);
+  --color-muted-border: rgba(100, 116, 139, 0.15);
+  --color-muted-strong: rgba(100, 116, 139, 0.2);
 }
 
 /* ─── Notebook Theme (inspired by NotebookLM) ─── */

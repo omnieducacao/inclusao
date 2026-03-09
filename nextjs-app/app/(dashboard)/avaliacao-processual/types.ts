@@ -32,11 +32,11 @@ export const headerS = "flex items-center gap-2 px-4 py-3 border-b border-(--omn
 export const bodyS = "p-4";
 
 export const NIVEL_COLORS: Record<number, { bg: string; border: string; text: string }> = {
-    0: { bg: "rgba(239,68,68,.08)", border: "rgba(239,68,68,.2)", text: "#f87171" },
-    1: { bg: "rgba(245,158,11,.08)", border: "rgba(245,158,11,.2)", text: "#fbbf24" },
-    2: { bg: "rgba(59,130,246,.08)", border: "rgba(59,130,246,.2)", text: "#60a5fa" },
-    3: { bg: "rgba(16,185,129,.08)", border: "rgba(16,185,129,.2)", text: "#34d399" },
-    4: { bg: "rgba(99,102,241,.08)", border: "rgba(99,102,241,.2)", text: "#818cf8" },
+    0: { bg: "var(--color-error-bg)", border: "var(--color-error-strong)", text: "#f87171" },
+    1: { bg: "var(--color-warning-bg)", border: "var(--color-warning-strong)", text: "#fbbf24" },
+    2: { bg: "var(--color-primary-bg)", border: "var(--color-primary-strong)", text: "#60a5fa" },
+    3: { bg: "var(--color-success-bg)", border: "var(--color-success-strong)", text: "var(--color-success)" },
+    4: { bg: "var(--color-info-bg)", border: "var(--color-info-strong)", text: "#818cf8" },
 };
 
 export type TipoPeriodo = "bimestral" | "trimestral" | "semestral";

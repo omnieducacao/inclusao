@@ -36,14 +36,14 @@ interface PlanoExistente {
 // ─── Component Colors ─────────────────────────────────────────────────────────
 
 const COMPONENT_COLORS: Record<string, { bg: string; border: string; text: string; accent: string }> = {
-    "Língua Portuguesa": { bg: "rgba(59,130,246,.08)", border: "rgba(59,130,246,.25)", text: "#60a5fa", accent: "#3b82f6" },
-    "Matemática": { bg: "rgba(245,158,11,.08)", border: "rgba(245,158,11,.25)", text: "#fbbf24", accent: "#f59e0b" },
-    "Ciências": { bg: "rgba(16,185,129,.08)", border: "rgba(16,185,129,.25)", text: "#34d399", accent: "#10b981" },
-    "História": { bg: "rgba(168,85,247,.08)", border: "rgba(168,85,247,.25)", text: "#c084fc", accent: "#a855f7" },
+    "Língua Portuguesa": { bg: "var(--color-primary-bg)", border: "var(--color-primary-strong)", text: "#60a5fa", accent: "#3b82f6" },
+    "Matemática": { bg: "var(--color-warning-bg)", border: "var(--color-warning-strong)", text: "#fbbf24", accent: "#f59e0b" },
+    "Ciências": { bg: "var(--color-success-bg)", border: "var(--color-success-strong)", text: "var(--color-success)", accent: "var(--color-success)" },
+    "História": { bg: "var(--color-accent-bg)", border: "var(--color-accent-strong)", text: "#c084fc", accent: "#a855f7" },
     "Geografia": { bg: "rgba(6,182,212,.08)", border: "rgba(6,182,212,.25)", text: "#22d3ee", accent: "#06b6d4" },
     "Arte": { bg: "rgba(236,72,153,.08)", border: "rgba(236,72,153,.25)", text: "#f472b6", accent: "#ec4899" },
     "Educação Física": { bg: "rgba(249,115,22,.08)", border: "rgba(249,115,22,.25)", text: "#fb923c", accent: "#f97316" },
-    "Língua Inglesa": { bg: "rgba(99,102,241,.08)", border: "rgba(99,102,241,.25)", text: "#818cf8", accent: "#6366f1" },
+    "Língua Inglesa": { bg: "var(--color-info-bg)", border: "var(--color-info-strong)", text: "#818cf8", accent: "#6366f1" },
     "Ensino Religioso": { bg: "rgba(139,92,246,.08)", border: "rgba(139,92,246,.25)", text: "#a78bfa", accent: "#8b5cf6" },
     "Prática Textual": { bg: "rgba(14,165,233,.08)", border: "rgba(14,165,233,.25)", text: "#38bdf8", accent: "#0ea5e9" },
     "Literatura": { bg: "rgba(217,70,239,.08)", border: "rgba(217,70,239,.25)", text: "#e879f9", accent: "#d946ef" },

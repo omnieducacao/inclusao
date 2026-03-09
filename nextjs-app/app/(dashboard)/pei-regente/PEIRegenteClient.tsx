@@ -398,7 +398,7 @@ export function PEIRegenteClient() {
                                         {selectedAluno.bncc_ei_objetivos.map((obj, i) => (
                                             <p key={i} className="text-xs p-2 rounded-lg" style={{
                                                 color: 'var(--text-secondary)',
-                                                background: 'rgba(66,153,225,.04)',
+                                                background: 'var(--color-primary-subtle)',
                                             }}>• {obj}</p>
                                         ))}
                                     </div>
@@ -847,7 +847,7 @@ export function PEIRegenteClient() {
                             whileHover={{ scale: 1.01, y: -2 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setSelectedAluno(aluno)}
-                            className="rounded-xl p-4 cursor-pointer transition-all bg-(--bg-primary) border border-(--border-default) hover:border-emerald-500/40 hover:shadow-[0_2px_12px_rgba(16,185,129,.08)]"
+                            className="rounded-xl p-4 cursor-pointer transition-all bg-(--bg-primary) border border-(--border-default) hover:border-emerald-500/40 hover:shadow-[0_2px_12px_var(--color-success-bg)]"
                         >
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-3">

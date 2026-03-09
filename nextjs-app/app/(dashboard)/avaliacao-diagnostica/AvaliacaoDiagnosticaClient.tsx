@@ -8,9 +8,13 @@ import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 // Extrações lazy (PDF, DOCX e Panels secundários)
 const DocxDownloadButton = dynamic(() => import("@/components/DocxDownloadButton").then(mod => mod.DocxDownloadButton));
 const PdfDownloadButton = dynamic(() => import("@/components/PdfDownloadButton").then(mod => mod.PdfDownloadButton));
-const GabaritoRespostasPanel = dynamic(() => import("./components/GabaritoRespostasPanel").then(mod => mod.GabaritoRespostasPanel));
 const MatrizReferenciaPanel = dynamic(() => import("./components/MatrizReferenciaPanel").then(mod => mod.MatrizReferenciaPanel));
 const ManualAplicacaoPanel = dynamic(() => import("./components/ManualAplicacaoPanel").then(mod => mod.ManualAplicacaoPanel));
+
+// Sub-componentes extraídos do monolito
+import { DiagStudentList } from "./components/DiagStudentList";
+import { DiagOutputsSection } from "./components/DiagOutputsSection";
+import { AccessibleButtonGroup } from "@/components/AccessibleButtonGroup";
 
 import {
     Brain, CheckCircle2, AlertTriangle,
@@ -693,7 +697,7 @@ export default function AvaliacaoDiagnosticaClient({
     if (error) {
         return (
             <div className="omni-p-10">
-                <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#f87171", marginBottom: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--color-error)", marginBottom: 12 }}>
                     <AlertTriangle size={20} /> <span style={{ fontWeight: 600 }}>{error}</span>
                 </div>
                 <button onClick={() => window.location.reload()} style={{
@@ -715,12 +719,12 @@ export default function AvaliacaoDiagnosticaClient({
                 <div style={{
                     display: "flex", alignItems: "center", gap: 10, marginBottom: 20,
                     padding: "12px 16px", borderRadius: 12,
-                    background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                    background: "var(--bg-secondary)",
+                    border: "1px solid var(--border-default)",
                 }}>
                     <button onClick={goBack} style={{
                         display: "flex", alignItems: "center", padding: 6, borderRadius: 8,
-                        border: "none", background: "rgba(99,102,241,.1)", color: "#818cf8", cursor: "pointer",
+                        border: "none", background: "var(--color-info-bg)", color: "var(--color-info)", cursor: "pointer",
                     }}><ArrowLeft size={16} /></button>
                     <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
                         {selectedAluno.name} <span style={{ margin: "0 6px", opacity: .5 }}>›</span>
@@ -731,7 +735,7 @@ export default function AvaliacaoDiagnosticaClient({
                 {/* Header */}
                 <div style={{
                     background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
-                    borderRadius: 14, padding: "20px 24px", color: "#fff", marginBottom: 20,
+                    borderRadius: 14, padding: "20px 24px", color: "var(--text-inverse)", marginBottom: 20,
                 }}>
                     <div className="omni-flex-row omni-gap-2.5 mb-2">
                         <Brain size={22} />
@@ -748,8 +752,8 @@ export default function AvaliacaoDiagnosticaClient({
                 {/* ── Progress Stepper ── */}
                 <div style={{
                     display: "flex", gap: 4, marginBottom: 16, padding: "12px 16px",
-                    borderRadius: 12, background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                    border: "1px solid var(--border-default, rgba(148,163,184,.1))",
+                    borderRadius: 12, background: "var(--bg-secondary)",
+                    border: "1px solid var(--border-default)",
                 }}>
                     {([
                         {
@@ -779,8 +783,8 @@ export default function AvaliacaoDiagnosticaClient({
                     ] as const).map((step, i) => (
                         <div key={i} style={{
                             flex: 1, padding: "10px 12px", borderRadius: 10, textAlign: "center",
-                            background: step.done ? "rgba(16,185,129,.1)" : step.current ? "rgba(59,130,246,.1)" : "transparent",
-                            border: step.done ? "1px solid rgba(16,185,129,.2)" : step.current ? "1px solid rgba(59,130,246,.2)" : "1px solid transparent",
+                            background: step.done ? "var(--color-success-bg)" : step.current ? "var(--color-primary-bg)" : "transparent",
+                            border: step.done ? "1px solid var(--color-success-strong)" : step.current ? "1px solid var(--color-primary-strong)" : "1px solid transparent",
                             opacity: (!step.done && !step.current) ? 0.45 : 1,
                         }}>
                             <div style={{
@@ -801,10 +805,10 @@ export default function AvaliacaoDiagnosticaClient({
                 {Boolean(neeAlert) && (
                     <div style={{
                         padding: "14px 18px", borderRadius: 12,
-                        background: "rgba(245,158,11,.08)", border: "1.5px solid rgba(245,158,11,.25)",
+                        background: "var(--color-warning-bg)", border: "1.5px solid var(--color-warning-strong)",
                         marginBottom: 16, fontSize: 13, lineHeight: 1.6,
                     }}>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: "#f59e0b", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "var(--color-warning)", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                             ⚠️ Orientação para {selectedAluno?.diagnostico || "NEE"}
                         </div>
                         <div className="omni-text-secondary">{neeAlert}</div>
@@ -874,17 +878,17 @@ export default function AvaliacaoDiagnosticaClient({
                                 {barreirasAtivas.length > 0 && (
                                     <div style={{
                                         padding: "12px 16px", borderRadius: 10,
-                                        background: "rgba(239,68,68,.04)", border: "1px solid rgba(239,68,68,.15)",
+                                        background: "var(--color-error-subtle)", border: "1px solid var(--color-error-border)",
                                     }}>
-                                        <div style={{ fontWeight: 700, fontSize: 12, color: "#ef4444", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                        <div style={{ fontWeight: 700, fontSize: 12, color: "var(--color-error)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                                             🚧 Barreiras identificadas no PEI
                                         </div>
                                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                                             {barreirasAtivas.map((b, i) => (
                                                 <span key={i} style={{
                                                     padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
-                                                    background: "rgba(239,68,68,.08)", color: "#dc2626",
-                                                    border: "1px solid rgba(239,68,68,.15)",
+                                                    background: "var(--color-error-bg)", color: "var(--color-error)",
+                                                    border: "1px solid var(--color-error-border)",
                                                 }}>
                                                     {b}
                                                 </span>
@@ -899,8 +903,8 @@ export default function AvaliacaoDiagnosticaClient({
                                 {/* ── Decisão de Imagens ── */}
                                 <div style={{
                                     padding: "12px 16px", borderRadius: 10,
-                                    background: decisaoImagem.necessario ? "rgba(99,102,241,.04)" : "rgba(16,185,129,.04)",
-                                    border: decisaoImagem.necessario ? "1px solid rgba(99,102,241,.15)" : "1px solid rgba(16,185,129,.15)",
+                                    background: decisaoImagem.necessario ? "var(--color-info-subtle)" : "var(--color-success-subtle)",
+                                    border: decisaoImagem.necessario ? "1px solid var(--color-info-border)" : "1px solid var(--color-success-border)",
                                 }}>
                                     <div style={{
                                         fontWeight: 700, fontSize: 12, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px",
@@ -919,8 +923,8 @@ export default function AvaliacaoDiagnosticaClient({
                                     {decisaoImagem.prioridadeVisual === "obrigatoria" && (
                                         <div style={{
                                             marginTop: 8, padding: "6px 10px", borderRadius: 6,
-                                            background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.2)",
-                                            fontSize: 11, fontWeight: 600, color: "#f59e0b",
+                                            background: "var(--color-warning-bg)", border: "1px solid var(--color-warning-strong)",
+                                            fontSize: 11, fontWeight: 600, color: "var(--color-warning)",
                                         }}>
                                             ⚡ Por isso a quantidade de imagens será ajustada automaticamente para {decisaoImagem.prioridadeVisual === "obrigatoria" ? "TODAS as questões" : "questões selecionadas"}.
                                         </div>
@@ -931,9 +935,9 @@ export default function AvaliacaoDiagnosticaClient({
                                 {regrasLinhas.length > 0 && (
                                     <div style={{
                                         padding: "12px 16px", borderRadius: 10,
-                                        background: "rgba(14,165,233,.04)", border: "1px solid rgba(14,165,233,.15)",
+                                        background: "var(--color-primary-subtle)", border: "1px solid var(--color-primary-border)",
                                     }}>
-                                        <div style={{ fontWeight: 700, fontSize: 12, color: "#0ea5e9", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                        <div style={{ fontWeight: 700, fontSize: 12, color: "var(--color-primary)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                                             🤖 O que a IA fará diferente nesta prova
                                         </div>
                                         <ul style={{ margin: 0, paddingLeft: 16, listStyleType: "none" }}>
@@ -942,7 +946,7 @@ export default function AvaliacaoDiagnosticaClient({
                                                     fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.7,
                                                     padding: "2px 0",
                                                 }}>
-                                                    <span style={{ color: "#0ea5e9", fontWeight: 700, marginRight: 6 }}>→</span>
+                                                    <span style={{ color: "var(--color-primary)", fontWeight: 700, marginRight: 6 }}>→</span>
                                                     {regra}
                                                 </li>
                                             ))}
@@ -956,10 +960,10 @@ export default function AvaliacaoDiagnosticaClient({
                 {Boolean(instrucaoDiag) && (
                     <div style={{
                         padding: "14px 18px", borderRadius: 12,
-                        background: "rgba(59,130,246,.06)", border: "1.5px solid rgba(59,130,246,.2)",
+                        background: "var(--color-primary-subtle)", border: "1.5px solid var(--color-primary-strong)",
                         marginBottom: 16, fontSize: 13, lineHeight: 1.6,
                     }}>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: "#3b82f6", marginBottom: 6 }}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "var(--color-primary)", marginBottom: 6 }}>
                             📋 Instrução de Uso
                         </div>
                         <div className="omni-text-secondary">{instrucaoDiag}</div>
@@ -970,22 +974,22 @@ export default function AvaliacaoDiagnosticaClient({
                 {nivelIdentificado !== null && (
                     <div style={{
                         display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
-                        borderRadius: 14, background: "rgba(16,185,129,.08)", border: "1.5px solid rgba(16,185,129,.3)",
+                        borderRadius: 14, background: "var(--color-success-bg)", border: "1.5px solid var(--color-success-strong)",
                         marginBottom: 20,
                     }}>
                         <div style={{
                             width: 52, height: 52, borderRadius: "50%", display: "flex", alignItems: "center",
                             justifyContent: "center", background: "linear-gradient(135deg, #059669, #10b981)",
-                            color: "#fff", fontSize: 22, fontWeight: 800,
+                            color: "var(--text-inverse)", fontSize: 22, fontWeight: 800,
                         }}>{nivelIdentificado}</div>
                         <div>
-                            <div style={{ fontWeight: 700, fontSize: 16, color: "#10b981" }}>
+                            <div style={{ fontWeight: 700, fontSize: 16, color: "var(--color-success)" }}>
                                 Nível Omnisfera: {nivelIdentificado} — {ESCALA_OMNISFERA[nivelIdentificado as NivelOmnisfera]?.label}
                             </div>
-                            <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>
+                            <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>
                                 {ESCALA_OMNISFERA[nivelIdentificado as NivelOmnisfera]?.descricao}
                             </div>
-                            <div style={{ fontSize: 12, color: "#10b981", marginTop: 4, fontWeight: 600 }}>
+                            <div style={{ fontSize: 12, color: "var(--color-success)", marginTop: 4, fontWeight: 600 }}>
                                 ✓ Resultado vinculado ao PEI do estudante
                             </div>
                         </div>
@@ -1006,15 +1010,15 @@ export default function AvaliacaoDiagnosticaClient({
                     <div className="omni-flex-col omni-gap-1">
                         {/* Plano de Ensino vinculado */}
                         {planoVinculado && (
-                            <Card variant="default" style={{ border: "1.5px solid rgba(14,165,233,.3)" }}>
+                            <Card variant="default" style={{ border: "1.5px solid var(--color-primary-strong)" }}>
                                 <button
                                     onClick={() => setShowMatrix(!showMatrix)}
                                     className="flex items-center gap-2 px-4 py-3 w-full cursor-pointer justify-between border-none"
-                                    style={{ background: "rgba(14,165,233,.05)" }}
+                                    style={{ background: "var(--color-primary-subtle)" }}
                                 >
                                     <div className="omni-flex-row omni-gap-2">
-                                        <FileText size={16} style={{ color: "#0ea5e9" }} />
-                                        <span style={{ fontWeight: 700, fontSize: 14, color: "#0ea5e9" }}>
+                                        <FileText size={16} style={{ color: "var(--color-primary)" }} />
+                                        <span style={{ fontWeight: 700, fontSize: 14, color: "var(--color-primary)" }}>
                                             Plano de Curso — {planoVinculado.disciplina}
                                             {planoVinculado.ano_serie && <span style={{ fontWeight: 400, fontSize: 12, marginLeft: 6, opacity: .7 }}>({planoVinculado.ano_serie})</span>}
                                         </span>
@@ -1023,14 +1027,14 @@ export default function AvaliacaoDiagnosticaClient({
                                         <a
                                             href={`/plano-curso?id=${planoVinculado.id}`}
                                             onClick={e => e.stopPropagation()}
-                                            style={{ fontSize: 11, color: "#38bdf8", fontWeight: 600, textDecoration: "none", padding: "4px 10px", borderRadius: 6, background: "rgba(56,189,248,.08)", border: "1px solid rgba(56,189,248,.15)" }}
+                                            style={{ fontSize: 11, color: "var(--color-primary)", fontWeight: 600, textDecoration: "none", padding: "4px 10px", borderRadius: 6, background: "var(--color-primary-bg)", border: "1px solid var(--color-primary-border)" }}
                                         >
                                             ✏️ Editar Plano
                                         </a>
-                                        <span style={{ fontSize: 11, color: "#0ea5e9", fontWeight: 600 }}>
+                                        <span style={{ fontSize: 11, color: "var(--color-primary)", fontWeight: 600 }}>
                                             {showMatrix ? "Ocultar" : "Ver"} Plano
                                         </span>
-                                        {showMatrix ? <ChevronUp size={14} style={{ color: "#0ea5e9" }} /> : <ChevronDown size={14} style={{ color: "#0ea5e9" }} />}
+                                        {showMatrix ? <ChevronUp size={14} style={{ color: "var(--color-primary)" }} /> : <ChevronDown size={14} style={{ color: "var(--color-primary)" }} />}
                                     </div>
                                 </button>
                                 {showMatrix && (
@@ -1038,12 +1042,12 @@ export default function AvaliacaoDiagnosticaClient({
                                         {planoVinculado.habilidades_bncc && planoVinculado.habilidades_bncc.length > 0 && (
                                             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
                                                 {planoVinculado.habilidades_bncc.map((h, i) => (
-                                                    <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 6, background: "rgba(99,102,241,.08)", color: "#818cf8", border: "1px solid rgba(99,102,241,.15)" }}>{h}</span>
+                                                    <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 6, background: "var(--color-info-bg)", color: "var(--color-info)", border: "1px solid var(--color-info-border)" }}>{h}</span>
                                                 ))}
                                             </div>
                                         )}
                                         {blocosPlano.length > 0 && blocosPlano.map((bloco, i) => (
-                                            <div key={i} style={{ padding: "8px 12px", borderRadius: 8, background: "var(--bg-primary, rgba(2,6,23,.2))", border: "1px solid var(--border-default, rgba(148,163,184,.1))", marginBottom: 6 }}>
+                                            <div key={i} style={{ padding: "8px 12px", borderRadius: 8, background: "var(--bg-primary)", border: "1px solid var(--border-default)", marginBottom: 6 }}>
                                                 <div style={{ fontWeight: 700, fontSize: 12, color: "var(--text-primary)" }}>{bloco.titulo || `Bloco ${i + 1}`}</div>
                                             </div>
                                         ))}
@@ -1053,7 +1057,7 @@ export default function AvaliacaoDiagnosticaClient({
                         )}
 
                         {!planoVinculado && (
-                            <div style={{ padding: "12px 16px", borderRadius: 10, background: momentoDiagnostica === "inicio_ano" ? "rgba(99,102,241,.06)" : "rgba(245,158,11,.05)", border: momentoDiagnostica === "inicio_ano" ? "1px solid rgba(99,102,241,.15)" : "1px solid rgba(245,158,11,.15)", display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: momentoDiagnostica === "inicio_ano" ? "#818cf8" : "#fbbf24" }}>
+                            <div style={{ padding: "12px 16px", borderRadius: 10, background: momentoDiagnostica === "inicio_ano" ? "var(--color-info-subtle)" : "var(--color-warning-subtle)", border: momentoDiagnostica === "inicio_ano" ? "1px solid var(--color-info-border)" : "1px solid var(--color-warning-border)", display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: momentoDiagnostica === "inicio_ano" ? "#818cf8" : "#fbbf24" }}>
                                 {momentoDiagnostica === "inicio_ano" ? (
                                     <>
                                         <Layers size={16} /> No início do ano a avaliação usa a <strong>matriz de referência</strong> (habilidades do ano anterior). As habilidades aparecem abaixo.
@@ -1061,15 +1065,15 @@ export default function AvaliacaoDiagnosticaClient({
                                 ) : (
                                     <>
                                         <FileText size={16} /> Nenhum plano de curso encontrado para {selectedDisc} ({selectedAluno?.grade}).
-                                        <a href="/plano-curso" style={{ color: "#38bdf8", fontWeight: 600, textDecoration: "none", marginLeft: "auto" }}>Criar plano →</a>
+                                        <a href="/plano-curso" style={{ color: "var(--color-primary)", fontWeight: 600, textDecoration: "none", marginLeft: "auto" }}>Criar plano →</a>
                                     </>
                                 )}
                             </div>
                         )}
 
                         {/* Habilidades da Matriz BNCC — sempre visível */}
-                        <Card variant="default" style={{ border: "1.5px solid rgba(99,102,241,.2)" }}>
-                            <CardHeader className="flex flex-row items-center justify-between pb-3" style={{ background: "rgba(99,102,241,.05)" }}>
+                        <Card variant="default" style={{ border: "1.5px solid var(--color-info-strong)" }}>
+                            <CardHeader className="flex flex-row items-center justify-between pb-3" style={{ background: "var(--color-info-subtle)" }}>
                                 <CardTitle className="text-sm flex items-center gap-2 m-0 text-indigo-500">
                                     <Layers size={16} />
                                     Habilidades BNCC para Avaliação
@@ -1112,8 +1116,8 @@ export default function AvaliacaoDiagnosticaClient({
                                             }}
                                             style={{
                                                 padding: "8px 18px", borderRadius: 8, fontSize: 12, fontWeight: 700,
-                                                background: "rgba(99,102,241,.1)", color: "#6366f1",
-                                                border: "1px solid rgba(99,102,241,.2)", cursor: "pointer",
+                                                background: "var(--color-info-bg)", color: "var(--color-info)",
+                                                border: "1px solid var(--color-info-strong)", cursor: "pointer",
                                             }}
                                         >
                                             🔄 Carregar Habilidades BNCC
@@ -1122,7 +1126,7 @@ export default function AvaliacaoDiagnosticaClient({
                                 ) : (
                                     <>
                                         {momentoDiagnostica === "decorrer_ano" && planoVinculado?.habilidades_bncc?.length ? (
-                                            <p style={{ fontSize: 11, color: "#0ea5e9", margin: "0 0 10px 0", padding: "6px 10px", borderRadius: 6, background: "rgba(14,165,233,.08)", border: "1px solid rgba(14,165,233,.15)" }}>
+                                            <p style={{ fontSize: 11, color: "var(--color-primary)", margin: "0 0 10px 0", padding: "6px 10px", borderRadius: 6, background: "var(--color-primary-bg)", border: "1px solid var(--color-primary-border)" }}>
                                                 No decorrer do ano com plano vinculado: a geração usará as habilidades do plano de ensino. Abaixo, matriz do ano anterior para referência.
                                             </p>
                                         ) : null}
@@ -1135,8 +1139,8 @@ export default function AvaliacaoDiagnosticaClient({
                                                     <label key={i} style={{
                                                         display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 10px",
                                                         borderRadius: 8, cursor: "pointer",
-                                                        background: selected ? "rgba(99,102,241,.08)" : "transparent",
-                                                        border: selected ? "1px solid rgba(99,102,241,.2)" : "1px solid transparent",
+                                                        background: selected ? "var(--color-info-bg)" : "transparent",
+                                                        border: selected ? "1px solid var(--color-info-strong)" : "1px solid transparent",
                                                         transition: "all .15s",
                                                     }}>
                                                         <input
@@ -1169,11 +1173,11 @@ export default function AvaliacaoDiagnosticaClient({
                                                         />
                                                         <div style={{ flex: 1 }}>
                                                             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                                                                {code && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: "rgba(99,102,241,.1)", color: "#818cf8" }}>{code}</span>}
+                                                                {code && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4, background: "var(--color-info-bg)", color: "var(--color-info)" }}>{code}</span>}
                                                                 <span className="omni-text-xs omni-text-muted">{h.tema}</span>
                                                             </div>
                                                             <div style={{ fontSize: 12, color: "var(--text-primary)", marginTop: 2, lineHeight: 1.4 }}>
-                                                                {h.competencia && <span style={{ fontSize: 10, fontWeight: 600, color: "#a855f7", display: "block", marginBottom: 2 }}>{h.competencia}</span>}
+                                                                {h.competencia && <span style={{ fontSize: 10, fontWeight: 600, color: "var(--color-accent)", display: "block", marginBottom: 2 }}>{h.competencia}</span>}
                                                                 {h.habilidade}
                                                             </div>
                                                             {h.descritor && <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>📝 {h.descritor}</div>}
@@ -1186,8 +1190,8 @@ export default function AvaliacaoDiagnosticaClient({
                                 )}
                             </CardContent>
                             {matrizHabs.length > 0 && (
-                                <div style={{ padding: "8px 16px", borderTop: "1px solid var(--border-default, rgba(148,163,184,.08))", display: "flex", gap: 8 }}>
-                                    <button onClick={() => setHabsSelecionadas(matrizHabs.map(h => h.habilidade))} style={{ fontSize: 11, color: "#818cf8", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>Selecionar todas</button>
+                                <div style={{ padding: "8px 16px", borderTop: "1px solid var(--border-default, var(--color-muted-subtle))", display: "flex", gap: 8 }}>
+                                    <button onClick={() => setHabsSelecionadas(matrizHabs.map(h => h.habilidade))} style={{ fontSize: 11, color: "var(--color-info)", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>Selecionar todas</button>
                                     <button onClick={() => setHabsSelecionadas([])} style={{ fontSize: 11, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>Limpar</button>
                                 </div>
                             )}
@@ -1196,17 +1200,17 @@ export default function AvaliacaoDiagnosticaClient({
                         {/* Painéis de consulta inline: Matriz completa + Manual */}
                         <div className="omni-flex-col omni-gap-2">
                             {/* Matriz Completa — expandível */}
-                            <Card variant="default" style={{ border: "1px solid rgba(99,102,241,.12)" }}>
+                            <Card variant="default" style={{ border: "1px solid var(--color-info-border)" }}>
                                 <button
                                     onClick={() => setShowMatrix(prev => !prev)}
                                     className="flex items-center gap-2 px-4 py-3 w-full cursor-pointer justify-between border-none"
-                                    style={{ background: "rgba(99,102,241,.04)" }}
+                                    style={{ background: "var(--color-info-subtle)" }}
                                 >
                                     <div className="omni-flex-row omni-gap-6">
-                                        <Grid3X3 size={14} style={{ color: "#818cf8" }} />
-                                        <span style={{ fontWeight: 700, fontSize: 13, color: "#818cf8" }}>Matriz de Referência Completa</span>
+                                        <Grid3X3 size={14} style={{ color: "var(--color-info)" }} />
+                                        <span style={{ fontWeight: 700, fontSize: 13, color: "var(--color-info)" }}>Matriz de Referência Completa</span>
                                     </div>
-                                    {showMatrix ? <ChevronUp size={14} style={{ color: "#818cf8" }} /> : <ChevronDown size={14} style={{ color: "#818cf8" }} />}
+                                    {showMatrix ? <ChevronUp size={14} style={{ color: "var(--color-info)" }} /> : <ChevronDown size={14} style={{ color: "var(--color-info)" }} />}
                                 </button>
                                 {showMatrix && (
                                     <CardContent className="p-4" style={{ maxHeight: 400, overflowY: "auto", borderTop: "1px solid var(--omni-border-default)" }}>
@@ -1216,16 +1220,16 @@ export default function AvaliacaoDiagnosticaClient({
                             </Card>
 
                             {/* Manual de Aplicação — expandível */}
-                            <details style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(245,158,11,.12)", background: "var(--bg-secondary, rgba(15,23,42,.4))" }}>
+                            <details style={{ borderRadius: 14, overflow: "hidden", border: "1px solid var(--color-warning-border)", background: "var(--bg-secondary)" }}>
                                 <summary style={{
                                     padding: "12px 16px", cursor: "pointer",
                                     display: "flex", alignItems: "center", gap: 6,
-                                    background: "rgba(245,158,11,.04)",
+                                    background: "var(--color-warning-subtle)",
                                     listStyle: "none",
                                 }}>
-                                    <BookMarked size={14} style={{ color: "#f59e0b" }} />
-                                    <span style={{ fontWeight: 700, fontSize: 13, color: "#f59e0b" }}>Manual de Aplicação</span>
-                                    <ChevronDown size={14} style={{ color: "#f59e0b", marginLeft: "auto" }} />
+                                    <BookMarked size={14} style={{ color: "var(--color-warning)" }} />
+                                    <span style={{ fontWeight: 700, fontSize: 13, color: "var(--color-warning)" }}>Manual de Aplicação</span>
+                                    <ChevronDown size={14} style={{ color: "var(--color-warning)", marginLeft: "auto" }} />
                                 </summary>
                                 <div style={{ maxHeight: 400, overflowY: "auto", padding: "0 16px 16px" }}>
                                     <ManualAplicacaoPanel />
@@ -1235,7 +1239,7 @@ export default function AvaliacaoDiagnosticaClient({
 
                         {/* Configuração da Geração */}
                         <Card variant="premium">
-                            <CardHeader className="pb-2" style={{ background: "rgba(37,99,235,.05)" }}>
+                            <CardHeader className="pb-2" style={{ background: "var(--color-primary-subtle)" }}>
                                 <CardTitle className="text-sm flex items-center gap-2 m-0 text-blue-500">
                                     <Sparkles size={16} />
                                     <span style={{ fontWeight: 700 }}>Configurar Avaliação</span>
@@ -1260,8 +1264,8 @@ export default function AvaliacaoDiagnosticaClient({
                                             <div style={{
                                                 display: "flex", alignItems: "center", gap: 6,
                                                 marginTop: 6, padding: "6px 10px", borderRadius: 6,
-                                                background: "rgba(239,68,68,.06)", border: "1px solid rgba(239,68,68,.15)",
-                                                fontSize: 10, color: "#ef4444", fontWeight: 600,
+                                                background: "var(--color-error-subtle)", border: "1px solid var(--color-error-border)",
+                                                fontSize: 10, color: "var(--color-error)", fontWeight: 600,
                                             }}>
                                                 <AlertTriangle size={12} /> Quantidade insuficiente — mínimo de 8 questões para confiabilidade diagnóstica
                                             </div>
@@ -1270,8 +1274,8 @@ export default function AvaliacaoDiagnosticaClient({
                                             <div style={{
                                                 display: "flex", alignItems: "center", gap: 6,
                                                 marginTop: 6, padding: "6px 10px", borderRadius: 6,
-                                                background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.15)",
-                                                fontSize: 10, color: "#f59e0b", fontWeight: 600,
+                                                background: "var(--color-warning-subtle)", border: "1px solid var(--color-warning-border)",
+                                                fontSize: 10, color: "var(--color-warning)", fontWeight: 600,
                                             }}>
                                                 <AlertTriangle size={12} /> Recomendado mínimo de 10 questões para maior precisão
                                             </div>
@@ -1279,8 +1283,8 @@ export default function AvaliacaoDiagnosticaClient({
                                         {qtdQuestoes >= 10 && qtdQuestoes <= 15 && (
                                             <div style={{
                                                 marginTop: 6, padding: "6px 10px", borderRadius: 6,
-                                                background: "rgba(16,185,129,.04)", border: "1px solid rgba(16,185,129,.12)",
-                                                fontSize: 10, color: "#10b981", fontWeight: 600,
+                                                background: "var(--color-success-subtle)", border: "1px solid var(--color-success-border)",
+                                                fontSize: 10, color: "var(--color-success)", fontWeight: 600,
                                             }}>
                                                 ✅ Quantidade ideal para diagnóstica confiável
                                             </div>
@@ -1288,10 +1292,10 @@ export default function AvaliacaoDiagnosticaClient({
                                         {qtdQuestoes >= 8 && (
                                             <div style={{
                                                 marginTop: 6, padding: "6px 10px", borderRadius: 6,
-                                                background: "rgba(99,102,241,.04)", fontSize: 10,
+                                                background: "var(--color-info-subtle)", fontSize: 10,
                                                 color: "var(--text-muted)", lineHeight: 1.5,
                                             }}>
-                                                📊 Distribuição sugerida: <strong style={{ color: "#10b981" }}>{Math.round(qtdQuestoes * 0.33)} fáceis</strong> · <strong style={{ color: "#3b82f6" }}>{Math.round(qtdQuestoes * 0.42)} médias</strong> · <strong style={{ color: "#8b5cf6" }}>{Math.round(qtdQuestoes * 0.25)} difíceis</strong>
+                                                📊 Distribuição sugerida: <strong style={{ color: "var(--color-success)" }}>{Math.round(qtdQuestoes * 0.33)} fáceis</strong> · <strong style={{ color: "var(--color-primary)" }}>{Math.round(qtdQuestoes * 0.42)} médias</strong> · <strong style={{ color: "var(--color-accent)" }}>{Math.round(qtdQuestoes * 0.25)} difíceis</strong>
                                             </div>
                                         )}
                                     </div>
@@ -1304,8 +1308,8 @@ export default function AvaliacaoDiagnosticaClient({
                                                     onClick={() => setTipoQuestao(t)}
                                                     style={{
                                                         flex: 1, padding: "8px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700,
-                                                        border: tipoQuestao === t ? "1.5px solid #3b82f6" : "1px solid var(--border-default, rgba(148,163,184,.12))",
-                                                        background: tipoQuestao === t ? "rgba(59,130,246,.08)" : "transparent",
+                                                        border: tipoQuestao === t ? "1.5px solid #3b82f6" : "1px solid var(--border-default)",
+                                                        background: tipoQuestao === t ? "var(--color-primary-bg)" : "transparent",
                                                         color: tipoQuestao === t ? "#3b82f6" : "var(--text-muted)",
                                                         cursor: "pointer",
                                                     }}
@@ -1315,7 +1319,7 @@ export default function AvaliacaoDiagnosticaClient({
                                     </div>
                                 </div>
 
-                                <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(37,99,235,.04)", fontSize: 12, color: "#60a5fa", lineHeight: 1.5 }}>
+                                <div style={{ padding: "10px 14px", borderRadius: 10, background: "var(--color-primary-subtle)", fontSize: 12, color: "var(--color-primary)", lineHeight: 1.5 }}>
                                     ✨ <strong>Modo Avançado (INEP/BNI):</strong> A IA gerará itens com texto-base obrigatório, distratores com diagnóstico de erro e dificuldade progressiva (níveis Omnisfera 0→4).
                                     {habsSelecionadas.length > 0 && <> · {habsSelecionadas.length} habilidade(s) da matriz selecionada(s).</>}
                                 </div>
@@ -1330,7 +1334,7 @@ export default function AvaliacaoDiagnosticaClient({
                                                 onClick={() => setEngineSel(eng.id)}
                                                 style={{
                                                     padding: "6px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700,
-                                                    border: engineSel === eng.id ? `2px solid ${eng.color}` : "1px solid var(--border-default, rgba(148,163,184,.12))",
+                                                    border: engineSel === eng.id ? `2px solid ${eng.color}` : "1px solid var(--border-default)",
                                                     background: engineSel === eng.id ? `${eng.color}15` : "transparent",
                                                     color: engineSel === eng.id ? eng.color : "var(--text-muted)",
                                                     cursor: "pointer", transition: "all .15s",
@@ -1352,8 +1356,8 @@ export default function AvaliacaoDiagnosticaClient({
                                         placeholder={habsSelecionadas.length > 0 ? "Opcional — BNCC já selecionada" : "Ex: Frações, Sistema Solar..."}
                                         style={{
                                             width: "100%", padding: "8px 12px", borderRadius: 8,
-                                            border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                                            background: "var(--bg-primary, rgba(2,6,23,.3))",
+                                            border: "1px solid var(--border-default)",
+                                            background: "var(--bg-primary)",
                                             color: "var(--text-primary)", fontSize: 13,
                                         }}
                                     />
@@ -1372,7 +1376,7 @@ export default function AvaliacaoDiagnosticaClient({
                                             }}
                                             style={{ accentColor: "#3b82f6" }}
                                         />
-                                        <Image size={14} style={{ color: "#3b82f6" }} />
+                                        <Image size={14} style={{ color: "var(--color-primary)" }} />
                                         <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>Incluir Imagens</span>
                                     </label>
                                     {usarImagens && (
@@ -1382,7 +1386,7 @@ export default function AvaliacaoDiagnosticaClient({
                                                 onChange={e => setQtdImagens(Number(e.target.value))}
                                                 style={{ flex: 1, accentColor: "#3b82f6" }}
                                             />
-                                            <span style={{ fontSize: 12, fontWeight: 700, color: "#3b82f6" }}>{qtdImagens}</span>
+                                            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-primary)" }}>{qtdImagens}</span>
                                         </div>
                                     )}
                                 </div>
@@ -1395,7 +1399,7 @@ export default function AvaliacaoDiagnosticaClient({
                                 {/* Bloom + Checklist row */}
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                                     {/* Bloom */}
-                                    <details style={{ border: "1px solid var(--border-default, rgba(148,163,184,.12))", borderRadius: 10 }}>
+                                    <details style={{ border: "1px solid var(--border-default)", borderRadius: 10 }}>
                                         <summary style={{ padding: "8px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>
                                             🧠 Taxonomia de Bloom
                                         </summary>
@@ -1427,7 +1431,7 @@ export default function AvaliacaoDiagnosticaClient({
                                     </details>
 
                                     {/* Checklist */}
-                                    <details style={{ border: "1px solid var(--border-default, rgba(148,163,184,.12))", borderRadius: 10 }}>
+                                    <details style={{ border: "1px solid var(--border-default)", borderRadius: 10 }}>
                                         <summary style={{ padding: "8px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>
                                             ♿ Checklist Adaptação
                                         </summary>
@@ -1650,10 +1654,10 @@ export default function AvaliacaoDiagnosticaClient({
                                 }} disabled={gerando} style={{
                                     width: "100%", padding: "16px 24px", borderRadius: 12,
                                     background: gerando ? "#94a3b8" : "linear-gradient(135deg, #6366f1, #818cf8)",
-                                    color: "#fff", border: "none", cursor: gerando ? "wait" : "pointer",
+                                    color: "var(--text-inverse)", border: "none", cursor: gerando ? "wait" : "pointer",
                                     fontWeight: 700, fontSize: 15,
                                     display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                                    boxShadow: "0 4px 20px rgba(99,102,241,.3)",
+                                    boxShadow: "0 4px 20px var(--color-info-strong)",
                                 }}>
                                     {gerando ? <OmniLoader engine={engineSel} size={20} /> : <Sparkles size={20} />}
                                     {gerando
@@ -1669,7 +1673,7 @@ export default function AvaliacaoDiagnosticaClient({
                                             <span>Questão {progressoGeracao.atual} de {progressoGeracao.total}</span>
                                             <span>{Math.round((progressoGeracao.atual / progressoGeracao.total) * 100)}%</span>
                                         </div>
-                                        <div style={{ width: '100%', height: 6, background: 'var(--bg-tertiary, rgba(148,163,184,.12))', borderRadius: 3, overflow: 'hidden' }}>
+                                        <div style={{ width: '100%', height: 6, background: 'var(--bg-tertiary, var(--color-muted-border))', borderRadius: 3, overflow: 'hidden' }}>
                                             <div style={{
                                                 width: `${(progressoGeracao.atual / progressoGeracao.total) * 100}%`,
                                                 height: '100%',
@@ -1697,7 +1701,7 @@ export default function AvaliacaoDiagnosticaClient({
                                     <button onClick={salvarAvaliacao} disabled={salvandoAvaliacao} style={{
                                         padding: "8px 16px", borderRadius: 8, border: "none", cursor: salvandoAvaliacao ? "wait" : "pointer",
                                         background: salvandoAvaliacao ? "#94a3b8" : "linear-gradient(135deg, #059669, #10b981)",
-                                        color: "#fff", fontSize: 13, fontWeight: 700,
+                                        color: "var(--text-inverse)", fontSize: 13, fontWeight: 700,
                                         display: "flex", alignItems: "center", gap: 6,
                                     }}>
                                         {salvandoAvaliacao ? <OmniLoader size={14} /> : <Save size={14} />}
@@ -1706,7 +1710,7 @@ export default function AvaliacaoDiagnosticaClient({
                                     <button onClick={() => { setResultadoFormatado(null); setValidadoFormatado(false); }} style={{
                                         padding: "8px 16px", borderRadius: 8, cursor: "pointer",
                                         background: "transparent", color: "var(--text-muted)",
-                                        border: "1px solid var(--border-default, rgba(148,163,184,.15))", fontSize: 13,
+                                        border: "1px solid var(--border-default)", fontSize: 13,
                                     }}>
                                         🗑️ Descartar
                                     </button>
@@ -1714,14 +1718,14 @@ export default function AvaliacaoDiagnosticaClient({
                             )}
                             {validadoFormatado && (
                                 <div className="omni-flex-col omni-gap-3">
-                                    <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(16,185,129,.08)", border: "1px solid rgba(16,185,129,.2)", color: "#10b981", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                                    <div style={{ padding: "10px 14px", borderRadius: 10, background: "var(--color-success-bg)", border: "1px solid var(--color-success-strong)", color: "var(--color-success)", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
                                         <CheckCircle2 size={14} /> AVALIAÇÃO SALVA — Imprima, aplique e lance as respostas abaixo
                                     </div>
                                     {/* Toggle gabarito */}
                                     <button onClick={() => setShowGabarito(!showGabarito)} style={{
-                                        padding: "12px 18px", borderRadius: 10, border: "2px solid rgba(99,102,241,.2)",
-                                        background: showGabarito ? "rgba(99,102,241,.08)" : "transparent",
-                                        color: "#818cf8", fontSize: 14, fontWeight: 700, cursor: "pointer",
+                                        padding: "12px 18px", borderRadius: 10, border: "2px solid var(--color-info-strong)",
+                                        background: showGabarito ? "var(--color-info-bg)" : "transparent",
+                                        color: "var(--color-info)", fontSize: 14, fontWeight: 700, cursor: "pointer",
                                         display: "flex", alignItems: "center", gap: 8,
                                     }}>
                                         <ClipboardList size={16} />
@@ -1736,10 +1740,10 @@ export default function AvaliacaoDiagnosticaClient({
                                 const totalQ = questoes.length || qtdQuestoes;
                                 return (
                                     <Card variant="default" style={{
-                                        border: "2px solid rgba(99,102,241,.2)",
-                                        background: "rgba(99,102,241,.02)",
+                                        border: "2px solid var(--color-info-strong)",
+                                        background: "var(--color-info-subtle)",
                                     }}>
-                                        <CardHeader className="pb-3" style={{ background: "rgba(99,102,241,.05)" }}>
+                                        <CardHeader className="pb-3" style={{ background: "var(--color-info-subtle)" }}>
                                             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
                                                 <CardTitle className="text-sm flex items-center gap-2 m-0 text-indigo-500">
                                                     <ClipboardList size={16} />
@@ -1761,47 +1765,48 @@ export default function AvaliacaoDiagnosticaClient({
                                                         display: "flex", alignItems: "center", gap: 10,
                                                         padding: "8px 12px", borderRadius: 8,
                                                         background: temAnalise && marcada
-                                                            ? (marcada === gabCorreto ? "rgba(16,185,129,.06)" : "rgba(239,68,68,.06)")
+                                                            ? (marcada === gabCorreto ? "var(--color-success-subtle)" : "var(--color-error-subtle)")
                                                             : "transparent",
                                                         border: temAnalise && marcada
-                                                            ? `1px solid ${marcada === gabCorreto ? "rgba(16,185,129,.2)" : "rgba(239,68,68,.2)"}`
-                                                            : "1px solid var(--border-default, rgba(148,163,184,.1))",
+                                                            ? `1px solid ${marcada === gabCorreto ? "var(--color-success-strong)" : "var(--color-error-strong)"}`
+                                                            : "1px solid var(--border-default)",
                                                     }}>
                                                         <span style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", minWidth: 32 }}>
                                                             Q{i + 1}
                                                         </span>
-                                                        {["A", "B", "C", "D"].map(alt => {
-                                                            const isSelected = marcada === alt;
-                                                            const isCorrect = temAnalise && alt === gabCorreto;
-                                                            const isWrong = temAnalise && isSelected && alt !== gabCorreto;
-                                                            return (
-                                                                <button
-                                                                    key={alt}
-                                                                    onClick={() => {
-                                                                        if (analiseResultado) return; // Locked after analysis
-                                                                        setRespostasAluno(prev => ({ ...prev, [qKey]: alt }));
-                                                                    }}
-                                                                    style={{
-                                                                        width: 36, height: 36, borderRadius: 8,
-                                                                        border: isSelected
-                                                                            ? `2px solid ${isWrong ? "#ef4444" : isCorrect ? "#10b981" : "#818cf8"}`
-                                                                            : isCorrect ? "2px solid #10b981" : "1px solid var(--border-default, rgba(148,163,184,.15))",
-                                                                        background: isSelected
-                                                                            ? (isWrong ? "rgba(239,68,68,.1)" : isCorrect ? "rgba(16,185,129,.1)" : "rgba(99,102,241,.1)")
-                                                                            : isCorrect ? "rgba(16,185,129,.06)" : "transparent",
-                                                                        color: isSelected
-                                                                            ? (isWrong ? "#ef4444" : isCorrect ? "#10b981" : "#818cf8")
-                                                                            : isCorrect ? "#10b981" : "var(--text-secondary, #94a3b8)",
-                                                                        fontWeight: 700, fontSize: 13,
-                                                                        cursor: analiseResultado ? "default" : "pointer",
-                                                                        display: "flex", alignItems: "center", justifyContent: "center",
-                                                                        transition: "all .15s",
-                                                                    }}
-                                                                >
-                                                                    {alt}
-                                                                </button>
-                                                            );
-                                                        })}
+                                                        <AccessibleButtonGroup<string>
+                                                            groupLabel={`Alternativas da questão ${i + 1}`}
+                                                            options={["A", "B", "C", "D"].map(alt => ({ value: alt, label: alt }))}
+                                                            selected={marcada || null}
+                                                            onChange={(alt) => {
+                                                                if (!analiseResultado) {
+                                                                    setRespostasAluno(prev => ({ ...prev, [qKey]: alt }));
+                                                                }
+                                                            }}
+                                                            readOnly={!!analiseResultado}
+                                                            containerStyle={{ display: "flex", gap: 4 }}
+                                                            buttonStyle={(opt, isSelected) => {
+                                                                const alt = opt.value;
+                                                                const isCorrect = temAnalise && alt === gabCorreto;
+                                                                const isWrong = temAnalise && isSelected && alt !== gabCorreto;
+                                                                return {
+                                                                    width: 36, height: 36, borderRadius: 8,
+                                                                    border: isSelected
+                                                                        ? `2px solid ${isWrong ? "#ef4444" : isCorrect ? "#10b981" : "#818cf8"}`
+                                                                        : isCorrect ? "2px solid #10b981" : "1px solid var(--border-default)",
+                                                                    background: isSelected
+                                                                        ? (isWrong ? "var(--color-error-bg)" : isCorrect ? "var(--color-success-bg)" : "var(--color-info-bg)")
+                                                                        : isCorrect ? "var(--color-success-subtle)" : "transparent",
+                                                                    color: isSelected
+                                                                        ? (isWrong ? "#ef4444" : isCorrect ? "#10b981" : "#818cf8")
+                                                                        : isCorrect ? "#10b981" : "var(--text-secondary, #94a3b8)",
+                                                                    fontWeight: 700, fontSize: 13,
+                                                                    cursor: analiseResultado ? "default" : "pointer",
+                                                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                                                    transition: "all .15s",
+                                                                };
+                                                            }}
+                                                        />
                                                         {temAnalise && marcada && (
                                                             <span style={{ fontSize: 12, marginLeft: 4 }}>
                                                                 {marcada === gabCorreto ? "✅" : `❌ (${gabCorreto})`}
@@ -1819,7 +1824,7 @@ export default function AvaliacaoDiagnosticaClient({
                                                     style={{
                                                         width: "100%", padding: "14px 20px", borderRadius: 10,
                                                         background: analisando ? "#94a3b8" : "linear-gradient(135deg, #6366f1, #818cf8)",
-                                                        color: "#fff", border: "none", fontSize: 14, fontWeight: 700,
+                                                        color: "var(--text-inverse)", border: "none", fontSize: 14, fontWeight: 700,
                                                         cursor: analisando ? "wait" : "pointer",
                                                         display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                                                         opacity: Object.keys(respostasAluno).length === 0 ? 0.5 : 1,
@@ -1836,10 +1841,10 @@ export default function AvaliacaoDiagnosticaClient({
                                                     }}>
                                                         <div style={{
                                                             flex: 1, minWidth: 120, padding: "14px 16px", borderRadius: 10,
-                                                            background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.15)",
+                                                            background: "var(--color-info-subtle)", border: "1px solid var(--color-info-border)",
                                                             textAlign: "center",
                                                         }}>
-                                                            <div style={{ fontSize: 28, fontWeight: 800, color: "#818cf8" }}>
+                                                            <div style={{ fontSize: 28, fontWeight: 800, color: "var(--color-info)" }}>
                                                                 {analiseResultado.score}%
                                                             </div>
                                                             <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
@@ -1866,21 +1871,21 @@ export default function AvaliacaoDiagnosticaClient({
 
                                                     {/* Habilidades */}
                                                     {analiseResultado.hab_dominadas?.length > 0 && (
-                                                        <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.15)" }}>
-                                                            <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981" }}>✅ Habilidades Dominadas</span>
+                                                        <div style={{ padding: "10px 14px", borderRadius: 8, background: "var(--color-success-subtle)", border: "1px solid var(--color-success-border)" }}>
+                                                            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--color-success)" }}>✅ Habilidades Dominadas</span>
                                                             <div style={{ marginTop: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
                                                                 {(analiseResultado.hab_dominadas as string[]).map((h: string, i: number) => (
-                                                                    <span key={i} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,.1)", color: "#10b981", fontWeight: 600 }}>{h}</span>
+                                                                    <span key={i} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--color-success-bg)", color: "var(--color-success)", fontWeight: 600 }}>{h}</span>
                                                                 ))}
                                                             </div>
                                                         </div>
                                                     )}
                                                     {analiseResultado.hab_desenvolvimento?.length > 0 && (
-                                                        <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.15)" }}>
-                                                            <span style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b" }}>🔄 Em Desenvolvimento</span>
+                                                        <div style={{ padding: "10px 14px", borderRadius: 8, background: "var(--color-warning-subtle)", border: "1px solid var(--color-warning-border)" }}>
+                                                            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--color-warning)" }}>🔄 Em Desenvolvimento</span>
                                                             <div style={{ marginTop: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
                                                                 {(analiseResultado.hab_desenvolvimento as string[]).map((h: string, i: number) => (
-                                                                    <span key={i} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(245,158,11,.1)", color: "#f59e0b", fontWeight: 600 }}>{h}</span>
+                                                                    <span key={i} style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--color-warning-bg)", color: "var(--color-warning)", fontWeight: 600 }}>{h}</span>
                                                                 ))}
                                                             </div>
                                                         </div>
@@ -1888,12 +1893,12 @@ export default function AvaliacaoDiagnosticaClient({
 
                                                     {/* Distratores */}
                                                     {analiseResultado.distratores?.length > 0 && (
-                                                        <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(239,68,68,.04)", border: "1px solid rgba(239,68,68,.12)" }}>
-                                                            <span style={{ fontSize: 11, fontWeight: 700, color: "#ef4444" }}>🔍 Análise de Distratores</span>
+                                                        <div style={{ padding: "10px 14px", borderRadius: 8, background: "var(--color-error-subtle)", border: "1px solid var(--color-error-border)" }}>
+                                                            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--color-error)" }}>🔍 Análise de Distratores</span>
                                                             <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 4 }}>
                                                                 {(analiseResultado.distratores as { questao: number; marcada: string; correta: string; habilidade: string }[]).map((d, i) => (
                                                                     <div key={i} style={{ fontSize: 11, color: "var(--text-secondary)" }}>
-                                                                        <strong>Q{d.questao}</strong>: marcou <strong style={{ color: "#ef4444" }}>{d.marcada}</strong>, correto era <strong style={{ color: "#10b981" }}>{d.correta}</strong>
+                                                                        <strong>Q{d.questao}</strong>: marcou <strong style={{ color: "var(--color-error)" }}>{d.marcada}</strong>, correto era <strong style={{ color: "var(--color-success)" }}>{d.correta}</strong>
                                                                         {d.habilidade && <span className="omni-text-muted"> — {d.habilidade}</span>}
                                                                     </div>
                                                                 ))}
@@ -1906,23 +1911,23 @@ export default function AvaliacaoDiagnosticaClient({
                                                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                                         const qual = analiseResultado.qualitativo as Record<string, any>;
                                                         const nivelColors: Record<string, { bg: string; border: string; text: string; emoji: string }> = {
-                                                            avancado: { bg: "rgba(16,185,129,.06)", border: "rgba(16,185,129,.2)", text: "#10b981", emoji: "🌟" },
-                                                            adequado: { bg: "rgba(59,130,246,.06)", border: "rgba(59,130,246,.2)", text: "#3b82f6", emoji: "✅" },
-                                                            razoavel: { bg: "rgba(245,158,11,.06)", border: "rgba(245,158,11,.2)", text: "#f59e0b", emoji: "🔄" },
-                                                            em_processo: { bg: "rgba(239,68,68,.06)", border: "rgba(239,68,68,.2)", text: "#ef4444", emoji: "📌" },
+                                                            avancado: { bg: "var(--color-success-subtle)", border: "var(--color-success-strong)", text: "#10b981", emoji: "🌟" },
+                                                            adequado: { bg: "var(--color-primary-subtle)", border: "var(--color-primary-strong)", text: "#3b82f6", emoji: "✅" },
+                                                            razoavel: { bg: "var(--color-warning-subtle)", border: "var(--color-warning-strong)", text: "#f59e0b", emoji: "🔄" },
+                                                            em_processo: { bg: "var(--color-error-subtle)", border: "var(--color-error-strong)", text: "#ef4444", emoji: "📌" },
                                                         };
                                                         const nv = nivelColors[qual.nivel_desempenho] || nivelColors.em_processo;
                                                         const grupoColors: Record<string, { bg: string; border: string; text: string }> = {
-                                                            defasagem: { bg: "rgba(239,68,68,.05)", border: "rgba(239,68,68,.15)", text: "#ef4444" },
-                                                            intermediario: { bg: "rgba(245,158,11,.05)", border: "rgba(245,158,11,.15)", text: "#f59e0b" },
-                                                            avancado: { bg: "rgba(16,185,129,.05)", border: "rgba(16,185,129,.15)", text: "#10b981" },
+                                                            defasagem: { bg: "var(--color-error-subtle)", border: "var(--color-error-border)", text: "#ef4444" },
+                                                            intermediario: { bg: "var(--color-warning-subtle)", border: "var(--color-warning-border)", text: "#f59e0b" },
+                                                            avancado: { bg: "var(--color-success-subtle)", border: "var(--color-success-border)", text: "#10b981" },
                                                         };
                                                         const gc = grupoColors[qual.grupo_sugerido] || grupoColors.intermediario;
 
                                                         return (
                                                             <>
                                                                 {/* Separator */}
-                                                                <div style={{ margin: "8px 0", borderTop: "1px dashed rgba(148,163,184,.15)" }} />
+                                                                <div style={{ margin: "8px 0", borderTop: "1px dashed var(--color-muted-border)" }} />
 
                                                                 {/* Performance Level */}
                                                                 <div style={{
@@ -1957,36 +1962,36 @@ export default function AvaliacaoDiagnosticaClient({
                                                                 {qual.mapa_competencias && (
                                                                     <div style={{
                                                                         padding: "12px 14px", borderRadius: 10,
-                                                                        background: "rgba(99,102,241,.04)", border: "1px solid rgba(99,102,241,.12)",
+                                                                        background: "var(--color-info-subtle)", border: "1px solid var(--color-info-border)",
                                                                     }}>
-                                                                        <span style={{ fontSize: 12, fontWeight: 700, color: "#818cf8" }}>🗺️ Mapa de Competências</span>
+                                                                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-info)" }}>🗺️ Mapa de Competências</span>
                                                                         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
                                                                             {(qual.mapa_competencias.dominadas as string[])?.length > 0 && (
                                                                                 <div>
-                                                                                    <span style={{ fontSize: 10, fontWeight: 600, color: "#10b981" }}>✅ Dominadas:</span>
+                                                                                    <span style={{ fontSize: 10, fontWeight: 600, color: "var(--color-success)" }}>✅ Dominadas:</span>
                                                                                     <div style={{ marginTop: 2, display: "flex", gap: 4, flexWrap: "wrap" }}>
                                                                                         {(qual.mapa_competencias.dominadas as string[]).map((h: string, i: number) => (
-                                                                                            <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(16,185,129,.1)", color: "#10b981", fontWeight: 600 }}>{h}</span>
+                                                                                            <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "var(--color-success-bg)", color: "var(--color-success)", fontWeight: 600 }}>{h}</span>
                                                                                         ))}
                                                                                     </div>
                                                                                 </div>
                                                                             )}
                                                                             {(qual.mapa_competencias.em_desenvolvimento as string[])?.length > 0 && (
                                                                                 <div>
-                                                                                    <span style={{ fontSize: 10, fontWeight: 600, color: "#f59e0b" }}>🔄 Em desenvolvimento:</span>
+                                                                                    <span style={{ fontSize: 10, fontWeight: 600, color: "var(--color-warning)" }}>🔄 Em desenvolvimento:</span>
                                                                                     <div style={{ marginTop: 2, display: "flex", gap: 4, flexWrap: "wrap" }}>
                                                                                         {(qual.mapa_competencias.em_desenvolvimento as string[]).map((h: string, i: number) => (
-                                                                                            <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(245,158,11,.1)", color: "#f59e0b", fontWeight: 600 }}>{h}</span>
+                                                                                            <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "var(--color-warning-bg)", color: "var(--color-warning)", fontWeight: 600 }}>{h}</span>
                                                                                         ))}
                                                                                     </div>
                                                                                 </div>
                                                                             )}
                                                                             {(qual.mapa_competencias.nao_demonstradas as string[])?.length > 0 && (
                                                                                 <div>
-                                                                                    <span style={{ fontSize: 10, fontWeight: 600, color: "#94a3b8" }}>⬜ Não demonstradas:</span>
+                                                                                    <span style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)" }}>⬜ Não demonstradas:</span>
                                                                                     <div style={{ marginTop: 2, display: "flex", gap: 4, flexWrap: "wrap" }}>
                                                                                         {(qual.mapa_competencias.nao_demonstradas as string[]).map((h: string, i: number) => (
-                                                                                            <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(148,163,184,.08)", color: "#94a3b8", fontWeight: 600 }}>{h}</span>
+                                                                                            <span key={i} style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "var(--color-muted-subtle)", color: "var(--text-muted)", fontWeight: 600 }}>{h}</span>
                                                                                         ))}
                                                                                     </div>
                                                                                 </div>
@@ -1999,9 +2004,9 @@ export default function AvaliacaoDiagnosticaClient({
                                                                 {qual.mediacao_sugerida && (
                                                                     <div style={{
                                                                         padding: "12px 14px", borderRadius: 10,
-                                                                        background: "rgba(139,92,246,.04)", border: "1px solid rgba(139,92,246,.12)",
+                                                                        background: "var(--color-accent-subtle)", border: "1px solid var(--color-accent-border)",
                                                                     }}>
-                                                                        <span style={{ fontSize: 12, fontWeight: 700, color: "#8b5cf6" }}>🎯 Mediação Pedagógica (Como chegar lá?)</span>
+                                                                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-accent)" }}>🎯 Mediação Pedagógica (Como chegar lá?)</span>
                                                                         <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: "6px 0 0", lineHeight: 1.6, whiteSpace: "pre-line" }}>
                                                                             {qual.mediacao_sugerida}
                                                                         </p>
@@ -2012,8 +2017,8 @@ export default function AvaliacaoDiagnosticaClient({
                                                                 {qual.aviso_hipotese && (
                                                                     <div style={{
                                                                         padding: "8px 12px", borderRadius: 8,
-                                                                        background: "rgba(245,158,11,.04)", border: "1px solid rgba(245,158,11,.12)",
-                                                                        fontSize: 10, color: "#f59e0b", lineHeight: 1.5,
+                                                                        background: "var(--color-warning-subtle)", border: "1px solid var(--color-warning-border)",
+                                                                        fontSize: 10, color: "var(--color-warning)", lineHeight: 1.5,
                                                                     }}>
                                                                         {qual.aviso_hipotese}
                                                                     </div>
@@ -2033,13 +2038,13 @@ export default function AvaliacaoDiagnosticaClient({
                                 <div style={{
                                     display: "flex", alignItems: "center", justifyContent: "space-between",
                                     padding: "12px 16px", borderRadius: 10,
-                                    background: "rgba(99,102,241,.05)", border: "1px solid rgba(99,102,241,.15)",
+                                    background: "var(--color-info-subtle)", border: "1px solid var(--color-info-border)",
                                 }}>
-                                    <span style={{ fontWeight: 700, fontSize: 14, color: "#818cf8" }}>
+                                    <span style={{ fontWeight: 700, fontSize: 14, color: "var(--color-info)" }}>
                                         📝 Prova Gerada — {questoesIndividuais.length} questões
                                     </span>
                                     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                                        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#818cf8", cursor: "pointer", background: "rgba(99,102,241,.08)", padding: "3px 8px", borderRadius: 6 }}>
+                                        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--color-info)", cursor: "pointer", background: "var(--color-info-bg)", padding: "3px 8px", borderRadius: 6 }}>
                                             <input type="checkbox" checked={formatoInclusivo} onChange={e => setFormatoInclusivo(e.target.checked)} style={{ accentColor: "#6366f1" }} />
                                             ♿ Inclusivo
                                         </label>
@@ -2077,8 +2082,8 @@ export default function AvaliacaoDiagnosticaClient({
                                         <div key={qNum} style={{
                                             borderRadius: 14, overflow: "hidden",
                                             border: isError
-                                                ? "2px solid rgba(239,68,68,.3)"
-                                                : "2px solid var(--border-default, rgba(148,163,184,.1))",
+                                                ? "2px solid var(--color-error-strong)"
+                                                : "2px solid var(--border-default)",
                                             background: "var(--bg-primary, #fff)",
                                             transition: "all .2s ease",
                                         }}>
@@ -2149,7 +2154,7 @@ export default function AvaliacaoDiagnosticaClient({
                                             {/* ── Feedback para Refazer ── */}
                                             {showFeedback && (
                                                 <div className="flex flex-col gap-2 px-4 py-3 bg-amber-500/5 border-b border-amber-500/15">
-                                                    <label style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b" }}>
+                                                    <label style={{ fontSize: 12, fontWeight: 700, color: "var(--color-warning)" }}>
                                                         💬 O que precisa mudar nesta questão?
                                                     </label>
                                                     <textarea
@@ -2269,11 +2274,11 @@ export default function AvaliacaoDiagnosticaClient({
                                             {/* ── Card Body: conteúdo da questão ── */}
                                             <div style={{ padding: "14px 18px" }}>
                                                 {isError ? (
-                                                    <div style={{ color: "#ef4444", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+                                                    <div style={{ color: "var(--color-error)", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
                                                         <AlertTriangle size={14} /> Erro ao gerar: {q._erro}
                                                     </div>
                                                 ) : isRegenerating ? (
-                                                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "20px 0", justifyContent: "center", color: "#818cf8", fontSize: 13 }}>
+                                                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "20px 0", justifyContent: "center", color: "var(--color-info)", fontSize: 13 }}>
                                                         <OmniLoader size={18} /> Regenerando questão {qNum}...
                                                     </div>
                                                 ) : (
@@ -2282,17 +2287,17 @@ export default function AvaliacaoDiagnosticaClient({
                                                         {(habTexto || q._unidadeTematica) && (
                                                             <div style={{
                                                                 padding: "8px 12px", borderRadius: 8,
-                                                                background: "rgba(99,102,241,.03)",
-                                                                border: "1px solid rgba(99,102,241,.08)",
+                                                                background: "var(--color-info-subtle)",
+                                                                border: "1px solid var(--color-info-bg)",
                                                                 fontSize: 11, color: "var(--text-muted)", lineHeight: 1.6,
                                                             }}>
                                                                 {q._unidadeTematica && (
                                                                     <div style={{ display: "flex", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
-                                                                        <span style={{ fontSize: 10, fontWeight: 700, color: "#818cf8", padding: "1px 6px", borderRadius: 4, background: "rgba(99,102,241,.08)" }}>
+                                                                        <span style={{ fontSize: 10, fontWeight: 700, color: "var(--color-info)", padding: "1px 6px", borderRadius: 4, background: "var(--color-info-bg)" }}>
                                                                             {q._unidadeTematica}
                                                                         </span>
                                                                         {q._objetoConhecimento && (
-                                                                            <span style={{ fontSize: 10, color: "#a855f7" }}>
+                                                                            <span style={{ fontSize: 10, color: "var(--color-accent)" }}>
                                                                                 → {q._objetoConhecimento}
                                                                             </span>
                                                                         )}
@@ -2329,7 +2334,7 @@ export default function AvaliacaoDiagnosticaClient({
                                                                     alt={sv?.texto_alternativo || `Imagem Q${qNum}`}
                                                                     style={{
                                                                         maxWidth: "100%", maxHeight: 280, borderRadius: 10,
-                                                                        border: "1px solid var(--border-default, rgba(148,163,184,.15))",
+                                                                        border: "1px solid var(--border-default)",
                                                                         objectFit: "contain",
                                                                     }}
                                                                 />
@@ -2378,7 +2383,7 @@ export default function AvaliacaoDiagnosticaClient({
                             <button onClick={() => { setResultadoFormatado(null); setValidadoFormatado(false); setQuestoesIndividuais([]); }} style={{
                                 padding: "10px 18px", borderRadius: 10,
                                 background: "transparent", color: "var(--text-muted, #94a3b8)",
-                                border: "1px solid var(--border-default, rgba(148,163,184,.15))",
+                                border: "1px solid var(--border-default)",
                                 cursor: "pointer", fontSize: 13, textAlign: "center",
                             }}>
                                 Gerar nova prova
@@ -2392,7 +2397,7 @@ export default function AvaliacaoDiagnosticaClient({
                         <div style={{
                             display: "flex", alignItems: "center", gap: 8,
                             padding: "12px 16px", borderRadius: 10,
-                            background: "rgba(239,68,68,.1)", color: "#f87171", fontSize: 13,
+                            background: "var(--color-error-bg)", color: "var(--color-error)", fontSize: 13,
                             marginBottom: 16,
                         }}>
                             <AlertTriangle size={16} /> {avalError}
@@ -2401,490 +2406,26 @@ export default function AvaliacaoDiagnosticaClient({
                 }
 
 
-                {/* ─── CAMADA B: Cognitivo-Funcional ──────────────────── */}
-                {
-                    nivelIdentificado !== null && dimensoesNEE.length > 0 && (
-                        <Card variant="default" className="mb-5">
-                            <button
-                                onClick={() => setShowCamadaB(!showCamadaB)}
-                                className="flex items-center gap-2 px-4 py-3 w-full cursor-pointer justify-between border-none"
-                                style={{
-                                    background: "rgba(168,85,247,.05)",
-                                }}
-                            >
-                                <div className="omni-flex-row omni-gap-2">
-                                    <Layers size={16} style={{ color: "#a855f7" }} />
-                                    <span style={{ fontWeight: 700, fontSize: 14, color: "#a855f7" }}>
-                                        Camada B — Avaliação Cognitivo-Funcional
-                                    </span>
-                                    <span style={{
-                                        fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
-                                        background: "rgba(168,85,247,.1)", color: "#a855f7",
-                                    }}>{dimensoesNEE.length} dimensões</span>
-                                </div>
-                                {showCamadaB ? <ChevronUp size={14} style={{ color: "#a855f7" }} /> : <ChevronDown size={14} style={{ color: "#a855f7" }} />}
-                            </button>
-                            {showCamadaB && (
-                                <CardContent className="p-4" style={{ borderTop: "1px solid var(--omni-border-default)" }}>
-                                    <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 0, marginBottom: 12 }}>
-                                        Avalie cada dimensão cognitivo-funcional com base na sua observação.
-                                        Específicas para o perfil <strong>{selectedAluno.diagnostico}</strong>.
-                                    </p>
-                                    {dimensoesNEE.map((dim) => {
-                                        const val = dimensoesAvaliadas[dim.id] || { nivel: -1, observacao: "" };
-                                        const nivelColors: Record<number, string> = { 0: "#f87171", 1: "#fbbf24", 2: "#60a5fa", 3: "#34d399", 4: "#818cf8" };
-                                        return (
-                                            <div key={dim.id} style={{
-                                                padding: "14px 16px", borderRadius: 12, marginBottom: 10,
-                                                background: val.nivel >= 0 ? "rgba(168,85,247,.03)" : "var(--bg-primary, rgba(2,6,23,.2))",
-                                                border: val.nivel >= 0 ? "1.5px solid rgba(168,85,247,.15)" : "1px solid var(--border-default, rgba(148,163,184,.1))",
-                                            }}>
-                                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
-                                                    <div style={{ flex: 1 }}>
-                                                        <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 3 }}>{dim.dimensao}</div>
-                                                        <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>👁️ {dim.o_que_o_professor_observa}</div>
-                                                        <div style={{ fontSize: 11, color: "#a855f7", marginTop: 3, fontWeight: 600 }}>💡 {dim.acao_pratica}</div>
-                                                    </div>
-                                                    <div style={{ display: "flex", gap: 3 }}>
-                                                        {[0, 1, 2, 3, 4].map(n => (
-                                                            <button key={n}
-                                                                onClick={() => setDimensoesAvaliadas(prev => ({
-                                                                    ...prev, [dim.id]: { ...prev[dim.id], nivel: n, observacao: prev[dim.id]?.observacao || "" }
-                                                                }))}
-                                                                title={dim.niveis_omnisfera?.[String(n)] || ""}
-                                                                style={{
-                                                                    width: 30, height: 30, borderRadius: 8,
-                                                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                                                    cursor: "pointer", fontSize: 12, fontWeight: 800,
-                                                                    border: val.nivel === n ? `2px solid ${nivelColors[n]}` : "1px solid var(--border-default, rgba(148,163,184,.12))",
-                                                                    background: val.nivel === n ? `${nivelColors[n]}15` : "transparent",
-                                                                    color: val.nivel === n ? nivelColors[n] : "var(--text-muted)",
-                                                                    transition: "all .15s",
-                                                                }}
-                                                            >{n}</button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                {val.nivel >= 0 && (
-                                                    <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, fontStyle: "italic" }}>
-                                                        Nível {val.nivel}: {dim.niveis_omnisfera?.[String(val.nivel)] || ""}
-                                                    </div>
-                                                )}
-                                                <textarea
-                                                    placeholder={dim.perguntas_professor?.[0] || "Observação..."}
-                                                    value={val.observacao}
-                                                    onChange={(e) => setDimensoesAvaliadas(prev => ({
-                                                        ...prev, [dim.id]: { ...prev[dim.id], nivel: prev[dim.id]?.nivel ?? -1, observacao: e.target.value }
-                                                    }))}
-                                                    rows={1}
-                                                    style={{
-                                                        width: "100%", padding: "6px 10px", borderRadius: 8, fontSize: 11,
-                                                        border: "1px solid var(--border-default, rgba(148,163,184,.1))",
-                                                        background: "var(--bg-primary, rgba(2,6,23,.2))",
-                                                        color: "var(--text-primary)", resize: "vertical", fontFamily: "inherit",
-                                                    }}
-                                                />
-                                            </div>
-                                        );
-                                    })}
-                                </CardContent>
-                            )}
-                        </Card>
-                    )
-                }
-
-                {/* ─── Generate V3 Outputs ─────────────────────────────── */}
-                {
-                    nivelIdentificado !== null && (
-                        <div style={{ marginBottom: 20 }}>
-                            {/* Section header */}
-                            <div style={{
-                                display: "flex", alignItems: "center", gap: 8,
-                                marginBottom: 12, paddingBottom: 8,
-                                borderBottom: "1px solid var(--border-default, rgba(148,163,184,.1))",
-                            }}>
-                                <Target size={18} style={{ color: "#a855f7" }} />
-                                <div>
-                                    <span style={{ fontWeight: 800, fontSize: 14, color: "var(--text-primary, #e2e8f0)" }}>
-                                        Relatórios IA (Opcionais)
-                                    </span>
-                                    <p style={{ fontSize: 11, color: "var(--text-muted, #64748b)", margin: "2px 0 0" }}>
-                                        Com o nível Omnisfera identificado, você pode gerar dois relatórios complementares para enriquecer o PEI.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div style={{ display: "flex", gap: 12 }}>
-                                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                                    <button onClick={gerarPerfil} disabled={gerandoPerfil} style={{
-                                        flex: 1, padding: "14px 16px", borderRadius: 12,
-                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                                        cursor: gerandoPerfil ? "not-allowed" : "pointer",
-                                        fontSize: 13, fontWeight: 700, border: "none",
-                                        background: perfilGerado ? "rgba(168,85,247,.1)" : gerandoPerfil ? "var(--bg-tertiary)" : "linear-gradient(135deg, #7c3aed, #a855f7)",
-                                        color: perfilGerado ? "#a855f7" : "#fff",
-                                        boxShadow: perfilGerado ? "none" : "0 4px 16px rgba(168,85,247,.2)",
-                                    }}>
-                                        {gerandoPerfil ? <OmniLoader engine="red" size={16} /> : perfilGerado ? <CheckCircle2 size={16} /> : <Sparkles size={16} />}
-                                        {gerandoPerfil ? "Gerando..." : perfilGerado ? "✅ Perfil gerado — Regenerar" : "Gerar Perfil de Funcionamento"}
-                                    </button>
-                                    <span style={{ fontSize: 10, color: "var(--text-muted)", textAlign: "center" }}>
-                                        Analisa dimensões cognitivo-funcionais do estudante
-                                    </span>
-                                </div>
-
-                                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                                    <button onClick={gerarEstrategias} disabled={gerandoEstrategias} style={{
-                                        flex: 1, padding: "14px 16px", borderRadius: 12,
-                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                                        cursor: gerandoEstrategias ? "not-allowed" : "pointer",
-                                        fontSize: 13, fontWeight: 700, border: "none",
-                                        background: estrategiasGeradas ? "rgba(16,185,129,.1)" : gerandoEstrategias ? "var(--bg-tertiary)" : "linear-gradient(135deg, #059669, #10b981)",
-                                        color: estrategiasGeradas ? "#10b981" : "#fff",
-                                        boxShadow: estrategiasGeradas ? "none" : "0 4px 16px rgba(16,185,129,.2)",
-                                    }}>
-                                        {gerandoEstrategias ? <OmniLoader engine="red" size={16} /> : estrategiasGeradas ? <CheckCircle2 size={16} /> : <Target size={16} />}
-                                        {gerandoEstrategias ? "Gerando..." : estrategiasGeradas ? "✅ Estratégias geradas — Regenerar" : "Gerar Estratégias Práticas"}
-                                    </button>
-                                    <span style={{ fontSize: 10, color: "var(--text-muted)", textAlign: "center" }}>
-                                        Sugere intervenções para dimensões com dificuldade
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                }
-
-                {/* ─── Erro ao gerar perfil ─────────────────────────────── */}
-                {
-                    perfilError && (
-                        <div style={{ padding: 12, marginBottom: 16, borderRadius: 10, background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", color: "#f87171", fontSize: 13 }}>
-                            <strong>Erro:</strong> {perfilError}
-                        </div>
-                    )
-                }
-
-                {/* ─── Perfil de Funcionamento Output ─────────────────── */}
-                {
-                    perfilGerado && (
-                        <Card variant="default" className="mb-5" style={{ border: "1.5px solid rgba(168,85,247,.2)" }}>
-                            <CardHeader className="pb-3" style={{ background: "rgba(168,85,247,.05)" }}>
-                                <CardTitle className="text-sm flex items-center gap-2 m-0 text-fuchsia-500">
-                                    <Sparkles size={16} />
-                                    Perfil de Funcionamento
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-4 pt-4">
-                                {Boolean(perfilGerado.resumo_geral) && (
-                                    <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5, marginTop: 0, marginBottom: 12 }}>
-                                        {String(perfilGerado.resumo_geral)}
-                                    </p>
-                                )}
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-                                    {Array.isArray(perfilGerado.pontos_fortes) && (
-                                        <div style={{ padding: 12, borderRadius: 10, background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.12)" }}>
-                                            <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginBottom: 6 }}>✅ Pontos Fortes</div>
-                                            {(perfilGerado.pontos_fortes as string[]).map((p, i) => (
-                                                <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>• {p}</div>
-                                            ))}
-                                        </div>
-                                    )}
-                                    {Array.isArray(perfilGerado.areas_atencao) && (
-                                        <div style={{ padding: 12, borderRadius: 10, background: "rgba(245,158,11,.05)", border: "1px solid rgba(245,158,11,.12)" }}>
-                                            <div style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b", marginBottom: 6 }}>⚠️ Áreas de Atenção</div>
-                                            {(perfilGerado.areas_atencao as string[]).map((a, i) => (
-                                                <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>• {a}</div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                                {Array.isArray(perfilGerado.recomendacao_prioridade) && (
-                                    <div style={{ padding: 12, borderRadius: 10, background: "rgba(99,102,241,.05)", border: "1px solid rgba(99,102,241,.12)" }}>
-                                        <div style={{ fontSize: 11, fontWeight: 700, color: "#818cf8", marginBottom: 6 }}>🎯 Prioridades</div>
-                                        {(perfilGerado.recomendacao_prioridade as string[]).map((r, i) => (
-                                            <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>{i + 1}. {r}</div>
-                                        ))}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )
-                }
-
-                {/* ─── Estratégias Práticas Output ────────────────────── */}
-                {
-                    estrategiasGeradas && (
-                        <Card variant="default" className="mb-5" style={{ border: "1.5px solid rgba(16,185,129,.2)" }}>
-                            <CardHeader className="pb-3" style={{ background: "rgba(16,185,129,.05)" }}>
-                                <CardTitle className="text-sm flex items-center gap-2 m-0 text-emerald-500">
-                                    <Target size={16} />
-                                    Estratégias Práticas
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-4 pt-4">
-                                {Array.isArray(estrategiasGeradas.estrategias) && (
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
-                                        {(estrategiasGeradas.estrategias as Array<Record<string, string>>).map((est, i) => (
-                                            <div key={i} style={{
-                                                padding: "12px 14px", borderRadius: 10,
-                                                background: est.prioridade === "essencial" ? "rgba(239,68,68,.04)" : "var(--bg-primary, rgba(2,6,23,.2))",
-                                                border: est.prioridade === "essencial" ? "1px solid rgba(239,68,68,.15)" : "1px solid var(--border-default, rgba(148,163,184,.1))",
-                                            }}>
-                                                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                                                    <span style={{
-                                                        fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, textTransform: "uppercase",
-                                                        background: est.prioridade === "essencial" ? "rgba(239,68,68,.1)" : est.prioridade === "recomendada" ? "rgba(245,158,11,.1)" : "rgba(148,163,184,.1)",
-                                                        color: est.prioridade === "essencial" ? "#f87171" : est.prioridade === "recomendada" ? "#fbbf24" : "#94a3b8",
-                                                    }}>{est.prioridade || "sugerida"}</span>
-                                                </div>
-                                                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3 }}>
-                                                    👁️ {est.comportamento_observado}
-                                                </div>
-                                                <div style={{ fontSize: 12, color: "#10b981", fontWeight: 600, marginBottom: 3 }}>
-                                                    ✋ {est.acao_concreta}
-                                                </div>
-                                                {est.quando_usar && (
-                                                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>📍 {est.quando_usar}</div>
-                                                )}
-                                                {est.exemplo_pratico && (
-                                                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4, fontStyle: "italic" }}>
-                                                        💬 Exemplo: {est.exemplo_pratico}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {Array.isArray(estrategiasGeradas.o_que_evitar) && (
-                                    <div style={{ padding: 12, borderRadius: 10, background: "rgba(239,68,68,.04)", border: "1px solid rgba(239,68,68,.12)" }}>
-                                        <div style={{ fontSize: 11, fontWeight: 700, color: "#f87171", marginBottom: 6 }}>🚫 O que evitar</div>
-                                        {(estrategiasGeradas.o_que_evitar as string[]).map((e, i) => (
-                                            <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 3 }}>• {e}</div>
-                                        ))}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )
-                }
-
-                {/* ─── Processual Data Feed ──────────────────────────── */}
-                {
-                    evolucaoProcessual.length > 0 && evolucaoProcessual[0]?.periodos?.length > 0 && (
-                        <Card variant="default" className="mb-5">
-                            <button
-                                onClick={() => setShowProcessual(!showProcessual)}
-                                className="flex items-center gap-2 px-4 py-3 w-full cursor-pointer justify-between border-none"
-                                style={{
-                                    background: "rgba(16,185,129,.05)",
-                                }}
-                            >
-                                <div className="omni-flex-row omni-gap-2">
-                                    <Activity size={16} style={{ color: "#10b981" }} />
-                                    <span style={{ fontWeight: 700, fontSize: 14, color: "#10b981" }}>
-                                        Dados da Avaliação Processual
-                                    </span>
-                                    {evolucaoProcessual[0].tendencia && (
-                                        <span style={{
-                                            fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
-                                            background: evolucaoProcessual[0].tendencia === "melhora" ? "rgba(16,185,129,.1)" : evolucaoProcessual[0].tendencia === "regressao" ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
-                                            color: evolucaoProcessual[0].tendencia === "melhora" ? "#10b981" : evolucaoProcessual[0].tendencia === "regressao" ? "#f87171" : "#94a3b8",
-                                        }}>
-                                            {evolucaoProcessual[0].tendencia === "melhora" ? "↗ Progresso" : evolucaoProcessual[0].tendencia === "regressao" ? "↘ Atenção" : "→ Estável"}
-                                        </span>
-                                    )}
-                                    {evolucaoProcessual[0].media_mais_recente !== null && (
-                                        <span style={{
-                                            fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 6,
-                                            background: "rgba(16,185,129,.08)", color: "#10b981",
-                                        }}>Média: {evolucaoProcessual[0].media_mais_recente}</span>
-                                    )}
-                                </div>
-                                {showProcessual ? <ChevronUp size={14} style={{ color: "#10b981" }} /> : <ChevronDown size={14} style={{ color: "#10b981" }} />}
-                            </button>
-                            {showProcessual && (
-                                <CardContent className="p-4" style={{ borderTop: "1px solid var(--omni-border-default)" }}>
-                                    <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 0, marginBottom: 12 }}>
-                                        Evolução registrada na Avaliação Processual — dados integrados automaticamente.
-                                    </p>
-                                    {evolucaoProcessual.map(evo => (
-                                        <div key={evo.disciplina} style={{ marginBottom: 16 }}>
-                                            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 10 }}>
-                                                {evo.disciplina}
-                                            </div>
-                                            <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 90, padding: "0 4px" }}>
-                                                {evo.periodos.map((p, i) => {
-                                                    const val = p.media_nivel ?? 0;
-                                                    const height = Math.max((val / 4) * 70, 4);
-                                                    const nc = val >= 3 ? "#10b981" : val >= 2 ? "#3b82f6" : val >= 1 ? "#fbbf24" : "#f87171";
-                                                    return (
-                                                        <div key={p.bimestre} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                                                            <span style={{ fontSize: 11, fontWeight: 700, color: nc }}>{val}</span>
-                                                            <div style={{
-                                                                width: "100%", maxWidth: 36, height, borderRadius: 6,
-                                                                background: `linear-gradient(180deg, ${nc}, ${nc}88)`,
-                                                                transition: "height .3s ease",
-                                                            }} />
-                                                            <span style={{ fontSize: 9, color: "var(--text-muted)", textAlign: "center" }}>
-                                                                {p.bimestre}º
-                                                            </span>
-                                                            {i > 0 && evo.periodos[i - 1].media_nivel !== null && p.media_nivel !== null && (
-                                                                <span style={{
-                                                                    fontSize: 8, fontWeight: 700,
-                                                                    color: (p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "#10b981" : (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "#f87171" : "#94a3b8",
-                                                                }}>
-                                                                    {(p.media_nivel ?? 0) > (evo.periodos[i - 1].media_nivel ?? 0) ? "▲" : (p.media_nivel ?? 0) < (evo.periodos[i - 1].media_nivel ?? 0) ? "▼" : "="}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, padding: "0 4px" }}>
-                                                {[0, 1, 2, 3, 4].map(n => (
-                                                    <span key={n} style={{ fontSize: 8, color: "var(--text-muted)", opacity: 0.5 }}>N{n}</span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <a href={`/avaliacao-processual${selectedAluno ? `?student=${selectedAluno.id}` : ""}`} style={{
-                                        display: "inline-flex", alignItems: "center", gap: 6,
-                                        fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none",
-                                        padding: "8px 14px", borderRadius: 8, background: "rgba(16,185,129,.06)",
-                                        border: "1px solid rgba(16,185,129,.15)",
-                                    }}>
-                                        <Activity size={12} /> Ver Avaliação Processual completa →
-                                    </a>
-                                </CardContent>
-                            )}
-                        </Card>
-                    )
-                }
-
-                {/* ─── Diagnóstica vs Processual Comparison ─────────── */}
-                {
-                    nivelIdentificado !== null && evolucaoProcessual.length > 0 && evolucaoProcessual[0]?.media_mais_recente !== null && (
-                        (() => {
-                            const diagLevel = nivelIdentificado;
-                            const procLevel = evolucaoProcessual[0].media_mais_recente ?? 0;
-                            const delta = procLevel - diagLevel;
-                            const diagPct = Math.max((diagLevel / 4) * 100, 5);
-                            const procPct = Math.max((procLevel / 4) * 100, 5);
-                            const diagColor = diagLevel >= 3 ? "#10b981" : diagLevel >= 2 ? "#3b82f6" : diagLevel >= 1 ? "#fbbf24" : "#f87171";
-                            const procColor = procLevel >= 3 ? "#10b981" : procLevel >= 2 ? "#3b82f6" : procLevel >= 1 ? "#fbbf24" : "#f87171";
-                            return (
-                                <Card variant="default" className="mb-5" style={{
-                                    border: `1.5px solid ${delta > 0 ? "rgba(16,185,129,.2)" : delta < 0 ? "rgba(239,68,68,.15)" : "rgba(148,163,184,.12)"}`,
-                                }}>
-                                    <CardHeader className="pb-3" style={{
-                                        background: delta > 0 ? "rgba(16,185,129,.03)" : delta < 0 ? "rgba(239,68,68,.03)" : "rgba(148,163,184,.03)",
-                                    }}>
-                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-                                            <CardTitle className="text-sm flex items-center gap-2 m-0 text-(--text-primary)">
-                                                <TrendingUp size={16} style={{ color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8" }} />
-                                                Diagnóstica vs Processual
-                                            </CardTitle>
-                                            <span style={{
-                                                fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 6,
-                                                background: delta > 0 ? "rgba(16,185,129,.1)" : delta < 0 ? "rgba(239,68,68,.1)" : "rgba(148,163,184,.1)",
-                                                color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8",
-                                            }}>
-                                                {delta > 0 ? `↗ +${delta.toFixed(1)}` : delta < 0 ? `↘ ${delta.toFixed(1)}` : "→ 0"}
-                                            </span>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="p-4 pt-4">
-                                        <div style={{ display: "flex", gap: 24, alignItems: "flex-end" }}>
-                                            {/* Diagnostic bar */}
-                                            <div style={{ flex: 1, textAlign: "center" }}>
-                                                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>Diagnóstica Inicial</div>
-                                                <div style={{ fontSize: 28, fontWeight: 800, color: diagColor, lineHeight: 1 }}>{diagLevel}</div>
-                                                <div style={{
-                                                    height: 8, borderRadius: 4, marginTop: 8,
-                                                    background: "var(--bg-primary, rgba(148,163,184,.08))",
-                                                    overflow: "hidden",
-                                                }}>
-                                                    <div style={{
-                                                        width: `${diagPct}%`, height: "100%", borderRadius: 4,
-                                                        background: `linear-gradient(90deg, ${diagColor}88, ${diagColor})`,
-                                                        transition: "width .5s ease",
-                                                    }} />
-                                                </div>
-                                                <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>
-                                                    {ESCALA_OMNISFERA[diagLevel as 0 | 1 | 2 | 3 | 4]?.label || ""}
-                                                </div>
-                                            </div>
-
-                                            {/* Arrow */}
-                                            <div style={{
-                                                display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-                                                padding: "0 8px",
-                                            }}>
-                                                <div style={{
-                                                    fontSize: 20,
-                                                    color: delta > 0 ? "#10b981" : delta < 0 ? "#f87171" : "#94a3b8",
-                                                }}>
-                                                    {delta > 0 ? "▶" : delta < 0 ? "◀" : "▬"}
-                                                </div>
-                                            </div>
-
-                                            {/* Processual bar */}
-                                            <div style={{ flex: 1, textAlign: "center" }}>
-                                                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>Processual Atual</div>
-                                                <div style={{ fontSize: 28, fontWeight: 800, color: procColor, lineHeight: 1 }}>{procLevel}</div>
-                                                <div style={{
-                                                    height: 8, borderRadius: 4, marginTop: 8,
-                                                    background: "var(--bg-primary, rgba(148,163,184,.08))",
-                                                    overflow: "hidden",
-                                                }}>
-                                                    <div style={{
-                                                        width: `${procPct}%`, height: "100%", borderRadius: 4,
-                                                        background: `linear-gradient(90deg, ${procColor}88, ${procColor})`,
-                                                        transition: "width .5s ease",
-                                                    }} />
-                                                </div>
-                                                <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>
-                                                    Média mais recente
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div style={{
-                                            marginTop: 12, padding: "8px 12px", borderRadius: 8, fontSize: 12,
-                                            background: delta > 0 ? "rgba(16,185,129,.04)" : delta < 0 ? "rgba(239,68,68,.04)" : "rgba(148,163,184,.04)",
-                                            color: "var(--text-secondary)",
-                                        }}>
-                                            {delta > 0 ?
-                                                `O estudante evoluiu ${delta.toFixed(1)} pontos desde a avaliação diagnóstica inicial. Continue com as estratégias atuais.` :
-                                                delta < 0 ?
-                                                    `O estudante apresentou queda de ${Math.abs(delta).toFixed(1)} pontos. Considere revisar o PEI e as estratégias de intervenção.` :
-                                                    "O estudante mantém o mesmo nível da avaliação diagnóstica. Avalie se novas estratégias podem impulsionar a evolução."
-                                            }
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })()
-                    )
-                }
-
-                {/* No processual data - show link */}
-                {
-                    evolucaoProcessual.length === 0 && nivelIdentificado !== null && (
-                        <div style={{
-                            display: "flex", alignItems: "center", justifyContent: "space-between",
-                            padding: "10px 16px", borderRadius: 10, marginBottom: 20,
-                            background: "rgba(16,185,129,.04)", border: "1px solid rgba(16,185,129,.12)",
-                        }}>
-                            <span className="omni-text-sm omni-text-muted">
-                                📊 Acompanhe a evolução deste estudante ao longo do ano
-                            </span>
-                            <a href={`/avaliacao-processual${selectedAluno ? `?student=${selectedAluno.id}` : ""}`} style={{
-                                fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none",
-                            }}>Ir para Processual →</a>
-                        </div>
-                    )
-                }
+                {/* ─── Outputs: Camada B + Perfil + Estratégias + Processual ─── */}
+                <DiagOutputsSection
+                    selectedAluno={selectedAluno}
+                    nivelIdentificado={nivelIdentificado}
+                    dimensoesNEE={dimensoesNEE}
+                    showCamadaB={showCamadaB}
+                    setShowCamadaB={setShowCamadaB}
+                    dimensoesAvaliadas={dimensoesAvaliadas}
+                    setDimensoesAvaliadas={setDimensoesAvaliadas}
+                    gerarPerfil={gerarPerfil}
+                    gerandoPerfil={gerandoPerfil}
+                    perfilGerado={perfilGerado}
+                    perfilError={perfilError}
+                    gerarEstrategias={gerarEstrategias}
+                    gerandoEstrategias={gerandoEstrategias}
+                    estrategiasGeradas={estrategiasGeradas}
+                    evolucaoProcessual={evolucaoProcessual}
+                    showProcessual={showProcessual}
+                    setShowProcessual={setShowProcessual}
+                />
             </div >
         );
     }
@@ -2892,301 +2433,17 @@ export default function AvaliacaoDiagnosticaClient({
     // ─── Student List ───────────────────────────────────────────────────
 
     return (
-        <div>
-            {/* Onboarding Panel */}
-            {showOnboarding && (
-                <OnboardingPanel
-                    moduleKey="diagnostica"
-                    moduleTitle="Bem-vindo à Avaliação Diagnóstica"
-                    moduleSubtitle="Identifique o nível de cada estudante com questões adaptadas por IA"
-                    accentColor="#2563eb"
-                    accentColorLight="#3b82f6"
-                    steps={[
-                        { icon: <Users size={22} />, title: "Selecionar", description: "Estudante + disciplina + habilidades" },
-                        { icon: <Sparkles size={22} />, title: "Gerar", description: "Questões adaptadas via IA" },
-                        { icon: <ClipboardList size={22} />, title: "Aplicar", description: "Registrar respostas no gabarito" },
-                        { icon: <BarChart3 size={22} />, title: "Relatório", description: "Ver análise e nível Omnisfera" },
-                    ]}
-                    onStart={() => setShowOnboarding(false)}
-                />
-            )}
-
-            {/* Page header — unified PageHero */}
-            <PageHero
-                route="/avaliacao-diagnostica"
-                title="Avaliação Diagnóstica"
-                desc={`${professorName} · ${alunos.length} estudante${alunos.length !== 1 ? "s" : ""}`}
-            />
-
-            {/* Cross-link to Processual */}
-            <div style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "10px 16px", borderRadius: 10, marginBottom: 20,
-                background: "rgba(16,185,129,.05)", border: "1px solid rgba(16,185,129,.15)",
-            }}>
-                <span className="omni-text-sm omni-text-muted">
-                    📊 Já fez a diagnóstica? Registre a evolução bimestral.
-                </span>
-                <a href="/avaliacao-processual" style={{
-                    fontSize: 12, fontWeight: 700, color: "#10b981", textDecoration: "none",
-                }}>Ir para Processual →</a>
-            </div>
-
-            {/* ── Stepper: Jornada do Professor ── */}
-            <div style={{
-                display: "flex", alignItems: "center", gap: 0, marginBottom: 16,
-                padding: "14px 20px", borderRadius: 12,
-                background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                border: "1px solid var(--border-default, rgba(148,163,184,.1))",
-            }}>
-                {[
-                    { num: 1, label: "Selecionar", sub: "Estudante + disciplina", color: "#3b82f6" },
-                    { num: 2, label: "Gerar", sub: "Questões via IA", color: "#8b5cf6" },
-                    { num: 3, label: "Aplicar", sub: "Registrar respostas", color: "#f59e0b" },
-                    { num: 4, label: "Relatório", sub: "Ver análise completa", color: "#10b981" },
-                ].map((step, i) => (
-                    <React.Fragment key={step.num}>
-                        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
-                            <div style={{
-                                width: 28, height: 28, borderRadius: "50%",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 12, fontWeight: 800,
-                                background: `${step.color}18`, color: step.color,
-                                border: `1.5px solid ${step.color}40`,
-                            }}>{step.num}</div>
-                            <div>
-                                <div style={{ fontSize: 11, fontWeight: 700, color: step.color }}>{step.label}</div>
-                                <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{step.sub}</div>
-                            </div>
-                        </div>
-                        {i < 3 && (
-                            <div style={{ width: 24, height: 2, background: "var(--border-default, rgba(148,163,184,.15))", flexShrink: 0 }} />
-                        )}
-                    </React.Fragment>
-                ))}
-            </div>
-
-            {/* AEE Alert for low-level students */}
-            {alunos.filter(a => {
-                const discs = a.disciplinas || [];
-                return discs.some((d: { nivel_omnisfera?: number | null }) => d.nivel_omnisfera !== null && d.nivel_omnisfera !== undefined && d.nivel_omnisfera < 2);
-            }).length > 0 && (
-                    <div style={{
-                        display: "flex", alignItems: "center", gap: 10, padding: "10px 16px",
-                        borderRadius: 10, marginBottom: 16,
-                        background: "rgba(239,68,68,.05)", border: "1px solid rgba(239,68,68,.15)",
-                    }}>
-                        <span style={{ fontSize: 16 }}>🚨</span>
-                        <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: "#ef4444" }}>Atenção AEE</div>
-                            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                                {alunos.filter(a => (a.disciplinas || []).some((d: { nivel_omnisfera?: number | null }) => d.nivel_omnisfera !== null && d.nivel_omnisfera !== undefined && d.nivel_omnisfera < 2)).length} estudante(s)
-                                com nível Omnisfera {'<'} 2. Considere revisar o PEI e estratégias de suporte.
-                            </div>
-                        </div>
-                        <a href="/pei" style={{
-                            fontSize: 11, fontWeight: 700, color: "#ef4444", textDecoration: "none",
-                            padding: "4px 10px", borderRadius: 6,
-                            background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.15)",
-                        }}>Revisar PEI →</a>
-                    </div>
-                )}
-
-            {/* ── Tab Bar ── */}
-            <div style={{
-                display: "flex", gap: 4, padding: 4, borderRadius: 12,
-                background: "var(--bg-secondary, rgba(15,23,42,.4))",
-                border: "1px solid var(--border-default, rgba(148,163,184,.1))",
-                marginBottom: 20,
-            }}>
-                {([
-                    { key: "estudantes" as const, label: "Estudantes", icon: <Users size={14} /> },
-                    { key: "gabarito" as const, label: "Respostas", icon: <ClipboardList size={14} />, badge: pendingCount },
-                    { key: "matriz" as const, label: "Matriz de Referência", icon: <Grid3X3 size={14} /> },
-                    { key: "manual" as const, label: "Manual de Aplicação", icon: <BookMarked size={14} /> },
-                ]).map(tab => (
-                    <button
-                        key={tab.key}
-                        onClick={() => setActiveTab(tab.key)}
-                        style={{
-                            flex: 1, padding: "10px 14px", borderRadius: 10,
-                            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                            cursor: "pointer", fontSize: 13, fontWeight: 700,
-                            border: "none", position: "relative",
-                            background: activeTab === tab.key ? "linear-gradient(135deg, #2563eb, #3b82f6)" : "transparent",
-                            color: activeTab === tab.key ? "#fff" : "var(--text-muted, #94a3b8)",
-                            transition: "all .2s",
-                        }}
-                    >
-                        {tab.icon} {tab.label}
-                        {'badge' in tab && (tab as { badge?: number }).badge != null && (tab as { badge?: number }).badge! > 0 && (
-                            <span style={{
-                                position: "absolute", top: 4, right: 8,
-                                width: 18, height: 18, borderRadius: "50%",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 10, fontWeight: 800,
-                                background: "#ef4444", color: "#fff",
-                            }}>{(tab as { badge?: number }).badge}</span>
-                        )}
-                    </button>
-                ))}
-            </div>
-
-            {/* ── Tab: Matriz de Referência ── */}
-            {activeTab === "matriz" && <MatrizReferenciaPanel />}
-
-            {/* ── Tab: Manual de Aplicação ── */}
-            {activeTab === "manual" && <ManualAplicacaoPanel />}
-
-            {/* ── Tab: Gabarito / Respostas ── */}
-            {activeTab === "gabarito" && <GabaritoRespostasPanel alunos={alunos} />}
-
-            {/* ── Tab: Estudantes ── */}
-            {activeTab === "estudantes" && (
-                <>
-                    {/* Seletor de momento — início do fluxo */}
-                    <Card variant="default" className="mb-4" style={{ border: "1px solid rgba(99,102,241,.2)" }}>
-                        <CardHeader className="pb-3" style={{ background: "rgba(99,102,241,.04)" }}>
-                            <CardTitle className="text-sm flex items-center gap-2 m-0 text-indigo-500">
-                                <Calendar size={16} /> Momento da avaliação
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex flex-col gap-2.5 p-4">
-                            <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>
-                                A avaliação diagnóstica verifica habilidades do <strong>ano anterior</strong>. No início do ano use a matriz de referência; no decorrer do ano você pode usar o plano de ensino que criou.
-                            </p>
-                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                <label style={{
-                                    flex: 1, minWidth: 200, padding: "12px 14px", borderRadius: 10, cursor: "pointer",
-                                    border: momentoDiagnostica === "inicio_ano" ? "2px solid #818cf8" : "1px solid var(--border-default)",
-                                    background: momentoDiagnostica === "inicio_ano" ? "rgba(99,102,241,.1)" : "transparent",
-                                    display: "flex", alignItems: "flex-start", gap: 8,
-                                }}>
-                                    <input type="radio" name="momento" checked={momentoDiagnostica === "inicio_ano"} onChange={() => setMomentoDiagnostica("inicio_ano")} style={{ marginTop: 2, accentColor: "#818cf8" }} />
-                                    <div>
-                                        <span style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)" }}>Início do ano letivo</span>
-                                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Matriz de referência Omnisfera (habilidades do ano anterior)</div>
-                                    </div>
-                                </label>
-                                <label style={{
-                                    flex: 1, minWidth: 200, padding: "12px 14px", borderRadius: 10, cursor: "pointer",
-                                    border: momentoDiagnostica === "decorrer_ano" ? "2px solid #0ea5e9" : "1px solid var(--border-default)",
-                                    background: momentoDiagnostica === "decorrer_ano" ? "rgba(14,165,233,.1)" : "transparent",
-                                    display: "flex", alignItems: "flex-start", gap: 8,
-                                }}>
-                                    <input type="radio" name="momento" checked={momentoDiagnostica === "decorrer_ano"} onChange={() => setMomentoDiagnostica("decorrer_ano")} style={{ marginTop: 2, accentColor: "#0ea5e9" }} />
-                                    <div>
-                                        <span style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)" }}>No decorrer do ano letivo</span>
-                                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Usar plano de ensino do professor (se houver)</div>
-                                    </div>
-                                </label>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Empty state */}
-                    {alunos.length === 0 && (
-                        <Card variant="default" className="text-center px-5 py-10 border-dashed">
-                            <Users size={48} style={{ margin: "0 auto 12px", color: "var(--text-muted)", opacity: 0.3 }} />
-                            <h3 style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
-                                Nenhum estudante encontrado
-                            </h3>
-                            <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>
-                                Estudantes em Fase 2 do PEI aparecerão aqui.
-                            </p>
-                        </Card>
-                    )}
-
-                    {/* Student cards */}
-                    <div className="omni-flex-col omni-gap-3">
-                        {alunos.map(aluno => {
-                            const totalDisc = aluno.disciplinas.length;
-                            const avaliadasCompletas = aluno.disciplinas.filter(d => d.avaliacao_status === "aplicada").length;
-
-                            return (
-                                <Card variant="default" key={aluno.id} className="mb-0 overflow-hidden">
-                                    <div className="p-4 py-3 flex items-center justify-between border-b border-(--omni-border-default) bg-(--omni-surface-elevated)">
-                                        <div className="omni-flex-row omni-gap-10">
-                                            <div style={{
-                                                width: 36, height: 36, borderRadius: "50%", display: "flex",
-                                                alignItems: "center", justifyContent: "center",
-                                                background: "linear-gradient(135deg, #3b82f6, #6366f1)",
-                                                color: "#fff", fontSize: 12, fontWeight: 800,
-                                            }}>
-                                                {aluno.name.split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary, #e2e8f0)" }}>
-                                                    {aluno.name}
-                                                </div>
-                                                <div style={{ fontSize: 12, color: "var(--text-muted, #94a3b8)" }}>
-                                                    {aluno.grade} {aluno.class_group && `— ${aluno.class_group}`}
-                                                    {aluno.diagnostico && ` · ${aluno.diagnostico}`}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div style={{ textAlign: "right" }}>
-                                            <span style={{
-                                                fontSize: 12, fontWeight: 700,
-                                                color: avaliadasCompletas === totalDisc && totalDisc > 0 ? "#10b981" : "var(--text-muted)",
-                                            }}>
-                                                {avaliadasCompletas}/{totalDisc}
-                                            </span>
-                                            <div className="omni-text-xs omni-text-muted">avaliações</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Discipline buttons */}
-                                    <CardContent className="flex flex-wrap gap-2 p-4">
-                                        {aluno.disciplinas.map(disc => {
-                                            const applied = disc.avaliacao_status === "aplicada";
-                                            const hasAvaliacao = disc.has_avaliacao;
-
-                                            return (
-                                                <button
-                                                    key={disc.id}
-                                                    onClick={() => openAvaliacao(aluno, disc.disciplina)}
-                                                    style={{
-                                                        padding: "8px 14px", borderRadius: 10,
-                                                        display: "flex", alignItems: "center", gap: 6,
-                                                        cursor: "pointer", fontSize: 13, fontWeight: 600,
-                                                        border: applied
-                                                            ? "1.5px solid rgba(16,185,129,.3)"
-                                                            : hasAvaliacao
-                                                                ? "1.5px solid rgba(245,158,11,.3)"
-                                                                : "1px solid var(--border-default, rgba(148,163,184,.12))",
-                                                        background: applied
-                                                            ? "rgba(16,185,129,.06)"
-                                                            : hasAvaliacao
-                                                                ? "rgba(245,158,11,.06)"
-                                                                : "var(--bg-primary, rgba(2,6,23,.3))",
-                                                        color: applied
-                                                            ? "#10b981"
-                                                            : hasAvaliacao
-                                                                ? "#f59e0b"
-                                                                : "var(--text-secondary, #cbd5e1)",
-                                                        transition: "all .2s",
-                                                    }}
-                                                >
-                                                    {applied ? <CheckCircle2 size={14} /> : hasAvaliacao ? <Target size={14} /> : <Zap size={14} />}
-                                                    {disc.disciplina}
-                                                    {disc.nivel_omnisfera !== null && (
-                                                        <span style={{
-                                                            fontSize: 10, fontWeight: 800, padding: "1px 6px", borderRadius: 4,
-                                                            background: "rgba(99,102,241,.12)", color: "#818cf8",
-                                                        }}>N{disc.nivel_omnisfera}</span>
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
-                    </div>
-                </>
-            )}
-        </div>
+        <DiagStudentList
+            alunos={alunos}
+            professorName={professorName}
+            showOnboarding={showOnboarding}
+            setShowOnboarding={setShowOnboarding}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            openAvaliacao={openAvaliacao}
+            pendingCount={pendingCount}
+            momentoDiagnostica={momentoDiagnostica}
+            setMomentoDiagnostica={setMomentoDiagnostica}
+        />
     );
 }
-

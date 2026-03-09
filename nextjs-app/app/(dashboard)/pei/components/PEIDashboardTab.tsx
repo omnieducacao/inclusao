@@ -584,7 +584,7 @@ export function DashboardTab({
           {/* Status de Envio — link para aba Regentes */}
           {(peiData as Record<string, unknown>).fase_pei === "fase_2" ? (
             <div className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{
-              background: "rgba(16,185,129,.06)", border: "1px solid rgba(16,185,129,.2)",
+              background: "var(--color-success-subtle)", border: "1px solid var(--color-success-strong)",
             }}>
               <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
               <div className="flex-1 min-w-0">
@@ -594,7 +594,7 @@ export function DashboardTab({
             </div>
           ) : currentStudentId && (
             <div className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{
-              background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.2)",
+              background: "var(--color-info-subtle)", border: "1px solid var(--color-info-strong)",
             }}>
               <Send className="w-4 h-4 text-indigo-500 shrink-0" />
               <div className="flex-1 min-w-0">

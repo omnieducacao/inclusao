@@ -5,7 +5,6 @@ import type { PEIData } from "@/lib/pei";
 import Link from "next/link";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { StudentSelector } from "@/components/StudentSelector";
-import { TransicaoAnoButton } from "../PEIClient";
 import { PEIVersionHistory, createPEISnapshot } from "@/components/PEIVersionHistory";
 import { OnboardingPanel, OnboardingResetButton } from "@/components/OnboardingPanel";
 import { Card, CardHeader, CardTitle, CardContent, Button } from "@omni/ds";
