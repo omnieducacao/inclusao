@@ -74,11 +74,10 @@ export async function POST(req: Request) {
                             }
                         }
                     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                } catch (err: any) {
+                } catch (err: unknown) {
                     const errStr = String(err).toLowerCase();
                     if (errStr.includes("404") || errStr.includes("not found")) {
-                        lastError = err;
+                        lastError = err instanceof Error ? err : new Error(String(err));
                         continue;
                     }
                     throw err;
@@ -127,10 +126,9 @@ export async function POST(req: Request) {
                 // Se não tem HTML válido, tentar próximo engine
                 lastError = new Error("Resposta não contém HTML válido.");
                 continue;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } catch (err: any) {
+            } catch (err: unknown) {
                 lastError = err instanceof Error ? err : new Error(String(err));
-                logger.warn(`Mapa mental HTML (${engine}):`, err);
+                logger.warn({ err: lastError }, `Mapa mental HTML (${engine}) falhou`);
                 continue;
             }
         }

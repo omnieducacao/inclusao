@@ -30,7 +30,7 @@ export async function GET(req: Request) {
   } catch (err) {
     logger.error({ err: err }, "GET /api/admin/platform-config:");
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erro ao buscar configuração." },
+      { error: err instanceof Error ? err instanceof Error ? err.message : "Erro interno" : "Erro ao buscar configuração." },
       { status: 500 }
     );
   }
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
   } catch (err) {
     logger.error({ err: err }, "POST /api/admin/platform-config:");
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erro ao salvar configuração." },
+      { error: err instanceof Error ? err instanceof Error ? err.message : "Erro interno" : "Erro ao salvar configuração." },
       { status: 500 }
     );
   }

@@ -19,8 +19,7 @@ export async function GET(request: NextRequest) {
         // Get workspaces for name lookup
         const { data: workspaces } = await sb.from("workspaces").select("id, name");
         const wsMap: Record<string, string> = {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (workspaces || []).forEach((ws: any) => { wsMap[ws.id] = ws.name; });
+        (workspaces || []).forEach((ws: Record<string, unknown>) => { wsMap[String(ws.id)] = String(ws.name); });
 
         // Get all workspace members
         let query = sb
@@ -38,14 +37,13 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let users = (members || []).map((m: any) => ({
+        let users = (members || []).map((m: Record<string, unknown>) => ({
             id: m.id,
             nome: m.nome || "",
             email: m.email || "",
             role: m.role || "member",
             workspace_id: m.workspace_id,
-            workspace_name: wsMap[m.workspace_id] || "—",
+            workspace_name: wsMap[String(m.workspace_id)] || "—",
             active: m.active !== false,
             permissions: {
                 can_pei: m.can_pei !== false,
@@ -63,8 +61,7 @@ export async function GET(request: NextRequest) {
         if (search) {
             const s = search.toLowerCase();
             users = users.filter(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (u: any) => u.nome.toLowerCase().includes(s) || u.email.toLowerCase().includes(s)
+                (u: Record<string, unknown>) => String(u.nome).toLowerCase().includes(s) || String(u.email).toLowerCase().includes(s)
             );
         }
 

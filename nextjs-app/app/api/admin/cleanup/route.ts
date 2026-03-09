@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
     } catch (err) {
         logger.error({ err: err }, "[admin/cleanup] Error:");
         return NextResponse.json(
-            { error: err instanceof Error ? err.message : "Erro interno" },
+            { error: err instanceof Error ? err instanceof Error ? err.message : "Erro interno" : "Erro interno" },
             { status: 500 }
         );
     }

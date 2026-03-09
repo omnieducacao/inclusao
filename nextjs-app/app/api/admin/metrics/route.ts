@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     if (eventsError) {
       logger.error({ err: eventsError }, "Erro ao buscar usage_events:");
-      return NextResponse.json({ 
+      return NextResponse.json({
         total: 0,
         by_type: [],
         by_engine: [],
@@ -44,15 +44,14 @@ export async function GET(request: NextRequest) {
     const byEngine: Record<string, number> = {};
     const timeline: Record<string, number> = {};
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    eventsList.forEach((ev: any) => {
-      const etype = ev.event_type || "desconhecido";
+    eventsList.forEach((ev: Record<string, unknown>) => {
+      const etype = String(ev.event_type || "desconhecido");
       byType[etype] = (byType[etype] || 0) + 1;
 
-      const eng = ev.ai_engine || "—";
+      const eng = String(ev.ai_engine || "—");
       byEngine[eng] = (byEngine[eng] || 0) + 1;
 
-      const date = new Date(ev.created_at);
+      const date = new Date(String(ev.created_at));
       const dayKey = date.toISOString().split("T")[0];
       timeline[dayKey] = (timeline[dayKey] || 0) + 1;
     });
@@ -69,8 +68,7 @@ export async function GET(request: NextRequest) {
       .map(([day, count]) => ({ day, count }))
       .sort((a, b) => a.day.localeCompare(b.day));
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recent = eventsList.slice(0, 25).map((ev: any) => ({
+    const recent = eventsList.slice(0, 25).map((ev: Record<string, unknown>) => ({
       id: ev.id,
       workspace_id: ev.workspace_id,
       event_type: ev.event_type,

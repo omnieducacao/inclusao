@@ -24,17 +24,15 @@ export async function GET(request: NextRequest) {
                 .order("name");
 
             csv = "Nome,PIN,Ativa,Plano,Limite Créditos,Segmentos,Motores IA,Criado em\n";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (workspaces || []).forEach((ws: any) => {
-                csv += `"${ws.name}","${ws.pin}",${ws.active !== false ? "Sim" : "Não"},"${ws.plan || "basic"}",${ws.credits_limit || "ilimitado"},"${(ws.segments || []).join("; ")}","${(ws.ai_engines || []).join("; ")}","${ws.created_at || ""}"\n`;
+            (workspaces || []).forEach((ws: Record<string, unknown>) => {
+                csv += `"${ws.name}","${ws.pin}",${ws.active !== false ? "Sim" : "Não"},"${ws.plan || "basic"}",${ws.credits_limit || "ilimitado"},"${(ws.segments as string[] || []).join("; ")}","${(ws.ai_engines as string[] || []).join("; ")}","${ws.created_at || ""}"\n`;
             });
             filename = "escolas_omnisfera.csv";
 
         } else if (type === "users") {
             const { data: workspaces } = await sb.from("workspaces").select("id, name");
             const wsMap: Record<string, string> = {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (workspaces || []).forEach((ws: any) => { wsMap[ws.id] = ws.name; });
+            (workspaces || []).forEach((ws: Record<string, unknown>) => { wsMap[String(ws.id)] = String(ws.name); });
 
             const { data: members } = await sb
                 .from("workspace_members")
@@ -42,17 +40,15 @@ export async function GET(request: NextRequest) {
                 .order("nome");
 
             csv = "Nome,Email,Escola,Papel,Ativo,Tipo Vínculo,Criado em\n";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (members || []).forEach((m: any) => {
-                csv += `"${m.nome || ""}","${m.email || ""}","${wsMap[m.workspace_id] || "—"}","${m.role || "member"}",${m.active !== false ? "Sim" : "Não"},"${m.link_type || "todos"}","${m.created_at || ""}"\n`;
+            (members || []).forEach((m: Record<string, unknown>) => {
+                csv += `"${m.nome || ""}","${m.email || ""}","${wsMap[String(m.workspace_id)] || "—"}","${m.role || "member"}",${m.active !== false ? "Sim" : "Não"},"${m.link_type || "todos"}","${m.created_at || ""}"\n`;
             });
             filename = "usuarios_omnisfera.csv";
 
         } else if (type === "ia-usage") {
             const { data: workspaces } = await sb.from("workspaces").select("id, name");
             const wsMap: Record<string, string> = {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (workspaces || []).forEach((ws: any) => { wsMap[ws.id] = ws.name; });
+            (workspaces || []).forEach((ws: Record<string, unknown>) => { wsMap[String(ws.id)] = String(ws.name); });
 
             const { data: usage } = await sb
                 .from("ia_usage")
@@ -61,9 +57,8 @@ export async function GET(request: NextRequest) {
                 .limit(5000);
 
             csv = "Data,Escola,Motor IA,Tokens,Tipo Evento\n";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (usage || []).forEach((u: any) => {
-                csv += `"${u.created_at || ""}","${wsMap[u.workspace_id] || "—"}","${u.engine || ""}",${u.tokens_used || 0},"${u.event_type || ""}"\n`;
+            (usage || []).forEach((u: Record<string, unknown>) => {
+                csv += `"${u.created_at || ""}","${wsMap[String(u.workspace_id)] || "—"}","${u.engine || ""}",${u.tokens_used || 0},"${u.event_type || ""}"\n`;
             });
             filename = "uso_ia_omnisfera.csv";
 

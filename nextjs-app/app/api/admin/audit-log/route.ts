@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         // Get workspace names for reference
         const { data: workspaces } = await sb.from("workspaces").select("id, name");
         const wsMap: Record<string, string> = {};
-        (workspaces || []).forEach((ws: any) => { wsMap[ws.id] = ws.name; });
+        (workspaces || []).forEach((ws: Record<string, unknown>) => { wsMap[String(ws.id)] = String(ws.name); });
 
         let query = sb
             .from("audit_log")
@@ -62,10 +62,10 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        const logs = (events || []).map((ev: any) => ({
+        const logs = (events || []).map((ev: Record<string, unknown>) => ({
             id: ev.id,
             workspace_id: ev.workspace_id,
-            workspace_name: wsMap[ev.workspace_id] || "—",
+            workspace_name: wsMap[String(ev.workspace_id)] || "—",
             actor_id: ev.actor_id,
             actor_role: ev.actor_role,
             action: ev.action,
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
             .select("action")
             .limit(500);
 
-        const actionsList = [...new Set((uniqueActions || []).map((t: any) => t.action))].sort();
+        const actionsList = [...new Set((uniqueActions || []).map((t: Record<string, unknown>) => t.action))].sort();
 
         return NextResponse.json({ logs, total: count || 0, available_actions: actionsList });
     } catch (err) {

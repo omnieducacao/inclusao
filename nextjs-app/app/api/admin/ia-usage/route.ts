@@ -34,8 +34,7 @@ export async function GET(request: NextRequest) {
       .from("workspaces")
       .select("id, name, plan, credits_limit");
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const wsMap = new Map((workspaces || []).map((w: any) => [w.id, w]));
+    const wsMap = new Map((workspaces || []).map((w: Record<string, unknown>) => [w.id, w]));
 
     // Agregar por workspace
     const byWorkspace = new Map<string, {
@@ -52,16 +51,15 @@ export async function GET(request: NextRequest) {
       credits_limit: number | null;
     }>();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (iaUsage || []).forEach((usage: any) => {
-      const wsId = usage.workspace_id;
+    (iaUsage || []).forEach((usage: Record<string, unknown>) => {
+      const wsId = String(usage.workspace_id || "");
       if (!wsId) return;
 
-      const ws = wsMap.get(wsId);
+      const ws = wsMap.get(wsId) as Record<string, unknown> | undefined;
       if (!byWorkspace.has(wsId)) {
         byWorkspace.set(wsId, {
           workspace_id: wsId,
-          workspace_name: ws?.name || "—",
+          workspace_name: String(ws?.name || "—"),
           red: 0,
           blue: 0,
           green: 0,
@@ -69,13 +67,13 @@ export async function GET(request: NextRequest) {
           orange: 0,
           total_calls: 0,
           credits_used: 0,
-          plan: ws?.plan || "basic",
-          credits_limit: ws?.credits_limit || null,
+          plan: String(ws?.plan || "basic"),
+          credits_limit: (ws?.credits_limit as number) || null,
         });
       }
 
       const entry = byWorkspace.get(wsId)!;
-      const engine = (usage.engine || "").toLowerCase();
+      const engine = String(usage.engine || "").toLowerCase();
       if (engine === "red") entry.red++;
       else if (engine === "blue") entry.blue++;
       else if (engine === "green") entry.green++;
@@ -83,7 +81,7 @@ export async function GET(request: NextRequest) {
       else if (engine === "orange") entry.orange++;
 
       entry.total_calls++;
-      entry.credits_used += parseFloat(usage.credits_consumed || "1.0");
+      entry.credits_used += parseFloat(String(usage.credits_consumed || "1.0"));
     });
 
     const usageList = Array.from(byWorkspace.values());

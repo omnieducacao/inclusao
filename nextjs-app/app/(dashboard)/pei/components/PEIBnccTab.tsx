@@ -55,6 +55,10 @@ export function BNCCTab({
     anos_anteriores: Record<string, HabilidadeBncc[]>;
   }>({ ano_atual: {}, anos_anteriores: {} });
   const [blocosLoading, setBlocosLoading] = useState(false);
+  const [sugerindoAtual, setSugerindoAtual] = useState(false);
+  const [sugerindoAnteriores, setSugerindoAnteriores] = useState(false);
+  const [motivoIAAtual, setMotivoIAAtual] = useState<string>("");
+  const [motivoIAAnteriores, setMotivoIAAnteriores] = useState<string>("");
 
   useEffect(() => {
     if (!serie) return;
@@ -183,14 +187,7 @@ export function BNCCTab({
   const componentesAnt = Object.keys(anosAnteriores).sort();
   const rotulo = nivel === "EM" ? "área de conhecimento" : "componente";
   const habilidadesAtuais = (Array.isArray(peiData.habilidades_bncc_selecionadas) ? peiData.habilidades_bncc_selecionadas : []) as HabilidadeBncc[];
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [sugerindoAtual, setSugerindoAtual] = useState(false);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [sugerindoAnteriores, setSugerindoAnteriores] = useState(false);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [motivoIAAtual, setMotivoIAAtual] = useState<string>("");
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [motivoIAAnteriores, setMotivoIAAnteriores] = useState<string>("");
+
 
   function opcaoLabel(h: HabilidadeBncc) {
     const c = h.codigo || "";

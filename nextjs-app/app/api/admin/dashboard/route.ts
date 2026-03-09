@@ -15,22 +15,18 @@ export async function GET() {
         // 1. Workspaces
         const { data: workspaces } = await sb.from("workspaces").select("id, name, active, created_at");
         const wsList = workspaces || [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const activeSchools = wsList.filter((w: any) => w.active !== false).length;
+        const activeSchools = wsList.filter((w: Record<string, unknown>) => w.active !== false).length;
         const inactiveSchools = wsList.length - activeSchools;
 
         // 2. Members (users)
         const { data: members } = await sb.from("workspace_members").select("id, workspace_id, nome, role, active");
         const membersList = members || [];
         const totalUsers = membersList.length;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const activeUsers = membersList.filter((m: any) => m.active !== false).length;
+        const activeUsers = membersList.filter((m: Record<string, unknown>) => m.active !== false).length;
 
         // Users per school
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const usersPerSchool = wsList.map((ws: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const count = membersList.filter((m: any) => m.workspace_id === ws.id).length;
+        const usersPerSchool = wsList.map((ws: Record<string, unknown>) => {
+            const count = membersList.filter((m: Record<string, unknown>) => m.workspace_id === ws.id).length;
             return { id: ws.id, name: ws.name, active: ws.active !== false, users: count };
         });
 
@@ -46,14 +42,13 @@ export async function GET() {
             .from("students")
             .select("workspace_id");
         const studentsMap: Record<string, number> = {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (studentsByWs || []).forEach((s: any) => {
-            studentsMap[s.workspace_id] = (studentsMap[s.workspace_id] || 0) + 1;
+        (studentsByWs || []).forEach((s: Record<string, unknown>) => {
+            studentsMap[String(s.workspace_id)] = (studentsMap[String(s.workspace_id)] || 0) + 1;
         });
 
         const schoolBreakdown = usersPerSchool.map((ws) => ({
             ...ws,
-            students: studentsMap[ws.id] || 0,
+            students: studentsMap[String(ws.id)] || 0,
         }));
 
         // 4. Recent activity (last 7 days)

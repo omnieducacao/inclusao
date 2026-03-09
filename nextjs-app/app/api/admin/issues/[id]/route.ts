@@ -52,7 +52,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   } catch (err) {
     logger.error({ err: err }, "PATCH /api/admin/issues/[id]:");
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erro ao atualizar bug." },
+      { error: err instanceof Error ? err instanceof Error ? err.message : "Erro interno" : "Erro ao atualizar bug." },
       { status: 500 }
     );
   }

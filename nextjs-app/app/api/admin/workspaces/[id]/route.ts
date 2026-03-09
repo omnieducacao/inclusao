@@ -54,7 +54,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   } catch (err) {
     logger.error({ err: err }, "PATCH /api/admin/workspaces/[id]:");
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erro ao atualizar escola." },
+      { error: err instanceof Error ? err instanceof Error ? err.message : "Erro interno" : "Erro ao atualizar escola." },
       { status: 500 }
     );
   }
@@ -84,7 +84,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   } catch (err) {
     logger.error({ err: err }, "DELETE /api/admin/workspaces/[id]:");
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erro ao excluir escola." },
+      { error: err instanceof Error ? err instanceof Error ? err.message : "Erro interno" : "Erro ao excluir escola." },
       { status: 500 }
     );
   }

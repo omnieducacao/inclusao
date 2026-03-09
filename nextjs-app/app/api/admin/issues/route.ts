@@ -37,7 +37,7 @@ export async function GET(req: Request) {
   } catch (err) {
     logger.error({ err: err }, "GET /api/admin/issues:");
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erro ao listar bugs." },
+      { error: err instanceof Error ? err instanceof Error ? err.message : "Erro interno" : "Erro ao listar bugs." },
       { status: 500 }
     );
   }
@@ -87,7 +87,7 @@ export async function POST(req: Request) {
   } catch (err) {
     logger.error({ err: err }, "POST /api/admin/issues:");
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erro ao registrar bug." },
+      { error: err instanceof Error ? err instanceof Error ? err.message : "Erro interno" : "Erro ao registrar bug." },
       { status: 500 }
     );
   }

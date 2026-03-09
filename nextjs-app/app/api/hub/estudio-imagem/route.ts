@@ -86,11 +86,10 @@ CRITICAL: NO TEXT, NO TYPOGRAPHY, NO ALPHABET, NO NUMBERS, NO LABELS. Just the v
             }
           }
         }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
+      } catch (err: unknown) {
         const errStr = String(err).toLowerCase();
         if (errStr.includes("404") || errStr.includes("not found")) {
-          lastError = err;
+          lastError = err instanceof Error ? err : new Error(String(err));
           continue; // Tentar próximo modelo
         }
         throw err;

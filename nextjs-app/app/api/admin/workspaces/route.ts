@@ -20,8 +20,7 @@ export async function GET() {
     }
 
     // Normalizar dados (compatível com Streamlit)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const workspaces = (data || []).map((row: any) => ({
+    const workspaces = (data || []).map((row: Record<string, unknown>) => ({
       id: row.id,
       name: row.name || "",
       pin: row.pin || row.pin_code || row.code || "",
@@ -38,7 +37,7 @@ export async function GET() {
   } catch (err) {
     logger.error({ err: err }, "GET /api/admin/workspaces:");
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erro ao listar escolas." },
+      { error: err instanceof Error ? err instanceof Error ? err.message : "Erro interno" : "Erro ao listar escolas." },
       { status: 500 }
     );
   }
@@ -102,7 +101,7 @@ export async function POST(req: Request) {
   } catch (err) {
     logger.error({ err: err }, "POST /api/admin/workspaces:");
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erro ao criar escola." },
+      { error: err instanceof Error ? err instanceof Error ? err.message : "Erro interno" : "Erro ao criar escola." },
       { status: 500 }
     );
   }
