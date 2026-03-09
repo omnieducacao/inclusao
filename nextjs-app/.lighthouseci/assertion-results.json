@@ -4,8 +4,8 @@
     "expected": 0.8,
     "actual": 0.75,
     "values": [
-      0.72,
-      0.75
+      0.75,
+      0.68
     ],
     "operator": ">=",
     "passed": false,
@@ -17,10 +17,10 @@
   {
     "name": "maxNumericValue",
     "expected": 3800,
-    "actual": 8338.211925,
+    "actual": 8782.0339225,
     "values": [
-      8478.008749999997,
-      8338.211925
+      8782.0339225,
+      8857.753999999997
     ],
     "operator": "<=",
     "passed": false,

@@ -149,7 +149,7 @@ export default function LandingClient({ stats }: LandingProps) {
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <Image
-                            src="/omni_icone.png"
+                            src="/omni_icone.webp"
                             alt="Omnisfera"
                             width={36}
                             height={36}
@@ -473,7 +473,7 @@ export default function LandingClient({ stats }: LandingProps) {
                 <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
                         <Image
-                            src="/omni_icone.png"
+                            src="/omni_icone.webp"
                             alt="OmniEducação"
                             width={24}
                             height={24}

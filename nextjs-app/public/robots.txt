@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /landing
+Allow: /login
+Allow: /privacidade
+
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin
+Disallow: /gestao
+Disallow: /config-escola
+
+Sitemap: https://app.omnisfera.com.br/sitemap.xml

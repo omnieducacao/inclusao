@@ -136,7 +136,7 @@ export function AILoadingOverlay() {
                     {/* Single spinning logo — fast to show activity */}
                     <div className="omni-logo-spin-fast">
                         <Image
-                            src="/omni_icone.png"
+                            src="/omni_icone.webp"
                             alt=""
                             width={72}
                             height={72}

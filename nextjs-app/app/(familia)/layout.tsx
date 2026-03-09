@@ -30,7 +30,7 @@ export default async function FamiliaLayout({
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
           <Link href="/familia" className="flex items-center gap-2">
             <Image
-              src="/omni_icone.png"
+              src="/omni_icone.webp"
               alt="Logo Omnisfera"
               width={32}
               height={32}

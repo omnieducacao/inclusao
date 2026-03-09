@@ -162,7 +162,7 @@ function LoginForm() {
               {/* Logo — 200px for strong visual presence */}
               <div className="omni-logo-spin relative">
                 <Image
-                  src="/omni_icone.png"
+                  src="/omni_icone.webp"
                   alt="Omnisfera"
                   width={240}
                   height={240}
@@ -350,7 +350,7 @@ export default function LoginPage() {
     <Suspense fallback={
       <div className="bg-(--omni-bg-primary) min-h-screen flex items-center justify-center">
         <div className="omni-logo-spin">
-          <Image src="/omni_icone.png" alt="Omnisfera" width={48} height={48} className="object-contain" priority />
+          <Image src="/omni_icone.webp" alt="Omnisfera" width={48} height={48} className="object-contain" priority />
         </div>
       </div>
     }>

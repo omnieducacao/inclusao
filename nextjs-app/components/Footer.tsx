@@ -12,7 +12,7 @@ export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" |
         {/* Omni Educação logo */}
         <div className="shrink-0">
           <img
-            src="/omni_educacao_logo.png"
+            src="/omni_educacao_logo.webp"
             alt="Omni Educação"
             className="h-10 w-auto object-contain"
           />
@@ -30,7 +30,7 @@ export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" |
             className="flex items-center gap-1.5 transition-all duration-200 hover:scale-[1.03] hover:opacity-80"
           >
             <img
-              src="/omniprof_logo_flat_horizontal.png"
+              src="/omniprof_logo_flat_horizontal.webp"
               alt="OmniProf"
               className="h-7 w-auto object-contain"
               style={{ filter: 'var(--img-dark-invert, none)' }}
