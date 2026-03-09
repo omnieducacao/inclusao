@@ -9,6 +9,7 @@ import { getSupabase } from "@/lib/supabase";
 const PUBLIC_KEYS = new Set([
     "card_customizations",
     "topbar_customizations",
+    "landing_page_enabled",
 ]);
 
 export async function GET(req: Request) {

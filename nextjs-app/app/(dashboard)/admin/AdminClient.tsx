@@ -20,6 +20,7 @@ import { InstagramFeedTab } from "./components/InstagramFeedTab";
 import { AparenciaTab } from "./components/AparenciaTab";
 import { TopbarTab } from "./components/TopbarTab";
 import { AuditoriaTab } from "./components/AuditoriaTab";
+import { LandingPageTab } from "./components/LandingPageTab";
 
 type Workspace = {
   id: string;
@@ -35,7 +36,7 @@ type Workspace = {
   created_at?: string;
 };
 
-type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "auditoria" | "avisos" | "termo" | "bugs" | "instagram" | "aparencia" | "topbar";
+type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "auditoria" | "avisos" | "termo" | "bugs" | "instagram" | "aparencia" | "topbar" | "landing";
 
 const SEGMENT_OPTIONS: Record<string, string> = {
   EI: "Educação Infantil",
@@ -182,6 +183,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
           { id: "instagram" as TabId, label: "📸 Feed" },
           { id: "aparencia" as TabId, label: "🎨 Aparência" },
           { id: "topbar" as TabId, label: "🧭 Topbar" },
+          { id: "landing" as TabId, label: "🌐 Landing Page" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -228,6 +230,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
       {activeTab === "instagram" && <InstagramFeedTab />}
       {activeTab === "aparencia" && <AparenciaTab />}
       {activeTab === "topbar" && <TopbarTab />}
+      {activeTab === "landing" && <LandingPageTab />}
     </div>
 
   );

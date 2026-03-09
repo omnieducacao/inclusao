@@ -5,7 +5,7 @@ import { getSecret } from "@/lib/jwt-secret";
 import { checkRateLimit } from "@/lib/upstash-rate-limit"; // V5 Rate Limiter
 
 
-const PUBLIC_PATHS = ["/login", "/privacidade", "/api/auth/login", "/api/auth/admin-login"];
+const PUBLIC_PATHS = ["/login", "/landing", "/privacidade", "/api/auth/login", "/api/auth/admin-login"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -55,6 +55,24 @@ export async function proxy(request: NextRequest) {
 
   const token = request.cookies.get("omnisfera_session")?.value;
   if (!token) {
+    // If visiting root "/" without session, check if landing page is enabled
+    if (pathname === "/") {
+      try {
+        const baseUrl = request.nextUrl.origin;
+        const res = await fetch(
+          `${baseUrl}/api/public/platform-config?key=landing_page_enabled`,
+          { next: { revalidate: 60 } }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data.value === "true" || data.value === true) {
+            return NextResponse.redirect(new URL("/landing", request.url));
+          }
+        }
+      } catch {
+        // Fallback: redirect to login as usual
+      }
+    }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
