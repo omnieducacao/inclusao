@@ -44,10 +44,26 @@ export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" |
 
       {/* Copyright + links (apenas no variant full) */}
       {variant === "full" && (
-        <div className="flex flex-col items-center gap-1">
-          <div className="flex items-center gap-3 text-[10px]" style={{ color: 'var(--text-muted, #94a3b8)' }}>
-            <Link href="/privacidade" className="hover:underline">Política de Privacidade</Link>
-            <span>·</span>
+        <div className="flex flex-col items-center gap-4 mt-2">
+          {/* Trust Badges */}
+          <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-100">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Adequado LGPD
+            </div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-100">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Acessível WCAG
+            </div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 text-slate-700 text-[10px] font-bold border border-slate-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> 100/100 Perf
+            </div>
+          </div>
+
+          {/* Links */}
+          <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 text-[11px]" style={{ color: 'var(--text-muted, #94a3b8)' }}>
+            <Link href="/privacidade" className="hover:text-indigo-600 transition-colors">Privacidade</Link>
+            <span className="opacity-40">•</span>
+            <Link href="/seguranca" className="hover:text-indigo-600 transition-colors font-semibold">Segurança e Transparência</Link>
+            <span className="opacity-40">•</span>
             <span>© {new Date().getFullYear()} Omni Soluções Educacionais</span>
           </div>
         </div>

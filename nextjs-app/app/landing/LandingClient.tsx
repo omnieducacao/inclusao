@@ -431,6 +431,67 @@ export default function LandingClient({ stats }: LandingProps) {
                 </div>
             </section>
 
+            {/* ══════ TRUST & SECURITY ══════ */}
+            <section className="py-24 border-y border-slate-200/50" style={{ background: "var(--bg-primary)" }}>
+                <div className="max-w-7xl mx-auto px-6">
+                    <Reveal>
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" style={{ color: "var(--text-primary)" }}>
+                                Tecnologia em que você pode confiar
+                            </h2>
+                            <p className="text-base sm:text-lg max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
+                                A Omnisfera cuida de toda infraestrutura complexa, privacidade de dados e acessibilidade
+                                por trás dos panos para que os professores foquem 100% no ser humano.
+                            </p>
+                        </div>
+                    </Reveal>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                        <Reveal>
+                            <div className="flex flex-col items-center text-center p-6">
+                                <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6">
+                                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Conformidade LGPD</h3>
+                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Laudos médicos e PDI's totalmente resguardados no Supabase e logs de auditoria contínuos.</p>
+                            </div>
+                        </Reveal>
+                        <Reveal>
+                            <div className="flex flex-col items-center text-center p-6">
+                                <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-6">
+                                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>100/100 Acessível (WCAG)</h3>
+                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Design pensado nativamente para navegação por teclado e otimizado para TDAH e neurodivergentes.</p>
+                            </div>
+                        </Reveal>
+                        <Reveal>
+                            <div className="flex flex-col items-center text-center p-6">
+                                <div className="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mb-6">
+                                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Alta Performance (1.1s)</h3>
+                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Auditoria AAA em performance. Sistemas pesados que rodam de forma instantânea em computadores escolares.</p>
+                            </div>
+                        </Reveal>
+                    </div>
+
+                    <Reveal>
+                        <div className="text-center mt-8">
+                            <Link href="/seguranca" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline flex items-center justify-center gap-2">
+                                Saiba mais sobre nosso escudo de Proteção e Privacidade →
+                            </Link>
+                        </div>
+                    </Reveal>
+                </div>
+            </section>
+
             {/* ══════ CTA FINAL ══════ */}
             <section className="py-24">
                 <div className="max-w-3xl mx-auto px-6 text-center">

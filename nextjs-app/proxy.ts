@@ -5,7 +5,7 @@ import { getSecret } from "@/lib/jwt-secret";
 import { checkRateLimit } from "@/lib/upstash-rate-limit"; // V5 Rate Limiter
 
 
-const PUBLIC_PATHS = ["/login", "/landing", "/privacidade", "/api/auth/login", "/api/auth/admin-login", "/api/vitals"];
+const PUBLIC_PATHS = ["/login", "/landing", "/privacidade", "/seguranca", "/api/auth/login", "/api/auth/admin-login", "/api/vitals"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
