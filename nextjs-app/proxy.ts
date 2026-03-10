@@ -73,6 +73,14 @@ export async function proxy(request: NextRequest) {
         // Fallback: redirect to login as usual
       }
     }
+
+    // --- FEATURE: PREVENÇÃO DE CRASH EM API CLIENTS ---
+    // Se não tiver token, e estiver tentando bater em /api, retorne um 401 JSON limpo.
+    // Isso evita que o fetch do frontend receba um HTML gigante vindo do redirect 307.
+    if (pathname.startsWith('/api')) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
@@ -82,6 +90,11 @@ export async function proxy(request: NextRequest) {
     await jwtVerify(token, getSecret());
     return NextResponse.next();
   } catch {
+    // Mesma mitigação de segurança JSON para Tokens Expirados
+    if (pathname.startsWith('/api')) {
+      return NextResponse.json({ error: "Token Expired or Invalid" }, { status: 401 });
+    }
+
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     const res = NextResponse.redirect(loginUrl);
