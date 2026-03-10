@@ -70,8 +70,12 @@ export default function RootLayout({
           <ThemeProvider>
             <ToastProvider>
               {children}
-              <Analytics />
-              <SpeedInsights />
+              {process.env.VERCEL === '1' && (
+                <>
+                  <Analytics />
+                  <SpeedInsights />
+                </>
+              )}
               <WebVitalsReporter />
             </ToastProvider>
           </ThemeProvider>

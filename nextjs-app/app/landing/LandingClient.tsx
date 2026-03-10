@@ -284,7 +284,7 @@ export default function LandingClient({ stats }: LandingProps) {
                         <div ref={studentsCounter.ref}>
                             <p
                                 className="text-4xl font-extrabold mb-1"
-                                style={{ color: "#10b981" }}
+                                style={{ color: "#059669" }}
                             >
                                 {studentsCounter.count}+
                             </p>
@@ -497,7 +497,7 @@ export default function LandingClient({ stats }: LandingProps) {
                         <Link
                             href="/login"
                             className="text-sm font-medium hover:underline"
-                            style={{ color: "#6366f1" }}
+                            style={{ color: "#4f46e5" }}
                         >
                             Entrar
                         </Link>

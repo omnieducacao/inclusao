@@ -3,7 +3,8 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { OmniEducacaoSignature } from "@/components/Footer";
+import dynamic from "next/dynamic";
+const OmniEducacaoSignature = dynamic(() => import("@/components/Footer").then(mod => mod.OmniEducacaoSignature), { ssr: true });
 
 /* ═══════════════════════════════════════════════════
    Floating Particle — decorative circle
@@ -103,13 +104,13 @@ function LoginForm() {
       {/* ═══════ Full-Screen Aurora Background ═══════ */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-[5%] left-[2%] w-[500px] h-[500px] rounded-full bg-red-400/[0.07] blur-[120px] animate-blob" />
-        <div className="absolute top-[55%] left-[8%] w-[450px] h-[450px] rounded-full bg-blue-500/[0.08] blur-[110px] animate-blob" style={{ animationDelay: "3s" }} />
+        <div className="absolute top-[55%] left-[8%] w-[450px] h-[450px] rounded-full bg-blue-500/8 blur-[110px] animate-blob" style={{ animationDelay: "3s" }} />
         <div className="absolute top-[15%] right-[5%] w-[420px] h-[420px] rounded-full bg-emerald-400/[0.07] blur-[100px] animate-blob" style={{ animationDelay: "6s" }} />
-        <div className="absolute bottom-[10%] right-[15%] w-[380px] h-[380px] rounded-full bg-amber-400/[0.09] blur-[90px] animate-blob" style={{ animationDelay: "9s" }} />
-        <div className="absolute bottom-[25%] left-[35%] w-[350px] h-[350px] rounded-full bg-purple-500/[0.06] blur-[100px] animate-blob" style={{ animationDelay: "2s" }} />
+        <div className="absolute bottom-[10%] right-[15%] w-[380px] h-[380px] rounded-full bg-amber-400/9 blur-[90px] animate-blob" style={{ animationDelay: "9s" }} />
+        <div className="absolute bottom-[25%] left-[35%] w-[350px] h-[350px] rounded-full bg-purple-500/6 blur-[100px] animate-blob" style={{ animationDelay: "2s" }} />
         <div className="absolute top-[40%] right-[25%] w-[320px] h-[320px] rounded-full bg-cyan-400/[0.07] blur-[90px] animate-blob" style={{ animationDelay: "5s" }} />
-        <div className="absolute top-[70%] left-[55%] w-[280px] h-[280px] rounded-full bg-orange-400/[0.05] blur-[80px] animate-blob" style={{ animationDelay: "7s" }} />
-        <div className="absolute top-[10%] left-[50%] w-[300px] h-[300px] rounded-full bg-indigo-400/[0.06] blur-[90px] animate-blob" style={{ animationDelay: "4s" }} />
+        <div className="absolute top-[70%] left-[55%] w-[280px] h-[280px] rounded-full bg-orange-400/5 blur-[80px] animate-blob" style={{ animationDelay: "7s" }} />
+        <div className="absolute top-[10%] left-[50%] w-[300px] h-[300px] rounded-full bg-indigo-400/6 blur-[90px] animate-blob" style={{ animationDelay: "4s" }} />
       </div>
 
       {/* Subtle Grid */}
