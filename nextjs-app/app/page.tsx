@@ -232,7 +232,7 @@ export default async function RootPage() {
             )}
 
             {/* ── Security & AI Engines Panel ── */}
-            <SecurityAndAIPanel engines={["red", "blue", "green", "yellow", "orange"]} />
+            <SecurityAndAIPanel />
           </div>
 
           {/* ═════ RIGHT COLUMN: Quick Actions + Situation Panel ═════ */}
