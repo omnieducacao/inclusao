@@ -8,6 +8,7 @@
 import { aiCache } from "./ai-cache";
 import { getSupabase } from "./supabase";
 import { logger } from "@/lib/logger";
+import { checkB2CSubscription } from "./subscription";
 
 export type EngineId = "red" | "blue" | "green" | "yellow" | "orange";
 
@@ -86,17 +87,29 @@ export async function getEngineErrorWithWorkspace(
 ): Promise<string | null> {
   const baseErr = getEngineError(engine);
   if (baseErr) return baseErr;
-  if (engine === "green" && workspaceId) {
+
+  if (workspaceId) {
     try {
-      const sb = getSupabase();
-      const { data } = await sb.from("workspaces").select("plan").eq("id", workspaceId).maybeSingle();
-      if (data && data.plan !== "robusto") {
-        return "OmniGreen (Claude) está disponível apenas para o plano Robusto. Entre em contato com o administrador para migrar de plano.";
+      // 1. Verificar Paywall Comercial B2C
+      const sub = await checkB2CSubscription(workspaceId);
+      if (!sub.active) {
+        return "Seu período de testes ou assinatura expirou. Para continuar gerando conteúdos ilimitados com IA, acesse a página de Assinatura.";
       }
-    } catch { /* expected fallback */
-      // Falha ao consultar — permitir (evitar bloquear por erro de DB)
+
+      // 2. Verificar Permissão de Claude (OmniGreen)
+      if (engine === "green") {
+        const sb = getSupabase();
+        const { data } = await sb.from("workspaces").select("plan, plano").eq("id", workspaceId).maybeSingle();
+        // A lógica do verde: deve ser 'robusto' ou plano premium B2C explicitamente
+        if (data && data.plan !== "robusto" && data.plano !== "premium_b2c") {
+          return "OmniGreen (Claude) está disponível apenas para planos superiores. Entre em contato para realizar upgrade.";
+        }
+      }
+    } catch (err) {
+      logger.error({ err }, "Erro ao validar licenciamento do workspace ou gateway de pagamento.");
     }
   }
+
   return null;
 }
 
