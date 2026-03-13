@@ -47,40 +47,40 @@ function useAnimatedCounter(target: number, duration = 2000) {
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const MODULES = [
     {
-        icon: "🎓",
-        title: "PEI — Plano Educacional Individual",
-        desc: "Construção guiada por IA com barreiras, potencialidades e habilidades BNCC.",
-        color: "#6366f1",
-    },
-    {
-        icon: "🧩",
-        title: "PAEE — Plano de Ação",
-        desc: "Atendimento educacional especializado com relatórios contextualizados.",
-        color: "#ec4899",
-    },
-    {
-        icon: "🧠",
-        title: "Avaliação Diagnóstica",
-        desc: "Geração de itens com IA baseados na BNCC e matriz SAEB/CAEd.",
-        color: "#f59e0b",
-    },
-    {
         icon: "🚀",
-        title: "Hub de Inclusão",
-        desc: "Crie atividades, jogos, mapas mentais e imagens com inteligência artificial.",
+        title: "Hub de Ferramentas Mágicas",
+        desc: "Mais de 17 ferramentas de IA: crie sequências didáticas, reescreva textos e adapte provas do seu jeito.",
         color: "#10b981",
     },
     {
-        icon: "📊",
-        title: "Monitoramento e Evolução",
-        desc: "Indicadores, relatórios de progresso e acompanhamento longitudinal.",
-        color: "#0ea5e9",
+        icon: "🎓",
+        title: "Plano de Curso e Aulas",
+        desc: "Estruture planejamentos bimestrais ou anuais alinhados à BNCC com sugestões de metodologias ativas.",
+        color: "#6366f1",
     },
     {
-        icon: "📔",
-        title: "Diário de Bordo",
-        desc: "Registro de observações, evidências e intervenções pedagógicas.",
+        icon: "🧠",
+        title: "Avaliações e Questões",
+        desc: "Geração de questões inéditas com gabarito baseadas em qualquer habilidade da matriz Curricular Oficial.",
+        color: "#f59e0b",
+    },
+    {
+        icon: "📚",
+        title: "Sua Biblioteca Pessoal",
+        desc: "Salve e organize todas as suas criações em um só lugar privativo, prontas para imprimir.",
         color: "#8b5cf6",
+    },
+    {
+        icon: "⏱️",
+        title: "Assistente de Correção",
+        desc: "Gere rubricas e critérios de correção objetivos para agilizar a entrega de notas.",
+        color: "#ec4899",
+    },
+    {
+        icon: "🧩",
+        title: "Inclusão Facilitada",
+        desc: "Crie atividades multiníveis para estudantes com TDAH, Autismo ou Deficiência Intelectual em classe regular.",
+        color: "#0ea5e9",
     },
 ];
 
@@ -149,18 +149,12 @@ export default function LandingClient({ stats }: LandingProps) {
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <Image
-                            src="/omni_icone.webp"
-                            alt="Omnisfera"
-                            width={36}
+                            src="/omniprof_logo_flat_horizontal.webp"
+                            alt="OmniProf"
+                            width={160}
                             height={36}
-                            className="rounded-lg"
+                            className="object-contain"
                         />
-                        <span
-                            className="text-xl font-bold tracking-tight"
-                            style={{ color: "var(--text-primary)" }}
-                        >
-                            OmniProf
-                        </span>
                     </div>
                     <Link
                         href="/login"
@@ -324,14 +318,13 @@ export default function LandingClient({ stats }: LandingProps) {
                                 className="text-3xl sm:text-4xl font-extrabold mb-4"
                                 style={{ color: "var(--text-primary)" }}
                             >
-                                Tudo que sua escola precisa
+                                Tudo que um Professor precisa
                             </h2>
                             <p
                                 className="text-base sm:text-lg max-w-xl mx-auto"
                                 style={{ color: "var(--text-secondary)" }}
                             >
-                                Módulos integrados que cobrem todo o ciclo da inclusão — do
-                                planejamento à avaliação.
+                                Ferramentas que resolvem o trabalho árduo e deixam você focar no que mais importa: a sala de aula.
                             </p>
                         </div>
                     </Reveal>
@@ -439,11 +432,11 @@ export default function LandingClient({ stats }: LandingProps) {
                     <Reveal>
                         <div className="text-center mb-16">
                             <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" style={{ color: "var(--text-primary)" }}>
-                                Tecnologia em que você pode confiar
+                                Plataforma construída para Educadores
                             </h2>
                             <p className="text-base sm:text-lg max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-                                A Omnisfera cuida de toda infraestrutura complexa, privacidade de dados e acessibilidade
-                                por trás dos panos para que os professores foquem 100% no ser humano.
+                                O OmniProf lhe dá superpoderes computacionais, cuidando de toda infraestrutura complexa, privacidade e acessibilidade
+                                por trás dos panos para que você foque 100% no aluno.
                             </p>
                         </div>
                     </Reveal>
@@ -456,8 +449,8 @@ export default function LandingClient({ stats }: LandingProps) {
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                     </svg>
                                 </div>
-                                <h3 className="text-xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Conformidade LGPD</h3>
-                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Laudos médicos e PDI's totalmente resguardados no Supabase e logs de auditoria contínuos.</p>
+                                <h3 className="text-xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Seus Dados Protegidos</h3>
+                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Nossas IAs não treinam modelos com os dados que você insere. Propriedade intelectual 100% sua.</p>
                             </div>
                         </Reveal>
                         <Reveal>
@@ -625,14 +618,14 @@ export default function LandingClient({ stats }: LandingProps) {
                             className="text-3xl sm:text-4xl font-extrabold mb-6"
                             style={{ color: "var(--text-primary)" }}
                         >
-                            Pronto para transformar a inclusão na sua escola?
+                            Pronto para recuperar as suas noites de domingo?
                         </h2>
                         <p
                             className="text-lg mb-10"
                             style={{ color: "var(--text-secondary)" }}
                         >
-                            Entre na plataforma e comece a construir PEIs, gerar avaliações
-                            diagnósticas e criar atividades adaptadas com inteligência artificial hoje mesmo.
+                            Assine o plano, elimine horas de formatação no Word, gere
+                            aulas encantadoras com nossos motores de IA e volte a ter tempo livre para si.
                         </p>
                         <Link
                             href="/register"
@@ -659,14 +652,14 @@ export default function LandingClient({ stats }: LandingProps) {
                 <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
                         <Image
-                            src="/omni_icone.webp"
-                            alt="OmniEducação"
-                            width={24}
+                            src="/omniprof_logo_flat_horizontal.webp"
+                            alt="OmniProf"
+                            width={120}
                             height={24}
-                            className="rounded-md opacity-60"
+                            className="opacity-70 object-contain"
                         />
                         <span
-                            className="text-sm"
+                            className="text-sm ml-2"
                             style={{ color: "var(--text-tertiary)" }}
                         >
                             © {new Date().getFullYear()} OmniEducação. Todos os direitos reservados.
