@@ -134,7 +134,7 @@ export async function GET(
         periodo: paeeAtivo.config_ciclo
           ? `${paeeAtivo.config_ciclo.data_inicio || ""} a ${paeeAtivo.config_ciclo.data_fim || ""}`
           : null,
-        foco: paeeAtivo.config_ciclo?.foco_principal,
+        // o foco do ciclo é texto da equipe (pode ter diagnóstico); não vai para a família
       }
       : null,
     evolucao: { evolucao: evolucaoPorDisciplina },

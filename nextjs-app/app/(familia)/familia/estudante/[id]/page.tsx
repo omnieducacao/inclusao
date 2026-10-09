@@ -9,6 +9,7 @@ import Link from "next/link";
 import { ArrowLeft, Send, Check } from "lucide-react";
 import { Soltar, LinhaEscolha, Pilula } from "@/components/ferramenta/Mesa";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
+import { MissoesFamilia } from "@/components/missoes/MissoesFamilia";
 
 type EstudanteData = {
   estudante: { id: string; name: string; grade: string | null; class_group: string | null };
@@ -29,6 +30,11 @@ const TIPOS_MED = [
 const nomeTipo = (t: string) => TIPOS_MED.find((x) => x.id === t)?.nome || t;
 // data sem hora ("2026-10-09") não passa por fuso, senão vira o dia anterior
 const dia = (iso: string) => /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso.split("-").reverse().join("/") : new Date(iso).toLocaleDateString("pt-BR");
+/** "2026-01-28 a 2026-04-22" → " de 28/01 a 22/04" */
+const periodoBr = (p?: string | null) => {
+  const d = (p || "").match(/\d{4}-\d{2}-\d{2}/g);
+  return d && d.length === 2 ? ` de ${d[0].slice(8, 10)}/${d[0].slice(5, 7)} a ${d[1].slice(8, 10)}/${d[1].slice(5, 7)}` : "";
+};
 const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 function Aviso({ tom, children }: { tom: "erro" | "sucesso" | "info" | "atencao"; children: React.ReactNode }) {
@@ -236,10 +242,13 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
         )}
         {paee_resumo && (
           <p className="omni-apoio" style={{ margin: 0 }}>
-            Atendimento especializado (AEE) em andamento{paee_resumo.foco ? `: ${paee_resumo.foco}` : ""}{paee_resumo.periodo ? ` · ${paee_resumo.periodo}` : ""}.
+            {/* O foco do ciclo é texto da equipe (às vezes com diagnóstico e CID): a família vê só que há atendimento e o período */}
+            {primeiro} está no atendimento especializado (AEE, Atendimento Educacional Especializado){periodoBr(paee_resumo.periodo)}.
           </p>
         )}
       </section>
+
+      {studentId && <MissoesFamilia studentId={studentId} primeiro={primeiro} />}
 
       <section aria-labelledby="f-conversa" className="omni-cartao omni-cartao--plano" style={{ display: "grid", gap: 12 }}>
         <h2 id="f-conversa" style={h2}>Conversa com a escola</h2>

@@ -27,12 +27,14 @@ export async function GET() {
     sb.from("family_mensagens").select("student_id").eq("workspace_id", session!.workspace_id).eq("autor", "familia").is("lida_em", null),
   ]);
   if (l.error || m.error || msg.error) return NextResponse.json({ estudantes: [], semMigracao: true });
+  // Missões que a família marcou como feitas e esperam a escola confirmar (sem a migração, fica de fora)
+  const mis = await sb.from("estudante_missoes").select("student_id").eq("workspace_id", session!.workspace_id).eq("status", "feita");
 
-  const conta = new Map<string, { envios: number; mensagens: number }>();
-  const soma = (rows: Array<{ student_id: string }> | null, campo: "envios" | "mensagens") => {
+  const conta = new Map<string, { envios: number; mensagens: number; missoes: number }>();
+  const soma = (rows: Array<{ student_id: string }> | null, campo: "envios" | "mensagens" | "missoes") => {
     for (const r of rows || []) {
       if (!ids.includes(r.student_id)) continue;
-      const c = conta.get(r.student_id) || { envios: 0, mensagens: 0 };
+      const c = conta.get(r.student_id) || { envios: 0, mensagens: 0, missoes: 0 };
       c[campo]++;
       conta.set(r.student_id, c);
     }
@@ -40,6 +42,7 @@ export async function GET() {
   soma(l.data as Array<{ student_id: string }>, "envios");
   soma(m.data as Array<{ student_id: string }>, "envios");
   soma(msg.data as Array<{ student_id: string }>, "mensagens");
+  if (!mis.error) soma(mis.data as Array<{ student_id: string }>, "missoes");
   const nomes = new Map(lista.map((a) => [a.id, a.name]));
   return NextResponse.json({
     estudantes: [...conta.entries()].map(([id, c]) => ({ id, nome: nomes.get(id) || "", ...c })),

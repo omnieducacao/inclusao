@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { Footer } from "@/components/Footer";
 import { AnnouncementModal } from "@/components/AnnouncementModal";
 import SimboloOmnisfera from "@/components/SimboloOmnisfera";
+import { FaixaSimulacaoFamilia } from "@/components/familia/FaixaSimulacaoFamilia";
 
 /** Área da família no design system (10/10/2026): o mesmo topo, tema e cores do resto da Omnisfera. */
 export default async function FamiliaLayout({ children }: { children: React.ReactNode }) {
@@ -13,6 +14,7 @@ export default async function FamiliaLayout({ children }: { children: React.Reac
 
   return (
     <div className="omni-base" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--fundo)" }}>
+      {session.original_master_session && <FaixaSimulacaoFamilia nome={session.simulating_member_name || session.usuario_nome} />}
       <header className="omni-topo">
         <Link href="/familia" aria-label="Omnisfera, área da família" className="omni-topo__marca">
           <SimboloOmnisfera tamanho={34} animacao="hover" />

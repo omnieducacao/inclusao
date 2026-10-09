@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-type Item = { id: string; nome: string; envios: number; mensagens: number };
+type Item = { id: string; nome: string; envios: number; mensagens: number; missoes?: number };
 
 export function AvisoFamilia() {
   const [itens, setItens] = useState<Item[]>([]);
@@ -15,7 +15,8 @@ export function AvisoFamilia() {
   const partes = (i: Item) => [
     i.envios ? `${i.envios} ${i.envios === 1 ? "envio" : "envios"}` : "",
     i.mensagens ? `${i.mensagens} ${i.mensagens === 1 ? "mensagem" : "mensagens"}` : "",
-  ].filter(Boolean).join(" e ");
+    i.missoes ? `${i.missoes} ${i.missoes === 1 ? "missão para confirmar" : "missões para confirmar"}` : "",
+  ].filter(Boolean).join(", ");
   return (
     <div className="omni-aviso omni-aviso--info" role="status">
       <div>
@@ -23,7 +24,7 @@ export function AvisoFamilia() {
         <ul style={{ margin: "4px 0 0", paddingLeft: 18, display: "grid", gap: 2 }}>
           {itens.slice(0, 5).map((i) => (
             <li key={i.id} className="omni-aviso__texto">
-              <Link href={`/estudantes/${i.id}#familia`} style={{ color: "inherit", fontWeight: 700 }}>{i.nome}</Link>: {partes(i)}
+              <Link href={`/estudantes/${i.id}#${i.envios || i.mensagens ? "familia" : "missoes"}`} style={{ color: "inherit", fontWeight: 700 }}>{i.nome}</Link>: {partes(i)}
             </li>
           ))}
         </ul>
